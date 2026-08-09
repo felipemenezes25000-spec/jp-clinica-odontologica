@@ -71,6 +71,18 @@ export const CLINICA = {
  * data atual faria o servidor e o navegador renderizarem valores diferentes na
  * virada do ano, o que quebra a hidratação. Atualize uma vez por ano.
  */
+/**
+ * Confirmado pela clínica em 09/08/2026: são 23 anos, desde 2003.
+ *
+ * Não "corrija" para 2021 achando que é erro. O CNPJ 42.401.404/0001-37 é de
+ * 21/06/2021 e uma avaliação no Google fala em "mais de 3 anos" — os dois
+ * batem com a pessoa jurídica atual, não com o início da clínica. A data de
+ * abertura de um CNPJ não mede a idade de um negócio.
+ *
+ * `anos` é literal de propósito, como `anoCopyright`: calcular a partir de
+ * `new Date()` faria servidor e navegador divergirem na virada do ano.
+ * Custo: uma edição por ano.
+ */
 export const HISTORIA = {
   fundacao: 2003,
   anos: 23,

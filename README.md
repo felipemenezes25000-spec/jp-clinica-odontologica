@@ -194,7 +194,7 @@ O site passou por auditoria WCAG 2.1 AA com contraste calculado, não estimado.
 ## Pendências
 
 - [ ] 🔴 **Trocar as 8 pessoas fictícias antes de divulgar** — equipe, fundadores e dois avatares de depoimento. Nome, CRO **conferido** e foto recortada com fundo transparente de cada profissional. `grep -rn "ficticio: true" src` lista todas.
-- [ ] **Confirmar os 23 anos.** O CNPJ é de 21/06/2021 e uma avaliação diz "há mais de 3 anos". Pode ser reabertura sob novo CNPJ. É um número em `jp.ts`.
+- [x] ~~Confirmar os 23 anos.~~ **Confirmado pela clínica em 09/08/2026: 23 anos, desde 2003.** O CNPJ de 2021 é da pessoa jurídica atual, não o início da clínica — está documentado em `HISTORIA` para ninguém "corrigir" o número achando que é erro.
 - [ ] **Vincular o site à ficha do Google.** Hoje o Google mostra "Adicionar website" — é tráfego direto e gratuito sendo perdido.
 - [ ] **Trocar o domínio.** Ao migrar, atualizar `SITE_URL` em `jp.ts` e as URLs de `public/sitemap.xml`.
 - [ ] Páginas de **facetas**, **endodontia** e **periodontia** — os dois últimos estão na placa da clínica mas não no site, e há bom material de vídeo para os três.
