@@ -23,6 +23,15 @@ const base = {
 const TOOTH =
   "M12 4.1c-1.4 0-2.1.6-3.4.6-1.4 0-2.9-.4-2.9 2 0 2.3.7 3.9 1.1 5.7.4 1.8.4 4.8 1.7 4.8 1 0 .9-3 2-3h.9c1.1 0 1 3 2 3 1.3 0 1.3-3 1.7-4.8.4-1.8 1.1-3.4 1.1-5.7 0-2.4-1.5-2-2.9-2-1.3 0-2-.6-3.3-.6Z";
 
+/** Só a silhueta, sem decoração. Usado onde o dente é marca, não procedimento. */
+export function IconDente({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d={TOOTH} />
+    </svg>
+  );
+}
+
 /** Limpeza e profilaxia — tooth being polished. */
 export function IconLimpeza({ className }: IconProps) {
   return (

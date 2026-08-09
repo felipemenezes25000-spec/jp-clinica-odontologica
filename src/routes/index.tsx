@@ -43,7 +43,7 @@ import { ContactForm } from "@/components/site/ContactForm";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
 import { CinematicMotion } from "@/components/site/CinematicMotion";
 import { SkipLink } from "@/components/site/SkipLink";
-import { TreatmentIcon } from "@/components/site/TreatmentIcons";
+import { IconDente, TreatmentIcon } from "@/components/site/TreatmentIcons";
 import { AppleMark } from "@/components/site/AppleMark";
 import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
@@ -205,17 +205,21 @@ function StructureCarousel() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-forest-2/72 via-transparent to-transparent" />
 
+        {/* A numeração "Espaço 01" saiu: os pontos abaixo já dizem onde a pessoa
+            está, e com aria-current dizem isso também para o leitor de tela. */}
         <div className="absolute inset-x-5 bottom-5 sm:inset-x-8 sm:bottom-8">
-          <div className="max-w-xl rounded-[1.5rem] border border-white/15 bg-forest-2/78 p-5 text-white backdrop-blur-xl sm:p-6">
-            <p className="text-[10px] font-extrabold uppercase tracking-[.17em] text-lime">
-              Espaço {String(active + 1).padStart(2, "0")}
-            </p>
-            <h3 className="mt-2 font-display text-2xl font-extrabold tracking-[-.035em] sm:text-3xl">
-              {current.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/68 sm:text-base">
-              {current.text}
-            </p>
+          <div className="flex max-w-sm items-start gap-3 rounded-[1.25rem] border border-white/15 bg-forest-2/78 p-4 text-white backdrop-blur-xl">
+            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-forest-2">
+              <IconDente className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <h3 className="font-display text-lg font-extrabold tracking-[-.03em] sm:text-xl">
+                {current.title}
+              </h3>
+              <p className="mt-1 text-xs leading-relaxed text-white/68 sm:text-[13px]">
+                {current.text}
+              </p>
+            </div>
           </div>
         </div>
 
