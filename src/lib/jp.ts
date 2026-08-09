@@ -1,0 +1,612 @@
+/** Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta. */
+export const SITE_URL = "https://jp-clinica-odontologica-award-final.vercel.app";
+
+export const CLINICA = {
+  nome: "JP Clínica Odontológica",
+  razaoSocial: "J P Clínica Integrada Odontológica LTDA",
+  cnpj: "42.401.404/0001-37",
+  assinatura: "Ver seu sorriso é nossa missão.",
+  telefone: "(11) 3975-9902",
+  telefoneHref: "tel:+551139759902",
+  whatsapp: "(11) 97169-4647",
+  whatsappHref: "https://wa.me/5511971694647",
+  endereco: "R. Rio Verde, 1029 — Vila Bruna, São Paulo - SP, 02934-201",
+  bairro: "Vila Bruna • região da Freguesia do Ó",
+  cep: "02934-201",
+  mapsHref:
+    "https://www.google.com/maps/search/?api=1&query=R.+Rio+Verde,+1029+-+Vila+Bruna,+São+Paulo+-+SP,+02934-201",
+  // Endpoint de embed do Google, sem chave de API.
+  // Usamos a URL final de propósito: a forma curta (maps.google.com/...&output=embed)
+  // passa por um redirecionamento que responde com X-Frame-Options: SAMEORIGIN.
+  // Esta responde 200 sem esse cabeçalho, então pode ser enquadrada.
+  mapsEmbed:
+    "https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1sR.%20Rio%20Verde%2C%201029%20-%20Vila%20Bruna%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2002934-201!6i16",
+  horario: "Segunda a sexta, 08:00 às 18:00",
+  instagram: "https://www.instagram.com/jpclinicaodontologica/",
+  facebook: "https://www.facebook.com/jpclinicaodontologica/",
+  provaSocial: "4,5★ no Google • 176 avaliações",
+};
+
+/**
+ * Trajetória da clínica.
+ *
+ * `anos` é um número fixo de propósito: calcular a partir de `fundacao` com a
+ * data atual faria o servidor e o navegador renderizarem valores diferentes na
+ * virada do ano, o que quebra a hidratação. Atualize uma vez por ano.
+ */
+export const HISTORIA = {
+  fundacao: 2003,
+  anos: 23,
+  /** Ano do aviso de copyright. Fixo pelo mesmo motivo de `anos`: `new Date()`
+   *  no render faria servidor e navegador divergirem na virada do ano. */
+  anoCopyright: 2026,
+};
+
+/**
+ * Missão oficial da clínica, transcrita do quadro afixado na parede da JP.
+ * Texto da própria clínica — não reescrever sem confirmar com eles.
+ */
+export const MISSAO =
+  "Proporcionar aos nossos pacientes um tratamento humanizado e personalizado do começo ao fim, saúde bucal, sorriso e satisfação, resgatando sua autoestima!";
+
+/**
+ * Avaliações reais de pacientes no Google.
+ *
+ * Nota e volume conferidos direto na ficha do Google em agosto de 2026:
+ * 4,5 estrelas com 176 avaliações.
+ *
+ * Os textos abaixo vieram de um agregador (DentMap), que capturou apenas parte
+ * das avaliações — vale conferir na ficha do Google e, se possível, ampliar
+ * a seleção. Não acrescente depoimento que não exista lá.
+ */
+export const DEPOIMENTOS = [
+  {
+    texto: "Já faço meus tratamentos com eles a mais de 3 anos. A clínica é maravilhosa…",
+    autor: "Valeria Caponi Fontolan",
+  },
+  {
+    texto: "Fui bem recepcionada pelo Jeferson… Tudo muito perfeito! Parabéns a todos!",
+    autor: "Marjorye Andreatta",
+  },
+  {
+    texto: "Clínica maravilhosa! Recepcionista Isa é um amor… Muito bem atendida sempre!",
+    autor: "Roberta Fhage",
+  },
+];
+
+/**
+ * Equipe clínica.
+ *
+ * Só entra aqui quem tiver registro confirmado — CRO é dado regulado pelo CFO e
+ * publicar número errado expõe a clínica. Os dados abaixo foram lidos da placa
+ * da fachada. Campos opcionais ficam de fora do card quando ausentes.
+ */
+export type Profissional = {
+  nome: string;
+  registro: string;
+  papel?: string;
+  formacao?: string;
+  especialidade?: string;
+  /**
+   * Marca o card como vaga a preencher: renderiza em tom apagado, sem nome nem
+   * CRO inventado. Publicar dentista fictício com número de CRO falso num site
+   * de clínica real induziria o paciente a erro e usaria dado regulado pelo CFO.
+   * Remova a entrada (ou tire a flag e preencha) quando os dados chegarem.
+   */
+  placeholder?: boolean;
+  /**
+   * Retrato recortado, em PNG ou WebP **com fundo transparente**.
+   * Foto com fundo original quebra o efeito: a graça é a silhueta sobre a
+   * forma verde, com a cabeça passando do topo. Sem foto, o card cai num
+   * marcador neutro e o layout continua íntegro.
+   */
+  foto?: string;
+};
+
+export const EQUIPE: Profissional[] = [
+  {
+    nome: "Dra. Juliana Pelisser",
+    registro: "CROSP 78.159",
+    papel: "Responsável técnica",
+  },
+
+  // ─── VAGAS A PREENCHER ─────────────────────────────────────────────────────
+  // Trocar `placeholder: true` pelos dados reais assim que a clínica enviar:
+  //   nome, registro (CRO), papel, formacao, especialidade e foto recortada.
+  { nome: "Profissional 2", registro: "CRO a confirmar", placeholder: true },
+  { nome: "Profissional 3", registro: "CRO a confirmar", placeholder: true },
+  { nome: "Profissional 4", registro: "CRO a confirmar", placeholder: true },
+  { nome: "Profissional 5", registro: "CRO a confirmar", placeholder: true },
+  // ───────────────────────────────────────────────────────────────────────────
+];
+
+export const whatsappLink = (mensagem: string) =>
+  `${CLINICA.whatsappHref}?text=${encodeURIComponent(mensagem)}`;
+
+export const NAV = [
+  { label: "Início", href: "/#inicio" },
+  { label: "A Clínica", href: "/#clinica" },
+  { label: "Nossa História", href: "/#historia" },
+  { label: "Tratamentos", href: "/#tratamentos" },
+  { label: "Para a Família", href: "/#familia" },
+  { label: "Depoimentos", href: "/#depoimentos" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "Fale com a JP", href: "/#fale" },
+];
+
+export type Tratamento = {
+  slug: string;
+  titulo: string;
+  short: string;
+  desc: string;
+  icone: string;
+  kicker: string;
+  manifesto: string;
+  paraQuem: string[];
+  beneficios: string[];
+  etapas: { n: string; titulo: string; texto: string }[];
+  faq: { q: string; a: string }[];
+  destaque: string;
+};
+
+export const TRATAMENTOS: Tratamento[] = [
+  {
+    slug: "limpeza-profilaxia",
+    titulo: "Limpeza e profilaxia",
+    short: "Limpeza",
+    desc: "Remoção de placa e tártaro, com orientação de higiene e acompanhamento preventivo individualizado.",
+    icone: "sparkles",
+    kicker: "Prevenção que começa no básico bem feito.",
+    manifesto:
+      "Saúde bucal também é rotina. A limpeza profissional entra como parte de um acompanhamento pensado para preservar dentes e gengiva ao longo do tempo.",
+    paraQuem: [
+      "Quem quer manter a prevenção em dia",
+      "Pacientes com acúmulo de placa ou tártaro",
+      "Quem precisa revisar hábitos de higiene",
+    ],
+    beneficios: [
+      "Acompanhamento preventivo",
+      "Orientação de higiene personalizada",
+      "Avaliação de dentes e gengiva durante a consulta",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Avaliação",
+        texto: "A equipe examina dentes e gengiva e entende sua rotina de higiene.",
+      },
+      {
+        n: "02",
+        titulo: "Limpeza",
+        texto: "A remoção de placa e tártaro é feita conforme a necessidade identificada.",
+      },
+      {
+        n: "03",
+        titulo: "Orientação",
+        texto: "Você recebe recomendações práticas para o cuidado em casa.",
+      },
+      {
+        n: "04",
+        titulo: "Acompanhamento",
+        texto: "O intervalo de retorno é definido de forma individual.",
+      },
+    ],
+    faq: [
+      {
+        q: "Limpeza e remoção de tártaro são a mesma coisa?",
+        a: "Podem fazer parte da mesma consulta, mas a conduta depende do que for identificado na avaliação.",
+      },
+      {
+        q: "Qual é o intervalo ideal?",
+        a: "Não existe um intervalo único para todas as pessoas. A periodicidade é definida de acordo com o seu caso.",
+      },
+    ],
+    destaque: "Cuidar antes de incomodar.",
+  },
+  {
+    slug: "clareamento-dental",
+    titulo: "Clareamento dental",
+    short: "Clareamento",
+    desc: "Protocolos de clareamento indicados após avaliação, respeitando as características e a sensibilidade de cada paciente.",
+    icone: "sun",
+    kicker: "Estética com indicação, não com pressa.",
+    manifesto:
+      "Clarear o sorriso começa por entender a condição dos dentes e o resultado possível para o seu caso. A proposta é buscar naturalidade com acompanhamento profissional.",
+    paraQuem: [
+      "Quem deseja um sorriso visualmente mais claro",
+      "Pacientes aptos após avaliação clínica",
+      "Quem busca um plano estético acompanhado",
+    ],
+    beneficios: [
+      "Planejamento individual",
+      "Acompanhamento da evolução",
+      "Orientações para antes, durante e depois",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Avaliação",
+        texto: "A condição dos dentes e gengiva é analisada antes de qualquer indicação.",
+      },
+      {
+        n: "02",
+        titulo: "Planejamento",
+        texto: "A equipe define a abordagem adequada e explica o que esperar.",
+      },
+      {
+        n: "03",
+        titulo: "Clareamento",
+        texto: "O protocolo é realizado de acordo com a indicação profissional.",
+      },
+      {
+        n: "04",
+        titulo: "Revisão",
+        texto: "A evolução é acompanhada e os cuidados de manutenção são orientados.",
+      },
+    ],
+    faq: [
+      {
+        q: "Todo mundo pode fazer clareamento?",
+        a: "Não. A indicação depende da avaliação clínica, da saúde bucal e de características individuais.",
+      },
+      {
+        q: "O resultado fica igual para todas as pessoas?",
+        a: "Não. A resposta ao clareamento varia, por isso o planejamento é individualizado.",
+      },
+    ],
+    destaque: "Mais luz. Sem perder naturalidade.",
+  },
+  {
+    slug: "restauracoes",
+    titulo: "Restaurações",
+    short: "Restaurações",
+    desc: "Recuperação de dentes comprometidos por cárie ou perda de estrutura, buscando função, forma e integração estética.",
+    icone: "shield",
+    kicker: "Reconstruir sem chamar atenção para a reconstrução.",
+    manifesto:
+      "Uma restauração bem planejada busca devolver ao dente o que foi perdido, respeitando função, formato e contexto do sorriso.",
+    paraQuem: [
+      "Pacientes com cárie",
+      "Dentes com perda de estrutura",
+      "Casos que precisam recuperar forma e função",
+    ],
+    beneficios: [
+      "Recuperação da estrutura dental",
+      "Busca por integração estética",
+      "Planejamento de acordo com a extensão do caso",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Diagnóstico",
+        texto: "A equipe identifica a extensão do comprometimento do dente.",
+      },
+      {
+        n: "02",
+        titulo: "Planejamento",
+        texto: "A conduta e o material são definidos conforme a indicação.",
+      },
+      {
+        n: "03",
+        titulo: "Restauração",
+        texto: "A estrutura é reconstruída buscando função e formato adequados.",
+      },
+      {
+        n: "04",
+        titulo: "Ajustes",
+        texto: "Mordida, acabamento e orientações são revisados ao final.",
+      },
+    ],
+    faq: [
+      {
+        q: "Toda cárie precisa de restauração?",
+        a: "A conduta depende da avaliação e do estágio da lesão. O profissional define a abordagem mais adequada.",
+      },
+      {
+        q: "Restauração pode precisar ser trocada?",
+        a: "Restaurações precisam de acompanhamento. A necessidade de reparo ou troca é avaliada caso a caso.",
+      },
+    ],
+    destaque: "Forma e função voltando a conversar.",
+  },
+  {
+    slug: "implantes-dentarios",
+    titulo: "Implantes dentários",
+    short: "Implantes",
+    desc: "Reabilitação de dentes ausentes com planejamento individual e acompanhamento profissional em cada etapa.",
+    icone: "anchor",
+    kicker: "Reabilitação é recuperar presença, função e confiança.",
+    manifesto:
+      "Perder um dente muda mais do que a imagem do sorriso. O planejamento com implantes considera estrutura, função e contexto clínico antes de definir o caminho.",
+    paraQuem: [
+      "Pessoas com um ou mais dentes ausentes",
+      "Quem precisa discutir possibilidades de reabilitação",
+      "Pacientes aptos após exames e avaliação",
+    ],
+    beneficios: [
+      "Planejamento reabilitador individual",
+      "Acompanhamento por etapas",
+      "Foco em função e integração ao sorriso",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Avaliação",
+        texto: "Histórico, condição bucal e exames necessários são considerados no planejamento.",
+      },
+      {
+        n: "02",
+        titulo: "Plano",
+        texto: "A equipe explica possibilidades, etapas e cuidados previstos para o caso.",
+      },
+      {
+        n: "03",
+        titulo: "Tratamento",
+        texto: "O procedimento é realizado conforme a indicação e o planejamento profissional.",
+      },
+      {
+        n: "04",
+        titulo: "Reabilitação e manutenção",
+        texto: "A fase protética e os retornos de acompanhamento completam o cuidado.",
+      },
+    ],
+    faq: [
+      {
+        q: "Implante serve para qualquer pessoa?",
+        a: "Não necessariamente. A indicação depende de avaliação clínica, exames e condições individuais de saúde.",
+      },
+      {
+        q: "Preciso fazer exames antes?",
+        a: "Em muitos casos, exames de imagem e outras avaliações ajudam no planejamento. A equipe orienta o que é necessário.",
+      },
+    ],
+    destaque: "Um plano para voltar a sorrir com estrutura.",
+  },
+  {
+    slug: "proteses-dentarias",
+    titulo: "Próteses dentárias",
+    short: "Próteses",
+    desc: "Soluções protéticas fixas ou removíveis planejadas para apoiar mastigação, conforto e harmonia do sorriso.",
+    icone: "layers",
+    kicker: "Reabilitar é devolver possibilidades ao dia a dia.",
+    manifesto:
+      "Próteses são parte de um projeto de reabilitação. Cada caso pede uma solução compatível com as condições clínicas, a função e as prioridades do paciente.",
+    paraQuem: [
+      "Quem perdeu um ou mais dentes",
+      "Pacientes que precisam revisar uma prótese existente",
+      "Quem busca recuperar função mastigatória",
+    ],
+    beneficios: [
+      "Planejamento individual",
+      "Opções fixas ou removíveis conforme indicação",
+      "Acompanhamento de adaptação e manutenção",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Avaliação",
+        texto: "A condição bucal e a necessidade de reabilitação são analisadas.",
+      },
+      {
+        n: "02",
+        titulo: "Escolha da solução",
+        texto: "As possibilidades adequadas ao caso são apresentadas com clareza.",
+      },
+      {
+        n: "03",
+        titulo: "Confecção e provas",
+        texto: "A adaptação, forma e função são conferidas ao longo do processo.",
+      },
+      {
+        n: "04",
+        titulo: "Entrega e retorno",
+        texto: "A equipe orienta higiene, adaptação e acompanhamento.",
+      },
+    ],
+    faq: [
+      {
+        q: "Existe só um tipo de prótese?",
+        a: "Não. Há diferentes soluções protéticas, e a escolha depende da avaliação e das condições de cada caso.",
+      },
+      {
+        q: "Prótese precisa de manutenção?",
+        a: "Sim. O acompanhamento ajuda a revisar adaptação, higiene e condições dos tecidos de suporte.",
+      },
+    ],
+    destaque: "Conforto para voltar ao que importa.",
+  },
+  {
+    slug: "ortodontia",
+    titulo: "Aparelhos e ortodontia",
+    short: "Ortodontia",
+    desc: "Alinhamento dos dentes e acompanhamento da mordida por meio de planejamento ortodôntico individualizado.",
+    icone: "align",
+    kicker: "Mover dentes exige direção.",
+    manifesto:
+      "Ortodontia é um processo. O objetivo, o tipo de aparelho e o tempo de acompanhamento dependem do diagnóstico e da resposta de cada paciente.",
+    paraQuem: [
+      "Quem deseja avaliar alinhamento dentário",
+      "Pacientes com alterações de mordida",
+      "Crianças, adolescentes ou adultos com indicação ortodôntica",
+    ],
+    beneficios: [
+      "Planejamento de movimentação",
+      "Acompanhamento periódico",
+      "Avaliação funcional e estética do sorriso",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Avaliação",
+        texto: "A posição dos dentes, mordida e objetivos são analisados.",
+      },
+      {
+        n: "02",
+        titulo: "Documentação",
+        texto: "Quando indicada, a documentação ajuda a estruturar o planejamento.",
+      },
+      {
+        n: "03",
+        titulo: "Tratamento",
+        texto: "O aparelho e a estratégia são definidos de acordo com o diagnóstico.",
+      },
+      {
+        n: "04",
+        titulo: "Acompanhamento",
+        texto: "As consultas periódicas permitem revisar a evolução e ajustar o plano.",
+      },
+    ],
+    faq: [
+      {
+        q: "Adulto pode usar aparelho?",
+        a: "Sim, quando há indicação. A possibilidade e o tipo de tratamento são definidos após avaliação.",
+      },
+      {
+        q: "Quanto tempo dura?",
+        a: "O tempo varia conforme o diagnóstico, o objetivo e a resposta individual ao tratamento.",
+      },
+    ],
+    destaque: "Um movimento por vez. Um plano inteiro por trás.",
+  },
+  {
+    slug: "odontopediatria",
+    titulo: "Odontopediatria",
+    short: "Odontopediatria",
+    desc: "Cuidado odontológico para crianças com linguagem simples, acolhimento e construção gradual de confiança.",
+    icone: "heart",
+    kicker: "O primeiro vínculo com o dentista pode ser uma boa memória.",
+    manifesto:
+      "Cuidar de criança também é cuidar da experiência. A consulta respeita o tempo, a curiosidade e a adaptação de cada pequeno paciente.",
+    paraQuem: [
+      "Bebês e crianças",
+      "Famílias que querem iniciar prevenção cedo",
+      "Crianças que precisam construir confiança no ambiente odontológico",
+    ],
+    beneficios: [
+      "Abordagem acolhedora",
+      "Orientação para responsáveis",
+      "Foco em prevenção e hábitos desde cedo",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Acolhimento",
+        texto: "A criança conhece o ambiente e a equipe de forma gradual.",
+      },
+      {
+        n: "02",
+        titulo: "Avaliação",
+        texto: "A saúde bucal, hábitos e fase de desenvolvimento são observados.",
+      },
+      {
+        n: "03",
+        titulo: "Orientação",
+        texto: "Responsáveis recebem orientações práticas para a rotina da criança.",
+      },
+      {
+        n: "04",
+        titulo: "Acompanhamento",
+        texto: "Os retornos ajudam a manter prevenção e familiaridade com o cuidado.",
+      },
+    ],
+    faq: [
+      {
+        q: "Quando levar a criança ao dentista?",
+        a: "A avaliação precoce pode ajudar os responsáveis com higiene, hábitos e prevenção. A equipe orienta de acordo com a fase da criança.",
+      },
+      {
+        q: "E se a criança tiver medo?",
+        a: "A adaptação pode ser gradual. O atendimento busca respeitar o tempo da criança e construir confiança.",
+      },
+    ],
+    destaque: "Pequenos sorrisos. Grandes memórias.",
+  },
+  {
+    slug: "harmonizacao-orofacial",
+    titulo: "Harmonização orofacial",
+    short: "Harmonização",
+    desc: "Botox, preenchimento e skinbooster quando indicados, sempre mediante avaliação profissional e planejamento individual.",
+    icone: "wand",
+    kicker: "Estética facial sem apagar quem você é.",
+    manifesto:
+      "Procedimentos faciais devem começar por indicação, proporção e contexto. O objetivo é construir um plano coerente com a anatomia e as expectativas do paciente.",
+    paraQuem: [
+      "Quem deseja discutir estética facial com um profissional",
+      "Pacientes aptos após avaliação",
+      "Quem busca um plano individual para botox, preenchimento ou skinbooster",
+    ],
+    beneficios: [
+      "Avaliação individual",
+      "Planejamento por objetivos",
+      "Indicação responsável de procedimentos",
+    ],
+    etapas: [
+      {
+        n: "01",
+        titulo: "Conversa",
+        texto: "Objetivos, histórico e expectativas são discutidos sem pressa.",
+      },
+      {
+        n: "02",
+        titulo: "Avaliação facial",
+        texto: "O profissional analisa proporções e indicações possíveis para o caso.",
+      },
+      {
+        n: "03",
+        titulo: "Plano",
+        texto: "Procedimentos e prioridades são definidos apenas quando indicados.",
+      },
+      {
+        n: "04",
+        titulo: "Acompanhamento",
+        texto: "A evolução é revisada e novas condutas dependem da necessidade clínica.",
+      },
+    ],
+    faq: [
+      {
+        q: "Vocês fazem botox e preenchimento?",
+        a: "Esses procedimentos aparecem entre os serviços divulgados pela clínica e são realizados somente mediante avaliação e indicação profissional.",
+      },
+      {
+        q: "Posso escolher um procedimento pela internet?",
+        a: "O site ajuda a entender possibilidades, mas a indicação só pode ser definida após avaliação profissional.",
+      },
+    ],
+    destaque: "Sutileza é parte do plano.",
+  },
+];
+
+export const FAQ = [
+  {
+    q: "Como faço para agendar uma avaliação?",
+    a: "Você pode falar com a recepção pelo WhatsApp (11) 97169-4647, ligar para (11) 3975-9902 ou usar o formulário do site. Atendemos de segunda a sexta, das 08:00 às 18:00.",
+  },
+  {
+    q: "Onde fica a clínica?",
+    a: "A JP Clínica Odontológica fica na R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó, em São Paulo (CEP 02934-201).",
+  },
+  {
+    q: "Vocês atendem crianças e idosos?",
+    a: "Sim. Atendemos todas as fases da vida — da odontopediatria ao cuidado com adultos e idosos.",
+  },
+  {
+    q: "Tenho receio de ir ao dentista. Posso conversar antes?",
+    a: "Sim. Você pode explicar suas preocupações no agendamento e durante a avaliação. Explicamos cada etapa antes de começar e respeitamos o seu ritmo.",
+  },
+  {
+    q: "De quanto em quanto tempo devo fazer check-up?",
+    a: "A periodicidade depende do histórico, da condição bucal e do risco individual. O intervalo ideal deve ser definido pelo profissional na avaliação.",
+  },
+  {
+    q: "Como sei qual tratamento eu preciso?",
+    a: "O site apresenta os serviços da clínica, mas a indicação só é definida após avaliação presencial e análise individual do caso.",
+  },
+  {
+    q: "A harmonização orofacial é indicada para qualquer pessoa?",
+    a: "Não. Procedimentos como botox, preenchimento e skinbooster dependem de avaliação profissional, histórico de saúde e indicação individual.",
+  },
+  {
+    q: "A clínica trabalha com convênios ou parcelamento?",
+    a: "Essas condições podem mudar. Para informação atualizada sobre convênios, formas de pagamento e disponibilidade, consulte diretamente a equipe pelo WhatsApp.",
+  },
+];
