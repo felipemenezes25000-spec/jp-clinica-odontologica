@@ -112,15 +112,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "JP Clínica Odontológica — Dentista na Freguesia do Ó, SP" },
+      { title: "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, SP" },
       {
         name: "description",
         content:
           "Clínica odontológica na região da Freguesia do Ó (Vila Bruna, SP) para crianças, adultos e idosos. Agende sua avaliação pelo WhatsApp.",
       },
-      { name: "author", content: "JP Clínica Odontológica" },
+      { name: "author", content: "JP Clínica Integrada Odontológica" },
       { name: "theme-color", content: "#0a3c24" },
-      { property: "og:site_name", content: "JP Clínica Odontológica" },
+      { property: "og:site_name", content: "JP Clínica Integrada Odontológica" },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
       { name: "twitter:card", content: "summary_large_image" },

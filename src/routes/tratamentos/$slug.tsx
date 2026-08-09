@@ -64,8 +64,8 @@ export const Route = createFileRoute("/tratamentos/$slug")({
   head: ({ params }) => {
     const t = TRATAMENTOS.find((x) => x.slug === params.slug);
     if (!t) return {};
-    const title = `${t.titulo} | JP Clínica Odontológica — Freguesia do Ó`;
-    const description = `${t.desc} Atendimento na JP Clínica Odontológica, Vila Bruna, São Paulo.`;
+    const title = `${t.titulo} | JP Clínica Integrada Odontológica — Freguesia do Ó`;
+    const description = `${t.desc} Atendimento na JP Clínica Integrada Odontológica, Vila Bruna, São Paulo.`;
     const url = `${SITE_URL}/tratamentos/${t.slug}`;
     return {
       meta: [
@@ -179,7 +179,7 @@ function TreatmentPage() {
   const image = VISUALS[Math.max(index, 0) % VISUALS.length];
   const video = treatment ? VIDEOS[treatment.slug] : undefined;
   const wa = whatsappLink(
-    `Olá! Vi a página sobre ${treatment.titulo} e gostaria de agendar uma avaliação na JP Clínica Odontológica.`,
+    `Olá! Vi a página sobre ${treatment.titulo} e gostaria de agendar uma avaliação na JP Clínica Integrada Odontológica.`,
   );
   const others = TRATAMENTOS.filter((item) => item.slug !== treatment.slug).slice(0, 3);
 
@@ -212,7 +212,7 @@ function TreatmentPage() {
                   <ArrowLeft className="h-4 w-4" /> Todos os tratamentos
                 </a>
                 <p className="mt-8 text-[10px] font-black uppercase tracking-[.2em] text-white/42">
-                  0{index + 1} / 08 • JP Clínica Odontológica
+                  0{index + 1} / 08 • JP Clínica Integrada Odontológica
                 </p>
                 {/* Tracking capped at -.04em: at this size -.085em pulled the second
                     glyph over narrow first letters (the "I" in IMPLANTES vanished). */}
@@ -244,7 +244,7 @@ function TreatmentPage() {
                   <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] sm:aspect-[5/4] lg:aspect-[4/5]">
                     <img
                       src={image}
-                      alt={`JP Clínica Odontológica — ${treatment.titulo}`}
+                      alt={`JP Clínica Integrada Odontológica — ${treatment.titulo}`}
                       className="h-full w-full object-cover"
                       fetchPriority="high"
                     />

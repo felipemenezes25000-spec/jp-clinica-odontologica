@@ -2,7 +2,7 @@
 export const SITE_URL = "https://jp-clinica-odontologica-award-final.vercel.app";
 
 export const CLINICA = {
-  nome: "JP Clínica Odontológica",
+  nome: "JP Clínica Integrada Odontológica",
   razaoSocial: "J P Clínica Integrada Odontológica LTDA",
   cnpj: "42.401.404/0001-37",
   assinatura: "Ver seu sorriso é nossa missão.",
@@ -128,10 +128,11 @@ export const NAV = [
   { label: "A Clínica", href: "/#clinica" },
   { label: "Nossa História", href: "/#historia" },
   { label: "Tratamentos", href: "/#tratamentos" },
-  { label: "Para a Família", href: "/#familia" },
   { label: "Depoimentos", href: "/#depoimentos" },
+  { label: "Equipe", href: "/#equipe" },
+  { label: "Estrutura", href: "/#estrutura" },
   { label: "FAQ", href: "/#faq" },
-  { label: "Fale com a JP", href: "/#fale" },
+  { label: "Contato", href: "/#fale" },
 ];
 
 export type Tratamento = {
@@ -583,7 +584,7 @@ export const FAQ = [
   },
   {
     q: "Onde fica a clínica?",
-    a: "A JP Clínica Odontológica fica na R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó, em São Paulo (CEP 02934-201).",
+    a: "A JP Clínica Integrada Odontológica fica na R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó, em São Paulo (CEP 02934-201).",
   },
   {
     q: "Vocês atendem crianças e idosos?",

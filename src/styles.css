@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 
@@ -38,46 +39,44 @@
   --color-mint: var(--mint);
   --color-cream: var(--cream);
   --color-paper: var(--paper);
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  --radius: 1.1rem;
-  --background: oklch(0.985 0.012 112);
-  --foreground: oklch(0.17 0.025 145);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.17 0.025 145);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.17 0.025 145);
-  --primary: oklch(0.6 0.18 134);
-  --primary-foreground: oklch(0.99 0.008 112);
-  --secondary: oklch(0.955 0.032 124);
-  --secondary-foreground: oklch(0.28 0.09 144);
-  --muted: oklch(0.955 0.012 120);
-  --muted-foreground: oklch(0.47 0.028 145);
-  --accent: oklch(0.87 0.1 130);
-  --accent-foreground: oklch(0.21 0.06 143);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.88 0.024 125);
-  --input: oklch(0.9 0.02 125);
-  --ring: oklch(0.6 0.18 134);
+  --radius: 1.15rem;
+  --background: #f7f8f2;
+  --foreground: #172018;
+  --card: #ffffff;
+  --card-foreground: #172018;
+  --popover: #ffffff;
+  --popover-foreground: #172018;
+  --primary: #7bd51c;
+  --primary-foreground: #052d0b;
+  --secondary: #f0f6e9;
+  --secondary-foreground: #052d0b;
+  --muted: #eef1ea;
+  --muted-foreground: #667168;
+  --accent: #e7f5d5;
+  --accent-foreground: #052d0b;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: #dde5d7;
+  --input: #d4ded0;
+  --ring: #2f6b35;
 
-  --ink: oklch(0.14 0.028 150);
-  /* Accent green for small text on light surfaces. --primary reads at only
-     3.7:1 on white, which fails WCAG AA for body-size text; this darker step
-     measures 6.1:1 while keeping the same hue. */
-  --primary-ink: oklch(0.48 0.17 140);
-  --forest: oklch(0.28 0.105 144);
-  --forest-2: oklch(0.2 0.075 146);
-  --lime: oklch(0.76 0.2 132);
-  --mint: oklch(0.9 0.085 129);
-  --cream: oklch(0.975 0.025 109);
-  --paper: oklch(0.995 0.006 110);
+  --ink: #172018;
+  --primary-ink: #2f6b35;
+  --forest: #2f6b35;
+  --forest-2: #052d0b;
+  --lime: #7bd51c;
+  --mint: #e7f5d5;
+  --cream: #f7f8f2;
+  --paper: #fcfdf9;
 
-  --shadow-soft: 0 14px 40px -26px oklch(0.18 0.08 145 / 0.28);
-  --shadow-lift: 0 32px 90px -40px oklch(0.12 0.08 145 / 0.48);
+  --text-muted: #667168;
+  --shadow-soft: 0 18px 46px -30px rgba(5, 45, 11, 0.28);
+  --shadow-lift: 0 36px 90px -42px rgba(5, 45, 11, 0.45);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -933,4 +932,47 @@
 
 .mobile-sticky-cta {
   padding-bottom: calc(0.625rem + env(safe-area-inset-bottom));
+}
+
+/* ---- Visual system approved for the JP redesign ---- */
+.section-light {
+  background:
+    radial-gradient(circle at 9% 10%, rgba(123, 213, 28, 0.08), transparent 24rem),
+    radial-gradient(circle at 92% 86%, rgba(47, 107, 53, 0.07), transparent 26rem), var(--paper);
+}
+.section-deep {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(123, 213, 28, 0.12), transparent 28rem),
+    linear-gradient(135deg, #052d0b 0%, #0a3a15 52%, #143f1d 100%);
+}
+.section-mid {
+  background:
+    radial-gradient(circle at 12% 5%, rgba(123, 213, 28, 0.18), transparent 27rem),
+    linear-gradient(135deg, #244e2a 0%, #183d20 48%, #0b3214 100%);
+}
+.jp-hairline {
+  border-color: rgba(47, 107, 53, 0.14);
+}
+.jp-soft-card {
+  border: 1px solid rgba(47, 107, 53, 0.11);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 70px -45px rgba(5, 45, 11, 0.45);
+}
+.jp-dark-glass {
+  border: 1px solid rgba(123, 213, 28, 0.2);
+  background: rgba(5, 45, 11, 0.72);
+  box-shadow: 0 24px 70px -45px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.sticky-booking-shell {
+  pointer-events: none;
+}
+.sticky-booking-shell > * {
+  pointer-events: auto;
+}
+@media (min-width: 768px) {
+  body {
+    padding-bottom: 0;
+  }
 }
