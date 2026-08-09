@@ -26,7 +26,6 @@ import consultorioReal2Img from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
-import missaoQuadroImg from "@/assets/missao-quadro.webp";
 
 import limpezaPoster from "@/assets/video-limpeza-poster.webp";
 import clareamentoPoster from "@/assets/video-clareamento-poster.webp";
@@ -46,16 +45,10 @@ import { CinematicMotion } from "@/components/site/CinematicMotion";
 import { SkipLink } from "@/components/site/SkipLink";
 import { TreatmentIcon } from "@/components/site/TreatmentIcons";
 import { AppleMark } from "@/components/site/AppleMark";
-import {
-  CLINICA,
-  DEPOIMENTOS,
-  EQUIPE,
-  FAQ,
-  HISTORIA,
-  MISSAO,
-  TRATAMENTOS,
-  whatsappLink,
-} from "@/lib/jp";
+import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
+import { ReviewsSection } from "@/components/site/ReviewsSection";
+import { HistorySection } from "@/components/site/HistorySection";
+import { CLINICA, DEPOIMENTOS, EQUIPE, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
 const DESCRIPTION =
@@ -287,7 +280,7 @@ function Home() {
             className="pointer-events-none absolute -bottom-44 -left-32 h-[34rem] w-[34rem] text-primary/[.06]"
           />
 
-          <div className="container-jp relative grid gap-12 lg:grid-cols-[.92fr_1.08fr] lg:items-center lg:gap-14">
+          <div className="jp-container relative grid gap-12 lg:grid-cols-[.92fr_1.08fr] lg:items-center lg:gap-14">
             <Reveal>
               <span className="eyebrow text-primary-ink">Odontologia para toda a vida</span>
               <h1 className="mt-6 max-w-3xl font-display text-[clamp(4rem,9vw,7.7rem)] font-extrabold leading-[.83] tracking-[-.065em] text-forest-2">
@@ -367,7 +360,7 @@ function Home() {
             </Reveal>
           </div>
 
-          <div className="container-jp relative mt-16">
+          <div className="jp-container relative mt-16">
             <Reveal delay={150}>
               <div className="grid overflow-hidden rounded-[1.7rem] border border-forest/9 bg-white shadow-[0_18px_50px_-38px_rgba(7,55,28,.35)] sm:grid-cols-2 lg:grid-cols-4">
                 {[
@@ -419,7 +412,7 @@ function Home() {
             className="absolute -right-20 top-16 h-96 w-96 rounded-full bg-lime/12 blur-[120px]"
           />
 
-          <div className="container-jp relative">
+          <div className="jp-container relative">
             <Reveal className="grid gap-10 lg:grid-cols-[.95fr_1.05fr] lg:items-end">
               <div>
                 <span className="eyebrow text-lime">Nossa metodologia</span>
@@ -494,260 +487,10 @@ function Home() {
         </section>
 
         {/* 03 — HISTÓRIA */}
-        <section
-          id="historia"
-          className="section-mid relative isolate overflow-hidden py-20 text-white sm:py-28 lg:py-36"
-        >
-          <AppleMark
-            strokeWidth={0.62}
-            className="pointer-events-none absolute -right-24 -top-16 h-[34rem] w-[34rem] text-lime/[.11]"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute left-[4%] top-0 h-72 w-72 rounded-full bg-lime/10 blur-[110px]"
-          />
-
-          <div className="container-jp relative">
-            <div className="grid gap-10 lg:grid-cols-[.94fr_1.06fr] lg:items-start">
-              <Reveal>
-                <span className="eyebrow text-lime">Nossa história</span>
-                <h2 className="mt-6 max-w-3xl font-display text-[clamp(3.2rem,6.5vw,6rem)] font-extrabold leading-[.9] tracking-[-.055em]">
-                  São <span className="text-lime">{HISTORIA.anos} anos</span>
-                  <span className="mt-2 block">cuidando dos sorrisos da Freguesia do Ó.</span>
-                </h2>
-
-                <div className="mt-7 max-w-2xl space-y-4 text-base font-medium leading-relaxed text-white/70 sm:text-lg">
-                  <p>
-                    A{" "}
-                    <strong className="font-extrabold text-lime">
-                      JP Clínica Integrada Odontológica
-                    </strong>{" "}
-                    acompanha gerações de pacientes com o mesmo compromisso: escutar com atenção,
-                    orientar com clareza e cuidar com responsabilidade.
-                  </p>
-                  <p>
-                    Ao longo de {HISTORIA.anos} anos, construímos uma história de confiança,
-                    proximidade e atendimento humanizado para crianças, adultos e idosos.
-                  </p>
-                </div>
-
-                <div className="jp-dark-glass mt-8 rounded-[1.6rem] p-6 sm:p-7">
-                  <span className="font-display text-6xl font-extrabold leading-none text-lime">
-                    “
-                  </span>
-                  <blockquote className="-mt-2 max-w-xl font-display text-xl font-extrabold leading-snug text-white sm:text-2xl">
-                    Nossa missão é transformar vidas por meio do cuidado odontológico humanizado,
-                    unindo tecnologia, ética e acolhimento.
-                  </blockquote>
-                  <p className="mt-5 text-[10px] font-extrabold uppercase tracking-[.15em] text-lime">
-                    JP Clínica Integrada Odontológica
-                  </p>
-                </div>
-              </Reveal>
-
-              <Reveal delay={80}>
-                <div className="jp-dark-glass relative rounded-[2rem] p-5 sm:p-7">
-                  <div className="flex items-start gap-4">
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-lime/25 bg-lime/10 text-lime">
-                      <UsersRound className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-lime/80">
-                        Quem construiu essa história
-                      </p>
-                      <h3 className="mt-2 font-display text-3xl font-extrabold tracking-[-.04em]">
-                        Nossos fundadores
-                      </h3>
-                      <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/60">
-                        Mais que dentistas, pessoas que acreditam no poder do cuidado e nas relações
-                        de confiança.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-7 grid gap-4 sm:grid-cols-2">
-                    {[0, 1].map((slot) => (
-                      <div
-                        key={slot}
-                        className="overflow-hidden rounded-[1.45rem] border border-white/12 bg-white/[.06]"
-                      >
-                        <div className="relative aspect-[4/4.15] overflow-hidden bg-[linear-gradient(180deg,rgba(123,213,28,.12),rgba(255,255,255,.035))]">
-                          <div className="absolute inset-0 grid place-items-center">
-                            <span className="grid h-28 w-28 place-items-center rounded-full border border-lime/20 bg-forest-2/50 text-lime/70">
-                              <AppleMark className="h-16 w-16" strokeWidth={1} />
-                            </span>
-                          </div>
-                          <span className="absolute inset-x-4 bottom-4 rounded-full border border-white/12 bg-forest-2/75 px-4 py-2 text-center text-[10px] font-extrabold uppercase tracking-[.11em] text-white/65 backdrop-blur">
-                            Retrato dos fundadores
-                          </span>
-                        </div>
-                        <div className="p-4 text-center">
-                          <p className="font-display text-lg font-extrabold">Fundador(a) da JP</p>
-                          <p className="mt-1 text-[10px] font-bold uppercase tracking-[.1em] text-lime/70">
-                            23 anos construindo essa história
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <figure className="mt-5 overflow-hidden rounded-[1.3rem] border border-white/10 bg-forest-2/40">
-                    <img
-                      src={missaoQuadroImg}
-                      alt="Quadro com a missão da JP Clínica afixado na parede da clínica"
-                      loading="lazy"
-                      className="h-32 w-full object-cover opacity-75"
-                    />
-                    <figcaption className="border-t border-white/10 p-5">
-                      <blockquote className="text-sm font-semibold leading-relaxed text-white/85">
-                        “{MISSAO}”
-                      </blockquote>
-                      <p className="mt-3 text-[10px] font-black uppercase tracking-[.14em] text-lime/80">
-                        Missão da JP — transcrita do quadro na parede
-                      </p>
-                    </figcaption>
-                  </figure>
-                </div>
-              </Reveal>
-            </div>
-
-            <Reveal delay={120}>
-              <div className="mt-10 grid gap-4 lg:grid-cols-[1.55fr_.75fr]">
-                <div className="grid overflow-hidden rounded-[1.45rem] border border-white/12 bg-forest-2/45 sm:grid-cols-3">
-                  {[
-                    [
-                      CalendarCheck,
-                      `Desde ${HISTORIA.fundacao}`,
-                      "Uma trajetória sólida de cuidado e confiança.",
-                    ],
-                    [
-                      HeartHandshake,
-                      `${HISTORIA.anos} anos de história`,
-                      "Crescendo junto com a nossa comunidade.",
-                    ],
-                    [MapPin, "Vila Bruna • Freguesia do Ó", "Nosso lar, nossa inspiração."],
-                  ].map(([Icon, title, text], i) => {
-                    const C = Icon as typeof CalendarCheck;
-                    return (
-                      <div
-                        key={String(title)}
-                        className={`p-5 sm:p-6 ${i ? "border-t border-white/10 sm:border-l sm:border-t-0" : ""}`}
-                      >
-                        <span className="grid h-10 w-10 place-items-center rounded-full bg-lime text-forest-2">
-                          <C className="h-4.5 w-4.5" />
-                        </span>
-                        <p className="mt-4 font-display text-base font-extrabold text-white">
-                          {String(title)}
-                        </p>
-                        <p className="mt-1.5 text-xs leading-relaxed text-white/52">
-                          {String(text)}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center gap-4 rounded-[1.45rem] border border-white/25 bg-cream p-6 text-forest-2 shadow-[0_24px_60px_-40px_rgba(0,0,0,.55)]">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-forest-2">
-                    <HeartHandshake className="h-5 w-5" />
-                  </span>
-                  <p className="text-sm font-medium leading-relaxed text-forest/70">
-                    Cada sorriso que cuidamos carrega nossa história, nossa dedicação e o propósito
-                    que nos move todos os dias:{" "}
-                    <strong className="font-extrabold text-primary-ink">
-                      ver você sorrir com saúde, confiança e bem-estar.
-                    </strong>
-                  </p>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        <HistorySection />
 
         {/* 04 — ESPECIALIDADES */}
-        <section
-          id="tratamentos"
-          className="relative overflow-hidden bg-paper py-20 text-forest-2 sm:py-28 lg:py-36"
-        >
-          <div
-            aria-hidden="true"
-            className="absolute -right-32 top-20 h-96 w-96 rounded-full bg-mint/70 blur-[120px]"
-          />
-          <div className="container-jp relative">
-            <Reveal className="grid gap-8 lg:grid-cols-[1fr_.72fr] lg:items-end">
-              <div>
-                <span className="eyebrow text-primary-ink">Tratamentos</span>
-                <h2 className="mt-5 max-w-4xl font-display text-[clamp(3.4rem,7vw,6.7rem)] font-extrabold leading-[.88] tracking-[-.055em]">
-                  Nossas <span className="text-primary">especialidades.</span>
-                </h2>
-                <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-forest/65">
-                  Cuidado completo para o seu sorriso, em todas as fases da vida.
-                </p>
-              </div>
-              <div className="lg:pb-1">
-                <p className="max-w-lg text-sm font-medium leading-relaxed text-forest/67 sm:text-base">
-                  Na JP Clínica Integrada Odontológica, diferentes áreas de cuidado se conectam para
-                  atender cada necessidade. A indicação ideal depende da avaliação profissional.
-                </p>
-                <a
-                  href={waGeral}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="button-primary mt-7"
-                >
-                  Quero entender meu caso
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-              </div>
-            </Reveal>
-
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:mt-16 lg:grid-cols-4">
-              {TRATAMENTOS.map((item, i) => (
-                <Reveal key={item.slug} delay={(i % 4) * 45}>
-                  <article className="group flex h-full flex-col overflow-hidden rounded-[1.65rem] border border-forest/9 bg-white shadow-[0_22px_60px_-42px_rgba(7,55,28,.38)] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_30px_70px_-40px_rgba(7,55,28,.45)]">
-                    <div className="relative aspect-[16/10] overflow-hidden bg-mint">
-                      <img
-                        src={TREATMENT_MEDIA[i]!}
-                        alt={`Imagem relacionada a ${item.titulo}`}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-forest-2/38 via-transparent to-transparent" />
-                      <span className="absolute left-4 top-4 grid h-10 w-10 place-items-center rounded-full border border-white/30 bg-white/90 text-forest-2 shadow-sm backdrop-blur">
-                        <TreatmentIcon index={i} className="h-5 w-5" />
-                      </span>
-                    </div>
-                    <div className="flex flex-1 flex-col p-5 sm:p-6">
-                      <h3 className="font-display text-xl font-extrabold leading-tight tracking-[-.03em]">
-                        {item.titulo}
-                      </h3>
-                      <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-forest/62">
-                        {item.desc}
-                      </p>
-                      <div className="mt-auto flex items-center justify-between border-t border-forest/8 pt-5">
-                        <a
-                          href={`/tratamentos/${item.slug}`}
-                          className="text-xs font-extrabold text-primary-ink"
-                        >
-                          Saiba mais
-                        </a>
-                        <a
-                          href={whatsappLink(`Olá! Gostaria de saber mais sobre ${item.titulo}.`)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={`Falar no WhatsApp sobre ${item.titulo}`}
-                          className="grid h-9 w-9 place-items-center rounded-full bg-mint text-forest-2 transition group-hover:bg-lime"
-                        >
-                          <ArrowUpRight className="h-4 w-4" />
-                        </a>
-                      </div>
-                    </div>
-                  </article>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
+        <SpecialtiesSection />
 
         {/* 05 — PARA TODA A FAMÍLIA */}
         <section
@@ -767,7 +510,7 @@ function Home() {
             className="absolute -left-28 bottom-0 h-96 w-96 rounded-full bg-lime/12 blur-[120px]"
           />
 
-          <div className="container-jp relative">
+          <div className="jp-container relative">
             <Reveal className="max-w-4xl">
               <span className="eyebrow text-lime">Para toda a família</span>
               <h2 className="mt-6 max-w-4xl font-display text-[clamp(3.5rem,7vw,6.8rem)] font-extrabold leading-[.86] tracking-[-.06em]">
@@ -825,114 +568,7 @@ function Home() {
         </section>
 
         {/* 06 — AVALIAÇÕES */}
-        <section
-          id="depoimentos"
-          className="relative overflow-hidden bg-cream py-20 sm:py-28 lg:py-36"
-        >
-          <div
-            aria-hidden="true"
-            className="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-mint/55 blur-[130px]"
-          />
-          <div className="container-jp relative">
-            <Reveal className="grid gap-10 lg:grid-cols-[.86fr_1.14fr] lg:items-start">
-              <div>
-                <span className="eyebrow text-primary-ink">Avaliações</span>
-                <h2 className="mt-5 max-w-3xl font-display text-[clamp(3.2rem,6.2vw,5.8rem)] font-extrabold leading-[.9] tracking-[-.055em] text-forest-2">
-                  A confiança dos pacientes aparece{" "}
-                  <span className="text-primary">em cada sorriso.</span>
-                </h2>
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-forest/65">
-                  Cada avaliação reflete o cuidado, a atenção e o compromisso da equipe em oferecer
-                  uma experiência humana e clara em todas as fases do tratamento.
-                </p>
-
-                <div className="mt-8 rounded-[1.8rem] border border-forest/9 bg-white p-6 shadow-[0_20px_55px_-40px_rgba(7,55,28,.4)] sm:p-7">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[.16em] text-primary-ink">
-                    Avaliação média dos pacientes
-                  </p>
-                  <div className="mt-3 flex items-end gap-4">
-                    <span className="font-display text-[5.6rem] font-extrabold leading-none tracking-[-.075em] text-forest-2">
-                      4,5
-                    </span>
-                    <div className="pb-2">
-                      <div className="flex gap-1 text-primary" aria-label="4,5 estrelas no Google">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className="h-5 w-5 fill-primary" />
-                        ))}
-                      </div>
-                      <p className="mt-2 text-sm font-bold text-forest/58">
-                        176 avaliações no Google
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 grid gap-4 border-t border-forest/8 pt-5 sm:grid-cols-3">
-                    {[
-                      [ShieldCheck, "Confiança local"],
-                      [HeartHandshake, "Experiência que acolhe"],
-                      [BadgeCheck, "Cuidado consistente"],
-                    ].map(([Icon, text]) => {
-                      const C = Icon as typeof ShieldCheck;
-                      return (
-                        <span
-                          key={String(text)}
-                          className="flex items-center gap-2 text-xs font-extrabold text-forest/65"
-                        >
-                          <C className="h-4 w-4 shrink-0 text-primary" />
-                          {String(text)}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                {DEPOIMENTOS.map((item, i) => (
-                  <Reveal
-                    key={item.autor}
-                    delay={i * 60}
-                    className={i === 0 ? "sm:col-span-2" : ""}
-                  >
-                    <figure
-                      className={`h-full rounded-[1.8rem] p-7 sm:p-8 ${
-                        i === 0
-                          ? "bg-forest-2 text-white shadow-[0_28px_70px_-42px_rgba(7,55,28,.6)]"
-                          : "border border-forest/9 bg-white text-forest-2"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-5xl font-black leading-none ${i === 0 ? "text-lime" : "text-primary"}`}
-                        >
-                          “
-                        </span>
-                        <div className="flex gap-0.5">
-                          {Array.from({ length: 5 }).map((_, star) => (
-                            <Star
-                              key={star}
-                              className={`h-4 w-4 ${i === 0 ? "fill-lime text-lime" : "fill-primary text-primary"}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <blockquote
-                        className={`mt-5 font-display font-extrabold leading-[1.1] tracking-[-.035em] ${i === 0 ? "text-3xl sm:text-4xl" : "text-2xl"}`}
-                      >
-                        “{item.texto}”
-                      </blockquote>
-                      <figcaption
-                        className={`mt-7 border-t pt-5 text-xs font-extrabold uppercase tracking-[.1em] ${i === 0 ? "border-white/12 text-white/50" : "border-forest/8 text-forest/50"}`}
-                      >
-                        {item.autor} • avaliação no Google
-                      </figcaption>
-                    </figure>
-                  </Reveal>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        <ReviewsSection />
 
         {/* 07 — EQUIPE */}
         <section
@@ -948,7 +584,7 @@ function Home() {
             className="absolute -left-48 bottom-[-10rem] h-[28rem] w-[28rem] rounded-full border border-primary/10"
           />
 
-          <div className="container-jp relative">
+          <div className="jp-container relative">
             <Reveal>
               <span className="eyebrow text-primary-ink">Quem cuida de você</span>
               <h2 className="mt-5 max-w-4xl font-display text-[clamp(3.6rem,7vw,6.5rem)] font-extrabold leading-[.88] tracking-[-.06em] text-forest-2">
@@ -1044,7 +680,7 @@ function Home() {
             aria-hidden="true"
             className="absolute -left-32 top-16 h-96 w-96 rounded-full bg-mint/60 blur-[130px]"
           />
-          <div className="container-jp relative">
+          <div className="jp-container relative">
             <Reveal className="flex flex-col justify-between gap-7 lg:flex-row lg:items-end">
               <div>
                 <span className="eyebrow text-primary-ink">A clínica por dentro</span>
@@ -1113,7 +749,7 @@ function Home() {
             className="absolute -left-24 bottom-0 h-96 w-96 rounded-full bg-lime/12 blur-[120px]"
           />
 
-          <div className="container-jp relative grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:items-start">
+          <div className="jp-container relative grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:items-start">
             <Reveal>
               <span className="eyebrow text-lime">Perguntas frequentes</span>
               <h2 className="mt-5 max-w-xl font-display text-[clamp(3.3rem,6.4vw,6rem)] font-extrabold leading-[.88] tracking-[-.06em]">
@@ -1177,7 +813,7 @@ function Home() {
             className="absolute -right-32 top-0 h-[32rem] w-[32rem] rounded-full bg-mint/70 blur-[140px]"
           />
 
-          <div className="container-jp relative">
+          <div className="jp-container relative">
             <div className="grid gap-10 lg:grid-cols-[.92fr_1.08fr] lg:items-start">
               <Reveal>
                 <span className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-mint/55 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-primary-ink">

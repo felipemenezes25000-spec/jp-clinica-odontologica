@@ -1,203 +1,242 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Menu, MessageCircle, Phone, X } from "lucide-react";
+import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
+
 import logo from "@/assets/logo-jp-official.webp";
 import { CLINICA, NAV, whatsappLink } from "@/lib/jp";
 
 export function Header() {
-  const [open, setOpen] = useState(false);
+  const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const botaoRef = useRef<HTMLButtonElement>(null);
-  const painelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const aoRolar = () => setScrolled(window.scrollY > 30);
+    aoRolar();
+    window.addEventListener("scroll", aoRolar, { passive: true });
+    return () => window.removeEventListener("scroll", aoRolar);
   }, []);
 
+  // Escape fecha e devolve o foco ao botão — senão a pessoa perde o lugar.
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const painel = painelRef.current;
-    if (!painel) return;
-
-    const focaveis = () =>
-      [...painel.querySelectorAll<HTMLElement>("a[href], button:not([disabled])")].filter(
-        (el) => el.offsetParent !== null,
-      );
-
-    focaveis()[0]?.focus();
-
+    if (!aberto) return;
     const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        botaoRef.current?.focus();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const lista = focaveis();
-      const primeiro = lista[0];
-      const ultimo = lista[lista.length - 1];
-      if (!primeiro || !ultimo) return;
-      if (e.shiftKey && document.activeElement === primeiro) {
-        e.preventDefault();
-        ultimo.focus();
-      } else if (!e.shiftKey && document.activeElement === ultimo) {
-        e.preventDefault();
-        primeiro.focus();
-      }
+      if (e.key !== "Escape") return;
+      setAberto(false);
+      botaoRef.current?.focus();
     };
-
     document.addEventListener("keydown", aoTeclar);
     return () => document.removeEventListener("keydown", aoTeclar);
-  }, [open]);
-
-  const fecharMenu = () => {
-    setOpen(false);
-    botaoRef.current?.focus();
-  };
+  }, [aberto]);
 
   const wa = whatsappLink(
-    "Olá! Vim pelo site da JP Clínica Integrada Odontológica e gostaria de agendar uma avaliação.",
+    "Olá! Vim pelo site da JP Clínica Odontológica e gostaria de agendar uma avaliação.",
   );
 
+  const fechar = () => setAberto(false);
+
   return (
-    <>
-      <div className="fixed inset-x-0 top-0 z-[80] hidden h-7 items-center bg-forest-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/70 lg:flex">
-        <div className="container-jp flex items-center justify-between">
-          <span>Vila Bruna • Freguesia do Ó • São Paulo/SP</span>
-          <span className="flex items-center gap-5">
-            <span>Segunda a sexta • 08h às 18h</span>
-            <a href={CLINICA.telefoneHref} className="transition-colors hover:text-lime">
+    <header
+      className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
+        scrolled ? "shadow-[0_10px_40px_rgba(5,45,11,0.08)]" : ""
+      }`}
+    >
+      {/* BARRA SUPERIOR */}
+      <div className="bg-[#052D0B] text-white">
+        <div className="jp-container-wide flex h-[34px] items-center justify-between">
+          <span className="flex items-center gap-2">
+            <MapPin size={14} strokeWidth={1.8} className="text-[#7BD51C]" aria-hidden="true" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-[11px]">
+              Vila Bruna
+              <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
+                •
+              </span>
+              Freguesia do Ó
+              <span className="hidden sm:inline">
+                <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
+                  •
+                </span>
+                São Paulo/SP
+              </span>
+            </span>
+          </span>
+
+          <div className="hidden items-center gap-5 md:flex">
+            <span className="flex items-center gap-2">
+              <Clock3 size={14} className="text-[#7BD51C]" aria-hidden="true" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-[11px]">
+                Segunda a sexta
+                <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
+                  •
+                </span>
+                08h às 18h
+              </span>
+            </span>
+
+            <span aria-hidden="true" className="h-4 w-px bg-[#7BD51C]/40" />
+
+            <a
+              href={CLINICA.telefoneHref}
+              className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.04em] text-white transition hover:text-[#7BD51C]"
+            >
+              <Phone size={13} className="text-[#7BD51C]" aria-hidden="true" />
               {CLINICA.telefone}
             </a>
-          </span>
+          </div>
         </div>
       </div>
 
-      <header
-        className={`fixed inset-x-0 top-0 z-[70] border-b border-forest/8 bg-white/95 backdrop-blur-xl transition-all duration-300 lg:top-7 ${
-          scrolled ? "shadow-[0_14px_45px_-35px_rgba(7,55,28,.5)]" : ""
-        }`}
-      >
+      {/* NAVEGAÇÃO PRINCIPAL */}
+      <div className="border-b border-[#E4EADF] bg-[#FDFEFA]/95 backdrop-blur-xl">
         <div
-          className={`container-jp flex items-center justify-between gap-4 transition-all ${scrolled ? "h-[74px]" : "h-[86px]"}`}
+          className={`jp-container-wide flex items-center justify-between gap-6 transition-all duration-300 ${
+            scrolled ? "h-[78px]" : "h-[92px]"
+          }`}
         >
           <a
             href="/#inicio"
-            className="group flex items-center gap-3"
-            aria-label="JP Clínica Integrada Odontológica — início"
+            className="flex shrink-0 items-center gap-3"
+            aria-label={`${CLINICA.nome} — início`}
           >
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-forest/8 bg-white shadow-[0_10px_28px_-18px_rgba(7,55,28,.45)]">
-              <img src={logo} alt="" width={42} height={42} className="h-10 w-10 object-contain" />
+            <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-[#B7D39A] bg-white shadow-[0_5px_18px_rgba(5,45,11,.08)] lg:h-[64px] lg:w-[64px]">
+              <img
+                src={logo}
+                alt=""
+                width={54}
+                height={54}
+                className="h-[49px] w-[49px] object-contain lg:h-[54px] lg:w-[54px]"
+              />
             </span>
-            <span className="hidden sm:block">
-              <span className="block font-display text-[20px] font-extrabold leading-none tracking-[-.03em] text-forest-2">
+
+            {/* Visível desde 375px: cabe (219px dos 335 disponíveis) e o nome da
+                clínica é justamente o que precisa ter destaque no cabeçalho. */}
+            <span className="block">
+              <span className="block whitespace-nowrap font-display text-[19px] font-extrabold leading-none tracking-[-0.035em] text-[#052D0B] sm:text-[21px] lg:text-[24px]">
                 JP Clínica
               </span>
-              <span className="mt-1.5 block whitespace-nowrap text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary-ink">
+              <span className="mt-2 block whitespace-nowrap text-[7.5px] font-semibold uppercase tracking-[0.15em] text-[#3F7A18] sm:text-[8px] sm:tracking-[0.18em] lg:text-[9px]">
                 Integrada Odontológica
               </span>
             </span>
           </a>
 
-          <nav className="hidden items-center xl:flex" aria-label="Navegação principal">
+          {/* O gap fluido é o que faz os itens caberem sem estourar: o navegador
+              aperta o espaçamento conforme a largura, em vez de quebrar a linha. */}
+          <nav
+            className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
+            aria-label="Navegação principal"
+          >
+            <ul className="flex w-full max-w-[820px] items-center justify-center gap-[clamp(12px,1.4vw,28px)]">
+              {NAV.map((item) => (
+                <li key={item.href} className="shrink-0">
+                  <a
+                    href={item.href}
+                    className="relative whitespace-nowrap py-3 text-[13.5px] font-semibold tracking-[-0.01em] text-[#3F7A18] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-[#7BD51C] after:transition-all after:duration-300 hover:text-[#052D0B] hover:after:w-full"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="hidden shrink-0 items-center gap-3 xl:flex">
+            <a
+              href={CLINICA.telefoneHref}
+              className="flex h-[48px] items-center gap-3 rounded-full border border-[#D4DFCC] bg-white px-5 text-[13px] font-bold text-[#052D0B] transition duration-300 hover:border-[#7BD51C] hover:bg-[#F7FAF2]"
+            >
+              <Phone size={16} strokeWidth={1.8} aria-hidden="true" />
+              <span className="hidden 2xl:inline">{CLINICA.telefone}</span>
+              <span className="2xl:hidden">Telefone</span>
+            </a>
+
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full bg-[#7BD51C] px-6 text-[13px] font-bold text-[#052D0B] shadow-[0_8px_24px_rgba(123,213,28,.18)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#8AE626] hover:shadow-[0_13px_30px_rgba(123,213,28,.28)]"
+            >
+              Agendar avaliação
+              <ArrowUpRight
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+                className="transition-transform group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
+              />
+            </a>
+          </div>
+
+          <div className="flex items-center gap-2 xl:hidden">
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden rounded-full bg-[#7BD51C] px-5 py-3 text-[12px] font-bold text-[#052D0B] sm:flex"
+            >
+              Agendar avaliação
+            </a>
+
+            <button
+              ref={botaoRef}
+              type="button"
+              onClick={() => setAberto((v) => !v)}
+              aria-label={aberto ? "Fechar menu" : "Abrir menu"}
+              aria-expanded={aberto}
+              aria-controls="menu-mobile"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D4DFCC] bg-white text-[#052D0B]"
+            >
+              {aberto ? <X size={20} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* MENU MOBILE
+          `invisible` quando fechado é essencial: só com max-h-0 os links seguem
+          alcançáveis por Tab, e a pessoa navega por itens que não consegue ver. */}
+      <div
+        id="menu-mobile"
+        className={`absolute left-0 right-0 top-full border-b border-[#E1E8DC] bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
+          aberto
+            ? "max-h-[80vh] overflow-y-auto opacity-100"
+            : "invisible max-h-0 overflow-hidden opacity-0"
+        }`}
+      >
+        <nav className="jp-container-wide py-6" aria-label="Navegação móvel">
+          <div className="grid gap-1 sm:grid-cols-2">
             {NAV.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-2.5 py-2 text-[12px] font-bold text-forest/68 transition hover:bg-secondary hover:text-forest-2"
+                onClick={fechar}
+                className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-[#2F6B35] transition hover:bg-[#EDF6E4] hover:text-[#052D0B]"
               >
                 {item.label}
+                <ArrowUpRight size={15} className="text-[#4E8C25]" aria-hidden="true" />
               </a>
             ))}
-          </nav>
+          </div>
 
-          <div className="flex items-center gap-2">
+          <div className="mt-5 grid gap-3 border-t border-[#E0E7DB] pt-5 sm:grid-cols-2">
             <a
               href={CLINICA.telefoneHref}
-              className="hidden h-11 items-center gap-2 rounded-full border border-forest/10 bg-white px-4 text-xs font-extrabold text-forest-2 transition hover:border-primary/35 lg:inline-flex xl:hidden 2xl:inline-flex"
+              className="flex items-center justify-center gap-2 rounded-full border border-[#C7D6BE] px-5 py-4 text-sm font-semibold text-[#052D0B]"
             >
-              <Phone className="h-4 w-4" />
+              <Phone size={16} aria-hidden="true" />
               {CLINICA.telefone}
             </a>
             <a
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden h-11 items-center gap-2 rounded-full bg-lime px-5 text-xs font-extrabold text-forest-2 shadow-[0_14px_32px_-20px_rgba(77,150,46,.8)] transition hover:-translate-y-0.5 sm:inline-flex"
+              onClick={fechar}
+              className="flex items-center justify-center gap-2 rounded-full bg-[#7BD51C] px-5 py-4 text-sm font-bold text-[#052D0B]"
             >
               Agendar avaliação
-              <ArrowUpRight className="h-4 w-4" />
+              <ArrowUpRight size={16} aria-hidden="true" />
             </a>
-            <button
-              ref={botaoRef}
-              type="button"
-              aria-label={open ? "Fechar menu" : "Abrir menu"}
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              className="grid h-11 w-11 place-items-center rounded-full border border-forest/12 bg-white text-forest-2 transition-colors xl:hidden"
-            >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
           </div>
-        </div>
-      </header>
-
-      {open && (
-        <div
-          ref={painelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Menu de navegação"
-          className="fixed inset-0 z-[65] h-dvh overflow-y-auto overscroll-contain bg-forest-2 pt-[96px] text-white lg:pt-[114px] xl:hidden"
-        >
-          <div className="container-jp flex min-h-full flex-col pb-10">
-            <nav aria-label="Navegação móvel" className="mt-8">
-              <ul className="grid">
-                {NAV.map((item, index) => (
-                  <li key={item.href} className="border-b border-white/10">
-                    <a
-                      href={item.href}
-                      onClick={fecharMenu}
-                      className="group flex items-center justify-between py-5 font-display text-2xl font-extrabold tracking-[-.04em] text-white sm:text-3xl"
-                    >
-                      <span>{item.label}</span>
-                      <span className="text-xs font-bold tracking-normal text-lime">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            <div className="mt-auto grid gap-3 pt-8 sm:grid-cols-2">
-              <a href={CLINICA.telefoneHref} className="button-ghost-light">
-                <Phone className="h-5 w-5" />
-                {CLINICA.telefone}
-              </a>
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="button-primary"
-                onClick={fecharMenu}
-              >
-                <MessageCircle className="h-5 w-5" />
-                Agendar no WhatsApp
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+        </nav>
+      </div>
+    </header>
   );
 }

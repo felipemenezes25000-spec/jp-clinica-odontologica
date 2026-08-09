@@ -5,7 +5,7 @@ import { CLINICA, EQUIPE, HISTORIA, NAV, whatsappLink } from "@/lib/jp";
 export function Footer() {
   return (
     <footer className="section-deep text-white">
-      <div className="container-jp py-14 pb-28 sm:py-16 sm:pb-32 lg:py-20 lg:pb-36">
+      <div className="jp-container py-14 pb-28 sm:py-16 sm:pb-32 lg:py-20 lg:pb-36">
         <div className="grid gap-12 lg:grid-cols-[1.35fr_.72fr_1fr] lg:gap-16">
           <div>
             <div className="flex items-center gap-3">

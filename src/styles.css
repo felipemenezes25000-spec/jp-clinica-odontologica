@@ -144,16 +144,54 @@
   }
 }
 
-.container-jp {
-  width: min(100% - 2rem, 82rem);
+/* Grade única do site. Antes cada seção escolhia sua própria largura e seu
+   próprio padding vertical, o que fazia uma parecer apertada e a seguinte
+   larga. Tudo passa por estas quatro classes. */
+/* Calha unica do site. --jp-gutter troca por breakpoint e as duas larguras
+   acompanham, entao nenhuma secao precisa repetir px-5 md:px-8 xl:px-10. */
+:root {
+  --jp-gutter: 1.25rem;
+}
+@media (min-width: 768px) {
+  :root {
+    --jp-gutter: 2rem;
+  }
+}
+@media (min-width: 1280px) {
+  :root {
+    --jp-gutter: 2.5rem;
+  }
+}
+.jp-container {
+  width: min(1320px, 100% - var(--jp-gutter) * 2);
   margin-inline: auto;
 }
-@media (min-width: 640px) {
-  .container-jp {
-    width: min(100% - 3rem, 82rem);
+.jp-container-wide {
+  width: min(1400px, 100% - var(--jp-gutter) * 2);
+  margin-inline: auto;
+}
+.jp-section {
+  padding-block: 7rem;
+}
+.jp-section-large {
+  padding-block: 9rem;
+}
+@media (max-width: 1024px) {
+  .jp-section {
+    padding-block: 5.5rem;
+  }
+  .jp-section-large {
+    padding-block: 6.5rem;
+  }
+}
+@media (max-width: 640px) {
+  .jp-section,
+  .jp-section-large {
+    padding-block: 4.5rem;
   }
 }
 
+/* Mantida: ainda usada por seções que não migraram para a grade nova. */
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -676,8 +714,8 @@
 }
 
 @supports (animation-timeline: view()) {
-  .section-transition > .container-jp,
-  .section-transition > div > .container-jp {
+  .section-transition > .jp-container,
+  .section-transition > div > .jp-container {
     animation: section-cinema linear both;
     animation-timeline: view();
     animation-range: entry 0% entry 28%;
@@ -883,9 +921,6 @@
 }
 
 @media (max-width: 767px) {
-  .container-jp {
-    width: min(100% - 1.25rem, 82rem);
-  }
   .button-primary,
   .button-dark,
   .button-ghost-light {

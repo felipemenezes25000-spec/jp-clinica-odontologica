@@ -40,7 +40,7 @@ function DeadEnd({
         className="absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-lime/15 blur-[110px]"
       />
 
-      <div className="container-jp relative z-10">
+      <div className="jp-container relative z-10">
         <div className="eyebrow text-lime">
           <span className="h-2 w-2 rounded-full bg-lime" />
           {eyebrow}

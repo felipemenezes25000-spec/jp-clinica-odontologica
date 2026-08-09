@@ -1,0 +1,285 @@
+import { CalendarDays, HeartPulse, MapPin, Quote, UsersRound } from "lucide-react";
+
+import { CLINICA, HISTORIA, MISSAO } from "@/lib/jp";
+
+import fundador1 from "@/assets/fundador-1.webp";
+import fundador2 from "@/assets/fundador-2.webp";
+
+/**
+ * ⚠️ FUNDADORES FICTÍCIOS — trocar antes de divulgar o site.
+ *
+ * Nome, CRO e retrato são inventados; os rostos vêm de um gerador de faces
+ * (pessoas que não existem), para não usar a imagem de alguém real. O CRO usa
+ * 00.00X, formato que nenhum registro verdadeiro tem.
+ */
+const FUNDADORES = [
+  { nome: "Dr. João Paulo", cro: "CRO-SP 00.006", foto: fundador1, ficticio: true },
+  { nome: "Dra. Patrícia Lima", cro: "CRO-SP 00.007", foto: fundador2, ficticio: true },
+];
+
+function CardFundador({ foto, nome, cro }: { foto: string; nome: string; cro: string }) {
+  return (
+    <article className="group overflow-hidden rounded-[17px] border border-white/10 bg-[#0B3511]">
+      <div className="relative aspect-[0.95/1] overflow-hidden bg-[#D8DFD0]">
+        <img
+          src={foto}
+          alt=""
+          loading="lazy"
+          className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.035]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0B3511]/30 to-transparent"
+        />
+      </div>
+      <div className="px-3 py-4 text-center">
+        <h4 className="font-display text-[17px] font-bold text-white">{nome}</h4>
+        <p className="mt-1 text-[11px] uppercase tracking-[0.06em] text-white/70">{cro}</p>
+      </div>
+    </article>
+  );
+}
+
+function Metrica({
+  icon,
+  title,
+  text,
+  border = false,
+}: {
+  icon: React.ReactNode;
+  title: React.ReactNode;
+  text: string;
+  border?: boolean;
+}) {
+  return (
+    <div
+      className={`relative flex min-h-[120px] items-start gap-4 px-5 py-5 ${
+        border ? "sm:border-l sm:border-white/15" : ""
+      }`}
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#7BD51C] text-[#052D0B] shadow-[0_10px_25px_rgba(123,213,28,.16)]"
+      >
+        {icon}
+      </span>
+      <div>
+        <p className="font-display text-[13px] font-bold leading-[1.25] text-white">{title}</p>
+        <p className="mt-2 text-[11px] leading-[1.5] text-white/65">{text}</p>
+      </div>
+    </div>
+  );
+}
+
+/** A maçã é motivo da marca da JP. Em SVG para ficar nítida em qualquer tamanho. */
+function MacaContorno() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute right-[1%] top-[4%] h-[360px] w-[360px] text-[#7BD51C] opacity-[0.12] lg:h-[470px] lg:w-[470px]"
+      viewBox="0 0 400 400"
+      fill="none"
+    >
+      <path
+        d="M235 67C257 34 292 27 318 32C307 64 279 84 243 85"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M234 104C233 78 239 57 252 39"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M204 107C171 83 116 87 82 123C46 162 51 221 73 273C96 327 130 355 165 344C186 337 194 330 206 330C218 330 226 337 247 344C283 355 317 326 340 272C363 218 366 160 328 123C294 89 239 84 204 107Z"
+        stroke="currentColor"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function HistorySection() {
+  return (
+    <section
+      id="historia"
+      className="relative overflow-hidden bg-[#052D0B] py-24 text-white lg:py-32"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_23%_12%,rgba(123,213,28,.18),transparent_27%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(47,107,53,.22),transparent_35%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-[-250px] right-[-150px] h-[650px] w-[650px] rounded-full bg-[#7BD51C]/[0.04] blur-[100px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-[260px] top-[20px] h-[600px] w-[600px] rounded-full border border-[#7BD51C]/25"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-[370px] top-[110px] h-[750px] w-[750px] rounded-full border border-[#7BD51C]/15"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-[470px] right-[10%] h-[700px] w-[900px] rounded-[50%] border border-[#7BD51C]/15"
+      />
+
+      <MacaContorno />
+
+      <div className="jp-container relative">
+        <div className="grid gap-14 lg:grid-cols-[0.96fr_1.04fr] lg:items-center lg:gap-16">
+          {/* COLUNA ESQUERDA */}
+          <div>
+            <p className="mb-6 text-[12px] font-bold uppercase tracking-[0.18em] text-[#7BD51C]">
+              Nossa história
+            </p>
+
+            <h2 className="max-w-[650px] font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.055em] sm:text-[62px] lg:text-[72px]">
+              São <span className="text-[#7BD51C]">{HISTORIA.anos} anos</span>
+              <br />
+              cuidando dos sorrisos
+              <br />
+              da Freguesia do Ó.
+            </h2>
+
+            <svg aria-hidden="true" className="mt-4 h-4 w-[100px]" viewBox="0 0 100 16" fill="none">
+              <path
+                d="M3 5C25 15 53 15 96 4"
+                stroke="#7BD51C"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <div className="mt-7 max-w-[625px] space-y-5 text-[16px] leading-[1.65] text-white/80">
+              <p>
+                A <strong className="font-semibold text-[#7BD51C]">{CLINICA.nome}</strong> acompanha
+                gerações de pacientes com o mesmo compromisso: escutar com atenção, orientar com
+                clareza e cuidar com responsabilidade.
+              </p>
+              <p>
+                Ao longo de {HISTORIA.anos} anos, construímos uma história de confiança, proximidade
+                e atendimento humanizado para crianças, adultos e idosos.
+              </p>
+            </div>
+
+            {/* MISSÃO — texto real, transcrito do quadro na parede da clínica */}
+            <figure className="mt-8 max-w-[625px] rounded-[24px] border border-white/20 bg-white/[0.025] p-6 backdrop-blur-sm sm:p-7">
+              <div className="flex gap-5">
+                <Quote
+                  size={50}
+                  strokeWidth={0}
+                  fill="#7BD51C"
+                  aria-hidden="true"
+                  className="mt-1 shrink-0 text-[#7BD51C]"
+                />
+                <div>
+                  <blockquote className="text-[17px] leading-[1.55] text-white/90">
+                    {MISSAO}
+                  </blockquote>
+                  <figcaption className="mt-5 text-[11px] font-bold uppercase tracking-[0.17em] text-[#7BD51C]">
+                    {CLINICA.nome}
+                  </figcaption>
+                </div>
+              </div>
+            </figure>
+
+            <div className="mt-5 grid max-w-[730px] overflow-hidden rounded-[23px] border border-white/20 bg-white/[0.025] backdrop-blur-sm sm:grid-cols-3">
+              <Metrica
+                icon={<CalendarDays size={24} />}
+                title={`Desde ${HISTORIA.fundacao}`}
+                text="Uma trajetória sólida de cuidado e confiança."
+              />
+              <Metrica
+                icon={<HeartPulse size={24} />}
+                title={`${HISTORIA.anos} anos de história`}
+                text="Crescendo junto com a nossa comunidade."
+                border
+              />
+              <Metrica
+                icon={<MapPin size={24} />}
+                title={
+                  <>
+                    Vila Bruna
+                    <br />
+                    Freguesia do Ó
+                  </>
+                }
+                text="Nosso lar, nossa inspiração."
+                border
+              />
+            </div>
+          </div>
+
+          {/* COLUNA DIREITA */}
+          <div>
+            <div className="relative overflow-hidden rounded-[30px] border border-white/20 bg-white/[0.045] p-5 shadow-[0_35px_90px_rgba(0,0,0,.18)] backdrop-blur-md sm:p-8">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-[30%] top-0 h-[300px] w-[350px] bg-[#7BD51C]/[0.045] blur-[80px]"
+              />
+
+              <div className="relative">
+                <div className="mb-4 flex items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#7BD51C]/30 text-[#7BD51C]"
+                  >
+                    <UsersRound size={22} />
+                  </span>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#7BD51C]">
+                    Quem construiu essa história
+                  </p>
+                </div>
+
+                <h3 className="font-display text-[30px] font-bold tracking-[-0.035em] text-white">
+                  Nossos fundadores
+                </h3>
+
+                <div aria-hidden="true" className="mt-3 h-[3px] w-12 rounded-full bg-[#7BD51C]" />
+
+                <p className="mt-5 max-w-[430px] text-[14px] leading-6 text-white/75">
+                  Mais que dentistas, pessoas que acreditam no poder do cuidado e nas relações de
+                  confiança.
+                </p>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                  {FUNDADORES.map((f) => (
+                    <CardFundador key={f.nome} foto={f.foto} nome={f.nome} cro={f.cro} />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-5 flex items-center gap-5 rounded-[23px] bg-[#F7F8F2] px-6 py-5 text-[#172018] shadow-[0_20px_50px_rgba(0,0,0,.12)]">
+              <span
+                aria-hidden="true"
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#4E8C25] text-white"
+              >
+                <HeartPulse size={28} />
+              </span>
+              <p className="text-[13px] leading-[1.6] text-[#5B6659]">
+                Cada sorriso que cuidamos carrega nossa história, nossa dedicação e o propósito que
+                nos move todos os dias:{" "}
+                <strong className="font-semibold text-[#3F7A18]">
+                  ver você sorrir com saúde, confiança e bem-estar.
+                </strong>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

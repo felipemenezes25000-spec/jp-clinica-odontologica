@@ -17,13 +17,13 @@ npm run dev
 
 Sobe em `http://localhost:8080`.
 
-| Comando | O que faz |
-| --- | --- |
-| `npm run dev` | Servidor de desenvolvimento com HMR |
-| `npm run build` | Build de produção (Nitro → `.vercel/output`) |
-| `npm run preview` | Serve o build localmente |
-| `npm run lint` | ESLint + Prettier |
-| `npm run format` | Aplica a formatação |
+| Comando           | O que faz                                    |
+| ----------------- | -------------------------------------------- |
+| `npm run dev`     | Servidor de desenvolvimento com HMR          |
+| `npm run build`   | Build de produção (Nitro → `.vercel/output`) |
+| `npm run preview` | Serve o build localmente                     |
+| `npm run lint`    | ESLint + Prettier                            |
+| `npm run format`  | Aplica a formatação                          |
 
 ---
 
@@ -46,7 +46,7 @@ src/
 ├── lib/jp.ts                    ← FONTE ÚNICA DE VERDADE
 ├── routes/
 │   ├── __root.tsx               shell, metatags globais, 404 e erro
-│   ├── index.tsx                home (13 seções)
+│   ├── index.tsx                home (10 seções)
 │   └── tratamentos/$slug.tsx    as 8 páginas de tratamento
 ├── components/site/             componentes próprios
 └── assets/                      fotos e vídeos
@@ -86,7 +86,21 @@ O verde `--primary` mede **3,7:1 sobre branco** — reprova no WCAG AA para text
 
 ### O menu mobile é a navegação do celular
 
-A nav horizontal só aparece em `xl` (≥1280px). Abaixo disso, **o painel do menu é o único caminho** para telefone e WhatsApp. Ele tem `overflow-y-auto` e prende o foco (`role="dialog"`, Escape fecha, Tab circula). Mexer nisso sem cuidado derruba a conversão no celular inteiro.
+A nav horizontal só aparece em `xl` (≥1280px). Abaixo disso, **o painel do menu é o único caminho** para telefone e WhatsApp. Ele é um painel de revelação (não um modal): `aria-expanded` + `aria-controls`, Escape fecha e devolve o foco ao botão, `overflow-y-auto` para caber em tela baixa. Mexer nisso sem cuidado derruba a conversão no celular inteiro.
+
+Fechado, ele leva **`invisible`** junto com `max-h-0`. Só altura zero não basta: o conteúdo continua no fluxo de foco e a pessoa que navega por Tab passa por nove links que não consegue ver.
+
+### A calha é uma variável, não uma classe por seção
+
+`--jp-gutter` muda em dois breakpoints (20px → 32px → 40px) e as duas larguras globais acompanham:
+
+| Classe                              | Largura                                                       |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `.jp-container`                     | `min(1320px, 100% - calha × 2)` — o padrão do site            |
+| `.jp-container-wide`                | `min(1400px, 100% - calha × 2)` — só o cabeçalho              |
+| `.jp-section` / `.jp-section-large` | espaçamento vertical (7rem / 9rem, reduzindo nos breakpoints) |
+
+Nenhuma seção repete `mx-auto max-w-[1320px] px-5 md:px-8 xl:px-10`. Se alguma repetir, é regressão: mudar a calha do site passa a exigir uma edição por arquivo.
 
 ---
 
@@ -94,16 +108,33 @@ A nav horizontal só aparece em `xl` (≥1280px). Abaixo disso, **o painel do me
 
 Isto não é detalhe de implementação. É uma clínica de saúde real e a publicidade odontológica é regulada (**Resolução CFO 196/2019**).
 
-| Elemento | Origem |
-| --- | --- |
-| Todas as fotos do site | **Fotos da própria clínica** — fachada, consultórios, esterilização, equipo, quadro da missão |
-| Depoimentos | **Avaliações reais do Google**, com o nome como aparece lá |
-| Nota e volume | **4,5★ · 176 avaliações**, conferido na ficha do Google |
-| Missão | **Transcrita do quadro** afixado na parede da clínica |
-| 7 dos 8 vídeos | Acervo da própria clínica |
-| Vídeo de clareamento | Pexels (licença livre para uso comercial) |
+| Elemento                | Origem                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------- |
+| Fotos da clínica        | **Fotos da própria clínica** — fachada, consultórios, esterilização, equipo, quadro da missão |
+| Texto dos depoimentos   | **Avaliações reais do Google**, com o nome como aparece lá                                    |
+| Nota e volume           | **4,5★ · 176 avaliações**, conferido na ficha do Google                                       |
+| Missão                  | **Transcrita do quadro** afixado na parede da clínica                                         |
+| 7 dos 8 vídeos          | Acervo da própria clínica                                                                     |
+| Vídeo de clareamento    | Pexels (licença livre para uso comercial)                                                     |
+| **Retratos de pessoas** | **Fictícios** — ver abaixo                                                                    |
 
-**Nada é gerado por IA. Nada é foto de banco fazendo passar por real.**
+Nenhuma foto de ambiente, procedimento ou documento é gerada por IA nem vem de banco de imagens fazendo passar por real.
+
+### ⚠️ As 8 pessoas fictícias
+
+O site **exibe hoje 8 rostos de pessoas que não existem**, gerados por um gerador de faces, marcados com `ficticio: true` no código:
+
+| Onde          | Quantos                         | Arquivo                                  |
+| ------------- | ------------------------------- | ---------------------------------------- |
+| `EQUIPE`      | 4 de 5 (CRO-SP 00.002 a 00.005) | `src/lib/jp.ts`                          |
+| `DEPOIMENTOS` | 2 de 5 avatares                 | `src/lib/jp.ts`                          |
+| `FUNDADORES`  | 2 (CRO-SP 00.006 e 00.007)      | `src/components/site/HistorySection.tsx` |
+
+São **preenchimento de layout**, colocados a pedido para a clínica ver a diagramação pronta. Os CROs usam o formato `00.00X`, que nenhum registro verdadeiro tem — é proposital, para o número falso ser reconhecível de imediato.
+
+> **Nada disso pode ir ao ar.** Divulgar profissional com CRO inventado é infração ao CFO, e um depoimento com rosto fabricado é publicidade enganosa. Buscar por `ficticio: true` lista tudo que falta trocar.
+>
+> A única pessoa real no site é a **Dra. Juliana Pelisser (CROSP 78.159)**, responsável técnica.
 
 ### Regras que o site precisa manter
 
@@ -111,8 +142,6 @@ Isto não é detalhe de implementação. É uma clínica de saúde real e a publ
 - **Sem "antes e depois"** — vedado na publicidade odontológica
 - **Sem promessa de resultado** — todo bloco lembra que a indicação depende de avaliação profissional
 - **Sem preço nem promoção** como atrativo
-
-> ⚠️ **Nunca publique um profissional sem CRO confirmado.** Os cards marcados com `placeholder: true` em `EQUIPE` são vagas a preencher, não pessoas.
 
 ---
 
@@ -154,17 +183,18 @@ Slug inexistente devolve **404 de verdade**, não 200 com tela de erro. Cada rot
 O site passou por auditoria WCAG 2.1 AA com contraste calculado, não estimado.
 
 - Contorno de foco muda de cor conforme a superfície (escuro no claro, lime no escuro)
-- Menu mobile com foco preso, Escape e retorno de foco
+- Menu mobile com Escape, retorno de foco e `invisible` quando fechado
 - Skip link em todas as rotas
-- Marquee pausa no hover **e** no foco; a segunda passada é `aria-hidden` para não duplicar no leitor de tela
+- Alvos de toque de 44px no cabeçalho (WCAG 2.5.8 com folga)
 - Vídeos com rótulo acessível e controle de pausa
+- Decoração de fundo é `aria-hidden` e `pointer-events-none` — nada disso chega ao leitor de tela
 
 ---
 
 ## Pendências
 
+- [ ] 🔴 **Trocar as 8 pessoas fictícias antes de divulgar** — equipe, fundadores e dois avatares de depoimento. Nome, CRO **conferido** e foto recortada com fundo transparente de cada profissional. `grep -rn "ficticio: true" src` lista todas.
 - [ ] **Confirmar os 23 anos.** O CNPJ é de 21/06/2021 e uma avaliação diz "há mais de 3 anos". Pode ser reabertura sob novo CNPJ. É um número em `jp.ts`.
-- [ ] **Completar a equipe** — nome, formação, especialidade, CRO e foto **recortada com fundo transparente** de cada profissional.
 - [ ] **Vincular o site à ficha do Google.** Hoje o Google mostra "Adicionar website" — é tráfego direto e gratuito sendo perdido.
 - [ ] **Trocar o domínio.** Ao migrar, atualizar `SITE_URL` em `jp.ts` e as URLs de `public/sitemap.xml`.
 - [ ] Páginas de **facetas**, **endodontia** e **periodontia** — os dois últimos estão na placa da clínica mas não no site, e há bom material de vídeo para os três.

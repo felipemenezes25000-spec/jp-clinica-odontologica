@@ -162,7 +162,7 @@ function TreatmentPage() {
         <Header />
         <main
           id="conteudo"
-          className="container-jp flex min-h-[80vh] flex-col justify-center pt-32"
+          className="jp-container flex min-h-[80vh] flex-col justify-center pt-32"
         >
           <p className="eyebrow text-lime">Página não encontrada</p>
           <h1 className="mt-5 max-w-3xl font-display text-6xl font-black leading-[.82] tracking-[-.07em] sm:text-8xl">
@@ -202,7 +202,7 @@ function TreatmentPage() {
           >
             JP
           </div>
-          <div className="container-jp relative z-10 grid gap-12 lg:grid-cols-[1.08fr_.92fr] lg:items-center">
+          <div className="jp-container relative z-10 grid gap-12 lg:grid-cols-[1.08fr_.92fr] lg:items-center">
             <div>
               <Reveal>
                 <a
@@ -276,7 +276,7 @@ function TreatmentPage() {
           id="entenda"
           className="section-transition relative overflow-hidden bg-cream py-20 sm:py-28 lg:py-36"
         >
-          <div className="container-jp">
+          <div className="jp-container">
             <Reveal className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-start">
               <div className="lg:sticky lg:top-32">
                 <span className="eyebrow text-primary-ink">O que está por trás</span>
@@ -309,7 +309,7 @@ function TreatmentPage() {
         </section>
 
         <section className="section-transition bg-paper py-20 sm:py-28 lg:py-36">
-          <div className="container-jp grid gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="jp-container grid gap-12 lg:grid-cols-2 lg:gap-20">
             <Reveal>
               <span className="eyebrow text-primary-ink">Pode fazer sentido para</span>
               <h2 className="mt-5 font-display text-[clamp(3.2rem,6vw,5.8rem)] font-black leading-[.84] tracking-[-.065em] text-forest-2">
@@ -365,7 +365,7 @@ function TreatmentPage() {
 
         {video && (
           <section className="section-transition bg-secondary py-16 sm:py-20 lg:py-24">
-            <div className="container-jp grid items-center gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-16">
+            <div className="jp-container grid items-center gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-16">
               <Reveal className="order-2 lg:order-1">
                 <span className="eyebrow text-primary-ink">Veja como funciona</span>
                 <h2 className="mt-5 max-w-md font-display text-[clamp(2.2rem,4vw,3.4rem)] font-black leading-[.98] tracking-[-.04em] text-forest-2">
@@ -389,7 +389,7 @@ function TreatmentPage() {
 
         <section className="section-transition process-stage relative overflow-hidden bg-lime py-20 text-forest-2 sm:py-28 lg:py-36">
           <div className="process-orbit" aria-hidden="true" />
-          <div className="container-jp relative">
+          <div className="jp-container relative">
             <Reveal className="max-w-5xl">
               <span className="eyebrow text-forest-2/55">
                 Do primeiro contato ao acompanhamento
@@ -421,7 +421,7 @@ function TreatmentPage() {
         </section>
 
         <section className="section-transition bg-forest-2 py-20 text-white sm:py-28 lg:py-36">
-          <div className="container-jp grid gap-12 lg:grid-cols-[.8fr_1.2fr]">
+          <div className="jp-container grid gap-12 lg:grid-cols-[.8fr_1.2fr]">
             <Reveal>
               <span className="eyebrow text-lime">Perguntas sobre {treatment.short}</span>
               <h2 className="mt-5 font-display text-[clamp(3.2rem,6vw,5.8rem)] font-black leading-[.83] tracking-[-.065em]">
@@ -471,7 +471,7 @@ function TreatmentPage() {
         </section>
 
         <section className="bg-cream py-20 sm:py-28 lg:py-36">
-          <div className="container-jp">
+          <div className="jp-container">
             <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
                 <span className="eyebrow text-primary-ink">Continue explorando</span>

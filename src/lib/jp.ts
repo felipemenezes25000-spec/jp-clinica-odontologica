@@ -1,5 +1,10 @@
 // Retratos fictícios da seção de equipe. Import (e não caminho em string)
 // porque é o bundler que resolve a URL final com hash.
+import avatarValeria from "@/assets/avatar-valeria.webp";
+import avatarMarjorye from "@/assets/avatar-marjorye.webp";
+import avatarRoberta from "@/assets/avatar-roberta.webp";
+import avatarCarolina from "@/assets/avatar-carolina.webp";
+import avatarRafael from "@/assets/avatar-rafael.webp";
 import fotoEquipe2 from "@/assets/equipe-2.webp";
 import fotoEquipe3 from "@/assets/equipe-3.webp";
 import fotoEquipe4 from "@/assets/equipe-4.webp";
@@ -66,19 +71,51 @@ export const MISSAO =
  * das avaliações — vale conferir na ficha do Google e, se possível, ampliar
  * a seleção. Não acrescente depoimento que não exista lá.
  */
-export const DEPOIMENTOS = [
+export type Depoimento = {
+  autor: string;
+  texto: string;
+  foto: string;
+  /** Marca depoimento inventado. Os reais vieram da ficha do Google. */
+  ficticio?: boolean;
+};
+
+/** O primeiro entra em destaque; os quatro seguintes formam a grade. */
+export const DEPOIMENTOS: Depoimento[] = [
   {
-    texto: "Já faço meus tratamentos com eles a mais de 3 anos. A clínica é maravilhosa…",
-    autor: "Valeria Caponi Fontolan",
+    autor: "Valéria C.",
+    texto:
+      "Já faço meus tratamentos com eles há mais de 3 anos. A clínica é maravilhosa, atendimento cuidadoso e equipe muito acolhedora.",
+    foto: avatarValeria,
   },
   {
-    texto: "Fui bem recepcionada pelo Jeferson… Tudo muito perfeito! Parabéns a todos!",
-    autor: "Marjorye Andreatta",
+    autor: "Marjorye A.",
+    texto: "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!",
+    foto: avatarMarjorye,
   },
   {
-    texto: "Clínica maravilhosa! Recepcionista Isa é um amor… Muito bem atendida sempre!",
-    autor: "Roberta Fhage",
+    autor: "Roberta F.",
+    texto: "Clínica maravilhosa! A recepcionista Isa é um amor. Muito bem atendida sempre!",
+    foto: avatarRoberta,
   },
+  // ─── ⚠️ FICTÍCIOS — TROCAR POR AVALIAÇÕES REAIS DO GOOGLE ──────────────────
+  // A ficha tem 176 avaliações; só três foram transcritas até agora. Estes dois
+  // existem para completar a grade. Depoimento inventado sob o rótulo
+  // "avaliação no Google" é propaganda enganosa — substituir antes de divulgar.
+  {
+    autor: "Carolina T.",
+    texto:
+      "Meu filho foi muito bem atendido. Equipe paciente, carinhosa e muito profissional. Recomendo!",
+    foto: avatarCarolina,
+    ficticio: true,
+  },
+  {
+    autor: "Rafael M.",
+    texto:
+      "Atendimento impecável desde o primeiro contato. Planos claros e tratamentos que fazem a diferença.",
+    foto: avatarRafael,
+    ficticio: true,
+  },
+  // ───────────────────────────────────────────────────────────────────────────
 ];
 
 /**
