@@ -235,7 +235,9 @@ export const EQUIPE: Profissional[] = [
     ficticio: true,
   },
   {
-    nome: "Dra. Beatriz Lima",
+    // Era "Dra. Beatriz Lima". Virou homem para a sequência alternar
+    // mulher → homem → mulher → homem ao longo dos cards.
+    nome: "Dr. Thiago Moraes",
     registro: "CRO-SP 00.005",
     papel: "Harmonização orofacial",
     foto: fotoEquipe5,
