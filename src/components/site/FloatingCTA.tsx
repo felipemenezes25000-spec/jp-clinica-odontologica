@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight, CalendarCheck, MessageCircle, Phone } from "lucide-react";
+import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
 import { CLINICA, whatsappLink } from "@/lib/jp";
+
+const CHAVE_DISPENSA = "jp:cta-dispensado";
 
 export function FloatingCTA() {
   const [showBar, setShowBar] = useState(false);
+  const [dispensado, setDispensado] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShowBar(window.scrollY > Math.max(520, window.innerHeight * 0.72));
@@ -16,6 +19,33 @@ export function FloatingCTA() {
     };
   }, []);
 
+  /**
+   * A dispensa é lida aqui, e não no useState, de propósito: o servidor não
+   * tem sessionStorage, então o valor inicial precisa ser igual nos dois lados
+   * ou o React acusa erro de hidratação.
+   *
+   * sessionStorage e não localStorage: quem fecha está dizendo "agora não",
+   * não "nunca mais". Na próxima visita a barra volta.
+   */
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(CHAVE_DISPENSA) === "1") setDispensado(true);
+    } catch {
+      /* modo privado pode bloquear o acesso; nesse caso a barra só não lembra */
+    }
+  }, []);
+
+  const dispensar = () => {
+    setDispensado(true);
+    try {
+      sessionStorage.setItem(CHAVE_DISPENSA, "1");
+    } catch {
+      /* idem */
+    }
+  };
+
+  const visivel = showBar && !dispensado;
+
   const wa = whatsappLink(
     "Olá! Vim pelo site da JP Clínica Integrada Odontológica e gostaria de agendar uma avaliação.",
   );
@@ -25,11 +55,11 @@ export function FloatingCTA() {
       {/* CTA persistente aprovado: surge depois da capa e acompanha a rolagem. */}
       <div
         className={`sticky-booking-shell fixed inset-x-0 bottom-5 z-[58] hidden px-5 transition-all duration-500 md:block ${
-          showBar
+          visivel
             ? "translate-y-0 opacity-100"
             : "pointer-events-none invisible translate-y-8 opacity-0"
         }`}
-        aria-hidden={!showBar}
+        aria-hidden={!visivel}
       >
         <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#052D0B_0%,#0A3A15_62%,#12451B_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(5,45,11,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
@@ -46,16 +76,27 @@ export function FloatingCTA() {
             </div>
           </div>
 
-          <a
-            href={wa}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(47,107,53,.9)] transition hover:-translate-y-0.5"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Agendar avaliação agora
-            <ArrowUpRight className="h-4 w-4" />
-          </a>
+          <div className="flex shrink-0 items-center gap-2">
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(47,107,53,.9)] transition hover:-translate-y-0.5"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Agendar avaliação agora
+              <ArrowUpRight className="h-4 w-4" />
+            </a>
+
+            <button
+              type="button"
+              onClick={dispensar}
+              aria-label="Fechar convite para agendar"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/25 text-white transition hover:border-white/60 hover:bg-white/10"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -66,7 +107,7 @@ export function FloatingCTA() {
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
         className={`group fixed right-4 z-[60] hidden items-center gap-2 rounded-full border-[1.5px] border-lime bg-forest p-2 pr-4 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 sm:flex ${
-          showBar ? "bottom-[112px] md:bottom-[104px]" : "bottom-5"
+          visivel ? "bottom-[112px] md:bottom-[104px]" : "bottom-5"
         }`}
       >
         <span className="relative grid h-10 w-10 place-items-center rounded-full bg-lime text-forest-2">
@@ -81,11 +122,11 @@ export function FloatingCTA() {
           pelo leitor de tela — a pessoa navegava para botões fora da tela. */}
       <div
         className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/96 p-2.5 backdrop-blur-xl transition-[translate,visibility] duration-500 sm:hidden ${
-          showBar ? "translate-y-0" : "invisible translate-y-full"
+          visivel ? "translate-y-0" : "invisible translate-y-full"
         }`}
-        aria-hidden={!showBar}
+        aria-hidden={!visivel}
       >
-        <div className="grid grid-cols-[.34fr_1fr] gap-2">
+        <div className="grid grid-cols-[.34fr_1fr_auto] gap-2">
           <a
             href={CLINICA.telefoneHref}
             className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
@@ -102,6 +143,14 @@ export function FloatingCTA() {
             <MessageCircle className="h-4 w-4" />
             Agendar avaliação
           </a>
+          <button
+            type="button"
+            onClick={dispensar}
+            aria-label="Fechar convite para agendar"
+            className="grid min-h-12 w-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </>
