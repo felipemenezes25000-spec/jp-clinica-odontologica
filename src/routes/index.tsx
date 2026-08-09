@@ -522,85 +522,10 @@ function Home() {
         {/* 04 — ESPECIALIDADES */}
         <SpecialtiesSection />
 
-        {/* 05 — PARA TODA A FAMÍLIA */}
-        <section
-          id="familia"
-          className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
-        >
-          <img
-            src={consultorioWideImg}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-45"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,45,11,.98)_0%,rgba(5,45,11,.93)_45%,rgba(5,45,11,.74)_100%)]" />
-          <div
-            aria-hidden="true"
-            className="absolute -left-28 bottom-0 h-96 w-96 rounded-full bg-lime/12 blur-[120px]"
-          />
-
-          <div className="jp-container relative">
-            <Reveal className="max-w-4xl">
-              <span className="eyebrow text-lime">Para toda a família</span>
-              <h2 className="mt-6 max-w-4xl font-display text-[clamp(3.5rem,7vw,6.8rem)] font-extrabold leading-[.86] tracking-[-.06em]">
-                Um lugar.
-                <span className="block text-lime">Muitas fases da vida.</span>
-              </h2>
-              <p className="mt-7 max-w-2xl text-base font-medium leading-relaxed text-white/68 sm:text-lg">
-                A criança que está começando. O adolescente de aparelho. O adulto em busca de
-                prevenção ou estética. A maturidade que pede conforto e reabilitação. A JP conecta
-                essas fases em um mesmo cuidado.
-              </p>
-            </Reveal>
-
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              {[
-                [
-                  Sparkles,
-                  "Infância",
-                  "Odontopediatria",
-                  "Primeiros cuidados, prevenção e uma experiência mais tranquila.",
-                ],
-                [
-                  HeartHandshake,
-                  "Vida adulta",
-                  "Prevenção • estética",
-                  "Acompanhamento, estética e planejamento de acordo com sua rotina.",
-                ],
-                [
-                  UsersRound,
-                  "Maturidade",
-                  "Próteses • implantes",
-                  "Conforto, função e reabilitação planejados de forma individual.",
-                ],
-              ].map(([Icon, title, kicker, text], i) => {
-                const C = Icon as typeof Sparkles;
-                return (
-                  <Reveal key={String(title)} delay={i * 60}>
-                    <article className="jp-dark-glass h-full rounded-[1.6rem] p-6">
-                      <span className="grid h-11 w-11 place-items-center rounded-full bg-lime text-forest-2">
-                        <C className="h-5 w-5" />
-                      </span>
-                      <h3 className="mt-5 font-display text-2xl font-extrabold tracking-[-.035em]">
-                        {String(title)}
-                      </h3>
-                      <p className="mt-1 text-[10px] font-extrabold uppercase tracking-[.12em] text-lime">
-                        {String(kicker)}
-                      </p>
-                      <p className="mt-4 text-sm leading-relaxed text-white/60">{String(text)}</p>
-                    </article>
-                  </Reveal>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* 06 — AVALIAÇÕES */}
+        {/* 05 — AVALIAÇÕES */}
         <ReviewsSection />
 
-        {/* 07 — EQUIPE */}
+        {/* 06 — EQUIPE */}
         <section id="equipe" className="jp-section section-light relative overflow-hidden">
           <div
             aria-hidden="true"
@@ -712,7 +637,7 @@ function Home() {
           </div>
         </section>
 
-        {/* 08 — ESTRUTURA */}
+        {/* 07 — ESTRUTURA */}
         <section id="estrutura" className="jp-section relative overflow-hidden bg-paper ">
           <div
             aria-hidden="true"
@@ -769,7 +694,7 @@ function Home() {
           </div>
         </section>
 
-        {/* 09 — FAQ */}
+        {/* 08 — FAQ */}
         <section
           id="faq"
           className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
@@ -840,7 +765,7 @@ function Home() {
           </div>
         </section>
 
-        {/* 10 — CONTATO */}
+        {/* 09 — CONTATO */}
         <section
           id="fale"
           className="jp-section section-light relative overflow-hidden text-forest-2"

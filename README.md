@@ -46,7 +46,7 @@ src/
 ├── lib/jp.ts                    ← FONTE ÚNICA DE VERDADE
 ├── routes/
 │   ├── __root.tsx               shell, metatags globais, 404 e erro
-│   ├── index.tsx                home (10 seções)
+│   ├── index.tsx                home (9 seções)
 │   └── tratamentos/$slug.tsx    as 8 páginas de tratamento
 ├── components/site/             componentes próprios
 └── assets/                      fotos e vídeos
@@ -94,13 +94,19 @@ Fechado, ele leva **`invisible`** junto com `max-h-0`. Só altura zero não bast
 
 `--jp-gutter` muda em dois breakpoints (20px → 32px → 40px) e as duas larguras globais acompanham:
 
-| Classe                              | Largura                                                       |
-| ----------------------------------- | ------------------------------------------------------------- |
-| `.jp-container`                     | `min(1320px, 100% - calha × 2)` — o padrão do site            |
-| `.jp-container-wide`                | `min(1400px, 100% - calha × 2)` — só o cabeçalho              |
-| `.jp-section` / `.jp-section-large` | espaçamento vertical (7rem / 9rem, reduzindo nos breakpoints) |
+| Classe                              | Largura                                                         |
+| ----------------------------------- | --------------------------------------------------------------- |
+| `.jp-container`                     | `min(1320px, 100% - calha × 2)` — o padrão do site              |
+| `.jp-container-wide`                | `min(1400px, 100% - calha × 2)` — só o cabeçalho                |
+| `.jp-section` / `.jp-section-large` | espaçamento vertical (4,5rem / 6rem, reduzindo nos breakpoints) |
 
 Nenhuma seção repete `mx-auto max-w-[1320px] px-5 md:px-8 xl:px-10`. Se alguma repetir, é regressão: mudar a calha do site passa a exigir uma edição por arquivo.
+
+### O intervalo entre seções é uma soma, não um valor
+
+O espaço que se vê entre duas seções é o `padding-bottom` de uma **mais** o `padding-top` da seguinte. `.jp-section` vale 4,5rem de cada lado, então o intervalo real é **144px**, não 72px.
+
+Quem for apertar ou afrouxar a respiração do site mexe só nessa classe. Antes havia três escalas convivendo (`py-20/28/36`, `py-24/32` e `.jp-section`), o intervalo variava de 240 a 288px e cada seção tinha a régua do dia em que foi escrita. Se aparecer um `py-*` num `<section>`, é regressão.
 
 ---
 
