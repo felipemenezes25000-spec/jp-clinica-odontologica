@@ -943,13 +943,34 @@ function Home() {
 
             <Reveal delay={130} className="mt-12">
               <div className="relative overflow-hidden rounded-[2rem] border border-forest/8 bg-white p-2 shadow-[0_28px_80px_-48px_rgba(5,45,11,.45)]">
-                <iframe
-                  src={CLINICA.mapsEmbed}
-                  title="Mapa com a localização da JP Clínica Integrada Odontológica"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="h-[370px] w-full rounded-[1.55rem] border-0 sm:h-[445px]"
-                />
+                {/* O embed é de viewport e não desenha marcador, então o pino é
+                    nosso. Como o mapa está centrado nas coordenadas da clínica,
+                    a ponta do pino no centro do iframe cai no endereço certo. */}
+                <div className="relative">
+                  <iframe
+                    src={CLINICA.mapsEmbed}
+                    title="Mapa com a localização da JP Clínica Integrada Odontológica"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="block h-[370px] w-full rounded-[1.55rem] border-0 sm:h-[445px]"
+                  />
+
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full"
+                  >
+                    <svg width="34" height="46" viewBox="0 0 34 46" fill="none">
+                      <path
+                        d="M17 45C17 45 32 27.5 32 17C32 8.716 25.284 2 17 2C8.716 2 2 8.716 2 17C2 27.5 17 45 17 45Z"
+                        fill="#2F6B35"
+                        stroke="white"
+                        strokeWidth="2.5"
+                        strokeLinejoin="round"
+                      />
+                      <circle cx="17" cy="17" r="5.5" fill="#7BD51C" />
+                    </svg>
+                  </span>
+                </div>
 
                 <div className="absolute left-5 top-5 max-w-[21rem] rounded-[1.35rem] border border-forest/8 bg-white/95 p-5 shadow-[0_24px_60px_-38px_rgba(5,45,11,.55)] backdrop-blur sm:left-7 sm:top-7">
                   <div className="flex items-start gap-3">

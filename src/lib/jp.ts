@@ -31,8 +31,18 @@ export const CLINICA = {
   // Usamos a URL final de propósito: a forma curta (maps.google.com/...&output=embed)
   // passa por um redirecionamento que responde com X-Frame-Options: SAMEORIGIN.
   // Esta responde 200 sem esse cabeçalho, então pode ser enquadrada.
+  /**
+   * Embed de viewport, centrado nas coordenadas que o próprio Google resolveu
+   * para o endereço (-23.4884235, -46.7046298).
+   *
+   * Não use a forma de busca (`!2m1!1s<endereço>`) nem a de compartilhamento
+   * (`!3m3!1m2!1s<featureid>`): as duas rodam em modo "spotlit" e desenham um
+   * painel branco no canto superior esquerdo, que aparecia por trás do nosso
+   * cartão de endereço. A viewport não desenha painel — e, como ela também não
+   * põe marcador, o pino é nosso, posicionado no centro do iframe.
+   */
   mapsEmbed:
-    "https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1sR.%20Rio%20Verde%2C%201029%20-%20Vila%20Bruna%2C%20S%C3%A3o%20Paulo%20-%20SP%2C%2002934-201!6i16",
+    "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d3659.2243490310!2d-46.7046298!3d-23.4884235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1spt-BR!2sbr!4v1770000000000!5m2!1spt-BR!2sbr",
   horario: "Segunda a sexta, 08:00 às 18:00",
   instagram: "https://www.instagram.com/jpclinicaodontologica/",
   facebook: "https://www.facebook.com/jpclinicaodontologica/",
