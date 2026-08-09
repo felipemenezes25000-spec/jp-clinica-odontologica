@@ -720,7 +720,7 @@ function Home() {
                   <span className="h-2 w-2 rounded-full bg-primary" />
                   Fale com a JP
                 </span>
-                <h2 className="mt-6 max-w-3xl font-display text-[clamp(3.5rem,7vw,6.7rem)] font-extrabold leading-[.87] tracking-[-.06em]">
+                <h2 className="mt-6 max-w-3xl font-display text-[clamp(2.6rem,5vw,4.5rem)] font-extrabold leading-[.94] tracking-[-.055em]">
                   Seu próximo sorriso pode começar <span className="text-primary">aqui.</span>
                 </h2>
                 <p className="mt-6 max-w-xl text-base font-medium leading-relaxed text-forest/65">
@@ -782,7 +782,7 @@ function Home() {
                   </a>
                 </div>
 
-                <div className="mt-5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+                <div className="mt-6 grid gap-2.5 sm:grid-cols-3">
                   <a
                     href={waGeral}
                     target="_blank"

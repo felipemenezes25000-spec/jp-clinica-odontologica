@@ -153,7 +153,7 @@ export function Header() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full bg-[#7BD51C] px-6 text-[13px] font-bold text-[#052D0B] shadow-[0_8px_24px_rgba(123,213,28,.18)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#8AE626] hover:shadow-[0_13px_30px_rgba(123,213,28,.28)]"
+              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(47,107,53,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#3A7F41] hover:shadow-[0_13px_30px_rgba(47,107,53,.32)]"
             >
               Agendar avaliação
               <ArrowUpRight
@@ -170,7 +170,7 @@ export function Header() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden rounded-full bg-[#7BD51C] px-5 py-3 text-[12px] font-bold text-[#052D0B] sm:flex"
+              className="hidden rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] px-5 py-3 text-[12px] font-bold text-white sm:flex"
             >
               Agendar avaliação
             </a>
@@ -229,7 +229,7 @@ export function Header() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={fechar}
-              className="flex items-center justify-center gap-2 rounded-full bg-[#7BD51C] px-5 py-4 text-sm font-bold text-[#052D0B]"
+              className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] px-5 py-4 text-sm font-bold text-white"
             >
               Agendar avaliação
               <ArrowUpRight size={16} aria-hidden="true" />

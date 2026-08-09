@@ -68,7 +68,7 @@ export function ContactForm() {
       </div>
 
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        <label className="text-[10px] font-extrabold uppercase tracking-[.11em] text-forest/58">
+        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-forest/58">
           Nome completo
           <div className="relative">
             <UserRound className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-forest/42" />
@@ -82,7 +82,7 @@ export function ContactForm() {
           </div>
         </label>
 
-        <label className="text-[10px] font-extrabold uppercase tracking-[.11em] text-forest/58">
+        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-forest/58">
           Melhor forma de contato
           <select value={contato} onChange={(e) => setContato(e.target.value)} className={input}>
             {CONTATOS.map((item) => (
@@ -91,7 +91,7 @@ export function ContactForm() {
           </select>
         </label>
 
-        <label className="text-[10px] font-extrabold uppercase tracking-[.11em] text-forest/58">
+        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-forest/58">
           Assunto ou interesse
           <select value={assunto} onChange={(e) => setAssunto(e.target.value)} className={input}>
             <option>Avaliação geral</option>
@@ -102,7 +102,7 @@ export function ContactForm() {
           </select>
         </label>
 
-        <label className="text-[10px] font-extrabold uppercase tracking-[.11em] text-forest/58">
+        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-forest/58">
           Melhor período
           <select value={periodo} onChange={(e) => setPeriodo(e.target.value)} className={input}>
             {PERIODOS.map((p) => (
@@ -111,7 +111,7 @@ export function ContactForm() {
           </select>
         </label>
 
-        <label className="text-[10px] font-extrabold uppercase tracking-[.11em] text-forest/58 sm:col-span-2">
+        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-forest/58 sm:col-span-2">
           Mensagem opcional
           <textarea
             rows={3}
@@ -142,8 +142,8 @@ export function ContactForm() {
                 <C className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-[10px] font-extrabold text-forest-2">{String(title)}</p>
-                <p className="mt-1 text-[10px] leading-relaxed text-forest/48">{String(text)}</p>
+                <p className="text-[11px] font-extrabold text-forest-2">{String(title)}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-forest/70">{String(text)}</p>
               </div>
             </div>
           );

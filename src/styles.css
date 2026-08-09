@@ -256,6 +256,12 @@
   mask-image: linear-gradient(to bottom, black, transparent 90%);
 }
 
+/* Letra branca no botão principal.
+   Sobre o lime (#7BD51C) o branco mede 1.85:1 — ilegível. O fundo precisou
+   escurecer para o verde institucional (#2F6B35), onde o branco dá 6.41:1.
+   A borda lime devolve o destaque que o preenchimento perdeu: sobre o verde
+   escuro das seções ela mede 8.2:1, bem acima dos 3:1 que a WCAG pede para
+   a borda de um componente. */
 .button-primary {
   display: inline-flex;
   align-items: center;
@@ -264,11 +270,12 @@
   min-height: 3.25rem;
   padding: 0.9rem 1.35rem;
   border-radius: 999px;
-  background: var(--lime);
-  color: var(--forest-2);
+  background: var(--forest);
+  border: 1.5px solid var(--lime);
+  color: #ffffff;
   font-weight: 850;
   letter-spacing: -0.01em;
-  box-shadow: 0 16px 34px -20px color-mix(in oklab, var(--lime) 75%, black);
+  box-shadow: 0 16px 34px -20px color-mix(in oklab, var(--forest) 75%, black);
   transition:
     transform 0.35s var(--ease-out),
     box-shadow 0.35s var(--ease-out),
@@ -276,7 +283,7 @@
 }
 .button-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 24px 48px -22px color-mix(in oklab, var(--lime) 75%, black);
+  box-shadow: 0 24px 48px -22px color-mix(in oklab, var(--forest) 75%, black);
 }
 
 .button-dark {

@@ -50,7 +50,7 @@ export function FloatingCTA() {
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-lime px-5 py-2.5 text-xs font-extrabold text-forest-2 shadow-[0_12px_30px_-18px_rgba(123,213,28,.8)] transition hover:-translate-y-0.5"
+            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(47,107,53,.9)] transition hover:-translate-y-0.5"
           >
             <MessageCircle className="h-4 w-4" />
             Agendar avaliação agora
@@ -65,11 +65,11 @@ export function FloatingCTA() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
-        className={`group fixed right-4 z-[60] hidden items-center gap-2 rounded-full bg-lime p-2 pr-4 text-forest-2 shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 sm:flex ${
+        className={`group fixed right-4 z-[60] hidden items-center gap-2 rounded-full border-[1.5px] border-lime bg-forest p-2 pr-4 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 sm:flex ${
           showBar ? "bottom-[112px] md:bottom-[104px]" : "bottom-5"
         }`}
       >
-        <span className="relative grid h-10 w-10 place-items-center rounded-full bg-forest-2 text-white">
+        <span className="relative grid h-10 w-10 place-items-center rounded-full bg-lime text-forest-2">
           <span className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite]" />
           <MessageCircle className="h-4.5 w-4.5" />
         </span>

@@ -59,8 +59,8 @@ function CardEspecialidade({
           src={IMAGENS[slug]}
           alt=""
           loading="lazy"
-          width={770}
-          height={367}
+          width={900}
+          height={507}
           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
         />
 
@@ -176,7 +176,7 @@ export function SpecialtiesSection() {
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full bg-[#7BD51C] py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-[#052D0B] shadow-[0_12px_30px_rgba(123,213,28,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#89E528] hover:shadow-[0_18px_40px_rgba(123,213,28,.32)]"
+              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(47,107,53,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#3A7F41] hover:shadow-[0_18px_40px_rgba(123,213,28,.32)]"
             >
               Quero entender meu caso
               <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#052D0B] text-white">
