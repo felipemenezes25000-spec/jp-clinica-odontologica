@@ -48,6 +48,7 @@ import { AppleMark } from "@/components/site/AppleMark";
 import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { HistorySection } from "@/components/site/HistorySection";
+import { FaqSection } from "@/components/site/FaqSection";
 import { CLINICA, DEPOIMENTOS, EQUIPE, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
@@ -699,75 +700,7 @@ function Home() {
         </section>
 
         {/* 08 — FAQ */}
-        <section
-          id="faq"
-          className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
-        >
-          <img
-            src={harmonizacaoPoster}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-35"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,48,27,.98)_0%,rgba(8,48,27,.92)_42%,rgba(8,48,27,.82)_100%)]" />
-          <div
-            aria-hidden="true"
-            className="absolute -left-24 bottom-0 h-96 w-96 rounded-full bg-lime/12 blur-[120px]"
-          />
-
-          <div className="jp-container relative grid gap-12 lg:grid-cols-[.72fr_1.28fr] lg:items-start">
-            <Reveal>
-              <span className="eyebrow text-lime">Perguntas frequentes</span>
-              <h2 className="mt-5 max-w-xl font-display text-[clamp(3.3rem,6.4vw,6rem)] font-extrabold leading-[.88] tracking-[-.06em]">
-                Dúvida boa é dúvida <span className="text-lime">respondida.</span>
-              </h2>
-              <p className="mt-6 max-w-md text-base leading-relaxed text-white/65">
-                Reunimos as perguntas mais comuns. Se ainda restar alguma dúvida, fale com a nossa
-                equipe no WhatsApp.
-              </p>
-              <a
-                href={waGeral}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="button-primary mt-7"
-              >
-                <MessageCircle className="h-5 w-5" />
-                Falar no WhatsApp
-              </a>
-
-              <div className="mt-9 grid gap-4 border-t border-white/10 pt-7 text-xs font-bold text-white/58 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                <span>Atendimento humanizado</span>
-                <span>Tecnologia e segurança</span>
-                <span>Cuidado que você sente</span>
-              </div>
-            </Reveal>
-
-            <div className="grid gap-2.5">
-              {FAQ.map((item, i) => (
-                <Reveal key={item.q} delay={Math.min(i, 5) * 40}>
-                  <details
-                    open={i === 0}
-                    className="group rounded-[1.25rem] border border-white/12 bg-forest-2/70 shadow-[0_18px_50px_-38px_rgba(0,0,0,.65)] backdrop-blur-xl open:border-lime/40 open:bg-white/[.09]"
-                  >
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-5 font-display text-base font-extrabold text-white sm:p-6 sm:text-lg">
-                      <span className="flex items-start gap-4">
-                        <span className="text-xs font-extrabold text-lime/75">0{i + 1}</span>
-                        {item.q}
-                      </span>
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/12 bg-white/[.08] text-lime transition-transform group-open:rotate-45">
-                        +
-                      </span>
-                    </summary>
-                    <p className="px-5 pb-5 pl-[3.75rem] text-sm leading-relaxed text-white/65 sm:px-6 sm:pb-6 sm:pl-[4.15rem]">
-                      {item.a}
-                    </p>
-                  </details>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
+        <FaqSection />
 
         {/* 09 — CONTATO */}
         <section
