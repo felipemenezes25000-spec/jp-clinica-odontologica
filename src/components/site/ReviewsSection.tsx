@@ -87,7 +87,7 @@ export function ReviewsSection() {
   const [destaque, ...grade] = DEPOIMENTOS;
 
   return (
-    <section id="depoimentos" className="relative overflow-hidden bg-[#F7F8F2] py-24 lg:py-32">
+    <section id="depoimentos" className="jp-section relative overflow-hidden bg-[#F7F8F2]">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -left-36 top-[42%] h-[520px] w-[520px] rounded-full border border-[#7BD51C]/15"

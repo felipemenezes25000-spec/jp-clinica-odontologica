@@ -170,24 +170,27 @@
   width: min(1400px, 100% - var(--jp-gutter) * 2);
   margin-inline: auto;
 }
+/* 4.5rem de cada lado = 144px entre duas seções vizinhas. Era 7rem, e como
+   o intervalo soma o pb de uma com o pt da outra, dava até 288px — quase um
+   terço da tela de vazio entre um assunto e o seguinte. */
 .jp-section {
-  padding-block: 7rem;
+  padding-block: 4.5rem;
 }
 .jp-section-large {
-  padding-block: 9rem;
+  padding-block: 6rem;
 }
 @media (max-width: 1024px) {
   .jp-section {
-    padding-block: 5.5rem;
+    padding-block: 3.5rem;
   }
   .jp-section-large {
-    padding-block: 6.5rem;
+    padding-block: 4.5rem;
   }
 }
 @media (max-width: 640px) {
   .jp-section,
   .jp-section-large {
-    padding-block: 4.5rem;
+    padding-block: 3rem;
   }
 }
 

@@ -106,10 +106,7 @@ function MacaContorno() {
 
 export function HistorySection() {
   return (
-    <section
-      id="historia"
-      className="relative overflow-hidden bg-[#052D0B] py-24 text-white lg:py-32"
-    >
+    <section id="historia" className="jp-section relative overflow-hidden bg-[#052D0B] text-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_23%_12%,rgba(123,213,28,.18),transparent_27%)]"

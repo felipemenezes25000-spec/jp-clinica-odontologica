@@ -295,7 +295,7 @@ function Home() {
             primeiro texto. */}
         <section
           id="inicio"
-          className="relative isolate overflow-hidden bg-paper pb-20 pt-12 text-forest-2 sm:pb-24 sm:pt-14 lg:pb-28 lg:pt-16"
+          className="relative isolate overflow-hidden bg-paper pb-12 pt-12 text-forest-2 sm:pb-14 sm:pt-14 lg:pb-18 lg:pt-16"
         >
           <div
             aria-hidden="true"
@@ -427,7 +427,7 @@ function Home() {
         {/* 02 — METODOLOGIA */}
         <section
           id="clinica"
-          className="relative isolate overflow-hidden bg-forest-2 py-20 text-white sm:py-28 lg:py-36"
+          className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
         >
           <img
             src={consultorioWideImg}
@@ -525,7 +525,7 @@ function Home() {
         {/* 05 — PARA TODA A FAMÍLIA */}
         <section
           id="familia"
-          className="relative isolate overflow-hidden bg-forest-2 py-20 text-white sm:py-28 lg:py-36"
+          className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
         >
           <img
             src={consultorioWideImg}
@@ -601,10 +601,7 @@ function Home() {
         <ReviewsSection />
 
         {/* 07 — EQUIPE */}
-        <section
-          id="equipe"
-          className="section-light relative overflow-hidden py-20 sm:py-28 lg:py-36"
-        >
+        <section id="equipe" className="jp-section section-light relative overflow-hidden">
           <div
             aria-hidden="true"
             className="absolute right-[-10rem] top-[-8rem] h-[34rem] w-[34rem] rounded-full border border-primary/10"
@@ -716,10 +713,7 @@ function Home() {
         </section>
 
         {/* 08 — ESTRUTURA */}
-        <section
-          id="estrutura"
-          className="relative overflow-hidden bg-paper py-20 sm:py-28 lg:py-36"
-        >
+        <section id="estrutura" className="jp-section relative overflow-hidden bg-paper ">
           <div
             aria-hidden="true"
             className="absolute -left-32 top-16 h-96 w-96 rounded-full bg-mint/60 blur-[130px]"
@@ -778,7 +772,7 @@ function Home() {
         {/* 09 — FAQ */}
         <section
           id="faq"
-          className="relative isolate overflow-hidden bg-forest-2 py-20 text-white sm:py-28 lg:py-36"
+          className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
         >
           <img
             src={harmonizacaoPoster}
@@ -849,7 +843,7 @@ function Home() {
         {/* 10 — CONTATO */}
         <section
           id="fale"
-          className="section-light relative overflow-hidden py-20 text-forest-2 sm:py-28 lg:py-36"
+          className="jp-section section-light relative overflow-hidden text-forest-2"
         >
           <span id="contato" aria-hidden="true" className="absolute -top-24 block h-px w-px" />
           <div

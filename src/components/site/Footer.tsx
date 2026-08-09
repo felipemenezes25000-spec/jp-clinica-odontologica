@@ -5,7 +5,11 @@ import { CLINICA, EQUIPE, HISTORIA, NAV, whatsappLink } from "@/lib/jp";
 export function Footer() {
   return (
     <footer className="section-deep text-white">
-      <div className="jp-container py-14 pb-28 sm:py-16 sm:pb-32 lg:py-20 lg:pb-36">
+      {/* O respiro extra embaixo só faz sentido no celular, onde a barra fixa
+          de CTA (73px) cobre o fim da página. Antes ele crescia com a tela
+          (pb-28 → 32 → 36), deixando 144px de vazio justamente onde a barra
+          nem existe. */}
+      <div className="jp-container py-12 pb-24 sm:py-14 sm:pb-14 lg:py-18 lg:pb-18">
         <div className="grid gap-12 lg:grid-cols-[1.35fr_.72fr_1fr] lg:gap-16">
           <div>
             <div className="flex items-center gap-3">

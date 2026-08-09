@@ -190,7 +190,7 @@ function TreatmentPage() {
       <Header />
 
       <main id="conteudo">
-        <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-forest-2 pb-24 pt-12 text-white sm:pb-32 sm:pt-14 lg:pb-40 lg:pt-16">
+        <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-forest-2 pb-12 pt-12 text-white sm:pb-14 sm:pt-14 lg:pb-18 lg:pt-16">
           <div className="treatment-orbit" aria-hidden="true">
             <span />
             <span />
@@ -274,7 +274,7 @@ function TreatmentPage() {
 
         <section
           id="entenda"
-          className="section-transition relative overflow-hidden bg-cream py-20 sm:py-28 lg:py-36"
+          className="jp-section section-transition relative overflow-hidden bg-cream"
         >
           <div className="jp-container">
             <Reveal className="grid gap-10 lg:grid-cols-[.7fr_1.3fr] lg:items-start">
@@ -308,7 +308,7 @@ function TreatmentPage() {
           </div>
         </section>
 
-        <section className="section-transition bg-paper py-20 sm:py-28 lg:py-36">
+        <section className="jp-section section-transition bg-paper ">
           <div className="jp-container grid gap-12 lg:grid-cols-2 lg:gap-20">
             <Reveal>
               <span className="eyebrow text-primary-ink">Pode fazer sentido para</span>
@@ -364,7 +364,7 @@ function TreatmentPage() {
         </section>
 
         {video && (
-          <section className="section-transition bg-secondary py-16 sm:py-20 lg:py-24">
+          <section className="jp-section section-transition bg-secondary ">
             <div className="jp-container grid items-center gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-16">
               <Reveal className="order-2 lg:order-1">
                 <span className="eyebrow text-primary-ink">Veja como funciona</span>
@@ -387,7 +387,7 @@ function TreatmentPage() {
           </section>
         )}
 
-        <section className="section-transition process-stage relative overflow-hidden bg-lime py-20 text-forest-2 sm:py-28 lg:py-36">
+        <section className="jp-section section-transition process-stage relative overflow-hidden bg-lime text-forest-2">
           <div className="process-orbit" aria-hidden="true" />
           <div className="jp-container relative">
             <Reveal className="max-w-5xl">
@@ -420,7 +420,7 @@ function TreatmentPage() {
           </div>
         </section>
 
-        <section className="section-transition bg-forest-2 py-20 text-white sm:py-28 lg:py-36">
+        <section className="jp-section section-transition bg-forest-2 text-white">
           <div className="jp-container grid gap-12 lg:grid-cols-[.8fr_1.2fr]">
             <Reveal>
               <span className="eyebrow text-lime">Perguntas sobre {treatment.short}</span>
@@ -470,7 +470,7 @@ function TreatmentPage() {
           </div>
         </section>
 
-        <section className="bg-cream py-20 sm:py-28 lg:py-36">
+        <section className="jp-section bg-cream ">
           <div className="jp-container">
             <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
