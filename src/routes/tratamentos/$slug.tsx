@@ -211,7 +211,7 @@ function TreatmentPage() {
                 >
                   <ArrowLeft className="h-4 w-4" /> Todos os tratamentos
                 </a>
-                <p className="mt-8 text-[10px] font-black uppercase tracking-[.2em] text-white/42">
+                <p className="mt-8 text-[11px] font-black uppercase tracking-[.2em] text-white/80">
                   0{index + 1} / 08 • JP Clínica Integrada Odontológica
                 </p>
                 {/* Tracking capped at -.04em: at this size -.085em pulled the second
@@ -251,7 +251,7 @@ function TreatmentPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-forest-2/85 via-transparent to-forest-2/5" />
                     <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 sm:inset-x-7 sm:bottom-7">
                       <div className="max-w-[22rem] rounded-2xl border border-white/12 bg-forest-2/72 p-5 backdrop-blur-xl">
-                        <p className="text-[9px] font-black uppercase tracking-[.18em] text-lime">
+                        <p className="text-[11px] font-black uppercase tracking-[.18em] text-lime">
                           A experiência JP
                         </p>
                         <p className="mt-2 font-display text-2xl font-black leading-[.95]">
@@ -288,7 +288,7 @@ function TreatmentPage() {
                   />
                   <div>
                     <p className="font-display text-xl font-black text-forest-2">JP Clínica</p>
-                    <p className="text-[9px] font-black uppercase tracking-[.18em] text-forest/70">
+                    <p className="text-[11px] font-black uppercase tracking-[.18em] text-ink-soft">
                       Planejamento individual
                     </p>
                   </div>
@@ -298,7 +298,7 @@ function TreatmentPage() {
                 <p className="font-display text-[clamp(2.9rem,6.7vw,6.5rem)] font-black leading-[.88] tracking-[-.065em] text-forest-2">
                   {treatment.manifesto}
                 </p>
-                <div className="mt-10 border-t border-forest/10 pt-8 text-sm font-semibold leading-relaxed text-forest/70 sm:text-base">
+                <div className="mt-10 border-t border-forest/10 pt-8 text-sm font-semibold leading-relaxed text-ink-soft sm:text-base">
                   A página explica a lógica do cuidado, mas não substitui uma avaliação.
                   Diagnóstico, indicação, técnica, número de sessões e expectativas dependem das
                   condições individuais de cada paciente.
@@ -315,7 +315,7 @@ function TreatmentPage() {
               <h2 className="mt-5 font-display text-[clamp(3.2rem,6vw,5.8rem)] font-black leading-[.84] tracking-[-.065em] text-forest-2">
                 NÃO É SOBRE CABER NUMA CAIXA.
               </h2>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-forest/70">
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft">
                 É sobre entender o ponto de partida. Estes são cenários que podem levar alguém a
                 conversar com a equipe sobre {treatment.titulo.toLowerCase()}.
               </p>
@@ -325,7 +325,10 @@ function TreatmentPage() {
                     key={item}
                     className="group flex items-center gap-4 rounded-2xl border border-forest/10 bg-white p-5 transition-transform duration-500 hover:translate-x-2"
                   >
-                    <span className="section-number font-display text-2xl font-black text-primary/35">
+                    <span
+                      aria-hidden="true"
+                      className="section-number font-display text-2xl font-black text-brand-text"
+                    >
                       0{i + 1}
                     </span>
                     <span className="font-display text-xl font-extrabold leading-tight text-forest-2">
@@ -369,12 +372,12 @@ function TreatmentPage() {
               <Reveal className="order-2 lg:order-1">
                 <span className="eyebrow text-primary-ink">Veja como funciona</span>
                 <h2 className="mt-5 max-w-md font-display text-[clamp(2.2rem,4vw,3.4rem)] font-black leading-[.98] tracking-[-.04em] text-forest-2">
-                  Mais fácil de entender <span className="text-primary">vendo.</span>
+                  Mais fácil de entender <span className="text-brand-text">vendo.</span>
                 </h2>
-                <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-forest/72">
+                <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-ink-soft">
                   {video.descricao}
                 </p>
-                <p className="mt-5 max-w-md text-sm font-semibold leading-relaxed text-forest/70">
+                <p className="mt-5 max-w-md text-sm font-semibold leading-relaxed text-ink-soft">
                   Animação ilustrativa. O planejamento do seu caso depende da avaliação
                   profissional.
                 </p>
@@ -391,9 +394,7 @@ function TreatmentPage() {
           <div className="process-orbit" aria-hidden="true" />
           <div className="jp-container relative">
             <Reveal className="max-w-5xl">
-              <span className="eyebrow text-forest-2/55">
-                Do primeiro contato ao acompanhamento
-              </span>
+              <span className="eyebrow text-forest-2">Do primeiro contato ao acompanhamento</span>
               <h2 className="mt-5 font-display text-[clamp(3.8rem,8vw,8rem)] font-black leading-[.78] tracking-[-.075em]">
                 UM PROCESSO. <span className="text-forest-2/70">QUATRO MOMENTOS.</span>
               </h2>
@@ -402,14 +403,17 @@ function TreatmentPage() {
               {treatment.etapas.map((step, i) => (
                 <Reveal as="li" key={step.n} delay={i * 75}>
                   <article className="process-card relative min-h-[310px] overflow-hidden rounded-[2rem] border border-forest-2/12 bg-white/24 p-6 backdrop-blur-sm sm:p-7">
-                    <span className="section-number font-display text-6xl font-black text-forest-2/13">
+                    <span
+                      aria-hidden="true"
+                      className="section-number font-display text-6xl font-black text-forest-2/13"
+                    >
                       {step.n}
                     </span>
                     <div className="mt-16">
                       <h3 className="font-display text-2xl font-black leading-[.95]">
                         {step.titulo}
                       </h3>
-                      <p className="mt-4 text-sm font-semibold leading-relaxed text-forest-2/58">
+                      <p className="mt-4 text-sm font-semibold leading-relaxed text-forest-2/85">
                         {step.texto}
                       </p>
                     </div>
@@ -437,7 +441,9 @@ function TreatmentPage() {
                   <details className="group rounded-2xl border border-white/10 bg-white/[.055] open:border-lime/55 open:bg-white/[.08]">
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-5 p-6 font-display text-xl font-extrabold">
                       <span className="flex gap-4">
-                        <span className="section-number text-sm text-lime/60">0{i + 1}</span>
+                        <span aria-hidden="true" className="section-number text-sm text-lime">
+                          0{i + 1}
+                        </span>
                         {item.q}
                       </span>
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-lime text-forest-2 transition-transform group-open:rotate-45">
@@ -493,13 +499,13 @@ function TreatmentPage() {
                     <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-forest-2">
                       <Sparkles className="h-5 w-5" />
                     </span>
-                    <p className="mt-14 text-[9px] font-black uppercase tracking-[.16em] text-primary">
+                    <p className="mt-14 text-[11px] font-black uppercase tracking-[.16em] text-brand-text">
                       {item.kicker}
                     </p>
                     <h3 className="mt-3 font-display text-3xl font-black leading-[.9] text-forest-2">
                       {item.titulo}
                     </h3>
-                    <span className="mt-6 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.08em] text-primary">
+                    <span className="mt-6 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.08em] text-brand-text">
                       Abrir história{" "}
                       <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
                     </span>

@@ -33,6 +33,8 @@
   --color-ring: var(--ring);
   --color-ink: var(--ink);
   --color-primary-ink: var(--primary-ink);
+  --color-brand-text: var(--brand-text);
+  --color-ink-soft: var(--ink-soft);
   --color-forest: var(--forest);
   --color-forest-2: var(--forest-2);
   --color-lime: var(--lime);
@@ -67,6 +69,16 @@
 
   --ink: #172018;
   --primary-ink: #2f6b35;
+
+  /* Duas cores criadas na revisão de contraste. O verde da marca (#7BD51C)
+     mede 1.73:1 sobre o creme da página — reprova até como texto grande, que
+     exige só 3:1. E o texto secundário usava --forest com opacidade de 40% a
+     70%, faixa que ia de 1.87:1 a 3.31:1.
+       --brand-text  5.13:1 no creme, 5.48:1 no branco
+       --ink-soft    5.33:1 no creme, 5.69:1 no branco
+     Use --lime como texto só sobre fundo escuro, onde ele mede 8.2:1. */
+  --brand-text: #41761c;
+  --ink-soft: #5a6b5c;
   --forest: #2f6b35;
   --forest-2: #052d0b;
   --lime: #7bd51c;

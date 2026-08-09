@@ -130,14 +130,14 @@ export function SpecialtiesSection() {
       <div className="jp-container relative">
         <div className="mb-[52px] grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-start">
           <div>
-            <span className="mb-5 block text-[11px] font-bold uppercase tracking-[0.18em] text-[#589C22]">
+            <span className="mb-5 block text-[11px] font-bold uppercase tracking-[0.18em] text-brand-text">
               Tratamentos
             </span>
 
             <h2 className="font-display text-[48px] font-extrabold leading-[0.98] tracking-[-0.055em] text-[#052D0B] sm:text-[60px] lg:text-[68px]">
               Nossas
               <br />
-              <span className="relative inline-block text-[#62B316]">
+              <span className="relative inline-block text-brand-text">
                 especialidades.
                 <svg
                   aria-hidden="true"

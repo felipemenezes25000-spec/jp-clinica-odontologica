@@ -29,7 +29,7 @@ function ItemNota({
 }) {
   return (
     <div className="flex gap-3">
-      <div className="shrink-0 text-[#4E8C25]" aria-hidden="true">
+      <div className="shrink-0 text-brand-text" aria-hidden="true">
         {icon}
       </div>
       <div>
@@ -65,7 +65,7 @@ function CardAvaliacao({ autor, texto, foto }: { autor: string; texto: string; f
           />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-[#172018]">{autor}</p>
-            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#4E8C25]">
+            <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-brand-text">
               Avaliação no Google
             </p>
           </div>
@@ -109,7 +109,7 @@ export function ReviewsSection() {
         <div className="grid gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
           {/* COLUNA ESQUERDA */}
           <div>
-            <div className="mb-7 flex items-center gap-2 text-[#4E8C25]">
+            <div className="mb-7 flex items-center gap-2 text-brand-text">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#7BD51C]/60">
                 <Star size={14} aria-hidden="true" />
               </span>
@@ -118,7 +118,7 @@ export function ReviewsSection() {
 
             <h2 className="max-w-[610px] font-display text-[40px] font-extrabold leading-[1.04] tracking-[-0.045em] text-[#052D0B] sm:text-[56px] lg:text-[64px]">
               A confiança dos pacientes aparece{" "}
-              <span className="text-[#4E8C25]">em cada sorriso.</span>
+              <span className="text-brand-text">em cada sorriso.</span>
             </h2>
 
             <p className="mt-7 max-w-[590px] text-[16px] leading-7 text-[#5B6659]">
@@ -140,7 +140,7 @@ export function ReviewsSection() {
                   </span>
 
                   <div>
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#4E8C25]">
+                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-brand-text">
                       Avaliação média dos pacientes
                     </p>
 
@@ -264,7 +264,7 @@ export function ReviewsSection() {
                     />
                     <div>
                       <p className="font-display text-lg font-bold text-white">{destaque.autor}</p>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#7BD51C]">
+                      <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#7BD51C]">
                         Avaliação no Google
                       </span>
                     </div>

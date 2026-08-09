@@ -319,9 +319,9 @@ function Home() {
             <Reveal>
               <span className="eyebrow text-primary-ink">Odontologia para toda a vida</span>
               <h1 className="mt-6 max-w-3xl font-display text-[clamp(4rem,9vw,7.7rem)] font-extrabold leading-[.83] tracking-[-.065em] text-forest-2">
-                Sorrir <span className="text-primary">muda</span> tudo.
+                Sorrir <span className="text-brand-text">muda</span> tudo.
               </h1>
-              <p className="mt-7 max-w-xl text-base font-medium leading-relaxed text-forest/68 sm:text-lg">
+              <p className="mt-7 max-w-xl text-base font-medium leading-relaxed text-ink-soft sm:text-lg">
                 Odontologia completa para crianças, adultos e idosos, com atendimento humano,
                 planejamento individual e um cuidado que você sente em cada detalhe.
               </p>
@@ -346,7 +346,7 @@ function Home() {
                 </a>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-extrabold text-forest/58">
+              <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-extrabold text-ink-soft">
                 <span className="flex items-center gap-2">
                   <Star className="h-4 w-4 fill-primary text-primary" /> 4,5 no Google
                 </span>
@@ -379,7 +379,7 @@ function Home() {
                     <p className="font-display text-sm font-extrabold text-forest-2">
                       Para toda a família
                     </p>
-                    <p className="mt-0.5 text-[11px] font-semibold text-forest/58">
+                    <p className="mt-0.5 text-[11px] font-semibold text-ink-soft">
                       Criança • adulto • idoso
                     </p>
                   </div>
@@ -418,9 +418,7 @@ function Home() {
                         <C className="h-4.5 w-4.5" />
                       </span>
                       <p className="mt-4 font-display text-base font-extrabold">{String(title)}</p>
-                      <p className="mt-1.5 text-xs leading-relaxed text-forest/58">
-                        {String(text)}
-                      </p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-ink-soft">{String(text)}</p>
                     </div>
                   );
                 })}
@@ -512,7 +510,7 @@ function Home() {
                       <h3 className="mt-5 font-display text-xl font-extrabold leading-tight">
                         {item.title}
                       </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-forest/65">{item.text}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-ink-soft">{item.text}</p>
                     </article>
                   </Reveal>
                 ))}
@@ -545,9 +543,9 @@ function Home() {
             <Reveal>
               <span className="eyebrow text-primary-ink">Quem cuida de você</span>
               <h2 className="mt-5 max-w-4xl font-display text-[clamp(3.6rem,7vw,6.5rem)] font-extrabold leading-[.88] tracking-[-.06em] text-forest-2">
-                Nossa <span className="text-primary">equipe.</span>
+                Nossa <span className="text-brand-text">equipe.</span>
               </h2>
-              <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-forest/65">
+              <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-ink-soft">
                 Atendimento feito por profissionais com registro ativo no Conselho Regional de
                 Odontologia. Dados regulados só aparecem quando estão confirmados.
               </p>
@@ -596,7 +594,7 @@ function Home() {
                             texto. Na base o raio é 1.25rem, onde o recorte é de
                             menos de 2px. */}
                         {!vazio && pessoa.papel && (
-                          <span className="absolute bottom-3 left-1/2 max-w-[calc(100%-1.5rem)] -translate-x-1/2 truncate rounded-full bg-forest-2 px-3 py-2 text-center text-[8px] font-extrabold uppercase tracking-[.11em] text-lime">
+                          <span className="absolute bottom-3 left-1/2 max-w-[calc(100%-1rem)] -translate-x-1/2 truncate rounded-full bg-forest-2 px-2.5 py-2 text-center text-[11px] font-extrabold uppercase tracking-[.04em] text-lime">
                             {pessoa.papel}
                           </span>
                         )}
@@ -606,16 +604,16 @@ function Home() {
                         <h3 className="font-display text-lg font-extrabold leading-tight text-forest-2">
                           {vazio ? "Profissional da equipe" : pessoa.nome}
                         </h3>
-                        <p className="mt-2 min-h-4 text-[9px] font-extrabold uppercase tracking-[.13em] text-primary-ink">
+                        <p className="mt-2 min-h-4 text-[11px] font-extrabold uppercase tracking-[.13em] text-primary-ink">
                           {vazio
                             ? "Foto e especialidade a inserir"
                             : pessoa.especialidade || pessoa.papel || "Odontologia"}
                         </p>
                         <div className="mt-5 border-t border-forest/8 pt-4">
-                          <p className="text-[8px] font-extrabold uppercase tracking-[.15em] text-forest/40">
+                          <p className="text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
                             Registro
                           </p>
-                          <p className="mt-1 text-xs font-bold text-forest/62">
+                          <p className="mt-1 text-xs font-bold text-ink-soft">
                             {vazio ? "CRO a confirmar" : pessoa.registro}
                           </p>
                         </div>
@@ -631,7 +629,7 @@ function Home() {
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-primary-ink">
                   <ShieldCheck className="h-4.5 w-4.5" />
                 </span>
-                <p className="text-sm font-semibold text-forest/65">
+                <p className="text-sm font-semibold text-ink-soft">
                   Equipe preparada para cuidar de você em{" "}
                   <strong className="font-extrabold text-primary-ink">
                     todas as fases do seu sorriso.
@@ -653,9 +651,9 @@ function Home() {
               <div>
                 <span className="eyebrow text-primary-ink">A clínica por dentro</span>
                 <h2 className="mt-5 max-w-4xl font-display text-[clamp(3.3rem,7vw,6.5rem)] font-extrabold leading-[.89] tracking-[-.055em] text-forest-2">
-                  Conheça <span className="text-primary">nossa estrutura.</span>
+                  Conheça <span className="text-brand-text">nossa estrutura.</span>
                 </h2>
-                <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-forest/64">
+                <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-ink-soft">
                   Fotos reais para você conhecer os espaços da clínica antes mesmo de chegar.
                 </p>
               </div>
@@ -716,14 +714,14 @@ function Home() {
           <div className="jp-container relative">
             <div className="grid gap-10 lg:grid-cols-[.92fr_1.08fr] lg:items-start">
               <Reveal>
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-mint/55 px-4 py-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-primary-ink">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-mint/55 px-4 py-2 text-[11px] font-extrabold uppercase tracking-[.12em] text-primary-ink">
                   <span className="h-2 w-2 rounded-full bg-primary" />
                   Fale com a JP
                 </span>
                 <h2 className="mt-6 max-w-3xl font-display text-[clamp(2.6rem,5vw,4.5rem)] font-extrabold leading-[.94] tracking-[-.055em]">
-                  Seu próximo sorriso pode começar <span className="text-primary">aqui.</span>
+                  Seu próximo sorriso pode começar <span className="text-brand-text">aqui.</span>
                 </h2>
-                <p className="mt-6 max-w-xl text-base font-medium leading-relaxed text-forest/65">
+                <p className="mt-6 max-w-xl text-base font-medium leading-relaxed text-ink-soft">
                   Nossa equipe cuida de cada detalhe para que sua primeira avaliação seja simples,
                   acolhedora e eficiente. Vamos juntos planejar o melhor para o seu sorriso.
                 </p>
@@ -733,7 +731,7 @@ function Home() {
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-primary-ink">
                       <Phone className="h-4.5 w-4.5" />
                     </span>
-                    <p className="mt-4 text-[9px] font-extrabold uppercase tracking-[.15em] text-forest/42">
+                    <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
                       Telefone
                     </p>
                     <p className="mt-1 font-display text-lg font-extrabold">{CLINICA.telefone}</p>
@@ -747,7 +745,7 @@ function Home() {
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-primary-ink">
                       <MessageCircle className="h-4.5 w-4.5" />
                     </span>
-                    <p className="mt-4 text-[9px] font-extrabold uppercase tracking-[.15em] text-forest/42">
+                    <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
                       WhatsApp
                     </p>
                     <p className="mt-1 font-display text-lg font-extrabold">{CLINICA.whatsapp}</p>
@@ -764,18 +762,18 @@ function Home() {
                         <MapPin className="h-4.5 w-4.5" />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[9px] font-extrabold uppercase tracking-[.15em] text-forest/42">
+                        <p className="text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
                           Endereço
                         </p>
                         <p className="mt-1 max-w-lg font-display text-lg font-extrabold leading-snug">
                           {CLINICA.endereco}
                         </p>
-                        <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-paper px-3 py-2 text-[10px] font-extrabold text-primary-ink">
+                        <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-paper px-3 py-2 text-[11px] font-extrabold text-primary-ink">
                           Ver no Google Maps <ArrowUpRight className="h-3.5 w-3.5" />
                         </span>
                       </div>
                     </div>
-                    <p className="mt-5 flex items-center gap-2 border-t border-forest/8 pt-4 text-xs font-bold text-forest/58">
+                    <p className="mt-5 flex items-center gap-2 border-t border-forest/8 pt-4 text-xs font-bold text-ink-soft">
                       <Clock3 className="h-4 w-4 shrink-0 text-primary" />
                       Segunda a sexta, 08h às 18h
                     </p>
@@ -852,7 +850,7 @@ function Home() {
                       <MapPin className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <p className="text-[10px] font-extrabold text-primary-ink">{CLINICA.nome}</p>
+                      <p className="text-[11px] font-extrabold text-primary-ink">{CLINICA.nome}</p>
                       <p className="mt-2 font-display text-base font-extrabold leading-snug text-forest-2">
                         {CLINICA.local.logradouro} — {CLINICA.local.bairro}
                         <span className="block">
@@ -882,7 +880,7 @@ function Home() {
                   {SELOS.map(({ icone: Icone, texto, bordas }) => (
                     <div
                       key={texto}
-                      className={`flex items-center gap-2 border-forest/8 px-4 py-4 text-[10px] font-extrabold text-forest/62 lg:justify-center lg:text-center ${bordas}`}
+                      className={`flex items-center gap-2 border-forest/8 px-4 py-4 text-[11px] font-extrabold text-ink-soft lg:justify-center lg:text-center ${bordas}`}
                     >
                       <Icone className="h-4 w-4 shrink-0 text-primary-ink" />
                       {texto}

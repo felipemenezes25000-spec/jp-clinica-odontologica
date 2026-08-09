@@ -26,7 +26,7 @@ export function Footer() {
                 <p className="font-display text-lg font-extrabold tracking-[-.035em]">
                   JP Clínica Odontológica
                 </p>
-                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/80">
+                <p className="mt-1 text-[11px] font-extrabold uppercase tracking-[.18em] text-white/80">
                   Vila Bruna • São Paulo
                 </p>
               </div>
@@ -51,7 +51,7 @@ export function Footer() {
           </div>
 
           <nav aria-label="Navegação do rodapé">
-            <p className="eyebrow text-lime/75">Navegue</p>
+            <p className="eyebrow text-lime">Navegue</p>
             <ul className="mt-6 grid gap-2.5">
               {NAV.map((item) => (
                 <li key={item.href}>
@@ -67,7 +67,7 @@ export function Footer() {
           </nav>
 
           <div>
-            <p className="eyebrow text-lime/75">Fale com a JP</p>
+            <p className="eyebrow text-lime">Fale com a JP</p>
             <ul className="mt-6 grid gap-4 text-sm font-semibold text-white">
               <li>
                 <a
@@ -125,7 +125,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-[10px] leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
+        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-[11px] leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
           <div>
             {EQUIPE[0] && (
               <p className="font-semibold text-white">

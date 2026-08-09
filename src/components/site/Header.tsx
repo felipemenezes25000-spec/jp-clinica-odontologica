@@ -45,7 +45,7 @@ export function Header() {
         <div className="jp-container-wide flex h-[34px] items-center justify-between">
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-[#7BD51C]" aria-hidden="true" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-[11px]">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-[11px]">
               Vila Bruna
               <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
                 •
@@ -63,7 +63,7 @@ export function Header() {
           <div className="hidden items-center gap-5 md:flex">
             <span className="flex items-center gap-2">
               <Clock3 size={14} className="text-[#7BD51C]" aria-hidden="true" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-[11px]">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-[11px]">
                 Segunda a sexta
                 <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
                   •
@@ -113,7 +113,7 @@ export function Header() {
               <span className="block whitespace-nowrap font-display text-[19px] font-extrabold leading-none tracking-[-0.035em] text-[#052D0B] sm:text-[21px] lg:text-[24px]">
                 JP Clínica
               </span>
-              <span className="mt-2 block whitespace-nowrap text-[7.5px] font-semibold uppercase tracking-[0.15em] text-[#3F7A18] sm:text-[8px] sm:tracking-[0.18em] lg:text-[9px]">
+              <span className="mt-2 block whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3F7A18] sm:tracking-[0.12em]">
                 Integrada Odontológica
               </span>
             </span>
@@ -211,7 +211,7 @@ export function Header() {
                 className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-[#2F6B35] transition hover:bg-[#EDF6E4] hover:text-[#052D0B]"
               >
                 {item.label}
-                <ArrowUpRight size={15} className="text-[#4E8C25]" aria-hidden="true" />
+                <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
               </a>
             ))}
           </div>

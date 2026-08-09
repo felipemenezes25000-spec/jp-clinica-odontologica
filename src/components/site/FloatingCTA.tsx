@@ -73,7 +73,7 @@ export function FloatingCTA() {
           <span className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite]" />
           <MessageCircle className="h-4.5 w-4.5" />
         </span>
-        <span className="text-[10px] font-extrabold uppercase tracking-[.08em]">WhatsApp</span>
+        <span className="text-[11px] font-extrabold uppercase tracking-[.08em]">WhatsApp</span>
       </a>
 
       {/* `invisible` + aria-hidden quando recolhida: só `translate-y-full` a tira

@@ -80,9 +80,28 @@ Cada uma dessas custou tempo para descobrir. Estão documentadas no código tamb
 NITRO_PRESET=node-server npm run build
 ```
 
-### `--primary-ink` existe por acessibilidade
+### O verde da marca não serve como texto sobre fundo claro
 
-O verde `--primary` mede **3,7:1 sobre branco** — reprova no WCAG AA para texto pequeno. `--primary-ink` é o mesmo matiz um passo mais escuro, medindo **6,1:1**. Use `--primary` só em texto grande (≥18,66px em negrito); qualquer coisa menor usa `--primary-ink`.
+`--primary` / `--lime` (#7BD51C) mede **1,73:1 sobre o creme da página**. Isso reprova até para texto grande, que exige apenas 3:1 — não é margem apertada, é o dobro do permitido.
+
+A revisão de contraste criou dois tokens para resolver isso de uma vez:
+
+| Token          | Valor     | Sobre creme | Sobre branco | Para quê                                     |
+| -------------- | --------- | ----------- | ------------ | -------------------------------------------- |
+| `--brand-text` | `#41761c` | 5,13:1      | 5,48:1       | verde da marca **como texto** em fundo claro |
+| `--ink-soft`   | `#5a6b5c` | 5,33:1      | 5,69:1       | texto secundário em fundo claro              |
+
+Regras que decorrem daí:
+
+- **`--lime` como texto só sobre fundo escuro**, onde mede 8,2:1. Em fundo claro, use `--brand-text`.
+- **Nunca `--forest` com opacidade para texto.** A faixa que existia (40% a 70%) ia de 1,87:1 a 3,31:1 — toda ela reprovava. Use `--ink-soft` sólido.
+- **Sobre o lime**, texto tem de ser `--forest-2` (8,2:1). `--ink-soft` ali dá 3,08:1.
+
+### Piso de 11px na tipografia
+
+Havia 34 elementos abaixo de 11px, sendo 10 a **8px** — caixa alta com `tracking` largo nesse tamanho é ilegível para muita gente. Todos subiram para 11px. Onde o texto passou a não caber, a solução foi reduzir o `tracking`, não voltar a diminuir a fonte.
+
+O site usa duas famílias: **Manrope** nos títulos (`font-display`) e **Inter** no resto.
 
 ### O menu mobile é a navegação do celular
 
