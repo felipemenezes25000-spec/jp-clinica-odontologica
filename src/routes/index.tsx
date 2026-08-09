@@ -98,6 +98,32 @@ const GALLERY = [
   },
 ];
 
+/**
+ * Selos do rodapé do mapa. A grade vira 1 → 2 → 4 colunas, então cada selo
+ * carrega as bordas que valem em cada faixa: divisória horizontal quando ele
+ * inicia uma linha nova, vertical quando ele segue outro na mesma linha.
+ * Escritas por extenso porque o Tailwind lê o código-fonte — classe montada
+ * por concatenação não entra no CSS gerado.
+ */
+const SELOS = [
+  { icone: ShieldCheck, texto: "Ambiente seguro", bordas: "" },
+  {
+    icone: BadgeCheck,
+    texto: "Higiene e esterilização rigorosas",
+    bordas: "border-t sm:border-l sm:border-t-0",
+  },
+  {
+    icone: Sparkles,
+    texto: "Tecnologia avançada",
+    bordas: "border-t lg:border-l lg:border-t-0",
+  },
+  {
+    icone: HeartHandshake,
+    texto: "Acolhimento que faz a diferença",
+    bordas: "border-t sm:border-l lg:border-t-0",
+  },
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -950,26 +976,24 @@ function Home() {
                     <ArrowUpRight className="h-4 w-4" />
                   </a>
                 </div>
-              </div>
 
-              <div className="mx-auto -mt-5 grid max-w-4xl overflow-hidden rounded-[1.3rem] border border-forest/8 bg-white shadow-[0_20px_55px_-42px_rgba(5,45,11,.42)] sm:grid-cols-4">
-                {[
-                  [ShieldCheck, "Ambiente seguro"],
-                  [BadgeCheck, "Higiene e esterilização rigorosas"],
-                  [Sparkles, "Tecnologia avançada"],
-                  [HeartHandshake, "Acolhimento que faz a diferença"],
-                ].map(([Icon, text], i) => {
-                  const C = Icon as typeof ShieldCheck;
-                  return (
+                {/* Selos como rodapé do próprio cartão do mapa.
+                    Antes era um cartão solto com -mt-5: os 20px de recuo passavam
+                    do padding de 16px e cortavam a linha de ícone+texto. Subir o
+                    strip com z-index resolveria o corte, mas taparia 896px dos
+                    1302px da base do iframe — justamente onde o Google exibe a
+                    atribuição, que a Maps Embed API exige manter visível. */}
+                <div className="-mx-2 -mb-2 mt-2 grid border-t border-forest/8 sm:grid-cols-2 lg:grid-cols-4">
+                  {SELOS.map(({ icone: Icone, texto, bordas }) => (
                     <div
-                      key={String(text)}
-                      className={`flex items-center gap-2 p-4 text-[10px] font-extrabold text-forest/62 ${i ? "border-t border-forest/8 sm:border-l sm:border-t-0" : ""}`}
+                      key={texto}
+                      className={`flex items-center gap-2 border-forest/8 px-4 py-4 text-[10px] font-extrabold text-forest/62 lg:justify-center lg:text-center ${bordas}`}
                     >
-                      <C className="h-4 w-4 shrink-0 text-primary-ink" />
-                      {String(text)}
+                      <Icone className="h-4 w-4 shrink-0 text-primary-ink" />
+                      {texto}
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
             </Reveal>
           </div>
