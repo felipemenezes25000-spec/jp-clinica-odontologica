@@ -61,14 +61,14 @@ export function FaqSection() {
         className="absolute inset-0 -z-30 h-full w-full object-cover object-[38%_center]"
       />
 
-      <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[#052D0B]/58" />
+      <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[#052D0B]/28" />
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#031E09_0%,rgba(3,30,9,.77)_23%,rgba(5,45,11,.44)_44%,rgba(3,29,9,.82)_61%,#021B08_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#031E09_0%,rgba(3,30,9,.86)_40%,rgba(3,30,9,.72)_46%,rgba(5,45,11,.05)_56%,rgba(3,29,9,.45)_72%,#021B08_100%)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[55%] bg-gradient-to-t from-[#021B08] via-[#031F09]/60 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[42%] bg-gradient-to-t from-[#021B08] via-[#031F09]/35 to-transparent"
       />
       <div
         aria-hidden="true"

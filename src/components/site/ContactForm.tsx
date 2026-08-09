@@ -8,7 +8,8 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import { TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import logo from "@/assets/logo-jp-official.webp";
+import { CLINICA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const PERIODOS = ["Manhã", "Tarde", "Qualquer horário"];
 const CONTATOS = ["WhatsApp", "Telefone"];
@@ -48,11 +49,11 @@ export function ContactForm() {
       <div className="flex items-start justify-between gap-5">
         <div>
           <div className="flex items-center gap-3">
-            <span className="font-display text-3xl font-extrabold tracking-[-.06em] text-forest-2">
-              JP
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary/30 bg-white shadow-[0_4px_14px_rgba(5,45,11,.08)]">
+              <img src={logo} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
             </span>
             <p className="max-w-[13rem] font-display text-lg font-extrabold leading-[1.05] text-forest-2">
-              JP Clínica Integrada Odontológica
+              {CLINICA.nome}
             </p>
           </div>
           <h3 className="mt-7 max-w-md font-display text-3xl font-extrabold leading-[.98] tracking-[-.045em] text-forest-2 sm:text-4xl">

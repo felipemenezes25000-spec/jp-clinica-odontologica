@@ -125,12 +125,12 @@ export function Header() {
             className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
             aria-label="Navegação principal"
           >
-            <ul className="flex w-full max-w-[820px] items-center justify-center gap-[clamp(12px,1.4vw,28px)]">
+            <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(12px,2vw,34px)]">
               {NAV.map((item) => (
                 <li key={item.href} className="shrink-0">
                   <a
                     href={item.href}
-                    className="relative whitespace-nowrap py-3 text-[13.5px] font-semibold tracking-[-0.01em] text-[#3F7A18] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-[#7BD51C] after:transition-all after:duration-300 hover:text-[#052D0B] hover:after:w-full"
+                    className="relative whitespace-nowrap py-3 text-[14px] font-semibold tracking-[-0.01em] text-[#3F7A18] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-[#7BD51C] after:transition-all after:duration-300 hover:text-[#052D0B] hover:after:w-full"
                   >
                     {item.label}
                   </a>
@@ -139,16 +139,10 @@ export function Header() {
             </ul>
           </nav>
 
+          {/* Sem pílula de telefone aqui: ele já aparece na barra superior,
+              40px acima. A duplicata consumia ~150px e deixava a navegação de
+              9 itens com apenas 24px de folga de cada lado. */}
           <div className="hidden shrink-0 items-center gap-3 xl:flex">
-            <a
-              href={CLINICA.telefoneHref}
-              className="flex h-[48px] items-center gap-3 rounded-full border border-[#D4DFCC] bg-white px-5 text-[13px] font-bold text-[#052D0B] transition duration-300 hover:border-[#7BD51C] hover:bg-[#F7FAF2]"
-            >
-              <Phone size={16} strokeWidth={1.8} aria-hidden="true" />
-              <span className="hidden 2xl:inline">{CLINICA.telefone}</span>
-              <span className="2xl:hidden">Telefone</span>
-            </a>
-
             <a
               href={wa}
               target="_blank"
