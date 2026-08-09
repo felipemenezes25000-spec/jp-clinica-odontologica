@@ -13,6 +13,20 @@ import fotoEquipe5 from "@/assets/equipe-5.webp";
 /** Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta. */
 export const SITE_URL = "https://jp-clinica-odontologica-award-final.vercel.app";
 
+/**
+ * Endereço em partes. O JSON-LD exige logradouro, cidade, UF e CEP separados,
+ * e antes eles estavam escritos à mão no JSX — dois lugares para errar. Aqui a
+ * string de exibição é montada a partir das partes, então há uma verdade só.
+ */
+const ENDERECO = {
+  logradouro: "R. Rio Verde, 1029",
+  bairro: "Vila Bruna",
+  cidade: "São Paulo",
+  uf: "SP",
+  cep: "02934-201",
+  pais: "BR",
+} as const;
+
 export const CLINICA = {
   nome: "JP Clínica Integrada Odontológica",
   razaoSocial: "J P Clínica Integrada Odontológica LTDA",
@@ -22,9 +36,10 @@ export const CLINICA = {
   telefoneHref: "tel:+551139759902",
   whatsapp: "(11) 97169-4647",
   whatsappHref: "https://wa.me/5511971694647",
-  endereco: "R. Rio Verde, 1029 — Vila Bruna, São Paulo - SP, 02934-201",
+  local: ENDERECO,
+  endereco: `${ENDERECO.logradouro} — ${ENDERECO.bairro}, ${ENDERECO.cidade} - ${ENDERECO.uf}, ${ENDERECO.cep}`,
   bairro: "Vila Bruna • região da Freguesia do Ó",
-  cep: "02934-201",
+  cep: ENDERECO.cep,
   mapsHref:
     "https://www.google.com/maps/search/?api=1&query=R.+Rio+Verde,+1029+-+Vila+Bruna,+São+Paulo+-+SP,+02934-201",
   // Endpoint de embed do Google, sem chave de API.

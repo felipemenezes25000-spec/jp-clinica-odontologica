@@ -74,7 +74,7 @@ const GALLERY = [
   {
     src: fachadaImg,
     title: "Nossa fachada",
-    text: "Rua Rio Verde, 1029 — Vila Bruna, na região da Freguesia do Ó.",
+    text: `${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, na região da Freguesia do Ó.`,
   },
   {
     src: consultorioRealImg,
@@ -147,14 +147,14 @@ export const Route = createFileRoute("/")({
           name: CLINICA.nome,
           legalName: CLINICA.razaoSocial,
           slogan: CLINICA.assinatura,
-          telephone: "+551139759902",
+          telephone: CLINICA.telefoneHref.replace("tel:", ""),
           address: {
             "@type": "PostalAddress",
-            streetAddress: "R. Rio Verde, 1029",
-            addressLocality: "São Paulo",
-            addressRegion: "SP",
-            postalCode: "02934-201",
-            addressCountry: "BR",
+            streetAddress: CLINICA.local.logradouro,
+            addressLocality: CLINICA.local.cidade,
+            addressRegion: CLINICA.local.uf,
+            postalCode: CLINICA.local.cep,
+            addressCountry: CLINICA.local.pais,
           },
           areaServed: ["Vila Bruna", "Freguesia do Ó", "São Paulo"],
           openingHoursSpecification: [
@@ -635,10 +635,19 @@ function Home() {
                       <div className="relative overflow-hidden rounded-t-[7rem] rounded-b-[1.25rem] bg-[linear-gradient(180deg,#E7F5D5,#F7F8F2)] px-4 pt-5">
                         <div className="relative mx-auto aspect-[4/4.55] w-full overflow-hidden rounded-t-full bg-[linear-gradient(180deg,rgba(123,213,28,.36),rgba(47,107,53,.10))]">
                           {pessoa.foto ? (
+                            /* width/height são obrigatórios aqui, não enfeite.
+                               Com `w-auto` a largura depende da imagem carregada;
+                               sem carregar ela é 0, e um elemento de área zero
+                               nunca entra no observador do `loading="lazy"` — a
+                               foto ficava presa em 0x0 para sempre. Os atributos
+                               dão a proporção intrínseca, então a largura resolve
+                               antes do download e o lazy dispara. */
                             <img
                               src={pessoa.foto}
                               alt={`Retrato de ${pessoa.nome}`}
                               loading="lazy"
+                              width={520}
+                              height={592}
                               className="absolute inset-x-0 bottom-0 mx-auto h-[116%] w-auto max-w-none object-contain object-bottom"
                             />
                           ) : (
@@ -978,12 +987,12 @@ function Home() {
                       <MapPin className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <p className="text-[10px] font-extrabold text-primary-ink">
-                        JP Clínica Integrada Odontológica
-                      </p>
+                      <p className="text-[10px] font-extrabold text-primary-ink">{CLINICA.nome}</p>
                       <p className="mt-2 font-display text-base font-extrabold leading-snug text-forest-2">
-                        R. Rio Verde, 1029 — Vila Bruna
-                        <span className="block">São Paulo - SP, 02934-201</span>
+                        {CLINICA.local.logradouro} — {CLINICA.local.bairro}
+                        <span className="block">
+                          {CLINICA.local.cidade} - {CLINICA.local.uf}, {CLINICA.local.cep}
+                        </span>
                       </p>
                     </div>
                   </div>

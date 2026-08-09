@@ -25,7 +25,9 @@ export function FloatingCTA() {
       {/* CTA persistente aprovado: surge depois da capa e acompanha a rolagem. */}
       <div
         className={`sticky-booking-shell fixed inset-x-0 bottom-5 z-[58] hidden px-5 transition-all duration-500 md:block ${
-          showBar ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0 pointer-events-none"
+          showBar
+            ? "translate-y-0 opacity-100"
+            : "pointer-events-none invisible translate-y-8 opacity-0"
         }`}
         aria-hidden={!showBar}
       >
@@ -74,10 +76,14 @@ export function FloatingCTA() {
         <span className="text-[10px] font-extrabold uppercase tracking-[.08em]">WhatsApp</span>
       </a>
 
+      {/* `invisible` + aria-hidden quando recolhida: só `translate-y-full` a tira
+          da vista, mas deixa os dois links na ordem de tabulação e anunciados
+          pelo leitor de tela — a pessoa navegava para botões fora da tela. */}
       <div
-        className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/96 p-2.5 backdrop-blur-xl transition-transform duration-500 sm:hidden ${
-          showBar ? "translate-y-0" : "translate-y-full"
+        className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/96 p-2.5 backdrop-blur-xl transition-[translate,visibility] duration-500 sm:hidden ${
+          showBar ? "translate-y-0" : "invisible translate-y-full"
         }`}
+        aria-hidden={!showBar}
       >
         <div className="grid grid-cols-[.34fr_1fr] gap-2">
           <a
