@@ -5,10 +5,6 @@ import avatarMarjorye from "@/assets/avatar-marjorye.webp";
 import avatarRoberta from "@/assets/avatar-roberta.webp";
 import avatarCarolina from "@/assets/avatar-carolina.webp";
 import avatarRafael from "@/assets/avatar-rafael.webp";
-import fotoEquipe2 from "@/assets/equipe-2.webp";
-import fotoEquipe3 from "@/assets/equipe-3.webp";
-import fotoEquipe4 from "@/assets/equipe-4.webp";
-import fotoEquipe5 from "@/assets/equipe-5.webp";
 
 /** Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta. */
 export const SITE_URL = "https://jp-clinica-odontologica-award-final.vercel.app";
@@ -213,34 +209,42 @@ export const EQUIPE: Profissional[] = [
   // ─── ⚠️ FICTÍCIOS — TROCAR ANTES DE DIVULGAR ───────────────────────────────
   // Nenhuma destas pessoas existe. Retratos gerados por IA; CRO no formato
   // 00.00X, que nenhum registro real usa. Servem só para ver o layout cheio.
+  //
+  // As fotos ficam em public/images/equipe/ e são servidas por caminho
+  // absoluto — vieram prontas e não passam pelo pipeline de assets do Vite.
+  {
+    nome: "Dr. Ricardo Almeida",
+    registro: "CRO-SP 00.001",
+    papel: "Clínico geral",
+    foto: "/images/equipe/ricardo-almeida.jpg",
+    ficticio: true,
+  },
   {
     nome: "Dra. Mariana Costa",
     registro: "CRO-SP 00.002",
     papel: "Ortodontia",
-    foto: fotoEquipe2,
+    foto: "/images/equipe/mariana-costa.jpg",
     ficticio: true,
   },
   {
     nome: "Dr. Felipe Nunes",
     registro: "CRO-SP 00.003",
     papel: "Implantodontia",
-    foto: fotoEquipe3,
+    foto: "/images/equipe/felipe-nunes.jpg",
     ficticio: true,
   },
   {
     nome: "Dra. Camila Rocha",
     registro: "CRO-SP 00.004",
     papel: "Odontopediatria",
-    foto: fotoEquipe4,
+    foto: "/images/equipe/camila-rocha.jpg",
     ficticio: true,
   },
   {
-    // Era "Dra. Beatriz Lima". Virou homem para a sequência alternar
-    // mulher → homem → mulher → homem ao longo dos cards.
-    nome: "Dr. Thiago Moraes",
+    nome: "Dra. Beatriz Lima",
     registro: "CRO-SP 00.005",
     papel: "Harmonização orofacial",
-    foto: fotoEquipe5,
+    foto: "/images/equipe/beatriz-lima.jpg",
     ficticio: true,
   },
   // ───────────────────────────────────────────────────────────────────────────

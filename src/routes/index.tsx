@@ -49,6 +49,7 @@ import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
+import { TeamSection } from "@/components/site/TeamSection";
 import { CLINICA, DEPOIMENTOS, EQUIPE, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
@@ -529,116 +530,7 @@ function Home() {
         <ReviewsSection />
 
         {/* 06 — EQUIPE */}
-        <section id="equipe" className="jp-section section-light relative overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="absolute right-[-10rem] top-[-8rem] h-[34rem] w-[34rem] rounded-full border border-primary/10"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute -left-48 bottom-[-10rem] h-[28rem] w-[28rem] rounded-full border border-primary/10"
-          />
-
-          <div className="jp-container relative">
-            <Reveal>
-              <span className="eyebrow text-primary-ink">Quem cuida de você</span>
-              <h2 className="mt-5 max-w-4xl font-display text-[clamp(3.6rem,7vw,6.5rem)] font-extrabold leading-[.88] tracking-[-.06em] text-forest-2">
-                Nossa <span className="text-brand-text">equipe.</span>
-              </h2>
-              <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-ink-soft">
-                Atendimento feito por profissionais com registro ativo no Conselho Regional de
-                Odontologia. Dados regulados só aparecem quando estão confirmados.
-              </p>
-            </Reveal>
-
-            <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {EQUIPE.map((pessoa, i) => {
-                const vazio = Boolean(pessoa.placeholder);
-                return (
-                  <Reveal key={`${pessoa.registro}-${i}`} delay={i * 55}>
-                    <article
-                      className={`group h-full rounded-[1.7rem] border bg-white p-3 shadow-[0_24px_64px_-44px_rgba(5,45,11,.42)] transition duration-500 hover:-translate-y-1 ${
-                        vazio ? "border-forest/7" : "border-primary/25"
-                      }`}
-                    >
-                      <div className="relative overflow-hidden rounded-t-[7rem] rounded-b-[1.25rem] bg-[linear-gradient(180deg,#E7F5D5,#F7F8F2)] px-4 pt-5">
-                        <div className="relative mx-auto aspect-[4/4.55] w-full overflow-hidden rounded-t-full bg-[linear-gradient(180deg,rgba(123,213,28,.36),rgba(47,107,53,.10))]">
-                          {pessoa.foto ? (
-                            /* width/height são obrigatórios aqui, não enfeite.
-                               Com `w-auto` a largura depende da imagem carregada;
-                               sem carregar ela é 0, e um elemento de área zero
-                               nunca entra no observador do `loading="lazy"` — a
-                               foto ficava presa em 0x0 para sempre. Os atributos
-                               dão a proporção intrínseca, então a largura resolve
-                               antes do download e o lazy dispara. */
-                            <img
-                              src={pessoa.foto}
-                              alt={`Retrato de ${pessoa.nome}`}
-                              loading="lazy"
-                              width={520}
-                              height={592}
-                              className="absolute inset-x-0 bottom-0 mx-auto h-[116%] w-auto max-w-none object-contain object-bottom"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 grid place-items-center">
-                              <div className="relative grid h-28 w-28 place-items-center rounded-full border border-forest/10 bg-white/75 text-primary-ink shadow-sm">
-                                <UsersRound className="h-11 w-11" />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Selo embaixo, não no topo. O contêiner tem
-                            rounded-t-[7rem] com overflow-hidden: a 12px do topo
-                            a curva avança 62px para dentro e cortava metade do
-                            texto. Na base o raio é 1.25rem, onde o recorte é de
-                            menos de 2px. */}
-                        {!vazio && pessoa.papel && (
-                          <span className="absolute bottom-3 left-1/2 max-w-[calc(100%-1rem)] -translate-x-1/2 truncate rounded-full bg-forest-2 px-2.5 py-2 text-center text-[11px] font-extrabold uppercase tracking-[.04em] text-lime">
-                            {pessoa.papel}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="px-2 pb-4 pt-5 text-center">
-                        <h3 className="font-display text-lg font-extrabold leading-tight text-forest-2">
-                          {vazio ? "Profissional da equipe" : pessoa.nome}
-                        </h3>
-                        <p className="mt-2 min-h-4 text-[11px] font-extrabold uppercase tracking-[.13em] text-primary-ink">
-                          {vazio
-                            ? "Foto e especialidade a inserir"
-                            : pessoa.especialidade || pessoa.papel || "Odontologia"}
-                        </p>
-                        <div className="mt-5 border-t border-forest/8 pt-4">
-                          <p className="text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
-                            Registro
-                          </p>
-                          <p className="mt-1 text-xs font-bold text-ink-soft">
-                            {vazio ? "CRO a confirmar" : pessoa.registro}
-                          </p>
-                        </div>
-                      </div>
-                    </article>
-                  </Reveal>
-                );
-              })}
-            </div>
-
-            <Reveal delay={130}>
-              <div className="mx-auto mt-9 flex max-w-3xl items-center justify-center gap-4 rounded-full border border-forest/8 bg-white/80 px-5 py-4 text-center shadow-[0_18px_50px_-40px_rgba(5,45,11,.45)]">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-primary-ink">
-                  <ShieldCheck className="h-4.5 w-4.5" />
-                </span>
-                <p className="text-sm font-semibold text-ink-soft">
-                  Equipe preparada para cuidar de você em{" "}
-                  <strong className="font-extrabold text-primary-ink">
-                    todas as fases do seu sorriso.
-                  </strong>
-                </p>
-              </div>
-            </Reveal>
-          </div>
-        </section>
+        <TeamSection />
 
         {/* 07 — ESTRUTURA */}
         <section id="estrutura" className="jp-section relative overflow-hidden bg-paper ">
