@@ -100,21 +100,33 @@ export function FloatingCTA() {
         </div>
       </div>
 
-      {/* WhatsApp permanece disponível durante todo o site. */}
+      {/* WhatsApp permanece disponível durante todo o site.
+          Formato de balão: a "rabicho" é um quadrado girado 45° na base, com
+          borda só nos dois lados que ficam de fora. Ele precisa da mesma cor de
+          fundo do balão, senão aparece a emenda. */}
       <a
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
-        className={`group fixed right-4 z-[60] hidden items-center gap-2 rounded-full border-[1.5px] border-lime bg-forest p-2 pr-4 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 sm:flex ${
-          visivel ? "bottom-[112px] md:bottom-[104px]" : "bottom-5"
+        className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-[26px] rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 sm:flex ${
+          visivel ? "bottom-[136px] md:bottom-[128px]" : "bottom-7"
         }`}
       >
-        <span className="relative grid h-10 w-10 place-items-center rounded-full bg-lime text-forest-2">
-          <span className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite]" />
-          <MessageCircle className="h-4.5 w-4.5" />
+        <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-forest-2">
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite]"
+          />
+          <MessageCircle className="h-5 w-5" />
         </span>
-        <span className="text-[11px] font-extrabold uppercase tracking-[.08em]">WhatsApp</span>
+
+        <span className="text-[15px] font-extrabold tracking-[-.01em]">Fale no WhatsApp</span>
+
+        <span
+          aria-hidden="true"
+          className="absolute -bottom-[9px] right-5 h-4 w-4 rotate-45 rounded-br-[3px] border-b-[1.5px] border-r-[1.5px] border-lime bg-forest"
+        />
       </a>
 
       {/* `invisible` + aria-hidden quando recolhida: só `translate-y-full` a tira
