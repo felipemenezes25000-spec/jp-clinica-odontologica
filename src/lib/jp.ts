@@ -1,3 +1,10 @@
+// Retratos fictícios da seção de equipe. Import (e não caminho em string)
+// porque é o bundler que resolve a URL final com hash.
+import fotoEquipe2 from "@/assets/equipe-2.webp";
+import fotoEquipe3 from "@/assets/equipe-3.webp";
+import fotoEquipe4 from "@/assets/equipe-4.webp";
+import fotoEquipe5 from "@/assets/equipe-5.webp";
+
 /** Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta. */
 export const SITE_URL = "https://jp-clinica-odontologica-award-final.vercel.app";
 
@@ -88,12 +95,22 @@ export type Profissional = {
   formacao?: string;
   especialidade?: string;
   /**
-   * Marca o card como vaga a preencher: renderiza em tom apagado, sem nome nem
-   * CRO inventado. Publicar dentista fictício com número de CRO falso num site
-   * de clínica real induziria o paciente a erro e usaria dado regulado pelo CFO.
-   * Remova a entrada (ou tire a flag e preencha) quando os dados chegarem.
+   * Vaga a preencher: renderiza em tom apagado, sem nome nem CRO inventado.
    */
   placeholder?: boolean;
+  /**
+   * ⚠️ PROFISSIONAL FICTÍCIO — apenas para visualizar o layout.
+   *
+   * Nome, especialidade, CRO e retrato são inventados. O rosto vem de um
+   * gerador de faces (pessoa que não existe), justamente para não usar a
+   * imagem de alguém real. O CRO segue o formato 00.00X, que nenhum registro
+   * verdadeiro tem.
+   *
+   * SUBSTITUA POR DADOS REAIS ANTES DE DIVULGAR O SITE. Publicar dentista
+   * inexistente numa clínica real induz o paciente a erro, e número de CRO é
+   * dado regulado pelo CFO (Resolução 196/2019).
+   */
+  ficticio?: boolean;
   /**
    * Retrato recortado, em PNG ou WebP **com fundo transparente**.
    * Foto com fundo original quebra o efeito: a graça é a silhueta sobre a
@@ -110,13 +127,37 @@ export const EQUIPE: Profissional[] = [
     papel: "Responsável técnica",
   },
 
-  // ─── VAGAS A PREENCHER ─────────────────────────────────────────────────────
-  // Trocar `placeholder: true` pelos dados reais assim que a clínica enviar:
-  //   nome, registro (CRO), papel, formacao, especialidade e foto recortada.
-  { nome: "Profissional 2", registro: "CRO a confirmar", placeholder: true },
-  { nome: "Profissional 3", registro: "CRO a confirmar", placeholder: true },
-  { nome: "Profissional 4", registro: "CRO a confirmar", placeholder: true },
-  { nome: "Profissional 5", registro: "CRO a confirmar", placeholder: true },
+  // ─── ⚠️ FICTÍCIOS — TROCAR ANTES DE DIVULGAR ───────────────────────────────
+  // Nenhuma destas pessoas existe. Retratos gerados por IA; CRO no formato
+  // 00.00X, que nenhum registro real usa. Servem só para ver o layout cheio.
+  {
+    nome: "Dra. Mariana Costa",
+    registro: "CRO-SP 00.002",
+    papel: "Ortodontia",
+    foto: fotoEquipe2,
+    ficticio: true,
+  },
+  {
+    nome: "Dr. Felipe Nunes",
+    registro: "CRO-SP 00.003",
+    papel: "Implantodontia",
+    foto: fotoEquipe3,
+    ficticio: true,
+  },
+  {
+    nome: "Dra. Camila Rocha",
+    registro: "CRO-SP 00.004",
+    papel: "Odontopediatria",
+    foto: fotoEquipe4,
+    ficticio: true,
+  },
+  {
+    nome: "Dra. Beatriz Lima",
+    registro: "CRO-SP 00.005",
+    papel: "Harmonização orofacial",
+    foto: fotoEquipe5,
+    ficticio: true,
+  },
   // ───────────────────────────────────────────────────────────────────────────
 ];
 
