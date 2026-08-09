@@ -26,7 +26,7 @@ export function Footer() {
                 <p className="font-display text-lg font-extrabold tracking-[-.035em]">
                   JP Clínica Odontológica
                 </p>
-                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/48">
+                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[.18em] text-white/80">
                   Vila Bruna • São Paulo
                 </p>
               </div>
@@ -57,7 +57,7 @@ export function Footer() {
                 <li key={item.href}>
                   <a
                     href={item.href}
-                    className="text-sm font-semibold text-white/62 transition-colors hover:text-lime"
+                    className="text-sm font-semibold text-white transition-colors hover:text-lime"
                   >
                     {item.label}
                   </a>
@@ -68,7 +68,7 @@ export function Footer() {
 
           <div>
             <p className="eyebrow text-lime/75">Fale com a JP</p>
-            <ul className="mt-6 grid gap-4 text-sm font-semibold text-white/68">
+            <ul className="mt-6 grid gap-4 text-sm font-semibold text-white">
               <li>
                 <a
                   href={CLINICA.telefoneHref}
@@ -108,7 +108,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram da JP Clínica"
-                className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white/65 transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
+                className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
               >
                 <Instagram className="h-4.5 w-4.5" />
               </a>
@@ -117,7 +117,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook da JP Clínica"
-                className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white/65 transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
+                className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
               >
                 <Facebook className="h-4.5 w-4.5" />
               </a>
@@ -125,10 +125,10 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-[10px] leading-relaxed text-white/45 sm:grid-cols-2 lg:mt-16">
+        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-[10px] leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
           <div>
             {EQUIPE[0] && (
-              <p className="font-semibold text-white/62">
+              <p className="font-semibold text-white">
                 Responsável técnica: {EQUIPE[0].nome} — {EQUIPE[0].registro}
               </p>
             )}

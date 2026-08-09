@@ -40,7 +40,7 @@ export function FloatingCTA() {
               <p className="truncate font-display text-base font-extrabold tracking-[-.025em] lg:text-lg">
                 Pronto para transformar seu sorriso?
               </p>
-              <p className="mt-0.5 hidden truncate text-xs font-medium text-white/58 lg:block">
+              <p className="mt-0.5 hidden truncate text-xs font-medium text-white lg:block">
                 Agende sua avaliação e descubra o melhor cuidado para você e sua família.
               </p>
             </div>
