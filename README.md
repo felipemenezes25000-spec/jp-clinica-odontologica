@@ -108,17 +108,34 @@ Nenhuma seção repete `mx-auto max-w-[1320px] px-5 md:px-8 xl:px-10`. Se alguma
 
 Isto não é detalhe de implementação. É uma clínica de saúde real e a publicidade odontológica é regulada (**Resolução CFO 196/2019**).
 
-| Elemento                | Origem                                                                                        |
-| ----------------------- | --------------------------------------------------------------------------------------------- |
-| Fotos da clínica        | **Fotos da própria clínica** — fachada, consultórios, esterilização, equipo, quadro da missão |
-| Texto dos depoimentos   | **Avaliações reais do Google**, com o nome como aparece lá                                    |
-| Nota e volume           | **4,5★ · 176 avaliações**, conferido na ficha do Google                                       |
-| Missão                  | **Transcrita do quadro** afixado na parede da clínica                                         |
-| 7 dos 8 vídeos          | Acervo da própria clínica                                                                     |
-| Vídeo de clareamento    | Pexels (licença livre para uso comercial)                                                     |
-| **Retratos de pessoas** | **Fictícios** — ver abaixo                                                                    |
+| Elemento                | Origem                                                                      |
+| ----------------------- | --------------------------------------------------------------------------- |
+| Imagens dos ambientes   | **Versões geradas por IA** a partir das fotos reais da clínica — ver abaixo |
+| Texto dos depoimentos   | **Avaliações reais do Google**, com o nome como aparece lá                  |
+| Nota e volume           | **4,5★ · 176 avaliações**, conferido na ficha do Google                     |
+| Missão                  | **Transcrita do quadro** afixado na parede da clínica                       |
+| 7 dos 8 vídeos          | Acervo da própria clínica                                                   |
+| Vídeo de clareamento    | Pexels (licença livre para uso comercial)                                   |
+| **Retratos de pessoas** | **Fictícios** — ver abaixo                                                  |
 
-Nenhuma foto de ambiente, procedimento ou documento é gerada por IA nem vem de banco de imagens fazendo passar por real.
+### As imagens dos ambientes são recriações por IA
+
+A clínica optou por substituir as 6 fotos reais por versões geradas por IA das **mesmas cenas** — mesma fachada, mesmos consultórios, mesmo equipo, mesma sala de esterilização. O que muda é a limpeza da imagem: sumiram a fiação da rua, o céu ficou uniforme, a iluminação ficou homogênea.
+
+| Arquivo                 | Recriação de                    |
+| ----------------------- | ------------------------------- |
+| `fachada.webp`          | `jp-clinica-odontologica-6.jpg` |
+| `consultorio-1.webp`    | `jp-clinica-odontologica-5.jpg` |
+| `consultorio-wide.webp` | `jp-clinica-odontologica-5.jpg` |
+| `consultorio-2.webp`    | `jp-clinica-odontologica.jpg`   |
+| `esterilizacao.webp`    | `jp-clinica-odontologica-3.jpg` |
+| `equipamento.webp`      | `jp-clinica-odontologica-2.jpg` |
+
+As fotos originais em 3024×4032 estão preservadas fora do repositório (`Downloads/imagens-reais-jp-clinica.zip`).
+
+> **Leia a placa com zoom antes de subir qualquer fachada nova.** A primeira geração da fachada trazia, sob o nome da responsável técnica, um registro inventado: **"CRO/PI 1002 3889"** — UF de outro estado e número inexistente. Foi descartada. A que está no ar traz `Responsavel Tecnica CROSP 75.159`, igual à placa real, conferido com ampliação de 8×.
+>
+> Modelos de imagem erram texto com naturalidade, e um CRO falso na publicidade de uma clínica é infração ao CFO. Placa, letreiro, diploma ou qualquer documento legível numa imagem gerada tem de ser lido caractere a caractere.
 
 ### ⚠️ As 8 pessoas fictícias
 

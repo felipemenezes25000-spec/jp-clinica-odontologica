@@ -197,7 +197,16 @@ export type Profissional = {
 export const EQUIPE: Profissional[] = [
   {
     nome: "Dra. Juliana Pelisser",
-    registro: "CROSP 78.159",
+    /**
+     * ⚠️ CONFERIR NO REGISTRO DO CRO-SP.
+     *
+     * Estava "78.159" aqui. A placa da fachada da própria clínica diz
+     * "Responsável Técnico CROSP 75.159" — lido com ampliação de 8x na foto
+     * original (jp-clinica-odontologica-6.jpg). Adotei o número da placa por
+     * ser a única evidência que temos, mas quem confirma é a clínica: este
+     * campo sai no rodapé das 9 rotas e o CFO exige que esteja correto.
+     */
+    registro: "CROSP 75.159",
     papel: "Responsável técnica",
   },
 
