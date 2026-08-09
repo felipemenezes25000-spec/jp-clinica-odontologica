@@ -162,7 +162,7 @@ function TreatmentPage() {
         <Header />
         <main
           id="conteudo"
-          className="jp-container flex min-h-[80vh] flex-col justify-center pt-32"
+          className="jp-container flex min-h-[70vh] flex-col justify-center pt-12"
         >
           <p className="eyebrow text-lime">Página não encontrada</p>
           <h1 className="mt-5 max-w-3xl font-display text-6xl font-black leading-[.82] tracking-[-.07em] sm:text-8xl">
@@ -190,7 +190,7 @@ function TreatmentPage() {
       <Header />
 
       <main id="conteudo">
-        <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-forest-2 pb-24 pt-32 text-white sm:pb-32 sm:pt-40 lg:min-h-[92vh] lg:pb-40 lg:pt-48">
+        <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-forest-2 pb-24 pt-12 text-white sm:pb-32 sm:pt-14 lg:pb-40 lg:pt-16">
           <div className="treatment-orbit" aria-hidden="true">
             <span />
             <span />

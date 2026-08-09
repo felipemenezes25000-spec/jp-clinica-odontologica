@@ -288,10 +288,14 @@ function Home() {
       <Header />
 
       <main id="conteudo">
-        {/* 01 — CAPA */}
+        {/* 01 — CAPA
+            O padding superior era pt-40/44/48 (até 192px), para compensar um
+            cabeçalho `fixed`. Ele é `sticky` hoje e ocupa espaço próprio no
+            fluxo, então a compensação virou 225px de vazio entre o menu e o
+            primeiro texto. */}
         <section
           id="inicio"
-          className="relative isolate overflow-hidden bg-paper pb-20 pt-40 text-forest-2 sm:pb-24 sm:pt-44 lg:min-h-[900px] lg:pb-28 lg:pt-48"
+          className="relative isolate overflow-hidden bg-paper pb-20 pt-12 text-forest-2 sm:pb-24 sm:pt-14 lg:pb-28 lg:pt-16"
         >
           <div
             aria-hidden="true"
@@ -659,8 +663,13 @@ function Home() {
                           )}
                         </div>
 
+                        {/* Selo embaixo, não no topo. O contêiner tem
+                            rounded-t-[7rem] com overflow-hidden: a 12px do topo
+                            a curva avança 62px para dentro e cortava metade do
+                            texto. Na base o raio é 1.25rem, onde o recorte é de
+                            menos de 2px. */}
                         {!vazio && pessoa.papel && (
-                          <span className="absolute left-3 top-3 rounded-full bg-forest-2 px-3 py-2 text-[8px] font-extrabold uppercase tracking-[.11em] text-lime">
+                          <span className="absolute bottom-3 left-1/2 max-w-[calc(100%-1.5rem)] -translate-x-1/2 truncate rounded-full bg-forest-2 px-3 py-2 text-center text-[8px] font-extrabold uppercase tracking-[.11em] text-lime">
                             {pessoa.papel}
                           </span>
                         )}
