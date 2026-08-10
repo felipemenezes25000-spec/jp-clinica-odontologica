@@ -198,7 +198,7 @@ function TreatmentPage() {
           </div>
           <div
             aria-hidden="true"
-            className="big-outline absolute -right-[5vw] top-[12%] font-display text-[clamp(15rem,34vw,38rem)] font-black leading-none tracking-[-.15em] opacity-[.1]"
+            className="big-outline absolute -right-[5vw] top-[12%] font-display text-[clamp(9rem,20vw,22rem)] font-extrabold leading-none tracking-[-.15em] opacity-[.1]"
           >
             JP
           </div>
@@ -216,9 +216,9 @@ function TreatmentPage() {
                 </p>
                 {/* Tracking capped at -.04em: at this size -.085em pulled the second
                     glyph over narrow first letters (the "I" in IMPLANTES vanished). */}
-                <h1 className="mt-4 max-w-5xl font-display text-[clamp(2.8rem,10vw,9.4rem)] font-black leading-[.82] tracking-[-.04em] [overflow-wrap:anywhere]">
-                  {treatment.short.toUpperCase()}
-                  <span className="block text-lime">COM PROPÓSITO.</span>
+                <h1 className="mt-4 max-w-5xl font-display text-[clamp(2.6rem,5.4vw,4.5rem)] font-extrabold leading-[.82] tracking-[-.04em] [overflow-wrap:anywhere]">
+                  {treatment.short}
+                  <span className="block text-lime">com propósito.</span>
                 </h1>
                 <p className="mt-7 max-w-2xl font-display text-2xl font-bold leading-[1.02] text-white/82 sm:text-3xl">
                   {treatment.kicker}
@@ -295,7 +295,7 @@ function TreatmentPage() {
                 </div>
               </div>
               <div>
-                <p className="font-display text-[clamp(2.9rem,6.7vw,6.5rem)] font-black leading-[.88] tracking-[-.065em] text-forest-2">
+                <p className="font-display text-[clamp(2.2rem,4vw,3.6rem)] font-extrabold leading-[.88] tracking-[-.065em] text-forest-2">
                   {treatment.manifesto}
                 </p>
                 <div className="mt-10 border-t border-forest/10 pt-8 text-sm font-semibold leading-relaxed text-ink-soft sm:text-base">
@@ -312,8 +312,8 @@ function TreatmentPage() {
           <div className="jp-container grid gap-12 lg:grid-cols-2 lg:gap-20">
             <Reveal>
               <span className="eyebrow text-primary-ink">Pode fazer sentido para</span>
-              <h2 className="mt-5 font-display text-[clamp(3.2rem,6vw,5.8rem)] font-black leading-[.84] tracking-[-.065em] text-forest-2">
-                NÃO É SOBRE CABER NUMA CAIXA.
+              <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.84] tracking-[-.065em] text-forest-2">
+                Não é sobre caber numa caixa.
               </h2>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft">
                 É sobre entender o ponto de partida. Estes são cenários que podem levar alguém a
@@ -371,7 +371,7 @@ function TreatmentPage() {
             <div className="jp-container grid items-center gap-10 lg:grid-cols-[.85fr_1.15fr] lg:gap-16">
               <Reveal className="order-2 lg:order-1">
                 <span className="eyebrow text-primary-ink">Veja como funciona</span>
-                <h2 className="mt-5 max-w-md font-display text-[clamp(2.2rem,4vw,3.4rem)] font-black leading-[.98] tracking-[-.04em] text-forest-2">
+                <h2 className="mt-5 max-w-md font-display text-[clamp(2.2rem,4vw,3.4rem)] font-extrabold leading-[.98] tracking-[-.04em] text-forest-2">
                   Mais fácil de entender <span className="text-brand-text">vendo.</span>
                 </h2>
                 <p className="mt-6 max-w-md text-base font-medium leading-relaxed text-ink-soft">
@@ -395,8 +395,8 @@ function TreatmentPage() {
           <div className="jp-container relative">
             <Reveal className="max-w-5xl">
               <span className="eyebrow text-forest-2">Do primeiro contato ao acompanhamento</span>
-              <h2 className="mt-5 font-display text-[clamp(3.8rem,8vw,8rem)] font-black leading-[.78] tracking-[-.075em]">
-                UM PROCESSO. <span className="text-forest-2/70">QUATRO MOMENTOS.</span>
+              <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.78] tracking-[-.075em]">
+                Um processo. <span className="text-forest-2/70">Quatro momentos.</span>
               </h2>
             </Reveal>
             <ol className="mt-14 grid gap-4 lg:grid-cols-4">
@@ -428,8 +428,8 @@ function TreatmentPage() {
           <div className="jp-container grid gap-12 lg:grid-cols-[.8fr_1.2fr]">
             <Reveal>
               <span className="eyebrow text-lime">Perguntas sobre {treatment.short}</span>
-              <h2 className="mt-5 font-display text-[clamp(3.2rem,6vw,5.8rem)] font-black leading-[.83] tracking-[-.065em]">
-                ANTES DE DECIDIR, <span className="text-lime">ENTENDA.</span>
+              <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.83] tracking-[-.065em]">
+                Antes de decidir, <span className="text-lime">entenda.</span>
               </h2>
               <div className="mt-8 flex items-center gap-2 text-sm font-bold text-white/50">
                 <Star className="h-4 w-4 fill-lime text-lime" /> {CLINICA.provaSocial}
@@ -481,8 +481,8 @@ function TreatmentPage() {
             <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
               <div>
                 <span className="eyebrow text-primary-ink">Continue explorando</span>
-                <h2 className="mt-5 font-display text-[clamp(3rem,6vw,5.4rem)] font-black leading-[.84] tracking-[-.065em] text-forest-2">
-                  OUTROS CAMINHOS DE CUIDADO.
+                <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.84] tracking-[-.065em] text-forest-2">
+                  Outros caminhos de cuidado.
                 </h2>
               </div>
               <a href="/#tratamentos" className="button-dark shrink-0">
