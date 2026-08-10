@@ -53,7 +53,7 @@ function CardEspecialidade({
   index: number;
 }) {
   return (
-    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-border-soft bg-white shadow-[0_12px_40px_rgba(5,45,11,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-lime/50 hover:shadow-[0_22px_55px_rgba(5,45,11,.11)]">
+    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-border-soft bg-white shadow-[0_12px_40px_rgba(5,45,11,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-brand-green/60 hover:shadow-[0_22px_55px_rgba(5,45,11,.11)]">
       <div className="relative h-[185px] overflow-hidden bg-[#FAFBF8]">
         <img
           src={IMAGENS[slug]}
@@ -105,7 +105,7 @@ function CardEspecialidade({
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-10 left-1/2 h-[70px] w-[80%] -translate-x-1/2 rounded-full bg-lime/0 blur-[35px] transition-colors duration-500 group-hover:bg-lime/15"
+        className="pointer-events-none absolute -bottom-10 left-1/2 h-[70px] w-[80%] -translate-x-1/2 rounded-full bg-brand-green/0 blur-[35px] transition-colors duration-500 group-hover:bg-brand-green/15"
       />
     </article>
   );
@@ -116,15 +116,15 @@ export function SpecialtiesSection() {
     <section id="tratamentos" className="jp-section relative overflow-hidden bg-paper">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-[390px] -top-[355px] h-[720px] w-[720px] rounded-full border border-lime/20"
+        className="pointer-events-none absolute -left-[390px] -top-[355px] h-[720px] w-[720px] rounded-full border border-brand-green/25"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-[410px] top-[50px] h-[800px] w-[800px] rounded-full border border-lime/20"
+        className="pointer-events-none absolute -right-[410px] top-[50px] h-[800px] w-[800px] rounded-full border border-brand-green/25"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-170px] left-[28%] h-[350px] w-[620px] rounded-full bg-lime/10 blur-[110px]"
+        className="pointer-events-none absolute bottom-[-170px] left-[28%] h-[350px] w-[620px] rounded-full bg-brand-green/12 blur-[110px]"
       />
 
       <div className="jp-container relative">

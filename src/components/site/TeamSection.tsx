@@ -14,7 +14,7 @@ function CardProfissional({
   foto?: string | undefined;
 }) {
   return (
-    <article className="group overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(5,45,11,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-lime/45 hover:shadow-[0_22px_55px_rgba(5,45,11,.10)]">
+    <article className="group overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(5,45,11,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(5,45,11,.10)]">
       <div className="relative mx-auto aspect-[0.83/1] w-full overflow-hidden rounded-t-[90px] bg-[#EAF3DD]">
         {foto ? (
           /* width/height são obrigatórios: a foto é lazy e, sem a proporção
@@ -64,7 +64,7 @@ export function TeamSection() {
     <section id="equipe" className="jp-section relative overflow-hidden bg-paper">
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-0 h-[330px] w-[620px] text-lime opacity-[0.16]"
+        className="pointer-events-none absolute right-0 top-0 h-[330px] w-[620px] text-brand-green opacity-[0.22]"
         viewBox="0 0 620 330"
         fill="none"
       >
@@ -82,7 +82,7 @@ export function TeamSection() {
 
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute -left-12 bottom-0 h-[360px] w-[270px] text-lime opacity-[0.13]"
+        className="pointer-events-none absolute -left-12 bottom-0 h-[360px] w-[270px] text-brand-green opacity-[0.18]"
         viewBox="0 0 270 360"
         fill="none"
       >
@@ -134,7 +134,7 @@ export function TeamSection() {
         <div className="mx-auto mt-10 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(5,45,11,.06)] backdrop-blur">
           <span
             aria-hidden="true"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-lime/35 text-brand-text"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-green/45 text-brand-text"
           >
             <ShieldCheck size={20} strokeWidth={1.7} />
           </span>

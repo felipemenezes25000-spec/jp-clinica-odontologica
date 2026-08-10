@@ -90,19 +90,19 @@ export function ReviewsSection() {
     <section id="depoimentos" className="jp-section relative overflow-hidden bg-paper">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-36 top-[42%] h-[520px] w-[520px] rounded-full border border-lime/15"
+        className="pointer-events-none absolute -left-36 top-[42%] h-[520px] w-[520px] rounded-full border border-brand-green/20"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-24 top-[47%] h-[430px] w-[430px] rounded-full border border-lime/10"
+        className="pointer-events-none absolute -left-24 top-[47%] h-[430px] w-[430px] rounded-full border border-brand-green/15"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-52 -top-44 h-[500px] w-[500px] rounded-full border border-lime/15"
+        className="pointer-events-none absolute -right-52 -top-44 h-[500px] w-[500px] rounded-full border border-brand-green/20"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-32 -top-32 h-[400px] w-[400px] rounded-full border border-lime/10"
+        className="pointer-events-none absolute -right-32 -top-32 h-[400px] w-[400px] rounded-full border border-brand-green/15"
       />
 
       <div className="jp-container relative">
@@ -110,7 +110,7 @@ export function ReviewsSection() {
           {/* COLUNA ESQUERDA */}
           <div>
             <div className="mb-7 flex items-center gap-2 text-brand-text">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-lime/60">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-brand-green/70">
                 <Star size={14} aria-hidden="true" />
               </span>
               <span className="text-xs font-semibold uppercase tracking-[0.14em]">Avaliações</span>
