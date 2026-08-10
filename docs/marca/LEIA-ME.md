@@ -1,50 +1,76 @@
 # Marca JP Clínica Odontológica
 
-Arquivos originais entregues pela clínica. Ficam aqui como fonte, não são
-usados em build — o site usa `src/assets/logo-jp-official.webp`, que é a marca
-recortada com fundo transparente.
+Arquivos originais entregues pela clínica. Ficam aqui como fonte, não entram no
+build — o site usa `src/assets/logo-jp-official.webp`, a marca recortada com
+fundo transparente.
 
 | Arquivo                           | O que é                                                    |
 | --------------------------------- | ---------------------------------------------------------- |
 | `logo-jp.png`                     | Folha de marca: logo horizontal, as duas cores e as fontes |
 | `logo-jp-1.eps` / `logo-jp-2.eps` | Vetores, para impresso e ampliações                        |
 
-## Cores oficiais
+## As duas cores oficiais
 
 Lidas dos pixels da folha. Os dois quadrados dela trazem rótulos idênticos
-("RGB 9 89 2" nos dois), o que é erro de copy-paste no material original —
-os pixels são a fonte confiável.
+("RGB 9 89 2" nos dois), o que é erro de copy-paste no material original — os
+pixels são a fonte confiável.
 
-| Cor          | Valor     | Onde entra no site                                        |
+|              | Valor     | Token                                                     |
 | ------------ | --------- | --------------------------------------------------------- |
-| Verde escuro | `#095902` | `--forest-2`: fundo das seções escuras, texto sobre claro |
-| Verde claro  | `#56A805` | `--brand-green`: **só preenchimento**                     |
+| Verde escuro | `#095902` | `--forest-2`, `--forest`, `--brand-text`, `--primary-ink` |
+| Verde claro  | `#56A805` | `--lime`, `--primary`, `--brand-green`                    |
 
-### Onde o verde claro entra, e onde não entra
+## O tom derivado, e por que ele precisou existir
 
-Ele vale para **decoração sobre fundo claro**: círculos e traços das seções de
-especialidades, equipe e avaliações, brilhos de hover, molduras de selo. São 14
-usos.
+`#56A805` sobre `#095902` mede **2,87:1**. O mínimo para texto é 4,5:1. Ou seja:
+**as duas cores da folha não se leem uma sobre a outra.** Foram escolhidas para
+conviver lado a lado num logotipo sobre branco, não para formar par de
+texto/fundo.
 
-Não entra em três situações, todas medidas:
+Como o site tem grandes superfícies verde-escuras, a saída foi escurecer o
+próprio verde da marca até que o verde claro se leia em cima dele:
 
-| Situação                                 | `#56A805` | `#7BD51C` (o que o site usa) |
-| ---------------------------------------- | --------- | ---------------------------- |
-| Texto sobre o verde escuro               | 2,87:1 ✗  | 4,66:1 ✓                     |
-| Borda de componente sobre o verde escuro | 2,87:1 ✗  | 4,66:1 ✓                     |
-| Preenchimento com o verde escuro em cima | 2,87:1 ✗  | 4,66:1 ✓                     |
-| Texto sobre o creme da página            | 2,81:1 ✗  | (também reprova)             |
+| Token          | Valor     | O que é                                                       |
+| -------------- | --------- | ------------------------------------------------------------- |
+| `--brand-deep` | `#032F01` | `#095902` a 28% da luminância. Superfície das seções escuras. |
 
-O mínimo é 4,5:1 para texto e 3:1 para borda de componente.
+Com ele, `#56A805` mede **4,96:1** — passa.
 
-**Por quê:** as duas cores da folha foram escolhidas para conviver lado a lado
-num logotipo sobre branco, não para uma servir de texto sobre a outra. O
-`#7BD51C` é uma extensão do sistema, criada porque o site tem superfícies
-verde-escuras grandes que precisam de um acento legível. Está documentado aqui
-justamente para não parecer descuido.
+## Regras que decorrem disso
 
-**Por que a rampa dos gradientes escuros termina em `#095902`:** acima disso o
-lime deixa de funcionar como texto — já em `#0A6002` cai para 4,23:1.
+- **Superfície escura** → `--brand-deep`. Nunca `#095902`: ali o verde claro cai
+  para 2,87:1.
+- **Texto e borda sobre o escuro** → `#56A805` (4,96:1) ou branco (14,88:1).
+- **Texto sobre fundo claro** → `#095902` (8,05:1 no creme). Nunca `#56A805`,
+  que ali dá 2,81:1.
+- **Preenchimento de `#56A805`** → conteúdo em `--brand-deep` (4,96:1). Não use
+  `#095902` em cima: 2,87:1.
+- **Rampa de gradiente** → só entre `#011600` e `#032F01`. Acima disso o verde
+  claro deixa de funcionar como texto: já em `#0A6002` cai para 4,23:1.
+- **Botão sobre superfície escura** → preenchimento `#095902` some no fundo
+  (1,73:1). A borda `#56A805` é o que torna a aresta perceptível (4,96:1), e é
+  por isso que ela não é decorativa.
+
+## Inventário
+
+O CSS servido tem 76 declarações de cor:
+
+|                               |       |        |
+| ----------------------------- | ----- | ------ |
+| Cor da folha                  | 17    | 22%    |
+| Derivada da folha             | 44    | 58%    |
+| Neutro (branco, creme, tinta) | 15    | 20%    |
+| **Fora do sistema**           | **0** | **0%** |
+
+## Duas exceções conscientes, ambas isentas
+
+- **Borda do medalhão da logo** (`#7FB16E`, 2,5:1 no branco) — ornamento. A `<img>`
+  tem `alt=""` e o link carrega o nome acessível.
+- **Trilho da estrela vazia** (`#9FB396`, 2,24:1) — a nota aparece como texto
+  ("4,5") e o grupo tem `role="img"` com `aria-label`. O gráfico é redundante.
+
+A WCAG 1.4.11 se aplica a gráficos necessários para entender o conteúdo; nos
+dois casos a informação está disponível em texto.
 
 ## Fontes da marca
 

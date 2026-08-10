@@ -28,7 +28,7 @@ function DeadEnd({
   children: ReactNode;
 }) {
   return (
-    <div className="relative isolate flex min-h-dvh items-center overflow-hidden bg-forest-2 px-5 py-20 text-white">
+    <div className="relative isolate flex min-h-dvh items-center overflow-hidden bg-brand-deep px-5 py-20 text-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-[6vw] top-1/2 -translate-y-1/2 font-display text-[clamp(18rem,42vw,46rem)] font-black leading-none tracking-[-.13em] text-white/[.05]"
@@ -119,7 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Clínica odontológica na região da Freguesia do Ó (Vila Bruna, SP) para crianças, adultos e idosos. Agende sua avaliação pelo WhatsApp.",
       },
       { name: "author", content: "JP Clínica Integrada Odontológica" },
-      { name: "theme-color", content: "#0a3c24" },
+      { name: "theme-color", content: "#032F01" },
       { property: "og:site_name", content: "JP Clínica Integrada Odontológica" },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },

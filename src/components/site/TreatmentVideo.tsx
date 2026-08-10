@@ -71,7 +71,7 @@ export function TreatmentVideo({
   const pausarManual = () => ref.current?.pause();
 
   return (
-    <figure className="relative overflow-hidden rounded-[2rem] border border-forest/12 bg-forest-2 shadow-lift">
+    <figure className="relative overflow-hidden rounded-[2rem] border border-forest/12 bg-brand-deep shadow-lift">
       <video
         ref={ref}
         src={src}
@@ -95,14 +95,14 @@ export function TreatmentVideo({
         aria-label={tocando ? `Pausar animação: ${descricao}` : `Reproduzir animação: ${descricao}`}
         className={
           tocando
-            ? "absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-forest-2/80 text-lime backdrop-blur transition-colors hover:bg-forest-2"
+            ? "absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-forest-2/80 text-lime backdrop-blur transition-colors hover:bg-brand-deep"
             : "absolute inset-0 grid place-items-center bg-forest-2/35 transition-colors hover:bg-forest-2/20"
         }
       >
         {tocando ? (
           <Pause className="h-5 w-5 fill-current" aria-hidden="true" />
         ) : (
-          <span className="grid h-16 w-16 place-items-center rounded-full bg-lime text-forest-2 shadow-lift transition-transform duration-300 hover:scale-105">
+          <span className="grid h-16 w-16 place-items-center rounded-full bg-lime text-brand-deep shadow-lift transition-transform duration-300 hover:scale-105">
             <Play className="ml-0.5 h-7 w-7 fill-current" aria-hidden="true" />
           </span>
         )}

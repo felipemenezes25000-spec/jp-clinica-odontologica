@@ -45,7 +45,7 @@ export function FaqSection() {
   return (
     <section
       id="faq"
-      className="relative isolate min-h-[900px] overflow-hidden bg-[#031F09] text-white lg:min-h-[960px]"
+      className="relative isolate min-h-[900px] overflow-hidden bg-[#032F01] text-white lg:min-h-[960px]"
     >
       {/* FOTO DE FUNDO
           object-[38%_center] é o que alinha o rosto como na referência: com
@@ -64,11 +64,11 @@ export function FaqSection() {
       <div aria-hidden="true" className="absolute inset-0 -z-20 bg-forest-2/28" />
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#031E09_0%,rgba(3,30,9,.86)_40%,rgba(3,30,9,.72)_46%,rgba(5,45,11,.05)_56%,rgba(3,29,9,.45)_72%,#021B08_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#032f01_0%,rgba(3,30,9,.86)_40%,rgba(3,30,9,.72)_46%,rgba(3,47,1,.05)_56%,rgba(3,29,9,.45)_72%,#021D00_100%)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[42%] bg-gradient-to-t from-[#021B08] via-[#031F09]/35 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[42%] bg-gradient-to-t from-[#021D00] via-[#032F01]/35 to-transparent"
       />
       <div
         aria-hidden="true"
@@ -95,7 +95,7 @@ export function FaqSection() {
       <div className="relative mx-auto grid min-h-[900px] max-w-[1440px] gap-14 px-6 py-24 md:px-10 lg:min-h-[960px] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-16 lg:px-12 xl:px-14">
         {/* COLUNA ESQUERDA */}
         <div className="max-w-[620px]">
-          <div className="mb-8 flex items-center gap-3 text-[#8CD433]">
+          <div className="mb-8 flex items-center gap-3 text-[#56A805]">
             <MessageCircleQuestion size={21} strokeWidth={1.6} aria-hidden="true" />
             <span className="text-[12px] font-bold uppercase tracking-[0.18em]">
               Perguntas frequentes
@@ -117,7 +117,7 @@ export function FaqSection() {
           >
             <path
               d="M3 8C45 1 102 1 181 8"
-              stroke="#7BD51C"
+              stroke="#56A805"
               strokeWidth="3"
               strokeLinecap="round"
             />
@@ -125,7 +125,7 @@ export function FaqSection() {
 
           <p className="mt-10 max-w-[480px] text-[17px] leading-[1.8] text-white/85">
             Reunimos as perguntas mais comuns que recebemos por aqui. Se ainda restar alguma dúvida,{" "}
-            <strong className="font-semibold text-[#8CD433]">
+            <strong className="font-semibold text-[#56A805]">
               fale com a nossa equipe no WhatsApp.
             </strong>
           </p>
@@ -137,9 +137,9 @@ export function FaqSection() {
             /* min-w só a partir de sm. O `max-sm:min-w-0` do original dependia
                da ordem das variantes no CSS gerado e perdia: o botão media
                365px numa faixa de 327px e era cortado no celular. */
-            className="group mt-9 inline-flex w-full items-center gap-4 rounded-[21px] border border-lime/25 bg-[linear-gradient(110deg,rgba(123,213,28,.13),rgba(5,45,11,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lime/50 hover:bg-[#123C13]/80 sm:w-auto sm:min-w-[365px]"
+            className="group mt-9 inline-flex w-full items-center gap-4 rounded-[21px] border border-lime/25 bg-[linear-gradient(110deg,rgba(86,168,5,.13),rgba(3,47,1,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lime/50 hover:bg-[#032F01]/80 sm:w-auto sm:min-w-[365px]"
           >
-            <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-lime text-white shadow-[0_8px_24px_rgba(123,213,28,.25)]">
+            <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-lime text-white shadow-[0_8px_24px_rgba(86,168,5,.25)]">
               <IconeWhatsApp />
             </span>
             <span className="flex-1">
@@ -205,8 +205,8 @@ export function FaqSection() {
                   key={item.q}
                   className={`overflow-hidden rounded-[22px] border backdrop-blur-[8px] transition-all duration-300 ${
                     isOpen
-                      ? "border-[#A4D85A]/45 bg-[linear-gradient(110deg,rgba(16,63,23,.78),rgba(4,38,12,.86))] shadow-[0_18px_45px_rgba(0,0,0,.14)]"
-                      : "border-white/15 bg-[#062A0D]/65 hover:border-lime/35 hover:bg-[#0A3211]/75"
+                      ? "border-[#56A805]/45 bg-[linear-gradient(110deg,rgba(16,63,23,.78),rgba(4,38,12,.86))] shadow-[0_18px_45px_rgba(0,0,0,.14)]"
+                      : "border-white/15 bg-[#032F01]/65 hover:border-lime/35 hover:bg-[#032F01]/75"
                   }`}
                 >
                   <button
@@ -218,7 +218,7 @@ export function FaqSection() {
                   >
                     <span
                       aria-hidden="true"
-                      className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[10px] bg-[#123A15] text-[12px] font-bold text-[#8CD433]"
+                      className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[10px] bg-[#032F01] text-[12px] font-bold text-[#56A805]"
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
@@ -229,7 +229,7 @@ export function FaqSection() {
 
                     <span
                       aria-hidden="true"
-                      className="flex h-[39px] w-[39px] shrink-0 items-center justify-center rounded-full border border-lime/70 text-[#8CD433]"
+                      className="flex h-[39px] w-[39px] shrink-0 items-center justify-center rounded-full border border-lime/70 text-[#56A805]"
                     >
                       {isOpen ? (
                         <Minus size={19} strokeWidth={2} />

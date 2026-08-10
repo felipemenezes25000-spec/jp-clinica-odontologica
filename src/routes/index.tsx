@@ -197,7 +197,7 @@ function StructureCarousel() {
 
   return (
     <div className="mt-12">
-      <div className="group relative overflow-hidden rounded-[2.2rem] bg-forest-2 shadow-[0_36px_100px_-45px_rgba(5,45,11,.45)] sm:rounded-[2.7rem]">
+      <div className="group relative overflow-hidden rounded-[2.2rem] bg-brand-deep shadow-[0_36px_100px_-45px_rgba(3,47,1,.45)] sm:rounded-[2.7rem]">
         <img
           key={current.src}
           src={current.src}
@@ -211,7 +211,7 @@ function StructureCarousel() {
             está, e com aria-current dizem isso também para o leitor de tela. */}
         <div className="absolute inset-x-5 bottom-5 sm:inset-x-8 sm:bottom-8">
           <div className="flex max-w-sm items-start gap-3 rounded-[1.25rem] border border-white/15 bg-forest-2/78 p-4 text-white backdrop-blur-xl">
-            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-forest-2">
+            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
               <IconDente className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -229,7 +229,7 @@ function StructureCarousel() {
           type="button"
           onClick={() => move(-1)}
           aria-label="Foto anterior da estrutura"
-          className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/92 text-forest-2 shadow-lg transition hover:-translate-y-[55%] hover:bg-lime sm:left-6 sm:h-13 sm:w-13"
+          className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/92 text-brand-deep shadow-lg transition hover:-translate-y-[55%] hover:bg-lime sm:left-6 sm:h-13 sm:w-13"
         >
           <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
@@ -237,7 +237,7 @@ function StructureCarousel() {
           type="button"
           onClick={() => move(1)}
           aria-label="Próxima foto da estrutura"
-          className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-lime text-forest-2 shadow-lg transition hover:-translate-y-[55%] sm:right-6 sm:h-13 sm:w-13"
+          className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:-translate-y-[55%] sm:right-6 sm:h-13 sm:w-13"
         >
           <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
@@ -359,7 +359,7 @@ function Home() {
             </Reveal>
 
             <Reveal delay={90} className="relative mx-auto w-full max-w-[690px]">
-              <div className="relative overflow-hidden rounded-[2.3rem] border border-forest/8 bg-white p-2.5 shadow-[0_38px_100px_-45px_rgba(7,55,28,.42)] sm:rounded-[3rem] sm:p-3">
+              <div className="relative overflow-hidden rounded-[2.3rem] border border-forest/8 bg-white p-2.5 shadow-[0_38px_100px_-45px_rgba(3,47,1,.42)] sm:rounded-[3rem] sm:p-3">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-[1.9rem] sm:rounded-[2.45rem]">
                   <img
                     src={consultorioRealImg}
@@ -387,7 +387,7 @@ function Home() {
                 </div>
               </div>
 
-              <div className="absolute -bottom-6 right-4 hidden max-w-[15rem] rounded-[1.3rem] bg-forest-2 p-5 text-white shadow-lift sm:block">
+              <div className="absolute -bottom-6 right-4 hidden max-w-[15rem] rounded-[1.3rem] bg-brand-deep p-5 text-white shadow-lift sm:block">
                 <HeartHandshake className="h-5 w-5 text-lime" />
                 <p className="mt-3 font-display text-lg font-extrabold leading-tight">
                   Atendimento calmo, conversa clara.
@@ -398,7 +398,7 @@ function Home() {
 
           <div className="jp-container relative mt-16">
             <Reveal delay={150}>
-              <div className="grid overflow-hidden rounded-[1.7rem] border border-forest/9 bg-white shadow-[0_18px_50px_-38px_rgba(7,55,28,.35)] sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid overflow-hidden rounded-[1.7rem] border border-forest/9 bg-white shadow-[0_18px_50px_-38px_rgba(3,47,1,.35)] sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   [
                     HeartHandshake,
@@ -431,7 +431,7 @@ function Home() {
         {/* 02 — METODOLOGIA */}
         <section
           id="clinica"
-          className="jp-section relative isolate overflow-hidden bg-forest-2 text-white"
+          className="jp-section relative isolate overflow-hidden bg-brand-deep text-white"
         >
           <img
             src={consultorioWideImg}
@@ -440,7 +440,7 @@ function Home() {
             loading="lazy"
             className="absolute right-0 top-0 h-[48%] w-[64%] object-cover object-right-top opacity-80 lg:h-[55%] lg:w-[58%]"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,45,11,1)_0%,rgba(5,45,11,.95)_44%,rgba(5,45,11,.68)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,47,1,1)_0%,rgba(3,47,1,.95)_44%,rgba(3,47,1,.68)_100%)]" />
           <div
             aria-hidden="true"
             className="absolute -right-20 top-16 h-96 w-96 rounded-full bg-lime/12 blur-[120px]"
@@ -706,7 +706,7 @@ function Home() {
             </div>
 
             <Reveal delay={130} className="mt-12">
-              <div className="relative overflow-hidden rounded-[2rem] border border-forest/8 bg-white p-2 shadow-[0_28px_80px_-48px_rgba(5,45,11,.45)]">
+              <div className="relative overflow-hidden rounded-[2rem] border border-forest/8 bg-white p-2 shadow-[0_28px_80px_-48px_rgba(3,47,1,.45)]">
                 {/* O embed é de viewport e não desenha marcador, então o pino é
                     nosso. Como o mapa está centrado nas coordenadas da clínica,
                     a ponta do pino no centro do iframe cai no endereço certo. */}
@@ -726,17 +726,17 @@ function Home() {
                     <svg width="34" height="46" viewBox="0 0 34 46" fill="none">
                       <path
                         d="M17 45C17 45 32 27.5 32 17C32 8.716 25.284 2 17 2C8.716 2 2 8.716 2 17C2 27.5 17 45 17 45Z"
-                        fill="#2F6B35"
+                        fill="#095902"
                         stroke="white"
                         strokeWidth="2.5"
                         strokeLinejoin="round"
                       />
-                      <circle cx="17" cy="17" r="5.5" fill="#7BD51C" />
+                      <circle cx="17" cy="17" r="5.5" fill="#56A805" />
                     </svg>
                   </span>
                 </div>
 
-                <div className="absolute left-5 top-5 max-w-[21rem] rounded-[1.35rem] border border-forest/8 bg-white/95 p-5 shadow-[0_24px_60px_-38px_rgba(5,45,11,.55)] backdrop-blur sm:left-7 sm:top-7">
+                <div className="absolute left-5 top-5 max-w-[21rem] rounded-[1.35rem] border border-forest/8 bg-white/95 p-5 shadow-[0_24px_60px_-38px_rgba(3,47,1,.55)] backdrop-blur sm:left-7 sm:top-7">
                   <div className="flex items-start gap-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-forest-2">
                       <MapPin className="h-4.5 w-4.5" />
@@ -755,7 +755,7 @@ function Home() {
                     href={CLINICA.mapsHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest-2 px-5 py-3 text-xs font-extrabold text-white transition hover:-translate-y-0.5"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-deep px-5 py-3 text-xs font-extrabold text-white transition hover:-translate-y-0.5"
                   >
                     Abrir no Google Maps
                     <ArrowUpRight className="h-4 w-4" />

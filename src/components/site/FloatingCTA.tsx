@@ -61,9 +61,9 @@ export function FloatingCTA() {
         }`}
         aria-hidden={!visivel}
       >
-        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#052F01_0%,#073F01_62%,#095902_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(5,45,11,.75)] backdrop-blur-xl lg:px-7">
+        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-forest-2 shadow-[0_10px_26px_-16px_rgba(123,213,28,.9)]">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-brand-deep shadow-[0_10px_26px_-16px_rgba(86,168,5,.9)]">
               <CalendarCheck className="h-5 w-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -81,7 +81,7 @@ export function FloatingCTA() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(47,107,53,.9)] transition hover:-translate-y-0.5"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(9,89,2,.9)] transition hover:-translate-y-0.5"
             >
               <MessageCircle className="h-4 w-4" />
               Agendar avaliação agora
@@ -113,7 +113,7 @@ export function FloatingCTA() {
           visivel ? "bottom-[136px] md:bottom-[128px]" : "bottom-7"
         }`}
       >
-        <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-forest-2">
+        <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
           <span
             aria-hidden="true"
             className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite]"

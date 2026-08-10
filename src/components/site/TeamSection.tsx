@@ -14,8 +14,8 @@ function CardProfissional({
   foto?: string | undefined;
 }) {
   return (
-    <article className="group overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(5,45,11,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(5,45,11,.10)]">
-      <div className="relative mx-auto aspect-[0.83/1] w-full overflow-hidden rounded-t-[90px] bg-[#EAF3DD]">
+    <article className="group overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)]">
+      <div className="relative mx-auto aspect-[0.83/1] w-full overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
           /* width/height são obrigatórios: a foto é lazy e, sem a proporção
              intrínseca, o card colapsaria até o download terminar. */
@@ -53,7 +53,7 @@ function CardProfissional({
         <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-border-soft" />
 
         <p className="text-[11px] uppercase tracking-[0.1em] text-ink-soft">Registro</p>
-        <p className="mt-2 text-[12px] font-medium text-[#405141]">{registro}</p>
+        <p className="mt-2 text-[12px] font-medium text-[#2C4A2E]">{registro}</p>
       </div>
     </article>
   );
@@ -131,7 +131,7 @@ export function TeamSection() {
           ))}
         </div>
 
-        <div className="mx-auto mt-10 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(5,45,11,.06)] backdrop-blur">
+        <div className="mx-auto mt-10 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(3,47,1,.06)] backdrop-blur">
           <span
             aria-hidden="true"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-green/45 text-brand-text"

@@ -19,7 +19,7 @@ const FUNDADORES = [
 
 function CardFundador({ foto, nome, cro }: { foto: string; nome: string; cro: string }) {
   return (
-    <article className="group overflow-hidden rounded-[17px] border border-white/10 bg-[#0B3511]">
+    <article className="group overflow-hidden rounded-[17px] border border-white/10 bg-[#032F01]">
       <div className="relative aspect-[0.95/1] overflow-hidden bg-border-soft">
         <img
           src={foto}
@@ -29,7 +29,7 @@ function CardFundador({ foto, nome, cro }: { foto: string; nome: string; cro: st
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0B3511]/30 to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#032F01]/30 to-transparent"
         />
       </div>
       <div className="px-3 py-4 text-center">
@@ -59,7 +59,7 @@ function Metrica({
     >
       <span
         aria-hidden="true"
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lime text-forest-2 shadow-[0_10px_25px_rgba(123,213,28,.16)]"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lime text-brand-deep shadow-[0_10px_25px_rgba(86,168,5,.16)]"
       >
         {icon}
       </span>
@@ -106,14 +106,14 @@ function MacaContorno() {
 
 export function HistorySection() {
   return (
-    <section id="historia" className="jp-section relative overflow-hidden bg-forest-2 text-white">
+    <section id="historia" className="jp-section relative overflow-hidden bg-brand-deep text-white">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_23%_12%,rgba(123,213,28,.18),transparent_27%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_23%_12%,rgba(86,168,5,.18),transparent_27%)]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(47,107,53,.22),transparent_35%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(9,89,2,.22),transparent_35%)]"
       />
       <div
         aria-hidden="true"
@@ -153,7 +153,7 @@ export function HistorySection() {
             <svg aria-hidden="true" className="mt-4 h-4 w-[100px]" viewBox="0 0 100 16" fill="none">
               <path
                 d="M3 5C25 15 53 15 96 4"
-                stroke="#7BD51C"
+                stroke="#56A805"
                 strokeWidth="4"
                 strokeLinecap="round"
               />
@@ -177,7 +177,7 @@ export function HistorySection() {
                 <Quote
                   size={50}
                   strokeWidth={0}
-                  fill="#7BD51C"
+                  fill="#56A805"
                   aria-hidden="true"
                   className="mt-1 shrink-0 text-lime"
                 />
@@ -262,7 +262,7 @@ export function HistorySection() {
             <div className="mt-5 flex items-center gap-5 rounded-[23px] bg-paper px-6 py-5 text-ink shadow-[0_20px_50px_rgba(0,0,0,.12)]">
               <span
                 aria-hidden="true"
-                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#4E8C25] text-white"
+                className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#56A805] text-white"
               >
                 <HeartPulse size={28} />
               </span>

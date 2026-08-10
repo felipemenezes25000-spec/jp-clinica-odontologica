@@ -37,6 +37,7 @@
   --color-ink-soft: var(--ink-soft);
   --color-brand-green: var(--brand-green);
   --color-border-soft: var(--border-soft);
+  --color-brand-deep: var(--brand-deep);
   --color-forest: var(--forest);
   --color-forest-2: var(--forest-2);
   --color-lime: var(--lime);
@@ -55,22 +56,22 @@
   --card-foreground: #172018;
   --popover: #ffffff;
   --popover-foreground: #172018;
-  --primary: #7bd51c;
+  --primary: #56a805;
   --primary-foreground: var(--forest-2);
-  --secondary: #f0f6e9;
+  --secondary: #ebf5e1;
   --secondary-foreground: var(--forest-2);
-  --muted: #eef1ea;
+  --muted: #f2f5ef;
   --muted-foreground: #667168;
-  --accent: #e7f5d5;
+  --accent: #ebf5e1;
   --accent-foreground: var(--forest-2);
   --destructive: #b42318;
   --destructive-foreground: #ffffff;
-  --border: #dde5d7;
-  --input: #d4ded0;
-  --ring: #2f6b35;
+  --border: #dce4d6;
+  --input: #dce4d6;
+  --ring: #095902;
 
   --ink: #172018;
-  --primary-ink: #2f6b35;
+  --primary-ink: #095902;
 
   /* Duas cores criadas na revisão de contraste. O verde da marca (#7BD51C)
      mede 1.73:1 sobre o creme da página — reprova até como texto grande, que
@@ -85,6 +86,12 @@
      ali dá 4.66:1. */
   --brand-green: #56a805;
 
+  /* Superfície das seções escuras. É o verde oficial #095902 escurecido
+     (mesma matiz, 28% da luminância). Existe porque #56A805 sobre #095902
+     mede 2.87:1 e reprova como texto; sobre este tom mede 4.96:1. Sem ele
+     não há como usar as duas cores da folha juntas. */
+  --brand-deep: #032f01;
+
   /* Um tom só para borda clara. Havia 15 espalhados pelo JSX (#DCE4D6,
      #DDE5D6, #E4EADF, #E1E8DC, #E0E7DB, #C7D6BE, #D4DFCC, #D8DFD0, #E0E6DA,
      #E2E7DE, #DDE6D4, #E3E8DD, #E0E7D9, #DCE5D6, #DCE6D5) com 16.7% de
@@ -92,21 +99,21 @@
      que só existia por terem sido escritos em momentos diferentes. */
   --border-soft: #dce4d6;
 
-  --brand-text: #41761c;
+  --brand-text: #095902;
   --ink-soft: #5a6b5c;
-  --forest: #2f6b35;
+  --forest: #095902;
   /* Verde escuro oficial da marca (RGB 9 89 2), da folha entregue pela
      clínica. Era #052d0b, que não vinha de lugar nenhum. Branco em cima mede
      8.6:1 e o lime como texto, 4.66:1 — passam, com menos folga que antes. */
   --forest-2: #095902;
-  --lime: #7bd51c;
-  --mint: #e7f5d5;
+  --lime: #56a805;
+  --mint: #ebf5e1;
   --cream: #f7f8f2;
   --paper: #fcfdf9;
 
   --text-muted: #667168;
-  --shadow-soft: 0 18px 46px -30px rgba(5, 45, 11, 0.28);
-  --shadow-lift: 0 36px 90px -42px rgba(5, 45, 11, 0.45);
+  --shadow-soft: 0 18px 46px -30px rgba(3, 47, 1, 0.28);
+  --shadow-lift: 0 36px 90px -42px rgba(3, 47, 1, 0.45);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -288,7 +295,7 @@
 
 /* Letra branca no botão principal.
    Sobre o lime (#7BD51C) o branco mede 1.85:1 — ilegível. O fundo precisou
-   escurecer para o verde institucional (#2F6B35), onde o branco dá 6.41:1.
+   escurecer para o verde institucional (#095902), onde o branco dá 6.41:1.
    A borda lime devolve o destaque que o preenchimento perdeu: sobre o verde
    escuro das seções ela mede 8.2:1, bem acima dos 3:1 que a WCAG pede para
    a borda de um componente. */
@@ -1012,30 +1019,30 @@
 /* ---- Visual system approved for the JP redesign ---- */
 .section-light {
   background:
-    radial-gradient(circle at 9% 10%, rgba(123, 213, 28, 0.08), transparent 24rem),
-    radial-gradient(circle at 92% 86%, rgba(47, 107, 53, 0.07), transparent 26rem), var(--paper);
+    radial-gradient(circle at 9% 10%, rgba(86, 168, 5, 0.08), transparent 24rem),
+    radial-gradient(circle at 92% 86%, rgba(9, 89, 2, 0.07), transparent 26rem), var(--paper);
 }
 .section-deep {
   background:
-    radial-gradient(circle at 12% 8%, rgba(123, 213, 28, 0.12), transparent 28rem),
-    linear-gradient(135deg, #052f01 0%, #073f01 52%, #095902 100%);
+    radial-gradient(circle at 12% 8%, rgba(86, 168, 5, 0.12), transparent 28rem),
+    linear-gradient(135deg, #011600 0%, #022400 52%, #032f01 100%);
 }
 .section-mid {
   background:
-    radial-gradient(circle at 12% 5%, rgba(123, 213, 28, 0.18), transparent 27rem),
-    linear-gradient(135deg, #244e2a 0%, #183d20 48%, #0b3214 100%);
+    radial-gradient(circle at 12% 5%, rgba(86, 168, 5, 0.18), transparent 27rem),
+    linear-gradient(135deg, #0b5a02 0%, #053901 48%, #032f01 100%);
 }
 .jp-hairline {
-  border-color: rgba(47, 107, 53, 0.14);
+  border-color: rgba(9, 89, 2, 0.14);
 }
 .jp-soft-card {
-  border: 1px solid rgba(47, 107, 53, 0.11);
+  border: 1px solid rgba(9, 89, 2, 0.11);
   background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 24px 70px -45px rgba(5, 45, 11, 0.45);
+  box-shadow: 0 24px 70px -45px rgba(3, 47, 1, 0.45);
 }
 .jp-dark-glass {
-  border: 1px solid rgba(123, 213, 28, 0.2);
-  background: rgba(5, 45, 11, 0.72);
+  border: 1px solid rgba(86, 168, 5, 0.2);
+  background: rgba(3, 47, 1, 0.72);
   box-shadow: 0 24px 70px -45px rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);

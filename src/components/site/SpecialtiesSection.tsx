@@ -53,7 +53,7 @@ function CardEspecialidade({
   index: number;
 }) {
   return (
-    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-border-soft bg-white shadow-[0_12px_40px_rgba(5,45,11,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-brand-green/60 hover:shadow-[0_22px_55px_rgba(5,45,11,.11)]">
+    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-border-soft bg-white shadow-[0_12px_40px_rgba(3,47,1,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-brand-green/60 hover:shadow-[0_22px_55px_rgba(3,47,1,.11)]">
       <div className="relative h-[185px] overflow-hidden bg-[#FAFBF8]">
         <img
           src={IMAGENS[slug]}
@@ -72,7 +72,7 @@ function CardEspecialidade({
 
         <span
           aria-hidden="true"
-          className="absolute bottom-[8px] left-5 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-border-soft bg-white/95 text-forest-2 shadow-[0_5px_15px_rgba(5,45,11,.06)] backdrop-blur-md"
+          className="absolute bottom-[8px] left-5 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-border-soft bg-white/95 text-forest-2 shadow-[0_5px_15px_rgba(3,47,1,.06)] backdrop-blur-md"
         >
           <TreatmentIcon index={index} className="h-[19px] w-[19px]" />
         </span>
@@ -93,7 +93,7 @@ function CardEspecialidade({
           aria-label={`Saiba mais sobre ${titulo}`}
         >
           Saiba mais
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#91C95B] text-brand-text transition-all duration-300 group-hover/link:border-lime group-hover/link:bg-lime group-hover/link:text-forest-2">
+          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#56A805] text-brand-text transition-all duration-300 group-hover/link:border-lime group-hover/link:bg-lime group-hover/link:text-forest-2">
             <ArrowRight
               size={13}
               aria-hidden="true"
@@ -147,7 +147,7 @@ export function SpecialtiesSection() {
                 >
                   <path
                     d="M2 4.5C25 15 55 14 98 3"
-                    stroke="#7BD51C"
+                    stroke="#56A805"
                     strokeWidth="4"
                     strokeLinecap="round"
                   />
@@ -176,10 +176,10 @@ export function SpecialtiesSection() {
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-lime bg-forest py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(47,107,53,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#3A7F41] hover:shadow-[0_18px_40px_rgba(123,213,28,.32)]"
+              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-lime bg-forest py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(9,89,2,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#0C7503] hover:shadow-[0_18px_40px_rgba(86,168,5,.32)]"
             >
               Quero entender meu caso
-              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-forest-2 text-white">
+              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-brand-deep text-white">
                 <ArrowRight
                   size={17}
                   aria-hidden="true"

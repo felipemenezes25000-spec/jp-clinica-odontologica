@@ -157,7 +157,7 @@ function TreatmentPage() {
 
   if (!treatment) {
     return (
-      <div className="min-h-dvh bg-forest-2 text-white">
+      <div className="min-h-dvh bg-brand-deep text-white">
         <SkipLink />
         <Header />
         <main
@@ -190,7 +190,7 @@ function TreatmentPage() {
       <Header />
 
       <main id="conteudo">
-        <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-forest-2 pb-12 pt-12 text-white sm:pb-14 sm:pt-14 lg:pb-18 lg:pt-16">
+        <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-brand-deep pb-12 pt-12 text-white sm:pb-14 sm:pt-14 lg:pb-18 lg:pt-16">
           <div className="treatment-orbit" aria-hidden="true">
             <span />
             <span />
@@ -340,7 +340,7 @@ function TreatmentPage() {
             </Reveal>
 
             <Reveal delay={100}>
-              <DepthCard className="relative h-full min-h-[520px] overflow-hidden rounded-[2.5rem] bg-forest-2">
+              <DepthCard className="relative h-full min-h-[520px] overflow-hidden rounded-[2.5rem] bg-brand-deep">
                 <img
                   src={index % 2 ? consultorioReal2Img : consultorioRealImg}
                   alt="Atendimento odontológico em consultório equipado"
@@ -390,7 +390,7 @@ function TreatmentPage() {
           </section>
         )}
 
-        <section className="jp-section section-transition process-stage relative overflow-hidden bg-lime text-forest-2">
+        <section className="jp-section section-transition process-stage relative overflow-hidden bg-lime text-brand-deep">
           <div className="process-orbit" aria-hidden="true" />
           <div className="jp-container relative">
             <Reveal className="max-w-5xl">
@@ -424,7 +424,7 @@ function TreatmentPage() {
           </div>
         </section>
 
-        <section className="jp-section section-transition bg-forest-2 text-white">
+        <section className="jp-section section-transition bg-brand-deep text-white">
           <div className="jp-container grid gap-12 lg:grid-cols-[.8fr_1.2fr]">
             <Reveal>
               <span className="eyebrow text-lime">Perguntas sobre {treatment.short}</span>
@@ -446,7 +446,7 @@ function TreatmentPage() {
                         </span>
                         {item.q}
                       </span>
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-lime text-forest-2 transition-transform group-open:rotate-45">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-lime text-brand-deep transition-transform group-open:rotate-45">
                         +
                       </span>
                     </summary>

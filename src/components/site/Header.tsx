@@ -37,11 +37,11 @@ export function Header() {
   return (
     <header
       className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
-        scrolled ? "shadow-[0_10px_40px_rgba(5,45,11,0.08)]" : ""
+        scrolled ? "shadow-[0_10px_40px_rgba(3,47,1,0.08)]" : ""
       }`}
     >
       {/* BARRA SUPERIOR */}
-      <div className="bg-forest-2 text-white">
+      <div className="bg-brand-deep text-white">
         <div className="jp-container-wide flex h-[34px] items-center justify-between">
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
@@ -97,7 +97,7 @@ export function Header() {
             className="flex shrink-0 items-center gap-3"
             aria-label={`${CLINICA.nome} — início`}
           >
-            <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-[#B7D39A] bg-white shadow-[0_5px_18px_rgba(5,45,11,.08)] lg:h-[64px] lg:w-[64px]">
+            <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-[#7FB16E] bg-white shadow-[0_5px_18px_rgba(3,47,1,.08)] lg:h-[64px] lg:w-[64px]">
               <img
                 src={logo}
                 alt=""
@@ -147,7 +147,7 @@ export function Header() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-lime bg-forest px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(47,107,53,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#3A7F41] hover:shadow-[0_13px_30px_rgba(47,107,53,.32)]"
+              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-lime bg-forest px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(9,89,2,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#0C7503] hover:shadow-[0_13px_30px_rgba(9,89,2,.32)]"
             >
               Agendar avaliação
               <ArrowUpRight
@@ -202,7 +202,7 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={fechar}
-                className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-forest transition hover:bg-[#EDF6E4] hover:text-forest-2"
+                className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-forest transition hover:bg-[#EBF5E1] hover:text-forest-2"
               >
                 {item.label}
                 <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />

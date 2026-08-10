@@ -44,12 +44,12 @@ export function ContactForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-[2rem] border border-forest/10 bg-white p-5 shadow-[0_30px_90px_-48px_rgba(5,45,11,.48)] sm:p-7 lg:p-8"
+      className="rounded-[2rem] border border-forest/10 bg-white p-5 shadow-[0_30px_90px_-48px_rgba(3,47,1,.48)] sm:p-7 lg:p-8"
     >
       <div className="flex items-start justify-between gap-5">
         <div>
           <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary/30 bg-white shadow-[0_4px_14px_rgba(5,45,11,.08)]">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary/30 bg-white shadow-[0_4px_14px_rgba(3,47,1,.08)]">
               <img src={logo} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
             </span>
             <p className="max-w-[13rem] font-display text-lg font-extrabold leading-[1.05] text-forest-2">
