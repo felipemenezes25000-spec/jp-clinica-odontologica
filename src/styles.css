@@ -35,6 +35,8 @@
   --color-primary-ink: var(--primary-ink);
   --color-brand-text: var(--brand-text);
   --color-ink-soft: var(--ink-soft);
+  --color-brand-green: var(--brand-green);
+  --color-border-soft: var(--border-soft);
   --color-forest: var(--forest);
   --color-forest-2: var(--forest-2);
   --color-lime: var(--lime);
@@ -54,13 +56,13 @@
   --popover: #ffffff;
   --popover-foreground: #172018;
   --primary: #7bd51c;
-  --primary-foreground: #052d0b;
+  --primary-foreground: var(--forest-2);
   --secondary: #f0f6e9;
-  --secondary-foreground: #052d0b;
+  --secondary-foreground: var(--forest-2);
   --muted: #eef1ea;
   --muted-foreground: #667168;
   --accent: #e7f5d5;
-  --accent-foreground: #052d0b;
+  --accent-foreground: var(--forest-2);
   --destructive: #b42318;
   --destructive-foreground: #ffffff;
   --border: #dde5d7;
@@ -77,10 +79,26 @@
        --brand-text  5.13:1 no creme, 5.48:1 no branco
        --ink-soft    5.33:1 no creme, 5.69:1 no branco
      Use --lime como texto só sobre fundo escuro, onde ele mede 8.2:1. */
+  /* Verde oficial claro, da folha de marca (RGB 86 168 5). Só preenchimento:
+     como texto mede 2.81:1 no creme, e sobre o verde escuro da própria marca
+     fica em 2.87:1. Para texto em fundo escuro continua valendo --lime, que
+     ali dá 4.66:1. */
+  --brand-green: #56a805;
+
+  /* Um tom só para borda clara. Havia 15 espalhados pelo JSX (#DCE4D6,
+     #DDE5D6, #E4EADF, #E1E8DC, #E0E7DB, #C7D6BE, #D4DFCC, #D8DFD0, #E0E6DA,
+     #E2E7DE, #DDE6D4, #E3E8DD, #E0E7D9, #DCE5D6, #DCE6D5) com 16.7% de
+     variação de luminância entre os extremos — diferença que ninguém vê e
+     que só existia por terem sido escritos em momentos diferentes. */
+  --border-soft: #dce4d6;
+
   --brand-text: #41761c;
   --ink-soft: #5a6b5c;
   --forest: #2f6b35;
-  --forest-2: #052d0b;
+  /* Verde escuro oficial da marca (RGB 9 89 2), da folha entregue pela
+     clínica. Era #052d0b, que não vinha de lugar nenhum. Branco em cima mede
+     8.6:1 e o lime como texto, 4.66:1 — passam, com menos folga que antes. */
+  --forest-2: #095902;
   --lime: #7bd51c;
   --mint: #e7f5d5;
   --cream: #f7f8f2;
@@ -1000,7 +1018,7 @@
 .section-deep {
   background:
     radial-gradient(circle at 12% 8%, rgba(123, 213, 28, 0.12), transparent 28rem),
-    linear-gradient(135deg, #052d0b 0%, #0a3a15 52%, #143f1d 100%);
+    linear-gradient(135deg, #052f01 0%, #073f01 52%, #095902 100%);
 }
 .section-mid {
   background:

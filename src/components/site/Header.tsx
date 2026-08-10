@@ -41,18 +41,18 @@ export function Header() {
       }`}
     >
       {/* BARRA SUPERIOR */}
-      <div className="bg-[#052D0B] text-white">
+      <div className="bg-forest-2 text-white">
         <div className="jp-container-wide flex h-[34px] items-center justify-between">
           <span className="flex items-center gap-2">
-            <MapPin size={14} strokeWidth={1.8} className="text-[#7BD51C]" aria-hidden="true" />
+            <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-[11px]">
               Vila Bruna
-              <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
+              <span aria-hidden="true" className="mx-2 text-lime">
                 •
               </span>
               Freguesia do Ó
               <span className="hidden sm:inline">
-                <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
+                <span aria-hidden="true" className="mx-2 text-lime">
                   •
                 </span>
                 São Paulo/SP
@@ -62,23 +62,23 @@ export function Header() {
 
           <div className="hidden items-center gap-5 md:flex">
             <span className="flex items-center gap-2">
-              <Clock3 size={14} className="text-[#7BD51C]" aria-hidden="true" />
+              <Clock3 size={14} className="text-lime" aria-hidden="true" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-[11px]">
                 Segunda a sexta
-                <span aria-hidden="true" className="mx-2 text-[#7BD51C]">
+                <span aria-hidden="true" className="mx-2 text-lime">
                   •
                 </span>
                 08h às 18h
               </span>
             </span>
 
-            <span aria-hidden="true" className="h-4 w-px bg-[#7BD51C]/40" />
+            <span aria-hidden="true" className="h-4 w-px bg-lime/40" />
 
             <a
               href={CLINICA.telefoneHref}
-              className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.04em] text-white transition hover:text-[#7BD51C]"
+              className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.04em] text-white transition hover:text-lime"
             >
-              <Phone size={13} className="text-[#7BD51C]" aria-hidden="true" />
+              <Phone size={13} className="text-lime" aria-hidden="true" />
               {CLINICA.telefone}
             </a>
           </div>
@@ -86,7 +86,7 @@ export function Header() {
       </div>
 
       {/* NAVEGAÇÃO PRINCIPAL */}
-      <div className="border-b border-[#E4EADF] bg-[#FDFEFA]/95 backdrop-blur-xl">
+      <div className="border-b border-border-soft bg-[#FDFEFA]/95 backdrop-blur-xl">
         <div
           className={`jp-container-wide flex items-center justify-between gap-6 transition-all duration-300 ${
             scrolled ? "h-[78px]" : "h-[92px]"
@@ -110,10 +110,10 @@ export function Header() {
             {/* Visível desde 375px: cabe (219px dos 335 disponíveis) e o nome da
                 clínica é justamente o que precisa ter destaque no cabeçalho. */}
             <span className="block">
-              <span className="block whitespace-nowrap font-display text-[19px] font-extrabold leading-none tracking-[-0.035em] text-[#052D0B] sm:text-[21px] lg:text-[24px]">
+              <span className="block whitespace-nowrap font-display text-[19px] font-extrabold leading-none tracking-[-0.035em] text-forest-2 sm:text-[21px] lg:text-[24px]">
                 JP Clínica
               </span>
-              <span className="mt-2 block whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.08em] text-[#3F7A18] sm:tracking-[0.12em]">
+              <span className="mt-2 block whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-text sm:tracking-[0.12em]">
                 Integrada Odontológica
               </span>
             </span>
@@ -130,7 +130,7 @@ export function Header() {
                 <li key={item.href} className="shrink-0">
                   <a
                     href={item.href}
-                    className="relative whitespace-nowrap py-3 text-[14px] font-semibold tracking-[-0.01em] text-[#3F7A18] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-[#7BD51C] after:transition-all after:duration-300 hover:text-[#052D0B] hover:after:w-full"
+                    className="relative whitespace-nowrap py-3 text-[14px] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full"
                   >
                     {item.label}
                   </a>
@@ -147,7 +147,7 @@ export function Header() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(47,107,53,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#3A7F41] hover:shadow-[0_13px_30px_rgba(47,107,53,.32)]"
+              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-lime bg-forest px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(47,107,53,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#3A7F41] hover:shadow-[0_13px_30px_rgba(47,107,53,.32)]"
             >
               Agendar avaliação
               <ArrowUpRight
@@ -164,7 +164,7 @@ export function Header() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] px-5 py-3 text-[12px] font-bold text-white sm:flex"
+              className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white sm:flex"
             >
               Agendar avaliação
             </a>
@@ -176,7 +176,7 @@ export function Header() {
               aria-label={aberto ? "Fechar menu" : "Abrir menu"}
               aria-expanded={aberto}
               aria-controls="menu-mobile"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#D4DFCC] bg-white text-[#052D0B]"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-border-soft bg-white text-forest-2"
             >
               {aberto ? <X size={20} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}
             </button>
@@ -189,7 +189,7 @@ export function Header() {
           alcançáveis por Tab, e a pessoa navega por itens que não consegue ver. */}
       <div
         id="menu-mobile"
-        className={`absolute left-0 right-0 top-full border-b border-[#E1E8DC] bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
+        className={`absolute left-0 right-0 top-full border-b border-border-soft bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
           aberto
             ? "max-h-[80vh] overflow-y-auto opacity-100"
             : "invisible max-h-0 overflow-hidden opacity-0"
@@ -202,7 +202,7 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={fechar}
-                className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-[#2F6B35] transition hover:bg-[#EDF6E4] hover:text-[#052D0B]"
+                className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-forest transition hover:bg-[#EDF6E4] hover:text-forest-2"
               >
                 {item.label}
                 <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
@@ -210,10 +210,10 @@ export function Header() {
             ))}
           </div>
 
-          <div className="mt-5 grid gap-3 border-t border-[#E0E7DB] pt-5 sm:grid-cols-2">
+          <div className="mt-5 grid gap-3 border-t border-border-soft pt-5 sm:grid-cols-2">
             <a
               href={CLINICA.telefoneHref}
-              className="flex items-center justify-center gap-2 rounded-full border border-[#C7D6BE] px-5 py-4 text-sm font-semibold text-[#052D0B]"
+              className="flex items-center justify-center gap-2 rounded-full border border-border-soft px-5 py-4 text-sm font-semibold text-forest-2"
             >
               <Phone size={16} aria-hidden="true" />
               {CLINICA.telefone}
@@ -223,7 +223,7 @@ export function Header() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={fechar}
-              className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] px-5 py-4 text-sm font-bold text-white"
+              className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-lime bg-forest px-5 py-4 text-sm font-bold text-white"
             >
               Agendar avaliação
               <ArrowUpRight size={16} aria-hidden="true" />

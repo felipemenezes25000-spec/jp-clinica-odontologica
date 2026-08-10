@@ -14,7 +14,7 @@ function CardProfissional({
   foto?: string | undefined;
 }) {
   return (
-    <article className="group overflow-hidden rounded-[22px] border border-[#DDE5D6] bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(5,45,11,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-[#7BD51C]/45 hover:shadow-[0_22px_55px_rgba(5,45,11,.10)]">
+    <article className="group overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(5,45,11,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-lime/45 hover:shadow-[0_22px_55px_rgba(5,45,11,.10)]">
       <div className="relative mx-auto aspect-[0.83/1] w-full overflow-hidden rounded-t-[90px] bg-[#EAF3DD]">
         {foto ? (
           /* width/height são obrigatórios: a foto é lazy e, sem a proporção
@@ -42,7 +42,7 @@ function CardProfissional({
       </div>
 
       <div className="pt-5 text-center">
-        <h3 className="font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-[#052D0B]">
+        <h3 className="font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-forest-2">
           {nome}
         </h3>
 
@@ -50,7 +50,7 @@ function CardProfissional({
           {papel}
         </p>
 
-        <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-[#DCE4D6]" />
+        <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-border-soft" />
 
         <p className="text-[11px] uppercase tracking-[0.1em] text-ink-soft">Registro</p>
         <p className="mt-2 text-[12px] font-medium text-[#405141]">{registro}</p>
@@ -61,10 +61,10 @@ function CardProfissional({
 
 export function TeamSection() {
   return (
-    <section id="equipe" className="jp-section relative overflow-hidden bg-[#F7F8F2]">
+    <section id="equipe" className="jp-section relative overflow-hidden bg-paper">
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-0 h-[330px] w-[620px] text-[#7BD51C] opacity-[0.16]"
+        className="pointer-events-none absolute right-0 top-0 h-[330px] w-[620px] text-lime opacity-[0.16]"
         viewBox="0 0 620 330"
         fill="none"
       >
@@ -82,7 +82,7 @@ export function TeamSection() {
 
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute -left-12 bottom-0 h-[360px] w-[270px] text-[#7BD51C] opacity-[0.13]"
+        className="pointer-events-none absolute -left-12 bottom-0 h-[360px] w-[270px] text-lime opacity-[0.13]"
         viewBox="0 0 270 360"
         fill="none"
       >
@@ -104,7 +104,7 @@ export function TeamSection() {
             Quem cuida de você
           </p>
 
-          <h2 className="font-display text-[52px] font-extrabold leading-[0.93] tracking-[-0.055em] text-[#052D0B] sm:text-[64px] lg:text-[72px]">
+          <h2 className="font-display text-[52px] font-extrabold leading-[0.93] tracking-[-0.055em] text-forest-2 sm:text-[64px] lg:text-[72px]">
             Nossa
             <br />
             <span className="text-brand-text">equipe.</span>
@@ -131,10 +131,10 @@ export function TeamSection() {
           ))}
         </div>
 
-        <div className="mx-auto mt-10 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-[#DDE5D6] bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(5,45,11,.06)] backdrop-blur">
+        <div className="mx-auto mt-10 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(5,45,11,.06)] backdrop-blur">
           <span
             aria-hidden="true"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#7BD51C]/35 text-brand-text"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-lime/35 text-brand-text"
           >
             <ShieldCheck size={20} strokeWidth={1.7} />
           </span>

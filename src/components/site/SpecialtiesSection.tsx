@@ -53,7 +53,7 @@ function CardEspecialidade({
   index: number;
 }) {
   return (
-    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-[#DCE5D6] bg-white shadow-[0_12px_40px_rgba(5,45,11,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-[#7BD51C]/50 hover:shadow-[0_22px_55px_rgba(5,45,11,.11)]">
+    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-border-soft bg-white shadow-[0_12px_40px_rgba(5,45,11,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-lime/50 hover:shadow-[0_22px_55px_rgba(5,45,11,.11)]">
       <div className="relative h-[185px] overflow-hidden bg-[#FAFBF8]">
         <img
           src={IMAGENS[slug]}
@@ -72,28 +72,28 @@ function CardEspecialidade({
 
         <span
           aria-hidden="true"
-          className="absolute bottom-[8px] left-5 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-[#DCE6D5] bg-white/95 text-[#052D0B] shadow-[0_5px_15px_rgba(5,45,11,.06)] backdrop-blur-md"
+          className="absolute bottom-[8px] left-5 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-border-soft bg-white/95 text-forest-2 shadow-[0_5px_15px_rgba(5,45,11,.06)] backdrop-blur-md"
         >
           <TreatmentIcon index={index} className="h-[19px] w-[19px]" />
         </span>
       </div>
 
       <div className="flex flex-1 flex-col px-[22px] pb-[23px] pt-[15px]">
-        <h3 className="font-display text-[18px] font-extrabold leading-[1.15] tracking-[-0.025em] text-[#052D0B]">
+        <h3 className="font-display text-[18px] font-extrabold leading-[1.15] tracking-[-0.025em] text-forest-2">
           {titulo}
         </h3>
 
-        <p className="mt-3 text-[12.5px] leading-[1.55] text-[#667168]">{RESUMOS[slug]}</p>
+        <p className="mt-3 text-[12.5px] leading-[1.55] text-ink-soft">{RESUMOS[slug]}</p>
 
         {/* o ::after estende o link ao card inteiro: alvo de clique maior sem
             aninhar <a> dentro de <a>, que seria HTML inválido */}
         <a
           href={`/tratamentos/${slug}`}
-          className="group/link mt-auto flex items-center gap-3 pt-6 text-[12.5px] font-bold text-[#172018] after:absolute after:inset-0 after:content-['']"
+          className="group/link mt-auto flex items-center gap-3 pt-6 text-[12.5px] font-bold text-ink after:absolute after:inset-0 after:content-['']"
           aria-label={`Saiba mais sobre ${titulo}`}
         >
           Saiba mais
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#91C95B] text-[#63A923] transition-all duration-300 group-hover/link:border-[#7BD51C] group-hover/link:bg-[#7BD51C] group-hover/link:text-[#052D0B]">
+          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#91C95B] text-brand-text transition-all duration-300 group-hover/link:border-lime group-hover/link:bg-lime group-hover/link:text-forest-2">
             <ArrowRight
               size={13}
               aria-hidden="true"
@@ -105,7 +105,7 @@ function CardEspecialidade({
 
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-10 left-1/2 h-[70px] w-[80%] -translate-x-1/2 rounded-full bg-[#7BD51C]/0 blur-[35px] transition-colors duration-500 group-hover:bg-[#7BD51C]/15"
+        className="pointer-events-none absolute -bottom-10 left-1/2 h-[70px] w-[80%] -translate-x-1/2 rounded-full bg-lime/0 blur-[35px] transition-colors duration-500 group-hover:bg-lime/15"
       />
     </article>
   );
@@ -113,18 +113,18 @@ function CardEspecialidade({
 
 export function SpecialtiesSection() {
   return (
-    <section id="tratamentos" className="jp-section relative overflow-hidden bg-[#F7F8F2]">
+    <section id="tratamentos" className="jp-section relative overflow-hidden bg-paper">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-[390px] -top-[355px] h-[720px] w-[720px] rounded-full border border-[#7BD51C]/20"
+        className="pointer-events-none absolute -left-[390px] -top-[355px] h-[720px] w-[720px] rounded-full border border-lime/20"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-[410px] top-[50px] h-[800px] w-[800px] rounded-full border border-[#7BD51C]/20"
+        className="pointer-events-none absolute -right-[410px] top-[50px] h-[800px] w-[800px] rounded-full border border-lime/20"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-170px] left-[28%] h-[350px] w-[620px] rounded-full bg-[#7BD51C]/10 blur-[110px]"
+        className="pointer-events-none absolute bottom-[-170px] left-[28%] h-[350px] w-[620px] rounded-full bg-lime/10 blur-[110px]"
       />
 
       <div className="jp-container relative">
@@ -134,7 +134,7 @@ export function SpecialtiesSection() {
               Tratamentos
             </span>
 
-            <h2 className="font-display text-[48px] font-extrabold leading-[0.98] tracking-[-0.055em] text-[#052D0B] sm:text-[60px] lg:text-[68px]">
+            <h2 className="font-display text-[48px] font-extrabold leading-[0.98] tracking-[-0.055em] text-forest-2 sm:text-[60px] lg:text-[68px]">
               Nossas
               <br />
               <span className="relative inline-block text-brand-text">
@@ -155,18 +155,18 @@ export function SpecialtiesSection() {
               </span>
             </h2>
 
-            <p className="mt-8 max-w-[520px] text-[15px] leading-6 text-[#667168]">
+            <p className="mt-8 max-w-[520px] text-[15px] leading-6 text-ink-soft">
               Cuidado completo para o seu sorriso, em todas as fases da vida.
             </p>
           </div>
 
           <div className="max-w-[470px] lg:ml-auto lg:pt-5">
-            <p className="text-[14px] leading-[1.65] text-[#667168]">
+            <p className="text-[14px] leading-[1.65] text-ink-soft">
               Na JP Clínica Integrada Odontológica, oferecemos diversas áreas de cuidado para
               atender às suas necessidades com excelência, tecnologia e acolhimento.
             </p>
 
-            <p className="mt-4 text-[14px] font-semibold text-[#172018]">
+            <p className="mt-4 text-[14px] font-semibold text-ink">
               A indicação ideal depende da avaliação profissional.
             </p>
 
@@ -176,10 +176,10 @@ export function SpecialtiesSection() {
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-[#7BD51C] bg-[#2F6B35] py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(47,107,53,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#3A7F41] hover:shadow-[0_18px_40px_rgba(123,213,28,.32)]"
+              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-lime bg-forest py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(47,107,53,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#3A7F41] hover:shadow-[0_18px_40px_rgba(123,213,28,.32)]"
             >
               Quero entender meu caso
-              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-[#052D0B] text-white">
+              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-forest-2 text-white">
                 <ArrowRight
                   size={17}
                   aria-hidden="true"

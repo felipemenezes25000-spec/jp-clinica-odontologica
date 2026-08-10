@@ -61,7 +61,7 @@ export function FaqSection() {
         className="absolute inset-0 -z-30 h-full w-full object-cover object-[38%_center]"
       />
 
-      <div aria-hidden="true" className="absolute inset-0 -z-20 bg-[#052D0B]/28" />
+      <div aria-hidden="true" className="absolute inset-0 -z-20 bg-forest-2/28" />
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#031E09_0%,rgba(3,30,9,.86)_40%,rgba(3,30,9,.72)_46%,rgba(5,45,11,.05)_56%,rgba(3,29,9,.45)_72%,#021B08_100%)]"
@@ -72,12 +72,12 @@ export function FaqSection() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -left-36 top-[34%] -z-10 h-[500px] w-[500px] rounded-full bg-[#7BD51C]/[0.035] blur-[120px]"
+        className="pointer-events-none absolute -left-36 top-[34%] -z-10 h-[500px] w-[500px] rounded-full bg-lime/[0.035] blur-[120px]"
       />
 
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-0 h-[120px] w-[500px] text-[#7BD51C] opacity-40"
+        className="pointer-events-none absolute right-0 top-0 h-[120px] w-[500px] text-lime opacity-40"
         viewBox="0 0 500 120"
         fill="none"
       >
@@ -85,7 +85,7 @@ export function FaqSection() {
       </svg>
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-0 left-0 h-[180px] w-[480px] text-[#7BD51C] opacity-50"
+        className="pointer-events-none absolute bottom-0 left-0 h-[180px] w-[480px] text-lime opacity-50"
         viewBox="0 0 480 180"
         fill="none"
       >
@@ -106,7 +106,7 @@ export function FaqSection() {
             Dúvida boa
             <br />é dúvida
             <br />
-            <span className="text-[#7BD51C]">respondida.</span>
+            <span className="text-lime">respondida.</span>
           </h2>
 
           <svg
@@ -137,9 +137,9 @@ export function FaqSection() {
             /* min-w só a partir de sm. O `max-sm:min-w-0` do original dependia
                da ordem das variantes no CSS gerado e perdia: o botão media
                365px numa faixa de 327px e era cortado no celular. */
-            className="group mt-9 inline-flex w-full items-center gap-4 rounded-[21px] border border-[#7BD51C]/25 bg-[linear-gradient(110deg,rgba(123,213,28,.13),rgba(5,45,11,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[#7BD51C]/50 hover:bg-[#123C13]/80 sm:w-auto sm:min-w-[365px]"
+            className="group mt-9 inline-flex w-full items-center gap-4 rounded-[21px] border border-lime/25 bg-[linear-gradient(110deg,rgba(123,213,28,.13),rgba(5,45,11,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lime/50 hover:bg-[#123C13]/80 sm:w-auto sm:min-w-[365px]"
           >
-            <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-[#7BD51C] text-white shadow-[0_8px_24px_rgba(123,213,28,.25)]">
+            <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-lime text-white shadow-[0_8px_24px_rgba(123,213,28,.25)]">
               <IconeWhatsApp />
             </span>
             <span className="flex-1">
@@ -206,7 +206,7 @@ export function FaqSection() {
                   className={`overflow-hidden rounded-[22px] border backdrop-blur-[8px] transition-all duration-300 ${
                     isOpen
                       ? "border-[#A4D85A]/45 bg-[linear-gradient(110deg,rgba(16,63,23,.78),rgba(4,38,12,.86))] shadow-[0_18px_45px_rgba(0,0,0,.14)]"
-                      : "border-white/15 bg-[#062A0D]/65 hover:border-[#7BD51C]/35 hover:bg-[#0A3211]/75"
+                      : "border-white/15 bg-[#062A0D]/65 hover:border-lime/35 hover:bg-[#0A3211]/75"
                   }`}
                 >
                   <button
@@ -229,7 +229,7 @@ export function FaqSection() {
 
                     <span
                       aria-hidden="true"
-                      className="flex h-[39px] w-[39px] shrink-0 items-center justify-center rounded-full border border-[#7BD51C]/70 text-[#8CD433]"
+                      className="flex h-[39px] w-[39px] shrink-0 items-center justify-center rounded-full border border-lime/70 text-[#8CD433]"
                     >
                       {isOpen ? (
                         <Minus size={19} strokeWidth={2} />

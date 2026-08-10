@@ -20,7 +20,7 @@ const FUNDADORES = [
 function CardFundador({ foto, nome, cro }: { foto: string; nome: string; cro: string }) {
   return (
     <article className="group overflow-hidden rounded-[17px] border border-white/10 bg-[#0B3511]">
-      <div className="relative aspect-[0.95/1] overflow-hidden bg-[#D8DFD0]">
+      <div className="relative aspect-[0.95/1] overflow-hidden bg-border-soft">
         <img
           src={foto}
           alt=""
@@ -59,7 +59,7 @@ function Metrica({
     >
       <span
         aria-hidden="true"
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#7BD51C] text-[#052D0B] shadow-[0_10px_25px_rgba(123,213,28,.16)]"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lime text-forest-2 shadow-[0_10px_25px_rgba(123,213,28,.16)]"
       >
         {icon}
       </span>
@@ -76,7 +76,7 @@ function MacaContorno() {
   return (
     <svg
       aria-hidden="true"
-      className="pointer-events-none absolute right-[1%] top-[4%] h-[360px] w-[360px] text-[#7BD51C] opacity-[0.12] lg:h-[470px] lg:w-[470px]"
+      className="pointer-events-none absolute right-[1%] top-[4%] h-[360px] w-[360px] text-lime opacity-[0.12] lg:h-[470px] lg:w-[470px]"
       viewBox="0 0 400 400"
       fill="none"
     >
@@ -106,7 +106,7 @@ function MacaContorno() {
 
 export function HistorySection() {
   return (
-    <section id="historia" className="jp-section relative overflow-hidden bg-[#052D0B] text-white">
+    <section id="historia" className="jp-section relative overflow-hidden bg-forest-2 text-white">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_23%_12%,rgba(123,213,28,.18),transparent_27%)]"
@@ -117,19 +117,19 @@ export function HistorySection() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-250px] right-[-150px] h-[650px] w-[650px] rounded-full bg-[#7BD51C]/[0.04] blur-[100px]"
+        className="pointer-events-none absolute bottom-[-250px] right-[-150px] h-[650px] w-[650px] rounded-full bg-lime/[0.04] blur-[100px]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-[260px] top-[20px] h-[600px] w-[600px] rounded-full border border-[#7BD51C]/25"
+        className="pointer-events-none absolute -right-[260px] top-[20px] h-[600px] w-[600px] rounded-full border border-lime/25"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-[370px] top-[110px] h-[750px] w-[750px] rounded-full border border-[#7BD51C]/15"
+        className="pointer-events-none absolute -right-[370px] top-[110px] h-[750px] w-[750px] rounded-full border border-lime/15"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-[470px] right-[10%] h-[700px] w-[900px] rounded-[50%] border border-[#7BD51C]/15"
+        className="pointer-events-none absolute -bottom-[470px] right-[10%] h-[700px] w-[900px] rounded-[50%] border border-lime/15"
       />
 
       <MacaContorno />
@@ -138,12 +138,12 @@ export function HistorySection() {
         <div className="grid gap-14 lg:grid-cols-[0.96fr_1.04fr] lg:items-center lg:gap-16">
           {/* COLUNA ESQUERDA */}
           <div>
-            <p className="mb-6 text-[12px] font-bold uppercase tracking-[0.18em] text-[#7BD51C]">
+            <p className="mb-6 text-[12px] font-bold uppercase tracking-[0.18em] text-lime">
               Nossa história
             </p>
 
             <h2 className="max-w-[650px] font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.055em] sm:text-[62px] lg:text-[72px]">
-              São <span className="text-[#7BD51C]">{HISTORIA.anos} anos</span>
+              São <span className="text-lime">{HISTORIA.anos} anos</span>
               <br />
               cuidando dos sorrisos
               <br />
@@ -161,7 +161,7 @@ export function HistorySection() {
 
             <div className="mt-7 max-w-[625px] space-y-5 text-[16px] leading-[1.65] text-white/80">
               <p>
-                A <strong className="font-semibold text-[#7BD51C]">{CLINICA.nome}</strong> acompanha
+                A <strong className="font-semibold text-lime">{CLINICA.nome}</strong> acompanha
                 gerações de pacientes com o mesmo compromisso: escutar com atenção, orientar com
                 clareza e cuidar com responsabilidade.
               </p>
@@ -179,13 +179,13 @@ export function HistorySection() {
                   strokeWidth={0}
                   fill="#7BD51C"
                   aria-hidden="true"
-                  className="mt-1 shrink-0 text-[#7BD51C]"
+                  className="mt-1 shrink-0 text-lime"
                 />
                 <div>
                   <blockquote className="text-[17px] leading-[1.55] text-white/90">
                     {MISSAO}
                   </blockquote>
-                  <figcaption className="mt-5 text-[11px] font-bold uppercase tracking-[0.17em] text-[#7BD51C]">
+                  <figcaption className="mt-5 text-[11px] font-bold uppercase tracking-[0.17em] text-lime">
                     {CLINICA.nome}
                   </figcaption>
                 </div>
@@ -224,18 +224,18 @@ export function HistorySection() {
             <div className="relative overflow-hidden rounded-[30px] border border-white/20 bg-white/[0.045] p-5 shadow-[0_35px_90px_rgba(0,0,0,.18)] backdrop-blur-md sm:p-8">
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute left-[30%] top-0 h-[300px] w-[350px] bg-[#7BD51C]/[0.045] blur-[80px]"
+                className="pointer-events-none absolute left-[30%] top-0 h-[300px] w-[350px] bg-lime/[0.045] blur-[80px]"
               />
 
               <div className="relative">
                 <div className="mb-4 flex items-center gap-3">
                   <span
                     aria-hidden="true"
-                    className="flex h-11 w-11 items-center justify-center rounded-full border border-[#7BD51C]/30 text-[#7BD51C]"
+                    className="flex h-11 w-11 items-center justify-center rounded-full border border-lime/30 text-lime"
                   >
                     <UsersRound size={22} />
                   </span>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#7BD51C]">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">
                     Quem construiu essa história
                   </p>
                 </div>
@@ -244,7 +244,7 @@ export function HistorySection() {
                   Nossos fundadores
                 </h3>
 
-                <div aria-hidden="true" className="mt-3 h-[3px] w-12 rounded-full bg-[#7BD51C]" />
+                <div aria-hidden="true" className="mt-3 h-[3px] w-12 rounded-full bg-lime" />
 
                 <p className="mt-5 max-w-[430px] text-[14px] leading-6 text-white/75">
                   Mais que dentistas, pessoas que acreditam no poder do cuidado e nas relações de
@@ -259,17 +259,17 @@ export function HistorySection() {
               </div>
             </div>
 
-            <div className="mt-5 flex items-center gap-5 rounded-[23px] bg-[#F7F8F2] px-6 py-5 text-[#172018] shadow-[0_20px_50px_rgba(0,0,0,.12)]">
+            <div className="mt-5 flex items-center gap-5 rounded-[23px] bg-paper px-6 py-5 text-ink shadow-[0_20px_50px_rgba(0,0,0,.12)]">
               <span
                 aria-hidden="true"
                 className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#4E8C25] text-white"
               >
                 <HeartPulse size={28} />
               </span>
-              <p className="text-[13px] leading-[1.6] text-[#5B6659]">
+              <p className="text-[13px] leading-[1.6] text-ink-soft">
                 Cada sorriso que cuidamos carrega nossa história, nossa dedicação e o propósito que
                 nos move todos os dias:{" "}
-                <strong className="font-semibold text-[#3F7A18]">
+                <strong className="font-semibold text-brand-text">
                   ver você sorrir com saúde, confiança e bem-estar.
                 </strong>
               </p>

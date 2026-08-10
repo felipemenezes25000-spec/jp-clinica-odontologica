@@ -61,7 +61,7 @@ export function FloatingCTA() {
         }`}
         aria-hidden={!visivel}
       >
-        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#052D0B_0%,#0A3A15_62%,#12451B_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(5,45,11,.75)] backdrop-blur-xl lg:px-7">
+        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#052F01_0%,#073F01_62%,#095902_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(5,45,11,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-forest-2 shadow-[0_10px_26px_-16px_rgba(123,213,28,.9)]">
               <CalendarCheck className="h-5 w-5" aria-hidden="true" />
