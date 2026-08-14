@@ -753,15 +753,18 @@ export const FAQ = [
   {
     q: "Como faço para agendar uma avaliação?",
     /**
-     * Os dois números vêm de CLINICA, não escritos aqui de novo. Estavam
-     * digitados à mão, e foi por isso que um WhatsApp errado sobreviveu no site:
-     * corrigir o cadastro não corrigia esta resposta.
+     * Nada de contato é redigitado nas respostas — tudo sai de CLINICA e de
+     * ENDERECO. Estava tudo à mão, e foi assim que um WhatsApp errado sobreviveu
+     * no site: corrigir o cadastro não corrigia a FAQ.
+     *
+     * O horário entra em minúsculas porque no cadastro ele é uma frase solta
+     * ("Segunda a sexta…") e aqui vem no meio de outra.
      */
-    a: `Você pode falar com a recepção pelo WhatsApp ${CLINICA.whatsapp}, ligar para ${CLINICA.telefone} ou usar o formulário do site. Atendemos de segunda a sexta, das 08:00 às 18:00.`,
+    a: `Você pode falar com a recepção pelo WhatsApp ${CLINICA.whatsapp}, ligar para ${CLINICA.telefone} ou usar o formulário do site. Atendemos ${CLINICA.horario.toLowerCase()}.`,
   },
   {
     q: "Onde fica a clínica?",
-    a: "A JP Clínica Integrada Odontológica fica na R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó, em São Paulo (CEP 02934-201).",
+    a: `A ${CLINICA.nome} fica na ${ENDERECO.logradouro} — ${ENDERECO.bairro}, região da Freguesia do Ó, em ${ENDERECO.cidade} (CEP ${ENDERECO.cep}).`,
   },
   {
     q: "Vocês atendem crianças e idosos?",
