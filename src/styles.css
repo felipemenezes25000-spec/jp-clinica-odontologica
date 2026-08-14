@@ -199,12 +199,11 @@
     --jp-gutter: 2.5rem;
   }
 }
+/* Uma coluna só para o site inteiro. Havia uma segunda, .jp-container-wide de
+   1400px, usada apenas pelo cabeçalho — e era isso que jogava a logo até 40px
+   à esquerda de todo o conteúdo abaixo dela. */
 .jp-container {
   width: min(1320px, 100% - var(--jp-gutter) * 2);
-  margin-inline: auto;
-}
-.jp-container-wide {
-  width: min(1400px, 100% - var(--jp-gutter) * 2);
   margin-inline: auto;
 }
 /* 4.5rem de cada lado = 144px entre duas seções vizinhas. Era 7rem, e como

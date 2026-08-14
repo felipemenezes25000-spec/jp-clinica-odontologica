@@ -42,7 +42,7 @@ export function Header() {
     >
       {/* BARRA SUPERIOR */}
       <div className="bg-brand-deep text-white">
-        <div className="jp-container-wide flex h-[34px] items-center justify-between">
+        <div className="jp-container flex h-[34px] items-center justify-between">
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-[11px]">
@@ -88,7 +88,7 @@ export function Header() {
       {/* NAVEGAÇÃO PRINCIPAL */}
       <div className="border-b border-border-soft bg-[#FDFEFA]/95 backdrop-blur-xl">
         <div
-          className={`jp-container-wide flex items-center justify-between gap-6 transition-all duration-300 ${
+          className={`jp-container flex items-center justify-between gap-6 transition-all duration-300 ${
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
@@ -190,7 +190,7 @@ export function Header() {
             : "invisible max-h-0 overflow-hidden opacity-0"
         }`}
       >
-        <nav className="jp-container-wide py-6" aria-label="Navegação móvel">
+        <nav className="jp-container py-6" aria-label="Navegação móvel">
           <div className="grid gap-1 sm:grid-cols-2">
             {NAV.map((item) => (
               <a
