@@ -1,18 +1,16 @@
 import { CalendarDays, HeartPulse, MapPin, Quote, UsersRound } from "lucide-react";
 
-import { CLINICA, EQUIPE, FUNDADORA, GESTOR, HISTORIA, MISSAO } from "@/lib/jp";
+import { CLINICA, FUNDADORA, GESTOR, HISTORIA, MISSAO, RESPONSAVEL_TECNICA } from "@/lib/jp";
 
 /**
  * As duas pessoas à frente da clínica — as duas reais, as duas com o rótulo que
  * lhes cabe. O do gestor é o cargo; o dela vem com o CRO embaixo, porque é
  * dentista e o registro é o que o paciente precisa poder conferir.
  *
- * A Dra. Juliana não é redigitada aqui: sai de EQUIPE[0], a mesma fonte que o
- * rodapé usa para a linha obrigatória de responsável técnica. Nome e CRO dela
- * aparecem em 9 rotas — não podem existir em duas versões.
+ * Ela não é redigitada aqui: sai de RESPONSAVEL_TECNICA, a mesma fonte que o
+ * rodapé usa para a linha obrigatória. Nome e CRO dela aparecem em 9 rotas —
+ * não podem existir em duas versões.
  */
-const RESPONSAVEL = EQUIPE[0];
-
 const PESSOAS = [
   {
     nome: GESTOR.nome,
@@ -21,10 +19,10 @@ const PESSOAS = [
     real: true,
   },
   {
-    nome: RESPONSAVEL?.nome ?? "",
-    legenda: RESPONSAVEL?.papel ?? "",
-    registro: RESPONSAVEL?.registro,
-    foto: RESPONSAVEL?.foto,
+    nome: RESPONSAVEL_TECNICA.nome,
+    legenda: RESPONSAVEL_TECNICA.papel ?? "",
+    registro: RESPONSAVEL_TECNICA.registro,
+    foto: RESPONSAVEL_TECNICA.foto,
     real: true,
   },
 ];
@@ -340,7 +338,7 @@ export function HistorySection() {
                     que a clínica escreveu — vem inteiro, não resumido. */}
                 <Apresentacao nome={GESTOR.nome} formacao={GESTOR.formacao} texto={GESTOR.texto} />
                 <Apresentacao
-                  nome={RESPONSAVEL?.nome ?? ""}
+                  nome={RESPONSAVEL_TECNICA.nome}
                   formacao={FUNDADORA.formacao}
                   titulo={FUNDADORA.titulo}
                   texto={FUNDADORA.texto}

@@ -49,7 +49,7 @@ import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
 import { TeamSection } from "@/components/site/TeamSection";
-import { CLINICA, DEPOIMENTOS, EQUIPE, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
 const DESCRIPTION =

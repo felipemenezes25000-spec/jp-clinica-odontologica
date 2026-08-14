@@ -261,40 +261,53 @@ export type Profissional = {
   foto?: string;
 };
 
-export const EQUIPE: Profissional[] = [
-  {
-    /**
-     * Só os sobrenomes, sem "Dra." e sem "Juliana" — escolha da clínica.
-     *
-     * Este campo alimenta o card da equipe, o card do bloco de história e a
-     * linha de responsável técnica do rodapé das 9 rotas, que existe por
-     * exigência da Resolução CFO 196/2019. Se o conselho pedir o nome completo
-     * nessa linha, é aqui que se muda.
-     *
-     * O nome completo continua legível no site: a apresentação dela abre com
-     * "a Dra. Juliana Pelisser Barbosa". O texto tinha chegado como "Pelissari
-     * Barbosa"; prevaleceu a grafia confirmada pela clínica.
-     */
-    nome: "Pelisser Barbosa",
-    /**
-     * ✅ CONFERIDO PELA CLÍNICA em 14/08/2026.
-     *
-     * O campo já esteve como "78.159". A placa da fachada dizia "Responsável
-     * Técnico CROSP 75.159" — lida com ampliação de 8x na foto original
-     * (jp-clinica-odontologica-6.jpg) — e a clínica confirmou esse número.
-     * As duas fontes batem, então o aviso de conferência saiu daqui.
-     */
-    registro: "CROSP 75.159",
-    /**
-     * Os três papéis na mesma linha porque os três valem: gestão e fundação,
-     * informados pela clínica, e a responsabilidade técnica, que é o vínculo
-     * regulado e sai também no rodapé de todas as rotas. Daqui vai para o card
-     * da equipe e para o bloco de história.
-     */
-    papel: "Gestora, fundadora e responsável técnica",
-    foto: fotoJuliana,
-  },
+/**
+ * A responsável técnica da clínica.
+ *
+ * Fica **fora** de EQUIPE de propósito. A linha "Responsável técnica" do rodapé
+ * sai nas 9 rotas por exigência da Resolução CFO 196/2019, e antes ela lia
+ * EQUIPE[0] — ou seja, dependia de a pessoa certa ser a primeira da lista.
+ * Bastou tirá-la da seção de equipe para essa linha passar a publicar o CRO
+ * inventado do primeiro dentista fictício. Agora a fonte é explícita e a lista
+ * da equipe pode mudar à vontade sem tocar num dado regulado.
+ *
+ * Também alimenta o card dela no bloco de história.
+ */
+export const RESPONSAVEL_TECNICA: Profissional = {
+  /**
+   * Só os sobrenomes, sem "Dra." e sem "Juliana" — escolha da clínica.
+   *
+   * Se o conselho exigir o nome completo na linha do rodapé, é aqui que se muda.
+   * O nome completo continua legível no site: a apresentação dela abre com
+   * "a Dra. Juliana Pelisser Barbosa". O texto tinha chegado como "Pelissari
+   * Barbosa"; prevaleceu a grafia confirmada pela clínica.
+   */
+  nome: "Pelisser Barbosa",
+  /**
+   * ✅ CONFERIDO PELA CLÍNICA em 14/08/2026.
+   *
+   * O campo já esteve como "78.159". A placa da fachada dizia "Responsável
+   * Técnico CROSP 75.159" — lida com ampliação de 8x na foto original
+   * (jp-clinica-odontologica-6.jpg) — e a clínica confirmou esse número.
+   * As duas fontes batem, então o aviso de conferência saiu daqui.
+   */
+  registro: "CROSP 75.159",
+  /**
+   * Os três papéis na mesma linha porque os três valem: gestão e fundação,
+   * informados pela clínica, e a responsabilidade técnica, que é o vínculo
+   * regulado e sai também no rodapé de todas as rotas.
+   */
+  papel: "Gestora, fundadora e responsável técnica",
+  foto: fotoJuliana,
+};
 
+/**
+ * Quem aparece na seção "Nossa equipe".
+ *
+ * A responsável técnica não está aqui — ela tem apresentação própria no bloco
+ * de história, e a clínica preferiu não repeti-la nesta grade.
+ */
+export const EQUIPE: Profissional[] = [
   // ─── ⚠️ FICTÍCIOS — TROCAR ANTES DE DIVULGAR ───────────────────────────────
   // Nenhuma destas pessoas existe. Retratos gerados por IA; CRO no formato
   // 00.00X, que nenhum registro real usa. Servem só para ver o layout cheio.

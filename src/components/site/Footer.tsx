@@ -1,6 +1,6 @@
 import { ArrowUpRight, Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
-import { CLINICA, EQUIPE, HISTORIA, NAV, whatsappLink } from "@/lib/jp";
+import { CLINICA, HISTORIA, NAV, RESPONSAVEL_TECNICA, whatsappLink } from "@/lib/jp";
 
 export function Footer() {
   return (
@@ -126,11 +126,12 @@ export function Footer() {
 
         <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-[11px] leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
           <div>
-            {EQUIPE[0] && (
-              <p className="font-semibold text-white">
-                Responsável técnica: {EQUIPE[0].nome} — {EQUIPE[0].registro}
-              </p>
-            )}
+            {/* Fonte explícita, não mais EQUIPE[0]: esta linha é exigida pela
+                Resolução CFO 196/2019 e não pode depender da ordem de uma
+                lista que a clínica edita. */}
+            <p className="font-semibold text-white">
+              Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
+            </p>
             <p className="mt-1">
               {CLINICA.razaoSocial} • CNPJ {CLINICA.cnpj}
             </p>

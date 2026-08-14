@@ -116,10 +116,15 @@ export function TeamSection() {
           </p>
         </div>
 
-        {/* 6 colunas, não 5: a Dra. Juliana Pelisser Barbosa é a responsável técnica e a
-            única pessoa real da lista. Tirá-la para caber em 5 colocaria um CRO
-            inventado na linha obrigatória do rodapé, que lê EQUIPE[0]. */}
-        <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+        {/* Voltou a 5 colunas: a responsável técnica saiu desta grade, a pedido
+            da clínica — ela tem apresentação própria no bloco de história. Era a
+            6ª coluna, e era também a única pessoa real daqui.
+
+            Tirá-la só foi seguro porque o rodapé deixou de ler EQUIPE[0] e
+            passou a ler RESPONSAVEL_TECNICA: pela regra antiga, esta mudança
+            teria publicado o CRO inventado do Dr. Ricardo Almeida na linha que
+            a Resolução CFO 196/2019 exige. */}
+        <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {EQUIPE.map((pessoa) => (
             <CardProfissional
               key={pessoa.registro}
