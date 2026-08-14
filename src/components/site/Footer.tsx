@@ -66,7 +66,7 @@ export function Footer() {
           </nav>
 
           <div>
-            <p className="eyebrow text-lime">Fale com a JP</p>
+            <p className="eyebrow text-lime">Fale com a JP Clínica Integrada</p>
             <ul className="mt-6 grid gap-4 text-sm font-semibold text-white">
               <li>
                 <a
