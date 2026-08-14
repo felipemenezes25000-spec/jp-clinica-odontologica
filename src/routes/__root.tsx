@@ -9,12 +9,14 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 
+import { Logo } from "@/components/site/Logo";
+import { SITE_URL } from "@/lib/jp";
 import appCss from "../styles.css?url";
 
 /**
  * Shared shell for the 404 and error boundaries. Both are dead ends, so they
  * carry the brand rather than a system-default page: dark forest field, the
- * oversized "JP" watermark from the hero, and a single obvious way out.
+ * oversized mark of the clinic as a watermark, and a single obvious way out.
  */
 function DeadEnd({
   eyebrow,
@@ -29,12 +31,16 @@ function DeadEnd({
 }) {
   return (
     <div className="relative isolate flex min-h-dvh items-center overflow-hidden bg-brand-deep px-5 py-20 text-white">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-[6vw] top-1/2 -translate-y-1/2 font-display text-[clamp(18rem,42vw,46rem)] font-black leading-none tracking-[-.13em] text-white/[.05]"
-      >
-        JP
-      </div>
+      {/* O "JP" daqui era redigitado em Bricolage. Agora é o símbolo da marca —
+          o mesmo desenho do cabeçalho, do favicon e do rodapé. Como ele é feito
+          de traço, e não de massa cheia como a letra era, precisa de mais opacidade
+          para render a mesma presença. */}
+      <Logo
+        variante="simbolo"
+        fundo="escuro"
+        altura={700}
+        className="pointer-events-none absolute -right-[10vw] top-1/2 h-[min(88vh,42rem)] w-auto -translate-y-1/2 opacity-[.09]"
+      />
       <div
         aria-hidden="true"
         className="absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-lime/15 blur-[110px]"
@@ -124,6 +130,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
       { name: "twitter:card", content: "summary_large_image" },
+      // O cartão de compartilhamento é a marca sobre o verde da clínica: quem
+      // recebe o link no WhatsApp vê o logo, não um recorte aleatório da página.
+      // Absoluto porque é assim que o robô do WhatsApp e o do Facebook resolvem
+      // og:image — com caminho relativo eles simplesmente não buscam a imagem.
+      { property: "og:url", content: SITE_URL },
+      { property: "og:image", content: `${SITE_URL}/og.png` },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "Marca da JP Clínica Odontológica sobre o verde da clínica",
+      },
+      { name: "twitter:image", content: `${SITE_URL}/og.png` },
     ],
     links: [
       {
@@ -136,7 +155,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      // O SVG atende quem sabe lê-lo — e escala sozinho de 16px à aba retina.
+      // Os PNGs ficam de reserva, na ordem que os navegadores antigos esperam.
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "96x96", href: "/favicon-96.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/site.webmanifest" },
     ],
   }),
 

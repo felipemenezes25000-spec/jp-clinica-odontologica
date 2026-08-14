@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   UserRound,
 } from "lucide-react";
-import logo from "@/assets/logo-jp-official.webp";
+import { Logo } from "@/components/site/Logo";
 import { CLINICA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const PERIODOS = ["Manhã", "Tarde", "Qualquer horário"];
@@ -50,7 +50,7 @@ export function ContactForm() {
         <div>
           <div className="flex items-center gap-3">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary/30 bg-white shadow-[0_4px_14px_rgba(3,47,1,.08)]">
-              <img src={logo} alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+              <Logo variante="simbolo" fundo="claro" altura={30} className="h-[30px] w-auto" />
             </span>
             <p className="max-w-[13rem] font-display text-lg font-extrabold leading-[1.05] text-forest-2">
               {CLINICA.nome}

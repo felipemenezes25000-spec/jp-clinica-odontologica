@@ -18,7 +18,7 @@ import consultorioReal2Img from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
-import logo from "@/assets/logo-jp-official.webp";
+import { Logo } from "@/components/site/Logo";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
@@ -281,11 +281,14 @@ function TreatmentPage() {
               <div className="lg:sticky lg:top-32">
                 <span className="eyebrow text-primary-ink">O que está por trás</span>
                 <div className="mt-7 flex items-center gap-3">
-                  <img
-                    src={logo}
-                    alt=""
-                    className="h-14 w-14 rounded-full bg-white object-contain p-1 shadow-soft"
-                  />
+                  <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white shadow-soft">
+                    <Logo
+                      variante="simbolo"
+                      fundo="claro"
+                      altura={34}
+                      className="h-[34px] w-auto"
+                    />
+                  </span>
                   <div>
                     <p className="font-display text-xl font-black text-forest-2">JP Clínica</p>
                     <p className="text-[11px] font-black uppercase tracking-[.18em] text-ink-soft">

@@ -1,5 +1,5 @@
 import { ArrowUpRight, Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
-import logo from "@/assets/logo-jp-official.webp";
+import { Logo } from "@/components/site/Logo";
 import { CLINICA, EQUIPE, HISTORIA, NAV, whatsappLink } from "@/lib/jp";
 
 export function Footer() {
@@ -12,24 +12,23 @@ export function Footer() {
       <div className="jp-container py-12 pb-24 sm:py-14 sm:pb-14 lg:py-18 lg:pb-18">
         <div className="grid gap-12 lg:grid-cols-[1.35fr_.72fr_1fr] lg:gap-16">
           <div>
-            <div className="flex items-center gap-3">
-              <span className="grid h-14 w-14 place-items-center rounded-full bg-white shadow-[0_16px_36px_-24px_rgba(0,0,0,.65)]">
-                <img
-                  src={logo}
-                  alt="Logo JP Clínica"
-                  width={48}
-                  height={48}
-                  className="h-12 w-12 object-contain"
-                />
-              </span>
-              <div>
-                <p className="font-display text-lg font-extrabold tracking-[-.035em]">
-                  JP Clínica Odontológica
-                </p>
-                <p className="mt-1 text-[11px] font-extrabold uppercase tracking-[.18em] text-white/80">
-                  Vila Bruna • São Paulo
-                </p>
-              </div>
+            {/* Sem o disco branco de antes: a arte de fundo escuro vaza o dente,
+                então a marca pousa direto no verde em vez de vir colada num
+                adesivo. */}
+            <div>
+              {/* Com alt, diferente das outras telas: aqui a marca não vem
+                  dentro de um link nomeado nem ao lado do nome escrito, então
+                  ela é a única coisa que abre o bloco. */}
+              <Logo
+                variante="lockup"
+                fundo="escuro"
+                altura={68}
+                alt={CLINICA.nome}
+                className="h-[58px] w-auto sm:h-[68px]"
+              />
+              <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[.18em] text-white/80">
+                Vila Bruna • São Paulo
+              </p>
             </div>
 
             <p className="mt-8 max-w-xl font-display text-[clamp(2.7rem,5.4vw,4.9rem)] font-extrabold leading-[.92] tracking-[-.055em] text-white">

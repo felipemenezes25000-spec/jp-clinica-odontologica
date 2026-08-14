@@ -19,7 +19,6 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import logo from "@/assets/logo-jp-official.webp";
 import fachadaImg from "@/assets/fachada.webp";
 import consultorioRealImg from "@/assets/consultorio-1.webp";
 import consultorioReal2Img from "@/assets/consultorio-2.webp";

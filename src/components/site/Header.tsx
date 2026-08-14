@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
 
-import logo from "@/assets/logo-jp-official.webp";
+import { Logo } from "@/components/site/Logo";
 import { CLINICA, NAV, whatsappLink } from "@/lib/jp";
 
 export function Header() {
@@ -92,31 +92,26 @@ export function Header() {
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
+          {/* A marca oficial já traz o nome desenhado, então aqui não entra
+              texto ao lado: o que existia era o nome redigitado em Manrope
+              disputando com a mesma palavra dentro do logo. O nome acessível
+              vem do aria-label, e o "Integrada" segue no <title> e no rodapé. */}
           <a
             href="/#inicio"
-            className="flex shrink-0 items-center gap-3"
+            className="flex shrink-0 items-center"
             aria-label={`${CLINICA.nome} — início`}
           >
-            <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-[#7FB16E] bg-white shadow-[0_5px_18px_rgba(3,47,1,.08)] lg:h-[64px] lg:w-[64px]">
-              <img
-                src={logo}
-                alt=""
-                width={54}
-                height={54}
-                className="h-[49px] w-[49px] object-contain lg:h-[54px] lg:w-[54px]"
-              />
-            </span>
-
-            {/* Visível desde 375px: cabe (219px dos 335 disponíveis) e o nome da
-                clínica é justamente o que precisa ter destaque no cabeçalho. */}
-            <span className="block">
-              <span className="block whitespace-nowrap font-display text-[19px] font-extrabold leading-none tracking-[-0.035em] text-forest-2 sm:text-[21px] lg:text-[24px]">
-                JP Clínica
-              </span>
-              <span className="mt-2 block whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-text sm:tracking-[0.12em]">
-                Integrada Odontológica
-              </span>
-            </span>
+            {/* A altura acompanha a barra (92px → 78px ao rolar). Em 66px o
+                "Clínica Odontológica" desenhado bate os 14px dos itens de menu:
+                menor que isso, a marca lê como legenda do menu, não como marca. */}
+            <Logo
+              variante="lockup"
+              fundo="claro"
+              altura={66}
+              className={`w-auto transition-all duration-300 ${
+                scrolled ? "h-[44px] lg:h-[56px]" : "h-[50px] lg:h-[66px]"
+              }`}
+            />
           </a>
 
           {/* O gap fluido é o que faz os itens caberem sem estourar: o navegador

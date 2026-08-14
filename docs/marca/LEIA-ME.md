@@ -1,13 +1,44 @@
 # Marca JP Clínica Odontológica
 
-Arquivos originais entregues pela clínica. Ficam aqui como fonte, não entram no
-build — o site usa `src/assets/logo-jp-official.webp`, a marca recortada com
-fundo transparente.
+Arquivos originais entregues pela clínica. Ficam aqui como fonte e não entram no
+build — mas, diferente de antes, o site também não usa mais um recorte de imagem
+deles: os `.eps` são vetor de verdade, e é deles que saem os SVGs servidos.
 
 | Arquivo                           | O que é                                                    |
 | --------------------------------- | ---------------------------------------------------------- |
 | `logo-jp.png`                     | Folha de marca: logo horizontal, as duas cores e as fontes |
 | `logo-jp-1.eps` / `logo-jp-2.eps` | Vetores, para impresso e ampliações                        |
+
+## Como a marca chega ao site
+
+```
+python scripts/gerar-marca.py
+```
+
+O script lê os dois `.eps` e reescreve tudo que a marca produz. Nenhum desses
+arquivos é editado à mão; se a clínica entregar um `.eps` novo, rode de novo.
+
+| Sai em                                | O que é                                                       |
+| ------------------------------------- | ------------------------------------------------------------- |
+| `src/assets/marca/logo-jp.svg`        | Lockup horizontal, cores originais — superfícies claras       |
+| `src/assets/marca/logo-jp-claro.svg`  | O mesmo lockup com o contorno em branco — superfícies escuras |
+| `src/assets/marca/marca-jp.svg`       | Só o símbolo (dente + JP), para espaços pequenos              |
+| `src/assets/marca/marca-jp-claro.svg` | O símbolo para fundo escuro                                   |
+| `public/favicon.svg` + PNGs           | Ícones de aba e de app, o símbolo num ladrilho branco         |
+| `public/og.png`                       | Cartão de compartilhamento, 1200×630                          |
+
+O componente `Logo` (`src/components/site/Logo.tsx`) é o único lugar que importa
+esses arquivos. Ele recebe `fundo="claro" | "escuro"` — a cor da **superfície**,
+não da arte — e escolhe a variante certa.
+
+### Duas coisas que o EPS dá e o recorte de imagem não dava
+
+- **O vão do sorriso virou furo.** No PNG ele era um retângulo branco, o que
+  prendia a marca a fundos brancos. No SVG o dente e o vão entram num caminho só
+  com `fill-rule="evenodd"`: o fundo aparece por ele, seja qual for a cor.
+- **A sombra é referência, não cópia.** No desenho original, a sombra escura de
+  "Clínica Odontológica" e a do "JP" são as mesmas curvas deslocadas. O SVG
+  guarda cada forma uma vez e repete com `<use>` — 21 KB em vez de 42 KB.
 
 ## As duas cores oficiais
 
@@ -62,15 +93,18 @@ O CSS servido tem 76 declarações de cor:
 | Neutro (branco, creme, tinta) | 15    | 20%    |
 | **Fora do sistema**           | **0** | **0%** |
 
-## Duas exceções conscientes, ambas isentas
+## Uma exceção consciente, isenta
 
-- **Borda do medalhão da logo** (`#7FB16E`, 2,5:1 no branco) — ornamento. A `<img>`
-  tem `alt=""` e o link carrega o nome acessível.
 - **Trilho da estrela vazia** (`#9FB396`, 2,24:1) — a nota aparece como texto
   ("4,5") e o grupo tem `role="img"` com `aria-label`. O gráfico é redundante.
 
-A WCAG 1.4.11 se aplica a gráficos necessários para entender o conteúdo; nos
-dois casos a informação está disponível em texto.
+A WCAG 1.4.11 se aplica a gráficos necessários para entender o conteúdo; aqui a
+informação está disponível em texto.
+
+> A segunda exceção que morava aqui era a borda do medalhão do cabeçalho
+> (`#7FB16E`). Ela saiu junto com o medalhão — o cabeçalho agora mostra o lockup
+> inteiro, sem disco em volta —, então o inventário acima está uma declaração
+> acima do que o CSS servido tem hoje.
 
 ## Fontes da marca
 
