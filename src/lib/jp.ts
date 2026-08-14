@@ -143,6 +143,29 @@ export const GESTOR = {
 };
 
 /**
+ * Apresentação da fundadora, texto da clínica — não reescrever sem confirmar.
+ *
+ * Só a apresentação mora aqui: nome, CRO, cargo e retrato dela ficam em
+ * EQUIPE[0], porque ela é dentista com registro e essa é a fonte que o rodapé
+ * das 9 rotas lê. O Jefferson tem tudo em GESTOR justamente por não ser do
+ * conselho — não há registro dele para guardar.
+ */
+export const FUNDADORA = {
+  titulo: "Uma trajetória construída com sonhos, propósito e muitos sorrisos",
+  formacao: "Odontologia — Faculdade de Odontologia de Araçatuba, UNESP (2001)",
+  /** Escrito em terceira pessoa, ao contrário do texto do Jefferson. É assim
+   *  que veio da clínica, e uniformizar seria reescrever o texto deles. */
+  texto: [
+    "Em 2001, a Dra. Juliana Pelisser Barbosa concluía sua formação pela Faculdade de Odontologia de Araçatuba — UNESP, carregando consigo muito mais do que um diploma: carregava sonhos, ideais e o desejo de transformar vidas através da Odontologia.",
+    "Ao longo dessa trajetória, muitos desses sonhos foram se tornando realidade. Entre eles, o sonho de oferecer um atendimento verdadeiramente humanizado, onde cada paciente seja acolhido, ouvido e tratado com carinho, respeito e atenção.",
+    "Para a Dra. Juliana, exercer a Odontologia nunca foi apenas sobre tratamentos, resultados ou questões financeiras. É, acima de tudo, sobre pessoas. É cuidar do bem-estar, devolver a autoestima, proporcionar confiança e, principalmente, fazer com que cada paciente saia da clínica levando consigo não apenas um novo sorriso, mas também a alegria de ser cuidado.",
+    "Hoje, olhar para tudo o que foi construído ao longo desses anos é motivo de orgulho e gratidão. Ver novos projetos acontecendo, novas realizações surgindo e, principalmente, acompanhar tantos novos sorrisos é uma das maiores recompensas dessa caminhada.",
+    "Cada sorriso transformado representa uma história, uma conquista e a confirmação de que vale a pena continuar acreditando nos sonhos.",
+    "A trajetória continua. Os sonhos também. E que venham muitos outros sorrisos!",
+  ],
+};
+
+/**
  * Avaliações reais de pacientes no Google.
  *
  * Nota e volume conferidos direto na ficha do Google em agosto de 2026:
@@ -240,7 +263,19 @@ export type Profissional = {
 
 export const EQUIPE: Profissional[] = [
   {
-    nome: "Dra. Juliana Pelisser",
+    /**
+     * Só os sobrenomes, sem "Dra." e sem "Juliana" — escolha da clínica.
+     *
+     * Este campo alimenta o card da equipe, o card do bloco de história e a
+     * linha de responsável técnica do rodapé das 9 rotas, que existe por
+     * exigência da Resolução CFO 196/2019. Se o conselho pedir o nome completo
+     * nessa linha, é aqui que se muda.
+     *
+     * O nome completo continua legível no site: a apresentação dela abre com
+     * "a Dra. Juliana Pelisser Barbosa". O texto tinha chegado como "Pelissari
+     * Barbosa"; prevaleceu a grafia confirmada pela clínica.
+     */
+    nome: "Pelisser Barbosa",
     /**
      * ✅ CONFERIDO PELA CLÍNICA em 14/08/2026.
      *

@@ -1,6 +1,6 @@
 import { CalendarDays, HeartPulse, MapPin, Quote, UsersRound } from "lucide-react";
 
-import { CLINICA, EQUIPE, GESTOR, HISTORIA, MISSAO } from "@/lib/jp";
+import { CLINICA, EQUIPE, FUNDADORA, GESTOR, HISTORIA, MISSAO } from "@/lib/jp";
 
 /**
  * As duas pessoas à frente da clínica — as duas reais, as duas com o rótulo que
@@ -74,6 +74,39 @@ function CardPessoa({
         {registro && <p className="mt-1 text-[11px] tracking-[0.04em] text-lime">{registro}</p>}
       </div>
     </article>
+  );
+}
+
+/** Apresentação de uma das pessoas do bloco: quem é, formação e o texto dela. */
+function Apresentacao({
+  nome,
+  formacao,
+  titulo,
+  texto,
+}: {
+  nome: string;
+  formacao: string;
+  /** Só a apresentação da fundadora veio com um título próprio. */
+  titulo?: string;
+  texto: readonly string[];
+}) {
+  return (
+    <div className="mt-6 border-t border-white/15 pt-6">
+      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">{nome}</p>
+      <p className="mt-1 text-[12px] text-white/60">{formacao}</p>
+
+      {titulo && (
+        <p className="mt-4 font-display text-[17px] font-bold leading-[1.25] tracking-[-0.02em] text-white">
+          {titulo}
+        </p>
+      )}
+
+      <div className="mt-4 space-y-3.5 text-[14px] leading-[1.65] text-white/75">
+        {texto.map((paragrafo) => (
+          <p key={paragrafo.slice(0, 40)}>{paragrafo}</p>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -303,21 +336,15 @@ export function HistorySection() {
                   ))}
                 </div>
 
-                {/* A apresentação do gestor, na voz dele — texto que ele
-                    escreveu, em primeira pessoa, por isso vem inteiro e não
-                    resumido. */}
-                <div className="mt-6 border-t border-white/15 pt-6">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">
-                    {GESTOR.nome}
-                  </p>
-                  <p className="mt-1 text-[12px] text-white/60">{GESTOR.formacao}</p>
-
-                  <div className="mt-4 space-y-3.5 text-[14px] leading-[1.65] text-white/75">
-                    {GESTOR.texto.map((paragrafo) => (
-                      <p key={paragrafo.slice(0, 40)}>{paragrafo}</p>
-                    ))}
-                  </div>
-                </div>
+                {/* As apresentações dos dois, na ordem dos cards acima. Texto
+                    que a clínica escreveu — vem inteiro, não resumido. */}
+                <Apresentacao nome={GESTOR.nome} formacao={GESTOR.formacao} texto={GESTOR.texto} />
+                <Apresentacao
+                  nome={RESPONSAVEL?.nome ?? ""}
+                  formacao={FUNDADORA.formacao}
+                  titulo={FUNDADORA.titulo}
+                  texto={FUNDADORA.texto}
+                />
               </div>
             </div>
 

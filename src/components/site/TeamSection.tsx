@@ -116,7 +116,7 @@ export function TeamSection() {
           </p>
         </div>
 
-        {/* 6 colunas, não 5: a Dra. Juliana Pelisser é a responsável técnica e a
+        {/* 6 colunas, não 5: a Dra. Juliana Pelisser Barbosa é a responsável técnica e a
             única pessoa real da lista. Tirá-la para caber em 5 colocaria um CRO
             inventado na linha obrigatória do rodapé, que lê EQUIPE[0]. */}
         <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
