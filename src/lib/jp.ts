@@ -6,9 +6,10 @@ import avatarRoberta from "@/assets/avatar-roberta.webp";
 import avatarCarolina from "@/assets/avatar-carolina.webp";
 import avatarRafael from "@/assets/avatar-rafael.webp";
 
-/** Retrato do gestor. Import, e não caminho em string, pelo mesmo motivo dos
+/** Retratos reais. Import, e não caminho em string, pelo mesmo motivo dos
  *  avatares: quem resolve a URL com hash é o bundler. */
 import fotoJefferson from "@/assets/jefferson-barbosa.webp";
+import fotoJuliana from "@/assets/juliana-pelisser.webp";
 
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
@@ -116,7 +117,12 @@ export const MISSAO =
  */
 export const GESTOR = {
   nome: "Jefferson Barbosa",
-  papel: "Gestor da clínica",
+  /**
+   * "Gestor e fundador" veio da clínica. A apresentação dele, abaixo, fala do
+   * trabalho de hoje e não menciona a fundação — quem informou os dois papéis
+   * foi a clínica, e é ela quem sabe.
+   */
+  papel: "Gestor e fundador",
   formacao: "Comunicação Social — Relações Públicas",
   /**
    * Retrato de uma pessoa que existe — diferente dos rostos gerados que ainda
@@ -236,16 +242,22 @@ export const EQUIPE: Profissional[] = [
   {
     nome: "Dra. Juliana Pelisser",
     /**
-     * ⚠️ CONFERIR NO REGISTRO DO CRO-SP.
+     * ✅ CONFERIDO PELA CLÍNICA em 14/08/2026.
      *
-     * Estava "78.159" aqui. A placa da fachada da própria clínica diz
-     * "Responsável Técnico CROSP 75.159" — lido com ampliação de 8x na foto
-     * original (jp-clinica-odontologica-6.jpg). Adotei o número da placa por
-     * ser a única evidência que temos, mas quem confirma é a clínica: este
-     * campo sai no rodapé das 9 rotas e o CFO exige que esteja correto.
+     * O campo já esteve como "78.159". A placa da fachada dizia "Responsável
+     * Técnico CROSP 75.159" — lida com ampliação de 8x na foto original
+     * (jp-clinica-odontologica-6.jpg) — e a clínica confirmou esse número.
+     * As duas fontes batem, então o aviso de conferência saiu daqui.
      */
     registro: "CROSP 75.159",
-    papel: "Responsável técnica",
+    /**
+     * Os três papéis na mesma linha porque os três valem: gestão e fundação,
+     * informados pela clínica, e a responsabilidade técnica, que é o vínculo
+     * regulado e sai também no rodapé de todas as rotas. Daqui vai para o card
+     * da equipe e para o bloco de história.
+     */
+    papel: "Gestora, fundadora e responsável técnica",
+    foto: fotoJuliana,
   },
 
   // ─── ⚠️ FICTÍCIOS — TROCAR ANTES DE DIVULGAR ───────────────────────────────

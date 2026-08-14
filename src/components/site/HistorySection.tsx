@@ -1,34 +1,39 @@
 import { CalendarDays, HeartPulse, MapPin, Quote, UsersRound } from "lucide-react";
 
-import { CLINICA, GESTOR, HISTORIA, MISSAO } from "@/lib/jp";
-
-import fundador2 from "@/assets/fundador-2.webp";
+import { CLINICA, EQUIPE, GESTOR, HISTORIA, MISSAO } from "@/lib/jp";
 
 /**
- * As duas pessoas do bloco. Repare que o rótulo abaixo do nome é `legenda`, e
- * não `cro`: o gestor não é do conselho, e o card precisava parar de assumir
- * que todo mundo ali tem registro.
+ * As duas pessoas à frente da clínica — as duas reais, as duas com o rótulo que
+ * lhes cabe. O do gestor é o cargo; o dela vem com o CRO embaixo, porque é
+ * dentista e o registro é o que o paciente precisa poder conferir.
  *
- * ⚠️ A Dra. Patrícia Lima ainda é FICTÍCIA — trocar antes de divulgar o site.
- * Nome, CRO e retrato são inventados; o rosto vem de um gerador de faces
- * (pessoa que não existe). O CRO usa 00.00X, formato que nenhum registro
- * verdadeiro tem.
+ * A Dra. Juliana não é redigitada aqui: sai de EQUIPE[0], a mesma fonte que o
+ * rodapé usa para a linha obrigatória de responsável técnica. Nome e CRO dela
+ * aparecem em 9 rotas — não podem existir em duas versões.
  */
+const RESPONSAVEL = EQUIPE[0];
+
 const PESSOAS = [
   {
     nome: GESTOR.nome,
     legenda: GESTOR.papel,
     foto: GESTOR.foto,
-    /** Pessoa real: o retrato precisa de alt descritivo, não decorativo. */
     real: true,
   },
-  { nome: "Dra. Patrícia Lima", legenda: "CRO-SP 00.007", foto: fundador2, ficticio: true },
+  {
+    nome: RESPONSAVEL?.nome ?? "",
+    legenda: RESPONSAVEL?.papel ?? "",
+    registro: RESPONSAVEL?.registro,
+    foto: RESPONSAVEL?.foto,
+    real: true,
+  },
 ];
 
 function CardPessoa({
   foto,
   nome,
   legenda,
+  registro,
   real = false,
 }: {
   /** Sem foto, o card cai num marcador neutro e o layout continua íntegro —
@@ -36,6 +41,9 @@ function CardPessoa({
   foto?: string | undefined;
   nome: string;
   legenda: string;
+  /** Só para quem é do conselho. Vai numa linha própria: junto da legenda,
+   *  "Responsável técnica • CROSP 75.159" quebra na largura do card. */
+  registro?: string | undefined;
   real?: boolean;
 }) {
   return (
@@ -63,6 +71,7 @@ function CardPessoa({
       <div className="px-3 py-4 text-center">
         <h4 className="font-display text-[17px] font-bold text-white">{nome}</h4>
         <p className="mt-1 text-[11px] uppercase tracking-[0.06em] text-white/70">{legenda}</p>
+        {registro && <p className="mt-1 text-[11px] tracking-[0.04em] text-lime">{registro}</p>}
       </div>
     </article>
   );
@@ -268,9 +277,9 @@ export function HistorySection() {
                   </p>
                 </div>
 
-                {/* "Gestão e fundação", não mais "Nossos fundadores": o Jefferson
-                    é gestor e a própria apresentação dele diz que atua na
-                    clínica hoje — não que a fundou. */}
+                {/* "Gestão e fundação" cobre os dois sem generalizar: fundação
+                    é ela, gestão é ele. "Nossos fundadores", como era antes,
+                    diria por ele algo que a apresentação dele não diz. */}
                 <h3 className="font-display text-[30px] font-bold tracking-[-0.035em] text-white">
                   Gestão e fundação
                 </h3>
@@ -288,7 +297,8 @@ export function HistorySection() {
                       foto={p.foto}
                       nome={p.nome}
                       legenda={p.legenda}
-                      real={p.real ?? false}
+                      registro={"registro" in p ? p.registro : undefined}
+                      real={p.real}
                     />
                   ))}
                 </div>
