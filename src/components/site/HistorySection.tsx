@@ -1,32 +1,60 @@
 import { CalendarDays, HeartPulse, MapPin, Quote, UsersRound } from "lucide-react";
 
-import { CLINICA, HISTORIA, MISSAO } from "@/lib/jp";
+import { CLINICA, GESTOR, HISTORIA, MISSAO } from "@/lib/jp";
 
-import fundador1 from "@/assets/fundador-1.webp";
 import fundador2 from "@/assets/fundador-2.webp";
 
 /**
- * ⚠️ FUNDADORES FICTÍCIOS — trocar antes de divulgar o site.
+ * As duas pessoas do bloco. Repare que o rótulo abaixo do nome é `legenda`, e
+ * não `cro`: o gestor não é do conselho, e o card precisava parar de assumir
+ * que todo mundo ali tem registro.
  *
- * Nome, CRO e retrato são inventados; os rostos vêm de um gerador de faces
- * (pessoas que não existem), para não usar a imagem de alguém real. O CRO usa
- * 00.00X, formato que nenhum registro verdadeiro tem.
+ * ⚠️ A Dra. Patrícia Lima ainda é FICTÍCIA — trocar antes de divulgar o site.
+ * Nome, CRO e retrato são inventados; o rosto vem de um gerador de faces
+ * (pessoa que não existe). O CRO usa 00.00X, formato que nenhum registro
+ * verdadeiro tem.
  */
-const FUNDADORES = [
-  { nome: "Dr. João Paulo", cro: "CRO-SP 00.006", foto: fundador1, ficticio: true },
-  { nome: "Dra. Patrícia Lima", cro: "CRO-SP 00.007", foto: fundador2, ficticio: true },
+const PESSOAS = [
+  {
+    nome: GESTOR.nome,
+    legenda: GESTOR.papel,
+    foto: GESTOR.foto,
+    /** Pessoa real: o retrato precisa de alt descritivo, não decorativo. */
+    real: true,
+  },
+  { nome: "Dra. Patrícia Lima", legenda: "CRO-SP 00.007", foto: fundador2, ficticio: true },
 ];
 
-function CardFundador({ foto, nome, cro }: { foto: string; nome: string; cro: string }) {
+function CardPessoa({
+  foto,
+  nome,
+  legenda,
+  real = false,
+}: {
+  /** Sem foto, o card cai num marcador neutro e o layout continua íntegro —
+   *  melhor que o ícone de imagem quebrada enquanto o retrato não chega. */
+  foto?: string | undefined;
+  nome: string;
+  legenda: string;
+  real?: boolean;
+}) {
   return (
     <article className="group overflow-hidden rounded-[17px] border border-white/10 bg-[#032F01]">
       <div className="relative aspect-[0.95/1] overflow-hidden bg-border-soft">
-        <img
-          src={foto}
-          alt=""
-          loading="lazy"
-          className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.035]"
-        />
+        {foto ? (
+          <img
+            src={foto}
+            alt={real ? `Retrato de ${nome}` : ""}
+            loading="lazy"
+            className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.035]"
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center bg-[#0A3A06]">
+            <span className="grid h-16 w-16 place-items-center rounded-full border border-lime/30 text-lime">
+              <UsersRound size={28} aria-hidden="true" />
+            </span>
+          </div>
+        )}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#032F01]/30 to-transparent"
@@ -34,7 +62,7 @@ function CardFundador({ foto, nome, cro }: { foto: string; nome: string; cro: st
       </div>
       <div className="px-3 py-4 text-center">
         <h4 className="font-display text-[17px] font-bold text-white">{nome}</h4>
-        <p className="mt-1 text-[11px] uppercase tracking-[0.06em] text-white/70">{cro}</p>
+        <p className="mt-1 text-[11px] uppercase tracking-[0.06em] text-white/70">{legenda}</p>
       </div>
     </article>
   );
@@ -236,25 +264,49 @@ export function HistorySection() {
                     <UsersRound size={22} />
                   </span>
                   <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">
-                    Quem construiu essa história
+                    Quem faz essa história
                   </p>
                 </div>
 
+                {/* "Gestão e fundação", não mais "Nossos fundadores": o Jefferson
+                    é gestor e a própria apresentação dele diz que atua na
+                    clínica hoje — não que a fundou. */}
                 <h3 className="font-display text-[30px] font-bold tracking-[-0.035em] text-white">
-                  Nossos fundadores
+                  Gestão e fundação
                 </h3>
 
                 <div aria-hidden="true" className="mt-3 h-[3px] w-12 rounded-full bg-lime" />
 
                 <p className="mt-5 max-w-[430px] text-[14px] leading-6 text-white/75">
-                  Mais que dentistas, pessoas que acreditam no poder do cuidado e nas relações de
-                  confiança.
+                  Pessoas que acreditam no poder do cuidado e nas relações de confiança.
                 </p>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                  {FUNDADORES.map((f) => (
-                    <CardFundador key={f.nome} foto={f.foto} nome={f.nome} cro={f.cro} />
+                  {PESSOAS.map((p) => (
+                    <CardPessoa
+                      key={p.nome}
+                      foto={p.foto}
+                      nome={p.nome}
+                      legenda={p.legenda}
+                      real={p.real ?? false}
+                    />
                   ))}
+                </div>
+
+                {/* A apresentação do gestor, na voz dele — texto que ele
+                    escreveu, em primeira pessoa, por isso vem inteiro e não
+                    resumido. */}
+                <div className="mt-6 border-t border-white/15 pt-6">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">
+                    {GESTOR.nome}
+                  </p>
+                  <p className="mt-1 text-[12px] text-white/60">{GESTOR.formacao}</p>
+
+                  <div className="mt-4 space-y-3.5 text-[14px] leading-[1.65] text-white/75">
+                    {GESTOR.texto.map((paragrafo) => (
+                      <p key={paragrafo.slice(0, 40)}>{paragrafo}</p>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

@@ -6,6 +6,10 @@ import avatarRoberta from "@/assets/avatar-roberta.webp";
 import avatarCarolina from "@/assets/avatar-carolina.webp";
 import avatarRafael from "@/assets/avatar-rafael.webp";
 
+/** Retrato do gestor. Import, e não caminho em string, pelo mesmo motivo dos
+ *  avatares: quem resolve a URL com hash é o bundler. */
+import fotoJefferson from "@/assets/jefferson-barbosa.webp";
+
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
  *
@@ -99,6 +103,38 @@ export const HISTORIA = {
  */
 export const MISSAO =
   "Proporcionar aos nossos pacientes um tratamento humanizado e personalizado do começo ao fim, saúde bucal, sorriso e satisfação, resgatando sua autoestima!";
+
+/**
+ * Apresentação do gestor da clínica, escrita por ele — texto dele, em primeira
+ * pessoa. Não reescrever sem confirmar.
+ *
+ * Ele não é dentista: é formado em Comunicação Social, com habilitação em
+ * Relações Públicas. Por isso o card dele traz cargo e formação onde os demais
+ * trazem CRO. Número de registro é dado regulado pelo CFO (Resolução 196/2019)
+ * e atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa
+ * real — ver `Profissional.registro`.
+ */
+export const GESTOR = {
+  nome: "Jefferson Barbosa",
+  papel: "Gestor da clínica",
+  formacao: "Comunicação Social — Relações Públicas",
+  /**
+   * Retrato de uma pessoa que existe — diferente dos rostos gerados que ainda
+   * ocupam os cards fictícios. Não trocar por imagem de gerador.
+   *
+   * Recortado em 0,95:1 a partir do original 896x1200, começando 100px abaixo
+   * do topo: é o enquadramento que deixa folga sobre a cabeça sem cortá-la.
+   */
+  foto: fotoJefferson as string | undefined,
+  texto: [
+    "Sou Jefferson Barbosa, formado em Comunicação Social, com habilitação em Relações Públicas.",
+    "Ao longo da minha trajetória, descobri que comunicar vai muito além de falar ou transmitir uma mensagem. É saber ouvir, compreender pessoas, criar conexões e construir relacionamentos.",
+    "Hoje, atuo como gestor da JP Clínica Integrada Odontológica, onde tenho a oportunidade de unir minha formação em comunicação à gestão de pessoas, processos e atendimento.",
+    "Meu propósito é contribuir para que a clínica seja mais do que um lugar onde as pessoas buscam atendimento odontológico: quero ajudar a construir um ambiente baseado em acolhimento, respeito, confiança e cuidado humanizado.",
+    "Acredito que uma boa gestão começa pelas pessoas. E que, quando existe propósito, comprometimento e humanidade, os resultados acontecem naturalmente.",
+    "Sou Jefferson Barbosa: comunicador, gestor e, acima de tudo, alguém que acredita no poder das pessoas e das conexões.",
+  ],
+};
 
 /**
  * Avaliações reais de pacientes no Google.
