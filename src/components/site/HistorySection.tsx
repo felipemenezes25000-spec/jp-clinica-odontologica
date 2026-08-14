@@ -1,4 +1,5 @@
-import { CalendarDays, HeartPulse, MapPin, Quote, UsersRound } from "lucide-react";
+import { useId, useState } from "react";
+import { CalendarDays, HeartPulse, MapPin, Minus, Plus, Quote, UsersRound } from "lucide-react";
 
 import { CLINICA, FUNDADORA, GESTOR, HISTORIA, MISSAO, RESPONSAVEL_TECNICA } from "@/lib/jp";
 
@@ -15,96 +16,123 @@ const PESSOAS = [
   {
     nome: GESTOR.nome,
     legenda: GESTOR.papel,
+    formacao: GESTOR.formacao,
     foto: GESTOR.foto,
-    real: true,
+    texto: GESTOR.texto,
   },
   {
     nome: RESPONSAVEL_TECNICA.nome,
     legenda: RESPONSAVEL_TECNICA.papel ?? "",
     registro: RESPONSAVEL_TECNICA.registro,
+    formacao: FUNDADORA.formacao,
     foto: RESPONSAVEL_TECNICA.foto,
-    real: true,
+    titulo: FUNDADORA.titulo,
+    texto: FUNDADORA.texto,
   },
 ];
 
+/**
+ * Uma pessoa do bloco: retrato, identificação e a apresentação dela.
+ *
+ * O primeiro parágrafo fica sempre visível e o resto abre no botão. As duas
+ * apresentações somam doze parágrafos — inteiras e abertas, empurravam o fim da
+ * seção para longe e transformavam o bloco numa parede de texto. Nada fica
+ * escondido do buscador: o texto todo está no HTML servido, só recolhido.
+ */
 function CardPessoa({
   foto,
   nome,
   legenda,
   registro,
-  real = false,
+  formacao,
+  titulo,
+  texto,
 }: {
   /** Sem foto, o card cai num marcador neutro e o layout continua íntegro —
    *  melhor que o ícone de imagem quebrada enquanto o retrato não chega. */
   foto?: string | undefined;
   nome: string;
   legenda: string;
-  /** Só para quem é do conselho. Vai numa linha própria: junto da legenda,
-   *  "Responsável técnica • CROSP 75.159" quebra na largura do card. */
+  /** Só para quem é do conselho. */
   registro?: string | undefined;
-  real?: boolean;
-}) {
-  return (
-    <article className="group overflow-hidden rounded-[17px] border border-white/10 bg-[#032F01]">
-      <div className="relative aspect-[0.95/1] overflow-hidden bg-border-soft">
-        {foto ? (
-          <img
-            src={foto}
-            alt={real ? `Retrato de ${nome}` : ""}
-            loading="lazy"
-            className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.035]"
-          />
-        ) : (
-          <div className="absolute inset-0 grid place-items-center bg-[#0A3A06]">
-            <span className="grid h-16 w-16 place-items-center rounded-full border border-lime/30 text-lime">
-              <UsersRound size={28} aria-hidden="true" />
-            </span>
-          </div>
-        )}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#032F01]/30 to-transparent"
-        />
-      </div>
-      <div className="px-3 py-4 text-center">
-        <h4 className="font-display text-[17px] font-bold text-white">{nome}</h4>
-        <p className="mt-1 text-[11px] uppercase tracking-[0.06em] text-white/70">{legenda}</p>
-        {registro && <p className="mt-1 text-[11px] tracking-[0.04em] text-lime">{registro}</p>}
-      </div>
-    </article>
-  );
-}
-
-/** Apresentação de uma das pessoas do bloco: quem é, formação e o texto dela. */
-function Apresentacao({
-  nome,
-  formacao,
-  titulo,
-  texto,
-}: {
-  nome: string;
   formacao: string;
   /** Só a apresentação da fundadora veio com um título próprio. */
   titulo?: string;
   texto: readonly string[];
 }) {
+  const [aberto, setAberto] = useState(false);
+  const idPainel = useId();
+  const [primeiro, ...resto] = texto;
+
   return (
-    <div className="mt-6 border-t border-white/15 pt-6">
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">{nome}</p>
-      <p className="mt-1 text-[12px] text-white/60">{formacao}</p>
+    <article className="overflow-hidden rounded-[20px] border border-white/12 bg-[#032F01]/70">
+      <div className="flex gap-4 p-4">
+        <div className="relative h-[112px] w-[106px] shrink-0 overflow-hidden rounded-[14px] bg-border-soft">
+          {foto ? (
+            <img
+              src={foto}
+              alt={`Retrato de ${nome}`}
+              loading="lazy"
+              className="h-full w-full object-cover object-top"
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center bg-[#0A3A06]">
+              <UsersRound size={26} className="text-lime" aria-hidden="true" />
+            </div>
+          )}
+        </div>
 
-      {titulo && (
-        <p className="mt-4 font-display text-[17px] font-bold leading-[1.25] tracking-[-0.02em] text-white">
-          {titulo}
-        </p>
-      )}
-
-      <div className="mt-4 space-y-3.5 text-[14px] leading-[1.65] text-white/75">
-        {texto.map((paragrafo) => (
-          <p key={paragrafo.slice(0, 40)}>{paragrafo}</p>
-        ))}
+        <div className="min-w-0 flex-1">
+          <h4 className="font-display text-[19px] font-bold leading-tight text-white">{nome}</h4>
+          <p className="mt-1.5 text-[11px] font-bold uppercase leading-[1.35] tracking-[0.06em] text-white/70">
+            {legenda}
+          </p>
+          {registro && <p className="mt-1.5 text-[12px] text-lime">{registro}</p>}
+          <p className="mt-1.5 text-[12px] leading-[1.4] text-white/55">{formacao}</p>
+        </div>
       </div>
-    </div>
+
+      <div className="border-t border-white/12 px-4 pb-4 pt-4">
+        {titulo && (
+          <p className="mb-3 font-display text-[16px] font-bold leading-[1.3] tracking-[-0.02em] text-white">
+            {titulo}
+          </p>
+        )}
+
+        <p className="text-[14px] leading-[1.65] text-white/75">{primeiro}</p>
+
+        <div
+          id={idPainel}
+          className={`grid transition-all duration-500 ${
+            aberto ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="space-y-3.5 pt-3.5 text-[14px] leading-[1.65] text-white/75">
+              {resto.map((paragrafo) => (
+                <p key={paragrafo.slice(0, 40)}>{paragrafo}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setAberto((v) => !v)}
+          aria-expanded={aberto}
+          aria-controls={idPainel}
+          className="mt-4 flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.1em] text-lime transition-colors hover:text-white"
+        >
+          {aberto ? "Mostrar menos" : "Ler a apresentação"}
+          <span
+            aria-hidden="true"
+            className="grid h-6 w-6 place-items-center rounded-full border border-lime/60"
+          >
+            {aberto ? <Minus size={13} strokeWidth={2.4} /> : <Plus size={13} strokeWidth={2.4} />}
+          </span>
+        </button>
+      </div>
+    </article>
   );
 }
 
@@ -321,28 +349,15 @@ export function HistorySection() {
                   Pessoas que acreditam no poder do cuidado e nas relações de confiança.
                 </p>
 
-                <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {/* Um bloco por pessoa: retrato, identificação e a apresentação
+                    dela, tudo junto. Antes eram dois cards no topo e as duas
+                    apresentações embaixo, e quem lia tinha de guardar de cabeça
+                    qual texto era de quem. */}
+                <div className="mt-6 space-y-3">
                   {PESSOAS.map((p) => (
-                    <CardPessoa
-                      key={p.nome}
-                      foto={p.foto}
-                      nome={p.nome}
-                      legenda={p.legenda}
-                      registro={"registro" in p ? p.registro : undefined}
-                      real={p.real}
-                    />
+                    <CardPessoa key={p.nome} {...p} />
                   ))}
                 </div>
-
-                {/* As apresentações dos dois, na ordem dos cards acima. Texto
-                    que a clínica escreveu — vem inteiro, não resumido. */}
-                <Apresentacao nome={GESTOR.nome} formacao={GESTOR.formacao} texto={GESTOR.texto} />
-                <Apresentacao
-                  nome={RESPONSAVEL_TECNICA.nome}
-                  formacao={FUNDADORA.formacao}
-                  titulo={FUNDADORA.titulo}
-                  texto={FUNDADORA.texto}
-                />
               </div>
             </div>
 
