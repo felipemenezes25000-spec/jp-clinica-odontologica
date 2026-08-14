@@ -267,19 +267,25 @@ def png(svg_txt, destino, largura, fundo=None):
     return im.size
 
 
-def og(lock, cx, destino, larg=1200, alt=630):
-    """Cartão de compartilhamento: lockup claro centralizado no verde da marca."""
+def og(lock, cx, destino, larg=1200, alt=630, ocupacao=0.44):
+    """Cartão de compartilhamento: a marca, nas cores originais, sobre branco.
+
+    A marca ocupa 44% da largura por causa de como o WhatsApp monta o preview:
+    quando ele cai no formato de miniatura, corta um quadrado do centro da
+    imagem — 630x630 de um cartão 1200x630, ou seja, some com 285px de cada
+    ponta. Em 62% o corte decepava o "Odontológica"; em 52% encostava na borda.
+    Em 44% a marca inteira cabe nos dois formatos, o largo e o quadrado.
+    """
     fitz, Image = rasterizador()
-    tela = Image.new("RGB", (larg, alt), tuple(int(DEEP[i : i + 2], 16) for i in (1, 3, 5)))
-    marca = lockup(lock, cx, BRANCO, CLARO)
+    tela = Image.new("RGB", (larg, alt), (255, 255, 255))
+    marca = lockup(lock, cx, ESCURO, CLARO)
     tmp = os.path.join(os.path.dirname(destino), "_tmp.svg")
     open(tmp, "w", encoding="utf-8").write(marca)
     d = fitz.open(tmp)
-    lw = int(larg * 0.62)
-    e = lw / d[0].rect.width
+    e = (larg * ocupacao) / d[0].rect.width
     p = d[0].get_pixmap(matrix=fitz.Matrix(e, e), alpha=True)
     im = Image.open(io.BytesIO(p.tobytes("png"))).convert("RGBA")
-    tela.paste(im, ((larg - im.width) // 2, (alt - im.height) // 2 - 10), im)
+    tela.paste(im, ((larg - im.width) // 2, (alt - im.height) // 2), im)
     tela.save(destino, quality=95)
     os.remove(tmp)
     return tela.size

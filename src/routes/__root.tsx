@@ -140,7 +140,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:height", content: "630" },
       {
         property: "og:image:alt",
-        content: "Marca da JP Clínica Odontológica sobre o verde da clínica",
+        content: "Marca da JP Clínica Odontológica",
       },
       { name: "twitter:image", content: `${SITE_URL}/og.png` },
     ],

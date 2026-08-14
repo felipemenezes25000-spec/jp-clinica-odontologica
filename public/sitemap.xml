@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Ao migrar para o domínio próprio da clínica, substitua https://jp-clinica-odontologica-award-final.vercel.app pelo domínio final. -->
+<!-- Ao migrar para o domínio próprio da clínica, substitua https://www.jpclinicaodontologica.com.br pelo domínio final. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/limpeza-profilaxia</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/clareamento-dental</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/restauracoes</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/implantes-dentarios</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/proteses-dentarias</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/ortodontia</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/odontopediatria</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
-  <url><loc>https://jp-clinica-odontologica-award-final.vercel.app/tratamentos/harmonizacao-orofacial</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/limpeza-profilaxia</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/clareamento-dental</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/restauracoes</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/implantes-dentarios</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/proteses-dentarias</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/ortodontia</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/odontopediatria</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://www.jpclinicaodontologica.com.br/tratamentos/harmonizacao-orofacial</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
 </urlset>

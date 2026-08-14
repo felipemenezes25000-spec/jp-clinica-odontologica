@@ -6,8 +6,14 @@ import avatarRoberta from "@/assets/avatar-roberta.webp";
 import avatarCarolina from "@/assets/avatar-carolina.webp";
 import avatarRafael from "@/assets/avatar-rafael.webp";
 
-/** Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta. */
-export const SITE_URL = "https://jp-clinica-odontologica-award-final.vercel.app";
+/**
+ * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
+ *
+ * Com `www` porque é a forma canônica de verdade: o apex responde 308 e manda
+ * para cá. Apontar para o endereço da Vercel, como estava, fazia o canonical de
+ * cada página indicar ao buscador um domínio diferente do que a pessoa acessou.
+ */
+export const SITE_URL = "https://www.jpclinicaodontologica.com.br";
 
 /**
  * Endereço em partes. O JSON-LD exige logradouro, cidade, UF e CEP separados,
