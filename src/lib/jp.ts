@@ -40,8 +40,8 @@ export const CLINICA = {
   assinatura: "Ver seu sorriso é nossa missão.",
   telefone: "(11) 3975-9902",
   telefoneHref: "tel:+551139759902",
-  whatsapp: "(11) 97169-4647",
-  whatsappHref: "https://wa.me/5511971694647",
+  whatsapp: "(11) 97616-5117",
+  whatsappHref: "https://wa.me/5511976165117",
   local: ENDERECO,
   endereco: `${ENDERECO.logradouro} — ${ENDERECO.bairro}, ${ENDERECO.cidade} - ${ENDERECO.uf}, ${ENDERECO.cep}`,
   bairro: "Vila Bruna • região da Freguesia do Ó",
@@ -752,7 +752,12 @@ export const TRATAMENTOS: Tratamento[] = [
 export const FAQ = [
   {
     q: "Como faço para agendar uma avaliação?",
-    a: "Você pode falar com a recepção pelo WhatsApp (11) 97169-4647, ligar para (11) 3975-9902 ou usar o formulário do site. Atendemos de segunda a sexta, das 08:00 às 18:00.",
+    /**
+     * Os dois números vêm de CLINICA, não escritos aqui de novo. Estavam
+     * digitados à mão, e foi por isso que um WhatsApp errado sobreviveu no site:
+     * corrigir o cadastro não corrigia esta resposta.
+     */
+    a: `Você pode falar com a recepção pelo WhatsApp ${CLINICA.whatsapp}, ligar para ${CLINICA.telefone} ou usar o formulário do site. Atendemos de segunda a sexta, das 08:00 às 18:00.`,
   },
   {
     q: "Onde fica a clínica?",
