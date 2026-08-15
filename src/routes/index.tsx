@@ -711,20 +711,29 @@ function Home() {
             <Reveal delay={130} className="mt-12">
               <div className="relative overflow-hidden rounded-[2rem] border border-forest/8 bg-white p-2 shadow-[0_28px_80px_-48px_rgba(3,47,1,.45)]">
                 {/* O embed é de viewport e não desenha marcador, então o pino é
-                    nosso. Como o mapa está centrado nas coordenadas da clínica,
-                    a ponta do pino no centro do iframe cai no endereço certo. */}
-                <div className="relative">
+                    nosso.
+
+                    O iframe é 60px mais alto que o contêiner e sobe 60px, que é
+                    o que corta o painel branco que o Google desenha no canto
+                    superior esquerdo, por trás do nosso cartão de endereço. O
+                    contêiner recebeu `overflow-hidden` e o arredondamento, que
+                    antes estavam no próprio iframe.
+
+                    Com o mapa deslocado, o centro dele deixa de coincidir com o
+                    centro do contêiner: o pino desce para ~43% para continuar
+                    sobre o endereço. */}
+                <div className="relative h-[370px] overflow-hidden rounded-[1.55rem] sm:h-[445px]">
                   <iframe
                     src={CLINICA.mapsEmbed}
                     title="Mapa com a localização da JP Clínica Integrada Odontológica"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    className="block h-[370px] w-full rounded-[1.55rem] border-0 sm:h-[445px]"
+                    className="absolute -top-[60px] left-0 h-[430px] w-full border-0 sm:h-[505px]"
                   />
 
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full"
+                    className="pointer-events-none absolute left-1/2 top-[43%] -translate-x-1/2 -translate-y-full sm:top-[44%]"
                   >
                     <svg width="34" height="46" viewBox="0 0 34 46" fill="none">
                       <path
