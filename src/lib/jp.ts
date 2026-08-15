@@ -1,6 +1,6 @@
 /** Retratos reais. Import, e não caminho em string, pelo mesmo motivo dos
  *  avatares: quem resolve a URL com hash é o bundler. */
-import fotoJeferson from "@/assets/jefferson-barbosa.webp";
+import fotoJeferson from "@/assets/jeferson-barbosa.webp";
 import fotoJuliana from "@/assets/juliana-pelisser.webp";
 
 /**
@@ -117,11 +117,16 @@ export const GESTOR = {
   papel: "Gestor e fundador",
   formacao: "Comunicação Social — Relações Públicas",
   /**
-   * Retrato de uma pessoa que existe — diferente dos rostos gerados que ainda
-   * ocupam os cards fictícios. Não trocar por imagem de gerador.
+   * Retrato de uma pessoa que existe. Não trocar por imagem de gerador.
    *
-   * Recortado em 0,95:1 a partir do original 896x1200, começando 100px abaixo
-   * do topo: é o enquadramento que deixa folga sobre a cabeça sem cortá-la.
+   * ⚠️ Sai de uma peça de divulgação (corpo inteiro, com texto e o retrato dele
+   * ampliado ao fundo), não de um retrato. O rosto ocupa só ~196x206px do
+   * original, então o recorte fica mais macio que o da Dra. Juliana, que veio de
+   * foto própria. O arquivo é 320x337 de propósito: cobre o card (106x112 CSS)
+   * até tela 3x, e ampliar além disso só inventaria pixel.
+   *
+   * Se aparecer um retrato dele em foto dedicada, é troca direta — e a nitidez
+   * melhora sozinha.
    */
   foto: fotoJeferson as string | undefined,
   texto: [
