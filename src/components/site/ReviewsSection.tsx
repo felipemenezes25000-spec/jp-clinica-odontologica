@@ -40,7 +40,7 @@ function ItemNota({
   );
 }
 
-function CardAvaliacao({ autor, texto, foto }: { autor: string; texto: string; foto: string }) {
+function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
   return (
     <article className="flex min-h-[220px] flex-col rounded-[26px] border border-border-soft bg-white p-6 shadow-[0_18px_50px_rgba(3,47,1,0.055)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(3,47,1,0.09)]">
       <span aria-hidden="true" className="font-serif text-[48px] leading-[0.6] text-brand-text">
@@ -55,14 +55,6 @@ function CardAvaliacao({ autor, texto, foto }: { autor: string; texto: string; f
 
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <img
-            src={foto}
-            alt=""
-            loading="lazy"
-            width={40}
-            height={40}
-            className="h-10 w-10 shrink-0 rounded-full object-cover"
-          />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">{autor}</p>
             <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-brand-text">
@@ -254,14 +246,6 @@ export function ReviewsSection() {
 
                 <div className="flex flex-wrap items-center justify-between gap-5">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={destaque.foto}
-                      alt=""
-                      loading="lazy"
-                      width={56}
-                      height={56}
-                      className="h-14 w-14 rounded-full border-2 border-lime/50 object-cover"
-                    />
                     <div>
                       <p className="font-display text-lg font-bold text-white">{destaque.autor}</p>
                       <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-lime">

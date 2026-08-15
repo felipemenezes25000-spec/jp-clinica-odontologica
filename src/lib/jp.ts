@@ -1,14 +1,6 @@
-// Retratos fictícios da seção de equipe. Import (e não caminho em string)
-// porque é o bundler que resolve a URL final com hash.
-import avatarValeria from "@/assets/avatar-valeria.webp";
-import avatarMarjorye from "@/assets/avatar-marjorye.webp";
-import avatarRoberta from "@/assets/avatar-roberta.webp";
-import avatarCarolina from "@/assets/avatar-carolina.webp";
-import avatarRafael from "@/assets/avatar-rafael.webp";
-
 /** Retratos reais. Import, e não caminho em string, pelo mesmo motivo dos
  *  avatares: quem resolve a URL com hash é o bundler. */
-import fotoJefferson from "@/assets/jefferson-barbosa.webp";
+import fotoJeferson from "@/assets/jefferson-barbosa.webp";
 import fotoJuliana from "@/assets/juliana-pelisser.webp";
 
 /**
@@ -74,25 +66,25 @@ export const CLINICA = {
 /**
  * Trajetória da clínica.
  *
- * `anos` é um número fixo de propósito: calcular a partir de `fundacao` com a
- * data atual faria o servidor e o navegador renderizarem valores diferentes na
- * virada do ano, o que quebra a hidratação. Atualize uma vez por ano.
- */
-/**
- * Confirmado pela clínica em 09/08/2026: são 23 anos, desde 2003.
+ * ✅ Data exata informada pela clínica em 14/08/2026: fundada em 17/08/2002.
+ * Antes constava "2003, 23 anos", que era o que se sabia então. Com o dia certo,
+ * o aniversário de 24 anos cai em 17/08/2026.
  *
  * Não "corrija" para 2021 achando que é erro. O CNPJ 42.401.404/0001-37 é de
- * 21/06/2021 e uma avaliação no Google fala em "mais de 3 anos" — os dois
- * batem com a pessoa jurídica atual, não com o início da clínica. A data de
- * abertura de um CNPJ não mede a idade de um negócio.
+ * 21/06/2021 e uma avaliação no Google fala em "mais de 3 anos" — os dois batem
+ * com a pessoa jurídica atual, não com o início da clínica. A data de abertura
+ * de um CNPJ não mede a idade de um negócio.
  *
  * `anos` é literal de propósito, como `anoCopyright`: calcular a partir de
  * `new Date()` faria servidor e navegador divergirem na virada do ano.
- * Custo: uma edição por ano.
+ * Custo: uma edição por ano, sempre em 17 de agosto.
+ *   17/08/2027 → 25    17/08/2028 → 26
  */
 export const HISTORIA = {
-  fundacao: 2003,
-  anos: 23,
+  fundacao: 2002,
+  /** Dia exato, para quem for atualizar `anos` saber a partir de quando vale. */
+  fundacaoData: "17/08/2002",
+  anos: 24,
   /** Ano do aviso de copyright. Fixo pelo mesmo motivo de `anos`: `new Date()`
    *  no render faria servidor e navegador divergirem na virada do ano. */
   anoCopyright: 2026,
@@ -116,7 +108,7 @@ export const MISSAO =
  * real — ver `Profissional.registro`.
  */
 export const GESTOR = {
-  nome: "Jefferson Barbosa",
+  nome: "Jeferson Barbosa",
   /**
    * "Gestor e fundador" veio da clínica. A apresentação dele, abaixo, fala do
    * trabalho de hoje e não menciona a fundação — quem informou os dois papéis
@@ -131,14 +123,14 @@ export const GESTOR = {
    * Recortado em 0,95:1 a partir do original 896x1200, começando 100px abaixo
    * do topo: é o enquadramento que deixa folga sobre a cabeça sem cortá-la.
    */
-  foto: fotoJefferson as string | undefined,
+  foto: fotoJeferson as string | undefined,
   texto: [
-    "Sou Jefferson Barbosa, formado em Comunicação Social, com habilitação em Relações Públicas.",
+    "Sou Jeferson Barbosa, formado em Comunicação Social, com habilitação em Relações Públicas.",
     "Ao longo da minha trajetória, descobri que comunicar vai muito além de falar ou transmitir uma mensagem. É saber ouvir, compreender pessoas, criar conexões e construir relacionamentos.",
     "Hoje, atuo como gestor da JP Clínica Integrada Odontológica, onde tenho a oportunidade de unir minha formação em comunicação à gestão de pessoas, processos e atendimento.",
     "Meu propósito é contribuir para que a clínica seja mais do que um lugar onde as pessoas buscam atendimento odontológico: quero ajudar a construir um ambiente baseado em acolhimento, respeito, confiança e cuidado humanizado.",
     "Acredito que uma boa gestão começa pelas pessoas. E que, quando existe propósito, comprometimento e humanidade, os resultados acontecem naturalmente.",
-    "Sou Jefferson Barbosa: comunicador, gestor e, acima de tudo, alguém que acredita no poder das pessoas e das conexões.",
+    "Sou Jeferson Barbosa: comunicador, gestor e, acima de tudo, alguém que acredita no poder das pessoas e das conexões.",
   ],
 };
 
@@ -147,13 +139,13 @@ export const GESTOR = {
  *
  * Só a apresentação mora aqui: nome, CRO, cargo e retrato dela ficam em
  * EQUIPE[0], porque ela é dentista com registro e essa é a fonte que o rodapé
- * das 9 rotas lê. O Jefferson tem tudo em GESTOR justamente por não ser do
+ * das 9 rotas lê. O Jeferson tem tudo em GESTOR justamente por não ser do
  * conselho — não há registro dele para guardar.
  */
 export const FUNDADORA = {
   titulo: "Uma trajetória construída com sonhos, propósito e muitos sorrisos",
   formacao: "Odontologia — Faculdade de Odontologia de Araçatuba, UNESP (2001)",
-  /** Escrito em terceira pessoa, ao contrário do texto do Jefferson. É assim
+  /** Escrito em terceira pessoa, ao contrário do texto do Jeferson. É assim
    *  que veio da clínica, e uniformizar seria reescrever o texto deles. */
   texto: [
     "Em 2001, a Dra. Juliana Pelisser Barbosa concluía sua formação pela Faculdade de Odontologia de Araçatuba — UNESP, carregando consigo muito mais do que um diploma: carregava sonhos, ideais e o desejo de transformar vidas através da Odontologia.",
@@ -175,10 +167,17 @@ export const FUNDADORA = {
  * das avaliações — vale conferir na ficha do Google e, se possível, ampliar
  * a seleção. Não acrescente depoimento que não exista lá.
  */
+/**
+ * Sem retrato, de propósito.
+ *
+ * Cada card trazia um rosto de gerador de faces ao lado do nome de quem
+ * avaliou. Como os nomes são de pessoas reais da ficha do Google, a imagem
+ * dizia "esta é a Marjorye" apontando para alguém que não existe. O card agora
+ * mostra só nome e nota — que é o que o Google mostra também.
+ */
 export type Depoimento = {
   autor: string;
   texto: string;
-  foto: string;
   /** Marca depoimento inventado. Os reais vieram da ficha do Google. */
   ficticio?: boolean;
 };
@@ -186,20 +185,18 @@ export type Depoimento = {
 /** O primeiro entra em destaque; os quatro seguintes formam a grade. */
 export const DEPOIMENTOS: Depoimento[] = [
   {
+    autor: "Marcela Batista",
+    texto:
+      "Fui atendida pela Dra. Bruna e tive uma experiência excelente! Ela foi muito atenciosa, cuidadosa e passou muita segurança durante todo o atendimento. O procedimento foi assertivo e realizado com muita competência. Além disso, a clínica é impecável: ambiente organizado, limpo, confortável e com uma equipe muito receptiva. Me senti muito bem acolhida desde a chegada. Amei a experiência e, com certeza, voltarei sempre que precisar. Recomendo de olhos fechados!",
+  },
+  {
     autor: "Valéria C.",
     texto:
       "Já faço meus tratamentos com eles há mais de 3 anos. A clínica é maravilhosa, atendimento cuidadoso e equipe muito acolhedora.",
-    foto: avatarValeria,
   },
   {
     autor: "Marjorye A.",
     texto: "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!",
-    foto: avatarMarjorye,
-  },
-  {
-    autor: "Roberta F.",
-    texto: "Clínica maravilhosa! A recepcionista Isa é um amor. Muito bem atendida sempre!",
-    foto: avatarRoberta,
   },
   // ─── ⚠️ FICTÍCIOS — TROCAR POR AVALIAÇÕES REAIS DO GOOGLE ──────────────────
   // A ficha tem 176 avaliações; só três foram transcritas até agora. Estes dois
@@ -209,14 +206,12 @@ export const DEPOIMENTOS: Depoimento[] = [
     autor: "Carolina T.",
     texto:
       "Meu filho foi muito bem atendido. Equipe paciente, carinhosa e muito profissional. Recomendo!",
-    foto: avatarCarolina,
     ficticio: true,
   },
   {
     autor: "Rafael M.",
     texto:
       "Atendimento impecável desde o primeiro contato. Planos claros e tratamentos que fazem a diferença.",
-    foto: avatarRafael,
     ficticio: true,
   },
   // ───────────────────────────────────────────────────────────────────────────
