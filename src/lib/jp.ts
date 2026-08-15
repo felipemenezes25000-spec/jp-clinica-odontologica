@@ -119,14 +119,15 @@ export const GESTOR = {
   /**
    * Retrato de uma pessoa que existe. Não trocar por imagem de gerador.
    *
-   * ⚠️ Sai de uma peça de divulgação (corpo inteiro, com texto e o retrato dele
-   * ampliado ao fundo), não de um retrato. O rosto ocupa só ~196x206px do
-   * original, então o recorte fica mais macio que o da Dra. Juliana, que veio de
-   * foto própria. O arquivo é 320x337 de propósito: cobre o card (106x112 CSS)
-   * até tela 3x, e ampliar além disso só inventaria pixel.
+   * Recortado da peça de divulgação dele (corpo inteiro, sentado, com o retrato
+   * ampliado ao fundo): região de 330x347 a partir de (206,196) do original de
+   * 941x1136, na mesma escala de cabeça do retrato da Dra. Juliana.
    *
-   * Se aparecer um retrato dele em foto dedicada, é troca direta — e a nitidez
-   * melhora sozinha.
+   * Gravado sem reamostrar — 330x347 é o recorte cru. Cobre o card (106x112 CSS)
+   * até tela 3x com folga, então não há motivo para redimensionar.
+   *
+   * Não abra mais o enquadramento para a direita: por volta de x+346 o "C" de
+   * CONSTRÓI, do texto da peça, entra no quadro.
    */
   foto: fotoJeferson as string | undefined,
   texto: [
