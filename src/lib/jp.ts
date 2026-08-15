@@ -185,9 +185,9 @@ export type Depoimento = {
 /** O primeiro entra em destaque; os quatro seguintes formam a grade. */
 export const DEPOIMENTOS: Depoimento[] = [
   {
-    autor: "Marcela Batista",
+    autor: "Mari Nozzolillo",
     texto:
-      "Fui atendida pela Dra. Bruna e tive uma experiência excelente! Ela foi muito atenciosa, cuidadosa e passou muita segurança durante todo o atendimento. O procedimento foi assertivo e realizado com muita competência. Além disso, a clínica é impecável: ambiente organizado, limpo, confortável e com uma equipe muito receptiva. Me senti muito bem acolhida desde a chegada. Amei a experiência e, com certeza, voltarei sempre que precisar. Recomendo de olhos fechados!",
+      "Estou muito satisfeita com a atendimento da Clínica, fui atendida pela Dra Ana Beatriz que fez a extração do meu dente com muita calma e paciência, me esclareceu todos os procedimentos que iria fazer e foi muito cuidadosa em todo momento. Um ambiente limpo, organizado e aconchegante. Super indico com certeza!",
   },
   {
     autor: "Valéria C.",
