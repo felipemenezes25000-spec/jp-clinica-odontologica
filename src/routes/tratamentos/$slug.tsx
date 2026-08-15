@@ -415,7 +415,7 @@ function TreatmentPage() {
                   <article className="process-card relative min-h-[310px] overflow-hidden rounded-[2rem] border border-white/22 bg-brand-deep/45 p-6 backdrop-blur-sm sm:p-7">
                     <span
                       aria-hidden="true"
-                      className="section-number font-display text-6xl font-black text-white/25"
+                      className="section-number font-display text-6xl font-black text-white"
                     >
                       {step.n}
                     </span>
