@@ -238,12 +238,15 @@ export function HistorySection() {
               Nossa história
             </p>
 
+            {/* "de Pirituba à Freguesia do Ó" e não "da Freguesia do Ó": a
+                clínica só está neste endereço desde 2024, e os 24 anos são dos
+                dois bairros. O trajeto vira a própria chamada. */}
             <h2 className="max-w-[650px] font-display text-[40px] font-extrabold leading-[1.02] tracking-[-0.055em] sm:text-[62px] lg:text-[72px]">
               São <span className="text-lime">{HISTORIA.anos} anos</span>
               <br />
               cuidando dos sorrisos
               <br />
-              da Freguesia do Ó.
+              de {HISTORIA.regiaoAnterior} à {HISTORIA.regiaoAtual}.
             </h2>
 
             <svg aria-hidden="true" className="mt-4 h-4 w-[100px]" viewBox="0 0 100 16" fill="none">
@@ -264,6 +267,14 @@ export function HistorySection() {
               <p>
                 Ao longo de {HISTORIA.anos} anos, construímos uma história de confiança, proximidade
                 e atendimento humanizado para crianças, adultos e idosos.
+              </p>
+              {/* O trajeto escrito por extenso: sem isso, a chamada acima levanta
+                  a pergunta e a página não responde. */}
+              <p>
+                Boa parte dessa caminhada foi em {HISTORIA.regiaoAnterior}, na{" "}
+                {HISTORIA.bairroAnterior}. Desde {HISTORIA.mudanca} atendemos na{" "}
+                {CLINICA.local.bairro}, na região da {HISTORIA.regiaoAtual} — mesma equipe, mesmo
+                cuidado, novo endereço.
               </p>
             </div>
 

@@ -85,6 +85,18 @@ export const HISTORIA = {
   /** Dia exato, para quem for atualizar `anos` saber a partir de quando vale. */
   fundacaoData: "17/08/2002",
   anos: 24,
+  /**
+   * A clínica não passou os 24 anos no endereço atual.
+   *
+   * Até o fim de 2023 ficava em Pirituba, na Vila Pereira Barreto; mudou para a
+   * Vila Bruna, região da Freguesia do Ó, em 2024. O site dizia "24 anos
+   * cuidando dos sorrisos da Freguesia do Ó", o que atribuía ao bairro atual um
+   * tempo que pertence aos dois.
+   */
+  regiaoAnterior: "Pirituba",
+  bairroAnterior: "Vila Pereira Barreto",
+  regiaoAtual: "Freguesia do Ó",
+  mudanca: 2024,
   /** Ano do aviso de copyright. Fixo pelo mesmo motivo de `anos`: `new Date()`
    *  no render faria servidor e navegador divergirem na virada do ano. */
   anoCopyright: 2026,
