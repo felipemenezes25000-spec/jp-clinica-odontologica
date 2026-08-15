@@ -18,9 +18,6 @@ const PESSOAS = [
     legenda: GESTOR.papel,
     formacao: GESTOR.formacao,
     foto: GESTOR.foto,
-    /** A imagem dele é a peça de divulgação inteira, e a clínica quer ela
-     *  inteira — então cabe dentro do quadro em vez de preenchê-lo cortando. */
-    encaixe: "contain" as const,
     texto: GESTOR.texto,
   },
   {
@@ -47,7 +44,6 @@ function CardPessoa({
   nome,
   legenda,
   registro,
-  encaixe = "cover",
   formacao,
   titulo,
   texto,
@@ -59,10 +55,6 @@ function CardPessoa({
   legenda: string;
   /** Só para quem é do conselho. */
   registro?: string | undefined;
-  /** `cover` preenche o quadro cortando o que sobra; `contain` mostra a imagem
-   *  inteira e deixa faixa nas laterais. Retrato pede o primeiro; peça gráfica,
-   *  que perde sentido cortada, pede o segundo. */
-  encaixe?: "cover" | "contain";
   formacao: string;
   /** Só a apresentação da fundadora veio com um título próprio. */
   titulo?: string;
@@ -81,9 +73,7 @@ function CardPessoa({
               src={foto}
               alt={`Retrato de ${nome}`}
               loading="lazy"
-              className={`h-full w-full object-top ${
-                encaixe === "contain" ? "object-contain" : "object-cover"
-              }`}
+              className="h-full w-full object-cover object-top"
             />
           ) : (
             <div className="absolute inset-0 grid place-items-center bg-[#0A3A06]">
