@@ -891,20 +891,21 @@
   font: 900 clamp(16rem, 34vw, 38rem)/0.7 var(--font-display);
   letter-spacing: -0.14em;
   color: transparent;
-  -webkit-text-stroke: 1px color-mix(in oklab, var(--forest-2) 16%, transparent);
+  /* Ornamentos em branco, acompanhando o texto da seção. */
+  -webkit-text-stroke: 1px color-mix(in oklab, white 26%, transparent);
   pointer-events: none;
 }
 .process-orbit {
   position: absolute;
   width: 28rem;
   height: 28rem;
-  border: 1px solid color-mix(in oklab, var(--forest-2) 13%, transparent);
+  border: 1px solid color-mix(in oklab, white 22%, transparent);
   border-radius: 50%;
   left: -14rem;
   top: 20%;
   box-shadow:
-    0 0 0 5rem color-mix(in oklab, var(--forest-2) 3%, transparent),
-    0 0 0 10rem color-mix(in oklab, var(--forest-2) 2%, transparent);
+    0 0 0 5rem color-mix(in oklab, white 6%, transparent),
+    0 0 0 10rem color-mix(in oklab, white 4%, transparent);
 }
 .process-card {
   transition:
@@ -914,7 +915,10 @@
 }
 .process-card:hover {
   transform: translateY(-8px) rotate(-0.5deg);
-  background: rgba(255, 255, 255, 0.38);
+  /* Escurece no hover, não clareia. O card virou verde-escuro translúcido para
+     o texto branco ter contraste; clarear no hover, como antes, derrubaria a
+     leitura justamente no card que a pessoa está mirando. */
+  background: color-mix(in oklab, var(--brand-deep) 62%, transparent);
   box-shadow: 0 28px 70px -38px rgba(4, 50, 24, 0.42);
 }
 

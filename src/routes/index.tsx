@@ -48,7 +48,6 @@ import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
-import { TeamSection } from "@/components/site/TeamSection";
 import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
@@ -528,8 +527,13 @@ function Home() {
         {/* 05 — AVALIAÇÕES */}
         <ReviewsSection />
 
-        {/* 06 — EQUIPE */}
-        <TeamSection />
+        {/* 06 — EQUIPE: fora do ar por enquanto, a pedido da clínica.
+            Ela ficou com cinco dentistas fictícios depois que a responsável
+            técnica saiu da grade, e "Atendimento feito por profissionais com
+            registro ativo no CRO" sobre CRO 00.001–00.005 é afirmação que a
+            clínica não sustenta. O componente e os dados continuam no
+            repositório: para voltar, é reinserir <TeamSection /> aqui e o item
+            "Equipe" em NAV. */}
 
         {/* 07 — ESTRUTURA */}
         <section id="estrutura" className="jp-section relative overflow-hidden bg-paper ">

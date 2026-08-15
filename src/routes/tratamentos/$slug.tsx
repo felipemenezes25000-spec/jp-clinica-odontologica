@@ -393,22 +393,29 @@ function TreatmentPage() {
           </section>
         )}
 
-        <section className="jp-section section-transition process-stage relative overflow-hidden bg-lime text-brand-deep">
+        {/* Seção em branco sobre o verde-limão da marca.
+            O card teve de escurecer junto: em `bg-white/24`, que era o de antes,
+            o branco media 2,27:1 — pior que o verde-escuro que estava lá. Com
+            `bg-brand-deep/45` o mesmo branco mede 5,93:1 e passa como texto
+            corrido. Sobre o limão puro, o branco dá 3,00:1, que serve ao título
+            (texto grande) mas não a texto pequeno — por isso nada de corpo fica
+            direto no fundo da seção. */}
+        <section className="jp-section section-transition process-stage relative overflow-hidden bg-lime text-white">
           <div className="process-orbit" aria-hidden="true" />
           <div className="jp-container relative">
             <Reveal className="max-w-5xl">
-              <span className="eyebrow text-forest-2">Do primeiro contato ao acompanhamento</span>
+              <span className="eyebrow text-white">Do primeiro contato ao acompanhamento</span>
               <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.78] tracking-[-.075em]">
-                Um processo. <span className="text-forest-2/70">Quatro momentos.</span>
+                Um processo. Quatro momentos.
               </h2>
             </Reveal>
             <ol className="mt-14 grid gap-4 lg:grid-cols-4">
               {treatment.etapas.map((step, i) => (
                 <Reveal as="li" key={step.n} delay={i * 75}>
-                  <article className="process-card relative min-h-[310px] overflow-hidden rounded-[2rem] border border-forest-2/12 bg-white/24 p-6 backdrop-blur-sm sm:p-7">
+                  <article className="process-card relative min-h-[310px] overflow-hidden rounded-[2rem] border border-white/22 bg-brand-deep/45 p-6 backdrop-blur-sm sm:p-7">
                     <span
                       aria-hidden="true"
-                      className="section-number font-display text-6xl font-black text-forest-2/13"
+                      className="section-number font-display text-6xl font-black text-white/25"
                     >
                       {step.n}
                     </span>
@@ -416,7 +423,7 @@ function TreatmentPage() {
                       <h3 className="font-display text-2xl font-black leading-[.95]">
                         {step.titulo}
                       </h3>
-                      <p className="mt-4 text-sm font-semibold leading-relaxed text-forest-2/85">
+                      <p className="mt-4 text-sm font-semibold leading-relaxed text-white/85">
                         {step.texto}
                       </p>
                     </div>
@@ -460,7 +467,9 @@ function TreatmentPage() {
                 </Reveal>
               ))}
               <Reveal delay={140}>
-                <div className="mt-4 rounded-[2rem] border border-lime/25 bg-lime p-7 text-forest-2 sm:p-8">
+                {/* Branco sobre o limão: 3,00:1, que é o piso de texto grande —
+                    e o título aqui é 3xl/4xl em peso black, então serve. */}
+                <div className="mt-4 rounded-[2rem] border border-lime/25 bg-lime p-7 text-white sm:p-8">
                   <BadgeCheck className="h-6 w-6" />
                   <h3 className="mt-7 max-w-xl font-display text-3xl font-black leading-[.92] sm:text-4xl">
                     A melhor próxima etapa é a que começa com informação sobre o seu caso.

@@ -275,14 +275,14 @@ export type Profissional = {
  */
 export const RESPONSAVEL_TECNICA: Profissional = {
   /**
-   * Só os sobrenomes, sem "Dra." e sem "Juliana" — escolha da clínica.
+   * Nome completo, como a clínica confirmou. Chegou a ficar só "Pelisser
+   * Barbosa" por um tempo, e voltou ao completo — que é também o que a linha de
+   * responsável técnica do rodapé pede, por ser identificação exigida pela
+   * Resolução CFO 196/2019.
    *
-   * Se o conselho exigir o nome completo na linha do rodapé, é aqui que se muda.
-   * O nome completo continua legível no site: a apresentação dela abre com
-   * "a Dra. Juliana Pelisser Barbosa". O texto tinha chegado como "Pelissari
-   * Barbosa"; prevaleceu a grafia confirmada pela clínica.
+   * O texto dela tinha chegado como "Pelissari"; prevaleceu a grafia da clínica.
    */
-  nome: "Pelisser Barbosa",
+  nome: "Dra. Juliana Pelisser Barbosa",
   /**
    * ✅ CONFERIDO PELA CLÍNICA em 14/08/2026.
    *
@@ -361,7 +361,6 @@ export const NAV = [
   { label: "Nossa História", href: "/#historia" },
   { label: "Tratamentos", href: "/#tratamentos" },
   { label: "Depoimentos", href: "/#depoimentos" },
-  { label: "Equipe", href: "/#equipe" },
   { label: "Estrutura", href: "/#estrutura" },
   { label: "FAQ", href: "/#faq" },
   { label: "Contato", href: "/#fale" },
