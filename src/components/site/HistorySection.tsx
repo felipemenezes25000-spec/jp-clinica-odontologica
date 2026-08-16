@@ -273,8 +273,8 @@ export function HistorySection() {
               <p>
                 Boa parte dessa caminhada foi em {HISTORIA.regiaoAnterior}, na{" "}
                 {HISTORIA.bairroAnterior}. Desde {HISTORIA.mudanca} atendemos na{" "}
-                {CLINICA.local.bairro}, na região da {HISTORIA.regiaoAtual} — mesma equipe, mesmo
-                cuidado, novo endereço.
+                {CLINICA.local.bairro}, na região da {HISTORIA.regiaoAtual} — mesmo cuidado, novo
+                endereço.
               </p>
             </div>
 
