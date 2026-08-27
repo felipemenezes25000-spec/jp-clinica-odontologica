@@ -29,6 +29,11 @@ import escritorioImg from "@/assets/escritorio.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
 import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
 import consultorioJanelaImg from "@/assets/consultorio-janela.webp";
+import entradaClinicaImg from "@/assets/entrada-clinica.webp";
+import salaEsperaOrtodontiaImg from "@/assets/sala-espera-ortodontia.webp";
+import fachadaLetreiroImg from "@/assets/fachada-letreiro.webp";
+import consultorioBancadaImg from "@/assets/consultorio-bancada.webp";
+import consultorioCadeiraLilasImg from "@/assets/consultorio-cadeira-lilas.webp";
 
 import limpezaPoster from "@/assets/video-limpeza-poster.webp";
 import clareamentoPoster from "@/assets/video-clareamento-poster.webp";
@@ -104,21 +109,55 @@ const GALLERY = [
     src: recepcaoImg,
     title: "Recepção",
     text: "Espaço confortável para acomodar você e sua família antes do atendimento.",
+    framed: true,
   },
   {
     src: escritorioImg,
     title: "Escritório",
     text: "Retaguarda organizada para dar suporte a cada etapa do seu cuidado.",
+    framed: true,
   },
   {
     src: cantinhoCafeImg,
     title: "Cantinho do café",
     text: "Um cafezinho para deixar a espera mais leve e acolhedora.",
+    framed: true,
   },
   {
     src: consultorioJanelaImg,
     title: "Consultório com luz natural",
     text: "Ambiente arejado, pensado para o conforto de cada paciente.",
+    framed: true,
+  },
+  {
+    src: entradaClinicaImg,
+    title: "Entrada da clínica",
+    text: "Acesso seguro, com portão e câmeras na entrada da JP.",
+    framed: true,
+  },
+  {
+    src: salaEsperaOrtodontiaImg,
+    title: "Sala de espera — ortodontia",
+    text: "Espaço de espera com informações sobre aparelhos ortodônticos.",
+    framed: true,
+  },
+  {
+    src: fachadaLetreiroImg,
+    title: "Fachada da JP",
+    text: `${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, com nosso letreiro na frente.`,
+    framed: true,
+  },
+  {
+    src: consultorioBancadaImg,
+    title: "Consultório — bancada de trabalho",
+    text: "Instrumentais organizados e prontos para cada procedimento.",
+    framed: true,
+  },
+  {
+    src: consultorioCadeiraLilasImg,
+    title: "Consultório — outra sala",
+    text: "Mais uma sala equipada para o seu atendimento.",
+    framed: true,
   },
 ];
 
@@ -225,27 +264,38 @@ function StructureCarousel() {
           src={current.src}
           alt={`${current.title} da JP Clínica Integrada Odontológica`}
           loading="lazy"
-          className="h-[430px] w-full object-cover sm:h-[560px] lg:h-[650px]"
+          className={
+            current.framed
+              ? "h-[430px] w-full object-contain sm:h-[560px] lg:h-[650px]"
+              : "h-[430px] w-full object-cover sm:h-[560px] lg:h-[650px]"
+          }
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-forest-2/72 via-transparent to-transparent" />
 
-        {/* A numeração "Espaço 01" saiu: os pontos abaixo já dizem onde a pessoa
-            está, e com aria-current dizem isso também para o leitor de tela. */}
-        <div className="absolute inset-x-5 bottom-5 sm:inset-x-8 sm:bottom-8">
-          <div className="flex max-w-sm items-start gap-3 rounded-[1.25rem] border border-white/15 bg-forest-2/78 p-4 text-white backdrop-blur-xl">
-            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
-              <IconDente className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <h3 className="font-display text-lg font-extrabold tracking-[-.03em] sm:text-xl">
-                {current.title}
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-white/68 sm:text-[13px]">
-                {current.text}
-              </p>
+        {/* As fotos "framed" já trazem título e logo desenhados na própria imagem
+            (posts de Instagram da clínica): repetir o card por cima duplicaria a
+            informação e tampava a foto. Só as fotos lisas ganham o card. */}
+        {!current.framed && (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-t from-forest-2/72 via-transparent to-transparent" />
+            {/* A numeração "Espaço 01" saiu: os pontos abaixo já dizem onde a pessoa
+                está, e com aria-current dizem isso também para o leitor de tela. */}
+            <div className="absolute inset-x-5 bottom-5 sm:inset-x-8 sm:bottom-8">
+              <div className="flex max-w-sm items-start gap-3 rounded-[1.25rem] border border-white/15 bg-forest-2/78 p-4 text-white backdrop-blur-xl">
+                <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
+                  <IconDente className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <h3 className="font-display text-lg font-extrabold tracking-[-.03em] sm:text-xl">
+                    {current.title}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-white/68 sm:text-[13px]">
+                    {current.text}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
 
         <button
           type="button"
