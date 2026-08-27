@@ -138,15 +138,15 @@ export function ReviewsSection() {
 
                     <div className="flex flex-wrap items-end gap-x-8 gap-y-2">
                       <span className="font-display text-[68px] font-extrabold leading-none tracking-[-0.07em] text-forest-2 sm:text-[76px]">
-                        4,5
+                        4,6
                       </span>
 
                       <div className="pb-2">
-                        {/* 4 estrelas cheias + 1 pela metade: representa 4,5 sem arredondar */}
+                        {/* 4 estrelas cheias + 60% da quinta: representa 4,6 */}
                         <div
                           className="mb-2 flex gap-2"
                           role="img"
-                          aria-label="4,5 de 5 estrelas no Google"
+                          aria-label="4,6 de 5 estrelas no Google"
                         >
                           {[0, 1, 2, 3].map((i) => (
                             <Star
@@ -163,14 +163,12 @@ export function ReviewsSection() {
                               strokeWidth={1}
                               className="fill-[#E3E8DD] text-[#9FB396]"
                             />
-                            <span className="absolute inset-y-0 left-0 w-1/2 overflow-hidden">
+                            <span className="absolute inset-y-0 left-0 w-[60%] overflow-hidden">
                               <Star size={30} strokeWidth={0} className="fill-[#56A805]" />
                             </span>
                           </span>
                         </div>
-                        <p className="text-sm text-ink-soft">
-                          {CLINICA.provaSocial.split("•")[1]?.trim() ?? "avaliações"} no Google
-                        </p>
+                        <p className="text-sm text-ink-soft">180 avaliações no Google</p>
                       </div>
                     </div>
                   </div>
