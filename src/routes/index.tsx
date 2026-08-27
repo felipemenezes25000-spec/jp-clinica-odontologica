@@ -347,9 +347,9 @@ function Home() {
 
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-extrabold text-ink-soft">
                 <span className="flex items-center gap-2">
-                  <Star className="h-4 w-4 fill-primary text-primary" /> 4,5 no Google
+                  <Star className="h-4 w-4 fill-primary text-primary" /> 4,6 no Google
                 </span>
-                <span>176 avaliações</span>
+                <span>180 avaliações</span>
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-4 w-4 text-primary" /> Seg–Sex • 08h–18h
                 </span>
