@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -49,7 +47,6 @@ import { ContactForm } from "@/components/site/ContactForm";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
 import { CinematicMotion } from "@/components/site/CinematicMotion";
 import { SkipLink } from "@/components/site/SkipLink";
-import { IconDente, TreatmentIcon } from "@/components/site/TreatmentIcons";
 import { AppleMark } from "@/components/site/AppleMark";
 import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
@@ -72,92 +69,54 @@ const TREATMENT_MEDIA = [
   harmonizacaoPoster,
 ];
 
-/**
- * `bg` é a cor que preenche a sobra do palco quando a foto não tem a mesma
- * proporção dele. Antes ali entrava uma cópia borrada da própria foto, que
- * virava uma moldura cinza suja em volta de tudo.
- *
- * FOTO_VERDE é o verde exato da borda das fotos que vieram do Instagram da
- * clínica — medido no anel de 3px da margem delas, igual nas oito. Com ele o
- * fundo emenda com a moldura da foto e ninguém vê onde uma acaba e a outra
- * começa. As fotos sem moldura são recortes claros de sala, e ganham o verde
- * escuro da marca: a foto salta e o palco continua na faixa da legenda.
- */
-const FOTO_VERDE = "#97c959";
-const FUNDO_ESCURO = "#032f01";
-
 const GALLERY = [
   {
     src: consultorioWideImg,
     title: "Consultório principal",
-    text: "Ambiente claro, organizado e preparado para um atendimento tranquilo.",
-    bg: FUNDO_ESCURO,
   },
   {
     src: fachadaImg,
     title: "Nossa fachada",
-    text: `${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, na região da Freguesia do Ó.`,
-    bg: FUNDO_ESCURO,
   },
   {
     src: esterilizacaoImg,
     title: "Esterilização",
-    text: "Área dedicada ao cuidado com instrumentais e protocolos de biossegurança.",
-    bg: FUNDO_ESCURO,
   },
   {
     src: equipamentoImg,
     title: "Equipamentos",
-    text: "Estrutura preparada para apoiar o planejamento e a rotina clínica.",
-    bg: FUNDO_ESCURO,
   },
   {
     src: recepcaoImg,
     title: "Recepção",
-    text: "Espaço confortável para acomodar você e sua família antes do atendimento.",
-    bg: FOTO_VERDE,
   },
   {
     src: escritorioImg,
     title: "Escritório",
-    text: "Retaguarda organizada para dar suporte a cada etapa do seu cuidado.",
-    bg: FOTO_VERDE,
   },
   {
     src: cantinhoCafeImg,
     title: "Cantinho do café",
-    text: "Um cafezinho para deixar a espera mais leve e acolhedora.",
-    bg: FOTO_VERDE,
   },
   {
     src: consultorioJanelaImg,
     title: "Consultório com luz natural",
-    text: "Ambiente arejado, pensado para o conforto de cada paciente.",
-    bg: FOTO_VERDE,
   },
   {
     src: entradaClinicaImg,
     title: "Entrada da clínica",
-    text: "Acesso seguro, com portão e câmeras na entrada da JP.",
-    bg: FOTO_VERDE,
   },
   {
     src: salaEsperaOrtodontiaImg,
     title: "Sala de espera — ortodontia",
-    text: "Espaço de espera com informações sobre aparelhos ortodônticos.",
-    bg: FOTO_VERDE,
   },
   {
     src: consultorioBancadaImg,
     title: "Consultório — bancada de trabalho",
-    text: "Instrumentais organizados e prontos para cada procedimento.",
-    bg: FOTO_VERDE,
   },
   {
     src: consultorioCadeiraLilasImg,
     title: "Consultório — outra sala",
-    text: "Mais uma sala equipada para o seu atendimento.",
-    bg: FOTO_VERDE,
   },
 ];
 
@@ -248,106 +207,44 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
-function StructureCarousel() {
-  const [active, setActive] = useState(0);
-  const current = GALLERY[active]!;
-
-  const move = (direction: number) => {
-    setActive((value) => (value + direction + GALLERY.length) % GALLERY.length);
-  };
-
+/**
+ * Grade, não carrossel.
+ *
+ * As fotos que a clínica manda vêm dos posts do Instagram: são quadradas.
+ * Num palco largo de 1185x560 uma foto quadrada ocupa 560x560 no meio e deixa
+ * 625px de cor chapada nas laterais — não existe cor de fundo que resolva isso,
+ * o formato é que era incompatível. Numa grade, quadrado cabe em quadrado.
+ *
+ * Ganho de nitidez junto: a foto útil tem 665px de largura, então numa peça de
+ * ~285px ela é reduzida (nítida), enquanto no palco largo era esticada para
+ * 1185px (borrada).
+ */
+function StructureGallery() {
   return (
-    <div className="mt-12">
-      <div className="overflow-hidden rounded-[2.2rem] bg-brand-deep shadow-[0_36px_100px_-45px_rgba(3,47,1,.45)] sm:rounded-[2.7rem]">
-        {/* PALCO DA FOTO
-            As fotos da clínica são quadradas e as antigas, panorâmicas. Cortar
-            para preencher uma caixa fixa (object-cover) amputava metade do
-            enquadramento — a fachada perdia o letreiro — e ainda ampliava a
-            imagem além do tamanho nativo, borrando. Agora a foto entra inteira
-            (object-contain) e o vazio das laterais é preenchido por uma cópia
-            borrada dela mesma, em vez de barras chapadas. */}
-        <div
-          className="relative h-[340px] overflow-hidden transition-colors duration-500 sm:h-[460px] lg:h-[560px]"
-          style={{ backgroundColor: current.bg }}
+    <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3.5 lg:grid-cols-4">
+      {GALLERY.map((item) => (
+        <figure
+          key={item.title}
+          className="group relative aspect-square overflow-hidden rounded-2xl bg-brand-deep shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:aspect-[4/3]"
         >
           <img
-            key={current.src}
-            src={current.src}
-            alt={`${current.title} da JP Clínica Integrada Odontológica`}
+            src={item.src}
+            alt={`${item.title} da JP Clínica Integrada Odontológica`}
             loading="lazy"
-            className="h-full w-full object-contain"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-
-          <button
-            type="button"
-            onClick={() => move(-1)}
-            aria-label="Foto anterior da estrutura"
-            className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/92 text-brand-deep shadow-lg transition hover:bg-lime sm:left-6 sm:h-13 sm:w-13"
-          >
-            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => move(1)}
-            aria-label="Próxima foto da estrutura"
-            className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:bg-white sm:right-6 sm:h-13 sm:w-13"
-          >
-            <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-          </button>
-        </div>
-
-        {/* LEGENDA
-            Fora da foto, não por cima: sobreposta ela tampava justamente o
-            canto que o visitante quer ver e brigava com o rótulo que algumas
-            fotos já trazem impresso. */}
-        <div className="flex flex-col gap-4 border-t border-white/10 px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
-              <IconDente className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <h3 className="font-display text-lg font-extrabold tracking-[-.03em] sm:text-xl">
-                {current.title}
-              </h3>
-              <p className="mt-1 text-xs leading-relaxed text-white/68 sm:text-[13px]">
-                {current.text}
-              </p>
-            </div>
-          </div>
-
-          {/* Contador: com 15 fotos, uma fileira de pontinhos vira poeira —
-              o número diz de imediato onde a pessoa está. */}
-          <p className="shrink-0 font-display text-sm font-extrabold text-white/55">
-            <span className="text-lime">{String(active + 1).padStart(2, "0")}</span> /{" "}
-            {String(GALLERY.length).padStart(2, "0")}
-          </p>
-        </div>
-      </div>
-
-      {/* MINIATURAS
-          Substituem os pontinhos: com 15 fotos a pessoa vê para onde está indo
-          em vez de adivinhar. Rola na horizontal quando não cabem. */}
-      <div
-        className="mt-5 flex gap-2.5 overflow-x-auto pb-2 [scrollbar-width:thin]"
-        aria-label="Selecionar foto da estrutura"
-      >
-        {GALLERY.map((item, index) => (
-          <button
-            key={item.title}
-            type="button"
-            onClick={() => setActive(index)}
-            aria-label={`Ver ${item.title}`}
-            aria-current={active === index ? "true" : undefined}
-            className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition sm:h-20 sm:w-20 ${
-              active === index
-                ? "border-primary opacity-100"
-                : "border-transparent opacity-55 hover:opacity-90"
-            }`}
-          >
-            <img src={item.src} alt="" loading="lazy" className="h-full w-full object-cover" />
-          </button>
-        ))}
-      </div>
+          {/* O degradê só cobre a faixa do rótulo: subir mais escureceria a
+              foto inteira, que é justamente o que a pessoa veio ver. */}
+          <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-brand-deep via-brand-deep/70 to-transparent" />
+          <figcaption className="absolute inset-x-0 bottom-0 p-2.5 sm:p-4">
+            {/* No celular a peça tem ~160px: no tamanho do desktop o título
+                quebrava em quatro linhas e tapava metade da foto. */}
+            <h3 className="font-display text-[11px] font-extrabold leading-tight tracking-[-.02em] text-white sm:text-base">
+              {item.title}
+            </h3>
+          </figcaption>
+        </figure>
+      ))}
     </div>
   );
 }
@@ -635,7 +532,7 @@ function Home() {
               </a>
             </Reveal>
 
-            <StructureCarousel />
+            <StructureGallery />
 
             <Reveal delay={90}>
               <div className="mt-7 grid overflow-hidden rounded-[1.5rem] border border-forest/8 bg-secondary/65 sm:grid-cols-2 lg:grid-cols-4">
