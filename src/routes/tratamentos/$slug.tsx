@@ -18,6 +18,8 @@ import consultorioReal2Img from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
+import consultorioImplantes1Img from "@/assets/consultorio-implantes-1.webp";
+import consultorioImplantes2Img from "@/assets/consultorio-implantes-2.webp";
 import { Logo } from "@/components/site/Logo";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -176,7 +178,10 @@ function TreatmentPage() {
     );
   }
 
-  const image = VISUALS[Math.max(index, 0) % VISUALS.length];
+  const image =
+    treatment.slug === "implantes-dentarios"
+      ? consultorioImplantes1Img
+      : VISUALS[Math.max(index, 0) % VISUALS.length];
   const video = treatment ? VIDEOS[treatment.slug] : undefined;
   const wa = whatsappLink(
     `Olá! Vi a página sobre ${treatment.titulo} e gostaria de agendar uma avaliação na JP Clínica Integrada Odontológica.`,
@@ -345,7 +350,13 @@ function TreatmentPage() {
             <Reveal delay={100}>
               <DepthCard className="relative h-full min-h-[520px] overflow-hidden rounded-[2.5rem] bg-brand-deep">
                 <img
-                  src={index % 2 ? consultorioReal2Img : consultorioRealImg}
+                  src={
+                    treatment.slug === "implantes-dentarios"
+                      ? consultorioImplantes2Img
+                      : index % 2
+                        ? consultorioReal2Img
+                        : consultorioRealImg
+                  }
                   alt="Atendimento odontológico em consultório equipado"
                   loading="lazy"
                   className="absolute inset-0 h-full w-full object-cover"
