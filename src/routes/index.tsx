@@ -1,5 +1,7 @@
+import { useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -208,43 +210,75 @@ export const Route = createFileRoute("/")({
 });
 
 /**
- * Grade, não carrossel.
+ * Carrossel que desliza várias fotos por vez, não uma só ocupando a largura.
  *
- * As fotos que a clínica manda vêm dos posts do Instagram: são quadradas.
- * Num palco largo de 1185x560 uma foto quadrada ocupa 560x560 no meio e deixa
- * 625px de cor chapada nas laterais — não existe cor de fundo que resolva isso,
- * o formato é que era incompatível. Numa grade, quadrado cabe em quadrado.
+ * A área útil de cada foto tem 665px. Num palco de uma foto por vez ela seria
+ * esticada para 1185px — foi daí que veio a impressão de resolução ruim nas
+ * versões anteriores. Em peças de ~370px ela é reduzida, e reduzir é o que
+ * mantém a imagem nítida.
  *
- * Ganho de nitidez junto: a foto útil tem 665px de largura, então numa peça de
- * ~285px ela é reduzida (nítida), enquanto no palco largo era esticada para
- * 1185px (borrada).
+ * A rolagem é nativa com scroll-snap: funciona no gesto do celular sem
+ * biblioteca, e as setas apenas empurram a mesma rolagem no desktop.
  */
 function StructureGallery() {
+  const trilho = useRef<HTMLDivElement>(null);
+
+  const deslizar = (direcao: number) => {
+    const el = trilho.current;
+    if (!el) return;
+    // Anda uma peça por clique: a primeira serve de régua para qualquer
+    // largura, em vez de um número fixo que só valeria num breakpoint.
+    const passo = el.firstElementChild?.getBoundingClientRect().width ?? el.clientWidth;
+    el.scrollBy({ left: direcao * (passo + 14), behavior: "smooth" });
+  };
+
   return (
-    <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-3.5 lg:grid-cols-4">
-      {GALLERY.map((item) => (
-        <figure
-          key={item.title}
-          className="group relative aspect-square overflow-hidden rounded-2xl bg-brand-deep shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:aspect-[4/3]"
-        >
-          <img
-            src={item.src}
-            alt={`${item.title} da JP Clínica Integrada Odontológica`}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-          {/* O degradê só cobre a faixa do rótulo: subir mais escureceria a
-              foto inteira, que é justamente o que a pessoa veio ver. */}
-          <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-brand-deep via-brand-deep/70 to-transparent" />
-          <figcaption className="absolute inset-x-0 bottom-0 p-2.5 sm:p-4">
-            {/* No celular a peça tem ~160px: no tamanho do desktop o título
-                quebrava em quatro linhas e tapava metade da foto. */}
-            <h3 className="font-display text-[11px] font-extrabold leading-tight tracking-[-.02em] text-white sm:text-base">
-              {item.title}
-            </h3>
-          </figcaption>
-        </figure>
-      ))}
+    <div className="relative mt-12">
+      <div
+        ref={trilho}
+        className="flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {GALLERY.map((item) => (
+          <figure
+            key={item.title}
+            className="group relative aspect-[4/3] w-[78%] shrink-0 snap-start overflow-hidden rounded-2xl bg-brand-deep shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:w-[46%] lg:w-[31.5%]"
+          >
+            <img
+              src={item.src}
+              alt={`${item.title} da JP Clínica Integrada Odontológica`}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+            {/* O degradê só cobre a faixa do rótulo: subir mais escureceria a
+                foto inteira, que é justamente o que a pessoa veio ver. */}
+            <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-brand-deep via-brand-deep/70 to-transparent" />
+            <figcaption className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+              <h3 className="font-display text-sm font-extrabold leading-tight tracking-[-.02em] text-white sm:text-base">
+                {item.title}
+              </h3>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+
+      {/* Setas só no desktop: no celular o dedo já arrasta, e elas roubariam
+          largura da foto. */}
+      <button
+        type="button"
+        onClick={() => deslizar(-1)}
+        aria-label="Ver fotos anteriores da estrutura"
+        className="absolute -left-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-forest/12 bg-white text-brand-deep shadow-lg transition hover:bg-lime lg:grid"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        onClick={() => deslizar(1)}
+        aria-label="Ver próximas fotos da estrutura"
+        className="absolute -right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:bg-white lg:grid"
+      >
+        <ArrowRight className="h-5 w-5" />
+      </button>
     </div>
   );
 }
