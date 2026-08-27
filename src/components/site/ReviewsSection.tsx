@@ -1,6 +1,6 @@
 import { ArrowRight, Heart, ShieldCheck, Sparkles, Star, UsersRound } from "lucide-react";
 
-import { CLINICA, DEPOIMENTOS } from "@/lib/jp";
+import { DEPOIMENTOS } from "@/lib/jp";
 
 function Estrelas({ dark = false, size = 17 }: { dark?: boolean; size?: number }) {
   return (
@@ -72,8 +72,7 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
 
 /**
  * Prova social. O primeiro depoimento vai em destaque; os quatro seguintes
- * formam a grade. Nota e volume vêm de `CLINICA.provaSocial`, conferidos na
- * ficha do Google — não escrever número solto aqui.
+ * formam a grade. A nota exibida acompanha a ficha do Google.
  */
 export function ReviewsSection() {
   const [destaque, ...grade] = DEPOIMENTOS;
