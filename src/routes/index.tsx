@@ -25,6 +25,10 @@ import consultorioReal2Img from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
+import escritorioImg from "@/assets/escritorio.webp";
+import recepcaoImg from "@/assets/recepcao.webp";
+import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
+import consultorioJanelaImg from "@/assets/consultorio-janela.webp";
 
 import limpezaPoster from "@/assets/video-limpeza-poster.webp";
 import clareamentoPoster from "@/assets/video-clareamento-poster.webp";
@@ -95,6 +99,26 @@ const GALLERY = [
     src: equipamentoImg,
     title: "Equipamentos",
     text: "Estrutura preparada para apoiar o planejamento e a rotina clínica.",
+  },
+  {
+    src: recepcaoImg,
+    title: "Recepção",
+    text: "Espaço confortável para acomodar você e sua família antes do atendimento.",
+  },
+  {
+    src: escritorioImg,
+    title: "Escritório",
+    text: "Retaguarda organizada para dar suporte a cada etapa do seu cuidado.",
+  },
+  {
+    src: cantinhoCafeImg,
+    title: "Cantinho do café",
+    text: "Um cafezinho para deixar a espera mais leve e acolhedora.",
+  },
+  {
+    src: consultorioJanelaImg,
+    title: "Consultório com luz natural",
+    text: "Ambiente arejado, pensado para o conforto de cada paciente.",
   },
 ];
 
