@@ -249,20 +249,54 @@ function StructureCarousel() {
 
   return (
     <div className="mt-12">
-      <div className="group relative overflow-hidden rounded-[2.2rem] bg-brand-deep shadow-[0_36px_100px_-45px_rgba(3,47,1,.45)] sm:rounded-[2.7rem]">
-        <img
-          key={current.src}
-          src={current.src}
-          alt={`${current.title} da JP Clínica Integrada Odontológica`}
-          loading="lazy"
-          className="h-[430px] w-full object-cover sm:h-[560px] lg:h-[650px]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-forest-2/72 via-transparent to-transparent" />
+      <div className="overflow-hidden rounded-[2.2rem] bg-brand-deep shadow-[0_36px_100px_-45px_rgba(3,47,1,.45)] sm:rounded-[2.7rem]">
+        {/* PALCO DA FOTO
+            As fotos da clínica são quadradas e as antigas, panorâmicas. Cortar
+            para preencher uma caixa fixa (object-cover) amputava metade do
+            enquadramento — a fachada perdia o letreiro — e ainda ampliava a
+            imagem além do tamanho nativo, borrando. Agora a foto entra inteira
+            (object-contain) e o vazio das laterais é preenchido por uma cópia
+            borrada dela mesma, em vez de barras chapadas. */}
+        <div className="relative h-[340px] overflow-hidden sm:h-[460px] lg:h-[560px]">
+          <img
+            key={`bg-${current.src}`}
+            src={current.src}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-[.55] saturate-[.85]"
+          />
+          <img
+            key={current.src}
+            src={current.src}
+            alt={`${current.title} da JP Clínica Integrada Odontológica`}
+            loading="lazy"
+            className="relative h-full w-full object-contain"
+          />
 
-        {/* A numeração "Espaço 01" saiu: os pontos abaixo já dizem onde a pessoa
-            está, e com aria-current dizem isso também para o leitor de tela. */}
-        <div className="absolute inset-x-5 bottom-5 sm:inset-x-8 sm:bottom-8">
-          <div className="flex max-w-sm items-start gap-3 rounded-[1.25rem] border border-white/15 bg-forest-2/78 p-4 text-white backdrop-blur-xl">
+          <button
+            type="button"
+            onClick={() => move(-1)}
+            aria-label="Foto anterior da estrutura"
+            className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/92 text-brand-deep shadow-lg transition hover:bg-lime sm:left-6 sm:h-13 sm:w-13"
+          >
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => move(1)}
+            aria-label="Próxima foto da estrutura"
+            className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:bg-white sm:right-6 sm:h-13 sm:w-13"
+          >
+            <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+        </div>
+
+        {/* LEGENDA
+            Fora da foto, não por cima: sobreposta ela tampava justamente o
+            canto que o visitante quer ver e brigava com o rótulo que algumas
+            fotos já trazem impresso. */}
+        <div className="flex flex-col gap-4 border-t border-white/10 px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div className="flex items-start gap-3">
             <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
               <IconDente className="h-5 w-5" />
             </span>
@@ -275,46 +309,21 @@ function StructureCarousel() {
               </p>
             </div>
           </div>
-        </div>
 
-        <button
-          type="button"
-          onClick={() => move(-1)}
-          aria-label="Foto anterior da estrutura"
-          className="absolute left-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/92 text-brand-deep shadow-lg transition hover:-translate-y-[55%] hover:bg-lime sm:left-6 sm:h-13 sm:w-13"
-        >
-          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => move(1)}
-          aria-label="Próxima foto da estrutura"
-          className="absolute right-3 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:-translate-y-[55%] sm:right-6 sm:h-13 sm:w-13"
-        >
-          <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-        </button>
-
-        <div
-          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full border border-white/14 bg-forest-2/55 px-3 py-2 backdrop-blur sm:flex"
-          aria-label="Selecionar foto da estrutura"
-        >
-          {GALLERY.map((item, index) => (
-            <button
-              key={item.title}
-              type="button"
-              onClick={() => setActive(index)}
-              aria-label={`Ver ${item.title}`}
-              aria-current={active === index ? "true" : undefined}
-              className={`h-2 rounded-full transition-all ${
-                active === index ? "w-7 bg-lime" : "w-2 bg-white/55 hover:bg-white"
-              }`}
-            />
-          ))}
+          {/* Contador: com 15 fotos, uma fileira de pontinhos vira poeira —
+              o número diz de imediato onde a pessoa está. */}
+          <p className="shrink-0 font-display text-sm font-extrabold text-white/55">
+            <span className="text-lime">{String(active + 1).padStart(2, "0")}</span> /{" "}
+            {String(GALLERY.length).padStart(2, "0")}
+          </p>
         </div>
       </div>
 
+      {/* MINIATURAS
+          Substituem os pontinhos: com 15 fotos a pessoa vê para onde está indo
+          em vez de adivinhar. Rola na horizontal quando não cabem. */}
       <div
-        className="mt-5 flex items-center justify-center gap-2 sm:hidden"
+        className="mt-5 flex gap-2.5 overflow-x-auto pb-2 [scrollbar-width:thin]"
         aria-label="Selecionar foto da estrutura"
       >
         {GALLERY.map((item, index) => (
@@ -324,10 +333,14 @@ function StructureCarousel() {
             onClick={() => setActive(index)}
             aria-label={`Ver ${item.title}`}
             aria-current={active === index ? "true" : undefined}
-            className={`h-2.5 rounded-full transition-all ${
-              active === index ? "w-9 bg-primary" : "w-2.5 bg-forest/18 hover:bg-forest/35"
+            className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition sm:h-20 sm:w-20 ${
+              active === index
+                ? "border-primary opacity-100"
+                : "border-transparent opacity-55 hover:opacity-90"
             }`}
-          />
+          >
+            <img src={item.src} alt="" loading="lazy" className="h-full w-full object-cover" />
+          </button>
         ))}
       </div>
     </div>
