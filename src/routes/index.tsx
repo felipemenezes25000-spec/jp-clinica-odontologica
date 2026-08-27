@@ -72,66 +72,92 @@ const TREATMENT_MEDIA = [
   harmonizacaoPoster,
 ];
 
+/**
+ * `bg` é a cor que preenche a sobra do palco quando a foto não tem a mesma
+ * proporção dele. Antes ali entrava uma cópia borrada da própria foto, que
+ * virava uma moldura cinza suja em volta de tudo.
+ *
+ * FOTO_VERDE é o verde exato da borda das fotos que vieram do Instagram da
+ * clínica — medido no anel de 3px da margem delas, igual nas oito. Com ele o
+ * fundo emenda com a moldura da foto e ninguém vê onde uma acaba e a outra
+ * começa. As fotos sem moldura são recortes claros de sala, e ganham o verde
+ * escuro da marca: a foto salta e o palco continua na faixa da legenda.
+ */
+const FOTO_VERDE = "#97c959";
+const FUNDO_ESCURO = "#032f01";
+
 const GALLERY = [
   {
     src: consultorioWideImg,
     title: "Consultório principal",
     text: "Ambiente claro, organizado e preparado para um atendimento tranquilo.",
+    bg: FUNDO_ESCURO,
   },
   {
     src: fachadaImg,
     title: "Nossa fachada",
     text: `${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, na região da Freguesia do Ó.`,
+    bg: FUNDO_ESCURO,
   },
   {
     src: esterilizacaoImg,
     title: "Esterilização",
     text: "Área dedicada ao cuidado com instrumentais e protocolos de biossegurança.",
+    bg: FUNDO_ESCURO,
   },
   {
     src: equipamentoImg,
     title: "Equipamentos",
     text: "Estrutura preparada para apoiar o planejamento e a rotina clínica.",
+    bg: FUNDO_ESCURO,
   },
   {
     src: recepcaoImg,
     title: "Recepção",
     text: "Espaço confortável para acomodar você e sua família antes do atendimento.",
+    bg: FOTO_VERDE,
   },
   {
     src: escritorioImg,
     title: "Escritório",
     text: "Retaguarda organizada para dar suporte a cada etapa do seu cuidado.",
+    bg: FOTO_VERDE,
   },
   {
     src: cantinhoCafeImg,
     title: "Cantinho do café",
     text: "Um cafezinho para deixar a espera mais leve e acolhedora.",
+    bg: FOTO_VERDE,
   },
   {
     src: consultorioJanelaImg,
     title: "Consultório com luz natural",
     text: "Ambiente arejado, pensado para o conforto de cada paciente.",
+    bg: FOTO_VERDE,
   },
   {
     src: entradaClinicaImg,
     title: "Entrada da clínica",
     text: "Acesso seguro, com portão e câmeras na entrada da JP.",
+    bg: FOTO_VERDE,
   },
   {
     src: salaEsperaOrtodontiaImg,
     title: "Sala de espera — ortodontia",
     text: "Espaço de espera com informações sobre aparelhos ortodônticos.",
+    bg: FOTO_VERDE,
   },
   {
     src: consultorioBancadaImg,
     title: "Consultório — bancada de trabalho",
     text: "Instrumentais organizados e prontos para cada procedimento.",
+    bg: FOTO_VERDE,
   },
   {
     src: consultorioCadeiraLilasImg,
     title: "Consultório — outra sala",
     text: "Mais uma sala equipada para o seu atendimento.",
+    bg: FOTO_VERDE,
   },
 ];
 
@@ -240,20 +266,16 @@ function StructureCarousel() {
             imagem além do tamanho nativo, borrando. Agora a foto entra inteira
             (object-contain) e o vazio das laterais é preenchido por uma cópia
             borrada dela mesma, em vez de barras chapadas. */}
-        <div className="relative h-[340px] overflow-hidden sm:h-[460px] lg:h-[560px]">
-          <img
-            key={`bg-${current.src}`}
-            src={current.src}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-[.55] saturate-[.85]"
-          />
+        <div
+          className="relative h-[340px] overflow-hidden transition-colors duration-500 sm:h-[460px] lg:h-[560px]"
+          style={{ backgroundColor: current.bg }}
+        >
           <img
             key={current.src}
             src={current.src}
             alt={`${current.title} da JP Clínica Integrada Odontológica`}
             loading="lazy"
-            className="relative h-full w-full object-contain"
+            className="h-full w-full object-contain"
           />
 
           <button
