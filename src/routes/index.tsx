@@ -241,7 +241,11 @@ function StructureGallery() {
         {GALLERY.map((item) => (
           <figure
             key={item.title}
-            className="group relative aspect-[4/3] w-[78%] shrink-0 snap-start overflow-hidden rounded-2xl bg-brand-deep shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:w-[46%] lg:w-[31.5%]"
+            /* 49% = duas peças de ~580px por vez. Não passa disso de propósito:
+               a área útil da foto tem 665px, então acima disso ela seria
+               ampliada e voltaria a borrar — 580px é o maior tamanho que ainda
+               cabe dentro do original. */
+            className="group relative aspect-[4/3] w-[88%] shrink-0 snap-start overflow-hidden rounded-2xl bg-brand-deep shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:w-[64%] lg:w-[49%]"
           >
             <img
               src={item.src}
@@ -252,8 +256,8 @@ function StructureGallery() {
             {/* O degradê só cobre a faixa do rótulo: subir mais escureceria a
                 foto inteira, que é justamente o que a pessoa veio ver. */}
             <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-brand-deep via-brand-deep/70 to-transparent" />
-            <figcaption className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
-              <h3 className="font-display text-sm font-extrabold leading-tight tracking-[-.02em] text-white sm:text-base">
+            <figcaption className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+              <h3 className="font-display text-base font-extrabold leading-tight tracking-[-.02em] text-white sm:text-lg">
                 {item.title}
               </h3>
             </figcaption>
