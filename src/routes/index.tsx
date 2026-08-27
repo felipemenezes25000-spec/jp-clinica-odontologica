@@ -21,7 +21,6 @@ import {
 
 import fachadaImg from "@/assets/fachada.webp";
 import consultorioRealImg from "@/assets/consultorio-1.webp";
-import consultorioReal2Img from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
@@ -31,7 +30,6 @@ import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
 import consultorioJanelaImg from "@/assets/consultorio-janela.webp";
 import entradaClinicaImg from "@/assets/entrada-clinica.webp";
 import salaEsperaOrtodontiaImg from "@/assets/sala-espera-ortodontia.webp";
-import fachadaLetreiroImg from "@/assets/fachada-letreiro.webp";
 import consultorioBancadaImg from "@/assets/consultorio-bancada.webp";
 import consultorioCadeiraLilasImg from "@/assets/consultorio-cadeira-lilas.webp";
 
@@ -86,16 +84,6 @@ const GALLERY = [
     text: `${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, na região da Freguesia do Ó.`,
   },
   {
-    src: consultorioRealImg,
-    title: "Sala de atendimento",
-    text: "Estrutura acolhedora e iluminação natural para receber você com conforto.",
-  },
-  {
-    src: consultorioReal2Img,
-    title: "Tecnologia no consultório",
-    text: "Recursos que ajudam a explicar cada etapa com mais clareza.",
-  },
-  {
     src: esterilizacaoImg,
     title: "Esterilização",
     text: "Área dedicada ao cuidado com instrumentais e protocolos de biossegurança.",
@@ -134,11 +122,6 @@ const GALLERY = [
     src: salaEsperaOrtodontiaImg,
     title: "Sala de espera — ortodontia",
     text: "Espaço de espera com informações sobre aparelhos ortodônticos.",
-  },
-  {
-    src: fachadaLetreiroImg,
-    title: "Fachada da JP",
-    text: `${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, com nosso letreiro na frente.`,
   },
   {
     src: consultorioBancadaImg,
