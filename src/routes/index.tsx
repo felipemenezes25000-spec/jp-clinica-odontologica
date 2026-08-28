@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -9,6 +9,7 @@ import {
   Clock3,
   HeartHandshake,
   Instagram,
+  Maximize2,
   MapPin,
   MessageCircle,
   Phone,
@@ -17,6 +18,7 @@ import {
   Star,
   Stethoscope,
   UsersRound,
+  X,
 } from "lucide-react";
 
 import fachadaImg from "@/assets/fachada.webp";
@@ -25,13 +27,21 @@ import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
 import escritorioImg from "@/assets/escritorio.webp";
+import escritorioFullImg from "@/assets/escritorio-completa.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
+import recepcaoFullImg from "@/assets/recepcao-completa.webp";
 import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
+import cantinhoCafeFullImg from "@/assets/cantinho-cafe-completa.webp";
 import consultorioJanelaImg from "@/assets/consultorio-janela.webp";
+import consultorioJanelaFullImg from "@/assets/consultorio-janela-completa.webp";
 import entradaClinicaImg from "@/assets/entrada-clinica.webp";
+import entradaClinicaFullImg from "@/assets/entrada-clinica-completa.webp";
 import salaEsperaOrtodontiaImg from "@/assets/sala-espera-ortodontia.webp";
+import salaEsperaOrtodontiaFullImg from "@/assets/sala-espera-ortodontia-completa.webp";
 import consultorioBancadaImg from "@/assets/consultorio-bancada.webp";
+import consultorioBancadaFullImg from "@/assets/consultorio-bancada-completa.webp";
 import consultorioCadeiraLilasImg from "@/assets/consultorio-cadeira-lilas.webp";
+import consultorioCadeiraLilasFullImg from "@/assets/consultorio-cadeira-lilas-completa.webp";
 
 import limpezaPoster from "@/assets/video-limpeza-poster.webp";
 import clareamentoPoster from "@/assets/video-clareamento-poster.webp";
@@ -71,7 +81,18 @@ const TREATMENT_MEDIA = [
   harmonizacaoPoster,
 ];
 
-const GALLERY = [
+/**
+ * `src` é a versão que aparece no carrossel: as fotos vindas do Instagram
+ * entram ali já recortadas para fora da moldura decorativa, senão o logo e o
+ * rótulo impressos nelas brigam com os do site.
+ *
+ * `full` é o post original, inteiro, que abre ao clicar. Só as fotos que têm
+ * uma versão diferente da exibida declaram o campo; nas demais o clique abre
+ * a mesma imagem.
+ */
+type EspacoFoto = { src: string; full?: string; title: string };
+
+const GALLERY: EspacoFoto[] = [
   {
     src: consultorioWideImg,
     title: "Consultório principal",
@@ -90,34 +111,42 @@ const GALLERY = [
   },
   {
     src: recepcaoImg,
+    full: recepcaoFullImg,
     title: "Recepção",
   },
   {
     src: escritorioImg,
+    full: escritorioFullImg,
     title: "Escritório",
   },
   {
     src: cantinhoCafeImg,
+    full: cantinhoCafeFullImg,
     title: "Cantinho do café",
   },
   {
     src: consultorioJanelaImg,
+    full: consultorioJanelaFullImg,
     title: "Consultório com luz natural",
   },
   {
     src: entradaClinicaImg,
+    full: entradaClinicaFullImg,
     title: "Entrada da clínica",
   },
   {
     src: salaEsperaOrtodontiaImg,
+    full: salaEsperaOrtodontiaFullImg,
     title: "Sala de espera — ortodontia",
   },
   {
     src: consultorioBancadaImg,
+    full: consultorioBancadaFullImg,
     title: "Consultório — bancada de trabalho",
   },
   {
     src: consultorioCadeiraLilasImg,
+    full: consultorioCadeiraLilasFullImg,
     title: "Consultório — outra sala",
   },
 ];
@@ -210,27 +239,135 @@ export const Route = createFileRoute("/")({
 });
 
 /**
- * Carrossel que desliza várias fotos por vez, não uma só ocupando a largura.
+ * Visor de foto ampliada.
  *
- * A área útil de cada foto tem 665px. Num palco de uma foto por vez ela seria
- * esticada para 1185px — foi daí que veio a impressão de resolução ruim nas
- * versões anteriores. Em peças de ~370px ela é reduzida, e reduzir é o que
- * mantém a imagem nítida.
+ * O carrossel mostra a foto recortada, que e a que combina com o site. Aqui
+ * abre o arquivo original inteiro - no caso dos posts do Instagram, com a
+ * moldura e o logo da clinica, exatamente como a foto foi enviada.
+ */
+function VisorFoto({
+  fotos,
+  indice,
+  aoFechar,
+  aoNavegar,
+}: {
+  fotos: EspacoFoto[];
+  indice: number;
+  aoFechar: () => void;
+  aoNavegar: (passo: number) => void;
+}) {
+  const foto = fotos[indice]!;
+  const botaoFechar = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape") aoFechar();
+      if (e.key === "ArrowRight") aoNavegar(1);
+      if (e.key === "ArrowLeft") aoNavegar(-1);
+    };
+    document.addEventListener("keydown", tecla);
+    // Trava a rolagem do fundo: sem isso o dedo no celular arrasta a pagina
+    // atras do visor em vez de mover a foto.
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    botaoFechar.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", tecla);
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [aoFechar, aoNavegar]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${foto.title} - foto ampliada`}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-deep/92 p-4 backdrop-blur-sm sm:p-8"
+      onClick={aoFechar}
+    >
+      {/* O clique no fundo fecha; dentro da foto, nao. */}
+      <figure
+        className="relative flex max-h-full flex-col items-center gap-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={foto.full ?? foto.src}
+          alt={`${foto.title} da JP Clinica Integrada Odontologica`}
+          className="max-h-[76vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+        />
+        <figcaption className="text-center font-display text-base font-extrabold text-white sm:text-lg">
+          {foto.title}
+          <span className="ml-3 text-sm font-bold text-white/45">
+            {indice + 1} / {fotos.length}
+          </span>
+        </figcaption>
+      </figure>
+
+      <button
+        ref={botaoFechar}
+        type="button"
+        onClick={aoFechar}
+        aria-label="Fechar foto ampliada"
+        className="absolute right-4 top-4 grid h-11 w-11 place-items-center rounded-full bg-white/95 text-brand-deep shadow-lg transition hover:bg-lime sm:right-8 sm:top-8"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          aoNavegar(-1);
+        }}
+        aria-label="Foto anterior"
+        className="absolute left-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/92 text-brand-deep shadow-lg transition hover:bg-lime sm:left-6"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          aoNavegar(1);
+        }}
+        aria-label="Proxima foto"
+        className="absolute right-2 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:bg-white sm:right-6"
+      >
+        <ArrowRight className="h-5 w-5" />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Carrossel que desliza varias fotos por vez, nao uma so ocupando a largura.
  *
- * A rolagem é nativa com scroll-snap: funciona no gesto do celular sem
+ * A area util de cada foto tem 665px. Numa peca maior que isso ela seria
+ * ampliada - foi dai que veio a impressao de resolucao ruim nas versoes
+ * anteriores. Em pecas de ~647px ela ainda e reduzida, e reduzir e o que
+ * mantem a imagem nitida.
+ *
+ * A rolagem e nativa com scroll-snap: funciona no gesto do celular sem
  * biblioteca, e as setas apenas empurram a mesma rolagem no desktop.
  */
 function StructureGallery() {
   const trilho = useRef<HTMLDivElement>(null);
+  const [ampliada, setAmpliada] = useState<number | null>(null);
 
   const deslizar = (direcao: number) => {
     const el = trilho.current;
     if (!el) return;
-    // Anda uma peça por clique: a primeira serve de régua para qualquer
-    // largura, em vez de um número fixo que só valeria num breakpoint.
+    // Anda uma peca por clique: a primeira serve de regua para qualquer
+    // largura, em vez de um numero fixo que so valeria num breakpoint.
     const passo = el.firstElementChild?.getBoundingClientRect().width ?? el.clientWidth;
     el.scrollBy({ left: direcao * (passo + 14), behavior: "smooth" });
   };
+
+  const fechar = useCallback(() => setAmpliada(null), []);
+  const navegar = useCallback(
+    (passo: number) =>
+      setAmpliada((i) => (i === null ? i : (i + passo + GALLERY.length) % GALLERY.length)),
+    [],
+  );
 
   return (
     <div className="relative mt-12">
@@ -238,34 +375,39 @@ function StructureGallery() {
         ref={trilho}
         className="flex snap-x snap-mandatory gap-3.5 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {GALLERY.map((item) => (
-          <figure
+        {GALLERY.map((item, i) => (
+          <button
             key={item.title}
-            /* 49% = duas peças de ~580px por vez. Não passa disso de propósito:
-               a área útil da foto tem 665px, então acima disso ela seria
-               ampliada e voltaria a borrar — 580px é o maior tamanho que ainda
-               cabe dentro do original. */
-            className="group relative aspect-[4/3] w-[88%] shrink-0 snap-start overflow-hidden rounded-2xl bg-brand-deep shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:w-[64%] lg:w-[49%]"
+            type="button"
+            onClick={() => setAmpliada(i)}
+            aria-label={`Ampliar foto: ${item.title}`}
+            /* 49% = duas pecas de ~647px por vez. Nao passa disso de proposito:
+               a area util da foto tem 665px, entao acima disso ela seria
+               ampliada e voltaria a borrar. */
+            className="group relative aspect-[4/3] w-[88%] shrink-0 cursor-zoom-in snap-start overflow-hidden rounded-2xl bg-brand-deep text-left shadow-[0_18px_50px_-30px_rgba(3,47,1,.5)] sm:w-[64%] lg:w-[49%]"
           >
             <img
               src={item.src}
-              alt={`${item.title} da JP Clínica Integrada Odontológica`}
+              alt={`${item.title} da JP Clinica Integrada Odontologica`}
               loading="lazy"
               className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            {/* O degradê só cobre a faixa do rótulo: subir mais escureceria a
-                foto inteira, que é justamente o que a pessoa veio ver. */}
+            {/* O degrade so cobre a faixa do rotulo: subir mais escureceria a
+                foto inteira, que e justamente o que a pessoa veio ver. */}
             <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-brand-deep via-brand-deep/70 to-transparent" />
-            <figcaption className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-              <h3 className="font-display text-base font-extrabold leading-tight tracking-[-.02em] text-white sm:text-lg">
+            <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/90 text-brand-deep opacity-0 shadow transition group-hover:opacity-100 group-focus-visible:opacity-100">
+              <Maximize2 className="h-4 w-4" />
+            </span>
+            <span className="absolute inset-x-0 bottom-0 block p-4 sm:p-5">
+              <span className="block font-display text-base font-extrabold leading-tight tracking-[-.02em] text-white sm:text-lg">
                 {item.title}
-              </h3>
-            </figcaption>
-          </figure>
+              </span>
+            </span>
+          </button>
         ))}
       </div>
 
-      {/* Setas só no desktop: no celular o dedo já arrasta, e elas roubariam
+      {/* Setas so no desktop: no celular o dedo ja arrasta, e elas roubariam
           largura da foto. */}
       <button
         type="button"
@@ -278,11 +420,15 @@ function StructureGallery() {
       <button
         type="button"
         onClick={() => deslizar(1)}
-        aria-label="Ver próximas fotos da estrutura"
+        aria-label="Ver proximas fotos da estrutura"
         className="absolute -right-4 top-1/2 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-lime text-brand-deep shadow-lg transition hover:bg-white lg:grid"
       >
         <ArrowRight className="h-5 w-5" />
       </button>
+
+      {ampliada !== null && (
+        <VisorFoto fotos={GALLERY} indice={ampliada} aoFechar={fechar} aoNavegar={navegar} />
+      )}
     </div>
   );
 }
