@@ -83,6 +83,10 @@ export type ExtracaoCurriculo = {
   /** "AAAA-MM-DD", "AAAA-MM", "AAAA" ou "". */
   nascimento: string;
   idadeDeclarada: number | null;
+  /** Bairro como escrito no currículo. Alimenta o cálculo de proximidade. */
+  bairro: string;
+  /** Só dígitos, 8 posições, ou "". A chave mais confiável de proximidade. */
+  cep: string;
   cidade: string;
   uf: string;
   telefone: string;
@@ -267,6 +271,8 @@ export function extracaoVazia(): ExtracaoCurriculo {
     nome: "",
     nascimento: "",
     idadeDeclarada: null,
+    bairro: "",
+    cep: "",
     cidade: "",
     uf: "",
     telefone: "",

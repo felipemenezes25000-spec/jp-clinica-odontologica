@@ -27,6 +27,7 @@ import {
   NOTA_ETICA_JP,
   type GuiaEntrevista,
 } from "../guia";
+import { apenasDigitos } from "../formatar";
 import { emAnosMeses } from "../ia/metricas";
 import { CHAVES_CRITERIO, rubricaPara, textoDasAncoras } from "../ia/rubricas";
 import { extracaoVazia } from "../ia/tipos";
@@ -352,6 +353,8 @@ const ESQUEMA_EXTRACAO = {
     "nome",
     "nascimento",
     "idadeDeclarada",
+    "bairro",
+    "cep",
     "cidade",
     "uf",
     "telefone",
@@ -381,6 +384,15 @@ const ESQUEMA_EXTRACAO = {
     nome: { type: "string" },
     nascimento: { type: "string", description: "AAAA-MM-DD, ou AAAA-MM, ou AAAA, ou vazio" },
     idadeDeclarada: { type: ["integer", "null"] },
+    // Bairro e CEP existem por causa do calculo de proximidade da clinica
+    // (ver lib/rh/ia/proximidade.ts). O modelo so COPIA o que esta escrito:
+    // quem decide se e perto ou longe e codigo deterministico, porque pedir
+    // distancia a um modelo devolve quilometro inventado com cara de exato.
+    bairro: {
+      type: "string",
+      description: "bairro do endereco residencial, exatamente como escrito, ou vazio",
+    },
+    cep: { type: "string", description: "CEP so com digitos (8), ou vazio" },
     cidade: { type: "string" },
     uf: { type: "string", description: "sigla de duas letras, ou vazio" },
     telefone: { type: "string" },
@@ -556,6 +568,8 @@ function normalizarExtracao(bruto: unknown): ExtracaoCurriculo {
     nome: txt(o["nome"], 120),
     nascimento: txt(o["nascimento"], 10),
     idadeDeclarada: idade > 0 ? idade : null,
+    bairro: txt(o["bairro"], 120),
+    cep: apenasDigitos(txt(o["cep"], 20)).slice(0, 8),
     cidade: txt(o["cidade"], 120),
     uf: txt(o["uf"], 2).toUpperCase(),
     telefone: txt(o["telefone"], 40),
@@ -1135,7 +1149,9 @@ function montarDossie(entrada: {
   L.push(
     `Idade: ${e.idadeDeclarada ?? "não informada"} | Nascimento: ${e.nascimento || "não informado"}`,
   );
-  L.push(`Cidade: ${[e.cidade, e.uf].filter((p) => p.length > 0).join("/") || "não informada"}`);
+  L.push(
+    `Onde mora: ${[e.bairro, e.cidade, e.uf].filter((p) => p.length > 0).join(", ") || "não informado"}`,
+  );
   if (e.registroProfissional) L.push(`Registro no conselho: ${e.registroProfissional}`);
   if (e.pretensaoDeclarada) L.push(`Pretensão declarada: ${e.pretensaoDeclarada}`);
   if (e.resumoObjetivo) L.push(`Objetivo escrito por ela: ${e.resumoObjetivo}`);
@@ -1702,7 +1718,9 @@ function montarDossieFicha(entrada: {
 
   L.push("\n=== CANDIDATA DESTA FICHA ===");
   L.push(`Nome: ${e.nome || "(não identificado no documento)"}`);
-  L.push(`Cidade: ${[e.cidade, e.uf].filter((p) => p.length > 0).join("/") || "não informada"}`);
+  L.push(
+    `Onde mora: ${[e.bairro, e.cidade, e.uf].filter((p) => p.length > 0).join(", ") || "não informado"}`,
+  );
   if (e.registroProfissional) L.push(`Registro no conselho: ${e.registroProfissional}`);
   if (e.pretensaoDeclarada) L.push(`Pretensão declarada: ${e.pretensaoDeclarada}`);
   if (e.resumoObjetivo) L.push(`Objetivo escrito por ela: ${e.resumoObjetivo}`);

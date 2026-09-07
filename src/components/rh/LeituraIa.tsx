@@ -22,11 +22,15 @@
  */
 import { useEffect, useId, useRef, useState } from "react";
 import {
+  Building2,
+  ChartNoAxesColumn,
   Check,
   CircleAlert,
   Copy,
+  Flag,
   History,
   LoaderCircle,
+  MessageCircleQuestion,
   Quote,
   RefreshCw,
   ShieldAlert,
@@ -43,6 +47,7 @@ import type { AnaliseIa, ChaveCriterio, CriterioIa } from "@/lib/rh/ia/tipos";
 import type { Candidatura } from "@/lib/rh/tipos";
 import { LinhaDoTempoEmpregos } from "./LinhaDoTempoEmpregos";
 import { PainelSinais } from "./PainelSinais";
+import { Sanfona, useSanfonas } from "./Sanfona";
 
 /* -------------------------------------------------------------------------- */
 /* Constantes de estilo e catálogos de tela                                   */
@@ -122,6 +127,12 @@ const PASSOS = [
  * HTML do servidor e no do navegador, e basta um ICU diferente entre os dois
  * para o React reclamar de divergência na hidratação por causa de um ponto.
  */
+/** "4 itens", "1 item", "nenhum item" — o que a seção fechada promete. */
+function contarItens(n: number, singular: string, plural: string): string {
+  if (n === 0) return `nenhum ${singular}`;
+  return `${String(n)} ${n === 1 ? singular : plural}`;
+}
+
 function milhar(n: number): string {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
@@ -266,13 +277,19 @@ function ListaComIcone(props: {
   vazio: string;
 }) {
   const { titulo, itens, icone: Icone, corIcone, vazio } = props;
+  /* Título vazio quando a lista já vive dentro de uma sanfona: lá o rótulo é o
+     próprio botão que abriu a seção, e repetir "Pontos fortes" logo abaixo de
+     "Pontos fortes" é a poluição que este trabalho todo veio tirar. */
+  const semTitulo = titulo.trim() === "";
   return (
-    <section aria-label={titulo}>
-      <h4 className={ROTULO}>{titulo}</h4>
+    <section {...(semTitulo ? {} : { "aria-label": titulo })}>
+      {semTitulo ? null : <h4 className={ROTULO}>{titulo}</h4>}
       {itens.length === 0 ? (
-        <p className="mt-2 text-sm text-white/85">{vazio}</p>
+        <p className={semTitulo ? "text-sm text-white/85" : "mt-2 text-sm text-white/85"}>
+          {vazio}
+        </p>
       ) : (
-        <ul className="mt-2 space-y-1.5">
+        <ul className={semTitulo ? "space-y-1.5" : "mt-2 space-y-1.5"}>
           {itens.map((t) => (
             <li key={t} className="flex gap-2 text-sm leading-relaxed text-white/85">
               {/* Ícone próprio por coluna, e não só a cor do texto: as duas
@@ -328,6 +345,18 @@ export function LeituraIa(props: {
   }, []);
 
   const configurada = props.estadoIa === undefined || props.estadoIa.configurada;
+
+  /**
+   * Quais blocos da leitura estão abertos.
+   *
+   * NENHUM por padrão, a pedido: "quando estão todas essas informações já
+   * mostradas na página, eu fico com a visão poluída". Abrir a ficha passa a
+   * mostrar a nota, a recomendação e a frase de resumo — e uma lista de portas
+   * com o que há atrás de cada uma. O estado vive aqui, e não em cada
+   * `<details>`, para acompanhar quem percorre a fila: abriu "Pontos de
+   * atenção" numa candidata, continua aberto na próxima.
+   */
+  const sanfona = useSanfonas();
 
   async function copiarPerguntas() {
     if (!analise) return;
@@ -519,116 +548,166 @@ export function LeituraIa(props: {
         </p>
       </div>
 
-      {/* ---------- b) As seis barras ---------- */}
-      {analise.criterios.length > 0 ? (
-        <div className="mt-4 space-y-3.5 border-t border-white/10 pt-4">
-          {/* Sempre as seis, na ordem canônica da rubrica: critério que o modelo
-              deixou de responder aparece como "—", e não some da tela — some,
-              o RH acharia que a nota geral saiu de cinco critérios. */}
-          {CHAVES_CRITERIO.map((c) => (
-            <BarraCriterio
-              key={c}
-              chave={c}
-              criterio={analise.criterios.find((k) => k.chave === c) ?? null}
-            />
-          ))}
-        </div>
-      ) : null}
+      {/* ---------- As seções que abrem ----------
+          Tudo daqui para baixo estava sempre aberto: seis barras de critério, a
+          lista de sinalizações, a linha do tempo, fortes, atenção, impressão e
+          seis perguntas, empilhados. Cada bloco virou uma porta com o conteúdo
+          anunciado no rótulo ("4 itens", "6 perguntas"), fechada por padrão.
+          Fechar não esconde a existência do bloco — só o texto dele. */}
+      <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
+        {analise.criterios.length > 0 ? (
+          <Sanfona
+            id={`${uid}-criterios`}
+            titulo="Nota, critério a critério"
+            icone={ChartNoAxesColumn}
+            resumo={`${CHAVES_CRITERIO.length} critérios`}
+            aberta={sanfona.aberta("criterios")}
+            aoAlternar={() => sanfona.alternar("criterios")}
+          >
+            <div className="space-y-3.5">
+              {/* Sempre as seis, na ordem canônica da rubrica: critério que o
+                  modelo deixou de responder aparece como "—", e não some da
+                  tela — sumindo, o RH acharia que a nota geral saiu de cinco. */}
+              {CHAVES_CRITERIO.map((c) => (
+                <BarraCriterio
+                  key={c}
+                  chave={c}
+                  criterio={analise.criterios.find((k) => k.chave === c) ?? null}
+                />
+              ))}
+            </div>
+          </Sanfona>
+        ) : null}
 
-      {/* ---------- c) Sinais ---------- */}
-      <div className="mt-4 border-t border-white/10 pt-4">
-        <h4 className={ROTULO}>Sinalizações</h4>
-        <div className="mt-2">
-          <PainelSinais sinais={analise.sinais} />
-        </div>
-      </div>
-
-      {/* ---------- d) Linha do tempo ---------- */}
-      <div className="mt-4 border-t border-white/10 pt-4">
-        <h4 className={ROTULO}>Trajetória</h4>
-        <div className="mt-2">
-          <LinhaDoTempoEmpregos metricas={analise.metricas} agora={agora} />
-        </div>
-      </div>
-
-      {/* ---------- e) Fortes e atenção ---------- */}
-      <div className="mt-4 grid gap-4 border-t border-white/10 pt-4 sm:grid-cols-2">
-        <ListaComIcone
+        <Sanfona
+          id={`${uid}-fortes`}
           titulo="Pontos fortes"
-          itens={analise.pontosFortes}
           icone={ThumbsUp}
-          corIcone="text-lime"
-          vazio="Nada que se destaque no currículo."
-        />
-        <ListaComIcone
+          resumo={contarItens(analise.pontosFortes.length, "item", "itens")}
+          aberta={sanfona.aberta("fortes")}
+          aoAlternar={() => sanfona.alternar("fortes")}
+        >
+          <ListaComIcone
+            titulo=""
+            itens={analise.pontosFortes}
+            icone={ThumbsUp}
+            corIcone="text-lime"
+            vazio="Nada que se destaque no currículo."
+          />
+        </Sanfona>
+
+        <Sanfona
+          id={`${uid}-atencao`}
           titulo="Pontos de atenção"
-          itens={analise.pontosAtencao}
           icone={ShieldAlert}
-          corIcone="text-amber-200"
-          vazio="Nada a esclarecer além do que já está acima."
-        />
-      </div>
+          resumo={contarItens(analise.pontosAtencao.length, "item", "itens")}
+          aberta={sanfona.aberta("atencao")}
+          aoAlternar={() => sanfona.alternar("atencao")}
+        >
+          <ListaComIcone
+            titulo=""
+            itens={analise.pontosAtencao}
+            icone={ShieldAlert}
+            corIcone="text-amber-200"
+            vazio="Nada a esclarecer além do que já está acima."
+          />
+        </Sanfona>
 
-      {/* ---------- f) Impressão ---------- */}
-      {analise.impressao.trim() !== "" ? (
-        <blockquote className="mt-4 rounded-xl border-l-4 border-lime bg-white/[0.05] p-3.5">
-          <p className="flex items-center gap-1.5 text-[0.66rem] font-bold uppercase tracking-[0.12em] text-white">
-            <Quote className="h-3 w-3 shrink-0 text-lime" aria-hidden="true" />
-            Minha impressão
-          </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-white">{analise.impressao}</p>
-        </blockquote>
-      ) : null}
+        <Sanfona
+          id={`${uid}-sinais`}
+          titulo="Sinalizações"
+          icone={Flag}
+          resumo={contarItens(analise.sinais.length, "sinal", "sinais")}
+          aberta={sanfona.aberta("sinais")}
+          aoAlternar={() => sanfona.alternar("sinais")}
+        >
+          <PainelSinais sinais={analise.sinais} />
+        </Sanfona>
 
-      {/* ---------- g) Perguntas da entrevista ---------- */}
-      {analise.perguntasEntrevista.length > 0 ? (
-        <div className="mt-4 border-t border-white/10 pt-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h4 className={ROTULO}>Perguntas que eu faria</h4>
-            <button
-              type="button"
-              onClick={() => void copiarPerguntas()}
-              className={`${BOTAO_SECUNDARIO} min-h-9 px-3 text-xs`}
-            >
-              {copiado === "sim" ? (
-                <Check className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              copiar as perguntas
-            </button>
-          </div>
+        {analise.perguntasEntrevista.length > 0 ? (
+          <Sanfona
+            id={`${uid}-perguntas`}
+            titulo="Perguntas para a entrevista"
+            icone={MessageCircleQuestion}
+            resumo={contarItens(analise.perguntasEntrevista.length, "pergunta", "perguntas")}
+            aberta={sanfona.aberta("perguntas")}
+            aoAlternar={() => sanfona.alternar("perguntas")}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs leading-relaxed text-white/85">
+                Cada uma nasceu de um fato do currículo desta pessoa.
+              </p>
+              <button
+                type="button"
+                onClick={() => void copiarPerguntas()}
+                className={`${BOTAO_SECUNDARIO} min-h-9 px-3 text-xs`}
+              >
+                {copiado === "sim" ? (
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+                copiar as perguntas
+              </button>
+            </div>
 
-          {/* Confirmação visível, e não só o ícone trocado: o botão fica no alto
-              do bloco e quem clicou já rolou para as perguntas. */}
-          <p role="status" aria-live="polite" className="mt-1 text-xs font-semibold text-white">
-            {copiado === "sim" ? "Perguntas copiadas para a área de transferência." : ""}
-            {copiado === "nao" ? (
-              <span className="text-amber-200">
-                Não consegui copiar neste navegador — selecione o texto abaixo à mão.
-              </span>
-            ) : null}
-          </p>
-
-          <ol className="mt-2 space-y-2.5">
-            {analise.perguntasEntrevista.map((p, i) => (
-              <li key={p.pergunta} className="flex gap-2.5">
-                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lime/15 text-xs font-extrabold tabular-nums text-white ring-1 ring-lime/30">
-                  {i + 1}
+            {/* Confirmação visível, e não só o ícone trocado: o botão fica no
+                alto do bloco e quem clicou já rolou para as perguntas. */}
+            <p role="status" aria-live="polite" className="mt-1 text-xs font-semibold text-white">
+              {copiado === "sim" ? "Perguntas copiadas para a área de transferência." : ""}
+              {copiado === "nao" ? (
+                <span className="text-amber-200">
+                  Não consegui copiar neste navegador — selecione o texto abaixo à mão.
                 </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold leading-relaxed text-white">{p.pergunta}</p>
-                  {p.porque.trim() !== "" ? (
-                    <p className="mt-0.5 text-xs leading-relaxed text-white/85">
-                      para saber: {p.porque}
-                    </p>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
+              ) : null}
+            </p>
+
+            <ol className="mt-2 space-y-2.5">
+              {analise.perguntasEntrevista.map((p, i) => (
+                <li key={p.pergunta} className="flex gap-2.5">
+                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lime/15 text-xs font-extrabold tabular-nums text-white ring-1 ring-lime/30">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold leading-relaxed text-white">{p.pergunta}</p>
+                    {p.porque.trim() !== "" ? (
+                      <p className="mt-0.5 text-xs leading-relaxed text-white/85">
+                        para saber: {p.porque}
+                      </p>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </Sanfona>
+        ) : null}
+
+        <Sanfona
+          id={`${uid}-trajetoria`}
+          titulo="Trajetória profissional"
+          icone={Building2}
+          resumo={contarItens(analise.metricas.totalEmpregos, "experiência", "experiências")}
+          aberta={sanfona.aberta("trajetoria")}
+          aoAlternar={() => sanfona.alternar("trajetoria")}
+        >
+          <LinhaDoTempoEmpregos metricas={analise.metricas} agora={agora} />
+        </Sanfona>
+
+        {analise.impressao.trim() !== "" ? (
+          <Sanfona
+            id={`${uid}-impressao`}
+            titulo="Impressão da IA"
+            icone={Quote}
+            resumo="um parágrafo"
+            aberta={sanfona.aberta("impressao")}
+            aoAlternar={() => sanfona.alternar("impressao")}
+          >
+            <blockquote className="border-l-4 border-lime pl-3.5">
+              <p className="text-sm leading-relaxed text-white">{analise.impressao}</p>
+            </blockquote>
+          </Sanfona>
+        ) : null}
+      </div>
 
       {/* ---------- h) Rodapé ----------
           O aviso é obrigatório e fica junto do número: quem lê "82/100" precisa

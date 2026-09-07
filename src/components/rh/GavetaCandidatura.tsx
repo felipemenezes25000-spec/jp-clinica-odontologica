@@ -19,11 +19,13 @@
  * pela rota. Data calculada no render sairia diferente no servidor e no
  * navegador e derrubaria a hidratação.
  */
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, ReactNode } from "react";
 import {
   Archive,
   ArchiveRestore,
+  MapPin,
+  MessageCircleQuestion,
   BadgeCheck,
   Briefcase,
   Building2,
@@ -52,6 +54,7 @@ import { CentralContato } from "@/components/rh/CentralContato";
 import { BlocoFicha } from "@/components/rh/FichaEntrevista";
 import { LeituraIa } from "@/components/rh/LeituraIa";
 import { PainelDuvidas } from "@/components/rh/PainelDuvidas";
+import { Sanfona, useSanfonas } from "@/components/rh/Sanfona";
 import {
   comLeituraDeDuvida,
   comRespostaDeDuvida,
@@ -60,6 +63,8 @@ import {
   respostasDeDuvidas,
 } from "@/lib/rh/ficha";
 import type { FichaEntrevista } from "@/lib/rh/ficha";
+import { duvidasEmAberto, montarDuvidas } from "@/lib/rh/duvidas";
+import { classificarProximidade } from "@/lib/rh/ia/proximidade";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
 import {
   diasAteVencerGuarda,
@@ -119,6 +124,18 @@ const ACAO_RAPIDA =
   "inline-flex min-h-11 items-center gap-2 rounded-full px-3.5 text-sm font-bold ring-1 transition";
 
 const NOTAS = [1, 2, 3, 4, 5];
+
+/**
+ * O que a seção fechada promete: "3 experiências", "1 idioma", "nada ainda".
+ *
+ * Existe porque fechar não pode custar informação. Um rótulo mudo obrigaria a
+ * abrir tudo para descobrir onde há conteúdo — que é exatamente o hábito que
+ * este trabalho veio desfazer.
+ */
+function conta(n: number, singular: string, plural: string): string {
+  if (n === 0) return "nada ainda";
+  return `${String(n)} ${n === 1 ? singular : plural}`;
+}
 
 /**
  * Pausa antes de mandar ao servidor o que foi marcado no roteiro de dúvidas.
@@ -194,20 +211,39 @@ function paraCampoDataHora(iso: string): string {
 /* Peças de leitura                                                           */
 /* -------------------------------------------------------------------------- */
 
-function Secao(props: { id: string; titulo: string; icone: LucideIcon; children: ReactNode }) {
-  const { id, titulo, icone: Icone, children } = props;
+/**
+ * Uma seção da ficha — hoje uma porta que abre, e não um bloco sempre aberto.
+ *
+ * Eram doze seções empilhadas com tudo à mostra: formação, experiência,
+ * competências, carta, origem, disponibilidade, anotações. Nas palavras do
+ * cliente, "eu fico com a visão poluída". Agora cada uma anuncia no rótulo o
+ * que tem dentro ("3 experiências", "2 idiomas") e só abre quando alguém pede.
+ *
+ * `chave` identifica a seção no controle do pai — é o que faz a escolha de
+ * "quero ver os pontos de atenção" acompanhar quem percorre a fila em vez de
+ * se perder a cada candidato.
+ */
+function Secao(props: {
+  id: string;
+  chave: string;
+  titulo: string;
+  icone: LucideIcon;
+  resumo?: string;
+  sanfona: { aberta: (c: string) => boolean; alternar: (c: string) => void };
+  children: ReactNode;
+}) {
+  const { id, chave, titulo, icone, resumo, sanfona, children } = props;
   return (
-    <section aria-labelledby={id} className="rh-vidro p-4 sm:p-5">
-      <h3
-        id={id}
-        className="flex items-center gap-2 font-display text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-white"
-      >
-        {/* A marca continua verde no ícone, que não é letra. */}
-        <Icone className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-        {titulo}
-      </h3>
-      <div className="mt-3">{children}</div>
-    </section>
+    <Sanfona
+      id={id}
+      titulo={titulo}
+      icone={icone}
+      {...(resumo === undefined ? {} : { resumo })}
+      aberta={sanfona.aberta(chave)}
+      aoAlternar={() => sanfona.alternar(chave)}
+    >
+      {children}
+    </Sanfona>
   );
 }
 
@@ -461,6 +497,46 @@ function ConteudoGaveta(props: PropsConteudo) {
      cima do que a pessoa acabou de marcar. */
   const refDuvidasSujo = useRef(false);
   const refDuvidasTempo = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * Quais seções da ficha estão abertas.
+   *
+   * NENHUMA por padrão. Abrir um candidato passa a mostrar quem ele é, a nota
+   * da IA e uma lista de portas com o conteúdo anunciado em cada rótulo — em
+   * vez dos doze blocos abertos de uma vez que faziam a gaveta ter quase seis
+   * mil pixels de altura. A gestão do processo continua aberta porque não é
+   * leitura: é onde o RH mexe.
+   */
+  const sanfona = useSanfonas();
+
+  /**
+   * Onde a pessoa mora, em relação à clínica.
+   *
+   * Sai dos campos da FICHA — e não da análise da IA — de propósito: assim vale
+   * também para as sessenta e tantas candidaturas que já estavam no acervo
+   * antes de a leitura passar a extrair bairro e CEP. Quem não tem endereço
+   * nenhum no cadastro devolve "desconhecida", e aí nada aparece: ficha sem
+   * endereço não autoriza palpite sobre onde alguém mora.
+   */
+  const proximidade = useMemo(
+    () =>
+      classificarProximidade({
+        cep: item.cep,
+        bairro: item.bairro,
+        cidade: item.cidade,
+        uf: item.uf,
+      }),
+    [item.cep, item.bairro, item.cidade, item.uf],
+  );
+  const localDaPessoa = item.bairro.trim() || item.cidade.trim();
+
+  /* Quantas perguntas ainda não foram marcadas como lidas. É o que o rótulo da
+     seção fechada promete — e é a única contagem da ficha que muda enquanto a
+     gaveta está aberta, porque marcar uma leitura fecha uma pergunta. */
+  const duvidasAbertas = useMemo(
+    () => duvidasEmAberto(montarDuvidas(item), duvidas.leituras),
+    [item, duvidas.leituras],
+  );
+
   const refDuvidasPendente = useRef<FichaEntrevista | null>(null);
   const refDuvidasDespachar = useRef<(f: FichaEntrevista) => void>(() => {});
   const refSalvandoFichaAntes = useRef(salvandoFicha);
@@ -887,6 +963,29 @@ function ConteudoGaveta(props: PropsConteudo) {
                   <span className={`h-1.5 w-1.5 rounded-full ${pilula.ponto}`} aria-hidden="true" />
                   {pilula.rotulo}
                 </span>
+                {/* PROXIMIDADE — pedido do cliente: "se morar muito longe também
+                    fica inviável". Fica na linha de identificação, junto do
+                    status, porque é logística da pessoa e não avaliação dela:
+                    não entra na nota, não reprova ninguém, e só existe para a
+                    conversa acontecer antes de marcar entrevista às sete da
+                    manhã. A conta é determinística — ver ia/proximidade.ts. */}
+                {proximidade.banda === "desconhecida" ? null : (
+                  <span
+                    title={proximidade.base}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.7rem] font-bold ${
+                      proximidade.banda === "perto"
+                        ? "bg-lime/15 text-white ring-1 ring-lime/45"
+                        : proximidade.banda === "media"
+                          ? "bg-white/10 text-white ring-1 ring-white/30"
+                          : "bg-amber-300/15 text-white ring-1 ring-amber-200/45"
+                    }`}
+                  >
+                    <MapPin className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    {localDaPessoa === ""
+                      ? proximidade.rotulo
+                      : `${localDaPessoa} · ${proximidade.rotulo.toLowerCase()}`}
+                  </span>
+                )}
                 {item.arquivada ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-[0.7rem] font-bold text-white/85 ring-1 ring-white/20">
                     <Archive className="h-3 w-3" aria-hidden="true" />
@@ -1271,16 +1370,24 @@ function ConteudoGaveta(props: PropsConteudo) {
               que a clínica decide se vale a pena chamar a pessoa. Marcar
               resposta antes de ter conversado não faria sentido — e sem ficha
               não há onde gravar sem inventar uma. */}
-            {/* `<div>` e não `<section>`: o painel já traz a sua própria
-              `<section aria-labelledby>` com o título "O que perguntar" — o que
-              falta aqui é só a superfície de vidro que as outras seções da
-              gaveta usam. Uma segunda região com um segundo título anunciaria a
-              mesma coisa duas vezes no leitor de tela. */}
-            <div className="rh-vidro p-4 sm:p-5">
+            {/* SANFONA, e a que mais importa: com as quinze dúvidas abertas de
+              uma vez este bloco sozinho tinha 4.929px — noventa por cento da
+              altura da gaveta. O painel recebe `semCabecalho` porque o título
+              agora é o botão que abre a seção; anunciar "O que perguntar" duas
+              vezes seguidas é a poluição que estamos tirando. */}
+            <Secao
+              id={`${uid}-duvidas`}
+              chave="duvidas"
+              sanfona={sanfona}
+              titulo="O que perguntar"
+              icone={MessageCircleQuestion}
+              resumo={conta(duvidasAbertas, "pergunta em aberto", "perguntas em aberto")}
+            >
               <PainelDuvidas
                 item={item}
                 leituras={duvidas.leituras}
                 respostas={duvidas.respostas}
+                semCabecalho
                 somenteLeitura={item.ficha === null}
                 // Clique de leitura sobe na hora: é um toque só, e a gaveta pode
                 // fechar no instante seguinte.
@@ -1292,7 +1399,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                   editarDuvidas((f) => comRespostaDeDuvida(f, id, texto), false)
                 }
               />
-            </div>
+            </Secao>
 
             {/* ---------- Ficha de entrevista ----------
               Logo depois da leitura da IA, e nesta ordem: a leitura diz se vale
@@ -1313,7 +1420,14 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Vaga pretendida ---------- */}
             {camposVaga.length > 0 || item.especialidades.length > 0 || vaga ? (
-              <Secao id={`${uid}-vaga`} titulo="Vaga pretendida" icone={Briefcase}>
+              <Secao
+                id={`${uid}-vaga`}
+                chave="vaga"
+                sanfona={sanfona}
+                titulo="Vaga pretendida"
+                icone={Briefcase}
+                resumo={vaga ? vaga.titulo : item.cargoDesejado.trim() || "espontânea"}
+              >
                 {vaga ? (
                   <p className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-white">
                     {vaga.titulo}
@@ -1347,14 +1461,28 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Dados pessoais ---------- */}
             {camposPessoais.length > 0 ? (
-              <Secao id={`${uid}-pessoais`} titulo="Dados pessoais" icone={User}>
+              <Secao
+                id={`${uid}-pessoais`}
+                chave="pessoais"
+                sanfona={sanfona}
+                titulo="Dados pessoais"
+                icone={User}
+                resumo={conta(camposPessoais.length, "campo", "campos")}
+              >
                 <ListaCampos campos={camposPessoais} />
               </Secao>
             ) : null}
 
             {/* ---------- Disponibilidade ---------- */}
             {item.disponibilidade.length > 0 ? (
-              <Secao id={`${uid}-disponibilidade`} titulo="Disponibilidade" icone={CalendarClock}>
+              <Secao
+                id={`${uid}-disponibilidade`}
+                chave="disponibilidade"
+                sanfona={sanfona}
+                titulo="Disponibilidade"
+                icone={CalendarClock}
+                resumo={conta(item.disponibilidade.length, "turno", "turnos")}
+              >
                 <GradeDisponibilidade
                   chaves={item.disponibilidade}
                   nome={primeiroNome(item.nome)}
@@ -1378,7 +1506,16 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Formação ---------- */}
             {camposFormacao.length > 0 || temCro ? (
-              <Secao id={`${uid}-formacao`} titulo="Formação" icone={GraduationCap}>
+              <Secao
+                id={`${uid}-formacao`}
+                chave="formacao"
+                sanfona={sanfona}
+                titulo="Formação"
+                icone={GraduationCap}
+                resumo={
+                  temCro ? `CRO ${item.cro}` : conta(camposFormacao.length, "campo", "campos")
+                }
+              >
                 {temCro ? (
                   /* O CRO é o que decide se a pessoa pode atender: fora da lista
                    de campos, em destaque, porque é a primeira coisa procurada. */
@@ -1394,7 +1531,14 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Experiência ---------- */}
             {temExperiencia ? (
-              <Secao id={`${uid}-experiencia`} titulo="Experiência" icone={Building2}>
+              <Secao
+                id={`${uid}-experiencia`}
+                chave="experiencia"
+                sanfona={sanfona}
+                titulo="Experiência"
+                icone={Building2}
+                resumo={conta(item.experiencias.length, "experiência", "experiências")}
+              >
                 {faixaExperiencia !== "" ? (
                   <p className="mb-3 text-sm font-semibold text-white">{faixaExperiencia}</p>
                 ) : null}
@@ -1425,7 +1569,18 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Competências ---------- */}
             {temHabilidades ? (
-              <Secao id={`${uid}-habilidades`} titulo="Competências" icone={Sparkles}>
+              <Secao
+                id={`${uid}-habilidades`}
+                chave="habilidades"
+                sanfona={sanfona}
+                titulo="Competências"
+                icone={Sparkles}
+                resumo={conta(
+                  item.competencias.length + item.softwares.length + item.idiomas.length,
+                  "item",
+                  "itens",
+                )}
+              >
                 <div className="space-y-3">
                   <ChipsLeitura rotulo="Competências" itens={item.competencias} />
                   <ChipsLeitura rotulo="Softwares" itens={item.softwares} />
@@ -1436,7 +1591,14 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Carta ---------- */}
             {item.cartaApresentacao.trim() !== "" ? (
-              <Secao id={`${uid}-carta`} titulo="Carta de apresentação" icone={FileText}>
+              <Secao
+                id={`${uid}-carta`}
+                chave="carta"
+                sanfona={sanfona}
+                titulo="Carta de apresentação"
+                icone={FileText}
+                resumo="escrita pela pessoa"
+              >
                 {/* pre-wrap: a pessoa escreveu em parágrafos e essa quebra é parte
                   do que ela quis dizer. */}
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-white">
@@ -1447,7 +1609,14 @@ function ConteudoGaveta(props: PropsConteudo) {
 
             {/* ---------- Origem ---------- */}
             {camposOrigem.length > 0 ? (
-              <Secao id={`${uid}-origem`} titulo="Origem e registro" icone={ShieldCheck}>
+              <Secao
+                id={`${uid}-origem`}
+                chave="origem"
+                sanfona={sanfona}
+                titulo="Origem e registro"
+                icone={ShieldCheck}
+                resumo="datas e consentimento"
+              >
                 <ListaCampos campos={camposOrigem} />
                 <p className={AJUDA}>
                   {item.consentimentoLgpd
@@ -1476,7 +1645,14 @@ function ConteudoGaveta(props: PropsConteudo) {
             ) : null}
 
             {/* ---------- Anotações ---------- */}
-            <Secao id={`${uid}-anotacoes`} titulo="Anotações internas" icone={StickyNote}>
+            <Secao
+              id={`${uid}-anotacoes`}
+              chave="anotacoes"
+              sanfona={sanfona}
+              titulo="Anotações internas"
+              icone={StickyNote}
+              resumo={conta(item.anotacoes.length, "anotação", "anotações")}
+            >
               <label htmlFor={`${uid}-nova-anotacao`} className="sr-only">
                 Nova anotação
               </label>

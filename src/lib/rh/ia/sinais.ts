@@ -17,59 +17,9 @@
 import { apenasDigitos } from "../formatar";
 import type { AreaVaga } from "../tipos";
 import { emAnosMeses, paraMes } from "./metricas";
+import { classificarProximidade } from "./proximidade";
 import type { ExtracaoCurriculo, MetricasPermanencia, SeveridadeSinal, Sinal } from "./tipos";
 import { severidadePor } from "./tipos";
-
-/**
- * Municípios da Região Metropolitana de São Paulo, normalizados.
- *
- * Serve a um sinal de severidade "info", nunca de eliminação: morar longe é
- * fato logístico que a clínica quer saber antes de marcar entrevista às sete da
- * manhã — não é defeito da candidata, e há quem faça uma hora de trajeto todo
- * dia sem reclamar. Por isso o texto do sinal fala em confirmar deslocamento.
- */
-const GRANDE_SAO_PAULO: string[] = [
-  "sao paulo",
-  "arujá",
-  "barueri",
-  "biritiba mirim",
-  "caieiras",
-  "cajamar",
-  "carapicuiba",
-  "cotia",
-  "diadema",
-  "embu das artes",
-  "embu guacu",
-  "ferraz de vasconcelos",
-  "francisco morato",
-  "franco da rocha",
-  "guararema",
-  "guarulhos",
-  "itapevi",
-  "itapecerica da serra",
-  "itaquaquecetuba",
-  "jandira",
-  "juquitiba",
-  "mairipora",
-  "maua",
-  "moji das cruzes",
-  "mogi das cruzes",
-  "osasco",
-  "pirapora do bom jesus",
-  "poa",
-  "ribeirao pires",
-  "rio grande da serra",
-  "salesopolis",
-  "santa isabel",
-  "santana de parnaiba",
-  "santo andre",
-  "sao bernardo do campo",
-  "sao caetano do sul",
-  "sao lourenco da serra",
-  "suzano",
-  "taboao da serra",
-  "vargem grande paulista",
-].map((c) => c.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 
 /**
  * Minúsculo, sem acento, sem espaço duplo, sem pontuação.
@@ -536,20 +486,56 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
   /* Logística                                                              */
   /* ---------------------------------------------------------------------- */
 
-  const uf = e.uf.trim().toUpperCase();
-  const cidade = normalizarNome(e.cidade);
-  const foraDoEstado = uf.length === 2 && uf !== "SP";
-  const foraDaRegiao = !foraDoEstado && cidade.length > 2 && !GRANDE_SAO_PAULO.includes(cidade);
-  if (foraDoEstado || foraDaRegiao) {
+  /**
+   * PROXIMIDADE — pedido do cliente, e com um cuidado.
+   *
+   * "Se morar muito longe também fica inviável para a clínica e para a pessoa"
+   * é logística de verdade: quem atravessa São Paulo duas vezes por dia num
+   * horário de recepção (abre cedo) desiste em três meses, e aí a clínica
+   * recomeça o processo. Saber disso ANTES de marcar a entrevista é o ponto.
+   *
+   * Quem calcula é `classificarProximidade`, código determinístico sobre o CEP
+   * e o bairro que o modelo LEU do currículo — modelo nenhum estima distância
+   * sem inventar quilômetro. E nada disto entra na nota (`contaNaNota: false`):
+   * distância é fato a combinar, não defeito da pessoa. Há quem faça uma hora e
+   * meia de trajeto por anos, e essa escolha é dela.
+   *
+   * "desconhecida" não vira sinal: o currículo que não diz onde a pessoa mora
+   * não autoriza palpite nenhum sobre isso.
+   */
+  const proximidade = classificarProximidade({
+    cep: e.cep,
+    bairro: e.bairro,
+    cidade: e.cidade,
+    uf: e.uf,
+  });
+
+  if (proximidade.banda === "perto") {
     sinais.push({
-      chave: "fora-da-regiao",
+      chave: "mora-perto",
       origem: "documento",
       severidade: "info",
       categoria: "contato",
-      titulo: "Endereço fora da Grande São Paulo",
-      detalhe: `O currículo informa ${[e.cidade.trim(), uf].filter(Boolean).join("/")}. A vaga é presencial na Vila Bruna: vale confirmar se a pessoa já mudou, pretende mudar ou faz o trajeto todo dia. Distância não desqualifica ninguém — só precisa ser combinada antes.`,
-      evidencias: [`Cidade informada: ${[e.cidade.trim(), uf].filter(Boolean).join("/")}`],
-      perguntar: "Você mora hoje em qual região? Quanto tempo levaria até a Vila Bruna?",
+      titulo: "Mora na região da clínica",
+      detalhe: `${proximidade.base}. É a mesma região da clínica: trajeto curto costuma ser o que segura gente boa numa vaga presencial de horário fixo.`,
+      evidencias: [proximidade.base],
+      perguntar: "",
+      contaNaNota: false,
+    });
+  } else if (proximidade.banda === "longe" || proximidade.banda === "fora") {
+    const foraDaGrande = proximidade.banda === "fora";
+    sinais.push({
+      chave: "trajeto-longo",
+      origem: "documento",
+      severidade: foraDaGrande ? "medio" : "baixo",
+      categoria: "contato",
+      titulo: foraDaGrande ? "Endereço fora da Grande São Paulo" : "Mora do outro lado da cidade",
+      detalhe: foraDaGrande
+        ? `${proximidade.base}. A vaga é presencial na Vila Bruna, zona norte: vale confirmar se a pessoa já mudou, pretende mudar ou faz o trajeto todo dia. Distância não desqualifica ninguém — só precisa ser combinada antes.`
+        : `${proximidade.base}. A clínica fica na Vila Bruna, zona norte, e o trajeto atravessa a cidade. Não é impedimento: é o que precisa ser combinado antes de marcar entrevista, principalmente para quem abre a recepção de manhã.`,
+      evidencias: [proximidade.base],
+      perguntar:
+        "Você mora hoje em qual região? Quanto tempo leva o trajeto até a Vila Bruna e como você viria?",
       contaNaNota: false,
     });
   }

@@ -310,6 +310,8 @@ function completarComFormulario(e: ExtracaoCurriculo, c: Candidatura): ExtracaoC
     ...e,
     nome: e.nome || c.nome,
     nascimento: e.nascimento || c.nascimento,
+    bairro: e.bairro || c.bairro,
+    cep: e.cep || c.cep,
     cidade: e.cidade || c.cidade,
     uf: e.uf || c.uf,
     telefone: e.telefone || c.telefone,
@@ -455,6 +457,11 @@ async function preencherComExtracao(
     // produzia telefone de 13 a 24 digitos, que o painel tratava como ausente.
     telefone: atual.telefone || telefoneParaContato(e.telefone),
     nascimento: atual.nascimento || e.nascimento,
+    // Bairro e CEP são o que alimenta o cálculo de proximidade da clínica
+    // (ver ia/proximidade.ts). Sem gravá-los aqui, a conta rodaria uma vez na
+    // análise e a ficha continuaria sem saber onde a pessoa mora.
+    bairro: atual.bairro || e.bairro,
+    cep: atual.cep || e.cep,
     cidade: atual.cidade || e.cidade,
     uf: atual.uf || e.uf,
     linkedin: atual.linkedin || e.linkedin,

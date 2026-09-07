@@ -656,6 +656,16 @@ export function PainelDuvidas(props: {
   respostas: Record<string, string>;
   /** Na gaveta, antes de haver entrevista: mostra o roteiro sem os campos. */
   somenteLeitura?: boolean | undefined;
+  /**
+   * Quem já anuncia "O que perguntar" por fora — a sanfona da gaveta — pede
+   * para o painel não repetir o próprio título. Dois títulos iguais colados um
+   * no outro é a poluição que a sanfona veio resolver, e no leitor de tela
+   * seriam duas regiões com o mesmo nome.
+   *
+   * O modo entrevista continua com o cabeçalho: lá o painel é a tela inteira e
+   * precisa se apresentar.
+   */
+  semCabecalho?: boolean | undefined;
   aoMudarLeitura: (idDuvida: string, leitura: LeituraResposta) => void;
   aoMudarResposta: (idDuvida: string, texto: string) => void;
 }) {
@@ -697,27 +707,31 @@ export function PainelDuvidas(props: {
     window.setTimeout(() => setCopiado(""), 2500);
   };
 
-  return (
-    <section aria-labelledby={idTitulo}>
-      <header>
-        <h3
-          id={idTitulo}
-          className="flex items-center gap-2 font-display text-lg font-extrabold leading-tight text-white"
-        >
-          <MessageCircleQuestion className="h-5 w-5 shrink-0 text-lime" aria-hidden="true" />O que
-          perguntar
-        </h3>
-        {/* Sem jargão: o RH desta clínica é a coordenação, não um time de
-            recrutamento. A frase explica de onde vem a pergunta e para que
-            servem os dois lados, que é tudo o que ele precisa saber para usar. */}
-        <p className="mt-1 text-sm leading-relaxed text-white/85">
-          Cada pergunta abaixo nasceu de um fato do currículo desta candidata — não é lista pronta.
-          Embaixo de cada uma estão os dois lados da resposta: o que faz sentido ouvir e o que não
-          faz. Marque como você leu, e a conversa vira registro.
-        </p>
-      </header>
+  const semCabecalho = props.semCabecalho === true;
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+  return (
+    <section {...(semCabecalho ? {} : { "aria-labelledby": idTitulo })}>
+      {semCabecalho ? null : (
+        <header>
+          <h3
+            id={idTitulo}
+            className="flex items-center gap-2 font-display text-lg font-extrabold leading-tight text-white"
+          >
+            <MessageCircleQuestion className="h-5 w-5 shrink-0 text-lime" aria-hidden="true" />O que
+            perguntar
+          </h3>
+          {/* Sem jargão: o RH desta clínica é a coordenação, não um time de
+              recrutamento. A frase explica de onde vem a pergunta e para que
+              servem os dois lados, que é tudo o que ele precisa saber para usar. */}
+          <p className="mt-1 text-sm leading-relaxed text-white/85">
+            Cada pergunta abaixo nasceu de um fato do currículo desta candidata — não é lista
+            pronta. Embaixo de cada uma estão os dois lados da resposta: o que faz sentido ouvir e o
+            que não faz. Marque como você leu, e a conversa vira registro.
+          </p>
+        </header>
+      )}
+
+      <div className={`flex flex-wrap items-center gap-2 ${semCabecalho ? "" : "mt-3"}`}>
         <ResumoDuvidas item={item} leituras={leituras} />
         <span className="text-xs font-semibold leading-relaxed text-white/85">{resumo.frase}</span>
       </div>
