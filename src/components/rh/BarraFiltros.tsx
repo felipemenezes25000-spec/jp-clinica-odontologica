@@ -347,6 +347,11 @@ export function BarraFiltros(props: {
   todasVisiveisMarcadas: boolean;
   aoSelecionarVisiveis: (marcar: boolean) => void;
 }) {
+  /* Fechado por padrão em QUALQUER largura, e não só no celular.
+     Com os filtros sempre abertos no desktop, três fileiras de controles
+     empurravam o primeiro candidato para um terço abaixo da dobra — e o RH
+     abre esta tela para ver gente, não para ver filtro. O botão mostra
+     quantos estão ativos, então nada fica escondido sem aviso. */
   const [painelAberto, setPainelAberto] = useState(false);
   const barraRef = useRef<HTMLDivElement>(null);
   // Começa na variável de tema (a rota pode fixá-la) e é corrigido por medição
@@ -450,7 +455,7 @@ export function BarraFiltros(props: {
             onClick={() => setPainelAberto((v) => !v)}
             aria-expanded={painelAberto}
             aria-controls={idPainel}
-            className="flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.07] px-3 text-sm font-semibold text-white transition-colors hover:border-white/30 lg:hidden"
+            className="flex h-11 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.07] px-3 text-sm font-semibold text-white transition-colors hover:border-white/30"
           >
             <Filter size={16} aria-hidden="true" />
             Filtros
@@ -521,7 +526,7 @@ export function BarraFiltros(props: {
              empilha; no desktop ele cabe em uma faixa. A variável carrega a
              medição do cabeçalho que já existe para o `top`. */
           style={estiloPainel}
-          className={`${painelAberto ? "flex" : "hidden lg:flex"} max-h-[var(--rh-painel-max)] flex-wrap items-end gap-3 overflow-y-auto border-t border-white/10 pt-3 lg:max-h-none lg:overflow-visible lg:border-t-0 lg:pt-0`}
+          className={`${painelAberto ? "flex" : "hidden"} max-h-[var(--rh-painel-max)] flex-wrap items-end gap-3 overflow-y-auto border-t border-white/10 pt-3`}
         >
           <Campo id={idArea} rotulo="Área">
             <select

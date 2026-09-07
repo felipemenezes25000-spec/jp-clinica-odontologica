@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 
 import { ResumoDuvidas } from "@/components/rh/PainelDuvidas";
-import { SeloSinais } from "@/components/rh/PainelSinais";
 import { duvidasImportantesDe } from "@/lib/rh/duvidas";
 import { leiturasDeDuvidas, situacaoDaFicha, totalDaFicha } from "@/lib/rh/ficha";
 import { iniciais, primeiroNome, tempoRelativo } from "@/lib/rh/formatar";
@@ -109,7 +108,12 @@ function LinhaIa(props: { item: Candidatura }) {
       <span className={`rounded-full px-2 py-0.5 text-[0.65rem] font-bold ${rec.pilulaEscura}`}>
         {rec.rotulo}
       </span>
-      <SeloSinais sinais={analise.sinais} />
+      {/* As pílulas por gravidade saíram do cartão do kanban.
+          Elas são ícone + número, sem legenda visível, e diziam a mesma coisa
+          que a linha logo acima já diz em português ("14 dúvidas · 1
+          importante"). Duas leituras do mesmo fato, uma delas ilegível para
+          quem enxerga, é ruído. A quebra por gravidade continua inteira na
+          gaveta, onde há espaço para nomear cada uma. */}
     </div>
   );
 }
@@ -268,52 +272,13 @@ function CartaoCandidato(props: {
           onClick={() => props.aoAbrir(item.id)}
           className="stretch-link min-w-0 flex-1 text-left"
         >
-          <span className="block truncate text-sm font-bold text-white">
+          {/* Duas linhas, e NÃO `truncate`. Numa coluna de kanban com ~200px, cortar
+     em uma linha virava "Silmara Ap…", "Be…", "Ra…" — o dado mais
+     importante do cartão ilegível. Nome de gente não se abrevia. */}
+          <span className="block text-sm font-bold leading-snug text-white [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
             {item.nome || "Sem nome"}
           </span>
           <span className="mt-0.5 block truncate text-xs text-white/85">{subtitulo}</span>
-        </button>
-
-        {/* Atalho de WhatsApp: abre a conversa SEM mensagem pronta. É o gesto
-            de "só quero falar rapidinho com ela", que na gaveta custa dois
-            cliques a mais. Só ícone, sem preenchimento e sem cor forte, para
-            não competir com abrir a ficha — que continua sendo o cartão
-            inteiro. O texto pronto vive na central de contato, dentro da
-            gaveta: um convite disparado daqui não teria o nome da vaga nem
-            entraria no histórico dela. */}
-        {hrefWhats === "" ? null : (
-          <a
-            href={hrefWhats}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Abrir conversa no WhatsApp com ${item.nome || "candidato"}`}
-            onClick={(e) => e.stopPropagation()}
-            className="relative z-[2] flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 text-white/85 transition-colors hover:border-lime/50 hover:text-white"
-          >
-            <MessageCircle size={16} aria-hidden="true" />
-          </a>
-        )}
-
-        {/* Botão da lista "mover para". Ele existe por causa de quem não usa
-            mouse: arrastar e soltar é gesto de ponteiro e a API nativa do HTML5
-            não tem equivalente de teclado nenhum. Sem esta lista, teclado e leitor
-            de tela não conseguiriam mudar o status de ninguém — o kanban seria
-            decoração para essas pessoas. O z-[2] o mantém acima da camada do
-            `.stretch-link`, que cobre o cartão inteiro. */}
-        <button
-          ref={botaoMenuRef}
-          type="button"
-          aria-controls={idMenu}
-          aria-expanded={menuAberto}
-          aria-label={`Mover ${primeiroNome(item.nome) || "candidato"} para outro status`}
-          onClick={() => setMenuAberto((v) => !v)}
-          className={`relative z-[2] flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-colors ${
-            menuAberto
-              ? "border-lime bg-lime/20 text-lime"
-              : "border-white/15 text-white/85 hover:border-lime/50 hover:text-lime"
-          }`}
-        >
-          <MoveRight size={16} aria-hidden="true" />
         </button>
       </div>
 
@@ -403,6 +368,9 @@ function CartaoCandidato(props: {
 
       {/* O tempo relativo é a informação que o RH varre com o olho na coluna:
           branco de verdade, não branco esmaecido. */}
+      {/* As duas ações moram aqui, e não ao lado do nome: na coluna estreita do
+          kanban elas comiam a largura e obrigavam o nome a truncar. No rodapé
+          não disputam espaço com nada. */}
       <footer className="mt-2.5 flex items-center justify-between gap-2 text-[0.7rem] text-white/85">
         <span>{tempoRelativo(item.criadoEm, props.agora)}</span>
         {item.curriculo ? (
@@ -412,6 +380,49 @@ function CartaoCandidato(props: {
             <span aria-hidden="true">CV</span>
           </span>
         ) : null}
+        <span className="ml-auto flex items-center gap-1">
+          {/* Atalho de WhatsApp: abre a conversa SEM mensagem pronta. É o gesto
+            de "só quero falar rapidinho com ela", que na gaveta custa dois
+            cliques a mais. Só ícone, sem preenchimento e sem cor forte, para
+            não competir com abrir a ficha — que continua sendo o cartão
+            inteiro. O texto pronto vive na central de contato, dentro da
+            gaveta: um convite disparado daqui não teria o nome da vaga nem
+            entraria no histórico dela. */}
+          {hrefWhats === "" ? null : (
+            <a
+              href={hrefWhats}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Abrir conversa no WhatsApp com ${item.nome || "candidato"}`}
+              onClick={(e) => e.stopPropagation()}
+              className="relative z-[2] flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 text-white/85 transition-colors hover:border-lime/50 hover:text-white"
+            >
+              <MessageCircle size={16} aria-hidden="true" />
+            </a>
+          )}
+
+          {/* Botão da lista "mover para". Ele existe por causa de quem não usa
+            mouse: arrastar e soltar é gesto de ponteiro e a API nativa do HTML5
+            não tem equivalente de teclado nenhum. Sem esta lista, teclado e leitor
+            de tela não conseguiriam mudar o status de ninguém — o kanban seria
+            decoração para essas pessoas. O z-[2] o mantém acima da camada do
+            `.stretch-link`, que cobre o cartão inteiro. */}
+          <button
+            ref={botaoMenuRef}
+            type="button"
+            aria-controls={idMenu}
+            aria-expanded={menuAberto}
+            aria-label={`Mover ${primeiroNome(item.nome) || "candidato"} para outro status`}
+            onClick={() => setMenuAberto((v) => !v)}
+            className={`relative z-[2] flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+              menuAberto
+                ? "border-lime bg-lime/20 text-lime"
+                : "border-white/15 text-white/85 hover:border-lime/50 hover:text-lime"
+            }`}
+          >
+            <MoveRight size={16} aria-hidden="true" />
+          </button>
+        </span>
       </footer>
     </article>
   );
