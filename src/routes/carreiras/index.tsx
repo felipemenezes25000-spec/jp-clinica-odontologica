@@ -14,23 +14,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowRight,
   ArrowUpRight,
-  BadgeCheck,
-  Bus,
-  CalendarCheck,
   Check,
-  Coffee,
-  GraduationCap,
-  HeartHandshake,
   Mail,
   MapPin,
   MessageCircle,
   Quote,
   Search,
-  ShieldCheck,
-  Smile,
   Sparkles,
   X,
-  type LucideIcon,
 } from "lucide-react";
 
 import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
@@ -88,23 +79,6 @@ export const Route = createFileRoute("/carreiras/")({
   loader: () => listarVagasPublicas(),
   component: PaginaCarreiras,
 });
-
-/**
- * Ícones da faixa de benefícios. São decorativos e entram por posição, porque
- * o texto de cada benefício é livre — o RH edita nas configurações e não há
- * como mapear ícone por palavra sem chutar. Por isso todos são `aria-hidden`:
- * quem lê por leitor de tela ouve só o benefício.
- */
-const ICONES_BENEFICIO: LucideIcon[] = [
-  BadgeCheck,
-  Bus,
-  Coffee,
-  Smile,
-  CalendarCheck,
-  ShieldCheck,
-  GraduationCap,
-  HeartHandshake,
-];
 
 const MENSAGEM_WHATSAPP = "Olá! Vi as vagas no site da JP e gostaria de falar com o RH.";
 
@@ -193,7 +167,6 @@ function PaginaCarreiras() {
   const emailRh = config.emailRh.trim();
   const whatsappRh = config.whatsappRh.trim();
   const linkRh = linkWhatsAppRh(whatsappRh, MENSAGEM_WHATSAPP);
-  const beneficios = config.beneficiosPadrao.filter((b) => b.trim().length > 0);
   const sobre = config.textoSobre.trim();
 
   return (
@@ -260,7 +233,7 @@ function PaginaCarreiras() {
                   {
                     valor: vagas.length === 1 ? "1 vaga aberta" : `${vagas.length} vagas abertas`,
                     // O rótulo concorda com o valor: com uma vaga só — o caso
-                    // mais comum numa clínica de bairro — "publicadas" ao lado
+                    // mais comum numa clínica deste porte — "publicadas" ao lado
                     // de "1 vaga aberta" fica errado na mesma linha visual.
                     rotulo:
                       vagas.length === 1 ? "publicada neste momento" : "publicadas neste momento",
@@ -281,45 +254,7 @@ function PaginaCarreiras() {
           </div>
         </section>
 
-        {/* 02 — BENEFÍCIOS */}
-        {beneficios.length > 0 ? (
-          <section className="jp-section section-light relative overflow-hidden">
-            <div className="jp-container relative">
-              {/* A faixa mostra os benefícios PADRÃO do portal, que não sabem de
-                  vínculo: "registro em carteira" está na lista de fábrica e não
-                  vale para PJ, estágio nem diarista. Por isso o título não afirma
-                  cobertura universal — quem manda é o anúncio de cada vaga. */}
-              <Reveal>
-                <span className="eyebrow text-ink">Benefícios</span>
-                <h2 className="mt-5 max-w-3xl font-display text-[clamp(2rem,4.4vw,3.4rem)] font-extrabold leading-[.95] tracking-[-.04em] text-forest-2">
-                  O que a clínica costuma oferecer.
-                </h2>
-                <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-soft">
-                  A lista muda conforme o vínculo e a função: os benefícios que valem para cada vaga
-                  estão no anúncio dela.
-                </p>
-              </Reveal>
-
-              <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {beneficios.map((beneficio, i) => {
-                  const Icone = ICONES_BENEFICIO[i % ICONES_BENEFICIO.length] ?? BadgeCheck;
-                  return (
-                    <Reveal as="li" key={beneficio} delay={i * 45} className="h-full">
-                      <div className="card-premium flex h-full flex-col gap-4 p-6">
-                        <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-forest">
-                          <Icone className="h-5 w-5" aria-hidden="true" />
-                        </span>
-                        <p className="text-sm font-bold leading-snug text-ink">{beneficio}</p>
-                      </div>
-                    </Reveal>
-                  );
-                })}
-              </ul>
-            </div>
-          </section>
-        ) : null}
-
-        {/* 03 — POR QUE A JP */}
+        {/* 02 — POR QUE A JP */}
         <section className="jp-section relative overflow-hidden bg-paper">
           <div
             aria-hidden="true"
@@ -329,7 +264,7 @@ function PaginaCarreiras() {
             <Reveal>
               <span className="eyebrow text-ink">Por que a JP</span>
               <h2 className="mt-5 max-w-2xl font-display text-[clamp(2.1rem,4.6vw,3.6rem)] font-extrabold leading-[.95] tracking-[-.045em] text-forest-2">
-                Clínica de bairro, equipe que se apoia.
+                Equipe que se apoia de verdade.
               </h2>
               {sobre.length > 0 ? (
                 <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft">{sobre}</p>
@@ -378,7 +313,7 @@ function PaginaCarreiras() {
           </div>
         </section>
 
-        {/* 04 — VAGAS */}
+        {/* 03 — VAGAS */}
         <section id="vagas" className="jp-section section-light relative scroll-mt-24">
           <div className="jp-container relative">
             <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
@@ -582,7 +517,7 @@ function PaginaCarreiras() {
           </div>
         </section>
 
-        {/* 05 — FALE COM O RH */}
+        {/* 04 — FALE COM O RH */}
         <section className="jp-section section-deep relative overflow-hidden text-white">
           <div
             aria-hidden="true"

@@ -444,7 +444,7 @@ export function configuracoesPadrao(): ConfiguracoesRh {
     chamadaPortal:
       "Há mais de 20 anos cuidando de sorrisos em São Paulo. Se para você atender bem é olhar no olho, chamar pelo nome e explicar o tratamento com calma, o seu lugar é aqui.",
     textoSobre:
-      "A JP Clínica Integrada Odontológica nasceu em 2002 e hoje atende na Vila Bruna, na região da Freguesia do Ó, em São Paulo. Somos uma clínica de bairro: as pessoas voltam, trazem a família e conhecem a equipe pelo nome. Nossa missão é proporcionar um tratamento humanizado e personalizado do começo ao fim — saúde bucal, sorriso e satisfação, resgatando a autoestima de cada paciente. Quem trabalha aqui encontra estrutura completa, equipe que se apoia de verdade e espaço para crescer junto com a clínica.",
+      "A JP Clínica Integrada Odontológica nasceu em 2002 e hoje atende na Vila Bruna, na região da Freguesia do Ó, em São Paulo. As pessoas voltam, trazem a família e conhecem a equipe pelo nome. Nossa missão é proporcionar um tratamento humanizado e personalizado do começo ao fim — saúde bucal, sorriso e satisfação, resgatando a autoestima de cada paciente. Quem trabalha aqui encontra estrutura completa, equipe que se apoia de verdade e espaço para crescer junto com a clínica.",
     // Lista escrita em verbas trabalhistas (registro em carteira,
     // vale-transporte, escala fixa): ela descreve o pacote de uma vaga CLT.
     // Quem a usa como fallback precisa conferir o vínculo antes — herdá-la numa

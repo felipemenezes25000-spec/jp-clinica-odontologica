@@ -220,7 +220,7 @@ export function vagasSemente(agoraIso: string, novoId: () => string): Vaga[] {
       resumo:
         "Atendimento clínico geral em consultório completo, com auxiliar em todos os procedimentos e agenda organizada pela recepção.",
       descricao:
-        "Você vai atender pacientes de todas as idades em uma clínica de bairro onde as pessoas voltam e trazem a família. O plano de tratamento é explicado com calma, sem empurrar procedimento, e nenhum atendimento acontece sem apoio na cadeira.",
+        "Você vai atender pacientes de todas as idades em uma clínica onde as pessoas voltam e trazem a família. O plano de tratamento é explicado com calma, sem empurrar procedimento, e nenhum atendimento acontece sem apoio na cadeira.",
       responsabilidades: [
         "Realizar anamnese, avaliação clínica e plano de tratamento",
         "Executar procedimentos de dentística, periodontia básica e exodontias simples",
