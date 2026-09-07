@@ -429,3 +429,86 @@ export const STATUS_VAGA: ItemStatusVaga[] = [
 export function statusVagaPor(valor: StatusVaga): ItemStatusVaga {
   return STATUS_VAGA.find((s) => s.valor === valor) ?? STATUS_VAGA_INICIAL;
 }
+
+/**
+ * Resume uma grade de disponibilidade em frases legíveis.
+ *
+ * A lista crua é uma chave por combinação dia+turno, e uma escala comum de
+ * clínica ("segunda a sexta, manhã e tarde") vira DEZ pastilhas repetindo o
+ * nome do dia: "Segunda - manhã", "Segunda - tarde", "Terça - manhã"… Ninguém
+ * lê isso; a pessoa vê um bloco de texto e pula.
+ *
+ * Aqui os dias com o MESMO conjunto de turnos são agrupados em faixas
+ * contíguas, na ordem da semana. O exemplo acima vira uma linha só:
+ * "Segunda a sexta · manhã e tarde".
+ *
+ * Dia solto continua solto, e escala irregular (segunda de manhã, quarta o dia
+ * todo) produz uma faixa por padrão — nunca esconde diferença de horário, que é
+ * justamente o que a candidata precisa comparar com a vida dela.
+ */
+export function resumirDisponibilidade(chaves: string[]): string[] {
+  const ordemTurno = new Map(TURNOS.map((t, i) => [t.valor, i]));
+
+  // dia -> turnos, na ordem manhã/tarde/noite.
+  const porDia = new Map<string, string[]>();
+  for (const chave of chaves) {
+    const corte = chave.indexOf("-");
+    if (corte < 0) continue;
+    const dia = chave.slice(0, corte);
+    const turno = chave.slice(corte + 1);
+    if (!ordemTurno.has(turno)) continue;
+    const atual = porDia.get(dia) ?? [];
+    if (!atual.includes(turno)) atual.push(turno);
+    porDia.set(dia, atual);
+  }
+  for (const lista of porDia.values()) {
+    lista.sort((a, b) => (ordemTurno.get(a) ?? 0) - (ordemTurno.get(b) ?? 0));
+  }
+
+  const nomeTurnos = (turnos: string[]): string => {
+    const nomes = turnos.map((t) => TURNOS.find((x) => x.valor === t)?.rotulo.toLowerCase() ?? t);
+    if (nomes.length <= 1) return nomes[0] ?? "";
+    return nomes.slice(0, -1).join(", ") + " e " + nomes[nomes.length - 1];
+  };
+
+  const frases: string[] = [];
+  let inicio: { indice: number; assinatura: string; turnos: string[] } | null = null;
+  let fim = -1;
+
+  const fechar = (): void => {
+    if (inicio === null) return;
+    const primeiro = DIAS_SEMANA[inicio.indice];
+    const ultimo = DIAS_SEMANA[fim];
+    if (primeiro === undefined || ultimo === undefined) return;
+    const quantos = fim - inicio.indice + 1;
+    const dias =
+      quantos === 1
+        ? primeiro.rotulo
+        : quantos === 2
+          ? `${primeiro.rotulo} e ${ultimo.rotulo.toLowerCase()}`
+          : `${primeiro.rotulo} a ${ultimo.rotulo.toLowerCase()}`;
+    frases.push(`${dias} · ${nomeTurnos(inicio.turnos)}`);
+    inicio = null;
+  };
+
+  DIAS_SEMANA.forEach((dia, indice) => {
+    const turnos = porDia.get(dia.valor);
+    // Dia sem turno nenhum quebra a faixa: "segunda a sexta" não pode incluir
+    // uma quarta em que a clínica não abre.
+    if (turnos === undefined || turnos.length === 0) {
+      fechar();
+      return;
+    }
+    const assinatura = turnos.join("|");
+    if (inicio !== null && inicio.assinatura === assinatura && fim === indice - 1) {
+      fim = indice;
+      return;
+    }
+    fechar();
+    inicio = { indice, assinatura, turnos };
+    fim = indice;
+  });
+  fechar();
+
+  return frases;
+}

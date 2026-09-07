@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useId, useState } from "react";
 
+import { CapaVaga, capaDaArea } from "@/components/site/CapaVaga";
 import { CartaoVaga } from "@/components/rh/CartaoVaga";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
@@ -29,7 +30,7 @@ import { SkipLink } from "@/components/site/SkipLink";
 import { CLINICA, SITE_URL } from "@/lib/jp";
 import { obterVagaPublica } from "@/lib/rh/api-portal";
 import { formatarData } from "@/lib/rh/formatar";
-import { AREAS, MODELOS_TRABALHO, TURNOS, VINCULOS, rotuloDisponibilidade } from "@/lib/rh/opcoes";
+import { AREAS, MODELOS_TRABALHO, TURNOS, VINCULOS, resumirDisponibilidade } from "@/lib/rh/opcoes";
 import type { ConfiguracoesRh, Vaga } from "@/lib/rh/tipos";
 import { faixaSalarial, resumoJornada } from "@/lib/rh/vagas";
 
@@ -47,17 +48,6 @@ function rotuloVinculo(vaga: Vaga): string {
 
 function rotuloModelo(vaga: Vaga): string {
   return MODELOS_TRABALHO.find((m) => m.valor === vaga.modelo)?.rotulo ?? "Presencial";
-}
-
-/**
- * Turno legível. O painel grava a grade de disponibilidade em chaves "dia-turno"
- * ("seg-manha"), que é o que `rotuloDisponibilidade` traduz — mas o mesmo campo
- * aceita um turno solto ("manha"), e nesse caso a função devolveria a chave crua
- * na tela. Por isso o turno inteiro é conferido antes.
- */
-function rotuloTurno(chave: string): string {
-  const turno = TURNOS.find((t) => t.valor === chave);
-  return turno ? turno.rotulo : rotuloDisponibilidade(chave);
 }
 
 /** Endereço de trabalho: o que o RH escreveu na vaga ou, na falta, o da clínica. */
@@ -479,7 +469,12 @@ function PaginaVaga() {
   const publicadoEm = formatarData(vaga.publicadoEm || vaga.criadoEm);
   const local = localDaVaga(vaga);
   const beneficios = beneficiosDaVaga(vaga, config);
-  const turnos = vaga.turnos.map(rotuloTurno);
+  /* Área sem foto cadastrada mantém o hero liso de antes — o layout não pode
+     depender de uma imagem que pode não existir. */
+  const temCapa = capaDaArea(vaga.area) !== null;
+  /* Agrupado, e não uma pastilha por dia+turno: "segunda a sexta, manhã e
+     tarde" virava DEZ pastilhas repetindo o nome do dia, e ninguém lê isso. */
+  const turnos = resumirDisponibilidade(vaga.turnos);
   const posicoes = `${vaga.quantidade} ${vaga.quantidade === 1 ? "posição" : "posições"}`;
   const blocos = paragrafos(vaga.descricao);
 
@@ -495,7 +490,12 @@ function PaginaVaga() {
       <main id="conteudo">
         {/* HERO */}
         <section className="section-deep noise relative isolate overflow-hidden pb-14 pt-10 text-white sm:pb-16 sm:pt-12">
-          <div className="jp-container relative z-10">
+          <CapaVaga area={vaga.area} />
+          {/* `lg:pr-[38%]` só existe quando há capa: sem ela o conteúdo usa a
+              largura inteira, como sempre usou. Com ela, o texto para antes da
+              parte em que a foto realmente aparece — o trecho que ele invade já
+              é verde sólido pelo véu, então a leitura não perde contraste. */}
+          <div className={`jp-container relative z-10${temCapa ? " lg:pr-[34%]" : ""}`}>
             <nav aria-label="Trilha de navegação">
               <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-white/85">
                 <li>
