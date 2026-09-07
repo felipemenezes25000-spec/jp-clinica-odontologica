@@ -1019,7 +1019,11 @@ function Painel({ dados }: { dados: DadosRh }) {
           setProgressoIa({ feitos, total: Math.max(total, feitos) });
 
           restantes = restantes.slice(doLote.length);
-          if (processados === 0) break;
+          // Para quando a volta nao LEU nada. `processados === 0` nao bastava:
+          // uma volta que so falha tem processados > 0 e o laco seguia, pagando
+          // outra chamada pelos mesmos arquivos quebrados. Sem leitura nova, a
+          // proxima volta so repetiria o mesmo resultado.
+          if (resposta.feitos === 0) break;
         }
 
         return { feitos, falhas, recusa: "" };

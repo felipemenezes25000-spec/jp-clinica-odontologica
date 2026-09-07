@@ -1135,9 +1135,29 @@ export type RespostaImportacao =
  */
 const MAX_ANALISES_POR_CHAMADA = 20;
 
-/** Uma candidatura precisa de análise quando nunca teve, falhou, ou é de uma versão antiga. */
+/**
+ * Uma candidatura precisa de análise quando NUNCA teve. Só isso.
+ *
+ * ANTES ISTO INCLUÍA "falhou" E "versão antiga", e as duas causaram estrago:
+ *
+ * 1. Falha virava pendência eterna. O botão de lote roda várias voltas pedindo
+ *    "as pendentes"; um .docx que a IA não consegue abrir falha na volta 1,
+ *    continua pendente, falha na volta 2, e assim por diante. Foram 150 falhas
+ *    num clique só — três arquivos quebrados vezes cinquenta voltas —, cada uma
+ *    delas uma chamada paga à OpenAI. O erro fica gravado na ficha e visível no
+ *    cartão; reprocessar é decisão de gente, não do laço.
+ *
+ * 2. Subir `VERSAO_ANALISE` marcava TODO o acervo como pendente. Ao repesar a
+ *    régua da recepção, as 61 fichas já lidas viraram pendência da noite para o
+ *    dia, e um clique distraído reprocessaria o acervo inteiro — justamente o
+ *    que o cliente pediu para não fazer ("só nas novas").
+ *
+ * Falha e versão antiga continuam alcançáveis, mas só por ato deliberado: o
+ * botão "Reanalisar" da ficha e o lote com `forcar`. A versão segue gravada em
+ * cada análise, então dá para saber de que régua saiu cada nota.
+ */
 function precisaAnalisar(c: Candidatura): boolean {
-  return c.analise === null || c.analise.erro !== "" || c.analise.versao !== VERSAO_ANALISE;
+  return c.analise === null;
 }
 
 export const estadoIa = createServerFn({ method: "GET" }).handler(
