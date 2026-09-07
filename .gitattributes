@@ -1,0 +1,25 @@
+# Fim de linha normalizado.
+#
+# POR QUE ESTE ARQUIVO EXISTE
+# O Windows vem com `core.autocrlf=true`: o Git grava CRLF no disco ao fazer
+# checkout e converte de volta para LF ao commitar. O commit fica certo, e o
+# `git status` fica limpo — mas o ESLint lê o DISCO, e o `eslint-plugin-prettier`
+# trata cada `\r` como erro. Resultado: 1038 erros de lint em arquivos que
+# ninguém tocou, e nenhum deles aparece no diff.
+#
+# Com `eol=lf` o disco também fica LF, e a ferramenta passa a ver o mesmo que o
+# repositório guarda. Vale para quem clonar em Windows, Linux ou Mac.
+* text=auto eol=lf
+
+# Binário nunca é convertido — converter corrompe.
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.webp  binary
+*.avif  binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.docx  binary
+*.doc   binary
