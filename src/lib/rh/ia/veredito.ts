@@ -24,41 +24,34 @@
 import type { AnaliseIa, RecomendacaoIa, Sinal } from "./tipos";
 
 /**
- * ONDE CORTAR, E POR QUE NÃO É ONDE PARECE
+/**
+ * Corte de cada faixa, na régua ditada pelo dono da clínica:
  *
- * A primeira versão desta régua usava a escala nominal — média 7,0 vira quatro
- * estrelas, média 8,5 vira cinco. Simulado contra o acervo real, o resultado foi
- * absurdo: 23 das 51 candidatas caíam em "descartar", e DUAS das nove que a
- * clínica já tinha marcado como favoritas iam junto.
+ *   80-100  chamar para entrevista com prioridade
+ *   65-79   boa candidata
+ *   50-64   avaliar se faltar candidata melhor
+ *   abaixo de 50  baixa prioridade
  *
- * O erro foi tratar a nota como se fosse uma prova escolar. Ela não é. A rubrica
- * ancorada desconta de propósito o que o currículo não prova: falta de datas,
- * passagem curta, ausência de experiência odontológica, progressão que não
- * aparece. Quase ninguém tira 7 em seis critérios ao mesmo tempo — a mediana do
- * acervo real ficou perto de 50. Sob ESTA rubrica, 65 não é medíocre: é uma
- * candidata que a clínica chamaria.
+ * ESTES NÚMEROS SÃO DO CLIENTE, NÃO DE AFERIÇÃO NOSSA — e a diferença importa.
+ * Os cortes anteriores (62 e 45) tinham sido calibrados contra as nove fichas
+ * que a clínica marcou como favoritas, justamente para que nenhuma delas caísse
+ * na faixa de descarte.
  *
- * Então os cortes vêm da rubrica, não da escala nominal, e são conferidos contra
- * a única verdade externa que existe aqui: as nove candidatas que a Dra. Ana
- * Beatriz e o Jefferson escolheram antes de qualquer IA. A régua abaixo põe
- * seis delas em "entrevistar" ou acima, as outras três em "talvez", e NENHUMA
- * em "descartar" — que era o defeito que reprovou a primeira tentativa.
+ * Com 65 e 50, oito das 60 fichas já lidas mudam de estrela, e uma delas é a
+ * Daniele Xavier (nota 63), que ESTÁ entre as favoritas e passa de 4 para 3
+ * estrelas. Foi uma escolha informada: a régua do cliente prevalece sobre a
+ * calibragem, e o registro fica aqui para quem for reconferir depois.
  *
- *     5 estrelas  80 ou mais   perfil raro; chamar esta semana
- *     4 estrelas  62 a 79      chamar para entrevista
- *     3 estrelas  45 a 61      depende da conversa
- *     2 estrelas  30 a 44      só se faltar gente
- *     1 estrela   abaixo de 30 não serve para esta vaga
- *
- * Se a rubrica mudar, estes números precisam ser reconferidos contra as
- * favoritas de novo — é essa aferição que os sustenta, não o desenho redondo.
+ * Cinco estrelas para quatro faixas de propósito: a estrela é o que ordena a
+ * fila no painel, e distinguir 2 de 1 mantém a ordenação útil dentro da faixa
+ * de baixa prioridade, mesmo que as duas digam a mesma coisa ao RH.
  */
 export const FAIXAS_ESTRELA: { estrelas: number; minimo: number; rotulo: string }[] = [
-  { estrelas: 5, minimo: 80, rotulo: "Perfil raro para a vaga" },
-  { estrelas: 4, minimo: 62, rotulo: "Chamar para entrevista" },
-  { estrelas: 3, minimo: 45, rotulo: "Depende da conversa" },
-  { estrelas: 2, minimo: 30, rotulo: "Só se faltar gente" },
-  { estrelas: 1, minimo: 0, rotulo: "Não serve para esta vaga" },
+  { estrelas: 5, minimo: 80, rotulo: "Chamar para entrevista com prioridade" },
+  { estrelas: 4, minimo: 65, rotulo: "Boa candidata" },
+  { estrelas: 3, minimo: 50, rotulo: "Avaliar se faltar candidata melhor" },
+  { estrelas: 2, minimo: 30, rotulo: "Baixa prioridade" },
+  { estrelas: 1, minimo: 0, rotulo: "Baixa prioridade" },
 ];
 
 export function estrelasPor(nota: number): number {

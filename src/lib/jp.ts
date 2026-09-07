@@ -2,6 +2,7 @@
  *  avatares: quem resolve a URL com hash é o bundler. */
 import fotoJeferson from "@/assets/jeferson-barbosa.webp";
 import fotoJuliana from "@/assets/juliana-pelisser.webp";
+import fotoRaphaela from "@/assets/raphaela-recepcao.webp";
 
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
@@ -275,6 +276,21 @@ export type Profissional = {
 };
 
 /**
+ * Quem aparece na grade "Nossa equipe" — inclui quem não é do conselho.
+ *
+ * É `Profissional` com o registro opcional, e não `Profissional` puro, porque a
+ * recepção faz parte da equipe e não tem CRO. Afrouxar o campo no próprio
+ * `Profissional` sairia caro: RESPONSAVEL_TECNICA é tipada com ele, e a linha
+ * de responsável técnica do rodapé — exigida pela Resolução CFO 196/2019 —
+ * passaria a poder ficar vazia sem o compilador reclamar. Assim o afrouxamento
+ * fica contido na grade, que é o único lugar onde ele faz sentido.
+ */
+export type MembroEquipe = Omit<Profissional, "registro"> & {
+  /** Ausente em quem não é do conselho: o card omite o bloco "Registro". */
+  registro?: string;
+};
+
+/**
  * A responsável técnica da clínica.
  *
  * Fica **fora** de EQUIPE de propósito. A linha "Responsável técnica" do rodapé
@@ -319,8 +335,27 @@ export const RESPONSAVEL_TECNICA: Profissional = {
  *
  * A responsável técnica não está aqui — ela tem apresentação própria no bloco
  * de história, e a clínica preferiu não repeti-la nesta grade.
+ *
+ * A lista não é só de dentistas: quem trabalha na recepção também aparece, sem
+ * CRO. Por isso o tipo é MembroEquipe, e não Profissional.
  */
-export const EQUIPE: Profissional[] = [
+export const EQUIPE: MembroEquipe[] = [
+  /**
+   * Pessoa real. Foto enviada pela clínica em 07/09/2026, recortada do retrato
+   * de estúdio original (1792x2400) na mesma escala de cabeça dos demais cards.
+   *
+   * Sem registro de propósito — recepção não é do conselho. O card dela sai sem
+   * o bloco "Registro" em vez de mostrar o rótulo com o valor vazio.
+   *
+   * ⚠️ NOME INCOMPLETO: a foto veio nomeada só como "Raphaela recepcionista" e
+   * o sobrenome não foi informado. Todos os outros cards trazem nome completo —
+   * confirmar com a clínica e completar aqui antes de publicar a seção.
+   */
+  {
+    nome: "Raphaela",
+    papel: "Recepção",
+    foto: fotoRaphaela,
+  },
   // ─── ⚠️ FICTÍCIOS — TROCAR ANTES DE DIVULGAR ───────────────────────────────
   // Nenhuma destas pessoas existe. Retratos gerados por IA; CRO no formato
   // 00.00X, que nenhum registro real usa. Servem só para ver o layout cheio.

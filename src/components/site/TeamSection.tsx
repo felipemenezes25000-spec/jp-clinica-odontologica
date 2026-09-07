@@ -10,11 +10,12 @@ function CardProfissional({
 }: {
   nome: string;
   papel?: string | undefined;
-  registro: string;
+  /** Ausente em quem não é do conselho — a recepção, por exemplo. */
+  registro?: string | undefined;
   foto?: string | undefined;
 }) {
   return (
-    <article className="group overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)]">
+    <article className="group w-full overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] lg:w-[calc(20%-16px)]">
       <div className="relative mx-auto aspect-[0.83/1] w-full overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
           /* width/height são obrigatórios: a foto é lazy e, sem a proporção
@@ -50,14 +51,28 @@ function CardProfissional({
           {papel}
         </p>
 
-        <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-border-soft" />
+        {/* Sem registro não sai nem o rótulo nem o traço: um "Registro" seguido
+            de nada leria como cadastro faltando, e não como alguém que
+            legitimamente não é do conselho. */}
+        {registro ? (
+          <>
+            <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-border-soft" />
 
-        <p className="text-[11px] uppercase tracking-[0.1em] text-ink-soft">Registro</p>
-        <p className="mt-2 text-[12px] font-medium text-[#2C4A2E]">{registro}</p>
+            <p className="text-[11px] uppercase tracking-[0.1em] text-ink-soft">Registro</p>
+            <p className="mt-2 text-[12px] font-medium text-[#2C4A2E]">{registro}</p>
+          </>
+        ) : null}
       </div>
     </article>
   );
 }
+
+/**
+ * A linha de apoio da seção afirma registro no CRO. Desde que a recepção entrou
+ * na grade, essa afirmação não cobre todo mundo que aparece aqui — então ela
+ * acompanha a lista em vez de ficar cravada no JSX.
+ */
+const TODOS_COM_REGISTRO = EQUIPE.every((pessoa) => pessoa.registro);
 
 export function TeamSection() {
   return (
@@ -111,23 +126,30 @@ export function TeamSection() {
           </h2>
 
           <p className="mt-6 max-w-[470px] text-[15px] leading-6 text-ink-soft">
-            Atendimento feito por profissionais com registro ativo no Conselho Regional de
-            Odontologia.
+            {TODOS_COM_REGISTRO
+              ? "Atendimento feito por profissionais com registro ativo no Conselho Regional de Odontologia."
+              : "Atendimento clínico feito por profissionais com registro ativo no Conselho Regional de Odontologia."}
           </p>
         </div>
 
-        {/* Voltou a 5 colunas: a responsável técnica saiu desta grade, a pedido
-            da clínica — ela tem apresentação própria no bloco de história. Era a
-            6ª coluna, e era também a única pessoa real daqui.
+        {/* Flex, e não mais um grid de 5 colunas fixas: a lista cresce conforme
+            a clínica manda os retratos, e num grid fixo a última fila
+            incompleta encosta à esquerda com um buraco ao lado. Aqui a sobra
+            fica centrada, e a largura do card continua sendo a mesma em
+            qualquer quantidade de pessoas.
 
-            Tirá-la só foi seguro porque o rodapé deixou de ler EQUIPE[0] e
-            passou a ler RESPONSAVEL_TECNICA: pela regra antiga, esta mudança
-            teria publicado o CRO inventado do Dr. Ricardo Almeida na linha que
-            a Resolução CFO 196/2019 exige. */}
-        <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            Histórico da grade: a responsável técnica não está nela, a pedido da
+            clínica — ela tem apresentação própria no bloco de história. Tirá-la
+            só foi seguro porque o rodapé deixou de ler EQUIPE[0] e passou a ler
+            RESPONSAVEL_TECNICA: pela regra antiga, aquela mudança teria
+            publicado o CRO inventado do Dr. Ricardo Almeida na linha que a
+            Resolução CFO 196/2019 exige. */}
+        <div className="flex flex-wrap justify-center gap-5">
           {EQUIPE.map((pessoa) => (
             <CardProfissional
-              key={pessoa.registro}
+              /* Chaveado pelo nome: o registro deixou de servir como chave
+                 quando entrou na lista gente que não tem CRO. */
+              key={pessoa.nome}
               nome={pessoa.nome}
               papel={pessoa.papel ?? pessoa.especialidade}
               registro={pessoa.registro}

@@ -819,7 +819,13 @@ function ConteudoGaveta(props: PropsConteudo) {
             celular. Com o teto, quem cresce rola dentro do próprio cabeçalho e
             o corpo continua alcançável. */}
         <header className="rh-scroll max-h-[62dvh] shrink-0 overflow-y-auto border-b border-lime/20 bg-brand-deep/85 px-4 py-4 sm:px-5">
-          <div className="flex items-start gap-3">
+          {/* O contato entra NESTA linha, ao lado do nome, e nao num cartao
+              abaixo dela. Em tela larga o cartao ocupava a faixa inteira com
+              metade dela vazia, e empurrava a ficha para fora da dobra — abria-se
+              a candidata e via-se um bloco de instrucoes, nao os dados dela.
+              `xl:flex-nowrap` mantem os dois lado a lado so quando ha largura;
+              abaixo disso o contato desce, que e o comportamento certo. */}
+          <div className="flex flex-wrap items-start gap-3 xl:flex-nowrap">
             <span
               aria-hidden="true"
               className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime/15 font-display text-base font-extrabold text-white ring-1 ring-lime/35"
@@ -917,21 +923,20 @@ function ConteudoGaveta(props: PropsConteudo) {
                 Sem currículo<span className="hidden sm:inline">&nbsp;anexado</span>
               </span>
             )}
-          </div>
-
-          {/* ---------- Central de contato ----------
+            {/* ---------- Central de contato ----------
               No topo grudento porque falar com a candidata é a razão de a
               gaveta estar aberta: com ela lá embaixo, o RH rolava a ficha
               inteira até o fim toda vez que precisava mandar um WhatsApp.
               O `aoRegistrar` cai na MESMA anotação que o RH escreve à mão —
               não existe um segundo histórico paralelo. */}
-          <div className="mt-3">
-            <CentralContato
-              item={item}
-              agora={agora}
-              remetente={remetente}
-              aoRegistrar={(texto) => aoAnotar(item.id, texto)}
-            />
+            <div className="mt-3 xl:mt-0 xl:w-auto xl:shrink-0">
+              <CentralContato
+                item={item}
+                agora={agora}
+                remetente={remetente}
+                aoRegistrar={(texto) => aoAnotar(item.id, texto)}
+              />
+            </div>
           </div>
         </header>
 
