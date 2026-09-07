@@ -489,13 +489,13 @@ function PaginaVaga() {
 
       <main id="conteudo">
         {/* HERO */}
-        <section className="section-deep noise relative isolate overflow-hidden pb-14 pt-10 text-white sm:pb-16 sm:pt-12">
+        <section className="section-deep noise relative isolate overflow-hidden pb-10 pt-8 text-white sm:pb-12 sm:pt-9">
           <CapaVaga area={vaga.area} />
           {/* `lg:pr-[38%]` só existe quando há capa: sem ela o conteúdo usa a
               largura inteira, como sempre usou. Com ela, o texto para antes da
               parte em que a foto realmente aparece — o trecho que ele invade já
               é verde sólido pelo véu, então a leitura não perde contraste. */}
-          <div className={`jp-container relative z-10${temCapa ? " lg:pr-[34%]" : ""}`}>
+          <div className={`jp-container relative z-10${temCapa ? " lg:pr-[40%]" : ""}`}>
             <nav aria-label="Trilha de navegação">
               <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-white/85">
                 <li>
@@ -520,16 +520,16 @@ function PaginaVaga() {
               </ol>
             </nav>
 
-            <Reveal className="mt-8 max-w-4xl">
+            <Reveal className="mt-7 max-w-4xl">
               <p className="eyebrow text-white">
                 <span aria-hidden="true" className="h-2 w-2 rounded-full bg-lime" />
                 Vaga aberta · {rotuloArea(vaga)}
               </p>
-              <h1 className="mt-5 font-display text-[clamp(2.3rem,5.6vw,4.2rem)] font-extrabold leading-[.9] tracking-[-.045em] [overflow-wrap:anywhere]">
+              <h1 className="mt-5 font-display text-[clamp(2rem,4.6vw,3.4rem)] font-extrabold leading-[.95] tracking-[-.045em] [overflow-wrap:anywhere]">
                 {vaga.titulo}
               </h1>
               {vaga.resumo.trim().length > 0 && (
-                <p className="mt-6 max-w-2xl text-base font-medium leading-relaxed text-white/85 sm:text-lg">
+                <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-white/85">
                   {vaga.resumo}
                 </p>
               )}
@@ -543,7 +543,7 @@ function PaginaVaga() {
             </Reveal>
 
             <Reveal delay={90}>
-              <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <ul className={`mt-7 grid gap-3 sm:grid-cols-2${temCapa ? "" : " lg:grid-cols-4"}`}>
                 {/* `faixaSalarial` devolve vazio quando o RH escolheu não divulgar:
                     a linha continua na barra, mas dizendo o que é verdade. */}
                 <DadoHero
@@ -554,7 +554,7 @@ function PaginaVaga() {
                 <DadoHero
                   icone={Clock3}
                   rotulo="Jornada"
-                  valor={jornada.length > 0 ? jornada : rotuloModelo(vaga)}
+                  valor={vaga.jornada.trim().length > 0 ? vaga.jornada : rotuloModelo(vaga)}
                 />
                 <DadoHero icone={Users} rotulo="Vagas" valor={posicoes} />
                 <DadoHero
@@ -566,7 +566,7 @@ function PaginaVaga() {
             </Reveal>
 
             <Reveal delay={150}>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <a href={linkCandidatura} className="button-primary">
                   <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
                   <ArrowUpRight aria-hidden="true" className="h-4 w-4" />

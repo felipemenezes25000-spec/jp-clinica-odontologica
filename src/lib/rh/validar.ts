@@ -198,3 +198,34 @@ export function validarTudo(dados: Candidatura, agora: Date, contexto: ContextoP
 export function passoDoErro(_campo: string): number {
   return 1;
 }
+
+/**
+ * O PRIMEIRO telefone válido de um texto livre.
+ *
+ * POR QUE ISTO EXISTE
+ * A leitura do currículo devolve o campo do jeito que ele aparece na folha, e
+ * na folha ele quase nunca vem limpo:
+ *
+ *   "Celular: (11) 99876-3111 / Recado: (11) "
+ *   "(11)986770444 – WhatsApp: (11)951960824"
+ *   "+5511963583175 | 11963583175"
+ *   "(011) 96080-2168"
+ *
+ * Passar isso por `apenasDigitos` COLA todos os dígitos da linha: o primeiro
+ * exemplo virava `1199876311111`, com treze dígitos, e o painel then desligava
+ * WhatsApp, Ligar e Copiar telefone dizendo "sem telefone no currículo" — para
+ * uma candidata que tinha DOIS. Nove das 60 fichas estavam assim.
+ *
+ * Aqui a varredura procura o formato brasileiro, não dígitos soltos: DDD com ou
+ * sem parênteses e com ou sem o zero antigo, prefixo +55 opcional, e o número
+ * com 8 ou 9 dígitos. O primeiro candidato que passa em `telefoneValido` ganha;
+ * os outros números da linha ficam de fora em vez de contaminar o primeiro.
+ */
+export function primeiroTelefone(texto: string): string {
+  const padrao = /(?:\+?55[\s.\-–—]*)?\(?0?(\d{2})\)?[\s.\-–—]*(\d{4,5})[\s.\-–—]*(\d{4})/g;
+  for (const achado of texto.matchAll(padrao)) {
+    const numero = `${achado[1] ?? ""}${achado[2] ?? ""}${achado[3] ?? ""}`;
+    if (telefoneValido(numero)) return numero;
+  }
+  return "";
+}

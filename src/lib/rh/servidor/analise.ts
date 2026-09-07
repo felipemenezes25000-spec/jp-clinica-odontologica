@@ -18,6 +18,7 @@
  */
 import { montarDuvidas } from "../duvidas";
 import { fichaVazia, limparLeiturasOrfas, VERSAO_FICHA, type FichaEntrevista } from "../ficha";
+import { primeiroTelefone } from "../validar";
 import { apenasDigitos } from "../formatar";
 import {
   escolherGuia,
@@ -449,7 +450,10 @@ async function preencherComExtracao(
     ...atual,
     nome: atual.nome || e.nome,
     email: atual.email || e.email,
-    telefone: atual.telefone || apenasDigitos(e.telefone),
+    // `primeiroTelefone`, e nao `apenasDigitos`: o campo vem como texto
+    // livre do curriculo e costuma trazer DOIS numeros. Colar todos os digitos
+    // produzia telefone de 13 a 24 digitos, que o painel tratava como ausente.
+    telefone: atual.telefone || primeiroTelefone(e.telefone),
     nascimento: atual.nascimento || e.nascimento,
     cidade: atual.cidade || e.cidade,
     uf: atual.uf || e.uf,
