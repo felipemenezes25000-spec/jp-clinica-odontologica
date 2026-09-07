@@ -2736,3 +2736,27 @@ textarea.rh-campo {
   color: var(--ink-soft) !important;
   box-shadow: none;
 }
+
+/* ---- Lista suspensa do <select> -------------------------------------------
+   O popup nativo do <select> não é pintado pelas regras que valem para o resto
+   da tela: o <option> resolvia fundo `--brand-deep` (verde profundo, herdado da
+   época em que o painel era escuro) com letra `--ink` — preto sobre verde
+   escuro, ilegível, enquanto o campo fechado aparecia certo. Por isso passou
+   por todas as auditorias anteriores: elas mediam o <select>, que estava bom, e
+   o <option> só ganha cor quando o navegador abre a lista.
+
+   Vale para todos os selects do painel, não só o de status: filtros, editor de
+   vaga e configurações têm o mesmo. O modo entrevista fica de fora porque lá o
+   fundo escuro é intencional. */
+.rh-admin select,
+.rh-admin select option,
+.rh-admin select optgroup {
+  color: var(--ink);
+  background-color: #ffffff;
+}
+.rh-admin .rh-superficie-escura select,
+.rh-admin .rh-superficie-escura select option,
+.rh-admin .rh-superficie-escura select optgroup {
+  color: #ffffff;
+  background-color: var(--brand-deep);
+}
