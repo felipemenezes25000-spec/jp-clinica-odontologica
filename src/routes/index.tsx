@@ -675,13 +675,7 @@ function Home() {
         {/* 03 — HISTÓRIA */}
         <HistorySection />
 
-        {/* 04 — ESPECIALIDADES */}
-        <SpecialtiesSection />
-
-        {/* 05 — AVALIAÇÕES */}
-        <ReviewsSection />
-
-        {/* 06 — EQUIPE
+        {/* 04 — EQUIPE
 
             Voltou ao ar em 07/09/2026. Tinha saído porque ficou com cinco
             dentistas fictícios depois que a responsável técnica deixou a
@@ -694,6 +688,12 @@ function Home() {
             esta seção tem de sair da home de novo — o componente não faz essa
             checagem sozinho. */}
         <TeamSection />
+
+        {/* 05 — ESPECIALIDADES */}
+        <SpecialtiesSection />
+
+        {/* 06 — AVALIAÇÕES */}
+        <ReviewsSection />
 
         {/* 07 — ESTRUTURA */}
         <section id="estrutura" className="jp-section relative overflow-hidden bg-paper ">

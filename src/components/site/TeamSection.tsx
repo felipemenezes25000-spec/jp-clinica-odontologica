@@ -40,7 +40,7 @@ function CardProfissional({
 }) {
   return (
     <article
-      className={`group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] ${LARGURA_UMA_LINHA}`}
+      className={`group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] ${LARGURA_UMA_LINHA}`}
     >
       <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
@@ -68,7 +68,7 @@ function CardProfissional({
         />
       </div>
 
-      <div className="flex flex-1 flex-col justify-start pt-5 text-center">
+      <div className="flex flex-1 flex-col justify-start pt-4 text-center">
         {/* Duas linhas reservadas mesmo quando o nome ocupa uma só. Sem isso,
             um nome que quebra — "Dra. Sabrina Vamszer Flaquer" — empurra a
             especialidade e o bloco de registro dela para baixo, e os três
@@ -78,7 +78,7 @@ function CardProfissional({
           {nome}
         </h3>
 
-        <p className="mt-2 min-h-[32px] text-[11px] font-bold uppercase leading-[1.35] tracking-[0.08em] text-brand-text">
+        <p className="mt-1.5 min-h-[30px] text-[11px] font-bold uppercase leading-[1.35] tracking-[0.08em] text-brand-text">
           {papel}
         </p>
 
@@ -92,7 +92,7 @@ function CardProfissional({
             linha. A sobra fica no rodapé do card, onde não desalinha nada. */}
         {registro ? (
           <>
-            <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-border-soft" />
+            <div aria-hidden="true" className="mx-auto my-3 h-px w-[82%] bg-border-soft" />
 
             <p className="text-[11px] uppercase tracking-[0.1em] text-ink-soft">Registro</p>
             <p className="mt-2 text-[12px] font-medium text-[#2C4A2E]">{registro}</p>
@@ -150,7 +150,7 @@ export function TeamSection() {
       </svg>
 
       <div className="jp-container relative">
-        <div className="mb-12 lg:mb-14">
+        <div className="mb-8 lg:mb-10">
           <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-text">
             Quem cuida de você
           </p>
@@ -161,7 +161,7 @@ export function TeamSection() {
             <span className="text-brand-text">equipe.</span>
           </h2>
 
-          <p className="mt-6 max-w-[470px] text-[15px] leading-6 text-ink-soft">
+          <p className="mt-5 max-w-[470px] text-[15px] leading-6 text-ink-soft">
             {TODOS_COM_REGISTRO
               ? "Atendimento feito por profissionais com registro ativo no Conselho Regional de Odontologia."
               : "Atendimento clínico feito por profissionais com registro ativo no Conselho Regional de Odontologia."}
@@ -201,7 +201,7 @@ export function TeamSection() {
           ))}
         </div>
 
-        <div className="mx-auto mt-10 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(3,47,1,.06)] backdrop-blur">
+        <div className="mx-auto mt-7 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(3,47,1,.06)] backdrop-blur">
           <span
             aria-hidden="true"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-green/45 text-brand-text"
