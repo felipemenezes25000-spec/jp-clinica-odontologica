@@ -15,8 +15,8 @@ function CardProfissional({
   foto?: string | undefined;
 }) {
   return (
-    <article className="group w-full overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] lg:w-[calc(20%-16px)]">
-      <div className="relative mx-auto aspect-[0.83/1] w-full overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
+    <article className="group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] lg:w-[calc(20%-16px)]">
+      <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
           /* width/height são obrigatórios: a foto é lazy e, sem a proporção
              intrínseca, o card colapsaria até o download terminar. */
@@ -42,7 +42,7 @@ function CardProfissional({
         />
       </div>
 
-      <div className="pt-5 text-center">
+      <div className="flex flex-1 flex-col justify-center pt-5 text-center">
         <h3 className="font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-forest-2">
           {nome}
         </h3>

@@ -42,7 +42,6 @@ import {
   Paperclip,
   PenLine,
   Phone,
-  Send,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -79,9 +78,6 @@ const BOTAO_PRIMARIO = `${BOTAO} bg-forest text-white ring-lime hover:bg-forest/
 const BOTAO_SECUNDARIO = `${BOTAO} bg-white/10 text-white ring-white/25 hover:bg-white/20`;
 /** Indisponível: continua legível (85% é o piso da regra), mas sem convite ao clique. */
 const BOTAO_MORTO = `${BOTAO} cursor-not-allowed bg-white/5 text-white/85 ring-white/15`;
-
-const ROTULO_SECAO =
-  "flex items-center gap-2 font-display text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-white";
 
 const AJUDA = "text-xs leading-relaxed text-white/85";
 
@@ -375,26 +371,26 @@ export function CentralContato(props: {
   /* --------------------------------------------------------------------- */
 
   return (
-    /* COMPACTA POR PADRÃO. Ela fica logo abaixo do nome, e antes ocupava um
-       cartão inteiro — título, um parágrafo de duas linhas e só então os
-       botões. Numa tela pequena isso empurrava a ficha inteira para fora da
-       dobra: a pessoa abria a candidata e via um bloco de instruções, não os
-       dados dela.
-       O título e a explicação continuam existindo para leitor de tela e voltam
-       à vista a partir de sm; o que some no celular é a moldura e o texto que
-       quem usa o painel já leu na primeira vez. */
-    <section aria-labelledby={`${uid}-titulo`} className="rounded-2xl sm:rh-vidro sm:p-5">
-      <h3 id={`${uid}-titulo`} className={`sr-only sm:not-sr-only sm:flex ${ROTULO_SECAO}`}>
-        <Send className="hidden h-4 w-4 shrink-0 text-lime sm:block" aria-hidden="true" />
+    /* SEM MOLDURA E SEM TEXTO — no PC também, não só no celular.
+       Ela mora ao lado do nome, no cabeçalho da gaveta. Enquanto teve cartão,
+       título e um parágrafo de duas linhas, gastava 77px antes do primeiro
+       botão e empurrava a ficha para fora da dobra: abria-se a candidata e
+       via-se um bloco de instruções, não os dados dela.
+
+       O título e a explicação continuam no HTML para quem usa leitor de tela.
+       Para quem enxerga, "WhatsApp", "E-mail" e "Ligar" já dizem o que fazem —
+       e o texto só se lia uma vez na vida. */
+    <section aria-labelledby={`${uid}-titulo`}>
+      <h3 id={`${uid}-titulo`} className="sr-only">
         Central de contato
       </h3>
-      <p className={`hidden sm:block sm:mt-2 ${AJUDA}`}>
+      <p className="sr-only">
         Fale com {item.nome.trim() === "" ? "a candidata" : item.nome.trim()} sem sair daqui. O que
         você enviar entra sozinho no histórico dela.
       </p>
 
       {/* ---------- Ações diretas ---------- */}
-      <div className="flex flex-wrap gap-2 sm:mt-3">
+      <div className="flex flex-wrap gap-2">
         <Acao
           icone={MessageCircle}
           rotulo="WhatsApp"

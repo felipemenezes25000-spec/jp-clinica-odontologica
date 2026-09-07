@@ -891,6 +891,20 @@ function ConteudoGaveta(props: PropsConteudo) {
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
+            {/* ---------- Central de contato ----------
+              No topo grudento porque falar com a candidata é a razão de a
+              gaveta estar aberta: com ela lá embaixo, o RH rolava a ficha
+              inteira até o fim toda vez que precisava mandar um WhatsApp.
+              O `aoRegistrar` cai na MESMA anotação que o RH escreve à mão —
+              não existe um segundo histórico paralelo. */}
+            <div className="mt-2 w-full xl:mt-0 xl:w-auto xl:shrink-0 xl:max-w-[46%]">
+              <CentralContato
+                item={item}
+                agora={agora}
+                remetente={remetente}
+                aoRegistrar={(texto) => aoAnotar(item.id, texto)}
+              />
+            </div>
           </div>
 
           {/* ---------- Baixar currículo ----------
@@ -923,20 +937,6 @@ function ConteudoGaveta(props: PropsConteudo) {
                 Sem currículo<span className="hidden sm:inline">&nbsp;anexado</span>
               </span>
             )}
-            {/* ---------- Central de contato ----------
-              No topo grudento porque falar com a candidata é a razão de a
-              gaveta estar aberta: com ela lá embaixo, o RH rolava a ficha
-              inteira até o fim toda vez que precisava mandar um WhatsApp.
-              O `aoRegistrar` cai na MESMA anotação que o RH escreve à mão —
-              não existe um segundo histórico paralelo. */}
-            <div className="mt-3 xl:mt-0 xl:w-auto xl:shrink-0">
-              <CentralContato
-                item={item}
-                agora={agora}
-                remetente={remetente}
-                aoRegistrar={(texto) => aoAnotar(item.id, texto)}
-              />
-            </div>
           </div>
         </header>
 

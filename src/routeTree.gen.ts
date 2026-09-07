@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PreviaEquipeRouteImport } from './routes/previa-equipe'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
@@ -22,11 +21,6 @@ import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PreviaEquipeRoute = PreviaEquipeRouteImport.update({
-  id: '/previa-equipe',
-  path: '/previa-equipe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -67,7 +61,6 @@ const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/previa-equipe': typeof PreviaEquipeRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -78,7 +71,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/previa-equipe': typeof PreviaEquipeRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -90,7 +82,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/previa-equipe': typeof PreviaEquipeRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -103,7 +94,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/previa-equipe'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -114,7 +104,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/previa-equipe'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -125,7 +114,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/previa-equipe'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -137,7 +125,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PreviaEquipeRoute: typeof PreviaEquipeRoute
   RhRoute: typeof RhRoute
   TrabalheConoscoRoute: typeof TrabalheConoscoRoute
   CarreirasSlugRoute: typeof CarreirasSlugRoute
@@ -154,13 +141,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/previa-equipe': {
-      id: '/previa-equipe'
-      path: '/previa-equipe'
-      fullPath: '/previa-equipe'
-      preLoaderRoute: typeof PreviaEquipeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -217,7 +197,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PreviaEquipeRoute: PreviaEquipeRoute,
   RhRoute: RhRoute,
   TrabalheConoscoRoute: TrabalheConoscoRoute,
   CarreirasSlugRoute: CarreirasSlugRoute,
