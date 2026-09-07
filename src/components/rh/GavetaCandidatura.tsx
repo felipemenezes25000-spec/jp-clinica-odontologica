@@ -41,6 +41,7 @@ import {
   Sparkles,
   Star,
   StickyNote,
+  RotateCcw,
   Trash2,
   TriangleAlert,
   User,
@@ -88,7 +89,7 @@ import {
   statusVagaPor,
 } from "@/lib/rh/opcoes";
 import type { CamposGeriveis, Candidatura, StatusCandidatura, Vaga } from "@/lib/rh/tipos";
-import { MESES_RETENCAO_LGPD } from "@/lib/rh/tipos";
+import { DIAS_ATE_EXCLUIR, MESES_RETENCAO_LGPD } from "@/lib/rh/tipos";
 
 /* -------------------------------------------------------------------------- */
 /* Constantes de estilo e helpers puros                                       */
@@ -365,6 +366,8 @@ type PropsConteudo = {
    */
   remetente: string;
   aoExcluir: (id: string) => void;
+  aoRestaurar: (id: string) => void;
+  aoExcluirAgora: (id: string) => void;
   /** Esta ficha está com uma leitura da IA em andamento agora. */
   analisando: boolean;
   aoAnalisar: (id: string, forcar: boolean) => void;
@@ -412,6 +415,8 @@ function ConteudoGaveta(props: PropsConteudo) {
     aoRemoverAnotacao,
     remetente,
     aoExcluir,
+    aoRestaurar,
+    aoExcluirAgora,
     analisando,
     aoAnalisar,
     guia,
@@ -747,6 +752,27 @@ function ConteudoGaveta(props: PropsConteudo) {
    * concluiria que a candidata não preencheu nada — quando na verdade falta um
    * clique em "Analisar este currículo".
    */
+  /**
+   * Está na lixeira, e quanto falta.
+   *
+   * O prazo é contado em DIAS INTEIROS a partir de `agora` (que desce por
+   * prop, nunca `new Date()` no render — servidor e navegador chegariam a
+   * instantes diferentes e a hidratação quebraria). Zero ou negativo não quer
+   * dizer "já foi": quer dizer que some na próxima varredura, e é isso que a
+   * frase precisa dizer para não prometer o que já aconteceu.
+   */
+  const naLixeira = item.excluirEm.trim() !== "";
+  const diasParaExcluir = naLixeira
+    ? Math.ceil((Date.parse(item.excluirEm) - agora.getTime()) / 86400000)
+    : 0;
+  const textoDoPrazo = !Number.isFinite(diasParaExcluir)
+    ? "Some na próxima varredura."
+    : diasParaExcluir <= 0
+      ? "Some na próxima varredura."
+      : diasParaExcluir === 1
+        ? "Some sozinha amanhã."
+        : `Some sozinha em ${String(diasParaExcluir)} dias.`;
+
   const aguardandoLeitura =
     item.analise === null &&
     item.curriculo !== null &&
@@ -1470,14 +1496,47 @@ function ConteudoGaveta(props: PropsConteudo) {
 
         {/* ---------- Rodapé destrutivo ---------- */}
         <footer className="shrink-0 border-t border-lime/20 bg-brand-deep/85 px-4 py-3 sm:px-5">
-          {confirmandoExclusao ? (
+          {naLixeira ? (
+            /* Já marcada: o rodapé deixa de oferecer exclusão e passa a mostrar
+               o prazo e a saída. É a tela inteira da janela de arrependimento —
+               sem isto, "excluí sem querer" não teria como voltar. */
+            <div className="space-y-2">
+              <p className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-white">
+                <Trash2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  Na lixeira. {textoDoPrazo} Depois disso o cadastro e o arquivo do currículo são
+                  apagados do servidor, sem volta.
+                </span>
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => aoRestaurar(item.id)}
+                  disabled={salvando}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-lime/20 px-4 text-sm font-bold text-white ring-1 ring-lime/50 transition hover:bg-lime/30 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
+                  Restaurar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => aoExcluirAgora(item.id)}
+                  disabled={salvando}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-rose-400/20 px-4 text-sm font-bold text-rose-100 ring-1 ring-rose-300/50 transition hover:bg-rose-400/30 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  Apagar agora
+                </button>
+              </div>
+            </div>
+          ) : confirmandoExclusao ? (
             <div role="alert" className="space-y-2">
               <p className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-rose-100">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>
-                  Excluir apaga o cadastro, as anotações e também o arquivo de currículo do
-                  servidor. Não há como desfazer — se a ideia é só tirar da lista, use “Arquivar
-                  candidatura”.
+                  A ficha sai da lista agora e vai para a lixeira. O cadastro, as anotações e o
+                  arquivo do currículo são apagados do servidor em {DIAS_ATE_EXCLUIR} dias — até lá
+                  dá para restaurar. Se a ideia é só tirar da lista, use “Arquivar candidatura”.
                 </span>
               </p>
               <div className="flex flex-wrap gap-2">
@@ -1496,7 +1555,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                   className="inline-flex min-h-11 items-center gap-2 rounded-full bg-rose-400/20 px-4 text-sm font-bold text-rose-100 ring-1 ring-rose-300/50 transition hover:bg-rose-400/30 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  Excluir definitivamente
+                  Mover para a lixeira
                 </button>
               </div>
             </div>

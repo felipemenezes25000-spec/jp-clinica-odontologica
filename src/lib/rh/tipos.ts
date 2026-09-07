@@ -112,6 +112,21 @@ export type Candidatura = {
   arquivada: boolean;
 
   /**
+   * Momento em que esta ficha e o currículo dela somem de vez. ISO, ou "" para
+   * a esmagadora maioria — que não está marcada para nada.
+   *
+   * POR QUE MARCAR EM VEZ DE APAGAR NA HORA
+   * Apagar era imediato e irreversível. Numa lista de 55 pessoas, um clique
+   * errado é questão de tempo, e não havia de onde trazer de volta: o registro
+   * e o PDF saíam do banco no mesmo instante. Agora o botão AGENDA — a ficha
+   * sai da lista na hora, e sobram `DIAS_ATE_EXCLUIR` dias para desfazer.
+   *
+   * Quem apaga de fato é `varrerExcluidas`. Uma data no passado não significa
+   * "já foi": significa "some na próxima varredura".
+   */
+  excluirEm: string;
+
+  /**
    * Triagem por IA. `null` enquanto ninguém mandou analisar — e é `null`, e não
    * um objeto zerado, justamente para a tela conseguir distinguir "ainda não
    * analisei" de "analisei e não achei nada".
@@ -148,6 +163,14 @@ export type CamposGeriveis = Pick<
   Candidatura,
   "status" | "nota" | "etiquetas" | "responsavel" | "entrevistaEm" | "arquivada"
 >;
+
+/**
+ * Janela de arrependimento da exclusão, em dias.
+ *
+ * Sete porque é o prazo que o cliente pediu e porque cobre uma semana inteira
+ * de trabalho: quem apagou na sexta e percebeu na segunda ainda alcança.
+ */
+export const DIAS_ATE_EXCLUIR = 7;
 
 /** Limite de upload, aplicado no cliente (retorno imediato) e no servidor (de verdade). */
 export const TAMANHO_MAX_CURRICULO = 8 * 1024 * 1024;
@@ -331,6 +354,7 @@ export function candidaturaVazia(): Candidatura {
     entrevistaEm: "",
     anotacoes: [],
     arquivada: false,
+    excluirEm: "",
 
     analise: null,
     ficha: null,

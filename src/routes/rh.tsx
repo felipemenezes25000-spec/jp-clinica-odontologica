@@ -48,6 +48,8 @@ import {
   gerarRanking,
   importarCurriculos,
   excluirCandidatura,
+  excluirCandidaturaAgora,
+  restaurarCandidatura,
   excluirGuiaAdmin,
   excluirVagaAdmin,
   listarCandidaturas,
@@ -71,7 +73,7 @@ import type { GuiaEntrevista } from "@/lib/rh/guia";
 import { escolherGuia, guiaSementeRecepcao } from "@/lib/rh/guia";
 import type { RankingSalvo } from "@/lib/rh/ia/tipos";
 import { AREAS, statusPor, VINCULOS } from "@/lib/rh/opcoes";
-import { configuracoesPadrao } from "@/lib/rh/tipos";
+import { configuracoesPadrao, DIAS_ATE_EXCLUIR } from "@/lib/rh/tipos";
 import type {
   AreaVaga,
   CamposGeriveis,
@@ -832,20 +834,78 @@ function Painel({ dados }: { dados: DadosRh }) {
     [itens, trocarItem, abrirGravacao, fecharGravacao, tratarMotivo, falhaDeRede],
   );
 
-  const excluirCandidato = useCallback(
+  const restaurarCandidato = useCallback(
+    (id: string) => {
+      const antes = itens;
+      // Otimista, como as outras ações do painel: o item volta para a lista
+      // sem `excluirEm`, e se o servidor recusar a lista inteira é revertida.
+      setItens((atual) => atual.map((c) => (c.id === id ? { ...c, excluirEm: "" } : c)));
+      abrirGravacao();
+
+      restaurarCandidatura({ data: { id } })
+        .then((resposta) => {
+          if (resposta.ok) {
+            avisar("ok", "Candidatura restaurada. Ela voltou para a lista.");
+            return;
+          }
+          setItens(antes);
+          tratarMotivo(resposta.motivo, "Não foi possível restaurar a candidatura.");
+        })
+        .catch(() => {
+          setItens(antes);
+          falhaDeRede();
+        })
+        .finally(fecharGravacao);
+    },
+    [itens, abrirGravacao, fecharGravacao, tratarMotivo, falhaDeRede, avisar],
+  );
+
+  /** Apaga de vez, sem esperar os sete dias. Só existe dentro da lixeira. */
+  const excluirCandidatoAgora = useCallback(
     (id: string) => {
       const antes = itens;
       setItens((atual) => atual.filter((c) => c.id !== id));
+      irPara("candidaturas", "", "");
+      abrirGravacao();
+
+      excluirCandidaturaAgora({ data: { id } })
+        .then((resposta) => {
+          if (resposta.ok) {
+            avisar("ok", "Apagada de vez, junto com o arquivo do currículo.");
+            return;
+          }
+          setItens(antes);
+          tratarMotivo(resposta.motivo, "Não foi possível apagar a candidatura.");
+        })
+        .catch(() => {
+          setItens(antes);
+          falhaDeRede();
+        })
+        .finally(fecharGravacao);
+    },
+    [itens, irPara, abrirGravacao, fecharGravacao, tratarMotivo, falhaDeRede, avisar],
+  );
+
+  const excluirCandidato = useCallback(
+    (id: string) => {
+      const antes = itens;
+      // Marca com a data do prazo em vez de tirar da lista na mão: é o mesmo
+      // campo que o servidor grava, e é ele que o filtro usa para esconder. O
+      // valor exato vem na próxima leitura; aqui basta "está na lixeira".
+      const prazo = new Date(agora.getTime() + DIAS_ATE_EXCLUIR * 86400000).toISOString();
+      setItens((atual) => atual.map((c) => (c.id === id ? { ...c, excluirEm: prazo } : c)));
       // A gaveta some junto — e a entrevista também: manter abertas telas de uma
-      // ficha que já não existe deixaria o painel em estado impossível se a
-      // exclusão desse certo.
+      // ficha que saiu da lista deixaria o painel em estado impossível.
       irPara("candidaturas", "", "");
       abrirGravacao();
 
       excluirCandidatura({ data: { id } })
         .then((resposta) => {
           if (resposta.ok) {
-            avisar("ok", "Candidatura excluída, junto com o currículo em disco.");
+            avisar(
+              "ok",
+              `Movida para a lixeira. Some sozinha em ${String(DIAS_ATE_EXCLUIR)} dias — dá para restaurar até lá.`,
+            );
             return;
           }
           setItens(antes);
@@ -857,7 +917,7 @@ function Painel({ dados }: { dados: DadosRh }) {
         })
         .finally(fecharGravacao);
     },
-    [itens, irPara, abrirGravacao, fecharGravacao, tratarMotivo, falhaDeRede, avisar],
+    [itens, agora, irPara, abrirGravacao, fecharGravacao, tratarMotivo, falhaDeRede, avisar],
   );
 
   /* ---------------------------------------------------------------------- */
@@ -1634,6 +1694,8 @@ function Painel({ dados }: { dados: DadosRh }) {
         aoRemoverAnotacao={apagarAnotacao}
         remetente={remetente}
         aoExcluir={excluirCandidato}
+        aoRestaurar={restaurarCandidato}
+        aoExcluirAgora={excluirCandidatoAgora}
         analisando={aberto !== null && analisandoIds.includes(aberto.id)}
         aoAnalisar={analisarFicha}
         guia={guiaDoAberto}

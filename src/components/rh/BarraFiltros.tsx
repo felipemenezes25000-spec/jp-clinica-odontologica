@@ -31,6 +31,16 @@ export type FiltrosRh = {
   notaMinima: number;
   somenteComCurriculo: boolean;
   incluirArquivadas: boolean;
+  /**
+   * Lixeira. `false` esconde quem está marcado para exclusão; `true` mostra
+   * SÓ esses.
+   *
+   * É excludente de propósito, e não um "incluir" como o das arquivadas:
+   * arquivada é uma ficha viva que saiu de foco, enquanto a da lixeira está a
+   * caminho de deixar de existir. Misturar as duas na mesma lista faria o RH
+   * mover para entrevista alguém que some no sábado.
+   */
+  verLixeira: boolean;
   /** Recomendação da IA. "" = qualquer uma, inclusive quem não foi analisada. */
   recomendacao: RecomendacaoIa | "";
   /** Nota 0 a 100 da IA. Zero desliga o filtro. */
@@ -105,6 +115,7 @@ export function filtrosVazios(): FiltrosRh {
     // Arquivada fica fora por padrão: quem arquivou já decidiu que aquilo saiu
     // da mesa, e trazê-las de volta a cada abertura do painel desfaz a decisão.
     incluirArquivadas: false,
+    verLixeira: false,
     ordem: "recentes",
   };
 }
@@ -216,6 +227,10 @@ export function aplicarFiltros(itens: Candidatura[], f: FiltrosRh): Candidatura[
     .filter((t) => t.length > 0);
 
   const filtrados = itens.filter((c) => {
+    // A lixeira é a PRIMEIRA peneira: quem está marcado para exclusão não
+    // aparece em lista nenhuma, nem em busca, a não ser dentro dela.
+    const naLixeira = c.excluirEm.trim() !== "";
+    if (naLixeira !== f.verLixeira) return false;
     if (c.arquivada && !f.incluirArquivadas) return false;
     if (f.area !== "" && c.area !== f.area) return false;
     if (f.status !== "" && c.status !== f.status) return false;
@@ -302,6 +317,7 @@ function contarAtivos(f: FiltrosRh): number {
   if (f.notaMinima !== padrao.notaMinima) n += 1;
   if (f.somenteComCurriculo !== padrao.somenteComCurriculo) n += 1;
   if (f.incluirArquivadas !== padrao.incluirArquivadas) n += 1;
+  if (f.verLixeira !== padrao.verLixeira) n += 1;
   if (f.recomendacao !== padrao.recomendacao) n += 1;
   if (f.notaIaMinima !== padrao.notaIaMinima) n += 1;
   if (f.somenteComAnalise !== padrao.somenteComAnalise) n += 1;
@@ -694,6 +710,11 @@ export function BarraFiltros(props: {
             ligado={filtros.incluirArquivadas}
             rotulo="Incluir arquivadas"
             aoAlternar={(v) => mudar({ incluirArquivadas: v })}
+          />
+          <Interruptor
+            ligado={filtros.verLixeira}
+            rotulo="Ver lixeira"
+            aoAlternar={(v) => mudar({ verLixeira: v })}
           />
 
           {/* ---- Triagem por IA ----

@@ -15,6 +15,7 @@ import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
 import { Route as CarreirasSlugRouteImport } from './routes/carreiras/$slug'
 import { Route as TratamentosSlugRouteImport } from './routes/tratamentos/$slug'
+import { Route as ApiRhVarrerRouteImport } from './routes/api/rh/varrer'
 import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const TratamentosSlugRoute = TratamentosSlugRouteImport.update({
   path: '/tratamentos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRhVarrerRoute = ApiRhVarrerRouteImport.update({
+  id: '/api/rh/varrer',
+  path: '/api/rh/varrer',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
   id: '/api/rh/curriculo/$id',
   path: '/api/rh/curriculo/$id',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
+  '/api/rh/varrer': typeof ApiRhVarrerRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras': typeof CarreirasIndexRoute
+  '/api/rh/varrer': typeof ApiRhVarrerRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
+  '/api/rh/varrer': typeof ApiRhVarrerRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras/'
+    | '/api/rh/varrer'
     | '/api/rh/curriculo/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras'
+    | '/api/rh/varrer'
     | '/api/rh/curriculo/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras/'
+    | '/api/rh/varrer'
     | '/api/rh/curriculo/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   CarreirasSlugRoute: typeof CarreirasSlugRoute
   TratamentosSlugRoute: typeof TratamentosSlugRoute
   CarreirasIndexRoute: typeof CarreirasIndexRoute
+  ApiRhVarrerRoute: typeof ApiRhVarrerRoute
   ApiRhCurriculoIdRoute: typeof ApiRhCurriculoIdRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TratamentosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rh/varrer': {
+      id: '/api/rh/varrer'
+      path: '/api/rh/varrer'
+      fullPath: '/api/rh/varrer'
+      preLoaderRoute: typeof ApiRhVarrerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/rh/curriculo/$id': {
       id: '/api/rh/curriculo/$id'
       path: '/api/rh/curriculo/$id'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   CarreirasSlugRoute: CarreirasSlugRoute,
   TratamentosSlugRoute: TratamentosSlugRoute,
   CarreirasIndexRoute: CarreirasIndexRoute,
+  ApiRhVarrerRoute: ApiRhVarrerRoute,
   ApiRhCurriculoIdRoute: ApiRhCurriculoIdRoute,
 }
 export const routeTree = rootRouteImport

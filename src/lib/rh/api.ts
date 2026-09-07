@@ -41,6 +41,7 @@ import {
 import {
   candidaturaVazia,
   configuracoesPadrao,
+  DIAS_ATE_EXCLUIR,
   EXTENSOES_CURRICULO,
   mimeDeCurriculo,
   LIMITES,
@@ -588,12 +589,33 @@ export const enviarCandidatura = createServerFn({ method: "POST" })
 /* Painel (exige admin)                                                       */
 /* -------------------------------------------------------------------------- */
 
+/** Passou da data marcada? Ficha sem data marcada nunca passa. */
+function venceuAExclusao(item: Candidatura, agora: number): boolean {
+  if (item.excluirEm.trim() === "") return false;
+  const prazo = Date.parse(item.excluirEm);
+  return Number.isFinite(prazo) && prazo <= agora;
+}
+
 export const listarCandidaturas = createServerFn({ method: "GET" }).handler(
   async (): Promise<RespostaLista> => {
     if (!(await exigirAdmin())) return { ok: false, motivo: NAO_AUTENTICADO };
 
-    const { listarTodas } = await import("./servidor/armazenamento");
-    return { ok: true, itens: await listarTodas() };
+    const { listarTodas, excluirTudo } = await import("./servidor/armazenamento");
+    const todas = await listarTodas();
+
+    // A VARREDURA MORA AQUI, e não num cron, porque é aqui que ela é barata e
+    // não pode ser esquecida: a lista já foi lida do banco, e o painel é aberto
+    // toda vez que alguém vai olhar candidatura. O cron existe além disto (ver
+    // /api/rh/varrer) para o caso de ninguém abrir o painel por uma semana — a
+    // promessa é "some em 7 dias", não "some quando alguém lembrar".
+    const agora = Date.now();
+    const vencidas = todas.filter((item) => venceuAExclusao(item, agora));
+    for (const item of vencidas) await excluirTudo(item.id);
+
+    return {
+      ok: true,
+      itens: vencidas.length === 0 ? todas : todas.filter((i) => !venceuAExclusao(i, agora)),
+    };
   },
 );
 
@@ -703,6 +725,53 @@ export const removerAnotacao = createServerFn({ method: "POST" })
   });
 
 export const excluirCandidatura = createServerFn({ method: "POST" })
+  .validator((entrada: unknown): { id: string } => {
+    const bruto = objeto(entrada);
+    const id = texto(bruto["id"], 60);
+    if (id.length === 0) throw new Error("Candidatura não informada.");
+    return { id };
+  })
+  .handler(async ({ data }): Promise<RespostaSimples> => {
+    if (!(await exigirAdmin())) return { ok: false, motivo: NAO_AUTENTICADO };
+
+    const { atualizarCandidaturaNoDisco, lerCandidatura } =
+      await import("./servidor/armazenamento");
+    const atual = await lerCandidatura(data.id);
+    if (atual === null) return { ok: false, motivo: "nao-encontrada" };
+
+    // Agenda, não apaga. Quem apaga é a varredura, `DIAS_ATE_EXCLUIR` dias
+    // depois. O carimbo é do SERVIDOR: aceitar a data do cliente deixaria um
+    // POST forjado marcar "excluir ontem" e apagar ficha alheia na hora.
+    const prazo = new Date(Date.now() + DIAS_ATE_EXCLUIR * 24 * 60 * 60 * 1000).toISOString();
+    await atualizarCandidaturaNoDisco(data.id, (item) => ({ ...item, excluirEm: prazo }));
+    return { ok: true };
+  });
+
+/** Tira a ficha da lixeira. O currículo nunca chegou a sair do lugar. */
+export const restaurarCandidatura = createServerFn({ method: "POST" })
+  .validator((entrada: unknown): { id: string } => {
+    const bruto = objeto(entrada);
+    const id = texto(bruto["id"], 60);
+    if (id.length === 0) throw new Error("Candidatura não informada.");
+    return { id };
+  })
+  .handler(async ({ data }): Promise<RespostaSimples> => {
+    if (!(await exigirAdmin())) return { ok: false, motivo: NAO_AUTENTICADO };
+
+    const { atualizarCandidaturaNoDisco, lerCandidatura } =
+      await import("./servidor/armazenamento");
+    if ((await lerCandidatura(data.id)) === null) return { ok: false, motivo: "nao-encontrada" };
+
+    await atualizarCandidaturaNoDisco(data.id, (item) => ({ ...item, excluirEm: "" }));
+    return { ok: true };
+  });
+
+/**
+ * Apaga AGORA, sem esperar os sete dias. Existe para quem tem certeza — e é a
+ * única porta que destrói dado de imediato, por isso fica só dentro da lixeira,
+ * onde a pessoa já confirmou uma vez que quer excluir.
+ */
+export const excluirCandidaturaAgora = createServerFn({ method: "POST" })
   .validator((entrada: unknown): { id: string } => {
     const bruto = objeto(entrada);
     const id = texto(bruto["id"], 60);
