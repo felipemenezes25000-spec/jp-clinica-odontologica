@@ -2357,6 +2357,16 @@ textarea.rh-campo {
   ) {
   background: color-mix(in oklab, var(--mint) 60%, white) !important;
 }
+
+/* `bg-black/20` também: no painel verde antigo ele era um recuo discreto, e no
+   papel branco de hoje vira uma mancha cinza-escura. O texto de apoio dali é
+   `text-white/85`, que o tema remapeia para `--ink-soft` — cinza sobre cinza,
+   3,54:1, abaixo do piso. É o painel de "Escrever mensagem", e a regra da
+   clínica não abre exceção: fundo claro, letra escura, e as duas se lendo. */
+.rh-admin .rh-gaveta [class~="bg-black/20"],
+.rh-admin [role="dialog"] [class~="bg-black/20"] {
+  background: color-mix(in oklab, var(--mint) 42%, white) !important;
+}
 .rh-admin
   .rh-gaveta
   :is(

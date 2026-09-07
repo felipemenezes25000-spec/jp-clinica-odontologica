@@ -25,6 +25,7 @@ import {
   Building2,
   ChartNoAxesColumn,
   Check,
+  ChevronDown,
   CircleAlert,
   Copy,
   Flag,
@@ -213,57 +214,84 @@ function Estrelas(props: { nota: number }) {
 }
 
 /**
- * Uma barra de critério.
+ * Um critério, em UMA LINHA.
  *
- * O número aparece sempre, ao lado do rótulo: a barra é o atalho para o olho,
- * nunca o único portador da informação — em 3/10 e 5/10 a diferença de largura
- * some numa tela de 360px, e some de vez para quem imprime.
+ * Eram seis blocos altos: rótulo, nota, barra, um parágrafo de justificativa e
+ * um `<details>` de evidências, empilhados — o bloco inteiro passava de 800px e
+ * era, sozinho, mais alto que "Pontos fortes", "Pontos de atenção" e
+ * "Sinalizações" somados. Aberta, a seção deixava de ser um resumo e virava um
+ * relatório.
+ *
+ * Agora a linha traz o que responde de relance — quanto tirou em quê — e a
+ * justificativa e as evidências ficam a um clique, dentro da própria linha. Seis
+ * linhas de 32px em vez de seis blocos: a seção passou a caber na tela junto com
+ * as vizinhas, que é o que o cliente pediu.
+ *
+ * A NOTA CONTINUA EM TEXTO, sempre. A barra é atalho para o olho e nunca a
+ * única portadora da informação: em 3/10 e 5/10 a diferença de largura some
+ * numa tela de 360px, e some de vez para quem imprime.
  */
 function BarraCriterio(props: { chave: ChaveCriterio; criterio: CriterioIa | null }) {
   const { chave, criterio } = props;
   const meta = CRITERIOS[chave];
   const nota = criterio ? Math.max(0, Math.min(10, criterio.nota)) : null;
+  const [aberto, setAberto] = useState(false);
+  const idCorpo = `${useId()}-criterio`;
+
+  const justificativa =
+    criterio && criterio.justificativa.trim() !== "" ? criterio.justificativa : meta.ajuda;
+  const evidencias = criterio?.evidencias ?? [];
 
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-bold text-white">{meta.rotulo}</p>
-        <p className="shrink-0 text-sm font-extrabold tabular-nums text-white">
-          {nota == null ? "—" : `${nota}/10`}
-          <span className="sr-only"> pontos</span>
-        </p>
-      </div>
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        aria-expanded={aberto}
+        aria-controls={aberto ? idCorpo : undefined}
+        className="flex w-full items-center gap-3 rounded-lg py-1.5 text-left transition-colors hover:bg-lime/[0.07]"
+      >
+        <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{meta.rotulo}</span>
 
-      <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-white/10">
-        {/* Não é `.rh-progresso`: aquele trilho é creme, desenhado para o
-            formulário público, e no vidro escuro daqui cada barra viraria um
-            bloco de luz. A métrica (altura, raio) é a mesma. */}
-        <div
-          className="h-full rounded-full bg-lime transition-[width] duration-500"
-          style={{ width: `${(nota ?? 0) * 10}%` }}
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-white/10 sm:w-24"
+        >
+          {/* Não é `.rh-progresso`: aquele trilho é creme, desenhado para o
+              formulário público, e no vidro escuro daqui cada barra viraria um
+              bloco de luz. */}
+          <span
+            className="block h-full rounded-full bg-lime transition-[width] duration-500"
+            style={{ width: `${String((nota ?? 0) * 10)}%` }}
+          />
+        </span>
+
+        <span className="w-12 shrink-0 text-right text-sm font-extrabold tabular-nums text-white">
+          {nota == null ? "—" : `${String(nota)}/10`}
+          <span className="sr-only"> pontos. Abrir a justificativa</span>
+        </span>
+
+        <ChevronDown
+          aria-hidden="true"
+          className={`h-4 w-4 shrink-0 text-white/85 transition-transform duration-200 ${
+            aberto ? "rotate-180" : ""
+          }`}
         />
-      </div>
+      </button>
 
-      <p className="mt-1.5 text-sm leading-relaxed text-white/85">
-        {criterio && criterio.justificativa.trim() !== "" ? criterio.justificativa : meta.ajuda}
-      </p>
-
-      {criterio && criterio.evidencias.length > 0 ? (
-        /* As evidências são o que sustenta a nota, mas são seis blocos de citação
-           por candidata: dentro de um <details> elas ficam a um clique de quem
-           está conferindo, sem empurrar as perguntas da entrevista para longe. */
-        <details className="mt-1.5">
-          <summary className="inline-flex min-h-8 cursor-pointer items-center text-xs font-bold text-white">
-            ver evidências ({criterio.evidencias.length})
-          </summary>
-          <ul className="mt-1 space-y-0.5 border-l border-lime/30 pl-2.5">
-            {criterio.evidencias.map((e) => (
-              <li key={e} className="text-xs leading-relaxed text-white/85">
-                {e}
-              </li>
-            ))}
-          </ul>
-        </details>
+      {aberto ? (
+        <div id={idCorpo} className="border-l-2 border-lime/30 pb-1.5 pl-3">
+          <p className="text-sm leading-relaxed text-white/85">{justificativa}</p>
+          {evidencias.length > 0 ? (
+            <ul className="mt-1.5 space-y-0.5">
+              {evidencias.map((e) => (
+                <li key={e} className="text-xs leading-relaxed text-white/85">
+                  {e}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
@@ -564,7 +592,7 @@ export function LeituraIa(props: {
             aberta={sanfona.aberta("criterios")}
             aoAlternar={() => sanfona.alternar("criterios")}
           >
-            <div className="space-y-3.5">
+            <div className="space-y-0.5">
               {/* Sempre as seis, na ordem canônica da rubrica: critério que o
                   modelo deixou de responder aparece como "—", e não some da
                   tela — sumindo, o RH acharia que a nota geral saiu de cinco. */}
