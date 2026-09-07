@@ -2760,3 +2760,20 @@ textarea.rh-campo {
   color: #ffffff;
   background-color: var(--brand-deep);
 }
+
+/* ---- Gaveta de candidatura em TELA CHEIA -----------------------------------
+   Ela nasceu como painel lateral de 30rem. Com o tempo ganhou leitura da IA,
+   dúvidas de entrevista, ficha, doze seções de dados e anotações — e 480px de
+   largura para tudo isso é o que faz a tela parecer, nas palavras do cliente,
+   "uma abinha".
+
+   Agora ocupa a tela inteira a partir de lg, com o conteúdo em duas colunas
+   (ver o comentário no corpo do componente). A animação de entrada continua
+   vindo da direita: é a mesma gaveta, só que grande. */
+@media (min-width: 1024px) {
+  .rh-gaveta {
+    width: 100%;
+    border-left: 0;
+    box-shadow: none;
+  }
+}
