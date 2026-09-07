@@ -2,7 +2,12 @@
  *  avatares: quem resolve a URL com hash é o bundler. */
 import fotoJeferson from "@/assets/jeferson-barbosa.webp";
 import fotoJuliana from "@/assets/juliana-pelisser.webp";
+import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
+import fotoHugo from "@/assets/hugo-leonardo.webp";
+import fotoJulia from "@/assets/julia-vargas.webp";
+import fotoMatheus from "@/assets/matheus-fraga.webp";
 import fotoRaphaela from "@/assets/raphaela-recepcao.webp";
+import fotoSabrina from "@/assets/sabrina-vamszer.webp";
 
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
@@ -341,63 +346,117 @@ export const RESPONSAVEL_TECNICA: Profissional = {
  */
 export const EQUIPE: MembroEquipe[] = [
   /**
-   * Pessoa real. Foto enviada pela clínica em 07/09/2026, recortada do retrato
-   * de estúdio original (1792x2400) na mesma escala de cabeça dos demais cards.
+   * ⚠️ ESTA LISTA ESTÁ NO AR. Todo mundo aqui aparece na home e é gente real.
    *
-   * Sem registro de propósito — recepção não é do conselho. O card dela sai sem
-   * o bloco "Registro" em vez de mostrar o rótulo com o valor vazio.
+   * Se precisar voltar a usar entrada fictícia para ver layout, tire a seção
+   * da home junto (src/routes/index.tsx) — o componente publica o que
+   * estiver aqui, sem checar.
    *
-   * ⚠️ NOME INCOMPLETO: a foto veio nomeada só como "Raphaela recepcionista" e
-   * o sobrenome não foi informado. Todos os outros cards trazem nome completo —
-   * confirmar com a clínica e completar aqui antes de publicar a seção.
+   * Todas as pessoas abaixo são reais: as fotos vieram da clínica em
+   * 07/09/2026 e os retratos foram recortados do original, no mesmo
+   * enquadramento de cabeça (rosto ocupando ~63% da altura do quadro).
+   *
+   * Os cinco registros foram informados pela clínica em 07/09/2026 e estão
+   * abaixo, cada um com o número cru ao lado. Todos os retratos chegaram.
+   *
+   * O que ainda falta é cosmético: o sobrenome da Dra. Ana Beatriz e o da
+   * Raphaela, que não vieram e não aparecem em crachá nenhum.
+   *
+   * O formato "CROSP 000.000" acompanha o da responsável técnica, que já
+   * estava no site. As carteiras e os avisos da clínica trazem o número sem
+   * ponto ("SP-162394") — o ponto é só de exibição.
+   *
+   * Os cinco dentistas fictícios que ocupavam esta lista (CRO-SP 00.001 a
+   * 00.005, retratos de IA) saíram daqui. Os arquivos deles continuam em
+   * public/images/equipe/ e podem ser apagados.
    */
   {
+    /**
+     * Crachá: "Dra Ana Beatriz — Coordenadora". O sobrenome não aparece nele
+     * nem foi informado. É a mesma Ana Beatriz citada por nome numa das
+     * avaliações reais do Google em DEPOIMENTOS.
+     */
+    nome: "Dra. Ana Beatriz",
+    /** Informado pela clínica em 07/09/2026 como "CRO SP-177801". */
+    registro: "CROSP 177.801",
+    papel: "Coordenadora e cirurgiã-dentista",
+    foto: fotoAnaBeatriz,
+  },
+  {
+    /**
+     * Sobrenome "Fraga" confirmado pela clínica em 07/09/2026, junto com o
+     * registro. Fica anotado que o crachá que ele usa na foto deste card diz
+     * "Dr. Matheus Fiuza" — a clínica foi perguntada e manteve Fraga, então é
+     * Fraga que vai ao ar. Se um dia alguém reabrir esta divergência, a fonte
+     * da dúvida está na própria imagem.
+     *
+     * O crachá traz "Pediatria - Endodontia". Aqui está como odontopediatria
+     * porque é disso que se trata numa clínica odontológica, e é o termo que
+     * o resto do site usa.
+     *
+     * Informado como "SP-168512".
+     */
+    nome: "Dr. Matheus Fraga",
+    registro: "CROSP 168.512",
+    papel: "Odontopediatria e endodontia",
+    foto: fotoMatheus,
+  },
+  {
+    /** Crachá: "Dra Júlia Vargas — Cirurgiã-Dentista", com acento no Júlia.
+     *  A especialidade e o registro ("SP-175851") vieram da clínica. */
+    nome: "Dra. Júlia Vargas",
+    registro: "CROSP 175.851",
+    papel: "Odontopediatria e estética",
+    foto: fotoJulia,
+  },
+  {
+    /**
+     * Nome completo confirmado pela clínica em 07/09/2026. A foto dele não
+     * tem crachá, então o nome não tem segunda fonte como o dos outros.
+     *
+     * ⚠️ CONFERIR O NÚMERO: 75.157 fica a dois dígitos do 75.159 da Dra.
+     * Juliana. Pode muito bem ser inscrição da mesma época, mas dois números
+     * quase iguais na mesma página é exatamente onde um dígito trocado passa
+     * despercebido — e os dois saem publicados, ele aqui e ela no rodapé de
+     * todas as rotas. Informado como "CRO sp-75157".
+     */
+    nome: "Dr. Hugo Leonardo",
+    registro: "CROSP 75.157",
+    papel: "Ortodontia",
+    foto: fotoHugo,
+  },
+  {
+    /**
+     * Nome completo e registro conferidos na carteira do CRO/SP, enviada pela
+     * clínica em 07/09/2026: inscrição SP-162394, categoria cirurgião-dentista,
+     * emitida em 21/02/2024, válida até 03/2027.
+     *
+     * A carteira traz também CPF, RG, nascimento e filiação. Nada disso entra
+     * aqui: o que a publicidade da clínica precisa mostrar, pela Resolução CFO
+     * 196/2019, é nome e número de inscrição.
+     *
+     * "Especialidade: não informado" na carteira — endodontia veio da clínica.
+     *
+     * Retrato enviado pela clínica em 07/09/2026, recortado no mesmo
+     * enquadramento dos demais.
+     */
+    nome: "Dra. Sabrina Vamszer Flaquer",
+    registro: "CROSP 162.394",
+    papel: "Endodontia",
+    foto: fotoSabrina,
+  },
+  {
+    /**
+     * Recepção — sem registro de propósito, não é do conselho. É por causa
+     * dela que o tipo desta lista é MembroEquipe, e não Profissional.
+     *
+     * ⚠️ NOME INCOMPLETO: a foto veio nomeada só como "Raphaela
+     * recepcionista" e o sobrenome não foi informado.
+     */
     nome: "Raphaela",
     papel: "Recepção",
     foto: fotoRaphaela,
   },
-  // ─── ⚠️ FICTÍCIOS — TROCAR ANTES DE DIVULGAR ───────────────────────────────
-  // Nenhuma destas pessoas existe. Retratos gerados por IA; CRO no formato
-  // 00.00X, que nenhum registro real usa. Servem só para ver o layout cheio.
-  //
-  // As fotos ficam em public/images/equipe/ e são servidas por caminho
-  // absoluto — vieram prontas e não passam pelo pipeline de assets do Vite.
-  {
-    nome: "Dr. Ricardo Almeida",
-    registro: "CRO-SP 00.001",
-    papel: "Clínico geral",
-    foto: "/images/equipe/ricardo-almeida.jpg",
-    ficticio: true,
-  },
-  {
-    nome: "Dra. Mariana Costa",
-    registro: "CRO-SP 00.002",
-    papel: "Ortodontia",
-    foto: "/images/equipe/mariana-costa.jpg",
-    ficticio: true,
-  },
-  {
-    nome: "Dr. Felipe Nunes",
-    registro: "CRO-SP 00.003",
-    papel: "Implantodontia",
-    foto: "/images/equipe/felipe-nunes.jpg",
-    ficticio: true,
-  },
-  {
-    nome: "Dra. Camila Rocha",
-    registro: "CRO-SP 00.004",
-    papel: "Odontopediatria",
-    foto: "/images/equipe/camila-rocha.jpg",
-    ficticio: true,
-  },
-  {
-    nome: "Dra. Beatriz Lima",
-    registro: "CRO-SP 00.005",
-    papel: "Harmonização orofacial",
-    foto: "/images/equipe/beatriz-lima.jpg",
-    ficticio: true,
-  },
-  // ───────────────────────────────────────────────────────────────────────────
 ];
 
 export const whatsappLink = (mensagem: string) =>
@@ -409,6 +468,7 @@ export const NAV = [
   { label: "Nossa História", href: "/#historia" },
   { label: "Tratamentos", href: "/#tratamentos" },
   { label: "Depoimentos", href: "/#depoimentos" },
+  { label: "Equipe", href: "/#equipe" },
   { label: "Estrutura", href: "/#estrutura" },
   { label: "FAQ", href: "/#faq" },
   { label: "Contato", href: "/#fale" },

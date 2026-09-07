@@ -42,7 +42,7 @@ function CardProfissional({
         />
       </div>
 
-      <div className="flex flex-1 flex-col justify-center pt-5 text-center">
+      <div className="flex flex-1 flex-col justify-start pt-5 text-center">
         <h3 className="font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-forest-2">
           {nome}
         </h3>
@@ -53,7 +53,12 @@ function CardProfissional({
 
         {/* Sem registro não sai nem o rótulo nem o traço: um "Registro" seguido
             de nada leria como cadastro faltando, e não como alguém que
-            legitimamente não é do conselho. */}
+            legitimamente não é do conselho.
+
+            O bloco de texto cresce (flex-1) mas alinha ao topo: centralizar a
+            sobra empurrava o nome de quem não tem registro uns 40px abaixo do
+            nome dos vizinhos de fileira, e são os nomes que o olho lê como
+            linha. A sobra fica no rodapé do card, onde não desalinha nada. */}
         {registro ? (
           <>
             <div aria-hidden="true" className="mx-auto my-5 h-px w-[82%] bg-border-soft" />
@@ -143,8 +148,15 @@ export function TeamSection() {
             só foi seguro porque o rodapé deixou de ler EQUIPE[0] e passou a ler
             RESPONSAVEL_TECNICA: pela regra antiga, aquela mudança teria
             publicado o CRO inventado do Dr. Ricardo Almeida na linha que a
-            Resolução CFO 196/2019 exige. */}
-        <div className="flex flex-wrap justify-center gap-5">
+            Resolução CFO 196/2019 exige.
+
+            gap-[20px] literal, e não gap-5: as larguras acima descontam 10, 14
+            e 16px, contas que só fecham se a calha valer exatamente 20px.
+            gap-5 é 1.25rem, que vira 25px em quem navega com fonte base de
+            20px — aí a fileira de 5 estoura o container e o último card cai
+            para a linha de baixo. Mexer no gap agora pede mexer nos três
+            descontos junto. */}
+        <div className="flex flex-wrap justify-center gap-[20px]">
           {EQUIPE.map((pessoa) => (
             <CardProfissional
               /* Chaveado pelo nome: o registro deixou de servir como chave
