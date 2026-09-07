@@ -448,6 +448,7 @@ function PaginaCandidatura() {
   const [dados, setDados] = useState<Candidatura>(estadoInicial);
   const [passo, setPasso] = useState(1);
   const [erros, setErros] = useState<ErrosPasso>({});
+  const [vagaDoRascunhoSumiu, setVagaDoRascunhoSumiu] = useState(false);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [erroArquivo, setErroArquivo] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -838,7 +839,7 @@ function PaginaCandidatura() {
     // "Candidatar-se" nesta vaga, e o rascunho pode ser de outra, começada dias
     // atrás. Repor a vaga antiga aqui mandaria a candidatura para o processo
     // errado sem nada na tela dizendo que o destino mudou.
-    const restaurado =
+    const base =
       vagaFixada === null || rascunho.vagaId === vagaFixada.id
         ? rascunho
         : {
@@ -848,12 +849,23 @@ function PaginaCandidatura() {
             vinculo: vagaFixada.vinculo,
             cargoDesejado: vagaFixada.titulo,
           };
+
+    // A vaga do rascunho pode ter sido encerrada, pausada ou despublicada entre
+    // o dia em que a pessoa começou e o dia em que ela voltou. Restaurar o
+    // `vagaId` morto fazia o envio ser recusado com "esta vaga não está mais
+    // recebendo candidaturas" — inclusive para quem tinha entrado justamente
+    // pelo banco de talentos e nem escolheu vaga nenhuma. Aqui o vínculo morto
+    // cai e a candidatura vira espontânea, que é o que a pessoa queria.
+    // A área e o cargo continuam: eles descrevem a pessoa, não a vaga.
+    const vagaAindaAberta = base.vagaId.length === 0 || vagas.some((v) => v.id === base.vagaId);
+    const restaurado = vagaAindaAberta ? base : { ...base, vagaId: "" };
+    setVagaDoRascunhoSumiu(!vagaAindaAberta);
     setDados(restaurado);
     setEscolhaFeita(temConteudo(restaurado));
     setRascunho(null);
     // A vaga da URL já está aplicada acima; o efeito não precisa fazer de novo.
     fixadaAplicada.current = true;
-  }, [rascunho, vagaFixada]);
+  }, [rascunho, vagaFixada, vagas]);
 
   const descartarRascunho = useCallback(() => {
     setRascunho(null);
@@ -961,6 +973,27 @@ function PaginaCandidatura() {
                           {erroGeral.length > 0 ? <p>{erroGeral}</p> : null}
                           {erroVaga.length > 0 ? <p>{erroVaga}</p> : null}
                         </div>
+                      </div>
+                    ) : null}
+
+                    {/* Não é erro: é explicação. A pessoa começou a candidatura
+                        quando a vaga estava aberta e voltou depois que ela saiu
+                        do ar. Sem esta linha, a vaga simplesmente sumiria do
+                        formulário e ela não saberia por quê. */}
+                    {vagaDoRascunhoSumiu ? (
+                      <div
+                        role="status"
+                        className="mb-6 flex items-start gap-3 rounded-2xl border border-border-soft bg-mint/60 p-4"
+                      >
+                        <CircleAlert
+                          className="mt-0.5 h-5 w-5 shrink-0 text-forest"
+                          aria-hidden="true"
+                        />
+                        <p className="text-sm font-semibold leading-relaxed text-ink">
+                          A vaga que você tinha escolhido não está mais recebendo candidaturas.
+                          Guardamos tudo o que você já havia preenchido — é só escolher outra vaga
+                          ou seguir pelo banco de talentos.
+                        </p>
                       </div>
                     ) : null}
                   </div>
