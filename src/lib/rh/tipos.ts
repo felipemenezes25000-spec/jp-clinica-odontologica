@@ -214,6 +214,55 @@ export const EXTENSOES_CURRICULO: readonly string[] = [
 ];
 
 /**
+ * Extensão → mime, para DECLARAR o tipo ao gravar o arquivo.
+ *
+ * POR QUE ISTO EXISTE
+ * O bucket do Supabase tem lista branca de mime (a mesma `TIPOS_CURRICULO`) e
+ * responde 415 a qualquer outro. Quem gravava currículo não informava tipo
+ * nenhum, o driver caía no `application/octet-stream` padrão, e o Storage
+ * recusava:
+ *
+ *   {"statusCode":"415","error":"invalid_mime_type",
+ *    "message":"mime type application/octet-stream is not supported"}
+ *
+ * O erro subia como exceção e derrubava a candidatura INTEIRA — a pessoa via
+ * "não conseguimos enviar, confira sua conexão", tentava de novo, falhava de
+ * novo, e só passava se removesse o anexo. Ou seja: enquanto isso existiu,
+ * nenhum currículo entrou pelo site. Os 54 do acervo vieram do script de
+ * migração, que tinha um mapa de mime próprio — e por isso o furo não aparecia.
+ *
+ * A extensão manda, e não o `type` do navegador: Windows envia .doc como
+ * "application/octet-stream" e às vezes como string vazia. A extensão já é
+ * validada contra `EXTENSOES_CURRICULO` antes de qualquer gravação, então
+ * aqui ela é confiável.
+ */
+export const MIME_POR_EXTENSAO: Readonly<Record<string, string>> = {
+  ".pdf": "application/pdf",
+  ".doc": "application/msword",
+  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+};
+
+/**
+ * O mime com que o arquivo deve ser GRAVADO. Sempre um dos aceitos, ou
+ * `application/octet-stream` quando a extensão é desconhecida — caso em que a
+ * gravação deve mesmo ser recusada, e recusar é o comportamento certo.
+ *
+ * `tipoInformado` entra só como desempate para extensões ambíguas; ele é
+ * string livre vinda do cliente e nunca decide sozinho.
+ */
+export function mimeDeCurriculo(nomeArquivo: string, tipoInformado?: string): string {
+  const corte = nomeArquivo.lastIndexOf(".");
+  const extensao = corte > 0 ? nomeArquivo.slice(corte).toLowerCase() : "";
+  const porExtensao = MIME_POR_EXTENSAO[extensao];
+  if (porExtensao !== undefined) return porExtensao;
+  if (tipoInformado !== undefined && TIPOS_CURRICULO.includes(tipoInformado)) return tipoInformado;
+  return "application/octet-stream";
+}
+
+/**
  * Candidatura zerada. É função, e não constante, porque os arrays e o objeto
  * seriam compartilhados por referência entre o formulário e cada registro lido
  * do disco — um `push` em um deles vazaria para todos os outros.

@@ -27,7 +27,7 @@
 // o importador em massa, que é justamente onde este driver mais é usado.
 import type { AnaliseIa, RankingSalvo } from "../ia/tipos";
 import type { Candidatura, ConfiguracoesRh, Vaga } from "../tipos";
-import { candidaturaVazia, configuracoesPadrao, vagaVazia } from "../tipos";
+import { candidaturaVazia, configuracoesPadrao, mimeDeCurriculo, vagaVazia } from "../tipos";
 import { guiaSementeRecepcao, guiaVazio, type GuiaEntrevista } from "../guia";
 import { vagasSemente } from "../vagas";
 // Mesma origem que o driver de disco usa: os dois PRECISAM gerar o mesmo nome
@@ -382,7 +382,16 @@ export async function salvarCurriculo(
   tipo?: string,
 ): Promise<void> {
   const { bucket } = ambiente();
-  const contentType = tipo ?? "application/octet-stream";
+  // O tipo sai da EXTENSÃO, não do que o chamador informou (e três dos quatro
+  // chamadores não informavam nada). O bucket tem lista branca de mime e
+  // responde 415 a `application/octet-stream` — o padrão anterior. Ver o
+  // comentário de `mimeDeCurriculo`: enquanto isso valeu, nenhum currículo
+  // entrou pelo formulário do site.
+  //
+  // Derivar aqui, e não só no chamador, é deliberado: conserta de uma vez os
+  // quatro pontos de gravação, inclusive o script de importação em massa, e
+  // impede que o próximo chamador esqueça de novo.
+  const contentType = mimeDeCurriculo(nomeArquivo, tipo);
   const caminho = caminhoSeguro(id, nomeArquivo);
   const r = await chamar("/storage/v1/object/" + bucket + "/" + caminho, {
     method: "POST",

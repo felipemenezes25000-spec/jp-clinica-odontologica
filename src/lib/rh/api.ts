@@ -42,6 +42,7 @@ import {
   candidaturaVazia,
   configuracoesPadrao,
   EXTENSOES_CURRICULO,
+  mimeDeCurriculo,
   LIMITES,
   TAMANHO_MAX_CURRICULO,
   TIPOS_CURRICULO,
@@ -525,10 +526,15 @@ export const enviarCandidatura = createServerFn({ method: "POST" })
         nomeOriginal: texto(enviado.name, LIMITE_NOME),
         // `enviado.type` é string livre do cliente e vira header na rota de
         // download, onde string vazia cai em "application/octet-stream".
-        // Guardar só o que está na lista branca evita ecoar "text/html" — ou um
-        // valor com caractere proibido em header, que transformaria o download
-        // daquele currículo num 500 permanente.
-        tipo: TIPOS_CURRICULO.includes(enviado.type) ? enviado.type : "",
+        // `mimeDeCurriculo` devolve SEMPRE um valor da lista branca (ou
+        // octet-stream), o que evita ecoar "text/html" ou um caractere proibido
+        // em header, que transformaria o download num 500 permanente.
+        //
+        // Antes isto era `includes(enviado.type) ? enviado.type : ""`, e a
+        // string vazia era o caso comum, não a exceção: Windows manda .doc como
+        // "application/octet-stream". O currículo baixava como binário genérico
+        // e o sistema da pessoa do RH não sabia com o que abrir.
+        tipo: mimeDeCurriculo(nomeArquivo, enviado.type),
         tamanho: enviado.size,
         enviadoEm: new Date().toISOString(),
       };
