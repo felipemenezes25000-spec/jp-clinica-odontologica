@@ -642,6 +642,11 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
       }
       campos.nota = Math.round(valor);
     }
+    if ("area" in recebidos) {
+      const valor = texto(recebidos["area"], 20);
+      if (!AREAS.some((item) => item.valor === valor)) throw new Error("Área desconhecida.");
+      campos.area = valor as AreaVaga;
+    }
     if ("etiquetas" in recebidos) campos.etiquetas = lista(recebidos["etiquetas"], 40);
     if ("responsavel" in recebidos) campos.responsavel = texto(recebidos["responsavel"], 80);
     if ("entrevistaEm" in recebidos) campos.entrevistaEm = texto(recebidos["entrevistaEm"], 40);

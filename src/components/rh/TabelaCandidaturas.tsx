@@ -1,5 +1,6 @@
 import {
   useMemo,
+  useRef,
   useState,
   type KeyboardEvent as EventoTeclado,
   type MouseEvent as EventoMouse,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { ResumoDuvidas } from "@/components/rh/PainelDuvidas";
+import { useAlturaAteOFimDaJanela } from "@/components/rh/useAlturaDaJanela";
 import { duvidasImportantesDe } from "@/lib/rh/duvidas";
 import { leiturasDeDuvidas, situacaoDaFicha, totalDaFicha } from "@/lib/rh/ficha";
 import { formatarData, iniciais, tempoRelativo } from "@/lib/rh/formatar";
@@ -463,6 +465,14 @@ export function TabelaCandidaturas(props: {
   // mostra. `null` significa "do jeito que a lista chegou".
   const [ordem, setOrdem] = useState<OrdemLocal>(null);
 
+  const refRolagem = useRef<HTMLDivElement>(null);
+  /* A folga tem de cobrir o que existe ABAIXO do rolador e ainda conta como
+     página: a borda de 1px do papel e os 20px de `py-5` da calha. Com o 1rem
+     padrão sobrava uma barra de rolagem de 5px na janela — o tipo de detalhe
+     que faz a tela parecer mal-acabada sem que se saiba por quê. */
+  const alturaRolagem = useAlturaAteOFimDaJanela(refRolagem, "1.5rem");
+  const estiloRolagem = alturaRolagem === "" ? undefined : { maxHeight: alturaRolagem };
+
   const { itens } = props;
 
   const linhas = useMemo(() => {
@@ -547,7 +557,15 @@ export function TabelaCandidaturas(props: {
       {/* Mesmo motivo do resto do portal: dentro de `.rh-aurora` o foco sai
           lime, e estas superfícies são claras. */}
       <div className="rh-papel hidden overflow-hidden md:block [&_:focus-visible]:outline-forest-2">
-        <div className="rh-scroll max-h-[70dvh] overflow-auto">
+        {/* A tabela ocupa o que sobra da janela, medido — pelo mesmo motivo do
+            quadro do kanban, e com a mesma função. Eram 70dvh travados: num
+            monitor de 900px de altura isso dava 630px de tabela e deixava
+            ~140px de papel em branco embaixo dela. */}
+        <div
+          ref={refRolagem}
+          style={estiloRolagem}
+          className="rh-scroll max-h-[70dvh] overflow-auto"
+        >
           <table className="rh-tabela">
             <caption className="sr-only">
               Candidaturas recebidas. Use os botões do cabeçalho para ordenar e Enter para abrir uma

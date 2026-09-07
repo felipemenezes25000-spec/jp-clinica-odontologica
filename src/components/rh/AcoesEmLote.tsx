@@ -18,7 +18,7 @@
  * aparece só dentro de manipuladores de clique — o carimbo do histórico precisa
  * da hora real do envio, e não da hora em que a aba foi aberta.
  */
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   CalendarPlus,
   Check,
@@ -302,6 +302,34 @@ export function AcoesEmLote(props: {
     if (itens.length === 0) setConvidando(false);
   }, [itens.length]);
 
+  /**
+   * Publica a própria altura em `--rh-rodape-altura`, na raiz do documento.
+   *
+   * Esta barra é `sticky bottom-0`: quando aparece, ela cobre a última faixa do
+   * quadro do kanban, que é dimensionado para terminar no fim da janela — e a
+   * fileira de cartões escondida é justamente a que o RH acabou de marcar.
+   * Em vez de a barra e o quadro se conhecerem, ela anuncia quanto ocupa e o
+   * quadro desconta na conta de altura dele. Quem não usa a variável ignora.
+   *
+   * A altura MUDA em uso (o painel de convites abre dentro dela), por isso é
+   * `ResizeObserver` e não uma medição só. Ao desmontar, a variável volta a
+   * zero, senão o quadro ficaria encolhido depois de a seleção ser limpa.
+   */
+  const refBarra = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const barra = refBarra.current;
+    if (!barra) return;
+    const raiz = document.documentElement;
+    const observador = new ResizeObserver(() => {
+      raiz.style.setProperty("--rh-rodape-altura", `${String(Math.round(barra.offsetHeight))}px`);
+    });
+    observador.observe(barra);
+    return () => {
+      observador.disconnect();
+      raiz.style.setProperty("--rh-rodape-altura", "0px");
+    };
+  });
+
   if (itens.length === 0) return null;
 
   const comTelefone = itens.filter((c) => c.telefone.trim() !== "");
@@ -334,6 +362,7 @@ export function AcoesEmLote(props: {
 
   return (
     <div
+      ref={refBarra}
       role="region"
       aria-label="Ações para as candidaturas selecionadas"
       className="sticky bottom-0 z-40 border-t border-lime/25 bg-brand-deep/95 backdrop-blur-xl"

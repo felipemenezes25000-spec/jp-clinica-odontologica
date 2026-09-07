@@ -1542,19 +1542,101 @@ textarea.rh-campo {
   color: white;
 }
 
-/* Coluna do kanban: altura limitada e rolagem própria, para as colunas ficarem
-   alinhadas mesmo quando uma tem trinta candidatos e a vizinha tem dois. */
+/* Alvo de clique que muda com o apontador.
+   A regra dos 44px do projeto nasceu do celular da recepção, e está certa lá.
+   No monitor ela engorda: um chip que só mostra um telefone com 44px de altura
+   empurra a ficha para baixo sem ganhar nada, porque mouse acerta 36px sem
+   esforço — e 36 continua bem acima do mínimo de 24px da WCAG 2.5.8. Onde há
+   dedo, os 44px voltam inteiros. */
+.rh-alvo-toque {
+  min-height: 2.25rem;
+}
+.rh-acao-cartao {
+  height: 2.25rem;
+  width: 2.25rem;
+}
+@media (pointer: coarse) {
+  .rh-alvo-toque {
+    min-height: 2.75rem;
+  }
+  .rh-acao-cartao {
+    height: 2.75rem;
+    width: 2.75rem;
+  }
+}
+
+/* ---- O quadro do kanban ----
+
+   ALTURA: o quadro ocupa o que sobra da janela, e quem mede é o componente
+   (a altura do cabeçalho e da barra de filtros muda com a largura da tela, e
+   qualquer número fixo escrito aqui estaria errado em metade dos monitores).
+   O valor abaixo é só o de partida, usado no servidor e no primeiro quadro.
+
+   Antes eram 44rem travados: num monitor de 1080px sobravam 60px de página
+   vazia embaixo do quadro enquanto a coluna "Novo", com 54 pessoas, mostrava
+   três. */
+.rh-quadro {
+  height: min(72dvh, 44rem);
+}
+
+/* Coluna do kanban: CRESCE para ocupar a largura que as colunas recolhidas
+   devolveram, e tem rolagem própria — assim as colunas ficam alinhadas mesmo
+   quando uma tem trinta candidatos e a vizinha tem dois. */
 .rh-coluna {
   display: flex;
+  /* CRESCE, mas NÃO ENCOLHE. Com `shrink: 1` (o padrão), oito colunas de
+     17,5rem num quadro de 1560px seriam espremidas para 183px cada e ninguém
+     leria nome nenhum. Sem encolher, a largura extra que as etapas recolhidas
+     devolveram vai para quem tem gente — e, com o funil inteiro cheio, volta a
+     rolagem horizontal, que é a resposta certa para oito colunas de verdade. */
+  flex: 1 0 17.5rem;
   flex-direction: column;
   min-width: 0;
-  max-height: min(72dvh, 44rem);
+  /* Sem isto a coluna cresce com o conteúdo e a rolagem interna nunca começa. */
+  min-height: 0;
   border: 1px solid color-mix(in oklab, var(--lime) 16%, transparent);
   border-radius: 1.1rem;
   background: color-mix(in oklab, var(--brand-deep) 62%, transparent);
   transition:
     border-color 0.2s var(--ease-out),
     background 0.2s var(--ease-out);
+}
+
+/* ---- Coluna recolhida (o trilho) ----
+   O funil tem OITO etapas, e 8 x 280px = 2324px: em 1920 o RH via 5,7 colunas
+   e "Contratado" ficava cortado pela borda. Na clínica, seis dessas etapas
+   passam a maior parte do tempo vazias — e uma coluna vazia gastava 280px para
+   escrever "Ninguém em triagem".
+   Recolhida ela vira uma fita de 3,25rem que continua sendo etapa visível e
+   alvo de arrasto; a largura devolvida vai para as colunas que têm gente. */
+.rh-coluna-trilho {
+  flex: 0 0 3.25rem;
+}
+.rh-trilho-botao {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 1.1rem;
+  padding: 0.8rem 0;
+  transition: background 0.2s var(--ease-out);
+}
+.rh-trilho-botao:hover {
+  background: color-mix(in oklab, var(--lime) 10%, transparent);
+}
+/* De cima para baixo, na mesma direção em que a coluna é lida. `min-height: 0`
+   deixa o texto encolher em vez de estourar a fita numa janela baixa. */
+.rh-trilho-rotulo {
+  min-height: 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
 }
 /* Cabeçalho opaco por cima do corpo rolável: translúcido, os cartões passariam
    legíveis por baixo do título da coluna. */
@@ -1571,12 +1653,28 @@ textarea.rh-campo {
   border-radius: 1.1rem 1.1rem 0 0;
   background: color-mix(in oklab, var(--brand-deep) 92%, black);
 }
+/* GRADE, e não pilha.
+   Quando as etapas vazias recolhem, a coluna "Novo" fica com quase toda a
+   largura do quadro — e uma pilha de uma carta por linha desperdiçava isso: a
+   mesma faixa que cabem quatro cartas mostrava uma. Com `auto-fill` a carta
+   nunca fica mais estreita que 16rem (o ponto em que nome de gente começa a
+   quebrar feio) e o número de colunas sai da largura que a coluna tem naquele
+   momento — 4 numa coluna sozinha, 1 quando o funil inteiro está cheio.
+   `align-content: start` impede que três cartas fiquem espalhadas verticalmente
+   quando sobra altura. */
 .rh-coluna-corpo {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  align-content: start;
   gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  min-height: 0;
   overflow-y: auto;
-  padding: 0.75rem;
+  padding: 0.7rem;
+}
+/* A frase de coluna vazia atravessa a grade inteira: numa coluna larga ela
+   ficaria numa coluninha de 16rem com três buracos ao lado. */
+.rh-coluna-corpo > .rh-coluna-vazia {
+  grid-column: 1 / -1;
 }
 .rh-coluna[data-drop="true"] {
   border-color: var(--lime);
@@ -1591,7 +1689,7 @@ textarea.rh-campo {
 
 .rh-cartao-cand {
   cursor: grab;
-  padding: 0.75rem 0.85rem;
+  padding: 0.6rem 0.7rem;
   border: 1px solid color-mix(in oklab, var(--lime) 18%, transparent);
   border-radius: 0.85rem;
   background: color-mix(in oklab, var(--brand-deep) 78%, black);
@@ -1698,6 +1796,15 @@ textarea.rh-campo {
    sem scrollbar-color ela herda o tema do sistema — em fundo escuro isso
    costuma entregar um polegar quase invisível. Por isso as duas linhas. */
 .rh-scroll {
+  /* POSICIONADO, e isto não é enfeite.
+     `.sr-only` (o texto que só o leitor de tela ouve) é `position: absolute`.
+     Sem um ancestral posicionado DENTRO do rolador, cada um desses spans se
+     ancora no primeiro ancestral posicionado lá em cima — o `<div>` raiz do
+     painel — e escapa do recorte do rolador. Na tabela de candidaturas são 350
+     deles, um por célula, e os das linhas do fim ficavam a 4.400px do topo:
+     o documento crescia 3.500px de rolagem em falso, que não mostrava nada.
+     Uma caixa de rolagem tem de ser o bloco continente do que ela recorta. */
+  position: relative;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--lime) 45%, transparent) transparent;
 }
@@ -1816,9 +1923,9 @@ textarea.rh-campo {
     padding-inline: 0.75rem;
     font-size: 0.8rem;
   }
-  .rh-coluna {
-    max-height: 60dvh;
-  }
+  /* A altura da coluna deixou de ser fixada aqui: quem manda agora é
+     `--rh-quadro-altura`, medida a partir do que sobra da janela — e num
+     celular a conta já devolve menos que estes 60dvh davam. */
   .rh-tabela {
     font-size: 0.8rem;
   }
@@ -2175,6 +2282,12 @@ textarea.rh-campo {
 .rh-admin .rh-coluna-topo {
   border-bottom-color: color-mix(in oklab, var(--forest) 12%, white);
   background: rgba(255, 255, 255, 0.96);
+}
+
+/* No papel branco o realce do trilho vem da menta, não do lime translúcido —
+   sobre branco aquele lime some. */
+.rh-admin .rh-trilho-botao:hover {
+  background: color-mix(in oklab, var(--mint) 70%, white);
 }
 
 .rh-admin .rh-cartao-cand {

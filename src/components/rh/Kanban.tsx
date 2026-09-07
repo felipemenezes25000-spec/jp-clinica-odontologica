@@ -1,7 +1,8 @@
-import { useEffect, useId, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type DragEvent } from "react";
 import {
   Archive,
   Check,
+  ChevronsLeftRight,
   ClipboardCheck,
   ClipboardList,
   MessageCircle,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { ResumoDuvidas } from "@/components/rh/PainelDuvidas";
+import { useAlturaAteOFimDaJanela } from "@/components/rh/useAlturaDaJanela";
 import { duvidasImportantesDe } from "@/lib/rh/duvidas";
 import { leiturasDeDuvidas, situacaoDaFicha, totalDaFicha } from "@/lib/rh/ficha";
 import { iniciais, primeiroNome, tempoRelativo } from "@/lib/rh/formatar";
@@ -55,39 +57,42 @@ function Estrelas(props: { nota: number }) {
 }
 
 /**
- * A leitura da IA condensada para 240px de cartão: estrelas, a pílula da
- * recomendação e as contagens de sinal por gravidade.
+ * A leitura da IA, em CHIPS, na mesma fileira da área e das estrelas.
  *
- * Quem nunca foi analisado ganha um tracinho, e não um espaço em branco. A
- * diferença importa quando o RH varre a coluna com o olho: vazio parece cartão
- * quebrado, tracinho diz "esta ainda não passou pela IA" — que é uma informação,
- * e é o que faz a pessoa clicar em "Analisar todas".
+ * Era uma linha própria embaixo delas, e no estado mais comum do painel essa
+ * linha inteira dizia "IA —": 54 dos 65 cartões gastavam 25px de altura para
+ * mostrar um tracinho. Como chip, a informação continua na tela — vazio parece
+ * cartão quebrado, tracinho diz "esta ainda não passou pela IA", e é isso que
+ * faz a pessoa clicar em "Analisar todas" — mas sem uma fileira só para ela.
+ *
+ * Devolve um fragmento, e não um bloco: quem posiciona é a fileira de chips do
+ * cartão, que já sabe quebrar linha.
  */
-function LinhaIa(props: { item: Candidatura }) {
+function ChipsIa(props: { item: Candidatura }) {
   const analise = props.item.analise;
 
   if (analise === null) {
     return (
-      <p className="mt-2 flex items-center gap-1.5 text-[0.7rem] text-white/85">
+      <span className="flex shrink-0 items-center gap-1 text-[0.7rem] text-white/85">
         <Sparkles size={11} aria-hidden="true" className="shrink-0" />
         <span aria-hidden="true">IA —</span>
         <span className="sr-only">Sem leitura da IA</span>
-      </p>
+      </span>
     );
   }
 
   if (analise.erro.length > 0) {
     return (
-      <p className="mt-2 flex items-center gap-1.5 text-[0.7rem] font-semibold text-rose-800">
-        <TriangleAlert size={11} aria-hidden="true" className="shrink-0" />A leitura da IA falhou
-      </p>
+      <span className="flex shrink-0 items-center gap-1 text-[0.7rem] font-semibold text-rose-800">
+        <TriangleAlert size={11} aria-hidden="true" className="shrink-0" />A leitura falhou
+      </span>
     );
   }
 
   const rec = recomendacaoPor(analise.recomendacao);
 
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+    <>
       <span
         role="img"
         aria-label={`Leitura da IA: ${analise.estrelas} de 5 estrelas`}
@@ -114,7 +119,7 @@ function LinhaIa(props: { item: Candidatura }) {
           importante"). Duas leituras do mesmo fato, uma delas ilegível para
           quem enxerga, é ruído. A quebra por gravidade continua inteira na
           gaveta, onde há espaço para nomear cada uma. */}
-    </div>
+    </>
   );
 }
 
@@ -243,7 +248,7 @@ function CartaoCandidato(props: {
          caixa de seleção fica marcada e o contador da barra de lote sobe. */
       className={`rh-cartao-cand relative ${props.selecionada ? "ring-2 ring-lime" : ""}`}
     >
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-start gap-2">
         {/* Caixa de seleção no lugar do avatar quando marcada não é opção: as
             duas coisas convivem, porque as iniciais são o que o RH usa para
             achar o cartão de relance. z-[2] para ficar acima do `.stretch-link`,
@@ -258,7 +263,7 @@ function CartaoCandidato(props: {
           <span className="sr-only">Selecionar {item.nome || "candidatura sem nome"}</span>
           <span
             aria-hidden="true"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-lime/15 text-xs font-extrabold text-white ring-1 ring-lime/25"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lime/15 text-xs font-extrabold text-white ring-1 ring-lime/25"
           >
             {iniciais(item.nome) || "?"}
           </span>
@@ -330,11 +335,17 @@ function CartaoCandidato(props: {
         </div>
       ) : null}
 
-      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+      {/* UMA fileira de chips, e não três.
+          Área, nota do RH, leitura da IA, ficha, dúvidas e etiquetas eram três
+          blocos empilhados com margem entre eles — 60px de altura para o que
+          cabe numa linha e meia que quebra sozinha. Tudo aqui é do mesmo tipo
+          (pastilha curta de estado), então tudo mora na mesma fileira. */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <span className="rounded-full bg-white/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-white ring-1 ring-white/15">
           {rotuloArea(item.area)}
         </span>
         <Estrelas nota={item.nota} />
+        <ChipsIa item={item} />
         <SeloFicha item={item} />
         <SeloDuvidas item={item} />
         {item.arquivada ? (
@@ -343,35 +354,28 @@ function CartaoCandidato(props: {
             Arquivada
           </span>
         ) : null}
+        {etiquetasVisiveis.map((etiqueta) => (
+          <span
+            key={etiqueta}
+            className="max-w-[9rem] truncate rounded-md bg-lime/10 px-1.5 py-0.5 text-[0.65rem] font-medium text-white ring-1 ring-lime/20"
+          >
+            {etiqueta}
+          </span>
+        ))}
+        {restantes > 0 ? (
+          <span className="rounded-md bg-white/10 px-1.5 py-0.5 text-[0.65rem] font-semibold text-white">
+            +{restantes}
+            <span className="sr-only"> outras etiquetas</span>
+          </span>
+        ) : null}
       </div>
-
-      <LinhaIa item={item} />
-
-      {item.etiquetas.length > 0 ? (
-        <ul className="mt-2 flex flex-wrap gap-1.5">
-          {etiquetasVisiveis.map((etiqueta) => (
-            <li
-              key={etiqueta}
-              className="max-w-[9rem] truncate rounded-md bg-lime/10 px-1.5 py-0.5 text-[0.65rem] font-medium text-white ring-1 ring-lime/20"
-            >
-              {etiqueta}
-            </li>
-          ))}
-          {restantes > 0 ? (
-            <li className="rounded-md bg-white/10 px-1.5 py-0.5 text-[0.65rem] font-semibold text-white">
-              +{restantes}
-              <span className="sr-only"> outras etiquetas</span>
-            </li>
-          ) : null}
-        </ul>
-      ) : null}
 
       {/* O tempo relativo é a informação que o RH varre com o olho na coluna:
           branco de verdade, não branco esmaecido. */}
       {/* As duas ações moram aqui, e não ao lado do nome: na coluna estreita do
           kanban elas comiam a largura e obrigavam o nome a truncar. No rodapé
           não disputam espaço com nada. */}
-      <footer className="mt-2.5 flex items-center justify-between gap-2 text-[0.7rem] text-white/85">
+      <footer className="mt-2 flex items-center justify-between gap-2 text-[0.7rem] text-white/85">
         <span>{tempoRelativo(item.criadoEm, props.agora)}</span>
         {item.curriculo ? (
           <span className="flex items-center gap-1 text-white">
@@ -395,7 +399,7 @@ function CartaoCandidato(props: {
               rel="noreferrer"
               aria-label={`Abrir conversa no WhatsApp com ${item.nome || "candidato"}`}
               onClick={(e) => e.stopPropagation()}
-              className="relative z-[2] flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/15 text-white/85 transition-colors hover:border-lime/50 hover:text-white"
+              className="rh-acao-cartao relative z-[2] flex shrink-0 items-center justify-center rounded-xl border border-white/15 text-white/85 transition-colors hover:border-lime/50 hover:text-white"
             >
               <MessageCircle size={16} aria-hidden="true" />
             </a>
@@ -414,7 +418,7 @@ function CartaoCandidato(props: {
             aria-expanded={menuAberto}
             aria-label={`Mover ${primeiroNome(item.nome) || "candidato"} para outro status`}
             onClick={() => setMenuAberto((v) => !v)}
-            className={`relative z-[2] flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border transition-colors ${
+            className={`rh-acao-cartao relative z-[2] flex shrink-0 items-center justify-center rounded-xl border transition-colors ${
               menuAberto
                 ? "border-lime bg-lime/20 text-lime"
                 : "border-white/15 text-white/85 hover:border-lime/50 hover:text-lime"
@@ -444,7 +448,14 @@ export function Kanban(props: {
   // cartão. Vira estado (e não um focus() no handler) porque o cartão só é
   // recriado na coluna destino no render seguinte.
   const [colunaFocada, setColunaFocada] = useState<StatusCandidatura | null>(null);
+  /** Etapas vazias viram fita. Ligado por padrão — ver `.rh-coluna-trilho`. */
+  const [recolherVazias, setRecolherVazias] = useState(true);
+  /** Etapas vazias que o RH reabriu na mão, uma a uma. */
+  const [reabertas, setReabertas] = useState<StatusCandidatura[]>([]);
   const base = useId();
+
+  const refQuadro = useRef<HTMLDivElement>(null);
+  const altura = useAlturaAteOFimDaJanela(refQuadro);
 
   useEffect(() => {
     if (colunaFocada === null) return;
@@ -457,6 +468,10 @@ export function Kanban(props: {
     props.aoMoverStatus(id, status);
     setColunaFocada(status);
   };
+
+  const reabrir = useCallback((status: StatusCandidatura) => {
+    setReabertas((atuais) => (atuais.includes(status) ? atuais : [...atuais, status]));
+  }, []);
 
   const soltar = (e: DragEvent<HTMLElement>, status: StatusCandidatura) => {
     e.preventDefault();
@@ -471,39 +486,129 @@ export function Kanban(props: {
     props.aoMoverStatus(id, status);
   };
 
-  return (
-    <div className="jp-container py-5">
-      <p className="mb-3 text-xs text-white/85">
-        Arraste um cartão para outra coluna ou use o botão de mover dentro dele — os dois caminhos
-        fazem a mesma coisa.
-      </p>
+  const porColuna = STATUS.map((s) => ({
+    etapa: s,
+    daColuna: props.itens.filter((c) => c.status === s.valor),
+  }));
 
-      <div className="rh-scroll -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0">
-        {STATUS.map((s) => {
-          const daColuna = props.itens.filter((c) => c.status === s.valor);
+  /* Com a lista inteira vazia (filtro que não achou ninguém, painel recém-aberto)
+     NADA recolhe: oito fitas em fila não são um funil, são um código de barras —
+     e é justamente a hora em que a frase "Nenhuma candidatura nova" precisa ser
+     lida. Recolher só faz sentido quando há gente em alguma etapa. */
+  const temGente = porColuna.some((c) => c.daColuna.length > 0);
+  const eTrilho = (etapa: StatusCandidatura, quantas: number): boolean =>
+    recolherVazias && temGente && quantas === 0 && !reabertas.includes(etapa);
+  const recolhidas = porColuna.filter((c) => eTrilho(c.etapa.valor, c.daColuna.length)).length;
+
+  return (
+    <div className="jp-container flex flex-col py-4">
+      {/* Uma linha de barra, e não duas: a instrução de arrasto encolheu para o
+          que ela de fato ensina, e o controle das etapas vazias mora ao lado
+          dela — é o mesmo assunto, "como este quadro está montado". */}
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="text-xs text-white/85">
+          Arraste um cartão para outra coluna — ou use o botão de mover dentro dele.
+        </p>
+
+        {temGente ? (
+          <button
+            type="button"
+            aria-pressed={!recolherVazias}
+            onClick={() => {
+              // Mostrar todas apaga as reaberturas manuais: sem isso, desligar e
+              // religar o recolhimento deixaria de fora as que o RH abriu antes,
+              // e o botão pareceria não fazer nada na segunda vez.
+              setReabertas([]);
+              setRecolherVazias((v) => !v);
+            }}
+            className="flex h-9 items-center gap-2 rounded-xl border border-white/15 bg-white/[0.07] px-3 text-xs font-semibold text-white transition-colors hover:border-white/30"
+          >
+            <ChevronsLeftRight size={15} aria-hidden="true" className="text-lime" />
+            {recolherVazias ? "Mostrar todas as etapas" : "Recolher etapas vazias"}
+            {recolherVazias && recolhidas > 0 ? (
+              <span className="rounded-full bg-lime px-1.5 py-0.5 text-[0.65rem] font-bold text-brand-deep">
+                {recolhidas}
+              </span>
+            ) : null}
+          </button>
+        ) : null}
+      </div>
+
+      <div
+        ref={refQuadro}
+        style={altura === "" ? undefined : { height: altura }}
+        className="rh-quadro rh-scroll -mx-4 flex snap-x items-stretch gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:px-0"
+      >
+        {porColuna.map(({ etapa: s, daColuna }) => {
           const idTitulo = `${base}-${s.valor}`;
           const alvo = colunaSobre === s.valor;
+          const trilho = eTrilho(s.valor, daColuna.length);
+
+          /* Os três manipuladores de arrasto são os MESMOS na fita e na coluna
+             aberta: uma etapa recolhida continua sendo destino válido, senão
+             recolher passaria a esconder caminho do funil em vez de só poupar
+             largura. */
+          const arrasto = {
+            onDragOver: (e: DragEvent<HTMLElement>) => {
+              // Sem o preventDefault o navegador recusa o soltar: por padrão
+              // nenhum elemento é alvo válido de drop.
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              if (!alvo) setColunaSobre(s.valor);
+            },
+            onDragLeave: (e: DragEvent<HTMLElement>) => {
+              // Sair para um filho ainda dispara dragleave na coluna; sem esta
+              // checagem o realce piscaria a cada cartão sob o cursor.
+              if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+              setColunaSobre((atual) => (atual === s.valor ? null : atual));
+            },
+            onDrop: (e: DragEvent<HTMLElement>) => soltar(e, s.valor),
+          };
+
+          if (trilho) {
+            return (
+              <section
+                key={s.valor}
+                aria-labelledby={idTitulo}
+                data-drop={alvo ? "true" : "false"}
+                {...arrasto}
+                className="rh-coluna rh-coluna-trilho snap-start"
+              >
+                <button
+                  type="button"
+                  aria-expanded={false}
+                  onClick={() => reabrir(s.valor)}
+                  className="rh-trilho-botao"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${s.ponto}`}
+                  />
+                  <span id={idTitulo} className="rh-trilho-rotulo text-white">
+                    {s.rotulo}
+                  </span>
+                  <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[0.65rem] font-bold tabular-nums text-white">
+                    0
+                  </span>
+                  {/* O nome de verdade do botão. O rótulo ali em cima está EM PÉ
+                      e mesmo assim é lido normalmente — o que falta é dizer o
+                      que o clique faz; sem esta linha ouvir-se-ia só
+                      "Entrevista, 0, botão". */}
+                  <span className="sr-only">
+                    Abrir a coluna {s.rotulo}, que está vazia e recolhida
+                  </span>
+                </button>
+              </section>
+            );
+          }
 
           return (
             <section
               key={s.valor}
               aria-labelledby={idTitulo}
               data-drop={alvo ? "true" : "false"}
-              onDragOver={(e: DragEvent<HTMLElement>) => {
-                // Sem o preventDefault o navegador recusa o soltar: por padrão
-                // nenhum elemento é alvo válido de drop.
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-                if (!alvo) setColunaSobre(s.valor);
-              }}
-              onDragLeave={(e: DragEvent<HTMLElement>) => {
-                // Sair para um filho ainda dispara dragleave na coluna; sem esta
-                // checagem o realce piscaria a cada cartão sob o cursor.
-                if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
-                setColunaSobre((atual) => (atual === s.valor ? null : atual));
-              }}
-              onDrop={(e: DragEvent<HTMLElement>) => soltar(e, s.valor)}
-              className="rh-coluna w-[17.5rem] shrink-0 snap-start"
+              {...arrasto}
+              className="rh-coluna snap-start"
             >
               <header className="rh-coluna-topo">
                 <h3
@@ -529,7 +634,7 @@ export function Kanban(props: {
 
               <div className="rh-coluna-corpo rh-scroll">
                 {daColuna.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-white/25 px-3 py-6 text-center text-xs leading-relaxed text-white/85">
+                  <p className="rh-coluna-vazia rounded-xl border border-dashed border-white/25 px-3 py-6 text-center text-xs leading-relaxed text-white/85">
                     {/* `s.vazio` em vez de compor `Ninguém em ${s.rotulo}`:
                         metade dos rótulos já traz preposição ("Em triagem") ou
                         pede contração ("no Banco de talentos"), e "Ninguém em

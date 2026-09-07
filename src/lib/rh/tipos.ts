@@ -159,9 +159,24 @@ export type Candidatura = {
  * aqui: a rota de atualização copia só estas chaves, então um POST malicioso não
  * consegue reescrever nome, CPF ou currículo de ninguém.
  */
+/**
+ * `area` entra aqui, e é a única propriedade do CURRÍCULO que o painel pode
+ * reescrever.
+ *
+ * Motivo, nas palavras do cliente: gente se candidata a recepção para "ter
+ * visibilidade na clínica" e é dentista; ASB se inscreve na vaga de recepção
+ * porque é a que está aberta. A área declarada no formulário é o que a pessoa
+ * DISSE, e às vezes não é onde ela se encaixa — e é a área que decide a régua
+ * da IA, o filtro do painel e a etiqueta do cartão.
+ *
+ * O que a pessoa escreveu não se perde: `vagaTitulo` e `cargoDesejado`
+ * continuam intactos e visíveis no bloco "Vaga pretendida", e a troca deixa
+ * uma linha no histórico dela. Reclassificar é anotar uma leitura da clínica
+ * por cima do que foi declarado, nunca apagar o que foi declarado.
+ */
 export type CamposGeriveis = Pick<
   Candidatura,
-  "status" | "nota" | "etiquetas" | "responsavel" | "entrevistaEm" | "arquivada"
+  "status" | "nota" | "etiquetas" | "responsavel" | "entrevistaEm" | "arquivada" | "area"
 >;
 
 /**

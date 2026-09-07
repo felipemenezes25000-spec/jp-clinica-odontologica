@@ -476,8 +476,16 @@ export function BarraFiltros(props: {
       className="sticky z-30 border-y border-border-soft bg-white/95 shadow-[0_12px_30px_-28px_rgba(3,47,1,0.55)] backdrop-blur-xl"
     >
       <div className="jp-container flex flex-col gap-3 py-3">
-        {/* LINHA 1 — busca, atalho do painel no celular, visão e exportação */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* LINHA 1 — busca, o que ela devolveu, e os controles do quadro.
+            Eram DUAS linhas: esta e mais uma, embaixo do painel, só com a
+            contagem à esquerda, o "selecionar todas" à direita e uns 900px de
+            nada entre as duas. São 40px de barra grudenta — que some do quadro
+            em todas as telas — para uma frase de cinco palavras.
+
+            A contagem encosta na busca de propósito: ela é a RESPOSTA da busca
+            e dos filtros, e ler "65 de 67" a um palmo do campo em que se digita
+            é o que fecha esse laço. */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2.5">
           <div className="relative min-w-[12rem] flex-1">
             <label htmlFor={idBusca} className="sr-only">
               Buscar candidatura
@@ -510,6 +518,46 @@ export function BarraFiltros(props: {
             ) : null}
           </div>
 
+          {/* O RESULTADO da busca, colado nela. */}
+          <div className="flex min-h-11 items-center gap-3 pr-1">
+            <p aria-live="polite" className="whitespace-nowrap text-sm text-white/85">
+              <strong className="font-display font-extrabold text-white">{props.visiveis}</strong>{" "}
+              de {props.total} {props.total === 1 ? "candidatura" : "candidaturas"}
+              {props.selecionadas > 0 ? (
+                <>
+                  {" · "}
+                  <strong className="font-display font-extrabold text-white">
+                    {props.selecionadas}
+                  </strong>{" "}
+                  {props.selecionadas === 1 ? "selecionada" : "selecionadas"}
+                </>
+              ) : null}
+            </p>
+
+            {/* "Marcar todas as visíveis" mora aqui, e não no cabeçalho da
+                tabela, porque a seleção é a mesma nas duas visões — no kanban
+                não existe cabeçalho de coluna onde pendurar isto, e duas caixas
+                de "marcar todos" dariam dois donos ao mesmo estado. VISÍVEIS, e
+                não todas: marcar 200 candidaturas que o filtro está escondendo é
+                o tipo de gesto que ninguém consegue desfazer com confiança. */}
+            {props.visiveis > 0 ? (
+              <label className="flex min-h-11 cursor-pointer items-center gap-2 whitespace-nowrap text-sm font-semibold text-white">
+                <input
+                  type="checkbox"
+                  checked={props.todasVisiveisMarcadas}
+                  onChange={(e) => props.aoSelecionarVisiveis(e.target.checked)}
+                  className="h-5 w-5 accent-lime"
+                />
+                Selecionar todas
+                <span className="sr-only"> as visíveis</span>
+              </label>
+            ) : null}
+          </div>
+
+          {/* Empurra o bloco de controles para a direita quando sobra largura, e
+              some sozinho quando a linha quebra. */}
+          <span className="ml-auto" />
+
           <button
             type="button"
             onClick={() => setPainelAberto((v) => !v)}
@@ -525,6 +573,22 @@ export function BarraFiltros(props: {
               </span>
             ) : null}
           </button>
+
+          {/* Ao lado do botão que abriu os filtros, e não numa terceira linha
+              lá embaixo: desfazer fica onde se fez. */}
+          {ativos > 0 ? (
+            <button
+              type="button"
+              onClick={() => aoMudar(filtrosVazios())}
+              className="flex h-11 items-center gap-1.5 rounded-xl px-2 text-sm font-semibold text-white transition-colors hover:text-white/85"
+            >
+              <X size={15} aria-hidden="true" className="text-lime" />
+              Limpar tudo
+              <span className="sr-only">
+                ({ativos} {ativos === 1 ? "filtro ativo" : "filtros ativos"})
+              </span>
+            </button>
+          ) : null}
 
           <div
             role="group"
@@ -808,54 +872,6 @@ export function BarraFiltros(props: {
               aoAlternar={(v) => mudar({ comSinalCritico: v })}
             />
           </div>
-        </div>
-
-        {/* LINHA 3 — contagem, seleção em lote e saída de emergência */}
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <p aria-live="polite" className="text-white/85">
-            <strong className="font-display font-extrabold text-white">{props.visiveis}</strong> de{" "}
-            {props.total} {props.total === 1 ? "candidatura" : "candidaturas"}
-            {props.selecionadas > 0 ? (
-              <>
-                {" · "}
-                <strong className="font-display font-extrabold text-white">
-                  {props.selecionadas}
-                </strong>{" "}
-                {props.selecionadas === 1 ? "selecionada" : "selecionadas"}
-              </>
-            ) : null}
-          </p>
-
-          {/* "Marcar todas as visíveis" mora aqui, e não no cabeçalho da
-              tabela, porque a seleção é a mesma nas duas visões — no kanban
-              não existe cabeçalho de coluna onde pendurar isto, e duas caixas
-              de "marcar todos" dariam dois donos ao mesmo estado. VISÍVEIS, e
-              não todas: marcar 200 candidaturas que o filtro está escondendo é
-              o tipo de gesto que ninguém consegue desfazer com confiança. */}
-          {props.visiveis > 0 ? (
-            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm font-semibold text-white">
-              <input
-                type="checkbox"
-                checked={props.todasVisiveisMarcadas}
-                onChange={(e) => props.aoSelecionarVisiveis(e.target.checked)}
-                className="h-5 w-5 accent-lime"
-              />
-              Selecionar {props.visiveis === 1 ? "a visível" : "todas as visíveis"}
-            </label>
-          ) : null}
-          {ativos > 0 ? (
-            <button
-              type="button"
-              onClick={() => aoMudar(filtrosVazios())}
-              className="flex h-11 items-center gap-1.5 rounded-xl px-2 text-sm font-semibold text-white transition-colors hover:text-white/85"
-            >
-              <X size={15} aria-hidden="true" className="text-lime" />
-              Limpar tudo
-              <span className="sr-only">
-                ({ativos} {ativos === 1 ? "filtro ativo" : "filtros ativos"})
-              </span>
-            </button>
-          ) : null}
         </div>
       </div>
     </div>

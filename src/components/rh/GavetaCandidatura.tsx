@@ -61,7 +61,6 @@ import {
 } from "@/lib/rh/ficha";
 import type { FichaEntrevista } from "@/lib/rh/ficha";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
-import { linkEmail, linkTelefone } from "@/lib/rh/mensagens";
 import {
   diasAteVencerGuarda,
   formatarData,
@@ -71,7 +70,6 @@ import {
   iniciais,
   mascararCep,
   mascararCpf,
-  mascararTelefone,
   primeiroNome,
   tempoRelativo,
 } from "@/lib/rh/formatar";
@@ -146,7 +144,6 @@ function rotuloDe(lista: { valor: string; rotulo: string }[], valor: string): st
 type Campo = { rotulo: string; valor: string; href?: string; externo?: boolean };
 
 const campo = (rotulo: string, valor: string): Campo => ({ rotulo, valor });
-const campoLink = (rotulo: string, valor: string, href: string): Campo => ({ rotulo, valor, href });
 const campoExterno = (rotulo: string, valor: string, href: string): Campo => ({
   rotulo,
   valor,
@@ -643,6 +640,27 @@ function ConteudoGaveta(props: PropsConteudo) {
     if (escolhido) aoAtualizar(item.id, { status: escolhido.valor });
   };
 
+  /**
+   * Reclassificar a área — "onde esta pessoa se encaixa".
+   *
+   * Pedido do cliente, com dois casos reais: a ASB que se candidata à vaga de
+   * recepção porque é a que está aberta, e o dentista que se inscreve na
+   * recepção "para ter visibilidade na clínica". A área declarada é o que a
+   * pessoa DISSE; esta é a leitura da clínica.
+   *
+   * Deixa linha no histórico de propósito. A área decide a régua da IA, o
+   * filtro do painel e a etiqueta do cartão — daqui a um mês ninguém lembraria
+   * se a pessoa chegou como ASB ou se alguém a moveu, e é uma pergunta que
+   * aparece justamente na hora de decidir contratação.
+   */
+  const trocarArea = (e: ChangeEvent<HTMLSelectElement>) => {
+    const escolhida = AREAS.find((a) => a.valor === e.target.value);
+    if (!escolhida || escolhida.valor === item.area) return;
+    const antiga = AREAS.find((a) => a.valor === item.area)?.rotulo ?? "sem área definida";
+    aoAtualizar(item.id, { area: escolhida.valor });
+    aoAnotar(item.id, `Área reclassificada de “${antiga}” para “${escolhida.rotulo}”.`);
+  };
+
   const definirNota = (n: number) => {
     // Clicar de novo na estrela atual zera — é o gesto que todo mundo tenta.
     aoAtualizar(item.id, { nota: item.nota === n ? 0 : n });
@@ -694,17 +712,11 @@ function ConteudoGaveta(props: PropsConteudo) {
         : `${formatarData(item.nascimento)}${anos === null ? "" : ` · ${anos} anos`}`,
     ),
     campo("CPF", item.cpf.trim() === "" ? "" : mascararCpf(item.cpf)),
-    // Os dois links vêm de `@/lib/rh/mensagens`, a mesma fonte da central de
-    // contato: um só lugar decide o que é telefone válido e o que é e-mail
-    // válido. O mailto vai sem assunto e sem corpo de propósito — quem escreve
-    // mensagem com conteúdo é a central, e um assunto genérico aqui só
-    // atrapalharia quem já vai digitar o dele.
-    campoLink("E-mail", item.email, linkEmail(item.email, "", "")),
-    campoLink(
-      "Telefone",
-      item.telefone.trim() === "" ? "" : mascararTelefone(item.telefone),
-      linkTelefone(item.telefone),
-    ),
+    // E-MAIL E TELEFONE NÃO ENTRAM AQUI. Eles vivem na central de contato, no
+    // topo grudento da gaveta, onde aparecem por extenso e com o "copiar"
+    // preso a cada um. Repetir os dois aqui embaixo dava dois donos ao mesmo
+    // dado — e o RH que rolava até "Dados pessoais" para achar o número
+    // encontrava um link `tel:` que não copia e não mostra nada a mais.
     campo("Endereço", textoEndereco(item)),
     campoExterno(
       "LinkedIn",
@@ -819,13 +831,14 @@ function ConteudoGaveta(props: PropsConteudo) {
             celular. Com o teto, quem cresce rola dentro do próprio cabeçalho e
             o corpo continua alcançável. */}
         <header className="rh-scroll max-h-[62dvh] shrink-0 overflow-y-auto border-b border-lime/20 bg-brand-deep/85 px-4 py-4 sm:px-5">
-          {/* O contato entra NESTA linha, ao lado do nome, e nao num cartao
-              abaixo dela. Em tela larga o cartao ocupava a faixa inteira com
-              metade dela vazia, e empurrava a ficha para fora da dobra — abria-se
-              a candidata e via-se um bloco de instrucoes, nao os dados dela.
-              `xl:flex-nowrap` mantem os dois lado a lado so quando ha largura;
-              abaixo disso o contato desce, que e o comportamento certo. */}
-          <div className="flex flex-wrap items-start gap-3 xl:flex-nowrap">
+          {/* IDENTIDADE numa linha, CONTATO na faixa de baixo.
+              Estavam na mesma linha, com o nome em `flex-1` no meio: em 1920px
+              isso abria uns 700px de vazio entre "Recepcionista para clínica
+              odontológica" e o primeiro botão, o "Escrever mensagem" caía
+              órfão numa segunda fileira encostada na direita, e o "X" de fechar
+              ficava ENTRE o nome e as ações — o canto da gaveta é o único lugar
+              onde ninguém procura por ele sem querer. */}
+          <div className="flex items-start gap-3">
             <span
               aria-hidden="true"
               className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime/15 font-display text-base font-extrabold text-white ring-1 ring-lime/35"
@@ -841,7 +854,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                 {item.nome.trim() === "" ? "Candidatura sem nome" : item.nome}
               </h2>
 
-              <p className="mt-1 text-sm font-semibold text-white/85">
+              <p className="mt-0.5 text-sm font-semibold text-white/85">
                 {vaga ? (
                   <a
                     href={`/carreiras/${vaga.slug}`}
@@ -850,7 +863,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                     /* Nova aba de propósito: conferir o anúncio não pode custar
                        o lugar na fila de triagem. Âncora simples em vez de
                        <Link> porque a rota pública vive fora do painel. */
-                    className="inline-flex min-h-11 items-center gap-1.5 text-white underline decoration-lime/60 underline-offset-4 hover:decoration-lime"
+                    className="inline-flex min-h-8 items-center gap-1.5 text-white underline decoration-lime/60 underline-offset-4 hover:decoration-lime"
                   >
                     {vaga.titulo}
                     <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -891,52 +904,56 @@ function ConteudoGaveta(props: PropsConteudo) {
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>
-            {/* ---------- Central de contato ----------
+          </div>
+
+          {/* ---------- Central de contato ----------
+              Faixa de largura inteira logo abaixo do nome, e não uma coluna
+              espremida à direita dele: são duas fileiras curtas (os dados, e
+              depois os canais) que leem da esquerda para a direita como
+              qualquer outra linha da ficha.
+
               No topo grudento porque falar com a candidata é a razão de a
               gaveta estar aberta: com ela lá embaixo, o RH rolava a ficha
               inteira até o fim toda vez que precisava mandar um WhatsApp.
               O `aoRegistrar` cai na MESMA anotação que o RH escreve à mão —
-              não existe um segundo histórico paralelo. */}
-            <div className="mt-2 w-full xl:mt-0 xl:w-auto xl:shrink-0 xl:max-w-[46%]">
-              <CentralContato
-                item={item}
-                agora={agora}
-                remetente={remetente}
-                aoRegistrar={(texto) => aoAnotar(item.id, texto)}
-              />
-            </div>
-          </div>
+              não existe um segundo histórico paralelo.
 
-          {/* ---------- Baixar currículo ----------
-              Baixar NÃO é contato: continua aqui, ao lado da identificação,
-              porque é o gesto que abre o PDF antes de qualquer conversa. Os
-              três links de contato que moravam nesta linha (WhatsApp, e-mail e
-              telefone, todos sem conteúdo útil) saíram para a central logo
-              abaixo, que escreve a mensagem e registra o envio sozinha. */}
-          <div className="mt-3 flex flex-wrap gap-2">
-            {item.curriculo ? (
-              <a
-                href={`/api/rh/curriculo/${item.id}`}
-                download={item.curriculo.nomeOriginal}
-                aria-label={`Baixar currículo (${formatarTamanho(item.curriculo.tamanho)})`}
-                className={`${ACAO_RAPIDA} bg-white/10 text-white ring-white/20 hover:bg-white/20`}
-              >
-                <Download className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Baixar currículo</span>
-                <span className="hidden font-normal text-white/85 sm:inline">
-                  {formatarTamanho(item.curriculo.tamanho)}
-                </span>
-              </a>
-            ) : (
-              <span
-                className={`${ACAO_RAPIDA} bg-amber-300/15 text-amber-100 ring-amber-200/35`}
-                /* Ausência de currículo muda a conversa com o candidato, então
-                   é aviso visível — não um botão desabilitado que ninguém lê. */
-              >
-                <TriangleAlert className="h-4 w-4" aria-hidden="true" />
-                Sem currículo<span className="hidden sm:inline">&nbsp;anexado</span>
-              </span>
-            )}
+              O "Baixar currículo" desce por `acaoExtra` e fecha a fileira dos
+              canais: baixar não é contato, mas é o mesmo gesto de "o que eu
+              faço com esta pessoa agora", e sozinho numa terceira fileira
+              gastava 44px com a faixa inteira vazia ao lado. */}
+          <div className="mt-3 border-t border-white/10 pt-3">
+            <CentralContato
+              item={item}
+              agora={agora}
+              remetente={remetente}
+              aoRegistrar={(texto) => aoAnotar(item.id, texto)}
+              acaoExtra={
+                item.curriculo ? (
+                  <a
+                    href={`/api/rh/curriculo/${item.id}`}
+                    download={item.curriculo.nomeOriginal}
+                    aria-label={`Baixar currículo (${formatarTamanho(item.curriculo.tamanho)})`}
+                    className={`${ACAO_RAPIDA} bg-white/10 text-white ring-white/20 hover:bg-white/20`}
+                  >
+                    <Download className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Baixar currículo</span>
+                    <span className="hidden font-normal text-white/85 sm:inline">
+                      {formatarTamanho(item.curriculo.tamanho)}
+                    </span>
+                  </a>
+                ) : (
+                  <span
+                    className={`${ACAO_RAPIDA} bg-amber-300/15 text-amber-100 ring-amber-200/35`}
+                    /* Ausência de currículo muda a conversa com o candidato, então
+                       é aviso visível — não um botão desabilitado que ninguém lê. */
+                  >
+                    <TriangleAlert className="h-4 w-4" aria-hidden="true" />
+                    Sem currículo<span className="hidden sm:inline">&nbsp;anexado</span>
+                  </span>
+                )
+              }
+            />
           </div>
         </header>
 
@@ -1004,6 +1021,31 @@ function ConteudoGaveta(props: PropsConteudo) {
                     ))}
                   </select>
                   <p className={AJUDA}>{pilula.descricao}</p>
+                </div>
+
+                {/* ÁREA — ao lado do status de propósito: são as duas perguntas
+                    de arrumação da ficha ("em que pé está" e "onde se encaixa"),
+                    e a segunda é a que o cliente pediu. */}
+                <div>
+                  <label htmlFor={`${uid}-area`} className={ROTULO}>
+                    Onde se encaixa
+                  </label>
+                  <select
+                    id={`${uid}-area`}
+                    className={CAMPO}
+                    value={item.area}
+                    onChange={trocarArea}
+                  >
+                    {AREAS.map((a) => (
+                      <option key={a.valor} value={a.valor} className="bg-white text-ink">
+                        {a.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                  <p className={AJUDA}>
+                    Muda a régua da IA, o filtro e a etiqueta do cartão. A vaga a que a pessoa se
+                    candidatou continua em “Vaga pretendida”, e a troca fica no histórico.
+                  </p>
                 </div>
 
                 <div>

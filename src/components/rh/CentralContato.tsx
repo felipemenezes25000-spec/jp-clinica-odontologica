@@ -24,7 +24,7 @@
  * lá o carimbo do histórico e o DTSTAMP do convite precisam da hora REAL do
  * envio. Uma aba aberta desde as 8h registraria "às 08:00" um envio das 17h.
  */
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   BookmarkPlus,
@@ -210,6 +210,62 @@ function Acao(props: PropsAcao) {
   );
 }
 
+/**
+ * Um dado de contato com o "copiar" preso NELE.
+ *
+ * Antes existiam duas pílulas escritas "Copiar telefone" e "Copiar e-mail", do
+ * mesmo tamanho e no mesmo fileirão de "WhatsApp", "E-mail" e "Ligar" — cinco
+ * botões idênticos, dois deles copiando um dado que a tela não mostrava. Quem
+ * precisava LER o número em voz alta tinha de rolar a ficha inteira até "Dados
+ * pessoais", e quem só queria copiar não sabia o que ia no clipboard.
+ *
+ * Aqui a mesma linha faz as duas coisas: mostra o dado e copia. É por isso que
+ * o telefone e o e-mail saíram da lista de "Dados pessoais" lá embaixo — dado
+ * de contato tem um dono só, e é este.
+ *
+ * O alvo é de 36px no mouse e 44px no dedo (`.rh-alvo-toque`): a regra dos 44px
+ * nasceu do celular da recepção, e no monitor ela só engordava o cabeçalho.
+ */
+function DadoContato(props: {
+  icone: LucideIcon;
+  /** "telefone" ou "e-mail", em minúscula: entra no meio da frase do aria-label. */
+  rotulo: string;
+  valor: string;
+  vazio: string;
+  copiado: boolean;
+  aoCopiar: () => void;
+}) {
+  const { icone: Icone } = props;
+
+  if (props.valor === "") {
+    return (
+      <span className="rh-alvo-toque inline-flex max-w-full items-center gap-2 rounded-full bg-white/5 px-3 text-xs font-semibold text-white/85 ring-1 ring-white/15">
+        <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+        {props.vazio}
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={props.aoCopiar}
+      aria-label={`Copiar ${props.rotulo} ${props.valor}`}
+      className="rh-alvo-toque inline-flex max-w-full items-center gap-2 rounded-full bg-white/10 px-3 text-xs font-bold text-white ring-1 ring-white/20 transition hover:bg-white/20"
+    >
+      <Icone className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+      {/* `select-text` porque copiar com o botão é o caminho rápido, não o
+          único: quem prefere marcar com o mouse e dar Ctrl+C continua podendo. */}
+      <span className="min-w-0 select-text truncate font-mono tracking-tight">{props.valor}</span>
+      {props.copiado ? (
+        <Check className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+      ) : (
+        <Copy className="h-4 w-4 shrink-0 text-white/85" aria-hidden="true" />
+      )}
+    </button>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Central                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -223,6 +279,13 @@ export function CentralContato(props: {
    * conhece a rota de anotação) — aqui a gente só diz o que aconteceu.
    */
   aoRegistrar: (texto: string) => void;
+  /**
+   * Um botão a mais no fim da fileira de canais. Hoje é o "Baixar currículo",
+   * que a gaveta passa: baixar não é contato, mas é o mesmo gesto de "o que eu
+   * faço com esta pessoa agora" e vivia sozinho numa terceira fileira, embaixo,
+   * com a faixa inteira vazia à direita dele.
+   */
+  acaoExtra?: ReactNode;
 }) {
   const { item, agora, remetente, aoRegistrar } = props;
   const uid = useId();
@@ -230,7 +293,10 @@ export function CentralContato(props: {
   const [aberto, setAberto] = useState(false);
   const [escolhido, setEscolhido] = useState<ChaveModelo | null>(null);
   const [texto, setTexto] = useState("");
+  /** Só o que DEU ERRADO, ou o que não tem onde aparecer (o convite baixado). */
   const [aviso, setAviso] = useState("");
+  /** Qual dado acabou de ir para a área de transferência — vira o "check" nele. */
+  const [copiado, setCopiado] = useState<"" | "telefone" | "email" | "mensagem">("");
 
   const refAbrir = useRef<HTMLButtonElement>(null);
   const refPrimeiroModelo = useRef<HTMLButtonElement>(null);
@@ -269,10 +335,13 @@ export function CentralContato(props: {
   /* --- Aviso de "copiado!" ----------------------------------------------- */
 
   useEffect(() => {
-    if (aviso === "") return undefined;
-    const t = window.setTimeout(() => setAviso(""), MS_AVISO);
+    if (aviso === "" && copiado === "") return undefined;
+    const t = window.setTimeout(() => {
+      setAviso("");
+      setCopiado("");
+    }, MS_AVISO);
     return () => window.clearTimeout(t);
-  }, [aviso]);
+  }, [aviso, copiado]);
 
   /* --- Foco do painel ----------------------------------------------------- */
 
@@ -308,9 +377,16 @@ export function CentralContato(props: {
     aoRegistrar(linhaDeRegistro({ acao, canal, remetente, quando: new Date() }));
   }
 
-  async function copiar(valor: string, mensagem: string): Promise<void> {
+  /**
+   * O sucesso NÃO vira frase na tela: vira um "check" no próprio botão que foi
+   * clicado, que é onde o olho já está. A frase escrita fica só para a falha,
+   * que é o caso em que a pessoa precisa saber o que fazer em vez disso. Para
+   * quem usa leitor de tela, o anúncio sai da região viva mais abaixo.
+   */
+  async function copiar(valor: string, marca: "telefone" | "email" | "mensagem"): Promise<void> {
     const ok = await copiarTexto(valor);
-    setAviso(ok ? mensagem : "Não consegui copiar. Selecione o texto e use Ctrl+C.");
+    setCopiado(ok ? marca : "");
+    setAviso(ok ? "" : "Não consegui copiar. Selecione o texto e use Ctrl+C.");
   }
 
   function abrirWhatsappDoModelo(): void {
@@ -334,7 +410,7 @@ export function CentralContato(props: {
 
   async function copiarModelo(): Promise<void> {
     if (modelo === null) return;
-    await copiar(texto, "Mensagem copiada!");
+    await copiar(texto, "mensagem");
     // Copiar TAMBÉM é envio: existe justamente porque nem todo mundo usa
     // WhatsApp Web e no computador da recepção o link às vezes não abre — a
     // pessoa cola no celular e manda de lá. Registrar aqui é o que impede o
@@ -389,8 +465,41 @@ export function CentralContato(props: {
         você enviar entra sozinho no histórico dela.
       </p>
 
-      {/* ---------- Ações diretas ---------- */}
-      <div className="flex flex-wrap gap-2">
+      {/* ---------- OS DADOS ----------
+          Primeira linha: o número e o e-mail por extenso, cada um com o
+          "copiar" preso nele. Ver o comentário de `DadoContato` — é aqui que
+          moram o telefone e o e-mail da candidata, e não mais lá embaixo em
+          "Dados pessoais". */}
+      <div className="flex flex-wrap items-center gap-2">
+        <DadoContato
+          icone={Phone}
+          rotulo="telefone"
+          valor={semTelefone ? "" : mascararTelefone(telefone)}
+          vazio="Sem telefone no currículo"
+          copiado={copiado === "telefone"}
+          aoCopiar={() => void copiar(mascararTelefone(telefone), "telefone")}
+        />
+        <DadoContato
+          icone={Mail}
+          rotulo="e-mail"
+          valor={semEmail ? "" : email}
+          vazio="Sem e-mail no currículo"
+          copiado={copiado === "email"}
+          aoCopiar={() => void copiar(email, "email")}
+        />
+      </div>
+
+      {/* ---------- OS CANAIS ----------
+          Segunda linha: só o que ABRE uma conversa, na ordem em que a clínica
+          usa — o WhatsApp resolve quase tudo, ligar é o plano B do mesmo
+          número, o e-mail serve para documento, e "escrever mensagem" é o
+          caminho longo, o que monta o texto e registra o envio no histórico.
+
+          Eram cinco botões iguais numa fileira só, dois deles ("Copiar
+          telefone", "Copiar e-mail") sem nada a ver com abrir conversa. Separar
+          o que É o dado do que FAZ alguma coisa é a organização inteira desta
+          faixa. */}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
         <Acao
           icone={MessageCircle}
           rotulo="WhatsApp"
@@ -399,15 +508,6 @@ export function CentralContato(props: {
           destaque
           novaAba
           motivoId={semTelefone ? idSemTelefone : ""}
-        />
-        <Acao
-          icone={Mail}
-          rotulo="E-mail"
-          href={hrefEmailDireto}
-          aoClicar={() => registrar("E-mail aberto", "")}
-          destaque={false}
-          novaAba={false}
-          motivoId={semEmail ? idSemEmail : ""}
         />
         <Acao
           icone={Phone}
@@ -419,51 +519,20 @@ export function CentralContato(props: {
           motivoId={semTelefone ? idSemTelefone : ""}
         />
         <Acao
-          icone={Copy}
-          rotulo="Copiar telefone"
-          href=""
-          aoClicar={() => void copiar(mascararTelefone(telefone), "Telefone copiado!")}
-          destaque={false}
-          novaAba={false}
-          motivoId={semTelefone ? idSemTelefone : ""}
-        />
-        <Acao
-          icone={Copy}
-          rotulo="Copiar e-mail"
-          href=""
-          aoClicar={() => void copiar(email, "E-mail copiado!")}
+          icone={Mail}
+          rotulo="E-mail"
+          href={hrefEmailDireto}
+          aoClicar={() => registrar("E-mail aberto", "")}
           destaque={false}
           novaAba={false}
           motivoId={semEmail ? idSemEmail : ""}
         />
-      </div>
 
-      {/* Motivos visíveis, e ligados por aria-describedby a cada botão morto. */}
-      {semTelefone ? (
-        <p id={idSemTelefone} className={`mt-2 ${AJUDA}`}>
-          Sem telefone no currículo — WhatsApp, Ligar e Copiar telefone ficam indisponíveis.
-        </p>
-      ) : null}
-      {semEmail ? (
-        <p id={idSemEmail} className={`mt-2 ${AJUDA}`}>
-          Sem e-mail no currículo — E-mail e Copiar e-mail ficam indisponíveis.
-        </p>
-      ) : null}
-
-      {/* Região viva única para toda confirmação de cópia e download. */}
-      <p role="status" aria-live="polite" className="mt-2 min-h-5 text-xs font-bold text-white">
-        {aviso === "" ? (
-          ""
-        ) : (
-          <span className="inline-flex items-center gap-1.5">
-            <Check className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-            {aviso}
-          </span>
-        )}
-      </p>
-
-      {/* ---------- Escrever mensagem ---------- */}
-      <div className="mt-3">
+        {/* ---------- Escrever mensagem ----------
+            Estava numa terceira fileira sozinho, e por isso parecia sobra: é o
+            botão que escreve o texto pronto e grava o envio, o mais valioso da
+            faixa depois do WhatsApp. Aqui ele fecha a fileira dos canais, que é
+            o que ele é. */}
         <button
           ref={refAbrir}
           type="button"
@@ -475,7 +544,41 @@ export function CentralContato(props: {
           <PenLine className="h-4 w-4 shrink-0" aria-hidden="true" />
           Escrever mensagem
         </button>
+
+        {props.acaoExtra}
       </div>
+
+      {/* Motivos visíveis, e ligados por aria-describedby a cada botão morto. */}
+      {semTelefone ? (
+        <p id={idSemTelefone} className={`mt-2 ${AJUDA}`}>
+          Sem telefone no currículo — WhatsApp e Ligar ficam indisponíveis.
+        </p>
+      ) : null}
+      {semEmail ? (
+        <p id={idSemEmail} className={`mt-2 ${AJUDA}`}>
+          Sem e-mail no currículo — o botão de e-mail fica indisponível.
+        </p>
+      ) : null}
+
+      {/* Falha de cópia e download do convite: os dois casos que NÃO têm como
+          aparecer no próprio botão. O sucesso da cópia vira "check" lá, e por
+          isso não repete aqui. */}
+      {aviso === "" ? null : (
+        <p role="alert" className="mt-2 text-xs font-bold text-white">
+          {aviso}
+        </p>
+      )}
+
+      {/* Região viva só para leitor de tela: quem enxerga já viu o "check". */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {copiado === "telefone"
+          ? "Telefone copiado."
+          : copiado === "email"
+            ? "E-mail copiado."
+            : copiado === "mensagem"
+              ? "Mensagem copiada."
+              : ""}
+      </p>
 
       {aberto ? (
         <div
@@ -598,8 +701,8 @@ export function CentralContato(props: {
                     que só usa o app no celular. Copiar é o caminho que sempre
                     funciona. */}
                 <Acao
-                  icone={Copy}
-                  rotulo="Copiar texto"
+                  icone={copiado === "mensagem" ? Check : Copy}
+                  rotulo={copiado === "mensagem" ? "Texto copiado" : "Copiar texto"}
                   href=""
                   aoClicar={() => void copiarModelo()}
                   destaque={false}

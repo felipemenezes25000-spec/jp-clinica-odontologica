@@ -1553,7 +1553,11 @@ function Painel({ dados }: { dados: DadosRh }) {
         role="tabpanel"
         aria-labelledby={`aba-rh-${aba}`}
         tabIndex={-1}
-        className="flex-1 pb-16"
+        /* A aba Candidaturas não leva a folga de baixo: o quadro do kanban é
+           dimensionado para terminar exatamente no fim da janela, e 64px a mais
+           embaixo dele criariam uma rolagem de página que não leva a lugar
+           nenhum. As outras abas continuam com o respiro no fim do conteúdo. */
+        className={`flex-1 ${aba === "candidaturas" ? "" : "pb-16"}`}
       >
         {aba === "resumo" ? (
           // A calha vive aqui, e não dentro de cada componente: sem ela os KPIs
