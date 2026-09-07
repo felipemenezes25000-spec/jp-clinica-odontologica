@@ -448,7 +448,11 @@ function PaginaCandidatura() {
   const [dados, setDados] = useState<Candidatura>(estadoInicial);
   const [passo, setPasso] = useState(1);
   const [erros, setErros] = useState<ErrosPasso>({});
-  const [vagaDoRascunhoSumiu, setVagaDoRascunhoSumiu] = useState(false);
+  /* Por que "" | "rascunho" | "link" e não um booleano: as duas situações
+     produzem a mesma consequência (a vaga sai do formulário) mas explicações
+     diferentes. Num caso há preenchimento guardado para tranquilizar a pessoa;
+     no outro ela acabou de chegar por um link e não perdeu nada. */
+  const [vagaSumiu, setVagaSumiu] = useState<"" | "rascunho" | "link">("");
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [erroArquivo, setErroArquivo] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -606,10 +610,20 @@ function PaginaCandidatura() {
   /* ---------------------------------------------------------------------- */
 
   useEffect(() => {
-    if (fixadaAplicada.current || vagaFixada === null) return;
+    if (fixadaAplicada.current || slugDaUrl.length === 0) return;
     fixadaAplicada.current = true;
+
+    // `vagas` traz só as vagas ABERTAS. Um link para vaga encerrada, pausada
+    // ou ainda em rascunho — o do WhatsApp que circulou semana passada, o
+    // compartilhado por uma amiga — devolve `vagaFixada === null`, e até aqui
+    // isso caía em silêncio: o formulário voltava para a lista de escolha sem
+    // dizer nada, e quem clicou achava que tinha errado alguma coisa.
+    if (vagaFixada === null) {
+      setVagaSumiu("link");
+      return;
+    }
     escolherVaga(vagaFixada);
-  }, [vagaFixada, escolherVaga]);
+  }, [slugDaUrl, vagaFixada, escolherVaga]);
 
   /* ---------------------------------------------------------------------- */
   /* Aviso ao sair                                                          */
@@ -859,7 +873,7 @@ function PaginaCandidatura() {
     // A área e o cargo continuam: eles descrevem a pessoa, não a vaga.
     const vagaAindaAberta = base.vagaId.length === 0 || vagas.some((v) => v.id === base.vagaId);
     const restaurado = vagaAindaAberta ? base : { ...base, vagaId: "" };
-    setVagaDoRascunhoSumiu(!vagaAindaAberta);
+    setVagaSumiu(vagaAindaAberta ? "" : "rascunho");
     setDados(restaurado);
     setEscolhaFeita(temConteudo(restaurado));
     setRascunho(null);
@@ -976,11 +990,12 @@ function PaginaCandidatura() {
                       </div>
                     ) : null}
 
-                    {/* Não é erro: é explicação. A pessoa começou a candidatura
-                        quando a vaga estava aberta e voltou depois que ela saiu
-                        do ar. Sem esta linha, a vaga simplesmente sumiria do
-                        formulário e ela não saberia por quê. */}
-                    {vagaDoRascunhoSumiu ? (
+                    {/* Não é erro: é explicação, e por isso role="status" e não
+                        role="alert". A vaga saiu do ar entre o momento em que a
+                        pessoa escolheu e o momento em que ela voltou. Sem esta
+                        linha a vaga sumiria do formulário sem explicação, e a
+                        pessoa concluiria que ela mesma errou alguma coisa. */}
+                    {vagaSumiu !== "" ? (
                       <div
                         role="status"
                         className="mb-6 flex items-start gap-3 rounded-2xl border border-border-soft bg-mint/60 p-4"
@@ -990,9 +1005,9 @@ function PaginaCandidatura() {
                           aria-hidden="true"
                         />
                         <p className="text-sm font-semibold leading-relaxed text-ink">
-                          A vaga que você tinha escolhido não está mais recebendo candidaturas.
-                          Guardamos tudo o que você já havia preenchido — é só escolher outra vaga
-                          ou seguir pelo banco de talentos.
+                          {vagaSumiu === "rascunho"
+                            ? "A vaga que você tinha escolhido não está mais recebendo candidaturas. Guardamos tudo o que você já havia preenchido — é só escolher outra vaga ou seguir pelo banco de talentos."
+                            : "O link que você abriu leva a uma vaga que não está mais recebendo candidaturas. Escolha uma das vagas abertas abaixo ou envie seu currículo para o banco de talentos."}
                         </p>
                       </div>
                     ) : null}
@@ -1085,7 +1100,7 @@ function PaginaCandidatura() {
                       type="button"
                       onClick={voltar}
                       disabled={passo === 1}
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-soft bg-white px-5 text-sm font-bold text-ink transition hover:border-ink-soft hover:bg-cream disabled:cursor-not-allowed disabled:opacity-45"
+                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-soft bg-white px-5 text-sm font-bold text-ink transition hover:border-ink-soft hover:bg-cream disabled:cursor-not-allowed disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft"
                     >
                       <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                       Voltar
@@ -1103,7 +1118,7 @@ function PaginaCandidatura() {
                       <button
                         type="submit"
                         disabled={enviando}
-                        className="button-primary inline-flex min-h-12 items-center justify-center gap-2 disabled:cursor-progress disabled:opacity-70"
+                        className="button-primary inline-flex min-h-12 items-center justify-center gap-2 disabled:cursor-progress disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft disabled:shadow-none"
                       >
                         {enviando ? "Enviando..." : "Enviar candidatura"}
                         <Send className="h-4 w-4" aria-hidden="true" />
@@ -1868,7 +1883,7 @@ function PassoExperiencia(props: {
           type="button"
           onClick={props.aoAdicionarExperiencia}
           disabled={cheio}
-          className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-full border border-forest/25 bg-white px-5 text-sm font-bold text-ink transition enabled:hover:bg-mint disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-full border border-forest/25 bg-white px-5 text-sm font-bold text-ink transition enabled:hover:bg-mint disabled:cursor-not-allowed disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           Adicionar experiência
