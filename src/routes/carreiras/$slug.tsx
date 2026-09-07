@@ -114,6 +114,9 @@ function cortar(texto: string, limite: number): string {
 const EMPREGO_SCHEMA: Record<string, string> = {
   clt: "FULL_TIME",
   pj: "CONTRACTOR",
+  // Mesmo CONTRACTOR do PJ: o schema.org não separa PJ de autônomo, e é essa a
+  // categoria que o Google for Jobs entende por "prestação de serviço".
+  prestador: "CONTRACTOR",
   estagio: "INTERN",
   // "Freelancer / diarista": PER_DIEM é literalmente o pagamento por dia
   // trabalhado, que é o formato de quem cobre férias e faltas na clínica.

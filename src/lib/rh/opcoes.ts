@@ -58,6 +58,10 @@ export const AREAS: { valor: AreaVaga; rotulo: string; descricao: string; icone:
 export const VINCULOS: { valor: Vinculo; rotulo: string }[] = [
   { valor: "clt", rotulo: "CLT" },
   { valor: "pj", rotulo: "PJ" },
+  // Distinto de "PJ" de propósito: PJ pressupõe CNPJ e nota fiscal da pessoa;
+  // prestador de serviços cobre também o autônomo com RPA. Quem publica a vaga
+  // sabe a diferença, e o candidato também.
+  { valor: "prestador", rotulo: "Prestador de serviços" },
   { valor: "estagio", rotulo: "Estágio" },
   { valor: "freelancer", rotulo: "Freelancer / diarista" },
   { valor: "indiferente", rotulo: "Indiferente" },

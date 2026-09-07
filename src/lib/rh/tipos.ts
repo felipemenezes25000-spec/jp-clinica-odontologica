@@ -13,7 +13,7 @@ export type StatusCandidatura =
 
 export type AreaVaga = "dentista" | "asb-tsb" | "recepcao" | "administrativo" | "estagio" | "outro";
 
-export type Vinculo = "clt" | "pj" | "estagio" | "freelancer" | "indiferente";
+export type Vinculo = "clt" | "pj" | "prestador" | "estagio" | "freelancer" | "indiferente";
 
 export type FaixaExperiencia = "sem" | "0-2" | "2-5" | "5-10" | "10+";
 
