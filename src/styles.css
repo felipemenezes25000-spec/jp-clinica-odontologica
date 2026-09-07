@@ -1898,7 +1898,7 @@ textarea.rh-campo {
   box-shadow: 0 12px 34px -28px rgba(3, 47, 1, 0.45);
 }
 
-.rh-admin > main {
+.rh-admin {
   color: var(--ink);
 }
 
@@ -1918,18 +1918,63 @@ textarea.rh-campo {
 }
 
 /* O painel foi originalmente construído em fundo escuro e muitos componentes
-   usam text-white. Dentro do main e de cartões que agora são brancos, a regra
-   vira literalmente a pedida pela clínica: branco = letra preta. */
-.rh-admin > main [class~="text-white"],
-.rh-admin > main [class~="text-white!"],
+   usam text-white. Sobre as superfícies claras de agora, a regra vira
+   literalmente a pedida pela clínica: fundo branco = letra preta.
+
+   O escopo é `.rh-admin` inteiro, e NÃO `.rh-admin > main`: a gaveta do
+   candidato, o modo entrevista e os avisos são renderizados fora do `<main>`
+   de propósito (desmontá-los ao trocar de aba jogaria fora o foco devolvido).
+   Com o escopo restrito ao main, todos eles ficavam com letra branca sobre
+   cartão branco — 1:1 de contraste, texto literalmente invisível. */
+.rh-admin main [class~="text-white"],
+.rh-admin .rh-gaveta [class~="text-white"],
+.rh-admin [role="dialog"] [class~="text-white"],
+.rh-admin .rh-vidro [class~="text-white"],
+.rh-admin main [class~="text-white!"],
+.rh-admin .rh-gaveta [class~="text-white!"],
+.rh-admin [role="dialog"] [class~="text-white!"],
+.rh-admin .rh-vidro [class~="text-white!"],
 .rh-admin .rh-vidro [class~="text-white"],
 .rh-admin .rh-vidro [class~="text-white!"] {
   color: var(--ink) !important;
 }
 
-.rh-admin > main [class~="text-white/85"],
-.rh-admin > main [class~="text-white/90"],
-.rh-admin > main [class~="text-white/25"],
+.rh-admin main [class~="text-rose-200"],
+.rh-admin .rh-gaveta [class~="text-rose-200"],
+.rh-admin [role="dialog"] [class~="text-rose-200"],
+.rh-admin .rh-vidro [class~="text-rose-200"],
+.rh-admin main [class~="text-rose-100"],
+.rh-admin .rh-gaveta [class~="text-rose-100"],
+.rh-admin [role="dialog"] [class~="text-rose-100"],
+.rh-admin .rh-vidro [class~="text-rose-100"] {
+  /* Vermelho claro sobre branco mede 1,42:1. Este tom mantém o significado de
+     alerta e passa com folga. */
+  color: oklch(0.45 0.16 15) !important;
+}
+
+.rh-admin main [class~="text-amber-200"],
+.rh-admin .rh-gaveta [class~="text-amber-200"],
+.rh-admin [role="dialog"] [class~="text-amber-200"],
+.rh-admin .rh-vidro [class~="text-amber-200"],
+.rh-admin main [class~="text-amber-100"],
+.rh-admin .rh-gaveta [class~="text-amber-100"],
+.rh-admin [role="dialog"] [class~="text-amber-100"],
+.rh-admin .rh-vidro [class~="text-amber-100"] {
+  color: oklch(0.47 0.11 75) !important;
+}
+
+.rh-admin main [class~="text-white/85"],
+.rh-admin .rh-gaveta [class~="text-white/85"],
+.rh-admin [role="dialog"] [class~="text-white/85"],
+.rh-admin .rh-vidro [class~="text-white/85"],
+.rh-admin main [class~="text-white/90"],
+.rh-admin .rh-gaveta [class~="text-white/90"],
+.rh-admin [role="dialog"] [class~="text-white/90"],
+.rh-admin .rh-vidro [class~="text-white/90"],
+.rh-admin main [class~="text-white/25"],
+.rh-admin .rh-gaveta [class~="text-white/25"],
+.rh-admin [role="dialog"] [class~="text-white/25"],
+.rh-admin .rh-vidro [class~="text-white/25"],
 .rh-admin .rh-vidro [class~="text-white/85"],
 .rh-admin .rh-vidro [class~="text-white/90"],
 .rh-admin .rh-vidro [class~="text-white/25"] {
@@ -1971,7 +2016,7 @@ textarea.rh-campo {
   color: white !important;
 }
 
-.rh-admin > main [class~="bg-lime"][class~="text-brand-deep"],
+.rh-admin main [class~="bg-lime"][class~="text-brand-deep"],
 .rh-admin .rh-gaveta [class~="bg-lime"][class~="text-brand-deep"] {
   color: white !important;
   background: var(--forest) !important;
@@ -2026,17 +2071,23 @@ textarea.rh-campo {
 
 /* Chips originalmente desenhados para a aurora escura viram controles claros
    no painel branco, mantendo borda e peso como pistas de seleção. */
-.rh-admin > main .rh-chip-escuro {
+.rh-admin main .rh-chip-escuro,
+.rh-admin .rh-gaveta .rh-chip-escuro,
+.rh-admin [role="dialog"] .rh-chip-escuro {
   border-color: var(--border-soft);
   background: white;
   color: var(--ink);
   box-shadow: 0 1px 2px rgba(3, 47, 1, 0.03);
 }
-.rh-admin > main .rh-chip-escuro:hover {
+.rh-admin main .rh-chip-escuro:hover,
+.rh-admin .rh-gaveta .rh-chip-escuro:hover,
+.rh-admin [role="dialog"] .rh-chip-escuro:hover {
   border-color: color-mix(in oklab, var(--forest) 24%, white);
   background: color-mix(in oklab, var(--mint) 58%, white);
 }
-.rh-admin > main .rh-chip-escuro[data-ativo="true"] {
+.rh-admin main .rh-chip-escuro[data-ativo="true"],
+.rh-admin .rh-gaveta .rh-chip-escuro[data-ativo="true"],
+.rh-admin [role="dialog"] .rh-chip-escuro[data-ativo="true"] {
   border-color: var(--forest);
   background: var(--mint);
   color: var(--ink);
