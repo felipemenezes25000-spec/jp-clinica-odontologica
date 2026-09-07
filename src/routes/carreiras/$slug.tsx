@@ -326,8 +326,11 @@ export const Route = createFileRoute("/carreiras/$slug")({
 
 function Pilula({ icone: Icone, children }: { icone: LucideIcon; children: string }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-bold text-white">
-      <Icone aria-hidden="true" className="h-4 w-4 text-lime" />
+    /* `items-start` e `[overflow-wrap:anywhere]`: a pastilha de endereco tem
+       399px ("R. Rio Verde, 1029 — Vila Bruna, Sao Paulo - SP, 02934-201") e,
+       sem quebra interna, empurrava a linha toda quando a coluna encurtava. */
+    <span className="inline-flex max-w-full items-start gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-bold leading-snug text-white [overflow-wrap:anywhere]">
+      <Icone aria-hidden="true" className="mt-px h-4 w-4 shrink-0 text-lime" />
       {children}
     </span>
   );
@@ -489,98 +492,118 @@ function PaginaVaga() {
 
       <main id="conteudo">
         {/* HERO */}
-        <section className="section-deep noise relative isolate overflow-hidden pb-10 pt-8 text-white sm:pb-12 sm:pt-9">
+        <section className="rh-hero-vaga section-deep noise relative isolate overflow-hidden pb-10 pt-8 text-white sm:pb-12 sm:pt-9">
           <CapaVaga area={vaga.area} />
           {/* `lg:pr-[38%]` só existe quando há capa: sem ela o conteúdo usa a
               largura inteira, como sempre usou. Com ela, o texto para antes da
               parte em que a foto realmente aparece — o trecho que ele invade já
               é verde sólido pelo véu, então a leitura não perde contraste. */}
-          <div className={`jp-container relative z-10${temCapa ? " lg:pr-[40%]" : ""}`}>
-            <nav aria-label="Trilha de navegação">
-              <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-white/85">
-                <li>
-                  <a href="/" className="transition-colors hover:text-white">
-                    Início
-                  </a>
-                </li>
-                <li aria-hidden="true" className="flex items-center">
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </li>
-                <li>
-                  <a href="/carreiras" className="transition-colors hover:text-white">
-                    Carreiras
-                  </a>
-                </li>
-                <li aria-hidden="true" className="flex items-center">
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </li>
-                <li aria-current="page" className="text-white">
+          <div className="jp-container relative z-10">
+            {/* `--coluna-hero` é a única medida do bloco. Absoluta, e não uma
+                porcentagem do container: porcentagem mais título em vw fazia o
+                ponto de quebra saltar entre 1440, 1920 e 2560. Em QHD e 4K ela
+                simplesmente para de crescer, e o hero se comporta como em Full
+                HD sem o usuário mexer no zoom. */}
+            <div className="max-w-[var(--coluna-hero)] [--coluna-hero:100%] lg:[--coluna-hero:34rem] xl:[--coluna-hero:38rem]">
+              <nav aria-label="Trilha de navegação">
+                <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-white/85">
+                  <li>
+                    <a href="/" className="transition-colors hover:text-white">
+                      Início
+                    </a>
+                  </li>
+                  <li aria-hidden="true" className="flex items-center">
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </li>
+                  <li>
+                    <a href="/carreiras" className="transition-colors hover:text-white">
+                      Carreiras
+                    </a>
+                  </li>
+                  <li aria-hidden="true" className="flex items-center">
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </li>
+                  <li aria-current="page" className="text-white">
+                    {vaga.titulo}
+                  </li>
+                </ol>
+              </nav>
+
+              <Reveal className="mt-7 max-w-4xl">
+                {/* `flex-wrap`: o eyebrow e inline-flex com nowrap por padrao, e
+                  "VAGA ABERTA · RECEPCAO E ATENDIMENTO" nao cabia na coluna. */}
+                <p className="eyebrow flex-wrap text-white">
+                  <span aria-hidden="true" className="h-2 w-2 rounded-full bg-lime" />
+                  Vaga aberta · {rotuloArea(vaga)}
+                </p>
+                {/* `text-wrap:balance` distribui as duas linhas em vez de deixar
+                  uma órfã; `hyphens:auto` resolve "odontológica" sem precisar do
+                  `overflow-wrap:anywhere`, que cortava palavra em qualquer letra.
+                  O entrelinha subiu de .95 para 1.05 e o tracking afrouxou de
+                  −.045em para −.02em: com duas linhas, as letras encostavam. */}
+                <h1 className="mt-5 font-display text-[clamp(1.9rem,3.2vw,3rem)] font-extrabold leading-[1.05] tracking-[-.02em] [hyphens:auto] [text-wrap:balance]">
                   {vaga.titulo}
-                </li>
-              </ol>
-            </nav>
+                </h1>
+                {vaga.resumo.trim().length > 0 && (
+                  <p className="mt-4 text-base font-medium leading-relaxed text-white/85">
+                    {vaga.resumo}
+                  </p>
+                )}
 
-            <Reveal className="mt-7 max-w-4xl">
-              <p className="eyebrow text-white">
-                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-lime" />
-                Vaga aberta · {rotuloArea(vaga)}
-              </p>
-              <h1 className="mt-5 font-display text-[clamp(2rem,4.6vw,3.4rem)] font-extrabold leading-[.95] tracking-[-.045em] [overflow-wrap:anywhere]">
-                {vaga.titulo}
-              </h1>
-              {vaga.resumo.trim().length > 0 && (
-                <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-white/85">
-                  {vaga.resumo}
-                </p>
-              )}
+                <div className="mt-7 flex flex-wrap gap-2.5">
+                  <Pilula icone={Briefcase}>{rotuloArea(vaga)}</Pilula>
+                  <Pilula icone={BadgeCheck}>{rotuloVinculo(vaga)}</Pilula>
+                  <Pilula icone={Sparkles}>{rotuloModelo(vaga)}</Pilula>
+                  <Pilula icone={MapPin}>{local}</Pilula>
+                </div>
+              </Reveal>
 
-              <div className="mt-7 flex flex-wrap gap-2.5">
-                <Pilula icone={Briefcase}>{rotuloArea(vaga)}</Pilula>
-                <Pilula icone={BadgeCheck}>{rotuloVinculo(vaga)}</Pilula>
-                <Pilula icone={Sparkles}>{rotuloModelo(vaga)}</Pilula>
-                <Pilula icone={MapPin}>{local}</Pilula>
-              </div>
-            </Reveal>
-
-            <Reveal delay={90}>
-              <ul className={`mt-7 grid gap-3 sm:grid-cols-2${temCapa ? "" : " lg:grid-cols-4"}`}>
-                {/* `faixaSalarial` devolve vazio quando o RH escolheu não divulgar:
+              <Reveal delay={90}>
+                {/* Colunas fluidas em vez de 2 ou 4 fixas: com `auto-fit` e piso
+                  de 13rem a grade se reorganiza sozinha em qualquer largura, e
+                  `items-stretch` iguala a altura — o card "Jornada" tem três
+                  linhas e deixava a grade 2×2 visivelmente torta. */}
+                <ul className="mt-7 grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] items-stretch gap-3">
+                  {/* `faixaSalarial` devolve vazio quando o RH escolheu não divulgar:
                     a linha continua na barra, mas dizendo o que é verdade. */}
-                <DadoHero
-                  icone={Wallet}
-                  rotulo="Remuneração"
-                  valor={salario.length > 0 ? salario : "A combinar"}
-                />
-                <DadoHero
-                  icone={Clock3}
-                  rotulo="Jornada"
-                  valor={vaga.jornada.trim().length > 0 ? vaga.jornada : rotuloModelo(vaga)}
-                />
-                <DadoHero icone={Users} rotulo="Vagas" valor={posicoes} />
-                <DadoHero
-                  icone={CalendarClock}
-                  rotulo="Inscrições"
-                  valor={prazo.length > 0 ? `Até ${prazo}` : "Sem prazo definido"}
-                />
-              </ul>
-            </Reveal>
+                  <DadoHero
+                    icone={Wallet}
+                    rotulo="Remuneração"
+                    valor={salario.length > 0 ? salario : "A combinar"}
+                  />
+                  <DadoHero
+                    icone={Clock3}
+                    rotulo="Jornada"
+                    valor={vaga.jornada.trim().length > 0 ? vaga.jornada : rotuloModelo(vaga)}
+                  />
+                  <DadoHero icone={Users} rotulo="Vagas" valor={posicoes} />
+                  <DadoHero
+                    icone={CalendarClock}
+                    rotulo="Inscrições"
+                    valor={prazo.length > 0 ? `Até ${prazo}` : "Sem prazo definido"}
+                  />
+                </ul>
+              </Reveal>
 
-            <Reveal delay={150}>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <a href={linkCandidatura} className="button-primary">
-                  <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
-                  <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-                </a>
-                <a href="/carreiras" className="button-ghost-light">
-                  <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Ver todas as vagas
-                </a>
-              </div>
-              {publicadoEm.length > 0 && (
-                <p className="mt-5 text-xs font-semibold text-white/85">
-                  Publicada em {publicadoEm}
-                </p>
-              )}
-            </Reveal>
+              <Reveal delay={150}>
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  {/* `min-h` igual nos dois: `button-primary` media 55px e
+                    `button-ghost-light` 52px, e lado a lado a diferença aparece. */}
+                  <a href={linkCandidatura} className="button-primary min-h-[3.25rem]">
+                    <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
+                    <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+                  </a>
+                  <a href="/carreiras" className="button-ghost-light min-h-[3.25rem]">
+                    <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Ver todas as vagas
+                  </a>
+                </div>
+                {publicadoEm.length > 0 && (
+                  <p className="mt-5 text-xs font-semibold text-white/85">
+                    Publicada em {publicadoEm}
+                  </p>
+                )}
+              </Reveal>
+            </div>
           </div>
         </section>
 

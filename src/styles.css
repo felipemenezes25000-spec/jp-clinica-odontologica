@@ -357,7 +357,11 @@
   justify-content: center;
   gap: 0.65rem;
   min-height: 3.25rem;
-  padding: 0.85rem 1.3rem;
+  /* 0.9rem no vertical, e nao 0.85rem: e o mesmo do .button-primary. Com
+     0.85 os dois mediam 53 e 55 — a altura vem de linha (24px) + padding dos
+     dois lados + borda, e 0.8px de diferenca em cada lado viravam 2px na tela.
+     Lado a lado no hero, 2px aparecem. */
+  padding: 0.9rem 1.3rem;
   border-radius: 999px;
   border: 1px solid color-mix(in oklab, white 26%, transparent);
   background: color-mix(in oklab, white 6%, transparent);
@@ -2775,5 +2779,51 @@ textarea.rh-campo {
     width: 100%;
     border-left: 0;
     box-shadow: none;
+  }
+}
+
+/* ---- Rede de segurança do .reveal -----------------------------------------
+   `.reveal` nasce com `opacity: 0` e só acende quando o script marca
+   `data-visible="true"`. Se o JS falhar, for bloqueado ou o observador não
+   disparar, a página fica EM BRANCO — não degradada, invisível. Numa página de
+   vaga isso é perder a candidatura inteira.
+
+   Duas saídas, e nenhuma delas depende de script:
+
+   `prefers-reduced-motion`: quem pediu menos movimento não deveria nem ter a
+   transição. Aqui o conteúdo já nasce visível.
+
+   `@media (scripting: none)`: o navegador diz que não vai rodar JS. Sem isto o
+   HTML servido pelo SSR chegaria completo e seria pintado transparente. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+@media (scripting: none) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---- Teto do hero da vaga em telas muito largas ----------------------------
+   A altura da seção vem do texto e fica quase fixa (~820px), mas a largura
+   cresce sem limite: a faixa vai de 1,70:1 em 1440px para 3,03:1 em 2560px. A
+   foto é 1,50:1, então o `object-cover` descarta metade da altura em QHD — a
+   pessoa some do enquadramento.
+
+   O teto de proporção resolve na raiz: acima de 1920px a seção passa a ter
+   altura mínima proporcional à largura, e a faixa nunca fica mais achatada que
+   2,1:1. É o que faz QHD e 4K se comportarem como Full HD sem o usuário
+   precisar forçar 150% de zoom. */
+@media (min-width: 1920px) {
+  .rh-hero-vaga {
+    min-height: min(46vw, 900px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 }
