@@ -737,6 +737,22 @@ function ConteudoGaveta(props: PropsConteudo) {
   const diasDeGuarda = diasAteVencerGuarda(item.criadoEm, agora, MESES_RETENCAO_LGPD);
   const guardaVencida = diasDeGuarda !== null && diasDeGuarda < 0;
 
+  /**
+   * Ficha ainda crua: tem currículo anexado, ninguém mandou ler, e por isso as
+   * seções de formação e experiência não têm o que mostrar.
+   *
+   * Desde que o formulário público passou a pedir só o essencial (nome,
+   * WhatsApp e currículo), esses campos deixaram de vir digitados e passam a
+   * vir da leitura. Sem este aviso a gaveta apareceria quase vazia e o RH
+   * concluiria que a candidata não preencheu nada — quando na verdade falta um
+   * clique em "Analisar este currículo".
+   */
+  const aguardandoLeitura =
+    item.analise === null &&
+    item.curriculo !== null &&
+    item.escolaridade.trim() === "" &&
+    item.experiencias.length === 0;
+
   const faixaExperiencia = rotuloDe(FAIXAS_EXPERIENCIA, item.anosExperiencia);
   const temExperiencia = faixaExperiencia !== "" || item.experiencias.length > 0;
   const temHabilidades =
@@ -1252,6 +1268,20 @@ function ConteudoGaveta(props: PropsConteudo) {
             <Secao id={`${uid}-disponibilidade`} titulo="Disponibilidade" icone={CalendarClock}>
               <GradeDisponibilidade chaves={item.disponibilidade} nome={primeiroNome(item.nome)} />
             </Secao>
+          ) : null}
+
+          {aguardandoLeitura ? (
+            <div
+              role="status"
+              className="flex items-start gap-3 rounded-2xl border border-border-soft bg-mint/60 p-4"
+            >
+              <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-forest" aria-hidden="true" />
+              <p className="text-sm font-semibold leading-relaxed text-ink">
+                Formação, experiência, cursos e idiomas ainda não aparecem porque o currículo não
+                foi lido. O formulário do site pede só nome, WhatsApp e o arquivo — o resto sai da
+                leitura. Use “Analisar este currículo”, logo abaixo.
+              </p>
+            </div>
           ) : null}
 
           {/* ---------- Formação ---------- */}

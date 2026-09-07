@@ -33,13 +33,15 @@ import { ordenarSinais, sinaisDeCalculo } from "../ia/sinais";
 import { analiseVazia, extracaoVazia, VERSAO_ANALISE } from "../ia/tipos";
 import type {
   AnaliseIa,
+  EmpregoExtraido,
   ExtracaoCurriculo,
+  FormacaoExtraida,
   MetricasPermanencia,
   RankingSalvo,
   Sinal,
 } from "../ia/tipos";
 import { AREAS } from "../opcoes";
-import type { AreaVaga, Candidatura } from "../tipos";
+import type { AreaVaga, Candidatura, FaixaExperiencia } from "../tipos";
 
 export type ResultadoAnalise = { ok: true; analise: AnaliseIa } | { ok: false; motivo: string };
 
@@ -351,8 +353,98 @@ function analiseComErro(
  * fichas "sem nome". Nunca sobrescreve o que já está preenchido: o que a pessoa
  * digitou no formulário do site vale mais do que o que a leitura achou.
  */
-async function preencherIdentidade(id: string, e: ExtracaoCurriculo): Promise<void> {
+/* A sigla de cada mês, na ordem. Derivada do mapa acima em vez de reescrita:
+   duas listas de meses no mesmo arquivo é uma que vai divergir da outra. */
+const SIGLA_DO_MES: string[] = Object.entries(MESES_PT)
+  .sort((a, b) => a[1] - b[1])
+  .map(([sigla]) => sigla);
+
+/** "2021-03" -> "mar/2021"; "2021" -> "2021"; qualquer outra coisa -> "". */
+function dataLegivel(iso: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(iso);
+  if (m) {
+    const mes = SIGLA_DO_MES[Number(m[2]) - 1];
+    if (mes !== undefined) return mes + "/" + m[1];
+  }
+  return /^\d{4}$/.test(iso) ? iso : "";
+}
+
+/** O período do jeito que a pessoa escreveria: "mar/2021 a hoje". */
+function periodoLegivel(emprego: EmpregoExtraido): string {
+  const inicio = dataLegivel(emprego.inicio);
+  const fim = emprego.atual ? "hoje" : dataLegivel(emprego.fim);
+  if (inicio === "" && fim === "") return "";
+  if (inicio === "") return "até " + fim;
+  if (fim === "") return "desde " + inicio;
+  return inicio + " a " + fim;
+}
+
+/** Altura da formação, para achar a mais alta que a pessoa tem. */
+const PESO_NIVEL: Record<string, number> = { medio: 1, tecnico: 2, superior: 3, pos: 4 };
+
+/** Nível extraído -> o rótulo que o painel usa (`ESCOLARIDADES`, em opcoes.ts). */
+function escolaridadeDe(f: FormacaoExtraida): string {
+  if (f.nivel === "pos") return "Pós-graduação / especialização";
+  if (f.nivel === "superior") return f.emAndamento ? "Superior incompleto" : "Superior completo";
+  if (f.nivel === "tecnico") return "Curso técnico";
+  if (f.nivel === "medio") {
+    return f.emAndamento ? "Ensino médio incompleto" : "Ensino médio completo";
+  }
+  return "";
+}
+
+/** Meses somados -> a faixa que o painel filtra (`FAIXAS_EXPERIENCIA`). */
+function faixaDeMeses(meses: number | null): FaixaExperiencia | "" {
+  if (meses === null) return "";
+  if (meses <= 0) return "sem";
+  if (meses < 24) return "0-2";
+  if (meses < 60) return "2-5";
+  if (meses < 120) return "5-10";
+  return "10+";
+}
+
+/**
+ * Copia para a FICHA o que a leitura achou no currículo.
+ *
+ * POR QUE ISTO CRESCEU
+ * O formulário público pedia mais de vinte campos e passou a pedir quatro (ver
+ * o comentário de `validarEssencial`, em validar.ts). O painel, porém, mostra
+ * os campos da ficha — `item.escolaridade`, `item.experiencias`, `item.idiomas`
+ * — e não a extração crua. Sem esta cópia, encurtar o formulário deixaria a
+ * gaveta vazia: a informação existiria dentro da análise e não apareceria onde
+ * o RH olha.
+ *
+ * NUNCA SOBRESCREVE o que já está preenchido. O que a pessoa digitou vale mais
+ * do que o que a leitura achou — e, principalmente, o RH pode ter corrigido no
+ * painel depois. Uma reanálise não pode desfazer correção humana.
+ */
+async function preencherComExtracao(
+  id: string,
+  e: ExtracaoCurriculo,
+  m: MetricasPermanencia,
+): Promise<void> {
   const { atualizarCandidaturaNoDisco } = await import("./armazenamento");
+
+  const formacaoMaisAlta = [...e.formacoes]
+    .filter((f) => escolaridadeDe(f) !== "")
+    .sort((a, b) => (PESO_NIVEL[b.nivel] ?? 0) - (PESO_NIVEL[a.nivel] ?? 0))[0];
+
+  const pos = e.formacoes
+    .filter((f) => f.nivel === "pos")
+    .map((f) => [f.curso, f.instituicao].filter((t) => t.trim() !== "").join(" — "))
+    .filter((t) => t !== "");
+
+  const experiencias = e.empregos
+    .filter((emp) => emp.empresa.trim() !== "" || emp.cargo.trim() !== "")
+    .map((emp) => ({
+      empresa: emp.empresa,
+      cargo: emp.cargo,
+      periodo: periodoLegivel(emp),
+      atividades: emp.descricao,
+    }));
+
+  const faixa = faixaDeMeses(m.mesesExperienciaTotal);
+
   await atualizarCandidaturaNoDisco(id, (atual) => ({
     ...atual,
     nome: atual.nome || e.nome,
@@ -363,6 +455,20 @@ async function preencherIdentidade(id: string, e: ExtracaoCurriculo): Promise<vo
     uf: atual.uf || e.uf,
     linkedin: atual.linkedin || e.linkedin,
     cro: atual.cro || (e.registroProfissional.match(/\d{3,}/)?.[0] ?? ""),
+
+    escolaridade: atual.escolaridade || (formacaoMaisAlta ? escolaridadeDe(formacaoMaisAlta) : ""),
+    instituicao: atual.instituicao || (formacaoMaisAlta?.instituicao ?? ""),
+    anoFormacao: atual.anoFormacao || (formacaoMaisAlta?.conclusao ?? ""),
+    posGraduacoes: atual.posGraduacoes || pos.join("\n"),
+    cursos: atual.cursos || e.cursos.join("\n"),
+
+    // Lista vazia é "ninguém preencheu"; lista com item é dado de alguém e fica.
+    experiencias: atual.experiencias.length > 0 ? atual.experiencias : experiencias,
+    anosExperiencia: atual.anosExperiencia || faixa,
+    softwares: atual.softwares.length > 0 ? atual.softwares : e.softwares,
+    idiomas: atual.idiomas.length > 0 ? atual.idiomas : e.idiomas,
+
+    pretensao: atual.pretensao || e.pretensaoDeclarada,
   }));
 }
 
@@ -577,7 +683,7 @@ export async function analisarCandidatura(
   const comRegua = comVeredito(analise);
 
   await gravarAnaliseLimpandoRoteiro(armazenamento, id, comRegua);
-  await preencherIdentidade(id, extracao);
+  await preencherComExtracao(id, extracao, metricas);
   return { ok: true, analise: comRegua };
 }
 
