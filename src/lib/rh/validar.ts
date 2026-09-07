@@ -200,32 +200,38 @@ export function passoDoErro(_campo: string): number {
 }
 
 /**
- * O PRIMEIRO telefone válido de um texto livre.
+ * O telefone de CONTATO de um texto livre — celular na frente do fixo.
  *
  * POR QUE ISTO EXISTE
  * A leitura do currículo devolve o campo do jeito que ele aparece na folha, e
  * na folha ele quase nunca vem limpo:
  *
  *   "Celular: (11) 99876-3111 / Recado: (11) "
- *   "(11)986770444 – WhatsApp: (11)951960824"
+ *   "(11) 3945-0938 / (11) 96459-9563"
  *   "+5511963583175 | 11963583175"
  *   "(011) 96080-2168"
  *
  * Passar isso por `apenasDigitos` COLA todos os dígitos da linha: o primeiro
- * exemplo virava `1199876311111`, com treze dígitos, e o painel then desligava
+ * exemplo virava `1199876311111`, com treze dígitos, e o painel desligava
  * WhatsApp, Ligar e Copiar telefone dizendo "sem telefone no currículo" — para
- * uma candidata que tinha DOIS. Nove das 60 fichas estavam assim.
+ * uma candidata que tinha DOIS.
  *
- * Aqui a varredura procura o formato brasileiro, não dígitos soltos: DDD com ou
- * sem parênteses e com ou sem o zero antigo, prefixo +55 opcional, e o número
- * com 8 ou 9 dígitos. O primeiro candidato que passa em `telefoneValido` ganha;
- * os outros números da linha ficam de fora em vez de contaminar o primeiro.
+ * POR QUE CELULAR PRIMEIRO, E NÃO O PRIMEIRO QUE APARECER
+ * A clínica chama por WhatsApp, e WhatsApp só existe em celular. Pegar o
+ * primeiro válido escolhia o FIXO no segundo exemplo — o botão de WhatsApp
+ * ficava desligado para alguém que tinha celular duas linhas abaixo. Aconteceu
+ * uma vez em cinco currículos com mais de um número.
+ *
+ * O fixo continua servindo de reserva: quem só tem fixo tem o número gravado e
+ * o botão de Ligar funcionando.
  */
-export function primeiroTelefone(texto: string): string {
+export function telefoneParaContato(texto: string): string {
   const padrao = /(?:\+?55[\s.\-–—]*)?\(?0?(\d{2})\)?[\s.\-–—]*(\d{4,5})[\s.\-–—]*(\d{4})/g;
+  const achados: string[] = [];
   for (const achado of texto.matchAll(padrao)) {
     const numero = `${achado[1] ?? ""}${achado[2] ?? ""}${achado[3] ?? ""}`;
-    if (telefoneValido(numero)) return numero;
+    if (telefoneValido(numero) && !achados.includes(numero)) achados.push(numero);
   }
-  return "";
+  // Celular brasileiro: 11 dígitos, e o primeiro do número é 9.
+  return achados.find((n) => n.length === 11 && n[2] === "9") ?? achados[0] ?? "";
 }
