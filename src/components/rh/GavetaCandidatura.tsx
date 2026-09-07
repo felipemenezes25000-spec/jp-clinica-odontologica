@@ -26,6 +26,7 @@ import {
   ArchiveRestore,
   MapPin,
   MessageCircleQuestion,
+  Tags,
   BadgeCheck,
   Briefcase,
   Building2,
@@ -65,6 +66,7 @@ import {
 import type { FichaEntrevista } from "@/lib/rh/ficha";
 import { duvidasEmAberto, montarDuvidas } from "@/lib/rh/duvidas";
 import { classificarProximidade } from "@/lib/rh/ia/proximidade";
+import { recomendacaoPor } from "@/lib/rh/ia/tipos";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
 import {
   diasAteVencerGuarda,
@@ -1005,6 +1007,84 @@ function ConteudoGaveta(props: PropsConteudo) {
             </button>
           </div>
 
+          {/* ---------- A NOTA, logo abaixo do nome ----------
+              Pedido do cliente, com a tela dele desenhada: "aí eu quero que
+              apareça a nota dele. A nota dele é tal, de cinco estrelas".
+
+              As estrelas moravam dentro do formulário de gestão, entre
+              "Responsável" e "Entrevista", com um parágrafo de ajuda embaixo —
+              o lugar onde se ALTERA a nota, não onde se LÊ. Aqui elas ficam na
+              linha de visão de quem abriu a ficha, ao lado da leitura da IA,
+              que é a outra metade da mesma pergunta: o que a clínica achou e o
+              que a máquina achou, um ao lado do outro. Continuam clicáveis —
+              ler e avaliar viraram o mesmo gesto. */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-white/10 pt-3">
+            <div
+              role="group"
+              aria-labelledby={`${uid}-nota-rotulo`}
+              className="flex shrink-0 items-center gap-0.5"
+            >
+              <span id={`${uid}-nota-rotulo`} className="sr-only">
+                Avaliação da clínica
+              </span>
+              {NOTAS.map((n) => {
+                const ativa = n <= item.nota;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => definirNota(n)}
+                    aria-pressed={ativa}
+                    aria-label={`avaliar com ${n} ${n === 1 ? "estrela" : "estrelas"}`}
+                    data-ativa={ativa}
+                    className="rh-estrela grid h-9 w-9 place-items-center rounded-full"
+                  >
+                    <Star
+                      className="h-5 w-5"
+                      fill={ativa ? "currentColor" : "none"}
+                      aria-hidden="true"
+                    />
+                  </button>
+                );
+              })}
+              {/* A nota em texto: quem não distingue a estrela cheia da vazia
+                  continua sabendo em quanto o candidato foi avaliado. O título
+                  explica o clique, que sem ele não se descobre. */}
+              <span
+                title="Clique na mesma estrela para zerar."
+                className="ml-2 whitespace-nowrap text-sm font-bold text-white"
+              >
+                {item.nota > 0 ? `${item.nota} de 5` : "sem nota da clínica"}
+              </span>
+            </div>
+
+            {/* A leitura da IA em três dados, e só: quantas estrelas, quantos
+                pontos e o que ela recomenda. O detalhe inteiro continua na
+                seção "Leitura da IA" — aqui é o resumo que decide se vale
+                abrir. */}
+            {item.analise !== null && item.analise.erro === "" ? (
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
+                <span className="flex shrink-0 items-center gap-1.5 text-sm font-bold text-white">
+                  <Sparkles className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+                  IA {item.analise.notaGeral}
+                  <span className="font-semibold text-white/85">/100</span>
+                </span>
+                <span
+                  className={`shrink-0 rounded-full px-2.5 py-0.5 text-[0.7rem] font-bold ${
+                    recomendacaoPor(item.analise.recomendacao).pilulaEscura
+                  }`}
+                >
+                  {recomendacaoPor(item.analise.recomendacao).rotulo}
+                </span>
+                {item.analise.resumoUmaLinha.trim() === "" ? null : (
+                  <p className="min-w-0 basis-full text-sm leading-relaxed text-white/85">
+                    {item.analise.resumoUmaLinha}
+                  </p>
+                )}
+              </div>
+            ) : null}
+          </div>
+
           {/* ---------- Central de contato ----------
               Faixa de largura inteira logo abaixo do nome, e não uma coluna
               espremida à direita dele: são duas fileiras curtas (os dados, e
@@ -1170,44 +1250,6 @@ function ConteudoGaveta(props: PropsConteudo) {
                 </div>
 
                 <div>
-                  <p className={ROTULO} id={`${uid}-nota-rotulo`}>
-                    Avaliação
-                  </p>
-                  <div
-                    role="group"
-                    aria-labelledby={`${uid}-nota-rotulo`}
-                    className="flex flex-wrap items-center gap-0.5"
-                  >
-                    {NOTAS.map((n) => {
-                      const ativa = n <= item.nota;
-                      return (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => definirNota(n)}
-                          aria-pressed={ativa}
-                          aria-label={`avaliar com ${n} ${n === 1 ? "estrela" : "estrelas"}`}
-                          data-ativa={ativa}
-                          className="rh-estrela grid h-11 w-11 place-items-center rounded-full"
-                        >
-                          <Star
-                            className="h-5 w-5"
-                            fill={ativa ? "currentColor" : "none"}
-                            aria-hidden="true"
-                          />
-                        </button>
-                      );
-                    })}
-                    {/* A nota em texto: quem não distingue a estrela cheia da vazia
-                      continua sabendo em quanto o candidato foi avaliado. */}
-                    <span className="ml-2 text-sm font-bold text-white">
-                      {item.nota > 0 ? `${item.nota} de 5` : "sem nota"}
-                    </span>
-                  </div>
-                  <p className={AJUDA}>Clique na mesma estrela para zerar.</p>
-                </div>
-
-                <div>
                   <label htmlFor={`${uid}-entrevista`} className={ROTULO}>
                     Entrevista
                   </label>
@@ -1235,9 +1277,96 @@ function ConteudoGaveta(props: PropsConteudo) {
                   </p>
                 </div>
               </div>
+            </section>
 
+            {/* ---------- Leitura da IA ----------
+              Primeira seção depois da faixa de gestão, e não no rodapé: é a
+              informação mais cara e mais densa da tela (permanência calculada,
+              sinais, perguntas de entrevista), e quem abre a ficha decide olhando
+              para ela. Embaixo dos dados pessoais, ninguém rolaria até aqui. */}
+            <LeituraIa
+              item={item}
+              agora={agora}
+              analisando={analisando}
+              aoAnalisar={(forcar) => aoAnalisar(item.id, forcar)}
+            />
+
+            {/* ---------- O que perguntar ----------
+              Entre a leitura da IA e a ficha, e nesta ordem porque é a ordem da
+              cabeça de quem lê: primeiro o que a IA achou no currículo, depois
+              o que ficou SEM resposta e precisa ser perguntado, e só então a
+              ficha, que é onde a conversa vira registro. Invertido, o RH
+              começaria a preencher a entrevista antes de saber o que investigar.
+
+              Sem ficha ainda, o painel é só leitura: dá para ler o roteiro
+              inteiro antes de marcar a entrevista, que é exatamente o momento em
+              que a clínica decide se vale a pena chamar a pessoa. Marcar
+              resposta antes de ter conversado não faria sentido — e sem ficha
+              não há onde gravar sem inventar uma. */}
+            {/* SANFONA, e a que mais importa: com as quinze dúvidas abertas de
+              uma vez este bloco sozinho tinha 4.929px — noventa por cento da
+              altura da gaveta. O painel recebe `semCabecalho` porque o título
+              agora é o botão que abre a seção; anunciar "O que perguntar" duas
+              vezes seguidas é a poluição que estamos tirando. */}
+            <Secao
+              id={`${uid}-duvidas`}
+              chave="duvidas"
+              sanfona={sanfona}
+              titulo="O que perguntar"
+              icone={MessageCircleQuestion}
+              resumo={conta(duvidasAbertas, "pergunta em aberto", "perguntas em aberto")}
+            >
+              <PainelDuvidas
+                item={item}
+                leituras={duvidas.leituras}
+                respostas={duvidas.respostas}
+                semCabecalho
+                somenteLeitura={item.ficha === null}
+                // Clique de leitura sobe na hora: é um toque só, e a gaveta pode
+                // fechar no instante seguinte.
+                aoMudarLeitura={(id, leitura) =>
+                  editarDuvidas((f) => comLeituraDeDuvida(f, id, leitura), true)
+                }
+                // A anotação sobe por pausa, nunca por tecla.
+                aoMudarResposta={(id, texto) =>
+                  editarDuvidas((f) => comRespostaDeDuvida(f, id, texto), false)
+                }
+              />
+            </Secao>
+
+            {/* ---------- Ficha de entrevista ----------
+              Logo depois da leitura da IA, e nesta ordem: a leitura diz se vale
+              a pena conversar, a ficha é a conversa. Antes dos dados pessoais
+              porque é aqui que o dia de trabalho continua — quem abre a gaveta
+              decide chamar, prepara a ficha e, na hora marcada, entra no modo
+              entrevista. Os dados cadastrais são consulta, não fluxo. */}
+            <BlocoFicha
+              item={item}
+              guia={guia}
+              agora={agora}
+              gerando={gerandoFicha}
+              salvando={salvandoFicha}
+              aoGerar={(forcar) => aoGerarFicha(item.id, forcar)}
+              aoSalvar={(ficha) => aoSalvarFicha(item.id, ficha)}
+              aoAbrirModoEntrevista={() => aoAbrirModoEntrevista(item.id)}
+            />
+
+            {/* ETIQUETAS E ARQUIVO viraram uma seção à parte, fechada.
+                Estavam no fim do formulário de gestão e sozinhos respondiam por
+                cerca de trezentos pixels — seis chips de sugestão, um campo de
+                texto, um botão e o "arquivar" — em cima do que o RH abre a
+                gaveta para fazer, que é decidir status e olhar a leitura. São
+                ações de arrumação, não de decisão: cabem atrás de um clique. */}
+            <Secao
+              id={`${uid}-etiquetas`}
+              chave="etiquetas"
+              sanfona={sanfona}
+              titulo="Etiquetas e arquivo"
+              icone={Tags}
+              resumo={conta(item.etiquetas.length, "etiqueta", "etiquetas")}
+            >
               {/* ---- Etiquetas ---- */}
-              <div className="mt-4">
+              <div>
                 <p className={ROTULO} id={`${uid}-etiquetas-rotulo`}>
                   Etiquetas
                 </p>
@@ -1249,7 +1378,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                 >
                   {item.etiquetas.map((etq) => (
                     /* O chip inteiro é o botão de remover. Um X de 24px dentro de
-                     um chip de 40px seria alvo pequeno demais no celular. */
+                       um chip de 40px seria alvo pequeno demais no celular. */
                     <button
                       key={etq}
                       type="button"
@@ -1344,79 +1473,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                   inteiro.
                 </p>
               </div>
-            </section>
-
-            {/* ---------- Leitura da IA ----------
-              Primeira seção depois da faixa de gestão, e não no rodapé: é a
-              informação mais cara e mais densa da tela (permanência calculada,
-              sinais, perguntas de entrevista), e quem abre a ficha decide olhando
-              para ela. Embaixo dos dados pessoais, ninguém rolaria até aqui. */}
-            <LeituraIa
-              item={item}
-              agora={agora}
-              analisando={analisando}
-              aoAnalisar={(forcar) => aoAnalisar(item.id, forcar)}
-            />
-
-            {/* ---------- O que perguntar ----------
-              Entre a leitura da IA e a ficha, e nesta ordem porque é a ordem da
-              cabeça de quem lê: primeiro o que a IA achou no currículo, depois
-              o que ficou SEM resposta e precisa ser perguntado, e só então a
-              ficha, que é onde a conversa vira registro. Invertido, o RH
-              começaria a preencher a entrevista antes de saber o que investigar.
-
-              Sem ficha ainda, o painel é só leitura: dá para ler o roteiro
-              inteiro antes de marcar a entrevista, que é exatamente o momento em
-              que a clínica decide se vale a pena chamar a pessoa. Marcar
-              resposta antes de ter conversado não faria sentido — e sem ficha
-              não há onde gravar sem inventar uma. */}
-            {/* SANFONA, e a que mais importa: com as quinze dúvidas abertas de
-              uma vez este bloco sozinho tinha 4.929px — noventa por cento da
-              altura da gaveta. O painel recebe `semCabecalho` porque o título
-              agora é o botão que abre a seção; anunciar "O que perguntar" duas
-              vezes seguidas é a poluição que estamos tirando. */}
-            <Secao
-              id={`${uid}-duvidas`}
-              chave="duvidas"
-              sanfona={sanfona}
-              titulo="O que perguntar"
-              icone={MessageCircleQuestion}
-              resumo={conta(duvidasAbertas, "pergunta em aberto", "perguntas em aberto")}
-            >
-              <PainelDuvidas
-                item={item}
-                leituras={duvidas.leituras}
-                respostas={duvidas.respostas}
-                semCabecalho
-                somenteLeitura={item.ficha === null}
-                // Clique de leitura sobe na hora: é um toque só, e a gaveta pode
-                // fechar no instante seguinte.
-                aoMudarLeitura={(id, leitura) =>
-                  editarDuvidas((f) => comLeituraDeDuvida(f, id, leitura), true)
-                }
-                // A anotação sobe por pausa, nunca por tecla.
-                aoMudarResposta={(id, texto) =>
-                  editarDuvidas((f) => comRespostaDeDuvida(f, id, texto), false)
-                }
-              />
             </Secao>
-
-            {/* ---------- Ficha de entrevista ----------
-              Logo depois da leitura da IA, e nesta ordem: a leitura diz se vale
-              a pena conversar, a ficha é a conversa. Antes dos dados pessoais
-              porque é aqui que o dia de trabalho continua — quem abre a gaveta
-              decide chamar, prepara a ficha e, na hora marcada, entra no modo
-              entrevista. Os dados cadastrais são consulta, não fluxo. */}
-            <BlocoFicha
-              item={item}
-              guia={guia}
-              agora={agora}
-              gerando={gerandoFicha}
-              salvando={salvandoFicha}
-              aoGerar={(forcar) => aoGerarFicha(item.id, forcar)}
-              aoSalvar={(ficha) => aoSalvarFicha(item.id, ficha)}
-              aoAbrirModoEntrevista={() => aoAbrirModoEntrevista(item.id)}
-            />
 
             {/* ---------- Vaga pretendida ---------- */}
             {camposVaga.length > 0 || item.especialidades.length > 0 || vaga ? (
