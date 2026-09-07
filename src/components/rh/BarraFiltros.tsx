@@ -259,7 +259,21 @@ export function aplicarFiltros(itens: Candidatura[], f: FiltrosRh): Candidatura[
 
     if (termos.length > 0) {
       const alvo = textoBuscavel(c);
-      if (!termos.every((t) => alvo.includes(t))) return false;
+      // A segunda passada ignora pontuação dos DOIS lados. O painel mostra o
+      // telefone como "(11) 98765-4321" e o protocolo como "JP-RH-2026-0055";
+      // quem copia de uma tela e cola na busca traz a pontuação junto, e o
+      // termo "(11)" não casa com nada. Sem isto, copiar e colar — que é o
+      // gesto mais natural que existe — era justamente o que não funcionava.
+      const alvoCru = alvo.replace(/[^a-z0-9]/g, "");
+      const casa = (t: string): boolean => {
+        if (alvo.includes(t)) return true;
+        const cru = t.replace(/[^a-z0-9]/g, "");
+        // Termo que vira vazio ao tirar a pontuação (alguém digitou só "-" ou
+        // "()") NÃO pode passar: `includes("")` é sempre verdadeiro e faria a
+        // busca devolver a lista inteira como se nada tivesse sido filtrado.
+        return cru.length > 0 && alvoCru.includes(cru);
+      };
+      if (!termos.every(casa)) return false;
     }
 
     return true;
