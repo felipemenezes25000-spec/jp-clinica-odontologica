@@ -77,27 +77,27 @@ export function LoginRh({
     .join(" ");
 
   return (
-    <div className="rh-aurora flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:py-16">
+    <div className="rh-login-claro flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:py-16">
       <main className="w-full max-w-md">
         <div className="rh-vidro p-6 sm:p-8">
           <div className="flex flex-col items-center gap-5 text-center">
             <Logo
               variante="lockup"
-              fundo="escuro"
+              fundo="claro"
               altura={36}
               alt="JP Clínica Integrada Odontológica"
             />
             <div>
               {/* "ACESSO RESTRITO" em branco, não em lime: em cima do verde a
                   letra é branca. O ícone é que fica lime — ícone não é letra. */}
-              <p className="eyebrow justify-center text-white">
+              <p className="eyebrow justify-center text-ink">
                 <ShieldCheck size={14} className="text-lime" aria-hidden="true" />
                 Acesso restrito
               </p>
-              <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-white">
+              <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-ink">
                 Portal de RH
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-white/85">
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
                 Área da coordenação. Aqui ficam as candidaturas recebidas pelo site e as vagas
                 publicadas.
               </p>
@@ -113,7 +113,7 @@ export function LoginRh({
               />
               {/* A tarja de aviso está por cima do verde profundo da aurora:
                   letra branca, e o âmbar sobrevive no ícone e no anel. */}
-              <div className="text-sm leading-relaxed text-white">
+              <div className="text-sm leading-relaxed text-ink">
                 <p className="font-semibold">
                   {motivo || "O portal ainda não foi configurado neste servidor."}
                 </p>
@@ -123,7 +123,7 @@ export function LoginRh({
                     (`servidor/sessao.ts`): repeti-las na tela desfaria a
                     correção. Quem opera o servidor recebe a lista exata no
                     `console.warn` do processo, que é onde ela é útil. */}
-                <p className="mt-2 text-white/85">
+                <p className="mt-2 text-ink-soft">
                   Faltam variáveis de ambiente do portal. O log do servidor diz quais — configure-as
                   no provedor de hospedagem e publique de novo.
                 </p>
@@ -143,7 +143,7 @@ export function LoginRh({
                 de qualquer @layer e venceria a utilitária — sem ele o rótulo
                 sairia em --brand-text sobre o verde profundo, a 1,8:1. A cor,
                 porém, virou branca: sobre fundo verde a letra é branca. */}
-            <label className="rh-rotulo text-white!" htmlFor={idSenha}>
+            <label className="rh-rotulo" htmlFor={idSenha}>
               Senha do painel
             </label>
 
@@ -186,7 +186,7 @@ export function LoginRh({
               </button>
             </div>
 
-            <p id={idAjuda} className="mt-2 text-xs leading-relaxed text-white/85">
+            <p id={idAjuda} className="mt-2 text-xs leading-relaxed text-ink-soft">
               A senha é a mesma para toda a coordenação e fica só no servidor.
             </p>
 
@@ -199,7 +199,7 @@ export function LoginRh({
               <p
                 id={idErro}
                 role="alert"
-                className="mt-3 flex items-start gap-2 text-sm font-semibold text-white"
+                className="mt-3 flex items-start gap-2 text-sm font-semibold text-ink"
               >
                 <TriangleAlert
                   size={16}
@@ -214,7 +214,7 @@ export function LoginRh({
               <p
                 id={idEspera}
                 aria-live="polite"
-                className="mt-3 flex items-center gap-2 text-sm font-semibold text-white"
+                className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink"
               >
                 <span
                   aria-hidden="true"
@@ -240,7 +240,7 @@ export function LoginRh({
             href="/"
             // Branco a 85% no repouso e branco cheio no hover: o realce não
             // pode virar letra lime sobre verde.
-            className="inline-flex min-h-11 items-center gap-2 px-2 text-white/85 underline-offset-4 transition hover:text-white hover:underline"
+            className="inline-flex min-h-11 items-center gap-2 px-2 text-ink-soft underline-offset-4 transition hover:text-forest hover:underline"
           >
             <ArrowLeft size={15} aria-hidden="true" />
             Voltar ao site

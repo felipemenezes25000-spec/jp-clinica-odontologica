@@ -11,22 +11,22 @@ Sistema de vagas e triagem de currículos, embutido no site da clínica.
 
 **Para o candidato**, no site público:
 
-| Rota | O quê |
-| --- | --- |
-| `/carreiras` | Vitrine das vagas abertas, com filtro por área, vínculo e turno |
-| `/carreiras/<slug>` | A página da vaga, com JSON-LD de `JobPosting` (aparece no Google for Jobs) |
-| `/trabalhe-conosco?vaga=<slug>` | Candidatura em 5 passos, com anexo de currículo |
+| Rota                            | O quê                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------- |
+| `/carreiras`                    | Vitrine das vagas abertas, com filtro por área, vínculo e turno            |
+| `/carreiras/<slug>`             | A página da vaga, com JSON-LD de `JobPosting` (aparece no Google for Jobs) |
+| `/trabalhe-conosco?vaga=<slug>` | Candidatura em 5 passos, com anexo de currículo                            |
 
 **Para a coordenação**, em `/rh` (senha única, `noindex`):
 
-| Aba | O quê |
-| --- | --- |
-| Resumo | Indicadores e três gráficos SVG feitos à mão |
-| Candidaturas | Kanban de 8 colunas e tabela, com gaveta de detalhe |
-| Triagem por IA | Análise em lote, ranking e importação em massa |
-| Entrevistas | O guia da clínica, o modo entrevista e o comparativo final |
-| Vagas | Criar, publicar, pausar e encerrar |
-| Configurações | Textos do portal, assinatura e estado da IA |
+| Aba            | O quê                                                      |
+| -------------- | ---------------------------------------------------------- |
+| Resumo         | Indicadores e três gráficos SVG feitos à mão               |
+| Candidaturas   | Kanban de 8 colunas e tabela, com gaveta de detalhe        |
+| Triagem por IA | Análise em lote, ranking e importação em massa             |
+| Entrevistas    | O guia da clínica, o modo entrevista e o comparativo final |
+| Vagas          | Criar, publicar, pausar e encerrar                         |
+| Configurações  | Textos do portal, assinatura e estado da IA                |
 
 ---
 
@@ -39,8 +39,8 @@ lacunas, **sobreposições de data**, meses em odontologia — é TypeScript
 determinístico (`src/lib/rh/ia/metricas.ts`) e desce **pronta** para o modelo,
 com a instrução explícita de não recalcular.
 
-Modelo de linguagem erra conta de data com facilidade constrangedora, e *"quanto
-tempo ela ficou no último emprego"* é justamente a pergunta que a clínica não
+Modelo de linguagem erra conta de data com facilidade constrangedora, e _"quanto
+tempo ela ficou no último emprego"_ é justamente a pergunta que a clínica não
 pode errar. O que o modelo faz é o que só ele faz: ler um PDF torto e julgar.
 
 Pela mesma razão, a **nota**, a **estrela** e a **recomendação** também são
@@ -56,7 +56,7 @@ e cruzava com a nota calculada — 4 estrelas iam de 63 a 90, 3 estrelas de 36 a
 duplicado, idade incompatível com a experiência. Cada um é conferível na mão.
 
 O modelo acrescenta os dele, marcados com `origem: "ia"`. A tela mostra a
-diferença entre *"o código provou"* e *"quem leu achou"*.
+diferença entre _"o código provou"_ e _"quem leu achou"_.
 
 Um sinal é diferente de todos: `dado-sensivel` nasce com `contaNaNota: false` e
 aparece na tela dizendo que **não influenciou a nota**. Se o currículo trouxer
@@ -159,6 +159,26 @@ Duas proteções, escritas depois de um susto real na conta:
   pede confirmação (`ia/precos.ts`).
 
 ---
+
+## Direção visual do painel administrativo
+
+O painel interno em `/rh` usa **tema claro como base**: fundo branco/off-white,
+cartões brancos, tipografia preta e verde concentrado em ações, seleção, ícones,
+progresso e estados importantes. A intenção é reduzir peso visual para quem passa
+horas no painel e deixar a hierarquia mais próxima de um produto SaaS moderno.
+
+Regras práticas:
+
+- fundo branco ou claro → texto preto / cinza-escuro;
+- fundo verde sólido → texto branco;
+- verde claro/mint é superfície de apoio, não fundo para texto branco;
+- cabeçalho e filtros são claros; a aba ativa e ações primárias usam verde sólido;
+- KPIs, gráficos, Kanban, tabelas, gaveta de candidatura, triagem, entrevistas, vagas
+  e configurações compartilham os mesmos tokens e superfícies;
+- o modo entrevista pode manter blocos verdes de foco, sempre com texto branco.
+
+A classe `rh-admin` na raiz de `/rh` ativa os ajustes do tema administrativo sem
+interferir no site institucional ou no fluxo público de candidatura.
 
 ## Acessibilidade e contraste
 

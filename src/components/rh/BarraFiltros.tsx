@@ -271,16 +271,16 @@ function contarAtivos(f: FiltrosRh): number {
    `.rh-campo` porque aquela classe é branca, feita para o formulário público:
    sobre a barra escura viraria uma fileira de lâmpadas. */
 const CAMPO =
-  "h-11 w-full min-w-0 rounded-xl border border-white/15 bg-white/[0.07] px-3 text-sm " +
-  "text-white transition-colors hover:border-white/30 focus:border-lime";
+  "h-11 w-full min-w-0 rounded-xl border border-border-soft bg-white px-3 text-sm " +
+  "text-ink shadow-sm transition-colors hover:border-forest/25 focus:border-forest";
 
 /* O <option> herda o fundo do sistema, não o da barra: sem estas duas classes,
    a lista aberta sai texto branco sobre branco no Windows. */
-const OPCAO = "bg-brand-deep text-white";
+const OPCAO = "bg-white text-ink";
 
 /* Rótulo branco, e não lime: a barra é fundo verde, e ali toda LETRA é branca por
    decisão do cliente. O lime continua vivo no ícone e na borda dos campos. */
-const ROTULO = "whitespace-nowrap text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white";
+const ROTULO = "whitespace-nowrap text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink";
 
 const BASE_CONTROLE =
   "min-w-[9.5rem] flex-1 basis-full sm:basis-[calc(50%-0.375rem)] lg:basis-auto";
@@ -310,8 +310,8 @@ function Interruptor(props: { ligado: boolean; rotulo: string; aoAlternar: (v: b
       onClick={() => props.aoAlternar(!props.ligado)}
       className={`flex h-11 items-center gap-2.5 rounded-xl border px-3 text-left text-sm font-medium transition-colors ${BASE_CONTROLE} ${
         props.ligado
-          ? "border-lime/60 bg-lime/15 text-white"
-          : "border-white/15 bg-white/[0.07] text-white/85 hover:border-white/30"
+          ? "border-forest/30 bg-mint text-ink"
+          : "border-border-soft bg-white text-ink-soft hover:border-forest/20"
       }`}
     >
       <span
@@ -408,7 +408,7 @@ export function BarraFiltros(props: {
     <div
       ref={barraRef}
       style={{ top: topo }}
-      className="sticky z-30 border-y border-lime/15 bg-brand-deep/85 backdrop-blur-xl"
+      className="sticky z-30 border-y border-border-soft bg-white/95 shadow-[0_12px_30px_-28px_rgba(3,47,1,0.55)] backdrop-blur-xl"
     >
       <div className="jp-container flex flex-col gap-3 py-3">
         {/* LINHA 1 — busca, atalho do painel no celular, visão e exportação */}
@@ -431,7 +431,7 @@ export function BarraFiltros(props: {
               /* O rótulo é sr-only, então o placeholder é a única pista visual do
                  que o campo aceita — e ele é LETRA sobre fundo verde, então vai
                  no piso de 85% de branco que o cliente fixou. */
-              className={`${CAMPO} pl-9 pr-12 placeholder:text-white/85`}
+              className={`${CAMPO} pl-9 pr-12 placeholder:text-ink-soft`}
             />
             {filtros.busca.length > 0 ? (
               <button

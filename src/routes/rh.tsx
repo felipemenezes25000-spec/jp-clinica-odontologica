@@ -1444,7 +1444,7 @@ function Painel({ dados }: { dados: DadosRh }) {
   const remetente = config.assinaturaRh.trim() === "" ? CLINICA.nome : config.assinaturaRh.trim();
 
   return (
-    <div className="rh-aurora flex min-h-dvh flex-col">
+    <div className="rh-admin rh-aurora flex min-h-dvh flex-col">
       {/* O `id="conteudo"` do <main> sempre existiu; faltava o atalho que o usa.
           Sem ele, quem navega por teclado atravessa cabeçalho, abas, busca e os
           dez controles de filtro antes do primeiro candidato. */}
@@ -1465,8 +1465,8 @@ function Painel({ dados }: { dados: DadosRh }) {
       {expirada ? (
         <div role="alert" className="border-b border-amber-200/30 bg-amber-300/12">
           <div className="jp-container flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
-            <ShieldAlert size={18} className="shrink-0 text-amber-200" aria-hidden="true" />
-            <p className="min-w-0 flex-1 text-sm font-semibold leading-relaxed text-amber-50">
+            <ShieldAlert size={18} className="shrink-0 text-amber-700" aria-hidden="true" />
+            <p className="min-w-0 flex-1 text-sm font-semibold leading-relaxed text-ink">
               Sua sessão expirou e as últimas alterações não foram gravadas. Copie o que ainda
               estiver escrito na tela antes de entrar de novo.
             </p>

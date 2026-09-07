@@ -102,7 +102,7 @@ const COR_STATUS: Record<StatusCandidatura, string> = {
   banco: "#B7C4B9",
 };
 
-const CARTAO = "rounded-2xl border border-lime/15 bg-brand-deep/55 p-4 sm:p-5";
+const CARTAO = "rh-dashboard-card rounded-2xl border border-border-soft bg-white p-4 sm:p-5";
 
 type Competencia = { ano: number; mes: number };
 
@@ -177,8 +177,8 @@ function VazioGrafico({ texto }: { texto: string }) {
  * sai em branco — cheio no valor, 90% no rótulo de apoio, que é o piso de 85%
  * do projeto com folga. Antes os rótulos desciam a 60%, e mês nenhum se lia.
  */
-const TINTA_VALOR = "#ffffff";
-const TINTA_ROTULO = "rgba(255,255,255,0.9)";
+const TINTA_VALOR = "#172018";
+const TINTA_ROTULO = "#5a6b5c";
 
 /* -------------------------------------------------------------------------- */
 /* Gráfico 1 — barras por mês                                                 */
@@ -219,7 +219,7 @@ function GraficoBarras({ meses }: { meses: Barra[] }) {
           y1={base}
           x2={largura}
           y2={base}
-          style={{ stroke: "rgba(255,255,255,0.22)" }}
+          style={{ stroke: "rgba(9,89,2,0.16)" }}
           strokeWidth="1"
         />
         {meses.map((b, i) => {
@@ -319,7 +319,7 @@ function GraficoRosca({ fatias, total }: { fatias: Fatia[]; total: number }) {
             cy="60"
             r={raio}
             fill="none"
-            style={{ stroke: "rgba(255,255,255,0.1)" }}
+            style={{ stroke: "rgba(9,89,2,0.10)" }}
             strokeWidth="16"
           />
           {arcos.map((arco) => (
@@ -421,7 +421,7 @@ function GraficoFunil({ etapas }: { etapas: Etapa[] }) {
                 width={larguraTrilho}
                 height="14"
                 rx="7"
-                style={{ fill: "rgba(255,255,255,0.08)" }}
+                style={{ fill: "rgba(9,89,2,0.08)" }}
               />
               {largura > 0 ? (
                 <rect
@@ -477,10 +477,17 @@ function Kpi({
        agora é branco, com o ícone segurando a cor da marca. O contexto sobe de
        60% para 85%, o piso do projeto para texto de apoio sobre verde. */
     <div className="rh-kpi">
-      <span className="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.13em] text-white">
-        <Icone size={14} className="text-lime" aria-hidden="true" />
-        {rotulo}
-      </span>
+      <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-mint text-forest ring-1 ring-forest/10"
+        >
+          <Icone size={17} />
+        </span>
+        <span className="text-[0.68rem] font-bold uppercase tracking-[0.13em] text-white">
+          {rotulo}
+        </span>
+      </div>
       <strong>{valor}</strong>
       <span className="text-xs leading-snug text-white/85">{contexto}</span>
     </div>
@@ -637,7 +644,7 @@ export function PainelResumo({
   const vazio = dados.total === 0;
 
   return (
-    <div className="space-y-5">
+    <div className="rh-resumo-premium space-y-5">
       {dados.vencidas > 0 ? (
         /* `role="note"`, não `alert`: isto está na tela desde que o painel
            abriu, e um alerta anunciado a cada carga vira ruído. O botão leva à

@@ -1824,6 +1824,441 @@ textarea.rh-campo {
   }
 }
 
+/* =========================================================
+   PORTAL DE RH — tema claro premium do painel administrativo
+   A base do produto é branca. Verde fica para ação, seleção e
+   destaques; em superfície verde a tipografia permanece branca.
+   ========================================================= */
+
+.rh-login-claro {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      36rem 28rem at 0% 0%,
+      color-mix(in oklab, var(--mint) 74%, white),
+      transparent 72%
+    ),
+    radial-gradient(
+      32rem 24rem at 100% 100%,
+      color-mix(in oklab, var(--mint) 52%, white),
+      transparent 72%
+    ),
+    #f8fbf7;
+  color: var(--ink);
+}
+
+.rh-login-claro .rh-vidro {
+  border: 1px solid color-mix(in oklab, var(--forest) 12%, white);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 32px 80px -46px rgba(3, 47, 1, 0.42);
+}
+
+.rh-admin.rh-aurora {
+  background: #f7faf6;
+  color: var(--ink);
+}
+
+.rh-admin.rh-aurora::before {
+  opacity: 1;
+  background:
+    radial-gradient(
+      44rem 28rem at 7% -8%,
+      color-mix(in oklab, var(--mint) 72%, white),
+      transparent 72%
+    ),
+    radial-gradient(
+      38rem 26rem at 95% 18%,
+      color-mix(in oklab, var(--mint) 48%, white),
+      transparent 72%
+    ),
+    linear-gradient(180deg, #ffffff 0%, #f8fbf7 46%, #f5f9f4 100%);
+}
+
+.rh-admin.rh-aurora::after {
+  opacity: 0.18;
+  mix-blend-mode: normal;
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--forest) 9%, transparent) 0.55px,
+    transparent 0.7px
+  );
+  background-size: 11px 11px;
+}
+
+.rh-admin .jp-container {
+  width: min(1560px, calc(100% - clamp(1.25rem, 3.2vw, 4rem)));
+}
+
+.rh-admin :focus-visible {
+  outline-color: var(--forest-2);
+}
+
+.rh-admin .rh-topbar {
+  box-shadow: 0 12px 34px -28px rgba(3, 47, 1, 0.45);
+}
+
+.rh-admin > main {
+  color: var(--ink);
+}
+
+/* Toda superfície de conteúdo administrativo passa a ser papel branco. */
+.rh-admin .rh-vidro {
+  border: 1px solid color-mix(in oklab, var(--forest) 12%, white);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow:
+    0 1px 2px rgba(3, 47, 1, 0.04),
+    0 18px 46px -34px rgba(3, 47, 1, 0.3);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.rh-admin .rh-vidro:hover {
+  border-color: color-mix(in oklab, var(--forest) 18%, white);
+}
+
+/* O painel foi originalmente construído em fundo escuro e muitos componentes
+   usam text-white. Dentro do main e de cartões que agora são brancos, a regra
+   vira literalmente a pedida pela clínica: branco = letra preta. */
+.rh-admin > main [class~="text-white"],
+.rh-admin > main [class~="text-white!"],
+.rh-admin .rh-vidro [class~="text-white"],
+.rh-admin .rh-vidro [class~="text-white!"] {
+  color: var(--ink) !important;
+}
+
+.rh-admin > main [class~="text-white/85"],
+.rh-admin > main [class~="text-white/90"],
+.rh-admin > main [class~="text-white/25"],
+.rh-admin .rh-vidro [class~="text-white/85"],
+.rh-admin .rh-vidro [class~="text-white/90"],
+.rh-admin .rh-vidro [class~="text-white/25"] {
+  color: var(--ink-soft) !important;
+}
+
+/* Em elementos realmente verdes, a regra inversa permanece: verde = branco. */
+.rh-admin
+  > main
+  :is(
+    [class~="bg-brand-deep"],
+    [class~="bg-brand-deep/45"],
+    [class~="bg-brand-deep/55"],
+    [class~="bg-brand-deep/70"],
+    [class~="bg-brand-deep/75"],
+    [class~="bg-brand-deep/85"],
+    [class~="bg-brand-deep/92"],
+    [class~="bg-brand-deep/95"],
+    [class~="bg-forest"],
+    [class~="bg-forest/80"]
+  )
+  [class~="text-white"],
+.rh-admin
+  > main
+  :is(
+    [class~="bg-brand-deep"],
+    [class~="bg-brand-deep/45"],
+    [class~="bg-brand-deep/55"],
+    [class~="bg-brand-deep/70"],
+    [class~="bg-brand-deep/75"],
+    [class~="bg-brand-deep/85"],
+    [class~="bg-brand-deep/92"],
+    [class~="bg-brand-deep/95"],
+    [class~="bg-forest"],
+    [class~="bg-forest/80"]
+  )[class~="text-white"],
+.rh-admin .button-primary,
+.rh-admin .button-primary * {
+  color: white !important;
+}
+
+.rh-admin > main [class~="bg-lime"][class~="text-brand-deep"],
+.rh-admin .rh-gaveta [class~="bg-lime"][class~="text-brand-deep"] {
+  color: white !important;
+  background: var(--forest) !important;
+}
+
+/* Translúcidos brancos eram corretos no painel verde antigo; no novo tema eles
+   viram superfícies suaves de apoio para não desaparecerem no branco. */
+.rh-admin
+  > main
+  :is(
+    [class~="bg-white/5"],
+    [class~="bg-white/10"],
+    [class~="bg-white/15"],
+    [class~="bg-white/20"],
+    [class~="bg-white/25"],
+    [class~="bg-white/[0.04]"],
+    [class~="bg-white/[0.05]"],
+    [class~="bg-white/[0.06]"],
+    [class~="bg-white/[0.07]"],
+    [class~="bg-white/[0.09]"]
+  ) {
+  background: color-mix(in oklab, var(--mint) 56%, white) !important;
+}
+
+.rh-admin
+  > main
+  :is(
+    [class~="border-white/10"],
+    [class~="border-white/12"],
+    [class~="border-white/15"],
+    [class~="border-white/20"],
+    [class~="border-white/25"],
+    [class~="border-white/30"],
+    [class~="border-white/35"],
+    [class~="border-white/45"]
+  ) {
+  border-color: color-mix(in oklab, var(--forest) 14%, white) !important;
+}
+
+.rh-admin
+  > main
+  :is(
+    [class~="ring-white"],
+    [class~="ring-white/10"],
+    [class~="ring-white/15"],
+    [class~="ring-white/20"],
+    [class~="ring-white/25"],
+    [class~="ring-white/35"]
+  ) {
+  --tw-ring-color: color-mix(in oklab, var(--forest) 18%, transparent) !important;
+}
+
+/* Chips originalmente desenhados para a aurora escura viram controles claros
+   no painel branco, mantendo borda e peso como pistas de seleção. */
+.rh-admin > main .rh-chip-escuro {
+  border-color: var(--border-soft);
+  background: white;
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(3, 47, 1, 0.03);
+}
+.rh-admin > main .rh-chip-escuro:hover {
+  border-color: color-mix(in oklab, var(--forest) 24%, white);
+  background: color-mix(in oklab, var(--mint) 58%, white);
+}
+.rh-admin > main .rh-chip-escuro[data-ativo="true"] {
+  border-color: var(--forest);
+  background: var(--mint);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--forest);
+}
+
+/* Textos de alerta que eram claros para o tema verde passam a preto nas
+   superfícies brancas. SVGs mantêm a cor semântica, porque ícone não é letra. */
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-amber-100"],
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-amber-100/85"],
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-amber-200"],
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-amber-50"],
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-rose-100"],
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-rose-200"],
+.rh-admin
+  .rh-vidro
+  :is(p, span, h1, h2, h3, h4, h5, h6, button, label, a, li, td, th)[class~="text-sky-200"] {
+  color: var(--ink) !important;
+}
+
+/* KPIs: números maiores, ícone em cápsula verde-clara e superfície branca. */
+.rh-admin .rh-kpi {
+  position: relative;
+  min-height: 8.1rem;
+  gap: 0.45rem;
+  padding: 1.1rem 1.15rem;
+  border: 1px solid color-mix(in oklab, var(--forest) 11%, white);
+  border-radius: 1.15rem;
+  background: white;
+  color: var(--ink);
+  box-shadow:
+    0 1px 2px rgba(3, 47, 1, 0.04),
+    0 20px 44px -36px rgba(3, 47, 1, 0.35);
+  transition:
+    transform 0.2s var(--ease-out),
+    border-color 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out);
+}
+
+.rh-admin .rh-kpi:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--forest) 22%, white);
+  box-shadow: 0 22px 48px -34px rgba(3, 47, 1, 0.42);
+}
+
+.rh-admin .rh-kpi strong {
+  color: #0c120d;
+  font-size: clamp(1.85rem, 3vw, 2.45rem);
+}
+
+.rh-admin .rh-kpi [class~="text-lime"] {
+  color: var(--forest) !important;
+}
+
+.rh-admin .rh-kpi [class~="text-white"] {
+  color: var(--ink) !important;
+}
+.rh-admin .rh-kpi [class~="text-white/85"] {
+  color: var(--ink-soft) !important;
+}
+
+/* Kanban claro e mais legível. */
+.rh-admin .rh-coluna {
+  border-color: color-mix(in oklab, var(--forest) 12%, white);
+  background: #f8faf7;
+  box-shadow: 0 14px 34px -30px rgba(3, 47, 1, 0.32);
+}
+
+.rh-admin .rh-coluna-topo {
+  border-bottom-color: color-mix(in oklab, var(--forest) 12%, white);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.rh-admin .rh-cartao-cand {
+  border-color: color-mix(in oklab, var(--forest) 12%, white);
+  background: white;
+  color: var(--ink);
+  box-shadow: 0 12px 30px -28px rgba(3, 47, 1, 0.45);
+}
+
+.rh-admin .rh-cartao-cand:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--forest) 26%, white);
+  box-shadow: 0 18px 36px -28px rgba(3, 47, 1, 0.42);
+}
+
+.rh-admin .rh-coluna [class~="text-white"],
+.rh-admin .rh-cartao-cand [class~="text-white"] {
+  color: var(--ink) !important;
+}
+.rh-admin .rh-coluna [class~="text-white/85"],
+.rh-admin .rh-cartao-cand [class~="text-white/85"] {
+  color: var(--ink-soft) !important;
+}
+
+/* Drawer de candidatura em papel branco, com a mesma linguagem visual das abas. */
+.rh-admin .rh-gaveta {
+  border-left-color: color-mix(in oklab, var(--forest) 14%, white);
+  background: #f8faf7;
+  box-shadow: -36px 0 74px -44px rgba(3, 47, 1, 0.4);
+}
+
+.rh-admin .rh-gaveta > header,
+.rh-admin .rh-gaveta > footer {
+  border-color: color-mix(in oklab, var(--forest) 12%, white) !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+}
+
+.rh-admin .rh-gaveta [class~="text-white"],
+.rh-admin .rh-gaveta [class~="text-white!"] {
+  color: var(--ink) !important;
+}
+.rh-admin .rh-gaveta [class~="text-white/85"],
+.rh-admin .rh-gaveta [class~="text-white/90"],
+.rh-admin .rh-gaveta [class~="text-white/25"] {
+  color: var(--ink-soft) !important;
+}
+.rh-admin .rh-gaveta [class~="bg-forest"] [class~="text-white"],
+.rh-admin .rh-gaveta [class~="bg-forest"][class~="text-white"],
+.rh-admin .rh-gaveta .button-primary,
+.rh-admin .rh-gaveta .button-primary * {
+  color: white !important;
+}
+
+.rh-admin
+  .rh-gaveta
+  :is(
+    [class~="bg-white/5"],
+    [class~="bg-white/10"],
+    [class~="bg-white/15"],
+    [class~="bg-white/20"],
+    [class~="bg-white/25"],
+    [class~="bg-white/[0.04]"],
+    [class~="bg-white/[0.05]"],
+    [class~="bg-white/[0.06]"],
+    [class~="bg-white/[0.07]"],
+    [class~="bg-white/[0.09]"]
+  ) {
+  background: color-mix(in oklab, var(--mint) 60%, white) !important;
+}
+.rh-admin
+  .rh-gaveta
+  :is(
+    [class~="border-white/10"],
+    [class~="border-white/12"],
+    [class~="border-white/15"],
+    [class~="border-white/20"],
+    [class~="border-white/25"],
+    [class~="border-white/30"],
+    [class~="border-white/35"],
+    [class~="border-white/45"]
+  ) {
+  border-color: color-mix(in oklab, var(--forest) 14%, white) !important;
+}
+
+.rh-admin .rh-scroll {
+  scrollbar-color: color-mix(in oklab, var(--forest) 34%, transparent) transparent;
+}
+.rh-admin .rh-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--forest) 34%, transparent);
+  background-clip: content-box;
+}
+
+.rh-admin .rh-dashboard-card {
+  border-color: color-mix(in oklab, var(--forest) 11%, white);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 1px 2px rgba(3, 47, 1, 0.035),
+    0 22px 50px -38px rgba(3, 47, 1, 0.34);
+  transition:
+    border-color 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    transform 0.2s var(--ease-out);
+}
+
+.rh-admin .rh-dashboard-card:hover {
+  border-color: color-mix(in oklab, var(--forest) 18%, white);
+  box-shadow: 0 26px 56px -38px rgba(3, 47, 1, 0.4);
+}
+
+.rh-admin .rh-resumo-premium {
+  padding-block: 0.25rem;
+}
+
+.rh-admin .rh-resumo-premium > .grid,
+.rh-admin .rh-resumo-premium > section {
+  animation: rh-dashboard-in 0.34s var(--ease-out) both;
+}
+
+@keyframes rh-dashboard-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .rh-admin .jp-container {
+    width: min(100% - 1.1rem, 1560px);
+  }
+  .rh-admin .rh-kpi {
+    min-height: 7.4rem;
+    padding: 0.95rem;
+  }
+}
+
 /* ---- A ficha de entrevista no papel ----
    A clínica imprime. A Dra. Ana Beatriz e o Jefferson entrevistam com a folha
    na mesa, caneta na mão — o método deles nasceu em PDF —, e há dois usos
