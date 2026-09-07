@@ -88,156 +88,113 @@ export type ErrosPasso = Record<string, string>;
  * É parâmetro obrigatório de propósito: opcional, o servidor esqueceria de
  * passá-lo e a regra viraria enfeite de front-end.
  */
-export type ContextoPortal = { aceitandoEspontanea: boolean };
-
-/** Idade mínima para estágio/menor aprendiz; abaixo disso a clínica não contrata. */
-const IDADE_MINIMA = 16;
+/**
+ * O que a validação precisa saber do portal e não dá para deduzir da
+ * candidatura.
+ *
+ * `aceitandoEspontanea`: sem ela, quem chega em `/trabalhe-conosco` com o banco
+ * de talentos fechado preenche tudo e só descobre a recusa no último clique.
+ *
+ * `temCurriculo`: o arquivo viaja FORA do objeto `Candidatura` — no
+ * `FormData`, não no JSON — então a validação não consegue enxergá-lo sozinha.
+ * Passar por aqui mantém uma verdade só: a tela pergunta antes de deixar
+ * enviar, e o servidor pergunta de novo antes de gravar. Se fosse um `if`
+ * solto na rota, a mensagem na tela e a regra do servidor divergiriam no
+ * primeiro refactor.
+ *
+ * É parâmetro obrigatório de propósito: opcional, o servidor esqueceria de
+ * passá-lo e a regra viraria enfeite de front-end.
+ */
+export type ContextoPortal = { aceitandoEspontanea: boolean; temCurriculo: boolean };
 
 function vazio(v: string): boolean {
   return v.trim().length === 0;
 }
 
-function validarVaga(dados: Candidatura, contexto: ContextoPortal, erros: ErrosPasso): void {
-  // Sem vaga escolhida a candidatura é espontânea; se a clínica desligou o banco
-  // de talentos, não há nada a enviar. A mensagem manda para onde há saída.
+/**
+ * O FORMULÁRIO PÚBLICO PEDE QUATRO COISAS. Só isso.
+ *
+ * Antes eram cinco passos e mais de vinte campos: nascimento, CPF, endereço,
+ * escolaridade, instituição, ano de formação, CRO, pós, cursos, tempo de
+ * experiência, cada emprego com empresa/cargo/período/atividades, softwares,
+ * competências, idiomas, especialidades, grade de turnos, pretensão, carta e
+ * origem. Um formulário desse tamanho não seleciona candidato: ele seleciona
+ * quem tem paciência para formulário, e some com o resto no meio do caminho.
+ *
+ * Tudo isso está no currículo, e a leitura por IA já extrai — formação,
+ * empregos com data, cursos, idiomas, softwares, registro no conselho e
+ * pretensão declarada. Pedir de novo é cobrar da candidata um trabalho que o
+ * sistema faz sozinho.
+ *
+ * O que continua sendo perguntado, e por quê:
+ *
+ * - **vaga/área**: é clique, não digitação, e decide para qual processo a
+ *   candidatura vai. Nenhuma leitura de currículo adivinha isso.
+ * - **nome**: aparece na lista do painel no instante em que chega. Sem ele o
+ *   RH veria uma fila de "sem nome" até alguém gastar a leitura da IA.
+ * - **WhatsApp**: é por onde a clínica chama. Telefone lido errado num
+ *   currículo escaneado falha em silêncio — a pessoa nunca é chamada e
+ *   ninguém descobre o porquê. Este é o único campo que não pode depender da IA.
+ * - **currículo**: agora OBRIGATÓRIO. É dele que sai todo o resto; sem ele a
+ *   candidatura chega vazia e o painel não tem o que mostrar.
+ * - **consentimento**: exigência da LGPD, não escolha de produto.
+ *
+ * O e-mail continua no formulário mas é OPCIONAL: quase todo currículo traz, e
+ * a leitura preenche. Quem quiser digitar, digita.
+ */
+function validarEssencial(dados: Candidatura, contexto: ContextoPortal, erros: ErrosPasso): void {
   if (vazio(dados.vagaId) && !contexto.aceitandoEspontanea) {
     erros["vagaId"] =
       "A clínica não está recebendo candidaturas espontâneas agora. Escolha uma das vagas abertas.";
   }
-  if (!dados.area) erros["area"] = "Escolha a área da vaga.";
-  if (vazio(dados.cargoDesejado)) erros["cargoDesejado"] = "Informe o cargo desejado.";
-  if (!dados.vinculo) erros["vinculo"] = "Escolha o tipo de vínculo.";
-  if (dados.area === "dentista" && dados.especialidades.length === 0) {
-    erros["especialidades"] = "Selecione pelo menos uma especialidade.";
-  }
-  if (dados.disponibilidade.length === 0) {
-    erros["disponibilidade"] = "Marque pelo menos um turno disponível.";
-  }
-}
+  if (!dados.area) erros["area"] = "Escolha a área em que você atua.";
 
-function validarPessoal(dados: Candidatura, agora: Date, erros: ErrosPasso): void {
-  const partesNome = dados.nome.trim().split(/\s+/).filter(Boolean);
-  if (partesNome.length < 2) erros["nome"] = "Informe o nome completo.";
+  // Duas palavras: "Maria" sozinho não permite chamar a pessoa pelo nome nem
+  // distinguir duas Marias na lista do painel.
+  const partesNome = dados.nome.trim().split(/s+/).filter(Boolean);
+  if (partesNome.length < 2) erros["nome"] = "Informe seu nome completo.";
 
-  if (!dataValida(dados.nascimento)) {
-    erros["nascimento"] = "Informe uma data de nascimento válida.";
-  } else {
-    const anos = idade(dados.nascimento, agora);
-    if (anos === null || anos < IDADE_MINIMA) {
-      erros["nascimento"] = `É preciso ter ao menos ${IDADE_MINIMA} anos.`;
-    }
+  if (!telefoneValido(dados.telefone)) {
+    erros["telefone"] = "Informe um WhatsApp válido, com DDD.";
   }
 
-  if (!cpfValido(dados.cpf)) erros["cpf"] = "CPF inválido.";
-  if (!emailValido(dados.email)) erros["email"] = "E-mail inválido.";
-  if (!telefoneValido(dados.telefone)) erros["telefone"] = "Telefone inválido com DDD.";
-  if (vazio(dados.cidade)) erros["cidade"] = "Informe a cidade.";
-  if (vazio(dados.uf)) erros["uf"] = "Informe o estado.";
-}
-
-function validarFormacao(dados: Candidatura, erros: ErrosPasso): void {
-  if (vazio(dados.escolaridade)) erros["escolaridade"] = "Informe a escolaridade.";
-  if (dados.area === "dentista") {
-    const cro = apenasDigitos(dados.cro);
-    if (cro.length < 4 || cro.length > 8) erros["cro"] = "Informe o número do CRO.";
-    if (vazio(dados.croUf)) erros["croUf"] = "Informe a UF do CRO.";
+  // Opcional, mas se veio tem que estar certo: e-mail com erro de digitação é
+  // pior que e-mail em branco, porque parece que existe um canal e não existe.
+  if (!vazio(dados.email) && !emailValido(dados.email)) {
+    erros["email"] = "E-mail inválido.";
   }
-}
 
-function validarExperiencia(dados: Candidatura, erros: ErrosPasso): void {
-  if (!dados.anosExperiencia) erros["anosExperiencia"] = "Informe seu tempo de experiência.";
+  if (!contexto.temCurriculo) {
+    erros["curriculo"] = "Anexe o seu currículo: é a partir dele que a clínica avalia o perfil.";
+  }
 
-  // Linha em branco é normal (o formulário já começa com uma); só cobramos
-  // empresa e cargo de quem começou a preencher alguma coisa.
-  const incompleta = dados.experiencias.some((exp) => {
-    const algoPreenchido = [exp.empresa, exp.cargo, exp.periodo, exp.atividades].some(
-      (campo) => !vazio(campo),
-    );
-    return algoPreenchido && (vazio(exp.empresa) || vazio(exp.cargo));
-  });
-  if (incompleta) erros["experiencias"] = "Preencha empresa e cargo em cada experiência.";
-}
-
-function validarFinal(dados: Candidatura, erros: ErrosPasso): void {
-  if (vazio(dados.origem)) erros["origem"] = "Conte como você chegou até a clínica.";
   if (dados.consentimentoLgpd !== true) {
     erros["consentimentoLgpd"] = "É preciso autorizar o uso dos seus dados para seguir.";
   }
 }
 
 /**
- * Valida um passo do formulário (1 a 5) e devolve mapa campo -> mensagem.
- * O currículo não é checado aqui: o arquivo viaja fora do objeto Candidatura,
- * e quem valida tamanho e tipo é o upload.
+ * O formulário virou um passo só, então validar "o passo 1" e validar tudo é a
+ * mesma coisa. As duas funções continuam existindo porque a rota do servidor
+ * chama `validarTudo` e a tela chama `validarPasso` — e manter os dois nomes
+ * evita mexer nos dois lados por uma mudança que é de forma, não de regra.
  */
 export function validarPasso(
-  passo: number,
+  _passo: number,
   dados: Candidatura,
-  agora: Date,
+  _agora: Date,
   contexto: ContextoPortal,
 ): ErrosPasso {
   const erros: ErrosPasso = {};
-  if (passo === 1) validarVaga(dados, contexto, erros);
-  if (passo === 2) validarPessoal(dados, agora, erros);
-  if (passo === 3) validarFormacao(dados, erros);
-  if (passo === 4) validarExperiencia(dados, erros);
-  if (passo === 5) validarFinal(dados, erros);
+  validarEssencial(dados, contexto, erros);
   return erros;
 }
 
 export function validarTudo(dados: Candidatura, agora: Date, contexto: ContextoPortal): ErrosPasso {
-  const erros: ErrosPasso = {};
-  for (let passo = 1; passo <= 5; passo += 1) {
-    Object.assign(erros, validarPasso(passo, dados, agora, contexto));
-  }
-  return erros;
+  return validarPasso(1, dados, agora, contexto);
 }
 
-const PASSO_DO_CAMPO: Record<string, number> = {
-  vagaId: 1,
-  area: 1,
-  cargoDesejado: 1,
-  vinculo: 1,
-  especialidades: 1,
-  disponibilidade: 1,
-  inicioEm: 1,
-  pretensao: 1,
-
-  nome: 2,
-  nascimento: 2,
-  cpf: 2,
-  email: 2,
-  telefone: 2,
-  cep: 2,
-  logradouro: 2,
-  bairro: 2,
-  cidade: 2,
-  uf: 2,
-  linkedin: 2,
-  instagram: 2,
-
-  escolaridade: 3,
-  instituicao: 3,
-  anoFormacao: 3,
-  cro: 3,
-  croUf: 3,
-  posGraduacoes: 3,
-  cursos: 3,
-
-  anosExperiencia: 4,
-  experiencias: 4,
-  softwares: 4,
-  competencias: 4,
-  idiomas: 4,
-
-  cartaApresentacao: 5,
-  origem: 5,
-  indicadoPor: 5,
-  curriculo: 5,
-  consentimentoLgpd: 5,
-};
-
 /** Usado para saltar ao passo do primeiro erro quando o envio é recusado. */
-export function passoDoErro(campo: string): number {
-  return PASSO_DO_CAMPO[campo] ?? 1;
+export function passoDoErro(_campo: string): number {
+  return 1;
 }

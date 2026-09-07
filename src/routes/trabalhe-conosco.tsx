@@ -18,7 +18,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowLeft,
-  ArrowRight,
   Briefcase,
   Check,
   CircleAlert,
@@ -27,57 +26,27 @@ import {
   GraduationCap,
   Headset,
   HeartPulse,
-  Info,
   MapPin,
   MessageCircle,
-  Plus,
   RotateCcw,
   Send,
   Sparkles,
   Stethoscope,
-  Trash2,
   Banknote,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { AreaUpload } from "@/components/rh/AreaUpload";
-import {
-  Ajuda,
-  CampoSelect,
-  CampoTexto,
-  CampoTextarea,
-  MensagemErro,
-  Rotulo,
-} from "@/components/rh/CampoTexto";
+import { CampoTexto, MensagemErro, Rotulo } from "@/components/rh/CampoTexto";
 import { idCampo } from "@/components/rh/idsCampo";
-import { GradeTurnos } from "@/components/rh/GradeTurnos";
-import { SeletorChips } from "@/components/rh/SeletorChips";
 import { Footer } from "@/components/site/Footer";
 import { Logo } from "@/components/site/Logo";
 import { SkipLink } from "@/components/site/SkipLink";
 import { CLINICA, whatsappLink } from "@/lib/jp";
 import { enviarCandidatura, listarVagasPublicas } from "@/lib/rh/api";
 import type { RespostaPortal } from "@/lib/rh/api";
-import {
-  apenasDigitos,
-  mascararCep,
-  mascararCpf,
-  mascararMoeda,
-  mascararTelefone,
-} from "@/lib/rh/formatar";
-import {
-  AREAS,
-  COMPETENCIAS,
-  ESCOLARIDADES,
-  ESPECIALIDADES_ODONTO,
-  FAIXAS_EXPERIENCIA,
-  IDIOMAS,
-  ORIGENS,
-  PRAZOS_INICIO,
-  SOFTWARES,
-  UFS,
-  VINCULOS,
-} from "@/lib/rh/opcoes";
+import { apenasDigitos, mascararTelefone } from "@/lib/rh/formatar";
+import { AREAS, FAIXAS_EXPERIENCIA, PRAZOS_INICIO, VINCULOS } from "@/lib/rh/opcoes";
 import { LIMITES, MESES_RETENCAO_LGPD, candidaturaVazia } from "@/lib/rh/tipos";
 import type {
   AreaVaga,
@@ -119,18 +88,20 @@ const MAX_CARTA = LIMITES.textoLongo;
 const CAMPO_PASSO = "__passo";
 
 /**
- * Teto de pós-graduações e cursos. É o mesmo número que `montarCandidatura`
- * usa no servidor: com 1500 aqui, o candidato escrevia a última linha, via
- * "candidatura enviada" e perdia 500 caracteres sem nunca ficar sabendo.
+ * UM passo. Eram cinco.
+ *
+ * O formulário longo não seleciona candidato: seleciona quem tem paciência para
+ * formulário. Tudo o que saiu daqui — formação, empregos, cursos, idiomas,
+ * softwares, registro no conselho, pretensão — está no currículo, e a leitura
+ * por IA extrai e escreve na ficha (`preencherComExtracao`, em
+ * servidor/analise.ts). O painel continua mostrando os mesmos campos; muda
+ * quem os preenche.
+ *
+ * A constante continua sendo uma lista porque a barra de progresso, o cabeçalho
+ * e o salto para o erro leem dela. Com um item só eles se resolvem sozinhos.
  */
-const MAX_TEXTO_LONGO = LIMITES.formacaoLivre;
-
 const PASSOS: { numero: number; titulo: string; resumo: string }[] = [
-  { numero: 1, titulo: "A vaga", resumo: "Onde você quer trabalhar com a gente" },
-  { numero: 2, titulo: "Você", resumo: "Como a clínica fala com você" },
-  { numero: 3, titulo: "Formação", resumo: "Onde você estudou e o que tem de registro" },
-  { numero: 4, titulo: "Experiência", resumo: "O que você já fez e sabe fazer" },
-  { numero: 5, titulo: "Currículo", resumo: "Anexo, carta e envio" },
+  { numero: 1, titulo: "Sua candidatura", resumo: "Currículo, contato e pronto" },
 ];
 
 /**
@@ -368,16 +339,6 @@ function primeiroCampoComErro(erros: ErrosPasso): string {
 /** Os campos que o ViaCEP preenche, como estavam quando a busca começou. */
 type EnderecoBase = { logradouro: string; bairro: string; cidade: string; uf: string };
 
-/**
- * Aplica o valor do ViaCEP só se o campo continuar exatamente como estava
- * quando a busca começou. O serviço leva 1-2 s no 4G, e nesse tempo muita gente
- * já está digitando o próprio endereço: sobrescrever o que a pessoa acabou de
- * escrever é pior do que não preencher nada.
- */
-function preencherEndereco(atual: string, antes: string, vindo: string): string {
-  return atual === antes && vindo.length > 0 ? vindo : atual;
-}
-
 /** Tira as linhas de experiência em branco antes de mandar para o servidor. */
 function paraEnvio(dados: Candidatura): Candidatura {
   return { ...dados, experiencias: dados.experiencias.filter((e) => !experienciaEmBranco(e)) };
@@ -440,11 +401,6 @@ function PaginaCandidatura() {
    * dependência de `avancar`: um objeto novo a cada render recriaria o callback
    * a cada tecla digitada.
    */
-  const contexto = useMemo<ContextoPortal>(
-    () => ({ aceitandoEspontanea: config.aceitandoEspontanea }),
-    [config.aceitandoEspontanea],
-  );
-
   const [dados, setDados] = useState<Candidatura>(estadoInicial);
   const [passo, setPasso] = useState(1);
   const [erros, setErros] = useState<ErrosPasso>({});
@@ -459,8 +415,22 @@ function PaginaCandidatura() {
   const [protocolo, setProtocolo] = useState("");
   const [escolhaFeita, setEscolhaFeita] = useState(false);
   const [rascunho, setRascunho] = useState<Candidatura | null>(null);
-  const [buscandoCep, setBuscandoCep] = useState(false);
   const [copiado, setCopiado] = useState(false);
+
+  /**
+   * O que a validação precisa saber do portal e não está na candidatura.
+   * Fica DEPOIS do estado do arquivo de propósito: `temCurriculo` depende dele,
+   * e o currículo agora é obrigatório. Memorizado porque entra como dependência
+   * de `avancar`: um objeto novo a cada render recriaria o callback a cada
+   * tecla digitada.
+   */
+  const contexto = useMemo<ContextoPortal>(
+    () => ({
+      aceitandoEspontanea: config.aceitandoEspontanea,
+      temCurriculo: arquivo !== null && arquivo.size > 0,
+    }),
+    [config.aceitandoEspontanea, arquivo],
+  );
 
   /**
    * Um "agora" só para a página inteira. Nada de `new Date()` dentro do render
@@ -473,7 +443,6 @@ function PaginaCandidatura() {
   const [foco, setFoco] = useState<{ campo: string; seq: number }>({ campo: "", seq: 0 });
 
   const prontoParaSalvar = useRef(false);
-  const cepBuscado = useRef("");
   const fixadaAplicada = useRef(false);
   const alertaRef = useRef<HTMLDivElement>(null);
   const tituloPassoRef = useRef<HTMLHeadingElement>(null);
@@ -700,104 +669,13 @@ function PaginaCandidatura() {
     irPara(Math.min(passo + 1, PASSOS.length));
   }, [passo, dados, agora, contexto, apontarErros, irPara]);
 
-  const voltar = useCallback(() => {
-    setErros({});
-    irPara(Math.max(passo - 1, 1));
-  }, [passo, irPara]);
-
   /* ---------------------------------------------------------------------- */
   /* ViaCEP                                                                 */
   /* ---------------------------------------------------------------------- */
 
-  const buscarEndereco = useCallback(async (digitos: string, antes: EnderecoBase) => {
-    setBuscandoCep(true);
-    try {
-      const resposta = await fetch(`https://viacep.com.br/ws/${digitos}/json/`);
-      if (!resposta.ok) return;
-      const corpo: unknown = await resposta.json();
-      if (corpo === null || typeof corpo !== "object" || Array.isArray(corpo)) return;
-      const c = corpo as Record<string, unknown>;
-      // O ViaCEP responde 200 com `{ "erro": true }` para CEP inexistente.
-      if (c["erro"] === true || c["erro"] === "true") return;
-      // A pessoa pode ter corrigido o CEP enquanto esta busca estava em voo: a
-      // resposta do CEP antigo não pode preencher o endereço do novo.
-      if (cepBuscado.current !== digitos) return;
-      setDados((d) => ({
-        ...d,
-        logradouro: preencherEndereco(d.logradouro, antes.logradouro, textoDe(c, "logradouro")),
-        bairro: preencherEndereco(d.bairro, antes.bairro, textoDe(c, "bairro")),
-        cidade: preencherEndereco(d.cidade, antes.cidade, textoDe(c, "localidade")),
-        uf: preencherEndereco(d.uf, antes.uf, textoDe(c, "uf")),
-      }));
-    } catch {
-      // Silêncio proposital. O ViaCEP é uma conveniência de terceiro: se ele
-      // cair, estiver bloqueado por uma extensão ou o wi-fi oscilar, a pessoa
-      // simplesmente digita o endereço à mão. Mostrar "erro ao buscar CEP" só
-      // criaria a impressão de que o formulário quebrou — e um `throw` aqui
-      // derrubaria a página inteira no error boundary.
-    } finally {
-      // Quem apaga o "Buscando endereço..." é só a busca mais recente: a antiga
-      // terminando não pode dizer que acabou o que ainda está acontecendo.
-      if (cepBuscado.current === digitos) setBuscandoCep(false);
-    }
-  }, []);
-
-  const aoMudarCep = useCallback(
-    (valor: string) => {
-      const mascarado = mascararCep(valor);
-      atualizar({ cep: mascarado });
-      const digitos = apenasDigitos(mascarado);
-      if (digitos.length !== 8 || cepBuscado.current === digitos) return;
-      cepBuscado.current = digitos;
-      // Retrato do endereço no momento do pedido: o que a pessoa digitar
-      // enquanto o ViaCEP responde vence o que o serviço devolver.
-      void buscarEndereco(digitos, {
-        logradouro: dados.logradouro,
-        bairro: dados.bairro,
-        cidade: dados.cidade,
-        uf: dados.uf,
-      });
-    },
-    [atualizar, buscarEndereco, dados.logradouro, dados.bairro, dados.cidade, dados.uf],
-  );
-
   /* ---------------------------------------------------------------------- */
   /* Experiências                                                           */
   /* ---------------------------------------------------------------------- */
-
-  const mudarExperiencia = useCallback(
-    (indice: number, campo: keyof ExperienciaItem, valor: string) => {
-      setDados((d) => ({
-        ...d,
-        experiencias: d.experiencias.map((exp, i) =>
-          i === indice ? { ...exp, [campo]: valor } : exp,
-        ),
-      }));
-      setErros((e) => {
-        if ((e["experiencias"] ?? "").length === 0) return e;
-        const copia = { ...e };
-        delete copia["experiencias"];
-        return copia;
-      });
-    },
-    [],
-  );
-
-  const adicionarExperiencia = useCallback(() => {
-    setDados((d) =>
-      d.experiencias.length >= MAX_EXPERIENCIAS
-        ? d
-        : { ...d, experiencias: [...d.experiencias, experienciaVazia()] },
-    );
-  }, []);
-
-  const removerExperiencia = useCallback((indice: number) => {
-    setDados((d) => {
-      const restantes = d.experiencias.filter((_, i) => i !== indice);
-      // Nunca deixa a lista vazia: o passo precisa mostrar sempre um bloco.
-      return { ...d, experiencias: restantes.length > 0 ? restantes : [experienciaVazia()] };
-    });
-  }, []);
 
   /* ---------------------------------------------------------------------- */
   /* Envio                                                                  */
@@ -1038,7 +916,11 @@ function PaginaCandidatura() {
                     </p>
                   </header>
 
-                  {passo === 1 ? (
+                  {/* Um passo só: escolha da vaga, contato e currículo, na
+                      ordem em que a pessoa pensa. Sem "Continuar" no meio —
+                      cada botão a mais entre a candidata e o envio é gente que
+                      desiste no caminho. */}
+                  <div className="space-y-8">
                     <PassoVaga
                       dados={dados}
                       erros={erros}
@@ -1054,35 +936,9 @@ function PaginaCandidatura() {
                       aoAtualizar={atualizar}
                       aoAlternarLista={alternarEmLista}
                     />
-                  ) : null}
 
-                  {passo === 2 ? (
-                    <PassoPessoal
-                      dados={dados}
-                      erros={erros}
-                      buscandoCep={buscandoCep}
-                      aoAtualizar={atualizar}
-                      aoMudarCep={aoMudarCep}
-                    />
-                  ) : null}
+                    <PassoContato dados={dados} erros={erros} aoAtualizar={atualizar} />
 
-                  {passo === 3 ? (
-                    <PassoFormacao dados={dados} erros={erros} aoAtualizar={atualizar} />
-                  ) : null}
-
-                  {passo === 4 ? (
-                    <PassoExperiencia
-                      dados={dados}
-                      erros={erros}
-                      aoAtualizar={atualizar}
-                      aoAlternarLista={alternarEmLista}
-                      aoMudarExperiencia={mudarExperiencia}
-                      aoAdicionarExperiencia={adicionarExperiencia}
-                      aoRemoverExperiencia={removerExperiencia}
-                    />
-                  ) : null}
-
-                  {passo === 5 ? (
                     <PassoFinal
                       dados={dados}
                       erros={erros}
@@ -1093,37 +949,17 @@ function PaginaCandidatura() {
                       aoEscolherArquivo={setArquivo}
                       aoErrarArquivo={setErroArquivo}
                     />
-                  ) : null}
+                  </div>
 
-                  <div className="mt-9 flex flex-col-reverse gap-3 border-t border-border-soft pt-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="mt-9 flex flex-col gap-3 border-t border-border-soft pt-6 sm:flex-row sm:items-center sm:justify-end">
                     <button
-                      type="button"
-                      onClick={voltar}
-                      disabled={passo === 1}
-                      className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-soft bg-white px-5 text-sm font-bold text-ink transition hover:border-ink-soft hover:bg-cream disabled:cursor-not-allowed disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft"
+                      type="submit"
+                      disabled={enviando}
+                      className="button-primary inline-flex min-h-12 items-center justify-center gap-2 disabled:cursor-progress disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft disabled:shadow-none"
                     >
-                      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                      Voltar
+                      {enviando ? "Enviando..." : "Enviar candidatura"}
+                      <Send className="h-4 w-4" aria-hidden="true" />
                     </button>
-
-                    {passo < PASSOS.length ? (
-                      <button
-                        type="submit"
-                        className="button-primary inline-flex min-h-12 items-center justify-center gap-2"
-                      >
-                        Continuar
-                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    ) : (
-                      <button
-                        type="submit"
-                        disabled={enviando}
-                        className="button-primary inline-flex min-h-12 items-center justify-center gap-2 disabled:cursor-progress disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft disabled:shadow-none"
-                      >
-                        {enviando ? "Enviando..." : "Enviar candidatura"}
-                        <Send className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    )}
                   </div>
 
                   {/* Anúncio discreto do estado do envio para quem não vê o botão. */}
@@ -1425,75 +1261,6 @@ function PassoVaga(props: {
         </div>
         <MensagemErro campo="area" texto={erros["area"] ?? ""} />
       </div>
-
-      <CampoTexto
-        campo="cargoDesejado"
-        rotulo="Cargo desejado"
-        valor={dados.cargoDesejado}
-        aoMudar={(v) => props.aoAtualizar({ cargoDesejado: v })}
-        erro={erros["cargoDesejado"]}
-        ajuda="Como você chamaria a função: Recepcionista, ASB, Dentista clínico geral..."
-        placeholder="Ex.: Auxiliar em Saúde Bucal"
-        maxLength={120}
-        autoComplete="organization-title"
-      />
-
-      <SeletorChips
-        campo="vinculo"
-        rotulo="Tipo de vínculo"
-        modo="unica"
-        opcoes={VINCULOS}
-        selecionados={dados.vinculo ? [dados.vinculo] : []}
-        aoAlternar={(v) => props.aoAtualizar({ vinculo: v as Vinculo })}
-        erro={erros["vinculo"]}
-      />
-
-      {/* Especialidades só fazem sentido para quem tem CRO — para uma
-          recepcionista, essa lista seria só ruído. */}
-      {dados.area === "dentista" ? (
-        <SeletorChips
-          campo="especialidades"
-          rotulo="Especialidades"
-          modo="multipla"
-          opcoes={ESPECIALIDADES_ODONTO.map((e) => ({ valor: e, rotulo: e }))}
-          selecionados={dados.especialidades}
-          aoAlternar={(v) => props.aoAlternarLista("especialidades", v)}
-          erro={erros["especialidades"]}
-          ajuda="Marque tudo em que você atende, mesmo sem título de especialista."
-        />
-      ) : null}
-
-      <GradeTurnos
-        campo="disponibilidade"
-        selecionadas={dados.disponibilidade}
-        aoMudar={(chaves) => props.aoAtualizar({ disponibilidade: chaves })}
-        erro={erros["disponibilidade"]}
-        ajuda="Toque nos turnos em que você pode trabalhar. O nome do dia marca a linha inteira; o nome do turno marca a coluna."
-      />
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <SeletorChips
-          campo="inicioEm"
-          rotulo="Quando você pode começar?"
-          modo="unica"
-          opcoes={PRAZOS_INICIO}
-          selecionados={dados.inicioEm ? [dados.inicioEm] : []}
-          aoAlternar={(v) => props.aoAtualizar({ inicioEm: v as PrazoInicio })}
-          erro={erros["inicioEm"]}
-          opcional
-        />
-        <CampoTexto
-          campo="pretensao"
-          rotulo="Pretensão salarial"
-          valor={dados.pretensao}
-          aoMudar={(v) => props.aoAtualizar({ pretensao: mascararMoeda(v) })}
-          erro={erros["pretensao"]}
-          ajuda="Deixe em branco se preferir conversar sobre isso depois."
-          placeholder="R$ 0,00"
-          inputMode="numeric"
-          opcional
-        />
-      </div>
     </div>
   );
 }
@@ -1501,13 +1268,32 @@ function PassoVaga(props: {
 /* -------------------------------------------------------------------------- */
 /* Passo 2 — você                                                             */
 /* -------------------------------------------------------------------------- */
+/* Contato — as três linhas que a clínica precisa digitadas                    */
+/* -------------------------------------------------------------------------- */
 
-function PassoPessoal(props: {
+/**
+ * Nome, WhatsApp e e-mail. Só.
+ *
+ * Antes este passo pedia também nascimento, CPF, CEP, logradouro, bairro,
+ * cidade, UF, LinkedIn e Instagram — nove campos que estão no currículo e que a
+ * leitura por IA extrai sozinha (ver `preencherComExtracao`, em
+ * servidor/analise.ts). Pedir de novo era cobrar da candidata um trabalho que o
+ * sistema faz.
+ *
+ * Os três que ficaram não são arbitrários:
+ *
+ * - **nome** aparece na lista do painel no segundo em que a candidatura chega.
+ *   Sem ele o RH veria uma fila de "sem nome" até alguém gastar a leitura.
+ * - **WhatsApp** é por onde a clínica chama. Telefone lido errado num currículo
+ *   escaneado falha calado: a pessoa nunca é chamada e ninguém descobre por quê.
+ *   É o único dado que não pode depender de OCR.
+ * - **e-mail** é opcional. Quase todo currículo traz, a leitura preenche, e
+ *   quem preferir digitar, digita.
+ */
+function PassoContato(props: {
   dados: Candidatura;
   erros: ErrosPasso;
-  buscandoCep: boolean;
   aoAtualizar: (mudanca: Partial<Candidatura>) => void;
-  aoMudarCep: (valor: string) => void;
 }) {
   const { dados, erros } = props;
 
@@ -1526,407 +1312,29 @@ function PassoPessoal(props: {
 
       <div className="grid gap-5 sm:grid-cols-2">
         <CampoTexto
-          campo="nascimento"
-          rotulo="Data de nascimento"
-          tipo="date"
-          valor={dados.nascimento}
-          aoMudar={(v) => props.aoAtualizar({ nascimento: v })}
-          erro={erros["nascimento"]}
-          autoComplete="bday"
+          campo="telefone"
+          rotulo="WhatsApp"
+          valor={mascararTelefone(dados.telefone)}
+          aoMudar={(v) => props.aoAtualizar({ telefone: apenasDigitos(v) })}
+          erro={erros["telefone"]}
+          placeholder="(11) 90000-0000"
+          inputMode="tel"
+          autoComplete="tel"
+          ajuda="É por aqui que a clínica chama para conversar."
         />
-        <CampoTexto
-          campo="cpf"
-          rotulo="CPF"
-          valor={dados.cpf}
-          aoMudar={(v) => props.aoAtualizar({ cpf: mascararCpf(v) })}
-          erro={erros["cpf"]}
-          placeholder="000.000.000-00"
-          inputMode="numeric"
-        />
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
         <CampoTexto
           campo="email"
           rotulo="E-mail"
-          tipo="email"
           valor={dados.email}
-          aoMudar={(v) => props.aoAtualizar({ email: v })}
+          aoMudar={(v) => props.aoAtualizar({ email: v.trim() })}
           erro={erros["email"]}
           placeholder="voce@email.com"
-          autoComplete="email"
           inputMode="email"
+          autoComplete="email"
           maxLength={254}
-        />
-        <CampoTexto
-          campo="telefone"
-          rotulo="Telefone com DDD"
-          tipo="tel"
-          valor={dados.telefone}
-          aoMudar={(v) => props.aoAtualizar({ telefone: mascararTelefone(v) })}
-          erro={erros["telefone"]}
-          ajuda="De preferência o WhatsApp: é por ali que a clínica chama."
-          placeholder="(11) 90000-0000"
-          autoComplete="tel"
-          inputMode="tel"
-        />
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-[minmax(0,10rem)_1fr]">
-        <div>
-          <CampoTexto
-            campo="cep"
-            rotulo="CEP"
-            valor={dados.cep}
-            aoMudar={props.aoMudarCep}
-            erro={erros["cep"]}
-            placeholder="00000-000"
-            autoComplete="postal-code"
-            inputMode="numeric"
-            opcional
-          />
-          {/* aria-live para quem não vê a tela saber que os campos abaixo vão
-              se preencher sozinhos daqui a um instante. */}
-          <p className="rh-ajuda flex items-center gap-1.5" aria-live="polite">
-            {props.buscandoCep ? (
-              <>
-                <Info className="h-3.5 w-3.5" aria-hidden="true" />
-                Buscando endereço...
-              </>
-            ) : (
-              ""
-            )}
-          </p>
-        </div>
-        <CampoTexto
-          campo="logradouro"
-          rotulo="Rua e número"
-          valor={dados.logradouro}
-          aoMudar={(v) => props.aoAtualizar({ logradouro: v })}
-          erro={erros["logradouro"]}
-          autoComplete="street-address"
-          maxLength={160}
           opcional
         />
       </div>
-
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_7rem]">
-        <CampoTexto
-          campo="bairro"
-          rotulo="Bairro"
-          valor={dados.bairro}
-          aoMudar={(v) => props.aoAtualizar({ bairro: v })}
-          erro={erros["bairro"]}
-          maxLength={120}
-          opcional
-        />
-        <CampoTexto
-          campo="cidade"
-          rotulo="Cidade"
-          valor={dados.cidade}
-          aoMudar={(v) => props.aoAtualizar({ cidade: v })}
-          erro={erros["cidade"]}
-          autoComplete="address-level2"
-          maxLength={120}
-        />
-        <CampoSelect
-          campo="uf"
-          rotulo="Estado"
-          valor={dados.uf}
-          aoMudar={(v) => props.aoAtualizar({ uf: v })}
-          erro={erros["uf"]}
-          opcoes={UFS.map((u) => ({ valor: u, rotulo: u }))}
-          vazio="UF"
-        />
-      </div>
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <CampoTexto
-          campo="linkedin"
-          rotulo="LinkedIn"
-          tipo="url"
-          valor={dados.linkedin}
-          aoMudar={(v) => props.aoAtualizar({ linkedin: v })}
-          erro={erros["linkedin"]}
-          placeholder="linkedin.com/in/seu-perfil"
-          inputMode="url"
-          maxLength={200}
-          opcional
-        />
-        <CampoTexto
-          campo="instagram"
-          rotulo="Instagram"
-          valor={dados.instagram}
-          aoMudar={(v) => props.aoAtualizar({ instagram: v })}
-          erro={erros["instagram"]}
-          placeholder="@seu.perfil"
-          maxLength={100}
-          opcional
-        />
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Passo 3 — formação                                                         */
-/* -------------------------------------------------------------------------- */
-
-function PassoFormacao(props: {
-  dados: Candidatura;
-  erros: ErrosPasso;
-  aoAtualizar: (mudanca: Partial<Candidatura>) => void;
-}) {
-  const { dados, erros } = props;
-
-  return (
-    <div className="space-y-5">
-      <CampoSelect
-        campo="escolaridade"
-        rotulo="Escolaridade"
-        valor={dados.escolaridade}
-        aoMudar={(v) => props.aoAtualizar({ escolaridade: v })}
-        erro={erros["escolaridade"]}
-        opcoes={ESCOLARIDADES.map((e) => ({ valor: e, rotulo: e }))}
-      />
-
-      <div className="grid gap-5 sm:grid-cols-[1fr_9rem]">
-        <CampoTexto
-          campo="instituicao"
-          rotulo="Instituição de ensino"
-          valor={dados.instituicao}
-          aoMudar={(v) => props.aoAtualizar({ instituicao: v })}
-          erro={erros["instituicao"]}
-          maxLength={160}
-          opcional
-        />
-        <CampoTexto
-          campo="anoFormacao"
-          rotulo="Ano de conclusão"
-          valor={dados.anoFormacao}
-          aoMudar={(v) => props.aoAtualizar({ anoFormacao: apenasDigitos(v).slice(0, 4) })}
-          erro={erros["anoFormacao"]}
-          placeholder="2019"
-          inputMode="numeric"
-          opcional
-        />
-      </div>
-
-      {/* Bloco destacado: para dentista, CRO é o que separa uma candidatura
-          válida de uma inválida — e é o primeiro campo que o RH confere. */}
-      {dados.area === "dentista" ? (
-        <div className="rounded-2xl border border-forest/25 bg-mint p-5">
-          <p className="flex items-center gap-2 font-display text-base font-extrabold text-ink">
-            <Stethoscope className="h-5 w-5" aria-hidden="true" />
-            Registro no Conselho
-          </p>
-          <p className="mt-1 text-sm font-medium text-ink-soft">
-            Obrigatório para quem se candidata como cirurgião-dentista.
-          </p>
-          <div className="mt-4 grid gap-5 sm:grid-cols-[1fr_7rem]">
-            <CampoTexto
-              campo="cro"
-              rotulo="Número do CRO"
-              valor={dados.cro}
-              aoMudar={(v) => props.aoAtualizar({ cro: apenasDigitos(v).slice(0, 8) })}
-              erro={erros["cro"]}
-              placeholder="Somente números"
-              inputMode="numeric"
-            />
-            <CampoSelect
-              campo="croUf"
-              rotulo="UF do CRO"
-              valor={dados.croUf}
-              aoMudar={(v) => props.aoAtualizar({ croUf: v })}
-              erro={erros["croUf"]}
-              opcoes={UFS.map((u) => ({ valor: u, rotulo: u }))}
-              vazio="UF"
-            />
-          </div>
-        </div>
-      ) : null}
-
-      <CampoTextarea
-        campo="posGraduacoes"
-        rotulo="Pós-graduações e especializações"
-        valor={dados.posGraduacoes}
-        aoMudar={(v) => props.aoAtualizar({ posGraduacoes: v })}
-        erro={erros["posGraduacoes"]}
-        ajuda="Uma por linha, com a instituição e o ano, se lembrar."
-        maxLength={MAX_TEXTO_LONGO}
-        linhas={4}
-        opcional
-      />
-
-      <CampoTextarea
-        campo="cursos"
-        rotulo="Cursos e capacitações"
-        valor={dados.cursos}
-        aoMudar={(v) => props.aoAtualizar({ cursos: v })}
-        erro={erros["cursos"]}
-        ajuda="Biossegurança, radiologia, atendimento, gestão — o que fizer sentido para a vaga."
-        maxLength={MAX_TEXTO_LONGO}
-        linhas={4}
-        opcional
-      />
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Passo 4 — experiência                                                      */
-/* -------------------------------------------------------------------------- */
-
-function PassoExperiencia(props: {
-  dados: Candidatura;
-  erros: ErrosPasso;
-  aoAtualizar: (mudanca: Partial<Candidatura>) => void;
-  aoAlternarLista: (
-    chave: "especialidades" | "softwares" | "competencias" | "idiomas",
-    valor: string,
-  ) => void;
-  aoMudarExperiencia: (indice: number, campo: keyof ExperienciaItem, valor: string) => void;
-  aoAdicionarExperiencia: () => void;
-  aoRemoverExperiencia: (indice: number) => void;
-}) {
-  const { dados, erros } = props;
-  const cheio = dados.experiencias.length >= MAX_EXPERIENCIAS;
-
-  return (
-    <div className="space-y-8">
-      <SeletorChips
-        campo="anosExperiencia"
-        rotulo="Tempo de experiência na área"
-        modo="unica"
-        opcoes={FAIXAS_EXPERIENCIA}
-        selecionados={dados.anosExperiencia ? [dados.anosExperiencia] : []}
-        aoAlternar={(v) => props.aoAtualizar({ anosExperiencia: v as FaixaExperiencia })}
-        erro={erros["anosExperiencia"]}
-      />
-
-      <div>
-        <Rotulo campo="experiencias" texto="Onde você já trabalhou" paraCampo={false} />
-        <Ajuda
-          campo="experiencias"
-          texto={`Comece pela mais recente. Até ${MAX_EXPERIENCIAS} experiências — se estiver começando agora, pode deixar em branco.`}
-        />
-
-        <div className="mt-4 space-y-4">
-          {dados.experiencias.map((exp, i) => (
-            <fieldset key={i} className="rounded-2xl border border-border-soft bg-white p-4 sm:p-5">
-              <legend className="px-1 text-xs font-bold uppercase tracking-[0.12em] text-ink">
-                Experiência {i + 1}
-              </legend>
-
-              <div className="mt-2 grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="rh-rotulo">Empresa ou clínica</span>
-                  <input
-                    // A primeira caixa carrega o id do grupo: é dela que o
-                    // assistente se aproxima quando o erro é "experiencias".
-                    id={i === 0 ? idCampo("experiencias") : undefined}
-                    className="rh-campo"
-                    value={exp.empresa}
-                    maxLength={120}
-                    onChange={(e) => props.aoMudarExperiencia(i, "empresa", e.target.value)}
-                    aria-invalid={(erros["experiencias"] ?? "").length > 0}
-                  />
-                </label>
-                <label className="block">
-                  <span className="rh-rotulo">Cargo</span>
-                  <input
-                    className="rh-campo"
-                    value={exp.cargo}
-                    maxLength={120}
-                    onChange={(e) => props.aoMudarExperiencia(i, "cargo", e.target.value)}
-                  />
-                </label>
-                <label className="block sm:col-span-2">
-                  <span className="rh-rotulo">Período</span>
-                  <input
-                    className="rh-campo"
-                    value={exp.periodo}
-                    maxLength={60}
-                    placeholder="Ex.: mar/2021 a hoje"
-                    onChange={(e) => props.aoMudarExperiencia(i, "periodo", e.target.value)}
-                  />
-                </label>
-                <label className="block sm:col-span-2">
-                  <span className="rh-rotulo">Principais atividades</span>
-                  <textarea
-                    className="rh-campo"
-                    rows={3}
-                    value={exp.atividades}
-                    maxLength={1000}
-                    onChange={(e) => props.aoMudarExperiencia(i, "atividades", e.target.value)}
-                  />
-                </label>
-              </div>
-
-              {dados.experiencias.length > 1 ? (
-                <button
-                  type="button"
-                  onClick={() => props.aoRemoverExperiencia(i)}
-                  className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-bold text-destructive transition hover:bg-destructive/8"
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  Remover experiência {i + 1}
-                </button>
-              ) : null}
-            </fieldset>
-          ))}
-        </div>
-
-        <MensagemErro campo="experiencias" texto={erros["experiencias"] ?? ""} />
-
-        <button
-          type="button"
-          onClick={props.aoAdicionarExperiencia}
-          disabled={cheio}
-          className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-full border border-forest/25 bg-white px-5 text-sm font-bold text-ink transition enabled:hover:bg-mint disabled:cursor-not-allowed disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft"
-        >
-          <Plus className="h-4 w-4" aria-hidden="true" />
-          Adicionar experiência
-        </button>
-        {cheio ? (
-          <p className="rh-ajuda">
-            Chegou ao limite de {MAX_EXPERIENCIAS}. O resto cabe no currículo anexo.
-          </p>
-        ) : null}
-      </div>
-
-      <SeletorChips
-        campo="softwares"
-        rotulo="Sistemas que você já usou"
-        modo="multipla"
-        opcoes={SOFTWARES.map((s) => ({ valor: s, rotulo: s }))}
-        selecionados={dados.softwares}
-        aoAlternar={(v) => props.aoAlternarLista("softwares", v)}
-        erro={erros["softwares"]}
-        opcional
-      />
-
-      <SeletorChips
-        campo="competencias"
-        rotulo="O que você sabe fazer"
-        modo="multipla"
-        opcoes={COMPETENCIAS.map((c) => ({ valor: c, rotulo: c }))}
-        selecionados={dados.competencias}
-        aoAlternar={(v) => props.aoAlternarLista("competencias", v)}
-        erro={erros["competencias"]}
-        opcional
-      />
-
-      <SeletorChips
-        campo="idiomas"
-        rotulo="Idiomas"
-        modo="multipla"
-        opcoes={IDIOMAS.map((i) => ({ valor: i, rotulo: i }))}
-        selecionados={dados.idiomas}
-        aoAlternar={(v) => props.aoAlternarLista("idiomas", v)}
-        erro={erros["idiomas"]}
-        opcional
-      />
     </div>
   );
 }
@@ -1948,8 +1356,6 @@ function PassoFinal(props: {
   const { dados, erros } = props;
   // "Indicação de colaborador" é a única origem que pede um nome; procurar por
   // "indica" cobre também qualquer variação que o RH venha a cadastrar depois.
-  const pedeIndicacao = dados.origem.toLowerCase().includes("indica");
-  const restantes = MAX_CARTA - dados.cartaApresentacao.length;
 
   // O e-mail do RH pode não estar configurado ainda; sem ele, o canal de
   // contato para exercer os direitos da LGPD passa a ser o WhatsApp da clínica.
@@ -1967,45 +1373,6 @@ function PassoFinal(props: {
         erro={props.erroArquivo.length > 0 ? props.erroArquivo : (erros["curriculo"] ?? "")}
         aoErrar={props.aoErrarArquivo}
       />
-
-      <CampoTextarea
-        campo="cartaApresentacao"
-        rotulo="Por que você quer trabalhar na JP?"
-        valor={dados.cartaApresentacao}
-        aoMudar={(v) => props.aoAtualizar({ cartaApresentacao: v.slice(0, MAX_CARTA) })}
-        erro={erros["cartaApresentacao"]}
-        ajuda="Escreva do seu jeito. Duas ou três frases sinceras valem mais que uma página inteira."
-        maxLength={MAX_CARTA}
-        linhas={6}
-        opcional
-        rodape={
-          <p className="mt-1 text-right text-xs font-semibold tabular-nums text-ink">
-            {restantes} {restantes === 1 ? "caractere restante" : "caracteres restantes"}
-          </p>
-        }
-      />
-
-      <div className="grid gap-5 sm:grid-cols-2">
-        <CampoSelect
-          campo="origem"
-          rotulo="Como você chegou até a clínica?"
-          valor={dados.origem}
-          aoMudar={(v) => props.aoAtualizar({ origem: v })}
-          erro={erros["origem"]}
-          opcoes={ORIGENS.map((o) => ({ valor: o, rotulo: o }))}
-        />
-        {pedeIndicacao ? (
-          <CampoTexto
-            campo="indicadoPor"
-            rotulo="Quem indicou você?"
-            valor={dados.indicadoPor}
-            aoMudar={(v) => props.aoAtualizar({ indicadoPor: v })}
-            erro={erros["indicadoPor"]}
-            ajuda="O nome de quem trabalha (ou trabalhou) aqui."
-            maxLength={120}
-          />
-        ) : null}
-      </div>
 
       {/* ATENÇÃO ao editar o texto deste aviso: ele é o consentimento em si, e
           a redação vigente fica gravada em cada candidatura

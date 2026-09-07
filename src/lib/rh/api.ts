@@ -461,12 +461,30 @@ export const enviarCandidatura = createServerFn({ method: "POST" })
 
     const armazenamento = await import("./servidor/armazenamento");
 
+    // O arquivo é lido AQUI, antes da validação, e não lá embaixo como antes.
+    // O currículo virou obrigatório, e quem decide isso é `validarTudo` — a
+    // mesma função que a tela roda. Para ela poder decidir, precisa saber se
+    // veio arquivo, e o arquivo viaja fora do objeto `Candidatura`.
+    //
+    // `instanceof File` não serve: em runtime empacotado o multipart pode
+    // devolver um Blob de outro realm, e o `instanceof` daria falso sem erro
+    // nenhum — o anexo simplesmente sumiria. Perguntar pelo formato é estável.
+    const enviado = data.get("curriculo");
+    const ehArquivo =
+      typeof enviado === "object" &&
+      enviado !== null &&
+      typeof (enviado as File).arrayBuffer === "function" &&
+      typeof (enviado as File).size === "number" &&
+      typeof (enviado as File).name === "string";
+    const arquivo = ehArquivo ? (enviado as File) : null;
+
     // A chave do banco de talentos entra na validação em vez de virar um `if`
-    // solto aqui embaixo: é a MESMA regra que a tela roda no passo 1, e uma
-    // regra escrita duas vezes é uma regra que vai divergir.
+    // solto aqui embaixo: é a MESMA regra que a tela roda, e uma regra escrita
+    // duas vezes é uma regra que vai divergir.
     const config = await armazenamento.lerConfiguracoes();
     const erros = validarTudo(candidatura, agoraData, {
       aceitandoEspontanea: config.aceitandoEspontanea,
+      temCurriculo: arquivo !== null && arquivo.size > 0,
     });
 
     if (candidatura.vagaId.length > 0) {
@@ -487,8 +505,8 @@ export const enviarCandidatura = createServerFn({ method: "POST" })
 
     const id = armazenamento.novoId();
 
-    const enviado = data.get("curriculo");
-    if (enviado instanceof File && enviado.size > 0) {
+    if (arquivo !== null && arquivo.size > 0) {
+      const enviado = arquivo;
       if (enviado.size > TAMANHO_MAX_CURRICULO) {
         return {
           ok: false,
