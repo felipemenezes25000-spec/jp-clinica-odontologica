@@ -49,7 +49,7 @@ const BOTAO =
 /** Ação principal em `bg-forest`, e não `bg-lime`: com letra branca o lime dá
  *  3,0:1 e o forest passa de 8:1 — a regra do cliente e a leitura fecham juntas. */
 const BOTAO_PRIMARIO = `${BOTAO} bg-forest text-white ring-lime hover:bg-forest/80`;
-const BOTAO_SECUNDARIO = `${BOTAO} bg-white/10 text-white ring-white/25 hover:bg-white/20`;
+const BOTAO_SECUNDARIO = `${BOTAO} bg-white text-ink ring-forest/20 hover:bg-mint`;
 
 const AJUDA = "text-xs leading-relaxed text-white/85";
 
@@ -174,7 +174,7 @@ function PainelConvites(props: {
           type="button"
           onClick={aoFechar}
           aria-label="Fechar os convites"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/25 transition hover:bg-white/20"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-ink ring-1 ring-forest/20 transition hover:bg-mint"
         >
           <X className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -209,7 +209,7 @@ function PainelConvites(props: {
               </span>
 
               {feita ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold text-white ring-1 ring-lime/45">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-3 py-1.5 text-xs font-bold text-ink ring-1 ring-forest/25">
                   <Check className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
                   Enviado
                 </span>
@@ -380,7 +380,7 @@ export function AcoesEmLote(props: {
               id={`${uid}-destino`}
               value={destino}
               onChange={(e) => setDestino(e.target.value as StatusCandidatura | "")}
-              className="h-11 min-w-[10rem] rounded-full border border-white/20 bg-white/[0.07] px-3 text-sm font-semibold text-white transition-colors hover:border-white/35"
+              className="h-11 min-w-[10rem] rounded-full border border-forest/20 bg-white px-3 text-sm font-semibold text-ink transition-colors hover:border-forest/45"
             >
               <option value="" className="bg-brand-deep text-white">
                 Mover para…

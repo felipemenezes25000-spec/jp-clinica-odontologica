@@ -79,7 +79,7 @@ function LinhaIa(props: { item: Candidatura }) {
 
   if (analise.erro.length > 0) {
     return (
-      <p className="mt-2 flex items-center gap-1.5 text-[0.7rem] font-semibold text-rose-200">
+      <p className="mt-2 flex items-center gap-1.5 text-[0.7rem] font-semibold text-rose-800">
         <TriangleAlert size={11} aria-hidden="true" className="shrink-0" />A leitura da IA falhou
       </p>
     );
