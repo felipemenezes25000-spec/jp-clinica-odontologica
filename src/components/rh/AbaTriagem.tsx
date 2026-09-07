@@ -270,11 +270,11 @@ function SeletorRecorte(props: {
           value={props.area}
           onChange={(e) => props.aoMudarArea(e.target.value as AreaVaga | "")}
         >
-          <option value="" className="bg-brand-deep text-white">
+          <option value="" className="bg-white text-ink">
             Todas as áreas
           </option>
           {AREAS.map((a) => (
-            <option key={a.valor} value={a.valor} className="bg-brand-deep text-white">
+            <option key={a.valor} value={a.valor} className="bg-white text-ink">
               {a.rotulo}
             </option>
           ))}
@@ -291,11 +291,11 @@ function SeletorRecorte(props: {
           value={props.vagaId}
           onChange={(e) => props.aoMudarVaga(e.target.value)}
         >
-          <option value="" className="bg-brand-deep text-white">
+          <option value="" className="bg-white text-ink">
             Todas as vagas
           </option>
           {props.vagas.map((v) => (
-            <option key={v.id} value={v.id} className="bg-brand-deep text-white">
+            <option key={v.id} value={v.id} className="bg-white text-ink">
               {v.titulo}
             </option>
           ))}

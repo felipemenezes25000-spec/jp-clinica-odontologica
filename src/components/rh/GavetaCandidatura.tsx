@@ -952,7 +952,7 @@ function ConteudoGaveta(props: PropsConteudo) {
                   {STATUS.map((s) => (
                     /* O <option> herda o fundo do sistema, não o do select: sem
                        estas classes a lista aberta sai branco no branco. */
-                    <option key={s.valor} value={s.valor} className="bg-brand-deep text-white">
+                    <option key={s.valor} value={s.valor} className="bg-white text-ink">
                       {s.rotulo}
                     </option>
                   ))}

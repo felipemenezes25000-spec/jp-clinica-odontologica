@@ -725,11 +725,11 @@ export function TabelaCandidaturas(props: {
               }}
               className="h-11 w-full min-w-0 rounded-xl border border-white/15 bg-white/[0.07] px-3 text-sm text-white"
             >
-              <option value="" className="bg-brand-deep text-white">
+              <option value="" className="bg-white text-ink">
                 Ordem da lista
               </option>
               {COLUNAS.map((c) => (
-                <option key={c.chave} value={c.chave} className="bg-brand-deep text-white">
+                <option key={c.chave} value={c.chave} className="bg-white text-ink">
                   {c.rotulo}
                 </option>
               ))}

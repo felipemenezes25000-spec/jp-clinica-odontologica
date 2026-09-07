@@ -382,11 +382,11 @@ export function AcoesEmLote(props: {
               onChange={(e) => setDestino(e.target.value as StatusCandidatura | "")}
               className="h-11 min-w-[10rem] rounded-full border border-forest/20 bg-white px-3 text-sm font-semibold text-ink transition-colors hover:border-forest/45"
             >
-              <option value="" className="bg-brand-deep text-white">
+              <option value="" className="bg-white text-ink">
                 Mover para…
               </option>
               {STATUS.map((s) => (
-                <option key={s.valor} value={s.valor} className="bg-brand-deep text-white">
+                <option key={s.valor} value={s.valor} className="bg-white text-ink">
                   {s.rotulo}
                 </option>
               ))}

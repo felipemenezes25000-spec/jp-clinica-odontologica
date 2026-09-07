@@ -91,7 +91,7 @@ const CAMPO =
 
 /* O <option> herda o fundo do sistema, não o do campo: sem estas classes a lista
    aberta sai branco sobre branco no Windows. */
-const OPCAO = "bg-brand-deep text-white";
+const OPCAO = "bg-white text-ink";
 
 const ACAO =
   "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-white/25 " +
