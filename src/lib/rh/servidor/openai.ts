@@ -17,6 +17,7 @@
  * mensagem em português. O RH não pode ver tela quebrada porque a OpenAI teve
  * um 503.
  */
+import { inflateRawSync } from "node:zlib";
 import { Buffer } from "node:buffer";
 
 import type { ItemTriagem, NotaSugerida, PerguntaFicha } from "../ficha";
@@ -585,6 +586,118 @@ function extensaoDe(nome: string): string {
 type ParteDeEntrada = Record<string, unknown>;
 
 /**
+ * Texto de um .docx, sem dependência nenhuma.
+ *
+ * POR QUE ISTO EXISTE
+ * A API não aceita .docx como arquivo de entrada, e o código simplesmente
+ * recusava: "salve como PDF e importe de novo". Só que quem manda o currículo é
+ * a candidata, não o RH — pedir para ela reenviar significa, na prática, perder
+ * a candidatura. Dois currículos reais do acervo estavam parados por isso.
+ *
+ * COMO FUNCIONA
+ * .docx é um ZIP. O texto vive em `word/document.xml`. Aqui o ZIP é lido na
+ * mão: acha o fim do diretório central (EOCD), percorre as entradas, localiza
+ * o documento e descomprime com o `zlib` que o Node já traz. Depois as tags
+ * viram texto, com `</w:p>` virando quebra de linha para os parágrafos não
+ * colarem uns nos outros.
+ *
+ * O .doc ANTIGO (binário do Word 97) continua de fora: não é ZIP, é um formato
+ * OLE de 1997 cuja leitura exigiria um parser inteiro para um punhado de
+ * arquivos. Para ele a mensagem de "salve como PDF" continua sendo a resposta
+ * honesta.
+ */
+function textoDeDocx(bytes: Uint8Array): string | null {
+  const b = Buffer.from(bytes);
+
+  // O EOCD fica no fim do arquivo e tem assinatura 0x06054b50. O comentário do
+  // ZIP pode empurrá-lo para trás, por isso a busca é de trás para frente.
+  let eocd = -1;
+  for (let i = b.length - 22; i >= 0 && i > b.length - 66000; i -= 1) {
+    if (b.readUInt32LE(i) === 0x06054b50) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd < 0) return null;
+
+  const entradas = b.readUInt16LE(eocd + 10);
+  let ponteiro = b.readUInt32LE(eocd + 16);
+
+  for (let n = 0; n < entradas; n += 1) {
+    if (ponteiro + 46 > b.length || b.readUInt32LE(ponteiro) !== 0x02014b50) return null;
+
+    const metodo = b.readUInt16LE(ponteiro + 10);
+    const tamanhoComprimido = b.readUInt32LE(ponteiro + 20);
+    const tamanhoNome = b.readUInt16LE(ponteiro + 28);
+    const tamanhoExtra = b.readUInt16LE(ponteiro + 30);
+    const tamanhoComentario = b.readUInt16LE(ponteiro + 32);
+    const inicioLocal = b.readUInt32LE(ponteiro + 42);
+    const nome = b.subarray(ponteiro + 46, ponteiro + 46 + tamanhoNome).toString("utf8");
+
+    if (nome === "word/document.xml") {
+      // O cabeçalho local repete o nome e o extra, e os tamanhos dele podem
+      // diferir dos do diretório central — é o do LOCAL que diz onde os dados
+      // começam.
+      if (b.readUInt32LE(inicioLocal) !== 0x04034b50) return null;
+      const nomeLocal = b.readUInt16LE(inicioLocal + 26);
+      const extraLocal = b.readUInt16LE(inicioLocal + 28);
+      const inicioDados = inicioLocal + 30 + nomeLocal + extraLocal;
+      const dados = b.subarray(inicioDados, inicioDados + tamanhoComprimido);
+
+      let xml: Buffer;
+      try {
+        xml = metodo === 0 ? Buffer.from(dados) : inflateRawSync(dados);
+      } catch {
+        return null;
+      }
+
+      const bruto = xml.toString("utf8");
+      const texto = bruto
+        // Parágrafo e quebra de linha viram \n ANTES de as tags sumirem, senão
+        // o currículo inteiro chega ao modelo como uma linha só.
+        .replace(/<\/w:p>/g, "\n")
+        .replace(/<w:br\b[^>]*\/?>/g, "\n")
+        .replace(/<w:tab\b[^>]*\/?>/g, "\t")
+        .replace(/<[^>]+>/g, "")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&#(\d+);/g, (_, d: string) => String.fromCodePoint(Number(d)))
+        .replace(/[ \t]+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+      return texto.length > 0 ? texto : null;
+    }
+
+    ponteiro += 46 + tamanhoNome + tamanhoExtra + tamanhoComentario;
+  }
+  return null;
+}
+
+/**
+ * O arquivo TEM CARA de PDF legível?
+ *
+ * Vale uma checagem local porque a alternativa é pagar uma chamada para a
+ * OpenAI devolver "The file you uploaded is badly formatted or corrupted" — o
+ * que aconteceu com um PDF de 69 bytes, sem uma única página dentro. Custa
+ * dinheiro e produz um erro que não diz ao RH o que fazer.
+ *
+ * A checagem é deliberadamente frouxa: só recusa o que é obviamente inválido.
+ * PDF estranho porém legível continua indo para o modelo, que lê melhor do que
+ * qualquer heurística nossa.
+ */
+function pdfPareceLegivel(bytes: Uint8Array): boolean {
+  if (bytes.byteLength < 400) return false;
+  const b = Buffer.from(bytes);
+  if (!b.subarray(0, 5).toString("latin1").startsWith("%PDF-")) return false;
+  const texto = b.toString("latin1");
+  return /\/Type\s*\/Page[^s]/.test(texto) || /\/Pages\b/.test(texto);
+}
+
+/**
  * Monta o bloco de conteúdo do arquivo. PDF vai como `input_file`; foto vai como
  * `input_image` em `detail: "high"`, porque currículo fotografado de celular tem
  * letra pequena e em `low` o modelo perde justamente as datas.
@@ -611,6 +724,15 @@ function conteudoDoArquivo(arquivo: {
   const mime = arquivo.mime.toLowerCase();
 
   if (ext === "pdf" || mime === "application/pdf") {
+    // Recusa local antes de gastar chamada: PDF sem página nenhuma faz a API
+    // devolver "badly formatted or corrupted", que custa dinheiro e não diz ao
+    // RH o que fazer.
+    if (!pdfPareceLegivel(arquivo.bytes)) {
+      return {
+        ok: false,
+        erro: "O PDF enviado está vazio ou corrompido — não tem nenhuma página legível dentro. Peça o currículo de novo, em PDF ou em foto.",
+      };
+    }
     return {
       ok: true,
       parte: {
@@ -635,13 +757,32 @@ function conteudoDoArquivo(arquivo: {
     };
   }
 
-  // .doc e .docx não são aceitos como entrada pela API, e converter aqui exigiria
-  // dependência nova. Melhor dizer isso em português do que mandar bytes que a
-  // OpenAI vai recusar com um 400 sem explicação para o RH.
-  if (ext === "doc" || ext === "docx") {
+  // .docx é ZIP com XML dentro: dá para tirar o texto aqui e mandar como texto,
+  // sem depender de a API aceitar o formato e sem pedir à candidata que reenvie.
+  if (ext === "docx" || mime.includes("wordprocessingml")) {
+    const texto = textoDeDocx(arquivo.bytes);
+    if (texto !== null) {
+      return {
+        ok: true,
+        parte: {
+          type: "input_text",
+          text: `CURRÍCULO (texto extraído de um arquivo .docx — sem imagens, e a diagramação original se perdeu):\n\n${texto.slice(0, 60000)}`,
+        },
+      };
+    }
     return {
       ok: false,
-      erro: "Arquivos .doc e .docx não podem ser lidos direto pela IA. Salve o currículo como PDF (ou tire uma foto dele) e importe de novo.",
+      erro: "Não consegui extrair o texto deste .docx — o arquivo pode estar protegido ou corrompido. Peça o currículo em PDF ou em foto.",
+    };
+  }
+
+  // O .doc antigo (binário do Word 97) não é ZIP e exigiria um parser OLE
+  // inteiro para um punhado de arquivos. Aqui a mensagem em português é a
+  // resposta honesta.
+  if (ext === "doc") {
+    return {
+      ok: false,
+      erro: "Arquivos .doc (Word antigo) não podem ser lidos pela IA. Salve o currículo como PDF ou .docx — ou tire uma foto dele.",
     };
   }
 
