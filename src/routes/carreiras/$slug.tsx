@@ -6,6 +6,7 @@ import {
   Briefcase,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
   Clock3,
   Gift,
@@ -18,7 +19,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import { CartaoVaga } from "@/components/rh/CartaoVaga";
 import { Footer } from "@/components/site/Footer";
@@ -365,6 +366,21 @@ function DadoHero({
   );
 }
 
+/**
+ * Quantos itens aparecem antes de o bloco oferecer "ver todos".
+ *
+ * Oito porque é o que cabe em quatro linhas de duas colunas sem empurrar a
+ * seção seguinte para fora da tela. Vagas cadastradas com muito item — esta
+ * aqui tem 19 responsabilidades — deixavam a página com scroll de quilômetro:
+ * eram 38 cartões de UMA LINHA cada, empilhados.
+ *
+ * O corte é só de APRESENTAÇÃO. Nada é descartado: os itens escondidos
+ * continuam no HTML (via atributo `hidden`, não removidos da árvore) e o
+ * JSON-LD do anúncio leva a lista inteira de qualquer jeito, que é o que o
+ * Google for Jobs lê. O painel segue cadastrando quantos itens quiser.
+ */
+const ITENS_VISIVEIS = 8;
+
 /** Bloco de lista da coluna larga. Some inteiro quando a lista está vazia. */
 function BlocoLista({
   titulo,
@@ -372,35 +388,66 @@ function BlocoLista({
   icone: Icone,
   itens,
   atraso,
+  rotuloVerTodos,
 }: {
   titulo: string;
   apoio: string;
   icone: LucideIcon;
   itens: string[];
   atraso: number;
+  rotuloVerTodos: string;
 }) {
+  const [expandido, setExpandido] = useState(false);
+  const idLista = useId();
+
   if (itens.length === 0) return null;
 
+  const excedente = itens.length - ITENS_VISIVEIS;
+
   return (
-    <Reveal delay={atraso} className="mt-12">
-      <h2 className="flex items-center gap-3 font-display text-[clamp(1.6rem,3.4vw,2.2rem)] font-extrabold leading-tight tracking-[-.03em] text-forest-2">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-mint text-forest">
-          <Icone aria-hidden="true" className="h-5 w-5" />
+    <Reveal delay={atraso} className="mt-10">
+      <h2 className="flex items-center gap-3 font-display text-[clamp(1.45rem,3vw,1.9rem)] font-extrabold leading-tight tracking-[-.03em] text-forest-2">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-forest">
+          <Icone aria-hidden="true" className="h-[1.15rem] w-[1.15rem]" />
         </span>
         {titulo}
       </h2>
-      <p className="mt-3 text-sm font-semibold text-ink-soft">{apoio}</p>
-      <ul className="mt-6 grid gap-3">
-        {itens.map((item) => (
+      <p className="mt-2 text-sm font-semibold text-ink-soft">{apoio}</p>
+
+      {/* Duas colunas a partir de `sm`: cada item é uma frase curta, e uma
+          frase curta ocupando a largura inteira desperdiça metade da linha.
+          No celular fica em coluna única, sem estouro horizontal. */}
+      <ul id={idLista} className="mt-4 grid gap-2.5 sm:grid-cols-2">
+        {itens.map((item, i) => (
           <li
-            key={item}
-            className="flex items-start gap-3 rounded-2xl border border-border-soft bg-paper p-4 text-base leading-relaxed text-ink sm:p-5"
+            key={`${i}-${item.slice(0, 24)}`}
+            /* `hidden` em vez de não renderizar: o item continua no HTML
+               servido, some da árvore de acessibilidade enquanto está
+               recolhido, e volta sem custo de re-render ao expandir. */
+            hidden={!expandido && i >= ITENS_VISIVEIS}
+            className="flex items-start gap-2.5 rounded-xl border border-border-soft bg-paper px-3.5 py-3 text-[0.95rem] leading-snug text-ink"
           >
-            <CheckCircle2 aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-forest" />
+            <CheckCircle2 aria-hidden="true" className="mt-[3px] h-4 w-4 shrink-0 text-forest" />
             <span>{item}</span>
           </li>
         ))}
       </ul>
+
+      {excedente > 0 && (
+        <button
+          type="button"
+          onClick={() => setExpandido((v) => !v)}
+          aria-expanded={expandido}
+          aria-controls={idLista}
+          className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-forest/25 bg-white px-4 text-sm font-bold text-ink transition hover:border-forest hover:bg-mint"
+        >
+          {expandido ? "Mostrar menos" : `${rotuloVerTodos} (+${excedente})`}
+          <ChevronDown
+            aria-hidden="true"
+            className={`h-4 w-4 transition-transform ${expandido ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
     </Reveal>
   );
 }
@@ -539,15 +586,19 @@ function PaginaVaga() {
 
         {/* CORPO */}
         <section className="jp-section bg-cream">
-          <div className="jp-container grid gap-10 lg:grid-cols-[1.55fr_.95fr] lg:items-start lg:gap-14">
-            {/* Coluna larga */}
-            <div>
+          <div className="jp-container mx-auto grid max-w-[1280px] gap-8 lg:grid-cols-[1.6fr_.9fr] lg:items-start lg:gap-12">
+            {/* Coluna larga. `order` só existe por causa do celular: ali o
+                resumo da vaga e o botão precisam vir ANTES do texto longo —
+                quem abre o anúncio no telefone decide pelo essencial (local,
+                jornada, benefícios) muito antes de ler as responsabilidades.
+                No desktop a ordem volta ao natural, com o cartão à direita. */}
+            <div className="order-2 lg:order-1">
               {blocos.length > 0 && (
                 <Reveal>
-                  <h2 className="font-display text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold leading-tight tracking-[-.04em] text-forest-2">
+                  <h2 className="font-display text-[clamp(1.6rem,3.4vw,2.1rem)] font-extrabold leading-tight tracking-[-.04em] text-forest-2">
                     Sobre a vaga
                   </h2>
-                  <div className="mt-6 grid gap-5 text-base leading-relaxed text-ink sm:text-lg">
+                  <div className="mt-4 grid gap-4 text-base leading-relaxed text-ink">
                     {/* A posição entra na `key` porque dois parágrafos podem
                         começar igual (texto de RH repete abertura), e duas keys
                         iguais fazem a reconciliação descartar um deles no
@@ -567,6 +618,7 @@ function PaginaVaga() {
                 icone={ListChecks}
                 itens={vaga.responsabilidades}
                 atraso={60}
+                rotuloVerTodos="Ver todas as responsabilidades"
               />
               <BlocoLista
                 titulo="O que precisamos"
@@ -574,6 +626,7 @@ function PaginaVaga() {
                 icone={BadgeCheck}
                 itens={vaga.requisitos}
                 atraso={90}
+                rotuloVerTodos="Ver todos os requisitos"
               />
               <BlocoLista
                 titulo="O que conta pontos"
@@ -581,14 +634,15 @@ function PaginaVaga() {
                 icone={Sparkles}
                 itens={vaga.diferenciais}
                 atraso={120}
+                rotuloVerTodos="Ver todos os diferenciais"
               />
 
               {vaga.especialidades.length > 0 && (
-                <Reveal delay={150} className="mt-12">
-                  <h2 className="font-display text-[clamp(1.6rem,3.4vw,2.2rem)] font-extrabold leading-tight tracking-[-.03em] text-forest-2">
+                <Reveal delay={150} className="mt-10">
+                  <h2 className="font-display text-[clamp(1.45rem,3vw,1.9rem)] font-extrabold leading-tight tracking-[-.03em] text-forest-2">
                     Especialidades envolvidas
                   </h2>
-                  <ul className="mt-5 flex flex-wrap gap-2.5">
+                  <ul className="mt-4 flex flex-wrap gap-2">
                     {vaga.especialidades.map((esp) => (
                       <li
                         key={esp}
@@ -601,8 +655,32 @@ function PaginaVaga() {
                 </Reveal>
               )}
 
+              {/* Fecho da leitura. Quem chegou até aqui leu tudo e não deveria
+                  ter de rolar de volta ao topo (ou caçar a barra do celular)
+                  para se candidatar. Horizontal no desktop, coluna no telefone. */}
+              <Reveal delay={160} className="mt-10">
+                <div className="flex flex-col gap-5 rounded-[1.4rem] bg-forest p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+                  <div>
+                    <p className="font-display text-xl font-extrabold leading-tight text-white sm:text-2xl">
+                      Gostou da oportunidade?
+                    </p>
+                    <p className="mt-1.5 text-sm font-semibold leading-relaxed text-white">
+                      Envie sua candidatura e venha fazer parte da nossa equipe.
+                    </p>
+                  </div>
+                  {/* Botão branco sobre o verde: fundo verde leva letra branca,
+                      e um botão verde dentro de um bloco verde sumiria. */}
+                  <a
+                    href={linkCandidatura}
+                    className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-extrabold text-forest-2 transition hover:bg-mint"
+                  >
+                    <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
+                  </a>
+                </div>
+              </Reveal>
+
               <Reveal delay={170}>
-                <p className="mt-12 flex items-start gap-3 rounded-2xl border border-border-soft bg-paper p-5 text-sm font-semibold leading-relaxed text-ink-soft">
+                <p className="mt-8 flex items-start gap-3 rounded-2xl border border-border-soft bg-paper p-5 text-sm font-semibold leading-relaxed text-ink-soft">
                   <ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-forest" />
                   <span>
                     Todo o processo seletivo da {CLINICA.nome} é gratuito. Nunca pedimos depósito,
@@ -614,7 +692,7 @@ function PaginaVaga() {
 
             {/* Coluna estreita, grudenta a partir do desktop. `top-28` porque o
                 cabeçalho do site é sticky e ficaria por cima do cartão. */}
-            <Reveal delay={80} className="lg:sticky lg:top-28">
+            <Reveal delay={80} className="order-1 lg:order-2 lg:sticky lg:top-28">
               <div className="jp-soft-card rounded-[1.6rem] p-6 sm:p-7">
                 <h2 className="font-display text-2xl font-black leading-tight text-forest-2">
                   Resumo da vaga
