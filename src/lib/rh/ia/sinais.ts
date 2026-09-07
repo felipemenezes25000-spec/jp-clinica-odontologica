@@ -141,6 +141,54 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
   const ehEstagio = area === "estagio";
 
   /* ---------------------------------------------------------------------- */
+  /* Estudo em andamento                                                    */
+  /* ---------------------------------------------------------------------- */
+
+  /*
+   * Faculdade ou curso técnico em curso é ALERTA AMARELO, nunca reprovação, e
+   * NUNCA pesa na nota (contaNaNota: false).
+   *
+   * O que a clínica precisa saber é se o horário da aula bate com o expediente
+   * de 8h às 18h — e isso o currículo não diz: ele traz o curso, quase nunca o
+   * turno. Descontar pontos aqui seria punir quem estuda por uma informação que
+   * ninguém escreveu, e numa vaga de recepção isso elimina justamente a
+   * candidata jovem e em formação.
+   *
+   * Por isso o sinal existe para VIRAR PERGUNTA. A resposta só aparece na
+   * conversa, e é lá que ela vale.
+   *
+   * Estágio fica de fora: ali estar cursando é pré-requisito, não alerta.
+   */
+  /* Só nível de CURSO, nunca "medio": ensino médio marcado como em andamento
+     quase sempre quer dizer ensino médio INCOMPLETO de quem parou de estudar há
+     anos — não alguém em aula hoje. Sem este recorte o alerta disparava para
+     quem não estuda, que é o oposto do que ele existe para avisar. */
+  const NIVEIS_DE_CURSO = ["superior", "tecnico", "pos"];
+  const emCurso = e.formacoes.filter(
+    (f) => f.emAndamento && f.curso.trim() !== "" && NIVEIS_DE_CURSO.includes(f.nivel),
+  );
+  if (!ehEstagio && emCurso.length > 0) {
+    sinais.push({
+      chave: "estudo-em-andamento",
+      origem: "calculo",
+      severidade: "medio",
+      categoria: "coerencia",
+      titulo:
+        emCurso.length === 1
+          ? "Está estudando"
+          : `Está estudando (${String(emCurso.length)} cursos)`,
+      detalhe:
+        "O currículo traz formação em andamento. Não é problema por si — mas a clínica atende das 8h às 18h, e o currículo não informa o turno das aulas. Confirme o horário antes de seguir; se for noturno ou a distância, não há conflito nenhum.",
+      evidencias: emCurso.map((f) =>
+        [f.curso, f.instituicao].filter((x) => x.trim() !== "").join(" — "),
+      ),
+      perguntar:
+        "Você está cursando algo agora? Qual curso, em que semestre e em que horário são as aulas?",
+      contaNaNota: false,
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
   /* Documento                                                              */
   /* ---------------------------------------------------------------------- */
 

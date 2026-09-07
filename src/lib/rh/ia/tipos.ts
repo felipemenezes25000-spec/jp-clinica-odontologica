@@ -219,7 +219,10 @@ export type AnaliseIa = {
  * Suba este número quando mudar prompt, rubrica ou motor de sinais de um jeito
  * que invalide o que já foi analisado.
  */
-export const VERSAO_ANALISE = 1;
+/* 2: régua da recepção repesada a pedido do cliente (estabilidade 30) e sinal
+   de estudo em andamento. Ficha analisada na versão 1 continua válida e visível;
+   o número só marca que a nota dela saiu de outra régua. */
+export const VERSAO_ANALISE = 2;
 
 /**
  * Análise zerada. É função, e não constante, pelo mesmo motivo de

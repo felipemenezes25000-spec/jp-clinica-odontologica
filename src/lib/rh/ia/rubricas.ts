@@ -461,15 +461,39 @@ export const RUBRICAS: Record<AreaVaga, Rubrica> = {
   recepcao: {
     area: "recepcao",
     rotulo: "Recepção e atendimento",
-    // Pesos do briefing do dono da clínica, sem tradução: permanência primeiro,
-    // porque treinar recepção de consultório custa dois meses de agenda.
+    /*
+     * Pesos ditados pelo dono da clínica, sem tradução:
+     *
+     *   30  estabilidade profissional              -> permanencia
+     *   25  experiência como secretária/recepção   -> atendimento
+     *   15  experiência em clínica ou saúde        -> aderencia
+     *   15  perspectiva de permanência             -> progressao
+     *   10  experiência administrativa e tecnologia-> administrativo
+     *    5  apresentação e coerência do currículo  -> coerencia
+     *
+     * A estabilidade subiu de 25 para 30 e virou o maior peso isolado: "uma
+     * candidata que passou 4 anos numa empresa e 3 em outra deve ficar muito
+     * acima de alguém com 8 meses, 5 meses, 1 ano, 4 meses".
+     *
+     * DISPONIBILIDADE NÃO ENTRA NA NOTA, de propósito, apesar de estar no
+     * briefing. Currículo não prova horário: quem mora longe, quem estuda à
+     * noite e quem tem outro vínculo escrevem exatamente a mesma folha. Fingir
+     * que a leitura sabe isso produziria nota alta ou baixa por adivinhação.
+     * Ela vira ALERTA e pergunta de entrevista, que é onde a resposta existe.
+     *
+     * IDADE TAMBÉM NÃO ENTRA, e isso é decisão, não esquecimento. O briefing
+     * pedia "dos 20 e poucos até 50". O que a clínica quer medir com isso é
+     * agilidade e desenvoltura com telefone, WhatsApp, sistema e planilha — e
+     * isso está em "administrativo", medido pelo que a pessoa FEZ. Recortar por
+     * ano de nascimento não mede nada disso, e é discriminação.
+     */
     pesos: {
-      permanencia: 25,
-      aderencia: 20,
-      atendimento: 15,
-      administrativo: 15,
+      permanencia: 30,
+      atendimento: 25,
+      aderencia: 15,
       progressao: 15,
-      coerencia: 10,
+      administrativo: 10,
+      coerencia: 5,
     },
     ancoras: ancorasDe(DEGRAUS.recepcao),
     oQueImporta: `A recepção da JP atende paciente na cadeira e no telefone, confirma agenda,
