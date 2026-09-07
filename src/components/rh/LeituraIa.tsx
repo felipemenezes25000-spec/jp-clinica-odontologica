@@ -349,14 +349,18 @@ export function LeituraIa(props: {
         Leitura da IA
       </h3>
 
-      {analise && !analisando ? (
+      {/* Só quando a leitura FALHOU. Leitura boa não se refaz — o currículo não
+          muda depois de enviado, e cada releitura é uma chamada paga. O servidor
+          recusa de qualquer jeito; esconder o botão evita o clique que não
+          produz nada e a impressão de que o painel travou. */}
+      {analise && analise.erro !== "" && !analisando ? (
         <button
           type="button"
           onClick={() => aoAnalisar(true)}
           className={`${BOTAO_SECUNDARIO} min-h-9 px-3 text-xs`}
         >
           <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
-          Reanalisar
+          Tentar ler de novo
         </button>
       ) : null}
     </div>
@@ -472,9 +476,10 @@ export function LeituraIa(props: {
         <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-300/10 p-3 text-sm leading-relaxed text-amber-100 ring-1 ring-amber-200/30">
           <History className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>
-            Esta leitura é de uma versão anterior da triagem (v{analise.versao}, a atual é v
-            {VERSAO_ANALISE}). Os critérios mudaram desde então — reanalise antes de comparar com as
-            outras candidatas.
+            Esta leitura saiu de uma régua anterior (v{analise.versao}; a atual é v{VERSAO_ANALISE}
+            ). Os pesos mudaram, então a NOTA desta ficha não é diretamente comparável com a de quem
+            chegou depois. O que a IA extraiu do currículo continua valendo — datas, empregos e
+            formação não mudam com a régua.
           </span>
         </p>
       ) : null}

@@ -375,18 +375,26 @@ export function CentralContato(props: {
   /* --------------------------------------------------------------------- */
 
   return (
-    <section aria-labelledby={`${uid}-titulo`} className="rh-vidro p-4 sm:p-5">
-      <h3 id={`${uid}-titulo`} className={ROTULO_SECAO}>
-        <Send className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+    /* COMPACTA POR PADRÃO. Ela fica logo abaixo do nome, e antes ocupava um
+       cartão inteiro — título, um parágrafo de duas linhas e só então os
+       botões. Numa tela pequena isso empurrava a ficha inteira para fora da
+       dobra: a pessoa abria a candidata e via um bloco de instruções, não os
+       dados dela.
+       O título e a explicação continuam existindo para leitor de tela e voltam
+       à vista a partir de sm; o que some no celular é a moldura e o texto que
+       quem usa o painel já leu na primeira vez. */
+    <section aria-labelledby={`${uid}-titulo`} className="rounded-2xl sm:rh-vidro sm:p-5">
+      <h3 id={`${uid}-titulo`} className={`sr-only sm:not-sr-only sm:flex ${ROTULO_SECAO}`}>
+        <Send className="hidden h-4 w-4 shrink-0 text-lime sm:block" aria-hidden="true" />
         Central de contato
       </h3>
-      <p className={`mt-2 ${AJUDA}`}>
+      <p className={`hidden sm:block sm:mt-2 ${AJUDA}`}>
         Fale com {item.nome.trim() === "" ? "a candidata" : item.nome.trim()} sem sair daqui. O que
         você enviar entra sozinho no histórico dela.
       </p>
 
       {/* ---------- Ações diretas ---------- */}
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 sm:mt-3">
         <Acao
           icone={MessageCircle}
           rotulo="WhatsApp"

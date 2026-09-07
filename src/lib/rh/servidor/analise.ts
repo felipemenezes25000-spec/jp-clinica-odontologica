@@ -478,18 +478,34 @@ async function preencherComExtracao(
 
 export async function analisarCandidatura(
   id: string,
-  opcoes: { forcar?: boolean },
+  /* `forcar` continua na assinatura: quem chama passa, e a decisão de reler
+     agora é só do guarda abaixo. */
+  _opcoes: { forcar?: boolean },
 ): Promise<ResultadoAnalise> {
   const armazenamento = await import("./armazenamento");
   const c = await armazenamento.lerCandidatura(id);
   if (c === null) return { ok: false, motivo: "Candidatura não encontrada." };
 
-  const forcar = opcoes.forcar === true;
   const anterior = c.analise;
-  // Reanalisar o que já foi analisado na versão atual da rubrica gastaria token
-  // para chegar ao mesmo texto. `VERSAO_ANALISE` é o que permite subir o prompt
-  // e reprocessar só quem ficou para trás.
-  if (!forcar && anterior !== null && anterior.versao === VERSAO_ANALISE && anterior.erro === "") {
+
+  /*
+   * LEITURA BOA NÃO SE REFAZ. Nem com `forcar`.
+   *
+   * Ordem do cliente, e a razão é dinheiro: cada leitura é uma chamada paga, e
+   * o currículo não muda depois de enviado. Já houve um clique que disparou 150
+   * chamadas contra os mesmos três arquivos.
+   *
+   * `forcar` continua existindo e continua servindo para o que interessa:
+   * releitura do que FALHOU (`erro !== ""`) e do que nunca foi lido. O que ele
+   * deixou de poder é refazer o que já deu certo — inclusive quando a régua
+   * muda de versão. Trocar os pesos não torna a extração errada: a extração é
+   * o que o currículo diz, e isso não mudou.
+   *
+   * Sem esta trava, o botão "Reanalisar" da ficha e o lote com `forcar`
+   * continuariam sendo duas portas abertas para reprocessar o acervo inteiro
+   * por engano.
+   */
+  if (anterior !== null && anterior.erro === "") {
     return { ok: true, analise: anterior };
   }
 
