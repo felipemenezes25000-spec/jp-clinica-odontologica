@@ -2,6 +2,30 @@ import { ShieldCheck, UsersRound } from "lucide-react";
 
 import { EQUIPE } from "@/lib/jp";
 
+/**
+ * A partir de xl a equipe inteira cabe numa linha só. Antes era 20% cravado —
+ * cinco por linha —, e com seis pessoas a última descia sozinha para a linha de
+ * baixo, menor que as outras porque não tinha ninguém ao lado para esticá-la.
+ *
+ * A largura agora sai do tamanho da lista, então isso continua valendo quando
+ * entrar ou sair gente. O desconto é a calha que cabe a cada card: 20px de gap
+ * vezes (n-1), dividido por n, arredondado para cima para não estourar o
+ * container. As classes são literais de propósito — o Tailwind lê o
+ * código-fonte, não o valor que o JavaScript calcula.
+ *
+ * Abaixo de 4 a regra de md (três por linha) já resolve. Acima de 8 uma linha
+ * só não cabe em tela nenhuma, e aí a grade volta a quebrar, que é o certo.
+ */
+const LARGURA_XL: Record<number, string> = {
+  4: "xl:w-[calc(25%-15px)]",
+  5: "xl:w-[calc(20%-16px)]",
+  6: "xl:w-[calc(16.666%-17px)]",
+  7: "xl:w-[calc(14.285%-18px)]",
+  8: "xl:w-[calc(12.5%-18px)]",
+};
+
+const LARGURA_UMA_LINHA = LARGURA_XL[EQUIPE.length] ?? "";
+
 function CardProfissional({
   nome,
   papel,
@@ -15,7 +39,9 @@ function CardProfissional({
   foto?: string | undefined;
 }) {
   return (
-    <article className="group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] lg:w-[calc(20%-16px)]">
+    <article
+      className={`group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-5 pb-7 pt-6 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] ${LARGURA_UMA_LINHA}`}
+    >
       <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
           /* width/height são obrigatórios: a foto é lazy e, sem a proporção
@@ -43,7 +69,12 @@ function CardProfissional({
       </div>
 
       <div className="flex flex-1 flex-col justify-start pt-5 text-center">
-        <h3 className="font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-forest-2">
+        {/* Duas linhas reservadas mesmo quando o nome ocupa uma só. Sem isso,
+            um nome que quebra — "Dra. Sabrina Vamszer Flaquer" — empurra a
+            especialidade e o bloco de registro dela para baixo, e os três
+            ficam desalinhados em relação aos cards vizinhos. 45px = duas
+            linhas de 18px com leading-tight. */}
+        <h3 className="min-h-[45px] font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-forest-2">
           {nome}
         </h3>
 
