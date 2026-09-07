@@ -241,7 +241,7 @@ export function Interruptor(props: {
         aria-describedby={idDescricao}
         disabled={props.desativado}
         onClick={() => props.aoMudar(!props.ligado)}
-        className={`inline-flex h-11 w-[4.25rem] shrink-0 items-center rounded-full border p-1 transition disabled:cursor-not-allowed disabled:opacity-45 ${
+        className={`rh-alternador inline-flex h-11 w-[4.25rem] shrink-0 items-center rounded-full border p-1 transition disabled:cursor-not-allowed disabled:opacity-45 ${
           props.ligado ? "border-forest bg-forest" : "border-border-soft bg-cream"
         }`}
       >

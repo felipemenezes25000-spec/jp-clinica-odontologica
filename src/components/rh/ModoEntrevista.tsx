@@ -1054,7 +1054,7 @@ export function ModoEntrevista(props: {
          cobri-la por inteiro. O contorno global de foco some no verde profundo,
          então o painel usa outline-none — ele recebe foco por código e não é um
          controle; os controles mantêm o anel. */
-      className="fixed inset-0 z-[95] flex flex-col bg-brand-deep text-white outline-none"
+      className="rh-superficie-escura fixed inset-0 z-[95] flex flex-col bg-brand-deep text-white outline-none"
     >
       {/* ---------- Topo ---------- */}
       <header className="shrink-0 border-b border-lime/20 px-3 py-3 sm:px-5">

@@ -122,7 +122,7 @@ export function CabecalhoRh({
             </p>
             <p className="mt-0.5 truncate text-xs font-medium text-ink-soft">
               JP Clínica Integrada
-              <span aria-hidden="true" className="mx-1.5 text-brand-green">
+              <span aria-hidden="true" className="mx-1.5 text-ink-soft">
                 •
               </span>
               {plural(totalCandidaturas, "candidatura", "candidaturas")}

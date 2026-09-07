@@ -2678,3 +2678,61 @@ textarea.rh-campo {
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   Contraste no painel claro — as duas regras que faltavam
+   ==========================================================================
+
+   As correções anteriores enumeravam utilitário por utilitário
+   (`[class~="text-white"]`, `[class~="text-rose-200"]`, …). Isso conserta o
+   que já existe e não conserta o que vier depois: bastou um
+   `placeholder:text-white/85` para o painel voltar a ter branco sobre branco,
+   porque nenhuma daquelas regras alcança um pseudo-elemento. As duas regras
+   abaixo atacam a CATEGORIA, não a ocorrência. */
+
+/* ---- Placeholder ----------------------------------------------------------
+   O `placeholder:` do Tailwind pinta `::placeholder`, e as regras que corrigem
+   `color` do próprio elemento passam ao largo. Foi assim que "Quem está
+   conduzindo" ficou ilegível na gaveta.
+
+   `opacity: 1` não é enfeite: Firefox aplica uma opacidade própria ao
+   placeholder, e sem isso `--ink-soft` chegaria desbotado. */
+/* A exclusao de .rh-superficie-escura nao e detalhe: o modo entrevista e um
+   role="dialog" de tela cheia com fundo verde profundo, e la o placeholder
+   branco esta CERTO. Sem o :not, esta regra pintaria cinza-escuro sobre
+   verde-escuro — trocaria um defeito por outro, so que numa tela usada com a
+   candidata sentada na frente. */
+.rh-admin main :not(.rh-superficie-escura *)::placeholder,
+.rh-admin .rh-gaveta :not(.rh-superficie-escura *)::placeholder,
+.rh-admin [role="dialog"]:not(.rh-superficie-escura) :not(.rh-superficie-escura *)::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+/* ---- Estado desabilitado --------------------------------------------------
+   `disabled:opacity-40` apaga o botão INTEIRO. Num botão verde sólido de letra
+   branca isso vira branco sobre verde claro — medido em 1,37:1 no "Adicionar"
+   e 1,66:1 no "Salvar e publicar textos". E o rótulo é justamente o que a
+   pessoa precisa ler para entender o que está bloqueado e por quê.
+
+   Aqui o botão TROCA DE PELE em vez de desbotar: fundo cinza-claro e letra
+   `--ink-soft`, que é a convenção de controle inativo e continua legível.
+
+   O alternador fica de fora porque não tem texto: trocar o fundo dele
+   destruiria a única pista de ligado/desligado, que é justamente a cor. */
+.rh-admin main button:disabled:not(.rh-alternador):not(.rh-superficie-escura *),
+.rh-admin .rh-gaveta button:disabled:not(.rh-alternador):not(.rh-superficie-escura *),
+.rh-admin [role="dialog"]:not(.rh-superficie-escura)
+  button:disabled:not(.rh-alternador):not(.rh-superficie-escura *) {
+  opacity: 1;
+  border-color: var(--border-soft);
+  background: color-mix(in oklab, var(--ink) 9%, white) !important;
+  /* O !important aqui responde a OUTRO !important: a regra de "fundo verde
+     leva letra branca", mais acima, fixa color: white !important em todo
+     botao bg-forest. Ela esta certa enquanto o botao E verde — e deixa de
+     estar no instante em que o desabilitado troca o fundo para cinza. Sem
+     esta linha o rotulo fica branco sobre cinza, medido em 1,23:1.
+     Entre as duas, esta e a mais especifica (0,3,2 contra 0,3,1). */
+  color: var(--ink-soft) !important;
+  box-shadow: none;
+}

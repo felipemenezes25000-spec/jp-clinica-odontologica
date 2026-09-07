@@ -841,7 +841,7 @@ export function PainelResumo({
                           </span>
                           <span className="block truncate text-xs text-white/85">
                             {item.vagaTitulo || "Candidatura espontânea"}
-                            <span aria-hidden="true" className="mx-1.5 text-lime">
+                            <span aria-hidden="true" className="mx-1.5 text-ink-soft">
                               •
                             </span>
                             {tempoRelativo(item.criadoEm, agora)}
