@@ -19,6 +19,7 @@ import { situacaoDaFicha } from "@/lib/rh/ficha";
 import { contarPorSeveridade } from "@/lib/rh/ia/sinais";
 import { RECOMENDACOES } from "@/lib/rh/ia/tipos";
 import type { AnaliseIa, RecomendacaoIa } from "@/lib/rh/ia/tipos";
+import { apenasDigitos } from "@/lib/rh/formatar";
 import { AREAS, STATUS } from "@/lib/rh/opcoes";
 import type { AreaVaga, Candidatura, StatusCandidatura, Vaga } from "@/lib/rh/tipos";
 
@@ -121,10 +122,39 @@ function normalizar(texto: string): string {
     .trim();
 }
 
-/** Todos os campos em que a busca procura, já concatenados e normalizados. */
+/**
+ * Todos os campos em que a busca procura, já concatenados e normalizados.
+ *
+ * PROTOCOLO E TELEFONE ENTRAM AQUI porque é assim que a pessoa se apresenta
+ * quando ELA procura a clínica. A tela de confirmação diz, com todas as letras,
+ * "guarde o número do protocolo: é por ele que a equipe encontra a sua
+ * candidatura" — e até agora o painel não procurava por ele. A promessa da
+ * página pública não era cumprida pela tela interna.
+ *
+ * O protocolo entra em duas formas. Como está gravado ("jp-rh-2026-0055"), que
+ * já resolve quem digita só "0055", porque a comparação é por substring; e sem
+ * os hífens, para quem cola de um WhatsApp que comeu a pontuação. O telefone
+ * idem: como foi digitado e só os dígitos, senão quem procura "11987654321"
+ * não acha o que está gravado como "(11) 98765-4321".
+ *
+ * O CPF fica de fora de propósito. Ninguém liga para a clínica se apresentando
+ * por CPF, e deixá-lo buscável faria um dado sensível aparecer por digitação
+ * parcial — três dígitos casariam com várias fichas.
+ */
 function textoBuscavel(c: Candidatura): string {
   return normalizar(
-    [c.nome, c.email, c.cargoDesejado, c.vagaTitulo, c.cidade, ...c.etiquetas].join(" "),
+    [
+      c.nome,
+      c.email,
+      c.cargoDesejado,
+      c.vagaTitulo,
+      c.cidade,
+      c.protocolo,
+      c.protocolo.replace(/-/g, ""),
+      c.telefone,
+      apenasDigitos(c.telefone),
+      ...c.etiquetas,
+    ].join(" "),
   );
 }
 
@@ -432,7 +462,7 @@ export function BarraFiltros(props: {
               type="search"
               value={filtros.busca}
               onChange={(e) => mudar({ busca: e.target.value })}
-              placeholder="Nome, e-mail, vaga, cidade ou etiqueta"
+              placeholder="Protocolo, nome, telefone, e-mail, vaga ou cidade"
               /* O rótulo é sr-only, então o placeholder é a única pista visual do
                  que o campo aceita — e ele é LETRA sobre fundo verde, então vai
                  no piso de 85% de branco que o cliente fixou. */
