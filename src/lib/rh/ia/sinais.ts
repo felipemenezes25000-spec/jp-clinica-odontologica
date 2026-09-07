@@ -1,0 +1,561 @@
+/**
+ * O motor de sinais determinístico.
+ *
+ * O dono da clínica pediu que a IA "sinalizasse tudo". Este arquivo é a parte do
+ * "tudo" que dá para PROVAR: cada sinal daqui sai de um número que o código
+ * calculou ou de um campo que o documento traz (ou não traz). Nada aqui depende
+ * de o modelo estar de bom humor — e é por isso que estes sinais são os que a
+ * clínica pode levar para uma conversa difícil sem medo.
+ *
+ * O que o modelo acrescenta por cima (origem "ia") é interpretação: se a
+ * experiência serve, se a trajetória convence, o que perguntar. Interpretação é
+ * o trabalho dele; conta de data é o nosso.
+ *
+ * Puro de propósito: `agora` entra por parâmetro e não há I/O nenhum, porque
+ * este arquivo é importado tanto pelo servidor quanto pelas telas do painel.
+ */
+import { apenasDigitos } from "../formatar";
+import type { AreaVaga } from "../tipos";
+import { emAnosMeses, paraMes } from "./metricas";
+import type { ExtracaoCurriculo, MetricasPermanencia, SeveridadeSinal, Sinal } from "./tipos";
+import { severidadePor } from "./tipos";
+
+/**
+ * Municípios da Região Metropolitana de São Paulo, normalizados.
+ *
+ * Serve a um sinal de severidade "info", nunca de eliminação: morar longe é
+ * fato logístico que a clínica quer saber antes de marcar entrevista às sete da
+ * manhã — não é defeito da candidata, e há quem faça uma hora de trajeto todo
+ * dia sem reclamar. Por isso o texto do sinal fala em confirmar deslocamento.
+ */
+const GRANDE_SAO_PAULO: string[] = [
+  "sao paulo",
+  "arujá",
+  "barueri",
+  "biritiba mirim",
+  "caieiras",
+  "cajamar",
+  "carapicuiba",
+  "cotia",
+  "diadema",
+  "embu das artes",
+  "embu guacu",
+  "ferraz de vasconcelos",
+  "francisco morato",
+  "franco da rocha",
+  "guararema",
+  "guarulhos",
+  "itapevi",
+  "itapecerica da serra",
+  "itaquaquecetuba",
+  "jandira",
+  "juquitiba",
+  "mairipora",
+  "maua",
+  "moji das cruzes",
+  "mogi das cruzes",
+  "osasco",
+  "pirapora do bom jesus",
+  "poa",
+  "ribeirao pires",
+  "rio grande da serra",
+  "salesopolis",
+  "santa isabel",
+  "santana de parnaiba",
+  "santo andre",
+  "sao bernardo do campo",
+  "sao caetano do sul",
+  "sao lourenco da serra",
+  "suzano",
+  "taboao da serra",
+  "vargem grande paulista",
+].map((c) => c.normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+
+/**
+ * Minúsculo, sem acento, sem espaço duplo, sem pontuação.
+ *
+ * É o que permite reconhecer "Maria José da Silva" e "MARIA JOSE DA SILVA"
+ * como a mesma pessoa quando o RH importa a mesma pasta de currículos duas
+ * vezes — que é exatamente como o acervo da clínica costuma chegar.
+ */
+export function normalizarNome(nome: string): string {
+  return nome
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Preposições que não ajudam a identificar ninguém: "de", "da", "dos"... */
+const PARTICULAS = new Set(["de", "da", "do", "das", "dos", "e", "di", "del", "van", "von"]);
+
+/**
+ * Primeiro nome + último sobrenome, ignorando partículas e nomes do meio.
+ *
+ * O nome do meio é o que mais varia entre um currículo e um formulário do site
+ * ("Ana Paula Souza Lima" x "Ana Lima"), então comparar as pontas pega o
+ * duplicado real sem transformar duas Anas diferentes na mesma pessoa.
+ */
+function pontasDoNome(nome: string): string {
+  const partes = normalizarNome(nome)
+    .split(" ")
+    .filter((p) => p.length > 1 && !PARTICULAS.has(p));
+  const primeiro = partes[0] ?? "";
+  const ultimo = partes.length > 1 ? (partes[partes.length - 1] ?? "") : "";
+  return ultimo ? `${primeiro} ${ultimo}` : primeiro;
+}
+
+/**
+ * Idade em anos a partir do que o documento trouxer.
+ *
+ * Aceita "AAAA-MM-DD", "AAAA-MM" e "AAAA" porque currículo escrito à mão traz
+ * as três formas. Quando só há o ano, `paraMes` assume janeiro e a idade sai um
+ * pouco MAIOR — o que é o lado seguro: idade maior torna o alerta de
+ * incoerência menos provável, e este é um alerta que não pode disparar à toa.
+ */
+function idadeEmAnos(extracao: ExtracaoCurriculo, agora: Date): number | null {
+  if (extracao.idadeDeclarada != null && extracao.idadeDeclarada > 0) {
+    return extracao.idadeDeclarada;
+  }
+  const nascimento = paraMes(extracao.nascimento, false);
+  if (nascimento == null) return null;
+  const mesAgora = agora.getUTCFullYear() * 12 + agora.getUTCMonth();
+  const anos = Math.floor((mesAgora - nascimento) / 12);
+  return anos > 0 && anos < 110 ? anos : null;
+}
+
+type EntradaSinais = {
+  extracao: ExtracaoCurriculo;
+  metricas: MetricasPermanencia;
+  area: AreaVaga;
+  agora: Date;
+  /** Candidaturas já no acervo, para detectar reenvio da mesma pessoa. */
+  nomesJaExistentes?: { nome: string; telefone: string; id: string }[];
+};
+
+export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
+  const { extracao: e, metricas: m, area, agora } = entrada;
+  const sinais: Sinal[] = [];
+  const ehEstagio = area === "estagio";
+
+  /* ---------------------------------------------------------------------- */
+  /* Documento                                                              */
+  /* ---------------------------------------------------------------------- */
+
+  if (!e.documentoValido) {
+    sinais.push({
+      chave: "documento-invalido",
+      origem: "documento",
+      severidade: "critico",
+      categoria: "documento",
+      titulo: "Isto não parece ser um currículo",
+      detalhe: `A leitura identificou o arquivo como "${e.tipoDocumento || "documento não identificado"}". Nenhuma nota abaixo deve ser levada a sério antes de conferir o arquivo original.`,
+      evidencias: [`Tipo identificado: ${e.tipoDocumento || "desconhecido"}`],
+      perguntar: "Confirmar com a pessoa se ela enviou o arquivo certo.",
+      contaNaNota: true,
+    });
+  }
+
+  if (e.legibilidade < 50) {
+    sinais.push({
+      chave: "ilegivel",
+      origem: "documento",
+      severidade: "alto",
+      categoria: "documento",
+      titulo: "Documento difícil de ler",
+      detalhe: `A legibilidade ficou em ${e.legibilidade}/100. Parte do que está escrito pode não ter sido capturada, então a ausência de uma informação aqui não prova que ela não está no currículo.`,
+      evidencias: e.observacoesDoLeitor.length
+        ? e.observacoesDoLeitor
+        : [`Legibilidade ${e.legibilidade}/100`],
+      perguntar: "Pedir o currículo em PDF ou uma foto mais nítida antes de descartar.",
+      contaNaNota: true,
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Permanência                                                            */
+  /* ---------------------------------------------------------------------- */
+
+  if (m.totalEmpregos === 0) {
+    sinais.push({
+      chave: "sem-experiencia",
+      origem: "calculo",
+      severidade: ehEstagio ? "medio" : "alto",
+      categoria: "permanencia",
+      titulo: "Nenhum emprego listado",
+      detalhe: ehEstagio
+        ? "O currículo não lista experiência profissional — o que é esperado em vaga de estágio. Vale perguntar por trabalho informal, negócio da família ou voluntariado."
+        : "O currículo não lista nenhum emprego. Pode ser primeiro emprego, pode ser página faltando: os dois casos se resolvem com uma pergunta.",
+      evidencias: ["Nenhum vínculo profissional encontrado no documento"],
+      perguntar: "Você já trabalhou antes, mesmo sem registro em carteira? Conte como foi.",
+      contaNaNota: true,
+    });
+  }
+
+  if (m.empregosSemData > 0) {
+    const plural = m.empregosSemData > 1;
+    sinais.push({
+      chave: "sem-datas",
+      origem: "calculo",
+      severidade: "alto",
+      categoria: "permanencia",
+      titulo: `${m.empregosSemData} ${plural ? "empregos sem período" : "emprego sem período"}`,
+      detalhe: `${plural ? "Esses vínculos ficaram" : "Esse vínculo ficou"} de fora de toda a conta de permanência, porque o currículo não informa quando começou nem quando terminou. Isso NÃO é sinal de rotatividade nem de estabilidade — é informação que falta.`,
+      evidencias: m.linhaDoTempo
+        .filter((t) => !t.de)
+        .map(
+          (t) => `${t.cargo || "cargo não informado"} — ${t.empresa || "empresa não informada"}`,
+        ),
+      perguntar: "De que mês a que mês você ficou em cada um desses empregos?",
+      contaNaNota: true,
+    });
+  }
+
+  if (m.mesesUltimoEmprego != null && m.mesesUltimoEmprego < 12) {
+    const meses = m.mesesUltimoEmprego;
+    const ultimo = m.ultimoEmprego;
+    const onde = ultimo
+      ? `${ultimo.cargo || "cargo não informado"} — ${ultimo.empresa || "empresa não informada"}`
+      : "último vínculo";
+    // A gravidade sobe conforme o tempo cai, mas em vaga de estágio ela desce
+    // um degrau inteiro: passagem curta aos 19 anos é o normal da idade, e a
+    // rubrica de estágio manda dizer isso com todas as letras. Continuar
+    // marcando como "crítico" faria a tela contradizer o próprio prompt.
+    const severidade = ehEstagio ? "baixo" : meses < 4 ? "critico" : meses < 6 ? "alto" : "medio";
+    sinais.push({
+      chave: "ultimo-curto",
+      origem: "calculo",
+      severidade,
+      categoria: "permanencia",
+      titulo: `Último emprego durou ${emAnosMeses(meses)}`,
+      detalhe: ehEstagio
+        ? `Ficou ${emAnosMeses(meses)} no último vínculo. Em vaga de estágio isso é esperado: contrato temporário, jovem aprendiz e emprego largado para voltar a estudar são trajetória normal nessa faixa de idade.`
+        : `Ficou ${emAnosMeses(meses)} em ${onde}. Contrato temporário, empresa que fechou e experiência que não deu certo explicam permanência curta — mas é o primeiro assunto da entrevista.`,
+      evidencias: [
+        `${onde}: ${emAnosMeses(meses)}`,
+        `Média por emprego: ${emAnosMeses(m.mediaMesesPorEmprego)}`,
+      ],
+      perguntar: `Por que você saiu de ${ultimo?.empresa || "seu último emprego"}?`,
+      contaNaNota: true,
+    });
+  }
+
+  if (m.empregosCurtos >= 3 || m.inicios24Meses >= 3) {
+    sinais.push({
+      chave: "rotatividade",
+      origem: "calculo",
+      severidade: "alto",
+      categoria: "permanencia",
+      titulo: "Padrão de trocas frequentes",
+      detalhe: `${m.empregosCurtos} ${m.empregosCurtos === 1 ? "vínculo durou" : "vínculos duraram"} menos de um ano e ${m.inicios24Meses} ${m.inicios24Meses === 1 ? "começou" : "começaram"} nos últimos 24 meses. Treinar alguém para a rotina da clínica leva cerca de dois meses, então o padrão importa — mas veja antes se não é uma sequência de contratos temporários.`,
+      evidencias: [
+        `Empregos com menos de 1 ano: ${m.empregosCurtos}${m.proporcaoCurtos != null ? ` (${m.proporcaoCurtos}% dos datados)` : ""}`,
+        `Iniciados nos últimos 24 meses: ${m.inicios24Meses}`,
+        `Mediana de permanência: ${emAnosMeses(m.medianaMeses)}`,
+      ],
+      perguntar: "Me conta a sequência dos seus últimos empregos: o que levou a cada saída?",
+      contaNaNota: true,
+    });
+  }
+
+  if (m.sobreposicoes.length) {
+    sinais.push({
+      chave: "datas-sobrepostas",
+      origem: "calculo",
+      severidade: "alto",
+      categoria: "coerencia",
+      titulo: "Períodos que se sobrepõem",
+      detalhe:
+        "Dois ou mais vínculos aparecem acontecendo ao mesmo tempo. Na maioria das vezes é data digitada errada; às vezes é acúmulo real de dois meios-períodos. Uma pergunta resolve, e ela precisa ser feita antes de somar a experiência total.",
+      evidencias: m.sobreposicoes.map(
+        (s) => `${s.a} × ${s.b}: ${emAnosMeses(s.meses)} em paralelo`,
+      ),
+      perguntar: "Você trabalhou nesses dois lugares ao mesmo tempo, ou alguma data ficou trocada?",
+      contaNaNota: true,
+    });
+  }
+
+  // Uma lacuna por sinal: juntar todas em um alerta só faria a de sete meses e
+  // a de quatro anos parecerem o mesmo assunto. A `chave` se repete de
+  // propósito — quem renderizar a lista deve indexar por posição.
+  for (const lacuna of m.lacunas) {
+    if (lacuna.meses < 6) continue;
+    sinais.push({
+      chave: "lacuna",
+      origem: "calculo",
+      severidade: "medio",
+      categoria: "permanencia",
+      titulo: `Intervalo de ${emAnosMeses(lacuna.meses)} entre empregos`,
+      detalhe: `Entre ${lacuna.de} e ${lacuna.ate} não há vínculo listado. Estudo, filho pequeno, cuidado de familiar, doença e desemprego são todos motivos legítimos — a clínica só precisa saber, e nenhum deles pode virar critério de descarte.`,
+      evidencias: [`${lacuna.de} → ${lacuna.ate} (${emAnosMeses(lacuna.meses)})`],
+      perguntar: `O que você estava fazendo entre ${lacuna.de} e ${lacuna.ate}?`,
+      contaNaNota: true,
+    });
+  }
+
+  if (m.empregadaAtualmente === false) {
+    sinais.push({
+      chave: "desempregada",
+      origem: "calculo",
+      severidade: "info",
+      categoria: "permanencia",
+      titulo: "Não consta emprego em andamento",
+      detalhe:
+        "Nenhum vínculo do currículo está marcado como atual. Costuma significar disponibilidade imediata — é informação de agenda, não demérito.",
+      evidencias: m.ultimoEmprego
+        ? [
+            `Último vínculo: ${m.ultimoEmprego.cargo || "cargo não informado"} — ${m.ultimoEmprego.empresa || "empresa não informada"}`,
+          ]
+        : [],
+      perguntar: "A partir de quando você poderia começar?",
+      contaNaNota: false,
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Contato                                                                */
+  /* ---------------------------------------------------------------------- */
+
+  const temTelefone = apenasDigitos(e.telefone).length >= 10;
+  const temEmail = e.email.trim().length > 0;
+
+  if (!temTelefone && !temEmail) {
+    sinais.push({
+      chave: "sem-contato",
+      origem: "documento",
+      severidade: "alto",
+      categoria: "contato",
+      titulo: "Sem telefone e sem e-mail",
+      detalhe:
+        "Não há como chamar esta pessoa para entrevista. Confira o arquivo original: contato costuma ficar no cabeçalho, que é justamente a parte que some quando a foto corta a página.",
+      evidencias: ["Nenhum telefone ou e-mail legível no documento"],
+      perguntar: "",
+      contaNaNota: false,
+    });
+  } else if (!temTelefone) {
+    // Só quando há e-mail: sem os dois, `sem-contato` já cobriu o assunto e
+    // repetir o alerta faria a lista parecer duas vezes pior do que é.
+    sinais.push({
+      chave: "sem-telefone",
+      origem: "documento",
+      severidade: "medio",
+      categoria: "contato",
+      titulo: "Sem telefone",
+      detalhe:
+        "Só há e-mail. A clínica marca entrevista por WhatsApp; sem número, a resposta demora ou não vem.",
+      evidencias: [`E-mail: ${e.email.trim()}`],
+      perguntar: "",
+      contaNaNota: false,
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Conformidade profissional e aderência                                  */
+  /* ---------------------------------------------------------------------- */
+
+  const exigeRegistro = area === "dentista" || area === "asb-tsb";
+  if (exigeRegistro && !e.registroProfissional.trim()) {
+    sinais.push({
+      chave: "sem-registro",
+      origem: "documento",
+      severidade: "critico",
+      categoria: "conformidade",
+      titulo: "Sem registro no conselho",
+      detalhe:
+        "A vaga exige registro no CRO e o currículo não traz nenhum número. É pré-requisito legal para atuar: sem ele a pessoa não pode assumir a função, por melhor que seja o resto do histórico.",
+      evidencias: ["Nenhum registro profissional (CRO) encontrado no documento"],
+      perguntar: "Qual é o seu número de CRO e ele está ativo?",
+      contaNaNota: true,
+    });
+  }
+
+  const idade = idadeEmAnos(e, agora);
+  if (idade != null && m.mesesExperienciaTotal != null) {
+    const anosPossiveis = Math.max(0, idade - 13);
+    // Margem de um ano porque a nossa própria regra de "ano sem mês vira
+    // janeiro/dezembro" infla a soma, e vínculos sobrepostos são contados duas
+    // vezes de propósito no total. Sem essa folga, o alerta dispararia em
+    // currículo honesto — e um alerta que erra é um alerta que ninguém lê.
+    if (m.mesesExperienciaTotal / 12 > anosPossiveis + 1) {
+      sinais.push({
+        chave: "idade-incoerente",
+        origem: "calculo",
+        severidade: "alto",
+        categoria: "coerencia",
+        titulo: "Experiência não fecha com a idade",
+        detalhe: `A soma dos períodos dá ${emAnosMeses(m.mesesExperienciaTotal)} de trabalho, mais do que caberia em uma trajetória iniciada aos 14 anos para alguém de ${idade}. Costuma ser data digitada errada ou vínculos que aconteceram em paralelo — vale conferir antes de qualquer julgamento.`,
+        evidencias: [
+          `Idade considerada: ${idade} anos`,
+          `Experiência somada: ${emAnosMeses(m.mesesExperienciaTotal)}`,
+          `Máximo plausível a partir dos 14 anos: cerca de ${anosPossiveis} anos`,
+        ],
+        perguntar: "Podemos revisar as datas dos seus empregos? Algumas parecem se cruzar.",
+        contaNaNota: true,
+      });
+    }
+  }
+
+  if (m.totalEmpregos > 0 && m.mesesEmOdontologia === 0 && m.mesesEmSaude === 0 && !ehEstagio) {
+    sinais.push({
+      chave: "experiencia-fora-da-area",
+      origem: "calculo",
+      severidade: "medio",
+      categoria: "coerencia",
+      titulo: "Nenhuma passagem por odontologia ou saúde",
+      detalhe:
+        "Toda a experiência veio de outros setores. Não elimina ninguém — a JP já formou boa recepção vinda do varejo —, mas significa treinamento de rotina clínica desde o começo: prontuário, convênio, biossegurança e a linguagem do consultório.",
+      evidencias: m.linhaDoTempo
+        .filter((t) => t.setor)
+        .map((t) => `${t.cargo || "cargo não informado"} — setor ${t.setor}`)
+        .slice(0, 5),
+      perguntar: "O que te fez procurar uma clínica odontológica agora?",
+      contaNaNota: true,
+    });
+  }
+
+  if (area === "recepcao" && m.totalEmpregos > 0 && m.mesesAtendimentoPublico === 0) {
+    sinais.push({
+      chave: "sem-atendimento",
+      origem: "calculo",
+      severidade: "medio",
+      categoria: "coerencia",
+      titulo: "Sem atendimento ao público no histórico",
+      detalhe:
+        "Nenhum dos vínculos aparece com contato direto com cliente ou paciente, e a recepção da clínica é atendimento o dia inteiro — no balcão, no telefone e no WhatsApp.",
+      evidencias: m.linhaDoTempo
+        .map((t) => `${t.cargo || "cargo não informado"} — ${t.empresa || "empresa não informada"}`)
+        .slice(0, 5),
+      perguntar: "Em qual desses trabalhos você lidava direto com o público? Como era o dia a dia?",
+      contaNaNota: true,
+    });
+  }
+
+  if (
+    (area === "recepcao" || area === "administrativo") &&
+    m.totalEmpregos > 0 &&
+    m.mesesAdministrativo === 0
+  ) {
+    sinais.push({
+      chave: "sem-administrativo",
+      origem: "calculo",
+      severidade: "medio",
+      categoria: "coerencia",
+      titulo: "Sem rotina administrativa no histórico",
+      detalhe:
+        "Não aparece agenda, sistema, planilha, caixa ou confirmação em nenhum emprego. É metade do trabalho na JP: quem atende também organiza a agenda e fecha o caixa do dia.",
+      evidencias: e.softwares.length
+        ? [`Sistemas citados no currículo: ${e.softwares.join(", ")}`]
+        : ["Nenhum sistema, planilha ou rotina de agenda citada"],
+      perguntar: "Que sistema ou planilha você usava no dia a dia? Chegou a mexer com caixa?",
+      contaNaNota: true,
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Acervo                                                                 */
+  /* ---------------------------------------------------------------------- */
+
+  const jaExistentes = entrada.nomesJaExistentes ?? [];
+  if (jaExistentes.length) {
+    const pontasAtual = pontasDoNome(e.nome);
+    const telefoneAtual = apenasDigitos(e.telefone);
+    const iguais = jaExistentes.filter((outro) => {
+      const mesmoTelefone =
+        telefoneAtual.length >= 10 && apenasDigitos(outro.telefone) === telefoneAtual;
+      const mesmoNome = pontasAtual.length > 3 && pontasDoNome(outro.nome) === pontasAtual;
+      return mesmoTelefone || mesmoNome;
+    });
+
+    if (iguais.length) {
+      sinais.push({
+        chave: "possivel-duplicado",
+        origem: "calculo",
+        severidade: "alto",
+        categoria: "documento",
+        titulo: "Pode ser alguém que já está no acervo",
+        detalhe:
+          "Nome muito parecido ou o mesmo telefone de outra candidatura já registrada. Antes de analisar de novo, vale abrir a ficha antiga: pode ser reenvio do mesmo currículo, e pode ser que a clínica já tenha conversado com essa pessoa.",
+        evidencias: iguais.map((o) => `${o.nome || "sem nome"} (ficha ${o.id})`),
+        perguntar: "",
+        contaNaNota: false,
+      });
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Logística                                                              */
+  /* ---------------------------------------------------------------------- */
+
+  const uf = e.uf.trim().toUpperCase();
+  const cidade = normalizarNome(e.cidade);
+  const foraDoEstado = uf.length === 2 && uf !== "SP";
+  const foraDaRegiao = !foraDoEstado && cidade.length > 2 && !GRANDE_SAO_PAULO.includes(cidade);
+  if (foraDoEstado || foraDaRegiao) {
+    sinais.push({
+      chave: "fora-da-regiao",
+      origem: "documento",
+      severidade: "info",
+      categoria: "contato",
+      titulo: "Endereço fora da Grande São Paulo",
+      detalhe: `O currículo informa ${[e.cidade.trim(), uf].filter(Boolean).join("/")}. A vaga é presencial na Vila Bruna: vale confirmar se a pessoa já mudou, pretende mudar ou faz o trajeto todo dia. Distância não desqualifica ninguém — só precisa ser combinada antes.`,
+      evidencias: [`Cidade informada: ${[e.cidade.trim(), uf].filter(Boolean).join("/")}`],
+      perguntar: "Você mora hoje em qual região? Quanto tempo levaria até a Vila Bruna?",
+      contaNaNota: false,
+    });
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Conformidade — o único sinal que nunca pesa na nota                    */
+  /* ---------------------------------------------------------------------- */
+
+  // Este é o único sinal do motor com `contaNaNota: false` por motivo de
+  // PRINCÍPIO, e não por ser mero aviso de logística. Estado civil, filhos,
+  // foto, religião e idade aparecem em currículo brasileiro o tempo todo, e a
+  // clínica não pode usar nada disso para decidir — nem a favor, nem contra.
+  // Mostrar o alerta serve para duas coisas: lembrar quem vai ler que aquilo
+  // ali não entra na conversa, e deixar registrado, na própria ficha, que o
+  // sistema não considerou. É proteção da clínica, não julgamento da candidata.
+  if (e.dadosSensiveisPresentes.length) {
+    sinais.push({
+      chave: "dado-sensivel",
+      origem: "documento",
+      severidade: "info",
+      categoria: "conformidade",
+      titulo: "O currículo traz dados que não podem pesar na decisão",
+      detalhe: `Foram encontrados no documento: ${e.dadosSensiveisPresentes.join(", ")}. Nada disso entrou na nota, e nada disso pode ser usado para decidir nem comentado na entrevista — estado civil, filhos, foto, religião e idade não são critério de contratação.`,
+      evidencias: e.dadosSensiveisPresentes,
+      perguntar: "",
+      contaNaNota: false,
+    });
+  }
+
+  return ordenarSinais(sinais);
+}
+
+/** Do crítico ao informativo. Empate mantém a ordem em que o motor gerou. */
+export function ordenarSinais(sinais: Sinal[]): Sinal[] {
+  return [...sinais].sort(
+    (a, b) => severidadePor(b.severidade).peso - severidadePor(a.severidade).peso,
+  );
+}
+
+/**
+ * Sempre com as cinco chaves preenchidas — inclusive as zeradas.
+ *
+ * A tela precisa poder escrever "0 críticos" sem checar existência de chave, e
+ * um `Record` construído só com o que apareceu obrigaria cada leitura a tratar
+ * `undefined` por causa do `noUncheckedIndexedAccess`.
+ */
+export function contarPorSeveridade(sinais: Sinal[]): Record<SeveridadeSinal, number> {
+  const contagem: Record<SeveridadeSinal, number> = {
+    critico: 0,
+    alto: 0,
+    medio: 0,
+    baixo: 0,
+    info: 0,
+  };
+  for (const s of sinais) contagem[s.severidade] += 1;
+  return contagem;
+}

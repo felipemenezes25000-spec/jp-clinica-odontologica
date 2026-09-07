@@ -377,6 +377,10 @@ export const NAV = [
   { label: "Estrutura", href: "/#estrutura" },
   { label: "FAQ", href: "/#faq" },
   { label: "Contato", href: "/#fale" },
+  /* Única entrada do menu que não é âncora da home: o portal de vagas é página
+     própria, com URL indexável, porque quem procura emprego chega pelo Google
+     ou por um link colado no WhatsApp — não rolando a home até uma seção. */
+  { label: "Carreiras", href: "/carreiras" },
 ];
 
 export type Tratamento = {

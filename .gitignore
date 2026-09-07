@@ -36,3 +36,15 @@ dist-ssr
 # Python (scripts/gerar-marca.py)
 __pycache__/
 *.pyc
+
+# Portal de RH: dados gravados em disco (candidaturas e currículos enviados)
+# e segredos locais. Nada disso pode ir para o repositório — .env.example fica
+# versionado como referência.
+.data/
+.env
+.env.local
+
+.vercel
+.senha-painel.txt
+.senha-painel.tmp
+.segredo-sessao.tmp

@@ -29,6 +29,30 @@ export default defineConfig({
     host: true,
   },
 
+  // SÓ o ambiente de servidor vira um pedaço único.
+  //
+  // O bug era ciclo ENTRE pedaços do bundle de SSR: o fatiador punha
+  // `createCsrfMiddleware` num pedaço que o pedaço do framework importava de
+  // volta, e em ESM isso vira `undefined` em vez de erro — 500 em todas as
+  // rotas, com o build passando limpo. Sem fatiamento não há ciclo possível.
+  // Ver docs/INCIDENTE-BUILD-500.md.
+  //
+  // No servidor isso não custa nada: o arquivo é carregado inteiro na primeira
+  // requisição de qualquer jeito, não existe download incremental.
+  //
+  // NO CLIENTE CUSTARIA CARO, e por isso a regra fica aqui e não em `build`:
+  // aplicada globalmente, ela juntou o site inteiro num único JS de 993 KB, e
+  // quem abrisse a home baixaria junto o painel de RH inteiro.
+  environments: {
+    ssr: {
+      build: {
+        rollupOptions: {
+          output: { inlineDynamicImports: true },
+        },
+      },
+    },
+  },
+
   css: {
     // Tailwind v4 runs through @tailwindcss/vite, not PostCSS. Pinning an inline
     // (empty) config stops Vite from walking up the filesystem for a postcss.config

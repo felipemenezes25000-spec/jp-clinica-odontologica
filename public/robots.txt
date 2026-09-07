@@ -1,8 +1,20 @@
+# /carreiras é a página que PRECISA ser encontrada — é por ela que a clínica
+# recebe candidatura. As páginas de vaga (/carreiras/<slug>) também.
+# O resto do portal de RH fica fora: /rh é área interna, /api/ nunca serve
+# conteúdo de leitura e /trabalhe-conosco é formulário (competiria com a
+# própria vitrine de vagas no índice).
+
 User-agent: Googlebot
 Allow: /
+Disallow: /rh
+Disallow: /api/
+Disallow: /trabalhe-conosco
 
 User-agent: Bingbot
 Allow: /
+Disallow: /rh
+Disallow: /api/
+Disallow: /trabalhe-conosco
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +24,6 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /rh
+Disallow: /api/
+Disallow: /trabalhe-conosco

@@ -159,11 +159,19 @@
     outline-offset: 3px;
     border-radius: 10px;
   }
+  /* Toda superfície escura precisa entrar aqui. `--forest-2` (#095902) sobre o
+     verde profundo do portal mede 1,73:1 — quem navega o painel de RH só por
+     teclado não vê anel de foco em lugar nenhum, e a 1.4.11 pede 3:1. O lime
+     sobre `--brand-deep` dá 4,96:1, e mesmo no ponto mais claro da aurora
+     (o halo lime sobre o gradiente) fica em 3,3:1. */
   .bg-forest-2 :focus-visible,
   .bg-forest :focus-visible,
   .bg-ink :focus-visible,
   .hero-noise :focus-visible,
   .treatment-hero :focus-visible,
+  .section-deep :focus-visible,
+  .rh-aurora :focus-visible,
+  .rh-gaveta :focus-visible,
   footer :focus-visible {
     outline-color: var(--lime);
   }
@@ -331,7 +339,8 @@
   padding: 0.9rem 1.35rem;
   border-radius: 999px;
   background: var(--forest-2);
-  color: var(--cream);
+  /* Fundo verde: branco puro. Era --cream (#f7f8f2). */
+  color: white;
   font-weight: 800;
   transition:
     transform 0.35s var(--ease-out),
@@ -1059,5 +1068,1127 @@
 @media (min-width: 768px) {
   body {
     padding-bottom: 0;
+  }
+}
+
+/* =========================================================
+   PORTAL DE RH — superfícies, formulário e painel interno
+   Tudo aqui nasce com o prefixo "rh-": o portal divide o mesmo
+   bundle de CSS com o site público, e uma classe genérica
+   (.campo, .coluna, .chip) mais cedo ou mais tarde colidiria
+   com algo das seções de tratamento. As cores saem sempre dos
+   tokens da marca via color-mix — nenhum hex novo entra aqui.
+   ========================================================= */
+
+:root {
+  /* Estados do portal centralizados. Foco, erro e arrasto aparecem em nove
+     componentes diferentes; sem estas variáveis, mudar a espessura do anel
+     de foco viraria uma caça a nove color-mix espalhados. */
+  --rh-borda: var(--border-soft);
+  --rh-borda-forte: color-mix(in oklab, var(--forest) 32%, var(--border-soft));
+  /* Verde do foco: o mesmo --forest do outline global, para o anel interno e
+     o contorno externo não brigarem por matiz. */
+  --rh-foco: var(--forest);
+  --rh-anel: color-mix(in oklab, var(--lime) 22%, transparent);
+  --rh-erro: var(--destructive);
+  --rh-erro-fundo: color-mix(in oklab, var(--destructive) 5%, white);
+  --rh-superficie: color-mix(in oklab, white 95%, var(--cream));
+  --rh-vidro-borda: color-mix(in oklab, var(--lime) 32%, transparent);
+  --rh-raio: 0.9rem;
+  --rh-sombra-baixa:
+    0 1px 2px color-mix(in oklab, var(--brand-deep) 8%, transparent),
+    0 22px 48px -34px color-mix(in oklab, var(--brand-deep) 55%, transparent);
+}
+
+/* ---- Superfícies ---- */
+
+/* Fundo do painel admin. O gradiente vive num ::before fixo em vez de ir no
+   background do elemento porque o painel é um container rolável: com o fundo
+   no próprio elemento os dois halos subiriam junto com a lista de candidatos.
+   background-attachment: fixed resolveria em teoria, mas é ignorado no iOS e
+   força repaint de tela cheia a cada frame de scroll. */
+.rh-aurora {
+  position: relative;
+  isolation: isolate;
+  background: var(--brand-deep);
+  /* Branco puro, e não --cream: é a cor de texto herdada por todo o painel, e
+     a regra do cliente para fundo verde não abre exceção para "quase branco". */
+  color: white;
+}
+.rh-aurora::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      42rem 32rem at 12% -6%,
+      color-mix(in oklab, var(--lime) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      38rem 30rem at 92% 108%,
+      color-mix(in oklab, var(--lime) 11%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--forest) 30%, var(--brand-deep)),
+      var(--brand-deep) 62%
+    );
+}
+/* Grão separado do gradiente: precisa de mix-blend-mode próprio, e mesclar os
+   dois no mesmo pseudo faria o blend valer também para os halos. */
+.rh-aurora::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: radial-gradient(
+    color-mix(in oklab, white 14%, transparent) 0.6px,
+    transparent 0.7px
+  );
+  background-size: 7px 7px;
+  mix-blend-mode: soft-light;
+}
+
+/* Malha do hero do formulário público. A máscara some para baixo para a grade
+   não competir com o primeiro campo do formulário, que começa logo abaixo. */
+.rh-grade {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--forest) 9%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--forest) 9%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 40px 40px;
+  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 88%);
+  mask-image: linear-gradient(to bottom, black 0%, transparent 88%);
+}
+
+/* Cartão de vidro sobre fundo escuro. A borda é lime translúcido: sobre o
+   verde profundo ela passa dos 3:1 que a WCAG pede para o contorno de um
+   componente — um branco a 10%, que seria o reflexo natural aqui, não chega. */
+.rh-vidro {
+  border: 1px solid var(--rh-vidro-borda);
+  border-radius: 1.25rem;
+  background: color-mix(in oklab, var(--brand-deep) 70%, transparent);
+  box-shadow: 0 30px 80px -50px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Cartão claro do formulário público. Branco puxado para o creme (papel
+   levemente quente) porque branco absoluto sobre a página cream some; a
+   sombra é baixa e longa para o cartão flutuar sem parecer um modal. */
+.rh-papel {
+  border: 1px solid color-mix(in oklab, var(--forest) 12%, white);
+  border-radius: 1.4rem;
+  background: var(--rh-superficie);
+  box-shadow: var(--rh-sombra-baixa);
+}
+
+/* ---- Formulário ---- */
+
+.rh-campo {
+  display: block;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--rh-borda);
+  border-radius: var(--rh-raio);
+  background: white;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  transition:
+    border-color 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    background 0.2s var(--ease-out);
+}
+/* `--ink-soft` puro (5,69:1 no branco). Clareá-lo para 82% derrubava o
+   placeholder a 3,84:1 — abaixo do mínimo, e em vários campos ele é a única
+   pista do formato esperado. Continua distinto do valor digitado, que é
+   `--ink`, bem mais escuro. */
+.rh-campo::placeholder {
+  color: var(--ink-soft);
+}
+/* A borda "engrossa" por box-shadow inset, não por border-width: subir a borda
+   de 1px para 2px no foco encolhe a caixa de conteúdo e faz o texto pular um
+   pixel a cada foco. O segundo inset é o anel interno lime.
+   Nenhum outline: none aqui — o contorno global de :focus-visible continua
+   valendo por cima, e é ele que atende quem navega por teclado. */
+.rh-campo:focus {
+  border-color: var(--rh-foco);
+  box-shadow:
+    inset 0 0 0 1px var(--rh-foco),
+    inset 0 0 0 4px var(--rh-anel);
+}
+/* Erro nunca só pela borda vermelha: o fundo rosado é a segunda pista e a
+   mensagem .rh-erro é a terceira, em texto. */
+.rh-campo[aria-invalid="true"] {
+  border-color: var(--rh-erro);
+  background: var(--rh-erro-fundo);
+}
+.rh-campo[aria-invalid="true"]:focus {
+  box-shadow:
+    inset 0 0 0 1px var(--rh-erro),
+    inset 0 0 0 4px color-mix(in oklab, var(--rh-erro) 14%, transparent);
+}
+.rh-campo:disabled {
+  background: color-mix(in oklab, var(--cream) 70%, white);
+  color: var(--ink-soft);
+  cursor: not-allowed;
+}
+textarea.rh-campo {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.rh-rotulo {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  /* Era --brand-text (verde sobre claro). A regra do cliente é dura: fundo
+     claro, letra preta — e rótulo de campo é corpo de formulário, não título
+     curto de seção. --ink mede 13:1 no branco contra os 5.13:1 do verde, então
+     a troca sobe o contraste em vez de baixá-lo. É este rótulo que serve TODOS
+     os campos do formulário público e do painel. */
+  color: var(--ink);
+}
+
+.rh-ajuda {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  /* Mesma ordem: "ajuda vai de text-ink". O cinza --ink-soft passava em AA,
+     mas a instrução é explícita e a ajuda é justamente o texto que a pessoa
+     precisa ler quando não entendeu o campo. */
+  color: var(--ink);
+}
+
+/* --destructive (#b42318) mede 6.8:1 no branco e 6.5:1 no creme. O vermelho
+   "puro" que costuma aparecer em mensagem de erro fica em 4:1 e reprova. */
+.rh-erro {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--rh-erro);
+}
+
+/* Pílula selecionável (especialidades, competências, softwares). */
+.rh-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--rh-borda);
+  border-radius: 999px;
+  background: white;
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    border-color 0.2s var(--ease-out),
+    background 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    transform 0.2s var(--ease-out);
+}
+.rh-chip:hover {
+  border-color: var(--rh-borda-forte);
+  background: color-mix(in oklab, var(--mint) 55%, white);
+}
+/* WCAG 1.4.1: o estado selecionado não pode depender só da cor. Além do fundo
+   menta, o chip ativo ganha borda de 2px (o segundo pixel vem de um inset, que
+   não reposiciona a linha inteira de chips) e peso de fonte maior — dois
+   sinais não cromáticos, visíveis em monocromático e para quem não distingue
+   verde de cinza. */
+.rh-chip[data-ativo="true"] {
+  border-color: var(--forest);
+  background: color-mix(in oklab, var(--mint) 88%, white);
+  /* Fundo CLARO (mint), então letra preta — e não branca: branco sobre mint
+     seria ilegível. O verde continua na borda e no anel interno. */
+  color: var(--ink);
+  font-weight: 750;
+  box-shadow: inset 0 0 0 1px var(--forest);
+}
+
+/* Mesmo controle, em superfície escura (.rh-aurora, .rh-gaveta). A pastilha
+   branca do `.rh-chip` funciona no papel do formulário público, mas dentro do
+   painel ela vira um bloco de luz no meio do verde profundo — e some do
+   agrupamento a que pertence.
+
+   Vem DEPOIS de `.rh-chip[data-ativo="true"]` de propósito: a especificidade é
+   a mesma nos dois pares, então quem decide é a ordem no arquivo. Os três
+   sinais não cromáticos do estado ativo são preservados um a um — borda de 2px
+   (borda + inset), peso de fonte maior e troca de fundo —, porque é deles que
+   depende quem não distingue verde de cinza. */
+.rh-chip-escuro {
+  border-color: color-mix(in oklab, white 22%, transparent);
+  background: color-mix(in oklab, white 8%, transparent);
+  color: white;
+}
+.rh-chip-escuro:hover {
+  border-color: color-mix(in oklab, var(--lime) 55%, transparent);
+  background: color-mix(in oklab, white 14%, transparent);
+}
+.rh-chip-escuro[data-ativo="true"] {
+  border-color: var(--lime);
+  background: color-mix(in oklab, var(--lime) 18%, transparent);
+  color: white;
+  font-weight: 750;
+  box-shadow: inset 0 0 0 1px var(--lime);
+}
+
+/* Cartão grande de escolha (área da vaga, tipo de vínculo). */
+.rh-cartao-opcao {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow: hidden;
+  width: 100%;
+  padding: 1.1rem;
+  border: 1px solid var(--rh-borda);
+  border-radius: 1.1rem;
+  background: white;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out),
+    transform 0.3s var(--ease-out);
+}
+/* Brilho lime no canto. Fica em z-index negativo para nunca passar por cima do
+   texto, e só ganha opacidade quando o cartão está ativo. */
+.rh-cartao-opcao::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -6rem;
+  right: -6rem;
+  width: 12rem;
+  height: 12rem;
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--lime) 55%, transparent),
+    transparent 72%
+  );
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+.rh-cartao-opcao:hover {
+  border-color: var(--rh-borda-forte);
+  box-shadow: var(--rh-sombra-baixa);
+  transform: translateY(-2px);
+}
+.rh-cartao-opcao[data-ativo="true"] {
+  border-color: var(--forest);
+  box-shadow:
+    inset 0 0 0 1px var(--forest),
+    var(--rh-sombra-baixa);
+}
+.rh-cartao-opcao[data-ativo="true"]::after {
+  opacity: 0.28;
+  animation: rh-brilho 2.6s var(--ease-out) infinite;
+}
+
+/* Área de upload. A borda tracejada é o sinal de "solte aqui" antes de
+   qualquer texto; os dois estados mudam borda e fundo juntos porque o cursor
+   arrastando um arquivo cobre boa parte da área. */
+.rh-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 9rem;
+  padding: 1.25rem;
+  border: 2px dashed var(--rh-borda-forte);
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--cream) 60%, white);
+  /* Superfície clara: a frase "Arraste o arquivo até aqui" é ajuda de campo, e
+     ajuda vai de --ink. Era --ink-soft. */
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color 0.2s var(--ease-out),
+    background 0.2s var(--ease-out),
+    transform 0.2s var(--ease-out);
+}
+.rh-dropzone:hover {
+  border-color: var(--forest);
+  background: color-mix(in oklab, var(--mint) 45%, white);
+}
+.rh-dropzone[data-sobre="true"] {
+  border-color: var(--forest);
+  background: color-mix(in oklab, var(--mint) 85%, white);
+  color: var(--ink);
+  transform: scale(1.01);
+}
+/* Preenchido vira borda sólida: o tracejado significa "espaço vazio à espera
+   de arquivo", e mantê-lo depois do anexo confunde quem revisa o formulário. */
+.rh-dropzone[data-preenchido="true"] {
+  border-style: solid;
+  border-color: var(--forest);
+  background: color-mix(in oklab, var(--mint) 70%, white);
+  color: var(--ink);
+}
+
+.rh-progresso {
+  overflow: hidden;
+  height: 0.375rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--forest) 12%, var(--cream));
+}
+/* Anima por width e não por scaleX: a barra tem gradiente, e escalar esticaria
+   o degradê junto. Em trilho de 6px o custo de layout é irrelevante. */
+.rh-progresso-barra {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--forest),
+    color-mix(in oklab, var(--lime) 72%, var(--forest))
+  );
+  transition: width 0.45s var(--ease-out);
+}
+
+/* Bolinha numerada do stepper. */
+.rh-passo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--rh-borda);
+  border-radius: 999px;
+  background: white;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out),
+    color 0.25s var(--ease-out);
+}
+.rh-passo[data-estado="feito"] {
+  border-color: var(--forest);
+  background: var(--forest);
+  color: white;
+}
+/* O passo atual é o único com anel externo, então dá para localizá-lo sem
+   comparar tonalidades entre as bolinhas. */
+.rh-passo[data-estado="atual"] {
+  border-color: var(--forest);
+  background: color-mix(in oklab, var(--mint) 90%, white);
+  color: var(--ink);
+  box-shadow: 0 0 0 4px var(--rh-anel);
+  animation: rh-pulso 2.4s var(--ease-out) infinite;
+}
+.rh-passo[data-estado="futuro"] {
+  background: var(--cream);
+}
+
+/* ---- Painel admin ---- */
+
+.rh-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in oklab, var(--lime) 22%, transparent);
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--brand-deep) 55%, transparent);
+  color: color-mix(in oklab, white 88%, var(--mint));
+}
+/* tabular-nums para o número não dançar quando o valor troca em tempo real
+   (12 → 137 → 9); clamp para caber nos 360px sem quebrar linha. */
+.rh-kpi strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 7vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: white;
+}
+
+/* Coluna do kanban: altura limitada e rolagem própria, para as colunas ficarem
+   alinhadas mesmo quando uma tem trinta candidatos e a vizinha tem dois. */
+.rh-coluna {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-height: min(72dvh, 44rem);
+  border: 1px solid color-mix(in oklab, var(--lime) 16%, transparent);
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--brand-deep) 62%, transparent);
+  transition:
+    border-color 0.2s var(--ease-out),
+    background 0.2s var(--ease-out);
+}
+/* Cabeçalho opaco por cima do corpo rolável: translúcido, os cartões passariam
+   legíveis por baixo do título da coluna. */
+.rh-coluna-topo {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--lime) 14%, transparent);
+  border-radius: 1.1rem 1.1rem 0 0;
+  background: color-mix(in oklab, var(--brand-deep) 92%, black);
+}
+.rh-coluna-corpo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+.rh-coluna[data-drop="true"] {
+  border-color: var(--lime);
+  background: color-mix(in oklab, var(--forest) 45%, var(--brand-deep));
+}
+/* O tracejado interno marca o alvo do solte melhor que só a mudança de fundo,
+   que a esta altura está parcialmente coberto pelo cartão sendo arrastado. */
+.rh-coluna[data-drop="true"] .rh-coluna-corpo {
+  outline: 2px dashed color-mix(in oklab, var(--lime) 60%, transparent);
+  outline-offset: -6px;
+}
+
+.rh-cartao-cand {
+  cursor: grab;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in oklab, var(--lime) 18%, transparent);
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--brand-deep) 78%, black);
+  color: color-mix(in oklab, white 90%, var(--mint));
+  transition:
+    transform 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out),
+    border-color 0.18s var(--ease-out);
+}
+.rh-cartao-cand:hover {
+  border-color: color-mix(in oklab, var(--lime) 42%, transparent);
+}
+/* A rotação de 1.5° é o que faz o cartão descolar da coluna durante o arrasto;
+   só com a sombra ele parece apenas selecionado. */
+.rh-cartao-cand[data-arrastando="true"] {
+  cursor: grabbing;
+  transform: rotate(1.5deg) scale(1.03);
+  border-color: var(--lime);
+  box-shadow: 0 26px 50px -22px rgba(0, 0, 0, 0.75);
+}
+
+/* Tabela densa da listagem. */
+.rh-tabela {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85rem;
+}
+/* sticky no <th> e não no <thead>: position: sticky em thead exige
+   border-collapse: separate e mesmo assim o Safari ignora — a célula é o único
+   alvo que se comporta igual nos três motores. */
+.rh-tabela thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--rh-borda);
+  background: var(--rh-superficie);
+  /* Cabeçalho de tabela sobre superfície clara: letra preta. Era o único
+     lugar em que a tabela do painel ainda escrevia em verde. */
+  color: var(--ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.rh-tabela tbody td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--border-soft) 60%, transparent);
+  color: var(--ink);
+  vertical-align: middle;
+}
+/* Zebra fraca de propósito: o suficiente para o olho seguir a linha em tela
+   larga, sem virar uma faixa que compita com o realce de hover. */
+.rh-tabela tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--cream) 45%, transparent);
+}
+/* focus-within junto do hover: a linha tem botões de ação, e quem chega neles
+   pelo teclado precisa enxergar qual linha está sendo operada. */
+.rh-tabela tbody tr:hover,
+.rh-tabela tbody tr:focus-within {
+  background: color-mix(in oklab, var(--mint) 60%, white);
+}
+
+/* Drawer lateral. Entra pela direita no desktop e por baixo no celular, onde
+   um painel colado à direita nasceria com a largura inteira da tela e sem
+   nenhuma pista de onde veio. */
+.rh-gaveta {
+  position: fixed;
+  z-index: 90;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(30rem, 100%);
+  border-left: 1px solid color-mix(in oklab, var(--lime) 22%, transparent);
+  background: color-mix(in oklab, var(--brand-deep) 96%, black);
+  box-shadow: -30px 0 70px -40px rgba(0, 0, 0, 0.85);
+  /* Vetor de entrada em variável para a mesma keyframe servir aos dois lados. */
+  --rh-entra-x: 100%;
+  --rh-entra-y: 0;
+  animation: rh-entra 0.32s var(--ease-out) both;
+}
+@media (max-width: 640px) {
+  .rh-gaveta {
+    top: auto;
+    left: 0;
+    /* dvh e não vh: com vh a gaveta ocupa 92% de uma altura que inclui a barra
+       do navegador móvel, e o rodapé com os botões some atrás dela. */
+    height: 92dvh;
+    width: 100%;
+    border-top: 1px solid color-mix(in oklab, var(--lime) 22%, transparent);
+    border-left: 0;
+    border-radius: 1.25rem 1.25rem 0 0;
+    --rh-entra-x: 0;
+    --rh-entra-y: 100%;
+  }
+}
+
+/* Barra de rolagem fina. No Firefox a barra só afina com scrollbar-width, e
+   sem scrollbar-color ela herda o tema do sistema — em fundo escuro isso
+   costuma entregar um polegar quase invisível. Por isso as duas linhas. */
+.rh-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--lime) 45%, transparent) transparent;
+}
+.rh-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.rh-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Borda transparente + background-clip: o polegar aparece com 4px, mas mantém
+   os 10px de área de clique, que é o mínimo utilizável com mouse. */
+.rh-scroll::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--lime) 45%, transparent);
+  background-clip: content-box;
+}
+.rh-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--lime) 70%, transparent);
+  background-clip: content-box;
+}
+
+.rh-estrela {
+  color: color-mix(in oklab, var(--ink-soft) 45%, white);
+  cursor: pointer;
+  transition:
+    color 0.18s var(--ease-out),
+    transform 0.18s var(--ease-out);
+}
+.rh-estrela:hover {
+  transform: scale(1.15);
+}
+/* Aqui --brand-green é preenchimento de forma, não texto: a regra de contraste
+   do projeto que proíbe o lime em fundo claro vale para glifo de leitura. */
+.rh-estrela[data-ativa="true"] {
+  color: var(--brand-green);
+}
+
+/* ---- Animações ---- */
+
+@keyframes rh-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--rh-entra-x, 0), var(--rh-entra-y, 12px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Respiro de luz no canto do cartão ativo. Só opacidade e escala do halo, que
+   vive num pseudo em z-index negativo — nada disso toca o texto. */
+@keyframes rh-brilho {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.38;
+    transform: scale(1.12);
+  }
+}
+
+/* Pulso do passo atual: cresce só o anel de sombra, sem mexer na caixa, para o
+   stepper não refazer layout a cada ciclo. */
+@keyframes rh-pulso {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px var(--rh-anel);
+  }
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in oklab, var(--lime) 10%, transparent);
+  }
+}
+
+/* O bloco global no topo do arquivo já reduz a duração de tudo a 0.001ms. Este
+   aqui é o complemento explícito do portal: desliga as três animações novas e
+   remove transform das transições, que é o que causa desconforto vestibular —
+   as de cor continuam, porque um estado que troca sem transição nenhuma pisca. */
+@media (prefers-reduced-motion: reduce) {
+  .rh-cartao-opcao[data-ativo="true"]::after,
+  .rh-passo[data-estado="atual"],
+  .rh-gaveta {
+    animation: none !important;
+  }
+  .rh-gaveta {
+    opacity: 1;
+    transform: none;
+  }
+  .rh-chip,
+  .rh-cartao-opcao,
+  .rh-dropzone,
+  .rh-cartao-cand,
+  .rh-estrela {
+    transition-property: border-color, background, color, box-shadow;
+  }
+  .rh-chip:hover,
+  .rh-cartao-opcao:hover,
+  .rh-dropzone[data-sobre="true"],
+  .rh-cartao-cand[data-arrastando="true"],
+  .rh-estrela:hover {
+    transform: none;
+  }
+}
+
+/* Telas de 360px: o portal é usado por candidato no celular, e o painel por
+   coordenação em tablet. Nada aqui pode depender de largura de desktop. */
+@media (max-width: 400px) {
+  .rh-cartao-opcao {
+    padding: 0.9rem;
+  }
+  .rh-chip {
+    padding-inline: 0.75rem;
+    font-size: 0.8rem;
+  }
+  .rh-coluna {
+    max-height: 60dvh;
+  }
+  .rh-tabela {
+    font-size: 0.8rem;
+  }
+  .rh-tabela thead th,
+  .rh-tabela tbody td {
+    padding-inline: 0.5rem;
+  }
+}
+
+/* ---- A ficha de entrevista no papel ----
+   A clínica imprime. A Dra. Ana Beatriz e o Jefferson entrevistam com a folha
+   na mesa, caneta na mão — o método deles nasceu em PDF —, e há dois usos
+   diferentes: imprimir a ficha em BRANCO (as perguntas do guia e a tabela de
+   pontuação, com pauta para escrever) e imprimir a ficha PREENCHIDA depois da
+   conversa, como registro da decisão.
+
+   O componente da ficha deixa a folha sempre montada no DOM e escondida na
+   tela; é isto que faz o Ctrl+P do navegador — e não só o nosso botão —
+   imprimir a coisa certa. */
+.rh-folha {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    /* Margem generosa à esquerda: a clínica arquiva as fichas em pasta com
+       grampo, e furo em cima de texto é ficha ilegível. */
+    margin: 14mm 12mm 14mm 16mm;
+  }
+
+  /* A interface inteira sai do papel, e sobra a folha.
+
+     A varredura é feita com `:has`, e não com uma classe "não imprime"
+     espalhada por dez componentes, porque a ficha vive dentro da gaveta, que
+     vive dentro do painel: qualquer lista manual esqueceria um nível na
+     primeira tela nova. A regra é literal — "esconda todo elemento que não
+     contém a folha" —, os ancestrais dela continuam existindo (senão a folha
+     desapareceria junto) e voltam neutralizados logo abaixo. Em navegador sem
+     `:has` nada é escondido e a impressão sai como a tela: degrada feio, mas
+     não quebra. */
+  body:has(.rh-folha) {
+    overflow: visible !important;
+    background: white !important;
+  }
+  body:has(.rh-folha) *:not(:has(.rh-folha)) {
+    display: none !important;
+  }
+
+  /* Os ancestrais da folha viram caixa transparente: sem posição fixa (que
+     imprimiria só a primeira página), sem altura travada e sem recorte de
+     rolagem (que cortaria a ficha na altura da tela), sem vidro escuro. */
+  body:has(.rh-folha) *:has(.rh-folha) {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  /* Vem depois das regras de varredura, com a mesma especificidade: é o
+     desempate por ordem de origem que devolve a folha e o conteúdo dela. */
+  body:has(.rh-folha) .rh-folha,
+  body:has(.rh-folha) .rh-folha * {
+    display: revert !important;
+    visibility: visible !important;
+  }
+  body:has(.rh-folha) .rh-folha {
+    display: block !important;
+  }
+
+  .rh-folha {
+    color: black;
+    background: white;
+    font-size: 10.5pt;
+    line-height: 1.45;
+  }
+  .rh-folha h1 {
+    margin: 0 0 1.5mm;
+    font-size: 15pt;
+    font-weight: 800;
+  }
+  .rh-folha h2 {
+    margin: 5mm 0 2mm;
+    border-bottom: 1px solid black;
+    padding-bottom: 1mm;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+  .rh-folha h3 {
+    margin: 3mm 0 1mm;
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .rh-folha p {
+    margin: 0 0 1.5mm;
+  }
+  .rh-folha ol {
+    margin: 0;
+    padding-left: 6mm;
+  }
+  /* Pergunta partida entre duas páginas é pergunta que ninguém lê inteira. */
+  .rh-folha li,
+  .rh-folha-campo {
+    margin-bottom: 3.5mm;
+    break-inside: avoid;
+  }
+  .rh-folha-topo {
+    margin-bottom: 4mm;
+    border-bottom: 2px solid black;
+    padding-bottom: 2mm;
+  }
+  .rh-folha-topo p {
+    font-size: 9.5pt;
+  }
+  .rh-folha-bloco {
+    margin-bottom: 5mm;
+  }
+  .rh-folha-pergunta {
+    font-weight: 600;
+  }
+  .rh-folha-ajuda {
+    font-size: 9pt;
+  }
+
+  /* Pauta para a caneta, onde o campo saiu em branco. */
+  .rh-folha-linha {
+    display: block;
+    height: 6.5mm;
+    border-bottom: 1px solid #999999;
+  }
+
+  /* Caixa de marcar. O "X" é texto de propósito: fundo colorido é a primeira
+     coisa que o navegador descarta ao imprimir, e uma caixa "preenchida" que
+     sai vazia no papel viraria uma resposta trocada na ficha. */
+  .rh-folha-caixa {
+    display: inline-block;
+    width: 4mm;
+    height: 4mm;
+    border: 1px solid black;
+    margin-right: 1.5mm;
+    font-weight: 700;
+    line-height: 4mm;
+    text-align: center;
+    vertical-align: -0.5mm;
+  }
+  .rh-folha-opcao {
+    display: inline-block;
+    margin-right: 6mm;
+    white-space: nowrap;
+  }
+  .rh-folha-opcoes {
+    margin-bottom: 2mm;
+  }
+
+  .rh-folha-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  .rh-folha-tabela th,
+  .rh-folha-tabela td {
+    border: 1px solid black;
+    padding: 1.5mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  .rh-folha-tabela tr {
+    break-inside: avoid;
+  }
+  /* Coluna de nota estreita e centrada: a linha vira a régua de 0 a 5 do guia,
+     e quem preenche à mão marca um X na casa. */
+  .rh-folha-nota {
+    width: 7mm;
+    text-align: center !important;
+    font-weight: 700;
+  }
+
+  .rh-folha-rodape {
+    margin-top: 6mm;
+    border-top: 1px solid black;
+    padding-top: 2mm;
+    font-size: 9pt;
+  }
+}
+
+/* ---- O cabeçalho institucional da folha ----
+   O PDF que a clínica escreveu traz "JP CLÍNICA INTEGRADA ODONTOLÓGICA" no topo
+   de todas as páginas, e a nossa ficha saía sem marca nenhuma. Estas classes
+   vestem <CabecalhoFolha>: fundo branco, letra preta (#172018), a marca oficial
+   em SVG e o filete que separa a faixa institucional do assunto do documento.
+
+   A tipografia segue a do site — `font-display` (Manrope) só no título grande,
+   `font-sans` (Inter) no resto —, porque a folha é a versão impressa da mesma
+   marca e não pode parecer um documento de outro lugar. */
+.rh-folha-cabecalho {
+  background: white;
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+.rh-folha-cabecalho-titulo {
+  font-family: var(--font-display);
+}
+
+@media print {
+  /* Tinta declarada: por padrão o Chrome e o Firefox descartam fundos e
+     "economizam" cor ao imprimir, e o verde da marca sai cinza — ou some. Como
+     a folha é justamente o documento que a clínica leva para a mesa da
+     entrevista, o cabeçalho pede a cor exata. As duas grafias existem porque o
+     Safari e navegadores WebKit mais antigos só entendem a prefixada. */
+  .rh-folha,
+  .rh-folha *,
+  .rh-folha-cabecalho,
+  .rh-folha-cabecalho * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* O CABEÇALHO REPETE EM TODA PÁGINA.
+     Duas técnicas resolvem isso e as duas funcionam em Chrome e Firefox:
+
+     (a) `position: fixed` no topo — o elemento sai do fluxo e é redesenhado em
+         cada página. É a mais citada, mas depende de o motor resolver o `top`
+         contra a área de conteúdo ou contra a folha inteira (Chrome e Firefox
+         divergem), obriga a inflar a margem do @page para abrir espaço e, se o
+         cálculo erra por 2mm, o cabeçalho deita em cima da primeira pergunta.
+     (b) `table-header-group` — é o mecanismo que o CSS define para cabeçalho
+         repetido, o mesmo do <thead>. O navegador reserva o espaço sozinho, em
+         toda página, sem margem inflada e sem risco de sobreposição.
+
+     Escolhemos (b). O preço é transformar a folha em tabela na impressão: os
+     demais filhos viram uma linha anônima, o que exige `width: 100%` (tabela
+     encolhe para o conteúdo por padrão). O `:has(> .rh-folha-cabecalho)`
+     restringe a troca às folhas que já usam este cabeçalho — quem ainda não usa
+     continua bloco, como era.
+
+     A faixa repetida leva o assunto junto (nome da candidata, vaga, protocolo).
+     É de propósito: página solta de ficha sem identificação é exatamente o
+     problema que o cliente reclamou. */
+  body:has(.rh-folha) .rh-folha:has(> .rh-folha-cabecalho) {
+    display: table !important;
+    width: 100%;
+  }
+  body:has(.rh-folha) .rh-folha > .rh-folha-cabecalho {
+    display: table-header-group !important;
+  }
+
+  /* A varredura de impressão devolve todo descendente da folha com
+     `display: revert !important`; por isso todo `display` daqui para baixo
+     precisa do seletor longo (folha + classe) para ganhar em especificidade. */
+  body:has(.rh-folha) .rh-folha .rh-folha-cabecalho-marca {
+    display: flex !important;
+    align-items: center;
+    gap: 4mm;
+    border-bottom: 1.5pt solid black;
+    padding-bottom: 2mm;
+  }
+
+  /* Cabeçalho partido no meio é cabeçalho que não identifica nada. */
+  .rh-folha-cabecalho,
+  .rh-folha-cabecalho-marca,
+  .rh-folha-cabecalho-assunto,
+  .rh-folha-cabecalho-orgao {
+    break-inside: avoid;
+  }
+
+  /* A marca é SVG e escala sem perder nitidez; a altura fixa em mm é o que
+     mantém a faixa com a mesma medida em toda página e em toda impressora. O
+     `max-width` protege de uma arte trocada por engano estourar a folha. */
+  .rh-folha img {
+    max-width: 100%;
+    height: auto;
+  }
+  .rh-folha .rh-folha-cabecalho-logo {
+    flex: none;
+    height: 12mm;
+    width: auto;
+    max-width: 62mm;
+  }
+
+  .rh-folha .rh-folha-cabecalho-nome {
+    margin: 0;
+    font-size: 9.5pt;
+    font-weight: 800;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .rh-folha-cabecalho-barra {
+    margin-inline: 0.6mm;
+    font-weight: 400;
+  }
+  .rh-folha .rh-folha-cabecalho-uso {
+    margin: 0.6mm 0 0;
+    font-size: 8pt;
+    line-height: 1.3;
+  }
+
+  .rh-folha-cabecalho-assunto {
+    margin-top: 3mm;
+  }
+  .rh-folha .rh-folha-cabecalho-titulo {
+    margin: 0 0 1.5mm;
+    font-size: 15pt;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+  .rh-folha .rh-folha-cabecalho-subtitulo,
+  .rh-folha .rh-folha-cabecalho-dados {
+    margin: 0 0 1mm;
+    font-size: 9.5pt;
+    line-height: 1.35;
+  }
+
+  /* O aviso de LGPD fecha o cabeçalho e abre o corpo: filete em cima, corpo
+     pequeno, mas preto — letra cinza clara em papel é letra que ninguém lê. */
+  .rh-folha .rh-folha-cabecalho-lgpd {
+    margin: 2mm 0 0;
+    border-top: 0.5pt solid black;
+    padding-top: 1.2mm;
+    font-size: 7.5pt;
+    line-height: 1.3;
+  }
+
+  /* NUMERAÇÃO DE PÁGINA — fica comentada de propósito.
+     A regra abaixo é a forma correta (caixas de margem do @page com o contador
+     `page`), e nenhum navegador de mercado implementa: Chrome, Firefox e Safari
+     ignoram as caixas de margem inteiras. Ligar isso hoje não imprimiria
+     nada; o que funcionaria seria contar página em JavaScript e desenhar o
+     número à mão, e isso quebra na primeira ficha que muda de tamanho. Fica
+     aqui para o dia em que o suporte chegar.
+
+  @page {
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font-family: var(--font-sans);
+      font-size: 8pt;
+      color: black;
+    }
+  }
+  */
+
+  /* Folha que pede exclusividade — a última palavra sobre o que sai do papel.
+
+     A gaveta do candidato tem DUAS folhas: a da ficha, que fica sempre montada
+     para o Ctrl+P do navegador pegar a coisa certa, e a do roteiro de dúvidas,
+     que só existe enquanto o botão "Imprimir roteiro" imprime. Sem esta regra o
+     roteiro sairia grampeado com a ficha inteira atrás — quatro páginas para
+     quem pediu uma. Quem aperta o botão do roteiro leva o roteiro; quem aperta
+     Ctrl+P, ou o botão da ficha, continua levando a ficha, porque aí nenhuma
+     folha exclusiva está no DOM.
+
+     Fica no FIM do último bloco de impressão de propósito: as regras do
+     cabeçalho repetido acima devolvem `display: table` e
+     `display: table-header-group` com a mesma especificidade que esta, e num
+     empate quem vence é a última escrita. Movê-la para cima ressuscitaria a
+     ficha embaixo do roteiro sem nenhum aviso. */
+  body:has(.rh-folha-exclusiva) .rh-folha:not(.rh-folha-exclusiva),
+  body:has(.rh-folha-exclusiva) .rh-folha:not(.rh-folha-exclusiva) *,
+  body:has(.rh-folha-exclusiva) .rh-folha:not(.rh-folha-exclusiva) > .rh-folha-cabecalho {
+    display: none !important;
   }
 }

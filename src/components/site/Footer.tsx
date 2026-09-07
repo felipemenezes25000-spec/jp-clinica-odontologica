@@ -63,6 +63,22 @@ export function Footer() {
                 </li>
               ))}
             </ul>
+
+            {/* O portal de vagas vive fora da conversa com paciente, então ganha
+                bloco próprio em vez de virar mais um item na lista acima: quem
+                chega ao rodapé procurando emprego não está procurando tratamento. */}
+            <a
+              href="/carreiras"
+              className="mt-7 flex items-center justify-between gap-3 rounded-2xl border border-lime/25 bg-white/5 px-4 py-3.5 transition-colors hover:border-lime/60 hover:bg-white/10"
+            >
+              <span>
+                <span className="block text-[10px] font-extrabold uppercase tracking-[.18em] text-lime">
+                  Trabalhe na JP
+                </span>
+                <span className="mt-1 block text-sm font-bold text-white">Ver vagas abertas</span>
+              </span>
+              <ArrowUpRight className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+            </a>
           </nav>
 
           <div>

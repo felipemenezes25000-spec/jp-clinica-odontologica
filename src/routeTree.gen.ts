@@ -10,11 +10,36 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RhRouteImport } from './routes/rh'
+import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
+import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
+import { Route as CarreirasSlugRouteImport } from './routes/carreiras/$slug'
 import { Route as TratamentosSlugRouteImport } from './routes/tratamentos/$slug'
+import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RhRoute = RhRouteImport.update({
+  id: '/rh',
+  path: '/rh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrabalheConoscoRoute = TrabalheConoscoRouteImport.update({
+  id: '/trabalhe-conosco',
+  path: '/trabalhe-conosco',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarreirasIndexRoute = CarreirasIndexRouteImport.update({
+  id: '/carreiras/',
+  path: '/carreiras/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarreirasSlugRoute = CarreirasSlugRouteImport.update({
+  id: '/carreiras/$slug',
+  path: '/carreiras/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TratamentosSlugRoute = TratamentosSlugRouteImport.update({
@@ -22,31 +47,78 @@ const TratamentosSlugRoute = TratamentosSlugRouteImport.update({
   path: '/tratamentos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
+  id: '/api/rh/curriculo/$id',
+  path: '/api/rh/curriculo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/rh': typeof RhRoute
+  '/trabalhe-conosco': typeof TrabalheConoscoRoute
+  '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
+  '/carreiras/': typeof CarreirasIndexRoute
+  '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/rh': typeof RhRoute
+  '/trabalhe-conosco': typeof TrabalheConoscoRoute
+  '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
+  '/carreiras': typeof CarreirasIndexRoute
+  '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/rh': typeof RhRoute
+  '/trabalhe-conosco': typeof TrabalheConoscoRoute
+  '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
+  '/carreiras/': typeof CarreirasIndexRoute
+  '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/tratamentos/$slug'
+  fullPaths:
+    | '/'
+    | '/rh'
+    | '/trabalhe-conosco'
+    | '/carreiras/$slug'
+    | '/tratamentos/$slug'
+    | '/carreiras/'
+    | '/api/rh/curriculo/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/tratamentos/$slug'
-  id: '__root__' | '/' | '/tratamentos/$slug'
+  to:
+    | '/'
+    | '/rh'
+    | '/trabalhe-conosco'
+    | '/carreiras/$slug'
+    | '/tratamentos/$slug'
+    | '/carreiras'
+    | '/api/rh/curriculo/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/rh'
+    | '/trabalhe-conosco'
+    | '/carreiras/$slug'
+    | '/tratamentos/$slug'
+    | '/carreiras/'
+    | '/api/rh/curriculo/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  RhRoute: typeof RhRoute
+  TrabalheConoscoRoute: typeof TrabalheConoscoRoute
+  CarreirasSlugRoute: typeof CarreirasSlugRoute
   TratamentosSlugRoute: typeof TratamentosSlugRoute
+  CarreirasIndexRoute: typeof CarreirasIndexRoute
+  ApiRhCurriculoIdRoute: typeof ApiRhCurriculoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,6 +130,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rh': {
+      id: '/rh'
+      path: '/rh'
+      fullPath: '/rh'
+      preLoaderRoute: typeof RhRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/trabalhe-conosco': {
+      id: '/trabalhe-conosco'
+      path: '/trabalhe-conosco'
+      fullPath: '/trabalhe-conosco'
+      preLoaderRoute: typeof TrabalheConoscoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carreiras/': {
+      id: '/carreiras/'
+      path: '/carreiras'
+      fullPath: '/carreiras/'
+      preLoaderRoute: typeof CarreirasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carreiras/$slug': {
+      id: '/carreiras/$slug'
+      path: '/carreiras/$slug'
+      fullPath: '/carreiras/$slug'
+      preLoaderRoute: typeof CarreirasSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tratamentos/$slug': {
       id: '/tratamentos/$slug'
       path: '/tratamentos/$slug'
@@ -65,12 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TratamentosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/rh/curriculo/$id': {
+      id: '/api/rh/curriculo/$id'
+      path: '/api/rh/curriculo/$id'
+      fullPath: '/api/rh/curriculo/$id'
+      preLoaderRoute: typeof ApiRhCurriculoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  RhRoute: RhRoute,
+  TrabalheConoscoRoute: TrabalheConoscoRoute,
+  CarreirasSlugRoute: CarreirasSlugRoute,
   TratamentosSlugRoute: TratamentosSlugRoute,
+  CarreirasIndexRoute: CarreirasIndexRoute,
+  ApiRhCurriculoIdRoute: ApiRhCurriculoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
