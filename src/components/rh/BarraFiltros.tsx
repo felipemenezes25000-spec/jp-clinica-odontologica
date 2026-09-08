@@ -17,6 +17,7 @@ import {
 
 import { situacaoDaFicha } from "@/lib/rh/ficha";
 import { contarPorSeveridade, cursandoAgora } from "@/lib/rh/ia/sinais";
+import { classificarProximidade } from "@/lib/rh/ia/proximidade";
 import { RECOMENDACOES } from "@/lib/rh/ia/tipos";
 import type { AnaliseIa, RecomendacaoIa } from "@/lib/rh/ia/tipos";
 import { apenasDigitos, diaDe, diaDeData, formatarData } from "@/lib/rh/formatar";
@@ -80,6 +81,25 @@ export type FiltrosRh = {
    * estuda, e responder "não" para quem ninguém leu seria inventar resposta.
    */
   estudando: "" | "sim" | "nao";
+  /**
+   * OS QUATRO FILTROS ABAIXO usam o que a IA calculou e o painel não deixava
+   * ninguém alcançar. A permanência é 30% da régua de recepção, a experiência na
+   * área é outros 25%, e nenhuma das duas dava para filtrar — a lista só sabia
+   * ordenar pela nota final, que mistura tudo.
+   *
+   * Todos exigem currículo LIDO. Sem leitura não existe métrica, e deixar quem
+   * ninguém leu passar por um filtro de permanência seria responder o que não
+   * se sabe.
+   */
+
+  /** Média de permanência por emprego, em meses. 0 desliga. */
+  permanenciaMinima: number;
+  /** Meses de experiência NA ÁREA da candidatura. 0 desliga. */
+  experienciaMinima: number;
+  /** Está trabalhando agora, pelo que o currículo mostra. */
+  empregada: "" | "sim" | "nao";
+  /** Quão longe mora — a mesma conta da pastilha da ficha. */
+  proximidade: "" | "perto" | "media" | "longe" | "fora";
   ordem: "recentes" | "antigas" | "nota" | "nome" | "nota-ia" | "estrelas";
 };
 
@@ -129,6 +149,25 @@ function estaEstudando(c: Candidatura): boolean | null {
   return cursandoAgora(a.extracao, c.area);
 }
 
+/**
+ * Meses de experiência NA ÁREA da candidatura.
+ *
+ * Cada área tem a sua conta: para dentista e ASB o que importa é tempo em
+ * odontologia; para recepção, tempo de atendimento ao público; para o
+ * administrativo, tempo de rotina administrativa. Somar tudo daria a mesma
+ * resposta para uma auxiliar de dentista e para uma operadora de telemarketing,
+ * que é exatamente a confusão que este filtro existe para desfazer.
+ */
+function mesesNaArea(c: Candidatura): number | null {
+  const a = analiseValida(c);
+  if (a === null) return null;
+  const m = a.metricas;
+  if (c.area === "dentista" || c.area === "asb-tsb") return m.mesesEmOdontologia;
+  if (c.area === "recepcao") return m.mesesAtendimentoPublico;
+  if (c.area === "administrativo") return m.mesesAdministrativo;
+  return m.mesesExperienciaTotal ?? 0;
+}
+
 function temSinalCritico(c: Candidatura): boolean {
   const a = analiseValida(c);
   if (a === null) return false;
@@ -158,6 +197,10 @@ export function filtrosVazios(): FiltrosRh {
     de: "",
     ate: "",
     estudando: "",
+    permanenciaMinima: 0,
+    experienciaMinima: 0,
+    empregada: "",
+    proximidade: "",
     ordem: "recentes",
   };
 }
@@ -302,6 +345,39 @@ export function aplicarFiltros(itens: Candidatura[], f: FiltrosRh): Candidatura[
     }
     if (f.comSinalCritico && !temSinalCritico(c)) return false;
 
+    /* PERMANÊNCIA, EXPERIÊNCIA, EMPREGO ATUAL E PROXIMIDADE.
+       Os quatro caem fora quando não há leitura: sem currículo lido não existe
+       métrica, e passar quem ninguém leu por um filtro de permanência seria
+       responder o que não se sabe. */
+    if (f.permanenciaMinima > 0) {
+      const a = analiseValida(c);
+      const media = a?.metricas.mediaMesesPorEmprego ?? null;
+      if (media === null || media < f.permanenciaMinima) return false;
+    }
+
+    if (f.experienciaMinima > 0) {
+      const meses = mesesNaArea(c);
+      if (meses === null || meses < f.experienciaMinima) return false;
+    }
+
+    if (f.empregada !== "") {
+      const estado = analiseValida(c)?.metricas.empregadaAtualmente ?? null;
+      // `null` é "o currículo não deixa saber", e não "não". Fica fora dos dois.
+      if (estado === null) return false;
+      if (f.empregada === "sim" && !estado) return false;
+      if (f.empregada === "nao" && estado) return false;
+    }
+
+    if (f.proximidade !== "") {
+      const banda = classificarProximidade({
+        cep: c.cep,
+        bairro: c.bairro,
+        cidade: c.cidade,
+        uf: c.uf,
+      }).banda;
+      if (banda !== f.proximidade) return false;
+    }
+
     if (f.estudando !== "") {
       const estuda = estaEstudando(c);
       // `null` (não lido) cai fora nos DOIS sentidos — ver `estaEstudando`.
@@ -390,6 +466,10 @@ function contarAtivos(f: FiltrosRh): number {
   if (f.de !== padrao.de) n += 1;
   if (f.ate !== padrao.ate) n += 1;
   if (f.estudando !== padrao.estudando) n += 1;
+  if (f.permanenciaMinima !== padrao.permanenciaMinima) n += 1;
+  if (f.experienciaMinima !== padrao.experienciaMinima) n += 1;
+  if (f.empregada !== padrao.empregada) n += 1;
+  if (f.proximidade !== padrao.proximidade) n += 1;
   if (f.ordem !== padrao.ordem) n += 1;
   return n;
 }
@@ -505,6 +585,10 @@ export function BarraFiltros(props: {
   const idDe = `${base}-de`;
   const idAte = `${base}-ate`;
   const idEstudando = `${base}-estudando`;
+  const idPermanencia = `${base}-permanencia`;
+  const idExperiencia = `${base}-experiencia`;
+  const idEmpregada = `${base}-empregada`;
+  const idProximidade = `${base}-proximidade`;
 
   const { filtros, aoMudar } = props;
   const ativos = contarAtivos(filtros);
@@ -1039,6 +1123,99 @@ export function BarraFiltros(props: {
                 </option>
                 <option value="concluida" className={OPCAO}>
                   Entrevista concluída
+                </option>
+              </select>
+            </Campo>
+
+            {/* PERMANÊNCIA — o critério que mais pesa na régua de recepção (30%)
+                e que o painel não deixava filtrar. */}
+            <Campo id={idPermanencia} rotulo="Permanência média">
+              <select
+                id={idPermanencia}
+                value={String(filtros.permanenciaMinima)}
+                onChange={(e) => mudar({ permanenciaMinima: Number(e.target.value) })}
+                className={CAMPO}
+              >
+                <option value="0" className={OPCAO}>
+                  Tanto faz
+                </option>
+                <option value="12" className={OPCAO}>
+                  Pelo menos 1 ano por emprego
+                </option>
+                <option value="24" className={OPCAO}>
+                  Pelo menos 2 anos por emprego
+                </option>
+                <option value="36" className={OPCAO}>
+                  Pelo menos 3 anos por emprego
+                </option>
+              </select>
+            </Campo>
+
+            <Campo id={idExperiencia} rotulo="Experiência na área">
+              <select
+                id={idExperiencia}
+                value={String(filtros.experienciaMinima)}
+                onChange={(e) => mudar({ experienciaMinima: Number(e.target.value) })}
+                className={CAMPO}
+              >
+                <option value="0" className={OPCAO}>
+                  Tanto faz
+                </option>
+                <option value="6" className={OPCAO}>
+                  6 meses ou mais
+                </option>
+                <option value="12" className={OPCAO}>
+                  1 ano ou mais
+                </option>
+                <option value="24" className={OPCAO}>
+                  2 anos ou mais
+                </option>
+                <option value="60" className={OPCAO}>
+                  5 anos ou mais
+                </option>
+              </select>
+            </Campo>
+
+            <Campo id={idEmpregada} rotulo="Trabalhando hoje">
+              <select
+                id={idEmpregada}
+                value={filtros.empregada}
+                onChange={(e) => mudar({ empregada: e.target.value as FiltrosRh["empregada"] })}
+                className={CAMPO}
+              >
+                <option value="" className={OPCAO}>
+                  Tanto faz
+                </option>
+                <option value="sim" className={OPCAO}>
+                  Está empregada
+                </option>
+                <option value="nao" className={OPCAO}>
+                  Fora do mercado agora
+                </option>
+              </select>
+            </Campo>
+
+            <Campo id={idProximidade} rotulo="Mora">
+              <select
+                id={idProximidade}
+                value={filtros.proximidade}
+                onChange={(e) => mudar({ proximidade: e.target.value as FiltrosRh["proximidade"] })}
+                className={CAMPO}
+              >
+                <option value="" className={OPCAO}>
+                  Tanto faz
+                </option>
+                <option value="perto" className={OPCAO}>
+                  Na região da clínica
+                </option>
+                <option value="media" className={OPCAO}>
+                  Mesmo lado da cidade
+                </option>
+                <option value="longe" className={OPCAO}>
+                  Outro lado da cidade
+                </option>
+                <option value="fora" className={OPCAO}>
+                  Fora da Grande São Paulo
                 </option>
               </select>
             </Campo>
