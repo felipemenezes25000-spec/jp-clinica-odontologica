@@ -1,7 +1,11 @@
 # RUNBOOK — JP CRC
 
-Para quem opera o sistema. Vai direto ao ponto: o que fazer quando algo dá
-errado, e como colocar no ar.
+Para quem opera o sistema no dia a dia: o que fazer quando algo dá errado.
+
+> **Ainda não está no ar?** O caminho de ida — SQL, variáveis, credenciais,
+> acesso da equipe, ordem de ativação e verificação de cada etapa — está em
+> [ATIVACAO-EM-PRODUCAO](ATIVACAO-EM-PRODUCAO.md). O resumo abaixo cobre só a
+> instalação técnica.
 
 ---
 
@@ -81,14 +85,17 @@ humano.
 Para cada uma, o caminho é: **Simulação → Só recomenda → Executa**, com pelo
 menos alguns dias em cada estágio.
 
-Em Automações → escolha uma → veja o histórico das jornadas em simulação antes
-de ligar o envio. O que ela **teria** enviado está registrado.
+O que a automação **teria** enviado fica registrado em `crc_automation_logs`
+com o texto já montado. **Ainda não existe tela para ler isso** — hoje é uma
+consulta SQL, descrita na lacuna E.2 da
+[ATIVACAO-EM-PRODUCAO](ATIVACAO-EM-PRODUCAO.md).
 
 ### Checklist antes de ligar o primeiro envio (item 258)
 
 - [ ] Sincronização do Dental Office rodando sem falha
 - [ ] Telefones normalizados (confira alguns em Pacientes)
-- [ ] Templates revisados em Automações
+- [ ] Textos das mensagens revisados (hoje em `templates.ts`, ou pela consulta
+      do histórico de simulação — ver ATIVACAO-EM-PRODUCAO, lacuna E.2)
 - [ ] Horário comercial conferido
 - [ ] Kill switch testado (aciona e libera em Integrações)
 - [ ] Inbox testada com uma mensagem real
