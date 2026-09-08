@@ -215,3 +215,112 @@
     padding-top: 0.8rem !important;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Painel "Escrever mensagem": superfície clara com contraste semântico.       */
+/* -------------------------------------------------------------------------- */
+/*
+ * Este painel nasceu quando toda a gaveta era verde escura e por isso seu JSX
+ * ainda usa utilitários literais como text-white, bg-white/10 e ring-white/15.
+ * No workspace claro isso produzia branco sobre quase branco. A correção fica
+ * escopada ao próprio painel e converte esses utilitários antigos para tokens de
+ * superfície clara sem alterar o cabeçalho verde nem outros modais do sistema.
+ */
+.rh-admin .rh-gaveta [id$="-painel"] {
+  border-color: color-mix(in oklab, var(--forest) 13%, white) !important;
+  background: #ffffff !important;
+  color: var(--ink) !important;
+  box-shadow: 0 22px 54px -42px rgba(3, 47, 1, 0.42) !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] [class~="text-white"],
+.rh-admin .rh-gaveta [id$="-painel"] [class~="text-white!"] {
+  color: var(--ink) !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] [class~="text-white/85"],
+.rh-admin .rh-gaveta [id$="-painel"] [class~="text-white/90"],
+.rh-admin .rh-gaveta [id$="-painel"] [class~="text-white/25"] {
+  color: var(--ink-soft) !important;
+}
+
+/* Ícones que eram lime sobre verde passam ao verde institucional sobre branco. */
+.rh-admin .rh-gaveta [id$="-painel"] [class~="text-lime"] {
+  color: var(--forest) !important;
+}
+
+/* Antigas superfícies translúcidas do tema escuro viram apoio neutro claro. */
+.rh-admin .rh-gaveta [id$="-painel"] [class~="bg-black/20"] {
+  background: #ffffff !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] :is(
+    [class~="bg-white/5"],
+    [class~="bg-white/10"],
+    [class~="bg-white/15"],
+    [class~="bg-white/20"],
+    [class~="bg-white/[0.07]"]
+  ) {
+  background: #f5f8f3 !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] :is(
+    [class~="border-white/10"],
+    [class~="border-white/15"],
+    [class~="border-white/20"],
+    [class~="border-white/25"],
+    [class~="border-white/30"]
+  ) {
+  border-color: color-mix(in oklab, var(--forest) 13%, white) !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] :is(
+    [class~="ring-white/10"],
+    [class~="ring-white/15"],
+    [class~="ring-white/20"],
+    [class~="ring-white/25"],
+    [class~="ring-white/30"]
+  ) {
+  --tw-ring-color: color-mix(in oklab, var(--forest) 15%, transparent) !important;
+}
+
+/* Cards de modelo: o texto e a borda precisam continuar nítidos mesmo no hover. */
+.rh-admin .rh-gaveta [id$="-painel"] li > button {
+  border: 1px solid color-mix(in oklab, var(--forest) 10%, white);
+  background: #f7faf6 !important;
+  box-shadow: none;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] li > button:hover,
+.rh-admin .rh-gaveta [id$="-painel"] li > button:focus-visible {
+  border-color: color-mix(in oklab, var(--forest) 28%, white);
+  background: color-mix(in oklab, var(--mint) 54%, white) !important;
+}
+
+/* Editor do texto: branco real, texto escuro e placeholder legível. */
+.rh-admin .rh-gaveta [id$="-painel"] textarea {
+  border-color: color-mix(in oklab, var(--forest) 16%, white) !important;
+  background: #ffffff !important;
+  color: var(--ink) !important;
+  caret-color: var(--forest);
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] textarea::placeholder {
+  color: var(--ink-soft) !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] textarea:focus {
+  border-color: var(--forest) !important;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--forest) 12%, transparent);
+}
+
+/* Ação primária continua verde com branco — a conversão acima não pode inverter. */
+.rh-admin .rh-gaveta [id$="-painel"] [class~="bg-forest"],
+.rh-admin .rh-gaveta [id$="-painel"] [class~="bg-forest"] * {
+  color: #ffffff !important;
+}
+
+.rh-admin .rh-gaveta [id$="-painel"] [class~="bg-forest"] {
+  background: var(--forest) !important;
+  border-color: var(--forest) !important;
+}
