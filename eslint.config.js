@@ -6,7 +6,10 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // `apresentacao/` é um sub-projeto isolado, com package.json, tsconfig e
+  // ferramentas próprios. Ele tem o próprio `npm run check`; lintar daqui só
+  // produziria ruído com regras que não são as dele.
+  { ignores: ["dist", ".output", ".vinxi", "apresentacao"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

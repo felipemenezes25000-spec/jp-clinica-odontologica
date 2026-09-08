@@ -1,0 +1,44 @@
+{
+  "_leia_me": "A ordem e a duração das cenas. Duração em SEGUNDOS. É JSON, e não .ts, porque o gerador de narração (Node, sem TypeScript) precisa ler exatamente os mesmos números que a tela usa — duas cópias divergiriam na primeira alteração e o áudio sairia fora de lugar.",
+  "fps": 30,
+  "sobreposicaoSegundos": 0.5,
+  "cenas": [
+    { "id": "abertura", "nome": "Abertura", "segundos": 11, "capitulo": "introducao" },
+    { "id": "problema", "nome": "O problema", "segundos": 13, "capitulo": "introducao" },
+
+    { "id": "dentalOffice", "nome": "Dental Office", "segundos": 8, "capitulo": "dados" },
+    { "id": "integracao", "nome": "A ponte entre os sistemas", "segundos": 7, "capitulo": "dados" },
+    { "id": "nucleo", "nome": "JP CRC", "segundos": 9, "capitulo": "dados" },
+
+    { "id": "eventos", "nome": "O que o sistema percebe", "segundos": 10, "capitulo": "oportunidades" },
+    { "id": "elegibilidade", "nome": "As regras de contato", "segundos": 8, "capitulo": "oportunidades" },
+    { "id": "prioridade", "nome": "Quem vem primeiro", "segundos": 8, "capitulo": "oportunidades" },
+    { "id": "divisao", "nome": "Humano e automação", "segundos": 8, "capitulo": "oportunidades" },
+
+    { "id": "automacoes", "nome": "As rotinas do dia", "segundos": 9, "capitulo": "automacao" },
+    { "id": "baseAntiga", "nome": "Pacientes antigos", "segundos": 9, "capitulo": "automacao" },
+    { "id": "reativacao", "nome": "Contato aos poucos", "segundos": 8, "capitulo": "automacao" },
+    { "id": "campanhas", "nome": "Campanhas e aniversariantes", "segundos": 11, "capitulo": "automacao" },
+
+    { "id": "whatsapp", "nome": "WhatsApp", "segundos": 9, "capitulo": "conversa" },
+    { "id": "ia", "nome": "A leitura da resposta", "segundos": 8, "capitulo": "conversa" },
+    { "id": "intencoes", "nome": "Outras respostas", "segundos": 8, "capitulo": "conversa" },
+    { "id": "agendamento", "nome": "Marcando a consulta", "segundos": 11, "capitulo": "conversa" },
+    { "id": "lembretes", "nome": "Lembrete e confirmacao", "segundos": 10, "capitulo": "conversa" },
+    { "id": "cobranca", "nome": "Cobranca de parcela", "segundos": 11, "capitulo": "conversa" },
+    { "id": "humano", "nome": "Quando a equipe entra", "segundos": 7, "capitulo": "conversa" },
+
+    { "id": "home", "nome": "A tela do dia", "segundos": 9, "capitulo": "operacao" },
+    { "id": "inbox", "nome": "As conversas", "segundos": 8, "capitulo": "operacao" },
+    { "id": "paciente360", "nome": "A ficha do paciente", "segundos": 8, "capitulo": "operacao" },
+
+    { "id": "resultados", "nome": "O que se acumula", "segundos": 8, "capitulo": "resultados" },
+    { "id": "funil", "nome": "Etapa por etapa", "segundos": 8, "capitulo": "resultados" },
+    { "id": "antesDepois", "nome": "Antes e depois", "segundos": 7, "capitulo": "resultados" },
+    { "id": "impacto", "nome": "O caminho até a receita", "segundos": 8, "capitulo": "resultados" },
+    { "id": "gestor", "nome": "A visão da gestão", "segundos": 8, "capitulo": "resultados" },
+    { "id": "ecossistema", "nome": "Tudo junto", "segundos": 9, "capitulo": "resultados" },
+    { "id": "frase", "nome": "Em uma frase", "segundos": 8, "capitulo": "resultados" },
+    { "id": "final", "nome": "Final", "segundos": 9, "capitulo": "resultados" }
+  ]
+}
