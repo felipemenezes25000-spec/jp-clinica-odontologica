@@ -256,6 +256,39 @@ export async function aoMudarSituacao(evento: EventoCrc): Promise<void> {
 }
 
 /**
+ * Resposta do paciente numa conversa de cobranca.
+ *
+ * ESTE HANDLER EXISTE POR CAUSA DE UM PROBLEMA DE TEMPO. O arquivo do
+ * financeiro chega ao CRC com um ou dois dias de atraso, entao "ja paguei" e
+ * frequentemente VERDADE — e continuar cobrando quem pagou e o erro que mais
+ * destroi confianca. Esperar a proxima importacao para descobrir e tarde.
+ *
+ * O mesmo vale para "consigo parcelar?": o art. 42 do CDC nao permite insistir
+ * com quem ja pediu para conversar.
+ *
+ * Nos dois casos a decisao e por REGRA, antes da IA, pelo mesmo motivo do
+ * opt-out: o custo dos erros e assimetrico, e um padrao previsivel que erra
+ * para o lado seguro vale mais aqui do que um modelo que acerta quase sempre.
+ */
+export async function aoResponderSobreCobranca(evento: EventoCrc): Promise<void> {
+  const patientId = evento.payload["patientId"];
+  const texto = evento.payload["texto"];
+  if (typeof patientId !== "string" || typeof texto !== "string") return;
+
+  const { reagirARespostaDeCobranca } = await import("../aplicacao/cobrancas");
+  const reacao = await reagirARespostaDeCobranca(evento.organizationId, patientId, texto);
+
+  if (reacao.tipo !== "nenhuma") {
+    registrar("info", "Cobranca pausada pela resposta do paciente.", {
+      organizationId: evento.organizationId,
+      patientId,
+      reacao: reacao.tipo,
+      cobrancas: reacao.cobrancas,
+    });
+  }
+}
+
+/**
  * Registra todos os handlers.
  *
  * Chamado uma vez por invocação do worker/rota. Idempotente por construção
@@ -274,6 +307,7 @@ export function instalarHandlers(): void {
   registrarHandler("appointment.completed", aoConcluirConsulta);
   registrarHandler("appointment.created", aoCriarAgendamento);
   registrarHandler("patient.updated", aoMudarSituacao);
+  registrarHandler("message.received", aoResponderSobreCobranca);
 }
 
 /** Só para teste. */

@@ -72,6 +72,8 @@ export type Tabela =
   | "crc_sync_state"
   | "crc_budgets"
   | "crc_budget_items"
+  | "crc_charges"
+  | "crc_payment_agreements"
   | "crc_revenue_events"
   | "crc_funnel_events"
   | "crc_ai_calls"

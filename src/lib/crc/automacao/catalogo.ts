@@ -278,6 +278,49 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
       saidas: SAIDAS_RECUPERACAO,
     },
   },
+  /* ---------------------------------------------------------------------- */
+  {
+    chave: "cobranca_parcelas",
+    nome: "Cobrança de parcelas em aberto",
+    descricao:
+      "Lembra da parcela a vencer e pergunta sobre a que ficou em aberto. Para em tres contatos e passa para a equipe — o art. 42 do CDC nao permite insistir.",
+    definicao: {
+      gatilho: { tipo: "VARREDURA", seletor: "ABANDONO" },
+      condicoes: CONDICOES_CONTATAVEL,
+      passos: [
+        // Sem `ESPERAR` antes: a varredura ja escolheu a hora certa pela fase
+        // do vencimento, e um atraso extra aqui deslocaria o tom da mensagem.
+        { tipo: "ENVIAR_TEMPLATE", template: "cobranca_recente", rotulo: "Primeiro contato" },
+        { tipo: "ESPERAR", minutos: 60 * 72, rotulo: "Esperar 3 dias" },
+        {
+          tipo: "SAIR_SE",
+          condicao: { tipo: "PACIENTE_RESPONDEU" },
+          motivo: "paciente_respondeu",
+          rotulo: "Parar se respondeu",
+        },
+        { tipo: "ENVIAR_TEMPLATE", template: "cobranca_atrasada", rotulo: "Segundo contato" },
+        { tipo: "ESPERAR", minutos: 60 * 96, rotulo: "Esperar 4 dias" },
+        {
+          tipo: "SAIR_SE",
+          condicao: { tipo: "PACIENTE_RESPONDEU" },
+          motivo: "paciente_respondeu",
+          rotulo: "Parar se respondeu",
+        },
+        // A automacao PARA aqui. Nao existe terceiro envio: o teto do art. 42
+        // e o motivo de a conversa virar telefone, e nao mais uma mensagem.
+        {
+          tipo: "CRIAR_TAREFA",
+          titulo: "Falar por telefone sobre a parcela em aberto",
+          tipoTarefa: "LIGAR",
+          prazoHoras: 48,
+          rotulo: "Passar para a equipe",
+        },
+      ],
+      // Sem saida por consulta futura: ter consulta marcada nao quita parcela.
+      // A saida real e o paciente responder, e ela ja esta nos passos.
+      saidas: [],
+    },
+  },
 ] as const;
 
 /* -------------------------------------------------------------------------- */

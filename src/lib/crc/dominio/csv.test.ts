@@ -74,7 +74,8 @@ describe("quebra de linha", () => {
 
 describe("leitura do arquivo", () => {
   it("lê um CSV brasileiro típico", () => {
-    const csv = "Paciente;Valor Total;Status\nMaria Souza;1.500,00;Aberto\nJoão Lima;800,50;Aprovado";
+    const csv =
+      "Paciente;Valor Total;Status\nMaria Souza;1.500,00;Aberto\nJoão Lima;800,50;Aprovado";
     const r = lerCsv(csv);
 
     expect(r.separador).toBe(";");
