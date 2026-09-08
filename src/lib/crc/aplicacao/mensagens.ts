@@ -470,6 +470,15 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
     atualizado_em: agora,
   });
 
+  // ITEM 158: o relógio do speed to lead para aqui, na PRIMEIRA resposta.
+  // A função só grava se o campo ainda estiver vazio, então chamá-la em todo
+  // envio é seguro e evita ter que descobrir "esta é a primeira?" aqui.
+  const { leadPendentePorTelefone, marcarPrimeiraResposta } = await import("./leads");
+  const leadId = await leadPendentePorTelefone(pedido.organizationId, pedido.telefone);
+  if (leadId !== null) {
+    await marcarPrimeiraResposta(pedido.organizationId, leadId, new Date(agora));
+  }
+
   await emitir({
     organizationId: pedido.organizationId,
     clinicId: pedido.clinicId,
