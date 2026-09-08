@@ -76,16 +76,34 @@ export const Route = createFileRoute("/api/crc/whatsapp")({
           return texto("WhatsApp não configurado neste servidor.", 503);
         }
 
-        if (!provedor.porta.verificarAssinatura(corpoCru, request.headers)) {
-          registrar("aviso", "Webhook de WhatsApp com assinatura inválida foi recusado.");
+        if (
+          !provedor.porta.verificarAssinatura({
+            corpoCru,
+            cabecalhos: request.headers,
+            url: request.url,
+          })
+        ) {
+          registrar("aviso", "Webhook de WhatsApp com assinatura inválida foi recusado.", {
+            provedor: provedor.porta.nome,
+          });
           return texto("Assinatura inválida.", 401);
         }
 
+        // Os dois provedores falam formatos diferentes: a Meta manda JSON, o
+        // Twilio manda formulário. Decidir pelo `content-type` e não pelo nome
+        // do provedor é o que faz o sandbox aceitar os dois — ele precisa
+        // aceitar, porque é como se simula resposta de paciente com um curl.
+        const tipo = request.headers.get("content-type") ?? "";
         let payload: unknown;
-        try {
-          payload = JSON.parse(corpoCru);
-        } catch {
-          return texto("Corpo inválido.", 400);
+
+        if (tipo.includes("application/x-www-form-urlencoded")) {
+          payload = Object.fromEntries(new URLSearchParams(corpoCru).entries());
+        } else {
+          try {
+            payload = JSON.parse(corpoCru);
+          } catch {
+            return texto("Corpo inválido.", 400);
+          }
         }
 
         try {

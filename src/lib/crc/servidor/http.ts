@@ -31,6 +31,18 @@ export type OpcoesHttp = {
   metodo?: MetodoHttp;
   cabecalhos?: Record<string, string>;
   corpo?: unknown;
+  /**
+   * Como o corpo vai no fio.
+   *
+   * `json` (padrão) cobre Dental Office, Meta Cloud e OpenAI. `form` existe
+   * porque a API do Twilio só aceita `application/x-www-form-urlencoded` — e
+   * mandar JSON para ela devolve 400 sem explicar o motivo.
+   *
+   * Em `form`, o corpo precisa ser um objeto raso: `URLSearchParams` não sabe
+   * serializar objeto aninhado, e o que sairia seria `[object Object]` no
+   * valor do campo.
+   */
+  formato?: "json" | "form";
   /** Teto por tentativa, em ms. Nunca ausente: o item 11 proíbe request pendurado. */
   timeoutMs?: number;
   /** Quantas tentativas no total (1 = sem retry). */
@@ -186,8 +198,14 @@ export async function pedir(url: string, opcoes: OpcoesHttp = {}): Promise<Respo
       };
       let corpo: string | undefined;
       if (opcoes.corpo !== undefined) {
-        corpo = JSON.stringify(opcoes.corpo);
-        cabecalhos["content-type"] = cabecalhos["content-type"] ?? "application/json";
+        if (opcoes.formato === "form") {
+          corpo = paraFormulario(opcoes.corpo);
+          cabecalhos["content-type"] =
+            cabecalhos["content-type"] ?? "application/x-www-form-urlencoded";
+        } else {
+          corpo = JSON.stringify(opcoes.corpo);
+          cabecalhos["content-type"] = cabecalhos["content-type"] ?? "application/json";
+        }
       }
       if (opcoes.requestId !== undefined) cabecalhos["x-request-id"] = opcoes.requestId;
 
@@ -280,6 +298,29 @@ export async function pedir(url: string, opcoes: OpcoesHttp = {}): Promise<Respo
   // Inalcançável pelo fluxo acima (o laço só sai por return ou throw), mas o
   // compilador não sabe disso e o item 113 proíbe caminho sem tratamento.
   throw ultimoErro ?? new ErroHttp("Falha desconhecida na chamada externa.", { transitorio: true });
+}
+
+/**
+ * Objeto raso → `a=1&b=2`, com escape.
+ *
+ * `URLSearchParams` faz o percent-encoding sozinho, o que importa aqui: o
+ * corpo de uma mensagem de WhatsApp tem acento, quebra de linha e emoji, e
+ * concatenar à mão produziria um corpo inválido no primeiro "ç".
+ *
+ * Campo `undefined` ou `null` é OMITIDO, e não enviado como a string
+ * "undefined" — que é o que `String(undefined)` faria, e que o provedor
+ * gravaria como conteúdo literal.
+ */
+function paraFormulario(corpo: unknown): string {
+  if (typeof corpo === "string") return corpo;
+  if (typeof corpo !== "object" || corpo === null) return "";
+
+  const params = new URLSearchParams();
+  for (const [chave, valor] of Object.entries(corpo as Record<string, unknown>)) {
+    if (valor === undefined || valor === null) continue;
+    params.append(chave, typeof valor === "string" ? valor : JSON.stringify(valor));
+  }
+  return params.toString();
 }
 
 function interpretarJson(texto: string): unknown {

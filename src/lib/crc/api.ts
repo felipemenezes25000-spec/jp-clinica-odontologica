@@ -1159,7 +1159,9 @@ export const carregarIntegracoes = createServerFn({ method: "GET" }).handler(
                 detalhe:
                   zap.porta.nome === "sandbox"
                     ? "Registrando mensagens sem enviar."
-                    : "Provedor configurado.",
+                    : zap.porta.nome === "twilio"
+                      ? "Twilio configurado."
+                      : "Meta Cloud API configurada.",
                 faltando: [],
               }
             : { conectado: false, adapter: "—", detalhe: zap.motivo, faltando: zap.faltando },

@@ -84,18 +84,41 @@ export type WebhookInterpretado = {
   entregas: AtualizacaoEntrega[];
 };
 
+/** O que a conferência de assinatura precisa saber sobre o pedido recebido. */
+export type PedidoWebhook = {
+  /** Os bytes exatos, sem parse. */
+  corpoCru: string;
+  cabecalhos: Headers;
+  /**
+   * A URL completa como o provedor a chamou, incluindo querystring.
+   *
+   * ATENÇÃO EM PRODUÇÃO: atrás de proxy, `request.url` pode chegar como `http`
+   * mesmo o provedor tendo chamado em `https`, e a assinatura do Twilio
+   * quebraria. `WHATSAPP_WEBHOOK_URL` existe para fixar o valor quando isso
+   * acontecer.
+   */
+  url: string;
+};
+
 export type PortaMensageria = {
-  readonly nome: "meta_cloud" | "sandbox";
+  readonly nome: "meta_cloud" | "twilio" | "sandbox";
   enviarTexto(envio: EnvioTexto): Promise<ResultadoEnvio>;
   enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnvio>;
   /**
    * Confere a assinatura do webhook — item 195.
    *
-   * Recebe o corpo CRU (string), e não o objeto já parseado: a assinatura é
-   * calculada sobre os bytes exatos, e `JSON.parse` seguido de `stringify` os
-   * altera (ordem de chave, espaçamento) e faz a conferência falhar.
+   * POR QUE O PEDIDO INTEIRO, E NÃO SÓ O CORPO
+   * Porque os dois provedores assinam coisas diferentes. A Meta faz HMAC-SHA256
+   * sobre os BYTES CRUS do corpo. O Twilio faz HMAC-SHA1 sobre a URL COMPLETA
+   * concatenada com os campos do formulário em ordem alfabética — o corpo cru
+   * sozinho não basta, e a URL não estaria disponível se o contrato só
+   * passasse o corpo.
+   *
+   * O corpo vai cru (string) porque a Meta precisa dos bytes exatos: um
+   * `JSON.parse` seguido de `stringify` muda ordem de chave e espaçamento, e a
+   * conferência falharia sempre.
    */
-  verificarAssinatura(corpoCru: string, cabecalhos: Headers): boolean;
+  verificarAssinatura(pedido: PedidoWebhook): boolean;
   interpretarWebhook(corpo: unknown): WebhookInterpretado;
 };
 

@@ -205,7 +205,13 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
         />
 
         <CartaoIntegracao
-          titulo="WhatsApp"
+          titulo={
+            estado.whatsapp.adapter === "twilio"
+              ? "WhatsApp (Twilio)"
+              : estado.whatsapp.adapter === "meta_cloud"
+                ? "WhatsApp (Meta Cloud)"
+                : "WhatsApp"
+          }
           descricao="Envio e recebimento de mensagens pelo canal oficial."
           dados={estado.whatsapp}
         />
