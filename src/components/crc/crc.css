@@ -778,6 +778,32 @@
    Funil (kanban)
    ========================================================================== */
 
+/* Os filtros e as visões salvas (item 147) ficam acima do quadro. */
+.crc-app .crc-filtros-funil {
+  margin-bottom: var(--crc-e3);
+}
+
+.crc-app .crc-filtros-funil .crc-selecao {
+  /* Largura própria: um `select` esticado numa linha de filtros vira o único
+     elemento que a pessoa enxerga, e os outros somem ao lado dele. */
+  width: auto;
+  min-width: 168px;
+}
+
+.crc-app .crc-visoes {
+  margin-bottom: var(--crc-e4);
+  padding-bottom: var(--crc-e3);
+  border-bottom: 1px solid var(--crc-borda);
+}
+
+/* O nome da visão e o × de apagar andam juntos: separá-los com `gap` faria o
+   × parecer pertencer à visão seguinte. */
+.crc-app .crc-visao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--crc-e1);
+}
+
 .crc-app .crc-funil {
   display: flex;
   gap: var(--crc-e3);

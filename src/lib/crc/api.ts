@@ -577,55 +577,157 @@ export const carregarFichaPaciente = createServerFn({ method: "GET" })
 /* Oportunidades                                                              */
 /* -------------------------------------------------------------------------- */
 
-export const carregarFunil = createServerFn({ method: "GET" }).handler(
-  async (): Promise<
-    Resposta<{
-      etapas: { id: string; chave: string; nome: string; ordem: number; categoria: string }[];
-      cartoes: (ItemPrioridade & { stageId: string | null })[];
-    }>
-  > =>
+export const carregarFunil = createServerFn({ method: "GET" })
+  // O filtro chega SEMPRE pelo mesmo validador que as visões salvas usam. Uma
+  // visão salva é exatamente este objeto guardado com nome; validar nos dois
+  // lugares com códigos diferentes seria criar duas verdades sobre o que é um
+  // filtro válido.
+  .validator((e: { filtros?: unknown }) => ({ filtros: e.filtros }))
+  .handler(
+    async ({
+      data,
+    }): Promise<
+      Resposta<{
+        etapas: { id: string; chave: string; nome: string; ordem: number; categoria: string }[];
+        cartoes: (ItemPrioridade & { stageId: string | null })[];
+      }>
+    > =>
+      comContexto("ver_oportunidade", async (ctx) => {
+        const { listarEtapas } = await import("./aplicacao/repositorios");
+        const { listarOportunidades } = await import("./aplicacao/oportunidades");
+        const { faixaDePrioridade } = await import("./dominio/prioridade");
+        const { ROTULO_TIPO_OPORTUNIDADE } = await import("./dominio/rotulos");
+        const { lerFiltroFunil } = await import("./aplicacao/visoes");
+
+        const filtro = lerFiltroFunil(data.filtros);
+
+        const etapasTodas = await listarEtapas(ctx.organizationId);
+        // A etapa vem por CHAVE e vira id aqui. Guardar o id na visão salva
+        // amarraria o filtro a uma linha que pode ser recriada; a chave
+        // sobrevive a uma reinstalação do funil.
+        const etapaId =
+          filtro.etapaChave === null
+            ? undefined
+            : etapasTodas.find((e) => e.chave === filtro.etapaChave)?.id;
+
+        const [etapas, oportunidades] = await Promise.all([
+          Promise.resolve(etapasTodas),
+          listarOportunidades({
+            organizationId: ctx.organizationId,
+            clinicIds: ctx.clinicIds,
+            ...(filtro.tipos.length > 0 ? { tipos: filtro.tipos } : {}),
+            ...(etapaId === undefined ? {} : { etapaId }),
+            ...(filtro.apenasMinhas ? { assignedTo: ctx.usuario.id } : {}),
+            limite: 200,
+          }),
+        ]);
+
+        const nomes = await carregarNomes(
+          ctx.organizationId,
+          oportunidades.map((o) => o.patientId).filter((p): p is string => p !== null),
+        );
+
+        return {
+          ok: true as const,
+          etapas: etapas.map((e) => ({ ...e, categoria: e.categoria })),
+          cartoes: oportunidades.map((o) => ({
+            opportunityId: o.id,
+            patientId: o.patientId,
+            nome: (o.patientId === null ? null : nomes.get(o.patientId)) ?? "Paciente sem nome",
+            tipo: o.tipo,
+            tipoRotulo: ROTULO_TIPO_OPORTUNIDADE[o.tipo],
+            motivo: o.motivo ?? "",
+            score: o.priorityScore,
+            faixa: faixaDePrioridade(o.priorityScore),
+            fatores: o.priorityFatores.map((f) => ({ rotulo: f.rotulo, pontos: f.pontos })),
+            valorPotencial: o.potentialValue,
+            proximaAcao: o.nextAction,
+            ultimoContatoEm: null,
+            temJornadaAtiva: false,
+            stageId: o.stageId,
+          })),
+        };
+      }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Visões salvas — item 147                                                   */
+/* -------------------------------------------------------------------------- */
+
+export type VisaoDto = {
+  id: string;
+  nome: string;
+  compartilhada: boolean;
+  minha: boolean;
+  tipos: string[];
+  etapaChave: string | null;
+  apenasMinhas: boolean;
+};
+
+/**
+ * A visão vai para o cliente ACHATADA.
+ *
+ * O TanStack Start serializa o retorno, e um objeto aninhado dentro de outro
+ * com união de tipos custa uma rodada de erro de serialização para cada campo
+ * novo. Achatar aqui é o mesmo remédio do item 138.
+ */
+function paraDto(v: import("./aplicacao/visoes").VisaoSalva): VisaoDto {
+  return {
+    id: v.id,
+    nome: v.nome,
+    compartilhada: v.compartilhada,
+    minha: v.minha,
+    tipos: [...v.filtros.tipos],
+    etapaChave: v.filtros.etapaChave,
+    apenasMinhas: v.filtros.apenasMinhas,
+  };
+}
+
+export const listarVisoesSalvas = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ visoes: VisaoDto[] }>> =>
     comContexto("ver_oportunidade", async (ctx) => {
-      const { listarEtapas } = await import("./aplicacao/repositorios");
-      const { listarOportunidades } = await import("./aplicacao/oportunidades");
-      const { faixaDePrioridade } = await import("./dominio/prioridade");
-      const { ROTULO_TIPO_OPORTUNIDADE } = await import("./dominio/rotulos");
-
-      const [etapas, oportunidades] = await Promise.all([
-        listarEtapas(ctx.organizationId),
-        listarOportunidades({
-          organizationId: ctx.organizationId,
-          clinicIds: ctx.clinicIds,
-          limite: 200,
-        }),
-      ]);
-
-      const nomes = await carregarNomes(
-        ctx.organizationId,
-        oportunidades.map((o) => o.patientId).filter((p): p is string => p !== null),
-      );
-
-      return {
-        ok: true as const,
-        etapas: etapas.map((e) => ({ ...e, categoria: e.categoria })),
-        cartoes: oportunidades.map((o) => ({
-          opportunityId: o.id,
-          patientId: o.patientId,
-          nome: (o.patientId === null ? null : nomes.get(o.patientId)) ?? "Paciente sem nome",
-          tipo: o.tipo,
-          tipoRotulo: ROTULO_TIPO_OPORTUNIDADE[o.tipo],
-          motivo: o.motivo ?? "",
-          score: o.priorityScore,
-          faixa: faixaDePrioridade(o.priorityScore),
-          fatores: o.priorityFatores.map((f) => ({ rotulo: f.rotulo, pontos: f.pontos })),
-          valorPotencial: o.potentialValue,
-          proximaAcao: o.nextAction,
-          ultimoContatoEm: null,
-          temJornadaAtiva: false,
-          stageId: o.stageId,
-        })),
-      };
+      const { listarVisoes } = await import("./aplicacao/visoes");
+      const visoes = await listarVisoes(ctx.organizationId, ctx.usuario.id, "funil");
+      return { ok: true as const, visoes: visoes.map(paraDto) };
     }),
 );
+
+export const salvarVisaoSalva = createServerFn({ method: "POST" })
+  .validator((e: { nome: string; compartilhada?: boolean; filtros?: unknown }) => ({
+    nome: String(e.nome ?? ""),
+    compartilhada: e.compartilhada === true,
+    filtros: e.filtros,
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ visao: VisaoDto }>> =>
+    comContexto("ver_oportunidade", async (ctx) => {
+      const { lerFiltroFunil, salvarVisao } = await import("./aplicacao/visoes");
+
+      const r = await salvarVisao({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        escopo: "funil",
+        nome: data.nome,
+        filtros: lerFiltroFunil(data.filtros),
+        compartilhada: data.compartilhada,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const, visao: paraDto(r.visao) };
+    }),
+  );
+
+export const apagarVisaoSalva = createServerFn({ method: "POST" })
+  .validator((e: { id: string }) => ({ id: String(e.id ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ apagada: true }>> =>
+    comContexto("ver_oportunidade", async (ctx) => {
+      const { apagarVisao } = await import("./aplicacao/visoes");
+      // A exclusão filtra por autor no próprio DELETE. Uma visão compartilhada
+      // por outra pessoa simplesmente não é atingida — sem erro, porque não
+      // há nada a informar: a lista some do lado de quem apagou a sua.
+      await apagarVisao(ctx.organizationId, ctx.usuario.id, data.id);
+      return { ok: true as const, apagada: true as const };
+    }),
+  );
 
 export const moverOportunidade = createServerFn({ method: "POST" })
   .validator((e: { opportunityId: string; etapa: string; lostReason?: string }) => ({

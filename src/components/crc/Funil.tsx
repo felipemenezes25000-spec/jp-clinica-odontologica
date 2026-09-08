@@ -23,7 +23,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { carregarFunil, moverOportunidade, type ItemPrioridade } from "@/lib/crc/api";
 import { dinheiro } from "@/lib/crc/dominio/formatar";
-import { MOTIVOS_PERDA } from "@/lib/crc/dominio/rotulos";
+import { MOTIVOS_PERDA, ROTULO_TIPO_OPORTUNIDADE } from "@/lib/crc/dominio/rotulos";
 
 import {
   Aviso,
@@ -36,6 +36,7 @@ import {
   Vazio,
   useAcao,
 } from "./base";
+import { BarraDeVisoes, FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./Visoes";
 
 type Etapa = { id: string; chave: string; nome: string; ordem: number; categoria: string };
 type Cartao = ItemPrioridade & { stageId: string | null };
@@ -46,12 +47,17 @@ export function Funil({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string
   const [erro, setErro] = useState<string | null>(null);
   const [perdendo, setPerdendo] = useState<Cartao | null>(null);
   const [motivoPerda, setMotivoPerda] = useState<string>(MOTIVOS_PERDA[0].chave);
+  const [filtro, setFiltro] = useState<FiltroFunilUi>({ ...FILTRO_VAZIO });
 
   const acao = useAcao();
 
   const recarregar = useCallback(async (): Promise<void> => {
     try {
-      const r = await carregarFunil();
+      // O FILTRO VAI PARA O SERVIDOR, e não para um `.filter()` daqui. Filtrar
+      // em memória daria a lista certa e a CONTAGEM errada por coluna — o
+      // funil traz no máximo 200 cartões, e "3 em Contato pendente" passaria a
+      // significar "3 dos 200 que couberam".
+      const r = await carregarFunil({ data: { filtros: filtro } });
       if (r.ok) {
         setEtapas(r.etapas);
         setCartoes(r.cartoes);
@@ -62,7 +68,7 @@ export function Funil({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string
     } catch {
       setErro("Não conseguimos carregar o funil. Tente atualizar a página.");
     }
-  }, []);
+  }, [filtro]);
 
   useEffect(() => {
     void recarregar();
@@ -117,18 +123,94 @@ export function Funil({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string
   if (erro !== null && etapas === null) return <Aviso tom="perigo">{erro}</Aviso>;
   if (etapas === null) return <ListaEsqueleto linhas={4} />;
 
+  const controles = (
+    <>
+      <div className="crc-linha crc-filtros-funil">
+        <label className="crc-so-leitor" htmlFor="crc-funil-tipo">
+          Filtrar por tipo
+        </label>
+        <select
+          id="crc-funil-tipo"
+          className="crc-selecao"
+          value={filtro.tipos[0] ?? ""}
+          onChange={(e) => {
+            // UM tipo por vez. Multisseleção acessível exige um componente
+            // próprio; o modelo de dados já aceita vários, então o dia em que
+            // esse componente existir nada aqui atrás precisa mudar.
+            const v = e.target.value;
+            setFiltro((f) => ({ ...f, tipos: v === "" ? [] : [v] }));
+          }}
+        >
+          <option value="">Todos os tipos</option>
+          {Object.entries(ROTULO_TIPO_OPORTUNIDADE).map(([chave, rotulo]) => (
+            <option key={chave} value={chave}>
+              {rotulo}
+            </option>
+          ))}
+        </select>
+
+        <label className="crc-so-leitor" htmlFor="crc-funil-etapa">
+          Filtrar por etapa
+        </label>
+        <select
+          id="crc-funil-etapa"
+          className="crc-selecao"
+          value={filtro.etapaChave ?? ""}
+          onChange={(e) => {
+            const v = e.target.value;
+            setFiltro((f) => ({ ...f, etapaChave: v === "" ? null : v }));
+          }}
+        >
+          <option value="">Todas as etapas</option>
+          {etapas.map((et) => (
+            <option key={et.id} value={et.chave}>
+              {et.nome}
+            </option>
+          ))}
+        </select>
+
+        <label className="crc-linha">
+          <input
+            type="checkbox"
+            checked={filtro.apenasMinhas}
+            onChange={(e) => {
+              const marcado = e.target.checked;
+              setFiltro((f) => ({ ...f, apenasMinhas: marcado }));
+            }}
+          />
+          <span className="crc-corpo">Só as minhas</span>
+        </label>
+      </div>
+
+      <BarraDeVisoes filtro={filtro} aoAplicar={setFiltro} />
+    </>
+  );
+
   if (cartoes.length === 0) {
     return (
-      <Vazio
-        titulo="Nenhuma oportunidade aberta."
-        explicacao="Quando um paciente faltar, cancelar ou passar do prazo de retorno, a oportunidade aparece aqui automaticamente."
-      />
+      <>
+        {controles}
+        <Vazio
+          titulo={
+            filtroVazio(filtro)
+              ? "Nenhuma oportunidade aberta."
+              : "Nenhuma oportunidade com esses filtros."
+          }
+          explicacao={
+            filtroVazio(filtro)
+              ? "Quando um paciente faltar, cancelar ou passar do prazo de retorno, a oportunidade aparece aqui automaticamente."
+              : "O funil tem oportunidades, mas nenhuma passa por este filtro. Limpe os filtros para ver o quadro inteiro."
+          }
+        />
+      </>
     );
   }
 
   return (
     <>
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
+
+      {controles}
 
       <div className="crc-funil">
         {etapas.map((etapa) => {

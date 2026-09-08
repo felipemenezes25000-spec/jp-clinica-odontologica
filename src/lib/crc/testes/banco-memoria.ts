@@ -137,6 +137,9 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_clinics: [{ colunas: ["organization_id", "slug"] }],
   crc_organizations: [{ colunas: ["slug"] }],
   crc_users: [{ colunas: ["organization_id", "email"] }],
+  // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
+  // ATUALIZAR em vez de criar uma segunda visão homônima.
+  crc_saved_views: [{ colunas: ["organization_id", "user_id", "escopo", "nome"] }],
 };
 
 /**
