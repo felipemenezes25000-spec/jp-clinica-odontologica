@@ -739,6 +739,30 @@ function ConteudoGaveta(props: PropsConteudo) {
     aoAnotar(item.id, `Área reclassificada de “${antiga}” para “${escolhida.rotulo}”.`);
   };
 
+  /**
+   * Trocar a vaga a que a candidatura pertence.
+   *
+   * Segundo caso do mesmo pedido que trouxe "Onde se encaixa": a pessoa se
+   * candidatou à recepção porque era a vaga aberta, e o lugar dela é outro
+   * processo. Aqui a candidatura MUDA DE FILA — some do comparativo daquela
+   * vaga, entra no da outra, e o filtro "Vaga" passa a encontrá-la no lugar
+   * certo. Por isso é diferente da área, que só reclassifica o perfil.
+   *
+   * O título quem grava é o servidor, a partir da vaga escolhida: ver o
+   * comentário de `CamposGeriveis`. Aqui só viaja o id.
+   */
+  const trocarVaga = (e: ChangeEvent<HTMLSelectElement>) => {
+    const escolhido = e.target.value;
+    if (escolhido === item.vagaId) return;
+    const antes = item.vagaTitulo.trim() === "" ? "candidatura espontânea" : item.vagaTitulo.trim();
+    const depois =
+      escolhido === ""
+        ? "candidatura espontânea"
+        : (vagas.find((v) => v.id === escolhido)?.titulo ?? "outra vaga");
+    aoAtualizar(item.id, { vagaId: escolhido });
+    aoAnotar(item.id, `Candidatura movida de “${antes}” para “${depois}”.`);
+  };
+
   const definirNota = (n: number) => {
     // Clicar de novo na estrela atual zera — é o gesto que todo mundo tenta.
     aoAtualizar(item.id, { nota: item.nota === n ? 0 : n });
@@ -1222,8 +1246,38 @@ function ConteudoGaveta(props: PropsConteudo) {
                     ))}
                   </select>
                   <p className={AJUDA}>
-                    Muda a régua da IA, o filtro e a etiqueta do cartão. A vaga a que a pessoa se
-                    candidatou continua em “Vaga pretendida”, e a troca fica no histórico.
+                    Muda a régua da IA, o filtro e a etiqueta do cartão. O cargo que a pessoa
+                    escreveu continua em “Vaga pretendida”, e a troca fica no histórico.
+                  </p>
+                </div>
+
+                {/* VAGA — a outra metade de "onde essa pessoa deveria estar".
+                    A área diz que perfil é; esta diz de qual processo ela
+                    participa. Trocar aqui move a candidatura de fila. */}
+                <div>
+                  <label htmlFor={`${uid}-vaga-atual`} className={ROTULO}>
+                    Vaga do processo
+                  </label>
+                  <select
+                    id={`${uid}-vaga-atual`}
+                    className={CAMPO}
+                    value={item.vagaId}
+                    onChange={trocarVaga}
+                  >
+                    <option value="" className="bg-white text-ink">
+                      Candidatura espontânea (sem vaga)
+                    </option>
+                    {vagas.map((v) => (
+                      <option key={v.id} value={v.id} className="bg-white text-ink">
+                        {v.titulo}
+                        {v.status === "aberta" ? "" : ` — ${statusVagaPor(v.status).rotulo}`}
+                      </option>
+                    ))}
+                  </select>
+                  <p className={AJUDA}>
+                    {vagas.length === 0
+                      ? "Nenhuma vaga cadastrada ainda. Crie uma na aba Vagas para poder mover candidaturas para ela."
+                      : "Move a candidatura para outro processo: muda o filtro por vaga e o comparativo. A troca fica no histórico."}
                   </p>
                 </div>
 

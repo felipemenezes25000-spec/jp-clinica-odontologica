@@ -145,6 +145,10 @@ function mesclarLista(atual: Candidatura[], novos: Candidatura[]): Candidatura[]
  *  já chega em português (é a mensagem de `validarVaga`) e passa direto. */
 const MOTIVOS: Record<string, string> = {
   "nao-encontrada": "Esse registro não existe mais no servidor. Atualize o painel.",
+  // Acontece quando a vaga foi excluída em outra aba entre abrir a ficha e
+  // escolher no seletor. O servidor recusa em vez de gravar um vínculo órfão.
+  "vaga-nao-encontrada":
+    "Essa vaga não existe mais. Atualize o painel e escolha outra — a candidatura não foi movida.",
 };
 
 /**

@@ -647,6 +647,10 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
       if (!AREAS.some((item) => item.valor === valor)) throw new Error("Área desconhecida.");
       campos.area = valor as AreaVaga;
     }
+    // Só o id. O título vem do servidor, no handler — ver o comentário de
+    // `CamposGeriveis`. String vazia é válida e significa "candidatura
+    // espontânea", que é como a pessoa desliga a candidatura de uma vaga.
+    if ("vagaId" in recebidos) campos.vagaId = texto(recebidos["vagaId"], 60);
     if ("etiquetas" in recebidos) campos.etiquetas = lista(recebidos["etiquetas"], 40);
     if ("responsavel" in recebidos) campos.responsavel = texto(recebidos["responsavel"], 80);
     if ("entrevistaEm" in recebidos) campos.entrevistaEm = texto(recebidos["entrevistaEm"], 40);
@@ -661,10 +665,29 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
     // trocar o status no mesmo segundo faz os dois handlers partirem do mesmo
     // retrato, e o segundo grava por cima. `atualizarCandidaturaNoDisco` fecha
     // o ciclo inteiro dentro da fila.
-    const { atualizarCandidaturaNoDisco } = await import("./servidor/armazenamento");
+    const { atualizarCandidaturaNoDisco, listarVagas } = await import("./servidor/armazenamento");
+
+    /**
+     * Trocar de vaga arrasta o título junto, e o título sai DAQUI — nunca do
+     * que o navegador mandou. Uma vaga que não existe é recusada em vez de
+     * gravar um vínculo órfão que o painel depois mostraria como "vaga
+     * removida" numa candidatura que ninguém removeu de lugar nenhum.
+     */
+    let tituloDaVaga: string | null = null;
+    if (data.campos.vagaId !== undefined) {
+      if (data.campos.vagaId === "") {
+        tituloDaVaga = "";
+      } else {
+        const vaga = (await listarVagas()).find((v) => v.id === data.campos.vagaId);
+        if (!vaga) return { ok: false, motivo: "vaga-nao-encontrada" };
+        tituloDaVaga = vaga.titulo;
+      }
+    }
+
     const item = await atualizarCandidaturaNoDisco(data.id, (atual) => ({
       ...atual,
       ...data.campos,
+      ...(tituloDaVaga === null ? {} : { vagaTitulo: tituloDaVaga }),
       atualizadoEm: new Date().toISOString(),
     }));
     if (item === null) return { ok: false, motivo: "nao-encontrada" };

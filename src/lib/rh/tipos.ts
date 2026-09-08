@@ -169,14 +169,24 @@ export type Candidatura = {
  * DISSE, e às vezes não é onde ela se encaixa — e é a área que decide a régua
  * da IA, o filtro do painel e a etiqueta do cartão.
  *
- * O que a pessoa escreveu não se perde: `vagaTitulo` e `cargoDesejado`
- * continuam intactos e visíveis no bloco "Vaga pretendida", e a troca deixa
- * uma linha no histórico dela. Reclassificar é anotar uma leitura da clínica
- * por cima do que foi declarado, nunca apagar o que foi declarado.
+ * `cargoDesejado` — o que a pessoa escreveu de próprio punho — nunca é
+ * reescrito, e a troca deixa uma linha no histórico dela. Reclassificar é
+ * anotar uma leitura da clínica por cima do que foi declarado, nunca apagar o
+ * que foi declarado.
+ *
+ * `vagaId` entra pelo mesmo motivo, para o outro caso: a pessoa se candidatou
+ * à recepção porque era a vaga aberta e o lugar dela é outro processo. Trocar
+ * a vaga move a candidatura de fila — muda o filtro "Vaga", a contagem do
+ * anúncio e o comparativo.
+ *
+ * `vagaTitulo` NÃO entra: quem o escreve é o servidor, a partir da vaga
+ * escolhida. Se o painel pudesse mandar o título, um POST forjado (ou um bug de
+ * tela) gravaria "Cirurgião-dentista" numa candidatura ligada à vaga de
+ * recepção, e as duas verdades nunca mais bateriam.
  */
 export type CamposGeriveis = Pick<
   Candidatura,
-  "status" | "nota" | "etiquetas" | "responsavel" | "entrevistaEm" | "arquivada" | "area"
+  "status" | "nota" | "etiquetas" | "responsavel" | "entrevistaEm" | "arquivada" | "area" | "vagaId"
 >;
 
 /**
