@@ -8,8 +8,20 @@
  */
 
 @media (min-width: 1024px) {
-  /* O painel tem id gerado por useId, mas o sufixo é estável. */
-  .rh-admin [id$="-painel"] {
+  /*
+   * IMPORTANTE: este seletor é deliberadamente restrito ao painel de filtros
+   * que é filho direto da barra sticky da aba Candidaturas. Antes era
+   * `.rh-admin [id$="-painel"]`, o que alcançava qualquer painel do RH e,
+   * pior, aplicava `display: grid !important` mesmo quando o React trocava a
+   * classe para `hidden`. O estado mudava, aria-expanded mudava, mas o CSS
+   * continuava forçando o painel a aparecer — por isso o botão Filtros não
+   * conseguia minimizá-lo.
+   */
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"].hidden {
+    display: none !important;
+  }
+
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"]:not(.hidden) {
     display: grid !important;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: end;
@@ -19,21 +31,21 @@
   }
 
   /* Básicos: área, status, vaga e ordenação em uma única linha. */
-  .rh-admin [id$="-painel"] > :nth-child(1),
-  .rh-admin [id$="-painel"] > :nth-child(2) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(1),
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(2) {
     grid-column: span 2;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(3) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(3) {
     grid-column: span 5;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(4) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(4) {
     grid-column: span 3;
   }
 
   /* Período ocupa uma faixa curta, não duas linhas inteiras de formulário. */
-  .rh-admin [id$="-painel"] > :nth-child(5) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) {
     grid-column: 1 / -1;
     gap: 0.4rem;
     padding: 0.6rem 0;
@@ -41,17 +53,17 @@
     border-bottom: 1px solid color-mix(in oklab, var(--forest) 10%, transparent);
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(5) > div {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) > div {
     flex-wrap: nowrap;
     gap: 0.45rem;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(5) input[type="date"] {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) input[type="date"] {
     min-width: 9rem !important;
     height: 2.4rem;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(5) button {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) button {
     height: 2.4rem;
     padding-inline: 0.72rem;
     white-space: nowrap;
@@ -59,7 +71,7 @@
 
   /* A frase por extenso repete o que os dois campos já mostram. Mantemos para
      leitores de tela via aria-live no DOM, mas tiramos da composição desktop. */
-  .rh-admin [id$="-painel"] > :nth-child(5) > p {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) > p {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -72,18 +84,18 @@
   }
 
   /* Nota + opções rápidas na mesma fileira. */
-  .rh-admin [id$="-painel"] > :nth-child(6) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(6) {
     grid-column: span 3;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(7),
-  .rh-admin [id$="-painel"] > :nth-child(8),
-  .rh-admin [id$="-painel"] > :nth-child(9) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(7),
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(8),
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(9) {
     grid-column: span 3;
   }
 
   /* Triagem por IA vira uma grade densa de 6 controles por linha. */
-  .rh-admin [id$="-painel"] > :nth-child(10) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(10) {
     grid-column: 1 / -1;
     display: grid !important;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -93,12 +105,12 @@
     padding-top: 0.65rem;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(10) > :first-child {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(10) > :first-child {
     grid-column: 1 / -1;
     margin-bottom: -0.05rem;
   }
 
-  .rh-admin [id$="-painel"] > :nth-child(10) > :not(:first-child) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(10) > :not(:first-child) {
     grid-column: span 2;
     min-width: 0;
     width: 100%;
@@ -106,20 +118,20 @@
 
   /* Os controles do painel aberto não precisam dos 44px usados em touch.
      Em desktop, 38px preserva conforto e devolve quase uma linha inteira ao quadro. */
-  .rh-admin [id$="-painel"] select,
-  .rh-admin [id$="-painel"] input,
-  .rh-admin [id$="-painel"] button[role="switch"] {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] select,
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] input,
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] button[role="switch"] {
     min-height: 2.4rem;
     height: 2.4rem;
   }
 
-  .rh-admin [id$="-painel"] button[role="switch"] {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] button[role="switch"] {
     padding-inline: 0.65rem;
     gap: 0.45rem;
     font-size: 0.78rem;
   }
 
-  .rh-admin [id$="-painel"] button[role="switch"] > span:first-child {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] button[role="switch"] > span:first-child {
     transform: scale(0.86);
     transform-origin: left center;
     margin-right: -0.2rem;
