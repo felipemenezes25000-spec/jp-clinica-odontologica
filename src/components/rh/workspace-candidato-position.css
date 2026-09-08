@@ -1,29 +1,217 @@
-/* Correção de geometria do workspace do candidato.
+/*
+ * Geometria responsiva do workspace do candidato.
  *
- * O redesign v3 herdou a semântica de drawer: `right: 0` + largura limitada.
- * Em monitor largo isso cola a ficha no canto direito e deixa todo o espaço
- * livre de um lado só. No desktop a ficha agora é um modal/workspace central,
- * com margens simétricas e largura máxima confortável.
+ * Regra principal: este painel NÃO é mais um drawer lateral no desktop.
+ * A largura nasce de INSETS SIMÉTRICOS, portanto nunca pode "grudar" em um
+ * canto. Em tela larga ele para em 1600px; em notebook usa praticamente toda a
+ * janela; em tablet vira uma coluna; no celular continua como bottom-sheet.
+ *
+ * Este arquivo é importado depois de workspace-candidato.css e existe justamente
+ * para concentrar as regras de geometria/breakpoints num único lugar.
  */
 
-@media (min-width: 1280px) {
+/* -------------------------------------------------------------------------- */
+/* Celular: bottom-sheet real, sem layout de desktop vazando para dentro.      */
+/* -------------------------------------------------------------------------- */
+@media (max-width: 767px) {
   .rh-admin .rh-gaveta {
-    top: clamp(0.75rem, 1.5vh, 1.25rem) !important;
-    bottom: clamp(0.75rem, 1.5vh, 1.25rem) !important;
-    left: 0 !important;
+    top: auto !important;
     right: 0 !important;
-    width: min(100rem, calc(100vw - 2.5rem)) !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
     max-width: none !important;
-    margin-inline: auto !important;
+    height: min(94dvh, 58rem) !important;
+    margin: 0 !important;
     border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
-    border-radius: 1.4rem !important;
-    box-shadow: 0 34px 90px -46px rgba(3, 47, 1, 0.5) !important;
+    border-bottom: 0 !important;
+    border-radius: 1.25rem 1.25rem 0 0 !important;
     --rh-entra-x: 0rem;
+    --rh-entra-y: 100%;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    display: block !important;
+    max-height: 46dvh !important;
+    padding: 0.9rem 1rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll {
+    padding: 0.85rem 0.9rem 1.2rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    column-count: auto !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div > * {
+    width: 100% !important;
+    margin-bottom: 0.7rem !important;
+  }
+
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] {
+    position: static !important;
   }
 }
 
-@media (min-width: 1600px) {
+/* -------------------------------------------------------------------------- */
+/* Tablet / notebook pequeno: modal central, uma coluna, margens simétricas.   */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 768px) and (max-width: 1279px) {
   .rh-admin .rh-gaveta {
-    width: min(100rem, calc(100vw - 5rem)) !important;
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+    bottom: 0.75rem !important;
+    left: 0.75rem !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
+    border-radius: 1.25rem !important;
+    box-shadow: 0 28px 76px -44px rgba(3, 47, 1, 0.48) !important;
+    --rh-entra-x: 0rem;
+    --rh-entra-y: 0rem;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    display: block !important;
+    max-height: 48dvh !important;
+    padding: 1rem 1.15rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll {
+    padding: 1rem 1.15rem 1.4rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
+    display: block !important;
+    width: min(100%, 56rem) !important;
+    max-width: 56rem !important;
+    margin-inline: auto !important;
+    column-count: auto !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div > * {
+    width: 100% !important;
+    margin-bottom: 0.8rem !important;
+  }
+
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] {
+    position: static !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Desktop compacto: ocupa a janela com respiro igual dos dois lados.         */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .rh-admin .rh-gaveta {
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+    bottom: 0.75rem !important;
+    left: 0.75rem !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
+    border-radius: 1.3rem !important;
+    box-shadow: 0 32px 84px -46px rgba(3, 47, 1, 0.5) !important;
+    --rh-entra-x: 0rem;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 0.82fr) !important;
+    column-gap: 1.4rem !important;
+    padding-inline: 1.25rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll {
+    padding-inline: 1.25rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 21rem) !important;
+    max-width: none !important;
+    column-gap: 1rem !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Desktop médio: ainda fluido, mas com sidebar confortável.                  */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 1440px) and (max-width: 1679px) {
+  .rh-admin .rh-gaveta {
+    top: 0.9rem !important;
+    right: 1rem !important;
+    bottom: 0.9rem !important;
+    left: 1rem !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
+    border-radius: 1.35rem !important;
+    box-shadow: 0 34px 88px -46px rgba(3, 47, 1, 0.5) !important;
+    --rh-entra-x: 0rem;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    grid-template-columns: minmax(0, 1fr) minmax(26rem, 0.86fr) !important;
+    column-gap: 1.8rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
+    grid-template-columns: minmax(0, 1fr) minmax(22rem, 24rem) !important;
+    max-width: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Desktop grande / ultrawide: largura máxima de 1600px CENTRAL de verdade.   */
+/* `left` e `right` recebem exatamente o mesmo cálculo. Não depende de margin, */
+/* transform ou da semântica antiga de drawer.                                */
+/* -------------------------------------------------------------------------- */
+@media (min-width: 1680px) {
+  .rh-admin .rh-gaveta {
+    top: clamp(0.9rem, 1.5vh, 1.25rem) !important;
+    bottom: clamp(0.9rem, 1.5vh, 1.25rem) !important;
+    left: max(1.25rem, calc((100vw - 100rem) / 2)) !important;
+    right: max(1.25rem, calc((100vw - 100rem) / 2)) !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
+    border-radius: 1.4rem !important;
+    box-shadow: 0 36px 94px -48px rgba(3, 47, 1, 0.52) !important;
+    --rh-entra-x: 0rem;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    grid-template-columns: minmax(0, 1fr) minmax(28rem, 0.86fr) !important;
+    column-gap: 2.25rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
+    grid-template-columns: minmax(0, 1fr) 27rem !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+  }
+}
+
+/* Altura baixa (notebook 1366x768, janela dividida etc.): compacta o topo sem
+ * mudar a largura. Assim o corpo não perde a dobra inteira para o cabeçalho. */
+@media (min-width: 768px) and (max-height: 760px) {
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    max-height: 39dvh !important;
+    padding-top: 0.8rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll {
+    padding-top: 0.8rem !important;
   }
 }
