@@ -239,7 +239,12 @@ export function EditorVaga(props: {
     }`;
 
   return (
-    <div className="fixed inset-0 z-[95] flex items-stretch justify-end">
+    /* CENTRALIZADO, e não encostado na direita. Como gaveta de 68rem, num
+       monitor de 1920 o editor ocupava a metade direita e a outra metade ficava
+       escura e inútil — e é um formulário com prévia ao lado, não um painel de
+       detalhe. No celular continua ocupando a tela inteira, que ali é o certo:
+       margem em volta de um formulário de 20 campos é espaço roubado. */
+    <div className="fixed inset-0 z-[95] flex items-stretch justify-center p-0 sm:items-center sm:p-4 lg:p-6">
       {/*
         Fundo escuro clicável. É <button> e não <div> por regra do projeto — e
         com tabIndex -1 para não duplicar, no percurso de teclado, o "Fechar"
@@ -263,7 +268,11 @@ export function EditorVaga(props: {
         tabIndex={-1}
         /* A folha global pinta o foco de lime dentro de `.rh-aurora`, porque
            o painel é escuro; este diálogo é claro, e ali o lime mede 2,81:1. */
-        className="relative z-10 flex h-full w-full max-w-[68rem] flex-col bg-paper shadow-[0_0_80px_-20px_rgba(0,0,0,.7)] outline-none [&_:focus-visible]:outline-forest-2"
+        /* 100rem de teto, e não a tela inteira: acima disso o campo de título
+           esticaria por mais de um metro de pixel e a leitura piora em vez de
+           melhorar. Em 1920 sobra uma moldura fina; em 2560 o diálogo fica
+           centrado com margem generosa, que é o comportamento certo. */
+        className="relative z-10 flex h-full w-full max-w-[100rem] flex-col overflow-hidden bg-paper shadow-[0_0_80px_-20px_rgba(0,0,0,.7)] outline-none sm:h-auto sm:max-h-[min(94dvh,64rem)] sm:rounded-3xl [&_:focus-visible]:outline-forest-2"
       >
         <header className="flex shrink-0 items-start gap-3 border-b border-border-soft bg-white px-4 py-4 sm:px-6">
           <span
@@ -318,10 +327,19 @@ export function EditorVaga(props: {
         </div>
 
         <div className="rh-scroll min-h-0 flex-1 overflow-y-auto">
-          <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_23rem]">
+          <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_23rem] 2xl:gap-8 2xl:grid-cols-[minmax(0,1fr)_27rem]">
             {/* ---------------- Formulário ---------------- */}
+            {/* DUAS COLUNAS a partir de 1536px. O formulário tem quatro
+                blocos e vinte campos; numa coluna só, quem edita a jornada não
+                enxerga mais o título, e salvar vira um passeio de rolagem. Com
+                a largura que o diálogo ganhou, os quatro blocos cabem em duas
+                colunas e a maior parte da edição acontece sem rolar.
+
+                `items-start` porque os blocos têm alturas diferentes de
+                propósito — a lista de requisitos cresce, a de jornada não — e
+                esticar um para acompanhar o outro só deixaria buraco no meio. */}
             <div
-              className={`min-w-0 space-y-7 ${abaCelular === "editar" ? "" : "hidden"} lg:block`}
+              className={`min-w-0 space-y-7 ${abaCelular === "editar" ? "" : "hidden"} lg:block 2xl:grid 2xl:grid-cols-2 2xl:items-start 2xl:gap-x-8 2xl:gap-y-7 2xl:space-y-0`}
             >
               <section className="space-y-4">
                 <CampoTexto
