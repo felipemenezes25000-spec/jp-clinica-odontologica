@@ -15,14 +15,15 @@ auditado em [FINAL-ACCEPTANCE](FINAL-ACCEPTANCE.md).
 | Bloco | Depende de quem | Tempo | Sem isso, o que acontece |
 |---|---|---|---|
 | **A.** Banco, variáveis e instalação | Você | ~40 min | O `/crc` não abre. Nada funciona. |
-| **B.** Acesso da equipe | Nós (código) ou você (SQL) | 1 dia de código, ou 5 min por pessoa via SQL | Só existe **um** login. A recepção não entra. |
+| **B.** Acesso da equipe | Você, pela tela | ~2 min por pessoa | Só existe o login do administrador. |
 | **C.** Credenciais de terceiros | Dental Office e Twilio/Meta | Fora do nosso controle | O CRC abre e fica vazio: sem paciente e sem mensagem. |
 | **D.** Horário e política da clínica | Você, via SQL | ~10 min | Vale o padrão: seg–sex 8h–19h, sáb 8h–13h, 1 contato/dia. |
-| **E.** Sete lacunas de código | Nós | Ver a lista | Nenhuma impede operar. Três atrapalham bastante. |
+| **E.** Três lacunas de código | Nós | Ver a lista | Nenhuma impede operar. |
 
-**O caminho crítico é o C.** A e B se resolvem hoje. D é opcional. E não
-bloqueia. Sem as credenciais do Dental Office e de um provedor de WhatsApp, o
-sistema sobe, autentica, mostra as telas — e não tem o que mostrar.
+**O caminho crítico é o C, e só ele.** A e B se resolvem hoje, pela tela. D é
+opcional. E não bloqueia nada. Sem as credenciais do Dental Office e de um
+provedor de WhatsApp, o sistema sobe, autentica, mostra as telas — e não tem o
+que mostrar.
 
 ---
 
@@ -131,63 +132,52 @@ da Parte C não existe paciente para sincronizar.
 
 ## Parte B — Dar acesso à equipe
 
-**Este é o bloqueio que ninguém tinha notado, e ele é real.**
+`/crc` → **Equipe** → **Cadastrar pessoa**. Aba visível só para quem tem o papel
+de administração.
 
-A instalação cria **um** usuário: o administrador do `CRC_ADMIN_EMAIL`. Não
-existe tela para cadastrar mais ninguém. A função que cria usuário existe e é
-testada (`criarUsuario`, com papel e clínicas), mas nenhuma rota a expõe — só a
-instalação a chama, uma vez.
+Você escolhe nome, e-mail, senha e papel. **Não há e-mail de convite** — não há
+remetente configurado, e um convite que não chega é pior do que não existir:
+entregue a senha pessoalmente e peça para a pessoa trocá-la com você depois.
 
-Ou seja: hoje o CRC é uma ferramenta de trabalho para a recepção **com um login
-só**, e login compartilhado destrói a auditoria inteira (o "quem fez" de cada
-tarefa, cada mensagem, cada mudança de etapa passa a ser "alguém").
+**Por que dar um login por pessoa, e não um da clínica:** o item 74 exige saber
+QUEM alterou o quê. Com um login compartilhado, cada tarefa concluída, cada
+mensagem enviada e cada oportunidade movida fica assinada por "alguém" — e o
+histórico, que é metade do valor do sistema, para de responder a única pergunta
+que importa quando algo dá errado.
 
-### O caminho definitivo
+### Os seis papéis
 
-Uma tela de equipe: listar, criar, desativar, trocar papel. É trabalho pequeno
-— a função de domínio, o RBAC e a tabela já existem; falta a server function e
-a tela. **Recomendo fazer isto antes de qualquer credencial chegar**, porque é
-a única lacuna que impede a operação de existir.
+| Papel | O que alcança |
+|---|---|
+| **Administração** | Tudo, incluindo cadastrar e desativar gente. |
+| **Gestão** | A operação inteira, os números e as automações. Não mexe em usuários. |
+| **CRC** | A fila, as conversas e as oportunidades. Vê valor de orçamento. |
+| **Recepção** | A fila e as conversas do dia. Não vê valor de orçamento. |
+| **Dentista** | Pacientes e tarefas clínicas. Não vê a operação comercial. |
+| **Marketing** | Campanhas, funil e números. Não abre conversa de paciente. |
 
-### O contorno de hoje, se a equipe precisar entrar antes
+A tela mostra a explicação de cada papel embaixo do campo, porque a pergunta
+real de quem cadastra é "esta pessoa vai poder ver orçamento?".
 
-Gere o hash da senha na sua máquina (o formato é `sal:hash`, scrypt, o mesmo do
-portal de RH):
+### Duas coisas que a tela recusa, e por quê
 
-```bash
-node -e "const{scryptSync,randomBytes}=require('crypto');const s=randomBytes(16).toString('hex');console.log(s+':'+scryptSync(process.argv[1],s,64).toString('hex'))" "A-SENHA-DA-PESSOA"
-```
+**Você não desativa a própria conta**, e **o último administrador ativo não pode
+ser rebaixado nem desativado**. As duas fecham a porta com a chave do lado de
+dentro: não sobraria ninguém para reabrir. A recusa é do servidor, e não da
+tela — esconder o botão não impede uma requisição direta.
 
-E insira no SQL Editor, trocando os quatro valores do topo:
+### Tirar acesso vs. trocar senha
 
-```sql
-with dados as (
-  select
-    'maria@jpclinica.com.br'::text as email,
-    'Maria da Recepção'::text      as nome,
-    'recepcao'::text               as papel,   -- admin | gestor | crc | recepcao | dentista | marketing
-    'COLE_AQUI_O_HASH'::text       as senha_hash
-),
-org as (select id from public.crc_organizations where slug = 'jp'),
-novo as (
-  insert into public.crc_users (organization_id, nome, email, senha_hash, papel, ativo)
-  select org.id, dados.nome, lower(dados.email), dados.senha_hash, dados.papel, true
-  from org, dados
-  on conflict (organization_id, email) do update
-    set senha_hash = excluded.senha_hash, papel = excluded.papel, ativo = true
-  returning id
-)
-insert into public.crc_user_clinics (user_id, clinic_id)
-select novo.id, c.id
-from novo, org, public.crc_clinics c
-where c.organization_id = org.id and c.ativa = true
-on conflict do nothing;
-```
+**Tirar acesso** vale na requisição seguinte: o cookie guarda só o id, e o
+usuário é relido do banco a cada chamada. Mudar o papel funciona igual — um
+rebaixamento não espera o próximo login.
 
-Os seis papéis e o que cada um enxerga estão em `src/lib/crc/dominio/rbac.ts`.
-Em resumo: `recepcao` e `crc` trabalham a fila e as conversas; `gestor` vê
-analytics e financeiro; `marketing` vê campanha e não vê conversa; `dentista` vê
-paciente e agenda; `admin` vê tudo.
+**Trocar a senha NÃO derruba quem já está dentro**, porque o cookie não depende
+do hash. A troca serve para quem PERDEU o acesso. Para cortar o acesso de
+alguém que saiu da clínica, o botão certo é **Tirar acesso**.
+
+Desativar não apaga: o histórico da pessoa continua assinado com o nome dela.
+Apagar o usuário deixaria meses de tarefas e mensagens órfãs.
 
 ---
 
@@ -339,7 +329,7 @@ CRC_USD_BRL=5.5
 
 **Hoje isto só se faz por SQL.** A função que grava configuração existe
 (`gravarConfiguracao`, com auditoria e invalidação de cache), mas nenhuma tela a
-chama. É a lacuna E.3 lá embaixo.
+chama. É a lacuna E.1 lá embaixo.
 
 Se o padrão serve, pule esta parte. O padrão é:
 
@@ -411,59 +401,16 @@ imediato.
 
 ## Parte E — O que ainda depende de código nosso
 
-Sete lacunas reais. Nenhuma impede o sistema de operar; três atrapalham bastante
-e uma delas — a primeira — eu faria antes de qualquer coisa.
+Três lacunas. **Nenhuma impede a operação de começar.**
 
-### E.1 Cadastro de equipe — **bloqueia a operação**
+### E.1 Tela de configuração da clínica — atrapalha a autonomia
 
-Descrito na Parte B. Um login só, ou SQL por pessoa. É a única lacuna que
-impede o CRC de ser usado por um time. **Esforço: pequeno** — a função de
-domínio, o RBAC e a tabela já existem.
+Descrito na Parte D. Trocar o horário de atendimento ou incluir um feriado
+exige SQL, o que na prática significa exigir a gente. A escrita e a auditoria já
+existem (`gravarConfiguracao`); o trabalho é o formulário de horário semanal,
+que tem mais detalhe de interface do que parece. **Esforço: médio.**
 
-### E.2 Ver o que a automação "teria enviado" — **atrapalha a ativação**
-
-O modo simulação registra, passo a passo, exatamente o que teria sido enviado:
-o template, o texto já com as variáveis substituídas e o telefone. Está tudo em
-`crc_automation_logs`. A server function que lê esse histórico existe
-(`carregarHistoricoJornada`) — e **nenhuma tela a chama**.
-
-Consequência prática: o passo mais importante da ativação — "observe a
-simulação por alguns dias antes de ligar o envio" — hoje só se faz por SQL:
-
-```sql
-select l.criado_em, l.tipo, l.descricao, l.detalhe
-from public.crc_automation_logs l
-join public.crc_automation_enrollments e on e.id = l.enrollment_id
-where l.tipo = 'shadow'
-order by l.criado_em desc
-limit 50;
-```
-
-O texto que teria ido para o paciente está em `detalhe->>'texto'`.
-
-**Esforço: pequeno.** É uma gaveta na tela de Automações consumindo uma função
-que já existe.
-
-### E.3 Tela de configuração da clínica — **atrapalha a autonomia**
-
-Descrito na Parte D. Trocar o horário de atendimento ou incluir um feriado exige
-SQL, o que na prática significa exigir a gente. **Esforço: médio** — a escrita e
-a auditoria já existem; o trabalho é o formulário de horário semanal, que tem
-mais detalhe de interface do que parece.
-
-### E.4 O formulário do site não vira lead
-
-O endpoint público de captura existe, com deduplicação por telefone+dia,
-campo-armadilha contra bot e leitura de UTM/gclid
-(`POST /api/crc/lead`). O formulário de contato do site
-(`src/components/site/ContactForm.tsx`) **não o chama** — ele monta uma mensagem
-e abre o WhatsApp Web.
-
-Consequência: quem preenche o formulário não aparece no funil, e o
-speed-to-lead do dashboard não tem o que medir. **Esforço: pequeno** — postar
-para a rota e *depois* abrir o WhatsApp, o que preserva o comportamento atual.
-
-### E.5 As feature flags não fazem nada
+### E.2 As feature flags não fazem nada
 
 As cinco flags do item 42 (`ai_autopilot`, `auto_scheduling`,
 `budget_integration`, `automatic_whatsapp`, `dental_office_writeback`) existem
@@ -473,16 +420,10 @@ as exibe. **Nenhuma delas gatilha comportamento.**
 O que de fato controla o envio hoje são duas coisas, e as duas funcionam: o
 **modo da automação** (Simulação → Só recomenda → Executa) e os **interruptores
 de emergência**. Não há risco escondido aqui; há uma promessa não cumprida.
-Vale ou implementar as flags, ou removê-las para não sugerirem um controle que
-não existe. **Esforço: pequeno nos dois caminhos.**
+Vale ou implementar as flags, ou removê-las. **Esforço: pequeno nos dois
+caminhos.**
 
-### E.6 Criar tarefa pela tela
-
-`criarTarefaManual` existe como server function e nenhuma tela a chama — o item
-149 previa o atalho `c`. Dá para concluir e assumir tarefa; não dá para criar
-uma do zero. **Esforço: pequeno.**
-
-### E.7 Agendar pelo CRC
+### E.3 Agendar pelo CRC
 
 O conector do Dental Office tem `criarAgendamento` e ele é exercitado pelo
 sandbox. Falta a tela que escolhe horário e confirma. Hoje a jornada encaminha
@@ -490,9 +431,9 @@ para um humano remarcar no sistema da clínica — o que funciona, mas é o pass
 manual do fluxo. **Esforço: médio-grande**, e depende de credencial de escrita
 no Dental Office, que é diferente da de leitura.
 
-*Também não existem, e estão detalhadas no FINAL-ACCEPTANCE: teste de
-navegador (Playwright), segment engine componível do item 146, estado na URL do
-item 148 e multisseleção de tipo no funil.*
+*Também não existem, e estão detalhadas no FINAL-ACCEPTANCE: teste de navegador
+(Playwright), segment engine componível do item 146, estado na URL do item 148 e
+multisseleção de tipo no funil.*
 
 ---
 
@@ -524,8 +465,11 @@ Parte C.2, incluindo a submissão dos templates (a aprovação leva dias — com
 por ela).
 
 Com o WhatsApp conectado e as automações **ainda em simulação**, o motor roda a
-cada dez minutos e registra o que teria enviado. Leia esse registro
-(consulta SQL da lacuna E.2, ou a tela, se E.2 tiver sido feita).
+cada dez minutos e registra o que teria enviado.
+
+**Leia esse registro:** `/crc` → Automações → **Ver o que ela fez** → clique numa
+jornada. O passo a passo abre com o TEXTO INTEGRAL da mensagem que teria saído,
+com as variáveis já substituídas.
 
 O que você está procurando: nome errado, saudação estranha, mensagem indo para
 quem não devia, horário fora do expediente. É mais barato descobrir aqui.
@@ -539,8 +483,7 @@ Antes de virar a chave, o checklist do item 258:
 
 - [ ] Sincronização rodando sem falha há pelo menos 3 dias
 - [ ] Telefones conferidos por amostragem em Pacientes
-- [ ] Textos das mensagens revisados (hoje: em `templates.ts` ou pela consulta
-      da E.2)
+- [ ] Textos das mensagens revisados em Automações → Ver o que ela fez
 - [ ] Horário comercial conferido (Parte D)
 - [ ] Interruptores testados: acione e libere em Integrações
 - [ ] Uma mensagem real recebida apareceu em Conversas

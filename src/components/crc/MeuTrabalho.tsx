@@ -28,6 +28,7 @@ import {
   Vazio,
   useAcao,
 } from "./base";
+import { NovaTarefa } from "./NovaTarefa";
 
 export function MeuTrabalho({
   usuarioId,
@@ -39,6 +40,7 @@ export function MeuTrabalho({
   const [tarefas, setTarefas] = useState<Tarefa[] | null>(null);
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const [erro, setErro] = useState<string | null>(null);
+  const [criando, setCriando] = useState(false);
   const acao = useAcao();
 
   const recarregar = useCallback(async (): Promise<void> => {
@@ -54,6 +56,36 @@ export function MeuTrabalho({
     } catch {
       setErro("Não conseguimos carregar suas tarefas. Tente atualizar a página.");
     }
+  }, []);
+
+  /**
+   * O atalho `c` do item 149.
+   *
+   * A guarda de campo de texto é a mesma da paleta: sem ela, digitar "c" numa
+   * busca abriria o modal e engoliria a tecla. Sem modificador de propósito —
+   * é uma tecla que se aperta cem vezes por dia.
+   */
+  useEffect(() => {
+    const aoTeclar = (e: KeyboardEvent): void => {
+      if (e.key !== "c" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const alvo = e.target as HTMLElement | null;
+      if (
+        alvo !== null &&
+        (alvo.tagName === "INPUT" ||
+          alvo.tagName === "TEXTAREA" ||
+          alvo.tagName === "SELECT" ||
+          alvo.isContentEditable === true)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      setCriando(true);
+    };
+
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("keydown", aoTeclar);
+    };
   }, []);
 
   useEffect(() => {
@@ -100,8 +132,31 @@ export function MeuTrabalho({
     <>
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
 
+      <NovaTarefa
+        aberto={criando}
+        aoFechar={() => {
+          setCriando(false);
+        }}
+        aoCriar={(mensagem) => {
+          acao.avisar(mensagem);
+          void recarregar();
+        }}
+      />
+
       <div className="crc-pilha">
-        <Cartao titulo={`Suas tarefas (${String(minhas.length)})`}>
+        <Cartao
+          titulo={`Suas tarefas (${String(minhas.length)})`}
+          acao={
+            <Botao
+              variante="primario"
+              onClick={() => {
+                setCriando(true);
+              }}
+            >
+              Nova tarefa
+            </Botao>
+          }
+        >
           {minhas.length === 0 ? (
             /* Item 184: o "zero inbox" merece ser reconhecido, não um vazio seco. */
             <Vazio

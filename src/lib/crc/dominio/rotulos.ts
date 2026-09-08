@@ -16,6 +16,7 @@
 import type {
   AcaoIa,
   Intencao,
+  Papel,
   SituacaoPaciente,
   StatusAgendamento,
   StatusConversa,
@@ -130,6 +131,31 @@ export const ROTULO_STATUS_JORNADA: Readonly<Record<StatusJornada, string>> = {
   FAILED: "Falhou",
   CANCELLED: "Cancelada",
   EXITED: "Encerrada",
+};
+
+/**
+ * Os seis papéis, e o que cada um faz — não o que cada um "é".
+ *
+ * "Recepção" sozinho não ajuda quem está escolhendo o papel de alguém na tela
+ * de equipe: a pergunta que a pessoa tem na cabeça é "esta pessoa vai poder ver
+ * orçamento?". A explicação responde isso.
+ */
+export const ROTULO_PAPEL: Readonly<Record<Papel, string>> = {
+  admin: "Administração",
+  gestor: "Gestão",
+  crc: "CRC",
+  recepcao: "Recepção",
+  dentista: "Dentista",
+  marketing: "Marketing",
+};
+
+export const EXPLICACAO_PAPEL: Readonly<Record<Papel, string>> = {
+  admin: "Tudo, incluindo cadastrar e desativar gente.",
+  gestor: "A operação inteira, os números e as automações. Não mexe em usuários.",
+  crc: "A fila, as conversas e as oportunidades. Vê valor de orçamento.",
+  recepcao: "A fila e as conversas do dia. Não vê valor de orçamento.",
+  dentista: "Pacientes e tarefas clínicas. Não vê a operação comercial.",
+  marketing: "Campanhas, funil e números. Não abre conversa de paciente.",
 };
 
 export const ROTULO_MODO_AUTOMACAO: Readonly<Record<ModoAutomacao, string>> = {

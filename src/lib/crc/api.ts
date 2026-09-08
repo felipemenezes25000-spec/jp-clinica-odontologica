@@ -651,6 +651,152 @@ export const carregarFunil = createServerFn({ method: "GET" })
   );
 
 /* -------------------------------------------------------------------------- */
+/* Equipe — item 37 e a auditoria do item 74                                  */
+/* -------------------------------------------------------------------------- */
+
+export type MembroDto = {
+  id: string;
+  nome: string;
+  email: string;
+  papel: string;
+  papelRotulo: string;
+  ativo: boolean;
+  ultimoAcesso: string | null;
+  souEu: boolean;
+};
+
+/**
+ * Toda ação de equipe exige `gerenciar_usuarios`, que hoje só o admin tem.
+ *
+ * Item 70: a verificação é no servidor. A aba nem aparece para quem não pode,
+ * mas esconder o botão é UX — quem chamar a rota direto leva o mesmo não.
+ */
+export const carregarEquipe = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ membros: MembroDto[] }>> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { listarEquipe } = await import("./aplicacao/equipe");
+      const { ROTULO_PAPEL } = await import("./dominio/rotulos");
+
+      const membros = await listarEquipe(ctx.organizationId, ctx.usuario.id);
+      return {
+        ok: true as const,
+        membros: membros.map((m) => ({
+          id: m.id,
+          nome: m.nome,
+          email: m.email,
+          papel: m.papel,
+          papelRotulo: ROTULO_PAPEL[m.papel],
+          ativo: m.ativo,
+          ultimoAcesso: m.ultimoAcesso,
+          souEu: m.souEu,
+        })),
+      };
+    }),
+);
+
+export const convidarMembroDaEquipe = createServerFn({ method: "POST" })
+  .validator((e: { nome: string; email: string; senha: string; papel: string }) => ({
+    nome: String(e.nome ?? ""),
+    email: String(e.email ?? ""),
+    // A senha NÃO é cortada nem normalizada: qualquer transformação aqui faria
+    // a pessoa digitar uma senha e o sistema guardar outra.
+    senha: String(e.senha ?? ""),
+    papel: String(e.papel ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { convidarMembro, ehPapel } = await import("./aplicacao/equipe");
+
+      if (!ehPapel(data.papel)) {
+        return { ok: false as const, code: "ENTRADA_INVALIDA", message: "Papel desconhecido." };
+      }
+
+      const r = await convidarMembro({
+        organizationId: ctx.organizationId,
+        // As clínicas são as de quem convida. Um admin alcança todas; um dia,
+        // um gestor de unidade convidaria só para a dele — e a regra já está
+        // certa para esse dia.
+        clinicIds: ctx.clinicIds,
+        nome: data.nome,
+        email: data.email,
+        senha: data.senha,
+        papel: data.papel,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const mudarPapelDoMembro = createServerFn({ method: "POST" })
+  .validator((e: { userId: string; papel: string }) => ({
+    userId: String(e.userId ?? ""),
+    papel: String(e.papel ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { mudarPapel, ehPapel } = await import("./aplicacao/equipe");
+
+      if (!ehPapel(data.papel)) {
+        return { ok: false as const, code: "ENTRADA_INVALIDA", message: "Papel desconhecido." };
+      }
+
+      const r = await mudarPapel({
+        organizationId: ctx.organizationId,
+        userId: data.userId,
+        papel: data.papel,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const mudarAtivacaoDoMembro = createServerFn({ method: "POST" })
+  .validator((e: { userId: string; ativo: boolean }) => ({
+    userId: String(e.userId ?? ""),
+    ativo: e.ativo === true,
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { mudarAtivacao } = await import("./aplicacao/equipe");
+
+      const r = await mudarAtivacao({
+        organizationId: ctx.organizationId,
+        userId: data.userId,
+        ativo: data.ativo,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const redefinirSenhaDoMembro = createServerFn({ method: "POST" })
+  .validator((e: { userId: string; senha: string }) => ({
+    userId: String(e.userId ?? ""),
+    senha: String(e.senha ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { redefinirSenha } = await import("./aplicacao/equipe");
+
+      const r = await redefinirSenha({
+        organizationId: ctx.organizationId,
+        userId: data.userId,
+        senha: data.senha,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
 /* Visões salvas — item 147                                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -1372,6 +1518,27 @@ export type PassoJornadaDto = {
   tipo: string;
   descricao: string;
   em: string;
+  /**
+   * O TEXTO que saiu — ou que teria saído, no modo simulação.
+   *
+   * É o campo que dá sentido ao item 96. Sem ele o histórico diz "teria
+   * enviado (automação em modo SHADOW)" e a pessoa que precisa decidir se liga
+   * o envio não consegue ler a mensagem que estaria decidindo liberar.
+   */
+  texto: string | null;
+  /** O nome do template, quando o passo foi de mensagem. */
+  template: string | null;
+};
+
+/** Uma jornada na lista de uma automação. */
+export type JornadaDaAutomacaoDto = {
+  id: string;
+  paciente: string;
+  status: string;
+  statusRotulo: string;
+  passoAtual: number;
+  saiuPor: string | null;
+  criadoEm: string;
 };
 
 export type EstadoIntegracoes = {
@@ -1646,6 +1813,57 @@ function escopoParaEntidade(escopo: EscopoExportacao): string {
 }
 
 /** Item 179: o debugger de jornada. */
+/**
+ * As jornadas recentes de UMA automação.
+ *
+ * É a porta que faltava para o item 95 ("observe a simulação antes de ligar o
+ * envio") ser algo que se faz na tela. As mais recentes primeiro: quem está
+ * avaliando uma automação quer ver o que ela fez hoje, não no primeiro dia.
+ */
+export const carregarJornadasDaAutomacao = createServerFn({ method: "GET" })
+  .validator((e: { automationId: string }) => ({ automationId: String(e.automationId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ jornadas: JornadaDaAutomacaoDto[] }>> =>
+    comContexto("ver_automacao", async (ctx) => {
+      const { selecionar } = await import("./servidor/banco");
+      const { ROTULO_STATUS_JORNADA } = await import("./dominio/rotulos");
+
+      const linhas = await selecionar("crc_automation_enrollments", {
+        filtros: [
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+          { coluna: "automation_id", op: "eq", valor: data.automationId },
+        ],
+        ordenar: [{ coluna: "criado_em", ascendente: false }],
+        limite: 25,
+      });
+
+      const nomes = await carregarNomes(
+        ctx.organizationId,
+        linhas
+          .map((l) => (typeof l["patient_id"] === "string" ? l["patient_id"] : null))
+          .filter((p): p is string => p !== null),
+      );
+
+      return {
+        ok: true as const,
+        jornadas: linhas.map((l) => {
+          const status = String(l["status"] ?? "");
+          const patientId = typeof l["patient_id"] === "string" ? l["patient_id"] : null;
+          const saiu = l["saiu_por"];
+          return {
+            id: String(l["id"] ?? ""),
+            paciente: (patientId === null ? null : nomes.get(patientId)) ?? "Paciente sem nome",
+            status,
+            statusRotulo:
+              ROTULO_STATUS_JORNADA[status as keyof typeof ROTULO_STATUS_JORNADA] ?? status,
+            passoAtual: typeof l["passo_atual"] === "number" ? l["passo_atual"] : 0,
+            saiuPor: typeof saiu === "string" && saiu.length > 0 ? saiu : null,
+            criadoEm: String(l["criado_em"] ?? ""),
+          };
+        }),
+      };
+    }),
+  );
+
 export const carregarHistoricoJornada = createServerFn({ method: "GET" })
   .validator((e: { enrollmentId: string }) => ({ enrollmentId: String(e.enrollmentId ?? "") }))
   .handler(async ({ data }): Promise<Resposta<{ passos: PassoJornadaDto[] }>> =>
@@ -1670,6 +1888,16 @@ export const carregarHistoricoJornada = createServerFn({ method: "GET" })
       }
 
       const linhas = await historicoDaJornada(data.enrollmentId);
+
+      // `detalhe` é jsonb e vai ACHATADO para o cliente — item 138. Mandar o
+      // objeto cru custaria uma rodada de erro de serialização a cada campo
+      // novo que o motor resolvesse gravar lá dentro.
+      const campo = (bruto: unknown, chave: string): string | null => {
+        if (typeof bruto !== "object" || bruto === null || Array.isArray(bruto)) return null;
+        const v = (bruto as Record<string, unknown>)[chave];
+        return typeof v === "string" && v.length > 0 ? v : null;
+      };
+
       return {
         ok: true as const,
         passos: linhas.map((l) => ({
@@ -1677,6 +1905,8 @@ export const carregarHistoricoJornada = createServerFn({ method: "GET" })
           tipo: String(l["tipo"] ?? ""),
           descricao: String(l["descricao"] ?? ""),
           em: String(l["criado_em"] ?? ""),
+          texto: campo(l["detalhe"], "texto"),
+          template: campo(l["detalhe"], "template"),
         })),
       };
     }),

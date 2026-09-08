@@ -42,10 +42,14 @@ fornecidas, e o schema ainda não foi aplicado no Supabase.
 | Analytics / dashboard do gestor | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
 | Exportação CSV com RBAC | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
 | Visões salvas (item 147) | ✅ | ✅ | 14 testes | ⚠️ sem dados | `IMPLEMENTADO` |
+| Cadastro de equipe (itens 37, 74) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Leitor de jornadas e da simulação (itens 95, 96, 179) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Tarefa manual + atalho `c` (item 149) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Captura de lead pelo site (com atribuição) | ✅ | ✅ | 7 testes | ✅ POST 200 | `IMPLEMENTADO` |
 | Command palette (itens 28, 149) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
 | Sessão + RBAC | ✅ | ✅ | 9 (dentro dos 91) | ✅ login | `IMPLEMENTADO` |
 | Design system | ✅ | — | — | ✅ 3 resoluções | `IMPLEMENTADO` |
-| Home, Meu trabalho, Inbox, Funil, Pacientes, Gestão, Importar, Automações, Integrações | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Home, Meu trabalho, Inbox, Funil, Pacientes, Gestão, Importar, Automações, Integrações, Equipe | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
 | Webhook + inbox pattern (Twilio e Meta) | ✅ | ✅ | 25 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
 | Cron do motor | ✅ | ✅ | — | — | `IMPLEMENTADO` |
 | Health check / instalação | ✅ | ✅ | — | — | `IMPLEMENTADO` |
@@ -134,42 +138,14 @@ O filtro aceita **um** tipo por vez, embora o modelo de dados e o servidor já
 aceitem vários. Multisseleção acessível exige um componente próprio, e feito
 pela metade ele exclui quem navega por teclado.
 
-### 6. Cadastro de equipe — a única lacuna que impede operar
-
-A instalação cria **um** usuário, o do `CRC_ADMIN_EMAIL`. `criarUsuario` existe
-com papel e clínicas, e só a instalação a chama. Não há tela de equipe.
-
-Consequência: o CRC é uma ferramenta de trabalho para a recepção com um login
-só — e login compartilhado destrói a auditoria inteira, porque o "quem fez" de
-cada tarefa vira "alguém". Há um contorno por SQL documentado na
-[ATIVACAO-EM-PRODUCAO](ATIVACAO-EM-PRODUCAO.md), Parte B.
-
-### 7. Ver o que a automação "teria enviado"
-
-O modo simulação registra o template, o texto já com as variáveis substituídas
-e o telefone, passo a passo, em `crc_automation_logs`.
-`carregarHistoricoJornada` lê esse histórico — e **nenhuma tela a chama**.
-
-Consequência: o passo mais importante da ativação ("observe a simulação antes
-de ligar o envio", itens 95 e 96) hoje só se faz por SQL. É o oposto do que a
-simulação existe para permitir.
-
-### 8. Tela de configuração da clínica
+### 6. Tela de configuração da clínica
 
 `gravarConfiguracao` existe, com auditoria e invalidação de cache, e nenhuma
-rota a expõe. Trocar o horário de atendimento ou incluir um feriado exige SQL.
+rota a expõe. Trocar o horário de atendimento ou incluir um feriado exige SQL —
+o comando pronto está na Parte D da
+[ATIVACAO-EM-PRODUCAO](ATIVACAO-EM-PRODUCAO.md).
 
-### 9. O formulário do site não vira lead
-
-`POST /api/crc/lead` existe, com dedup por telefone+dia, campo-armadilha e
-leitura de UTM/gclid. O formulário de contato do site
-(`src/components/site/ContactForm.tsx`) não o chama: ele monta uma mensagem e
-abre o WhatsApp Web.
-
-Consequência: quem preenche o formulário não aparece no funil, e o speed-to-lead
-do dashboard não tem o que medir.
-
-### 10. As feature flags não gatilham nada
+### 7. As feature flags não gatilham nada
 
 As cinco flags do item 42 existem como tabela, nascem desligadas e são lidas
 para o DTO de Integrações — que não as exibe. Nenhuma altera comportamento.
@@ -178,11 +154,6 @@ Não há risco escondido: o que de fato controla o envio é o **modo da
 automação** e os **interruptores de emergência**, e os dois funcionam e são
 testados. Há uma promessa não cumprida — ou implementar, ou remover para não
 sugerirem um controle que não existe.
-
-### 11. Criar tarefa pela tela
-
-`criarTarefaManual` existe e nenhuma tela a chama; o item 149 previa o atalho
-`c`. Dá para concluir e assumir tarefa, não para criar uma do zero.
 
 ---
 
@@ -214,7 +185,8 @@ de ambiente, não uma reescrita.
 | `any` explícito | **Zero** |
 | Mock alimentando tela de produção | **Zero** — os sandboxes recusam subir em produção |
 | Botão sem ação | **Zero** — todo botão chama server function real |
-| Função sem porta | **Cinco.** Ver as omissões 6 a 10 abaixo. Os dois importadores ganharam tela; `criarUsuario`, `carregarHistoricoJornada`, `gravarConfiguracao`, `criarTarefaManual` e `flagLigada` ainda não têm. |
+| Formulário do site → lead no CRC | ✅ verificado no navegador: `POST /api/crc/lead` → 200, e o WhatsApp abre em seguida |
+| Função sem porta | **Duas**, e as duas estão na lista de omissões: `gravarConfiguracao` (número 6) e `flagLigada` (número 7). As outras três ganharam tela. |
 | Secret em log | **Zero** — `mascarar()` é aplicada antes de qualquer gravação |
 | `npm run lint` | ✅ (3 avisos de `react-refresh`, não bloqueantes) |
 | `npm run typecheck` | ✅ com `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |

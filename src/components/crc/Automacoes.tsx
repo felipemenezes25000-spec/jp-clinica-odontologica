@@ -35,6 +35,7 @@ import {
   Vazio,
   useAcao,
 } from "./base";
+import { BotaoJornadas, JornadasDaAutomacao } from "./JornadasDaAutomacao";
 
 const MODOS: ModoAutomacao[] = ["SHADOW", "RECOMENDAR", "EXECUTAR"];
 
@@ -42,6 +43,9 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
   const [automacoes, setAutomacoes] = useState<ResumoAutomacao[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState<ResumoAutomacao | null>(null);
+  // Uma automação aberta por vez: duas listas de jornada lado a lado competem
+  // pela mesma leitura e nenhuma é lida.
+  const [jornadasAbertas, setJornadasAbertas] = useState<string | null>(null);
 
   const acao = useAcao();
 
@@ -147,6 +151,15 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
                   {/* A métrica que importa. Ver o cabeçalho do arquivo. */}
                   <Numero rotulo="Agendaram por causa dela" valor={a.saidasPorConversao} destaque />
                 </div>
+
+                <div style={{ marginTop: "var(--crc-e3)" }}>
+                  <BotaoJornadas
+                    aberto={jornadasAbertas === a.id}
+                    aoAlternar={() => {
+                      setJornadasAbertas((atual) => (atual === a.id ? null : a.id));
+                    }}
+                  />
+                </div>
               </div>
 
               {podeGerenciar && (
@@ -212,6 +225,19 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
                     ))}
                   </div>
                 </fieldset>
+              </>
+            )}
+
+            {jornadasAbertas === a.id && (
+              <>
+                <hr className="crc-separador" />
+                {a.modo === "SHADOW" && (
+                  <Aviso tom="info">
+                    Esta automação está em simulação. O que aparece abaixo é o que ela{" "}
+                    <strong>teria</strong> enviado — leia as mensagens antes de liberar o envio.
+                  </Aviso>
+                )}
+                <JornadasDaAutomacao automationId={a.id} emSimulacao={a.modo === "SHADOW"} />
               </>
             )}
           </Cartao>

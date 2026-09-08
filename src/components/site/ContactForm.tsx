@@ -5,6 +5,7 @@ import {
   Clock3,
   HeartHandshake,
   MessageCircle,
+  Phone,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -14,8 +15,62 @@ import { CLINICA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 const PERIODOS = ["Manhã", "Tarde", "Qualquer horário"];
 const CONTATOS = ["WhatsApp", "Telefone"];
 
+/**
+ * Registra o lead no CRC antes de abrir o WhatsApp.
+ *
+ * POR QUE ANTES, E POR QUE SEM ESPERAR RESPOSTA
+ * Antes, porque depois de `window.open` a aba perde o foco e uma requisição
+ * pendente pode ser cancelada pelo navegador. Sem esperar, porque o lead é
+ * nosso problema e a conversa é do visitante: se o servidor estiver fora, ele
+ * ainda assim precisa conseguir falar com a clínica.
+ *
+ * `keepalive` é o que faz a requisição sobreviver à troca de contexto. Toda
+ * falha é engolida de propósito: um erro nosso não pode virar mensagem de erro
+ * para quem só queria marcar uma avaliação.
+ */
+function registrarLead(dados: {
+  nome: string;
+  telefone: string;
+  assunto: string;
+  contato: string;
+  periodo: string;
+  obs: string;
+}): void {
+  try {
+    void fetch("/api/crc/lead", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        nome: dados.nome,
+        // O TELEFONE É O QUE LIGA ESTE LEAD À CONVERSA que começa no WhatsApp
+        // um segundo depois. Sem ele o registro é recusado (não há como
+        // responder) e a campanha que trouxe a pessoa fica sem atribuição
+        // nenhuma: a mensagem do WhatsApp chega sem utm e sem gclid.
+        telefone: dados.telefone,
+        mensagem: [
+          `Assunto: ${dados.assunto}`,
+          `Prefere contato por: ${dados.contato}`,
+          `Melhor período: ${dados.periodo}`,
+          dados.obs.trim().length > 0 ? `Mensagem: ${dados.obs.trim()}` : "",
+        ]
+          .filter((l) => l.length > 0)
+          .join(" · "),
+        // A URL COMPLETA, porque é ela que carrega utm_source, gclid e afins.
+        // O `referer` diria de onde a pessoa veio, e não com qual campanha.
+        url: typeof window === "undefined" ? "" : window.location.href,
+        // O campo-armadilha vai vazio: humano não preenche o que não vê.
+        empresa: "",
+      }),
+    }).catch(() => undefined);
+  } catch {
+    // Ver o cabeçalho: falha nossa não interrompe a conversa dele.
+  }
+}
+
 export function ContactForm() {
   const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [contato, setContato] = useState("WhatsApp");
   const [assunto, setAssunto] = useState("Avaliação geral");
   const [periodo, setPeriodo] = useState("Qualquer horário");
@@ -34,7 +89,8 @@ export function ContactForm() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!nome.trim()) return;
+    if (!nome.trim() || !telefone.trim()) return;
+    registrarLead({ nome: nome.trim(), telefone: telefone.trim(), assunto, contato, periodo, obs });
     window.open(whatsappLink(mensagem), "_blank", "noopener,noreferrer");
   };
 
@@ -78,6 +134,22 @@ export function ContactForm() {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Como podemos te chamar?"
+              className={`${input} pl-10`}
+            />
+          </div>
+        </label>
+
+        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft">
+          Telefone com DDD
+          <div className="relative">
+            <Phone className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
+            <input
+              required
+              type="tel"
+              inputMode="tel"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+              placeholder="(11) 90000-0000"
               className={`${input} pl-10`}
             />
           </div>

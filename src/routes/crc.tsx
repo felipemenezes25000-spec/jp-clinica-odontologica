@@ -28,6 +28,7 @@ import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
 import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
+import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
 import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
 import { BuscaPacientes, CentralDoPaciente } from "@/components/crc/Pacientes";
@@ -59,7 +60,8 @@ type Aba =
   | "gestao"
   | "importar"
   | "automacoes"
-  | "integracoes";
+  | "integracoes"
+  | "equipe";
 
 type ItemNav = { aba: Aba; rotulo: string; permissao: Permissao };
 
@@ -73,6 +75,7 @@ const NAVEGACAO: readonly ItemNav[] = [
   { aba: "importar", rotulo: "Importar", permissao: "importar_dados" },
   { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao" },
   { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes" },
+  { aba: "equipe", rotulo: "Equipe", permissao: "gerenciar_usuarios" },
 ];
 
 function PortalCrc() {
@@ -257,6 +260,8 @@ function PortalCrc() {
           {abaAtual === "integracoes" && (
             <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
           )}
+
+          {abaAtual === "equipe" && <Equipe />}
         </main>
       </div>
     </div>

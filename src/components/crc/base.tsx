@@ -511,6 +511,14 @@ export function useAcao(): {
   rodando: boolean;
   recado: Recado;
   limpar: () => void;
+  /**
+   * Mostra um recado sem ter executado nada aqui.
+   *
+   * Existe para quem é dono da barra mas não da ação — um modal filho que
+   * chama o servidor sozinho e precisa avisar o pai. Sem isto, cada um desses
+   * casos inventaria a própria barra e a tela passaria a ter duas.
+   */
+  avisar: (texto: string, tom?: "info" | "perigo") => void;
   executar: <T extends { ok: boolean; message?: string }>(
     acao: () => Promise<T>,
     aoDarCerto?: (resultado: T & { ok: true }) => void,
@@ -554,5 +562,9 @@ export function useAcao(): {
     [],
   );
 
-  return { rodando, recado, limpar: () => setRecado(null), executar };
+  const avisar = useCallback((texto: string, tom: "info" | "perigo" = "info"): void => {
+    setRecado({ tom, texto });
+  }, []);
+
+  return { rodando, recado, limpar: () => setRecado(null), avisar, executar };
 }

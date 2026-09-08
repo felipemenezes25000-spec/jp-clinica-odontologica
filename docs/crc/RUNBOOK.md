@@ -85,17 +85,16 @@ humano.
 Para cada uma, o caminho é: **Simulação → Só recomenda → Executa**, com pelo
 menos alguns dias em cada estágio.
 
-O que a automação **teria** enviado fica registrado em `crc_automation_logs`
-com o texto já montado. **Ainda não existe tela para ler isso** — hoje é uma
-consulta SQL, descrita na lacuna E.2 da
-[ATIVACAO-EM-PRODUCAO](ATIVACAO-EM-PRODUCAO.md).
+Em **Automações → Ver o que ela fez**, clique numa jornada: o passo a passo abre
+com o TEXTO INTEGRAL da mensagem que saiu — ou que teria saído, quando a
+automação está em simulação. É esse texto que você lê antes de ligar o envio:
+procure primeiro nome errado, `{{variavel}}` cru e tom inadequado.
 
 ### Checklist antes de ligar o primeiro envio (item 258)
 
 - [ ] Sincronização do Dental Office rodando sem falha
 - [ ] Telefones normalizados (confira alguns em Pacientes)
-- [ ] Textos das mensagens revisados (hoje em `templates.ts`, ou pela consulta
-      do histórico de simulação — ver ATIVACAO-EM-PRODUCAO, lacuna E.2)
+- [ ] Textos das mensagens revisados em Automações → Ver o que ela fez
 - [ ] Horário comercial conferido
 - [ ] Kill switch testado (aciona e libera em Integrações)
 - [ ] Inbox testada com uma mensagem real
