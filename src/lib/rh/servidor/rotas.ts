@@ -27,6 +27,7 @@
  * fichas, isso é menos tráfego do que um único acesso ao site.
  */
 import { apenasDigitos } from "../formatar";
+import { GRANDE_SAO_PAULO } from "../ia/proximidade";
 import type { Trajeto } from "../tipos";
 
 /** Identifica a clínica para o servidor do outro lado, como a política pede. */
@@ -45,6 +46,29 @@ const AGENTE = "JPClinicaOdontologica-RH/1.0 (+https://jpclinicaodontologica.com
  * clínica mudar de endereço, estes dois números mudam junto.
  */
 const CLINICA = { lat: -23.4894077, lon: -46.7088327 };
+
+/**
+ * A caixa da Grande São Paulo. NADA fora dela é aceito como endereço.
+ *
+ * Sem isto o serviço devolvia bobagem com cara de precisão: "Vila Santa Maria"
+ * virava um lugar de mesmo nome a 178km, "Parque dos Bancários" a 283km e
+ * "Vila Terezinha" a 103km — todos bairros de São Paulo. Nome de vila se repete
+ * às centenas no Brasil, e o geocodificador devolve o primeiro que encontra.
+ *
+ * Um trajeto de 283 minutos numa ficha não é só um número errado: é o tipo de
+ * dado que faz descartar uma candidata que mora a vinte minutos. Fora da caixa,
+ * a resposta certa é não ter resposta.
+ */
+const CAIXA_GRANDE_SP = { oeste: -47.4, leste: -45.7, sul: -24.2, norte: -23.1 };
+
+function dentroDaGrandeSP(p: { lat: number; lon: number }): boolean {
+  return (
+    p.lat >= CAIXA_GRANDE_SP.sul &&
+    p.lat <= CAIXA_GRANDE_SP.norte &&
+    p.lon >= CAIXA_GRANDE_SP.oeste &&
+    p.lon <= CAIXA_GRANDE_SP.leste
+  );
+}
 
 /** Nada aqui pode travar a página: toda chamada tem teto de espera. */
 const TEMPO_LIMITE_MS = 7000;
@@ -100,28 +124,74 @@ async function buscarJson(url: string): Promise<unknown | null> {
 /** Geocodificações já feitas nesta instância, por consulta normalizada. */
 const memoria = new Map<string, { lat: number; lon: number } | null>();
 
+/** Minúsculo e sem acento, para "São Paulo" casar com "Sao Paulo". */
+function normalizarCidade(v: string): string {
+  return v.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+}
+
 function numero(v: unknown): number | null {
   const n = typeof v === "string" ? Number(v) : typeof v === "number" ? v : NaN;
   return Number.isFinite(n) ? n : null;
 }
 
-async function geocodificar(consulta: string): Promise<{ lat: number; lon: number } | null> {
-  const chave = consulta.trim().toLowerCase();
-  if (chave === "") return null;
+/**
+ * Geocodifica exigindo que o MUNICÍPIO do resultado seja o informado.
+ *
+ * É a trava que faltava, e faltava caro. Nome de bairro se repete às centenas
+ * no Brasil: "Vila Terezinha, São Paulo" devolvia um bairro de mesmo nome em
+ * São José dos Campos, "Parque dos Bancários" um a 283km e "Pedra Branca" um em
+ * Juquitiba. A ficha então anunciava "283 km · 205 min de carro" sobre alguém
+ * que mora a vinte minutos — e isso não é um número errado qualquer, é o número
+ * que faz descartar a candidata certa.
+ *
+ * Caixa geográfica não resolve: São José dos Campos e Bertioga cabem dentro de
+ * qualquer retângulo generoso da Grande São Paulo. O que resolve é comparar a
+ * cidade que o currículo diz com a cidade que o mapa devolveu. Não batendo,
+ * a resposta certa é NÃO TER resposta.
+ */
+async function geocodificar(
+  consulta: string,
+  cidadeEsperada: string,
+): Promise<{ lat: number; lon: number } | null> {
+  const chave = `${consulta.trim().toLowerCase()}|${cidadeEsperada.trim().toLowerCase()}`;
+  if (consulta.trim() === "") return null;
   const guardado = memoria.get(chave);
   if (guardado !== undefined) return guardado;
 
+  /* Cinco resultados e `addressdetails`: o primeiro pode ser de outra cidade, e
+     é preciso ver a cidade de cada um para escolher. */
   const url =
-    "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=br&q=" +
-    encodeURIComponent(consulta);
+    "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=br" +
+    `&addressdetails=1&q=${encodeURIComponent(consulta)}`;
   const bruto = await emFila(() => buscarJson(url));
 
+  /* Se o que veio como "cidade" não é município nenhum que a gente conheça, é
+     porque a extração antiga guardou um BAIRRO ali ("Jaraguá", "Cidade Líder").
+     Nesse caso o município esperado passa a ser a capital, que é onde esses
+     bairros ficam — senão a validação recusaria o resultado certo. */
+  const informada = normalizarCidade(cidadeEsperada);
+  const alvo = informada === "" || GRANDE_SAO_PAULO.includes(informada) ? informada : "sao paulo";
   let ponto: { lat: number; lon: number } | null = null;
-  if (Array.isArray(bruto) && bruto.length > 0) {
-    const primeiro = bruto[0] as Record<string, unknown>;
-    const lat = numero(primeiro["lat"]);
-    const lon = numero(primeiro["lon"]);
-    if (lat !== null && lon !== null) ponto = { lat, lon };
+  if (Array.isArray(bruto)) {
+    for (const cru of bruto) {
+      const item = cru as Record<string, unknown>;
+      const lat = numero(item["lat"]);
+      const lon = numero(item["lon"]);
+      if (lat === null || lon === null || !dentroDaGrandeSP({ lat, lon })) continue;
+
+      const endereco = (item["address"] ?? {}) as Record<string, unknown>;
+      const municipio = normalizarCidade(
+        [endereco["city"], endereco["town"], endereco["municipality"], endereco["village"]]
+          .map((v) => (typeof v === "string" ? v : ""))
+          .find((v) => v !== "") ?? "",
+      );
+      // Cidade esperada vazia só acontece quando nem o currículo diz: aí o
+      // recorte geográfico é tudo o que se tem, e já é melhor que nada.
+      if (alvo !== "" && municipio !== alvo) continue;
+
+      ponto = { lat, lon };
+      break;
+    }
   }
   memoria.set(chave, ponto);
   return ponto;
@@ -137,7 +207,7 @@ async function geocodificar(consulta: string): Promise<{ lat: number; lon: numbe
  * bem. É também o que dá o endereço mais preciso que este módulo consegue:
  * rua, e não centro de bairro.
  */
-async function porCep(cep: string): Promise<{ consulta: string } | null> {
+async function porCep(cep: string): Promise<{ consulta: string; cidade: string } | null> {
   const digitos = apenasDigitos(cep);
   if (digitos.length !== 8) return null;
 
@@ -152,7 +222,7 @@ async function porCep(cep: string): Promise<{ consulta: string } | null> {
   const uf = typeof dados["uf"] === "string" ? dados["uf"] : "";
   const partes = [logradouro, bairro, cidade, uf].filter((p) => p.trim() !== "");
   if (partes.length < 2) return null;
-  return { consulta: partes.join(", ") };
+  return { consulta: partes.join(", "), cidade };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -215,18 +285,23 @@ export async function calcularTrajeto(entrada: {
   const uf = (entrada.uf ?? "").trim() || "SP";
 
   let consulta = "";
+  /* A cidade que o resultado do mapa TEM de ter. Sai do CEP quando ele existe
+     (é a fonte mais confiável) e do que o currículo informou nos outros casos. */
+  let cidadeDoResultado = cidade || "São Paulo";
   const porCepAchado = await porCep(entrada.cep ?? "");
   if (porCepAchado) {
     consulta = porCepAchado.consulta;
+    cidadeDoResultado = porCepAchado.cidade || cidadeDoResultado;
   } else if (bairro !== "") {
     consulta = [bairro, cidade || "São Paulo", uf].join(", ");
   } else if (cidade !== "" && cidade.toLowerCase().replace(/\s+/g, " ") !== "são paulo") {
     consulta = [cidade, uf].join(", ");
+    cidadeDoResultado = cidade;
   } else {
     return null;
   }
 
-  const ponto = await geocodificar(consulta);
+  const ponto = await geocodificar(consulta, cidadeDoResultado);
   if (ponto === null) return null;
 
   const rota = await rotaDeCarro(ponto);
