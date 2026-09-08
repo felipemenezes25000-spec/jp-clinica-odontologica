@@ -1,44 +1,35 @@
 /*
- * Ajustes de densidade da aba Candidaturas.
+ * Layout da aba Candidaturas.
  *
- * A barra de filtros é sticky, mas o painel avançado NÃO participa do fluxo:
- * ele flutua abaixo da linha de busca/ações. Assim abrir filtros não empurra o
- * funil para fora da dobra e fechar filtros devolve a tela imediatamente.
+ * Regra principal: o painel avançado de filtros NUNCA participa do fluxo da
+ * barra sticky. Fechado, ele não ocupa um único pixel. Aberto, flutua abaixo da
+ * linha de busca/ações e ganha rolagem própria.
  */
 
-/* A geometria do dropdown vive no mesmo CSS que já é carregado pela aba
- * Candidaturas. Antes ela estava num CSS importado por Sanfona.tsx, então o
- * comportamento só podia aparecer depois de outro chunk do RH ser carregado. */
 .rh-admin main > div.sticky > .jp-container {
   position: relative;
 }
 
-/* Estado fechado: duas travas independentes.
- * 1) a classe `hidden` que o React já alterna;
- * 2) aria-expanded do próprio botão. A segunda impede qualquer regra de
- * `display: grid !important` de ressuscitar o painel por acidente. */
-.rh-admin main > div.sticky > .jp-container > [id$="-painel"].hidden,
-.rh-admin
-  main
-  > div.sticky
-  > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="false"])
-  > [id$="-painel"] {
+/*
+ * TRAVA DE ESTADO — esta regra vem antes e também é repetida no fim do arquivo.
+ * O componente troca `hidden` no painel quando `painelAberto` é false. Nenhuma
+ * regra de grid pode ter permissão para sobrescrever isso.
+ */
+.rh-admin main > div.sticky > .jp-container > [id$="-painel"].hidden {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }
 
-/* Estado aberto: dropdown flutuante, fora do fluxo da barra sticky. */
-.rh-admin
-  main
-  > div.sticky
-  > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
-  > [id$="-painel"]:not(.hidden) {
+/* Painel aberto: flutua, não empurra o Kanban. */
+.rh-admin main > div.sticky > .jp-container > [id$="-painel"]:not(.hidden) {
   position: absolute !important;
   z-index: 70 !important;
   top: calc(100% + 0.5rem) !important;
   right: 0 !important;
   left: 0 !important;
   width: auto !important;
-  max-height: min(55dvh, 30rem) !important;
+  max-height: min(56dvh, 31rem) !important;
   margin: 0 !important;
   padding: 1rem !important;
   overflow-x: hidden !important;
@@ -47,16 +38,15 @@
   scrollbar-gutter: stable;
   border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
   border-radius: 1rem !important;
-  background: rgba(255, 255, 255, 0.985) !important;
+  background: rgba(255, 255, 255, 0.99) !important;
   box-shadow:
     0 1px 2px rgba(3, 47, 1, 0.05),
-    0 26px 70px -34px rgba(3, 47, 1, 0.36) !important;
+    0 28px 72px -34px rgba(3, 47, 1, 0.38) !important;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
 
-/* O mesmo botão que abre precisa continuar clicável por cima do dropdown para
- * funcionar também como botão de recolher. */
+/* O botão precisa continuar acima do dropdown para servir de abrir/recolher. */
 .rh-admin main > div.sticky > .jp-container button[aria-controls$="-painel"] {
   position: relative;
   z-index: 80;
@@ -72,21 +62,27 @@
   color: var(--ink) !important;
 }
 
+/* Fallback adicional: se por qualquer motivo a classe `hidden` atrasar um frame,
+ * o aria-expanded do botão ainda manda o painel desaparecer. */
+.rh-admin
+  main
+  > div.sticky
+  > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="false"])
+  > [id$="-painel"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 @media (min-width: 1024px) {
-  /* O seletor é deliberadamente restrito ao painel de filtros que é filho
-   * direto da barra sticky da aba Candidaturas. */
-  .rh-admin
-    main
-    > div.sticky
-    > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
-    > [id$="-painel"]:not(.hidden) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"]:not(.hidden) {
     display: grid !important;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: end;
     gap: 0.65rem;
   }
 
-  /* Básicos: área, status, vaga e ordenação em uma única linha. */
+  /* Básicos: área, status, vaga e ordenação. */
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(1),
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(2) {
     grid-column: span 2;
@@ -100,7 +96,7 @@
     grid-column: span 3;
   }
 
-  /* Período ocupa uma faixa curta, não duas linhas inteiras de formulário. */
+  /* Período em uma faixa compacta. */
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) {
     grid-column: 1 / -1;
     gap: 0.4rem;
@@ -125,8 +121,6 @@
     white-space: nowrap;
   }
 
-  /* A frase por extenso repete o que os dois campos já mostram. Mantemos para
-     leitores de tela via aria-live no DOM, mas tiramos da composição desktop. */
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(5) > p {
     position: absolute;
     width: 1px;
@@ -139,18 +133,15 @@
     border: 0;
   }
 
-  /* Nota + opções rápidas na mesma fileira. */
-  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(6) {
-    grid-column: span 3;
-  }
-
+  /* Nota + opções rápidas. */
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(6),
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(7),
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(8),
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(9) {
     grid-column: span 3;
   }
 
-  /* Triagem por IA vira uma grade densa de 6 controles por linha. */
+  /* Triagem por IA: seis controles por linha. */
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] > :nth-child(10) {
     grid-column: 1 / -1;
     display: grid !important;
@@ -172,7 +163,6 @@
     width: 100%;
   }
 
-  /* Os controles do painel aberto não precisam dos 44px usados em touch. */
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] select,
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] input,
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] button[role="switch"] {
@@ -193,24 +183,14 @@
   }
 }
 
-/* Notebook baixo: rolagem do próprio dropdown em vez de tomar a janela. */
 @media (min-width: 768px) and (max-height: 760px) {
-  .rh-admin
-    main
-    > div.sticky
-    > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
-    > [id$="-painel"]:not(.hidden) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"]:not(.hidden) {
     max-height: min(50dvh, 23rem) !important;
   }
 }
 
-/* Celular: continua dropdown, com margens laterais e limite próprio. */
 @media (max-width: 767px) {
-  .rh-admin
-    main
-    > div.sticky
-    > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
-    > [id$="-painel"]:not(.hidden) {
+  .rh-admin main > div.sticky > .jp-container > [id$="-painel"]:not(.hidden) {
     top: calc(100% + 0.35rem) !important;
     right: 0.5rem !important;
     left: 0.5rem !important;
@@ -220,12 +200,24 @@
   }
 }
 
-/*
- * O quadro antigo ainda pode aparecer em builds que estão no meio de uma troca
- * de bundle. Não deixamos uma altura fixa voltar a criar o grande vazio abaixo
- * das colunas; a medição inline do hook continua sendo a fonte de verdade.
- */
+/* O quadro usa a altura medida pelo hook; só garantimos um piso confortável. */
 .rh-admin .rh-quadro {
   min-height: 25rem;
   max-height: none;
+}
+
+/*
+ * GUARDA FINAL. Fica propositalmente por último: mesmo que alguma regra futura
+ * seja adicionada acima com `display: grid !important`, o estado fechado vence.
+ */
+.rh-admin main > div.sticky > .jp-container > [id$="-painel"].hidden {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  max-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
 }
