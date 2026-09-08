@@ -1,33 +1,89 @@
 /*
  * Ajustes de densidade da aba Candidaturas.
  *
- * A barra de filtros é sticky. Quando o painel avançado abre, ele precisa
- * continuar cabendo junto do quadro na mesma janela — sem virar uma página de
- * formulário e sem empurrar o Kanban para fora da dobra. O markup continua
- * semântico no componente; aqui só reorganizamos a grade em telas grandes.
+ * A barra de filtros é sticky, mas o painel avançado NÃO participa do fluxo:
+ * ele flutua abaixo da linha de busca/ações. Assim abrir filtros não empurra o
+ * funil para fora da dobra e fechar filtros devolve a tela imediatamente.
  */
 
-@media (min-width: 1024px) {
-  /*
-   * IMPORTANTE: este seletor é deliberadamente restrito ao painel de filtros
-   * que é filho direto da barra sticky da aba Candidaturas. Antes era
-   * `.rh-admin [id$="-painel"]`, o que alcançava qualquer painel do RH e,
-   * pior, aplicava `display: grid !important` mesmo quando o React trocava a
-   * classe para `hidden`. O estado mudava, aria-expanded mudava, mas o CSS
-   * continuava forçando o painel a aparecer — por isso o botão Filtros não
-   * conseguia minimizá-lo.
-   */
-  .rh-admin main > div.sticky > .jp-container > [id$="-painel"].hidden {
-    display: none !important;
-  }
+/* A geometria do dropdown vive no mesmo CSS que já é carregado pela aba
+ * Candidaturas. Antes ela estava num CSS importado por Sanfona.tsx, então o
+ * comportamento só podia aparecer depois de outro chunk do RH ser carregado. */
+.rh-admin main > div.sticky > .jp-container {
+  position: relative;
+}
 
-  .rh-admin main > div.sticky > .jp-container > [id$="-painel"]:not(.hidden) {
+/* Estado fechado: duas travas independentes.
+ * 1) a classe `hidden` que o React já alterna;
+ * 2) aria-expanded do próprio botão. A segunda impede qualquer regra de
+ * `display: grid !important` de ressuscitar o painel por acidente. */
+.rh-admin main > div.sticky > .jp-container > [id$="-painel"].hidden,
+.rh-admin
+  main
+  > div.sticky
+  > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="false"])
+  > [id$="-painel"] {
+  display: none !important;
+}
+
+/* Estado aberto: dropdown flutuante, fora do fluxo da barra sticky. */
+.rh-admin
+  main
+  > div.sticky
+  > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
+  > [id$="-painel"]:not(.hidden) {
+  position: absolute !important;
+  z-index: 70 !important;
+  top: calc(100% + 0.5rem) !important;
+  right: 0 !important;
+  left: 0 !important;
+  width: auto !important;
+  max-height: min(55dvh, 30rem) !important;
+  margin: 0 !important;
+  padding: 1rem !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
+  border-radius: 1rem !important;
+  background: rgba(255, 255, 255, 0.985) !important;
+  box-shadow:
+    0 1px 2px rgba(3, 47, 1, 0.05),
+    0 26px 70px -34px rgba(3, 47, 1, 0.36) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* O mesmo botão que abre precisa continuar clicável por cima do dropdown para
+ * funcionar também como botão de recolher. */
+.rh-admin main > div.sticky > .jp-container button[aria-controls$="-painel"] {
+  position: relative;
+  z-index: 80;
+}
+
+.rh-admin
+  main
+  > div.sticky
+  > .jp-container
+  button[aria-controls$="-painel"][aria-expanded="true"] {
+  border-color: color-mix(in oklab, var(--forest) 28%, white) !important;
+  background: color-mix(in oklab, var(--mint) 72%, white) !important;
+  color: var(--ink) !important;
+}
+
+@media (min-width: 1024px) {
+  /* O seletor é deliberadamente restrito ao painel de filtros que é filho
+   * direto da barra sticky da aba Candidaturas. */
+  .rh-admin
+    main
+    > div.sticky
+    > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
+    > [id$="-painel"]:not(.hidden) {
     display: grid !important;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     align-items: end;
     gap: 0.65rem;
-    padding-top: 0.75rem;
-    overflow-x: hidden;
   }
 
   /* Básicos: área, status, vaga e ordenação em uma única linha. */
@@ -116,8 +172,7 @@
     width: 100%;
   }
 
-  /* Os controles do painel aberto não precisam dos 44px usados em touch.
-     Em desktop, 38px preserva conforto e devolve quase uma linha inteira ao quadro. */
+  /* Os controles do painel aberto não precisam dos 44px usados em touch. */
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] select,
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] input,
   .rh-admin main > div.sticky > .jp-container > [id$="-painel"] button[role="switch"] {
@@ -135,6 +190,33 @@
     transform: scale(0.86);
     transform-origin: left center;
     margin-right: -0.2rem;
+  }
+}
+
+/* Notebook baixo: rolagem do próprio dropdown em vez de tomar a janela. */
+@media (min-width: 768px) and (max-height: 760px) {
+  .rh-admin
+    main
+    > div.sticky
+    > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
+    > [id$="-painel"]:not(.hidden) {
+    max-height: min(50dvh, 23rem) !important;
+  }
+}
+
+/* Celular: continua dropdown, com margens laterais e limite próprio. */
+@media (max-width: 767px) {
+  .rh-admin
+    main
+    > div.sticky
+    > .jp-container:has(button[aria-controls$="-painel"][aria-expanded="true"])
+    > [id$="-painel"]:not(.hidden) {
+    top: calc(100% + 0.35rem) !important;
+    right: 0.5rem !important;
+    left: 0.5rem !important;
+    max-height: 68dvh !important;
+    padding: 0.85rem !important;
+    border-radius: 0.9rem !important;
   }
 }
 
