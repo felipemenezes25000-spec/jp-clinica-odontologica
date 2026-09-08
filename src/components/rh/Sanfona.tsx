@@ -27,6 +27,7 @@ import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
 import "./workspace-candidato.css";
 import "./workspace-candidato-position.css";
+import "./rh-filtros-overlay.css";
 
 export function Sanfona(props: {
   /** Base dos ids do par cabeçalho/corpo. Precisa ser único na página. */
