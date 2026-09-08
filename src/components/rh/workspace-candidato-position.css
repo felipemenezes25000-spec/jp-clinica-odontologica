@@ -1,0 +1,29 @@
+/* Correção de geometria do workspace do candidato.
+ *
+ * O redesign v3 herdou a semântica de drawer: `right: 0` + largura limitada.
+ * Em monitor largo isso cola a ficha no canto direito e deixa todo o espaço
+ * livre de um lado só. No desktop a ficha agora é um modal/workspace central,
+ * com margens simétricas e largura máxima confortável.
+ */
+
+@media (min-width: 1280px) {
+  .rh-admin .rh-gaveta {
+    top: clamp(0.75rem, 1.5vh, 1.25rem) !important;
+    bottom: clamp(0.75rem, 1.5vh, 1.25rem) !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: min(100rem, calc(100vw - 2.5rem)) !important;
+    max-width: none !important;
+    margin-inline: auto !important;
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white) !important;
+    border-radius: 1.4rem !important;
+    box-shadow: 0 34px 90px -46px rgba(3, 47, 1, 0.5) !important;
+    --rh-entra-x: 0rem;
+  }
+}
+
+@media (min-width: 1600px) {
+  .rh-admin .rh-gaveta {
+    width: min(100rem, calc(100vw - 5rem)) !important;
+  }
+}
