@@ -67,7 +67,6 @@ import {
 import type { FichaEntrevista } from "@/lib/rh/ficha";
 import { duvidasEmAberto, montarDuvidas } from "@/lib/rh/duvidas";
 import { classificarProximidade, temEnderecoParaRota } from "@/lib/rh/ia/proximidade";
-import { recomendacaoPor } from "@/lib/rh/ia/tipos";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
 import {
   diasAteVencerGuarda,
@@ -1128,31 +1127,14 @@ function ConteudoGaveta(props: PropsConteudo) {
               </span>
             </div>
 
-            {/* A leitura da IA em três dados, e só: quantas estrelas, quantos
-                pontos e o que ela recomenda. O detalhe inteiro continua na
-                seção "Leitura da IA" — aqui é o resumo que decide se vale
-                abrir. */}
-            {item.analise !== null && item.analise.erro === "" ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                <span className="flex shrink-0 items-center gap-1.5 text-sm font-bold text-white">
-                  <Sparkles className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-                  IA {item.analise.notaGeral}
-                  <span className="font-semibold text-white/85">/100</span>
-                </span>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-0.5 text-[0.7rem] font-bold ${
-                    recomendacaoPor(item.analise.recomendacao).pilulaEscura
-                  }`}
-                >
-                  {recomendacaoPor(item.analise.recomendacao).rotulo}
-                </span>
-                {item.analise.resumoUmaLinha.trim() === "" ? null : (
-                  <p className="min-w-0 basis-full text-sm leading-relaxed text-white/85">
-                    {item.analise.resumoUmaLinha}
-                  </p>
-                )}
-              </div>
-            ) : null}
+            {/* A LEITURA DA IA NÃO ENTRA AQUI, e isso é decisão, não esquecimento.
+                Ela ficava — nota, recomendação e a frase de resumo — a três
+                centímetros do bloco "Leitura da IA", que mostra exatamente as
+                mesmas quatro coisas logo abaixo e sempre aberto. Eram duas
+                telas dizendo o mesmo, e o remendo anterior foi apagar a cópia
+                com `opacity: 0.82`: texto repetido, só mais difícil de ler.
+                Aqui em cima fica o que é da CLÍNICA — a avaliação em estrelas,
+                que ninguém mais mostra. O veredito da máquina tem um dono só. */}
           </div>
 
           {/* ---------- Central de contato ----------

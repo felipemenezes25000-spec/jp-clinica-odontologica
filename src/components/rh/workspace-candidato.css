@@ -205,11 +205,6 @@
     color: var(--forest) !important;
   }
 
-  /* O resumo duplicado da IA no cabeçalho recua; a análise grande vem logo abaixo. */
-  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(2) > div:nth-child(2) {
-    opacity: 0.82;
-  }
-
   /* Central de contato. */
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) {
     grid-area: contact;
@@ -471,14 +466,22 @@
     position: relative;
   }
 
-  /* Três portas principais viram cards de leitura rápida. */
+  /* UMA COLUNA, e não três.
+     A ideia original era transformar "pontos fortes", "pontos de atenção" e
+     "perguntas" em cards de leitura rápida lado a lado. Não cabe: o cabeçalho
+     da sanfona é uma linha — ícone, título, contagem e seta — e em 327px o
+     título quebra em duas, a caixa dobra de altura (54px viram 117px) e sobra
+     um buraco embaixo. Como só três das oito portas recebiam o tratamento, o
+     bloco ficava com dois ritmos e três furos.
+     Fileira única é o que o cliente desenhou, é o que as outras seções da ficha
+     já fazem, e é o único arranjo que não tem estado ragged em largura nenhuma. */
   .rh-admin
     .rh-gaveta
     section.rh-vidro:has([data-sanfona-id*="-criterios"])
     > div.mt-4.space-y-2 {
     display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem !important;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem !important;
     margin-top: 1rem !important;
     padding-top: 0 !important;
     border-top: 0 !important;
@@ -492,6 +495,11 @@
     margin-top: 0 !important;
   }
 
+  /* Fundo branco continua distinguindo as três portas mais lidas das demais.
+     O `min-height: 7.3rem` que vinha junto saiu: ele existia para o card de
+     327px de largura, e numa fileira de 1002px deixava a linha com 117px de
+     altura contra 54px das vizinhas — um degrau visível e um vão vazio embaixo
+     do título, que era o que fazia o bloco parecer inacabado. */
   .rh-admin
     .rh-gaveta
     section.rh-vidro:has([data-sanfona-id*="-criterios"])
@@ -500,24 +508,8 @@
       [data-sanfona-id*="-atencao"],
       [data-sanfona-id*="-perguntas"]
     ) {
-    min-height: 7.3rem;
     background: white;
     border-color: color-mix(in oklab, var(--forest) 12%, white);
-  }
-
-  .rh-admin
-    .rh-gaveta
-    section.rh-vidro:has([data-sanfona-id*="-criterios"])
-    :is(
-      [data-sanfona-id*="-fortes"],
-      [data-sanfona-id*="-atencao"],
-      [data-sanfona-id*="-perguntas"]
-    )
-    > h3
-    > button {
-    min-height: 7.1rem;
-    align-items: flex-start;
-    padding: 1rem !important;
   }
 
   .rh-admin
@@ -531,19 +523,6 @@
     [data-sanfona-resumo] {
     margin-left: auto;
     background: color-mix(in oklab, var(--mint) 60%, white) !important;
-  }
-
-  /* Os detalhes ficam abaixo dos três cards e atravessam a largura. */
-  .rh-admin
-    .rh-gaveta
-    section.rh-vidro:has([data-sanfona-id*="-criterios"])
-    :is(
-      [data-sanfona-id*="-criterios"],
-      [data-sanfona-id*="-sinais"],
-      [data-sanfona-id*="-trajetoria"],
-      [data-sanfona-id*="-impressao"]
-    ) {
-    grid-column: 1 / -1;
   }
 
   /* Metadado técnico: útil, mas nunca protagonista. */
