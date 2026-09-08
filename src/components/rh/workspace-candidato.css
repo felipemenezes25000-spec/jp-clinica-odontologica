@@ -1,0 +1,188 @@
+/*
+ * Workspace do candidato
+ * ----------------------
+ * A ficha nasceu como drawer de 30rem. Isso funciona para consulta rápida,
+ * mas ficou pequeno depois que a tela passou a reunir decisão, IA, entrevista
+ * e dados cadastrais. Este arquivo só refina a gaveta do RH: nada daqui vaza
+ * para o site público, kanban ou modo entrevista.
+ *
+ * Estratégia:
+ * - desktop grande: quase tela cheia, com leitura/decisão à esquerda e gestão
+ *   do processo fixa à direita;
+ * - notebook/tablet: gaveta larga, ainda em uma coluna;
+ * - celular: preserva o bottom-sheet de 92dvh já definido em styles.css;
+ * - sanfonas ficam compactas e só ganham presença quando abertas.
+ */
+
+.rh-admin .rh-gaveta {
+  color-scheme: light;
+}
+
+/* Papel mais calmo: menos sombra e menos “cartão dentro de cartão”. */
+.rh-admin .rh-gaveta .rh-vidro {
+  border-color: color-mix(in oklab, var(--forest) 11%, white);
+  border-radius: 1rem;
+  box-shadow:
+    0 1px 2px rgba(3, 47, 1, 0.035),
+    0 14px 34px -32px rgba(3, 47, 1, 0.28);
+}
+
+.rh-admin .rh-gaveta [data-rh-sanfona] {
+  background: rgba(255, 255, 255, 0.92);
+  transition:
+    border-color 0.18s var(--ease-out),
+    background 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out);
+}
+
+.rh-admin .rh-gaveta [data-rh-sanfona][data-aberta="true"] {
+  border-color: color-mix(in oklab, var(--forest) 21%, white);
+  background: white;
+  box-shadow: 0 14px 34px -30px rgba(3, 47, 1, 0.3);
+}
+
+/* Os blocos técnicos continuam acessíveis, mas deixam de competir visualmente
+   com pontos fortes, atenção e perguntas. */
+.rh-admin .rh-gaveta :is(
+    [data-sanfona-id*="-criterios"],
+    [data-sanfona-id*="-sinais"],
+    [data-sanfona-id*="-impressao"],
+    [data-sanfona-id*="-origem"],
+    [data-sanfona-id*="-etiquetas"]
+  ) {
+  background: color-mix(in oklab, var(--mint) 18%, white);
+  box-shadow: none;
+}
+
+/* As portas que respondem diretamente “vale chamar?” recebem contraste um
+   pouco maior sem virar banners coloridos. */
+.rh-admin .rh-gaveta :is(
+    [data-sanfona-id*="-fortes"],
+    [data-sanfona-id*="-atencao"],
+    [data-sanfona-id*="-perguntas"],
+    [data-sanfona-id*="-trajetoria"],
+    [data-sanfona-id*="-duvidas"]
+  ) {
+  border-color: color-mix(in oklab, var(--forest) 16%, white);
+}
+
+/* Metadado técnico da leitura é útil para auditoria, não para a decisão de
+   cinco segundos. Mantém o aviso humano e tira a linha de tokens da primeira
+   hierarquia visual. :has é suportado pelos navegadores-alvo atuais do painel. */
+.rh-admin
+  .rh-gaveta
+  section.rh-vidro:has([data-sanfona-id*="-criterios"])
+  > footer
+  > p:first-child {
+  display: none;
+}
+
+.rh-admin
+  .rh-gaveta
+  section.rh-vidro:has([data-sanfona-id*="-criterios"])
+  > footer {
+  margin-top: 0.75rem !important;
+  padding-top: 0.65rem !important;
+}
+
+/* Aviso de régua antiga: ainda visível, porém com peso de nota contextual em
+   vez de dominar o cartão inteiro. */
+.rh-admin
+  .rh-gaveta
+  section.rh-vidro:has([data-sanfona-id*="-criterios"])
+  > p[class~="bg-amber-300/10"] {
+  padding: 0.65rem 0.75rem !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+}
+
+/* Notebook: o drawer deixa de parecer uma aba estreita, mas ainda usa uma
+   coluna para não apertar os formulários. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .rh-admin .rh-gaveta {
+    width: min(56rem, calc(100vw - 1.5rem));
+  }
+}
+
+/* Desktop: vira workspace de decisão, não drawer. */
+@media (min-width: 1280px) {
+  .rh-admin .rh-gaveta {
+    top: clamp(0.75rem, 1.8vh, 1.5rem);
+    right: clamp(0.75rem, 1.8vw, 1.5rem);
+    bottom: clamp(0.75rem, 1.8vh, 1.5rem);
+    width: min(100rem, calc(100vw - clamp(1.5rem, 3.6vw, 3rem)));
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 36px 100px -46px rgba(3, 47, 1, 0.46);
+    --rh-entra-x: 2rem;
+  }
+
+  .rh-admin .rh-gaveta > header {
+    max-height: 48dvh !important;
+    padding: 1rem 1.35rem !important;
+  }
+
+  .rh-admin .rh-gaveta > .rh-scroll {
+    padding: 1rem 1.25rem 1.35rem !important;
+  }
+
+  /* O markup já traz todos os blocos na ordem correta. Aqui a gestão sai da
+     coluna de leitura e ganha uma raia própria à direita. O restante continua
+     em fluxo único, então abrir uma sanfona nunca cria buracos de masonry. */
+  .rh-admin .rh-gaveta > .rh-scroll > div {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 23rem);
+    column-count: initial !important;
+    column-gap: 1.15rem !important;
+    row-gap: 0.8rem !important;
+    align-items: start;
+    max-width: 100rem !important;
+  }
+
+  .rh-admin .rh-gaveta > .rh-scroll > div > * {
+    grid-column: 1;
+    margin-block: 0 !important;
+    break-inside: auto !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    > .rh-scroll
+    > div
+    > section[aria-labelledby$="-gestao"] {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    box-shadow: 0 20px 48px -38px rgba(3, 47, 1, 0.42);
+  }
+
+  /* Com mouse, os controles de contato não precisam carregar o alvo de toque
+     de 44px; isso devolve uma linha inteira de altura ao cabeçalho. */
+  @media (pointer: fine) {
+    .rh-admin .rh-gaveta > header [class~="min-h-11"] {
+      min-height: 2.25rem !important;
+    }
+  }
+}
+
+/* Monitores muito largos não deixam o texto virar uma linha interminável. */
+@media (min-width: 1720px) {
+  .rh-admin .rh-gaveta > .rh-scroll > div {
+    grid-template-columns: minmax(0, 1fr) 23.5rem;
+  }
+}
+
+/* No celular, a densidade volta para toque e o título não disputa largura com
+   o resumo numérico. O bottom-sheet original continua mandando na geometria. */
+@media (max-width: 640px) {
+  .rh-admin .rh-gaveta [data-rh-sanfona] [data-sanfona-resumo] {
+    max-width: 7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
