@@ -1,0 +1,954 @@
+/*
+ * Design System do JP CRC — Milestone 10.
+ *
+ * ISOLAMENTO (itens 206 e 207): TUDO aqui vive sob `.crc-app`. Nenhum seletor
+ * global, nenhuma redefinição de token do `:root`. O site e o portal de RH
+ * compartilham a folha `styles.css`, e uma redefinição de `--primary` aqui
+ * mudaria a cor de um botão na página de carreiras.
+ *
+ * POR QUE TOKENS PRÓPRIOS, E NÃO OS DO SITE
+ * O site é marketing: fundo creme, verde vibrante, tipografia display grande.
+ * O CRC é ferramenta de trabalho — oito horas por dia na mesma tela. Ele
+ * precisa de menos contraste cromático e mais hierarquia tipográfica. A COR DA
+ * MARCA é a mesma (#095902 / #56a805, da folha da clínica); o entorno é outro.
+ *
+ * A REGRA ABSOLUTA DO ITEM 21 ESTÁ CODIFICADA NOS TOKENS:
+ *   fundo verde sólido  → texto BRANCO      (--crc-sobre-primaria)
+ *   fundo branco/claro  → texto quase preto (--crc-texto)
+ * Não existe token que produza verde sobre verde claro. As duas combinações
+ * foram medidas: branco sobre #095902 dá 8.6:1; #16241a sobre #ffffff dá 15.8:1.
+ */
+
+.crc-app {
+  /* ---- Superfícies ------------------------------------------------------ */
+  /* Cinza levíssimo, não branco: o card branco em cima precisa se destacar
+     sem precisar de sombra pesada nem borda escura. */
+  --crc-fundo: #f6f7f6;
+  --crc-superficie: #ffffff;
+  --crc-superficie-2: #fbfcfb;
+  /* Para linha de tabela em hover e faixas alternadas. */
+  --crc-superficie-3: #f1f3f1;
+
+  /* ---- Texto ------------------------------------------------------------ */
+  /* Quase preto com um toque da matiz da marca — preto puro numa tela de
+     trabalho lida o dia inteiro cansa mais. 15.8:1 sobre branco. */
+  --crc-texto: #16241a;
+  /* 7.1:1 sobre branco: passa em AA para texto normal, não só para o grande. */
+  --crc-texto-2: #4d5c50;
+  /* 4.6:1: só para metadado de 12-13px, nunca para conteúdo. */
+  --crc-texto-3: #6b7a6e;
+
+  /* ---- Bordas ----------------------------------------------------------- */
+  /* Um tom só, como o site fez com --border-soft. Bordas em três cinzas
+     diferentes é o tipo de coisa que ninguém nota e que faz a tela parecer
+     descuidada. */
+  --crc-borda: #e2e7e2;
+  --crc-borda-forte: #cdd5ce;
+
+  /* ---- Marca ------------------------------------------------------------ */
+  --crc-primaria: #095902;
+  --crc-primaria-hover: #0b6b03;
+  --crc-sobre-primaria: #ffffff;
+  /* Fundo de destaque suave. #095902 em cima dá 7.9:1. */
+  --crc-primaria-suave: #e9f2e5;
+  --crc-primaria-borda: #c4dcbb;
+
+  /* ---- Semânticas -------------------------------------------------------- */
+  /* Cinco cores no total, e nenhuma a mais (item 45: nada de 12 cores).
+     Cada uma tem UM significado fixo em todo o produto. */
+  --crc-perigo: #a8200f;
+  --crc-perigo-suave: #fdeceb;
+  --crc-alerta: #8a5300;
+  --crc-alerta-suave: #fdf3e3;
+  --crc-info: #1a5b8a;
+  --crc-info-suave: #eaf3f9;
+
+  /* ---- Espaçamento (item 23: base 4/8) ---------------------------------- */
+  --crc-e1: 0.25rem;
+  --crc-e2: 0.5rem;
+  --crc-e3: 0.75rem;
+  --crc-e4: 1rem;
+  --crc-e5: 1.25rem;
+  --crc-e6: 1.5rem;
+  --crc-e8: 2rem;
+  --crc-e10: 2.5rem;
+  --crc-e12: 3rem;
+
+  /* ---- Raio (item 24: nada excessivamente arredondado) ------------------ */
+  --crc-r-campo: 9px;
+  --crc-r-cartao: 13px;
+  --crc-r-modal: 16px;
+
+  /* ---- Elevação --------------------------------------------------------- */
+  /* Duas sombras, e as duas são sutis. O item 45 proíbe card dentro de card;
+     com hierarquia bem feita, sombra forte deixa de ser necessária. */
+  --crc-sombra: 0 1px 2px rgba(22, 36, 26, 0.05), 0 1px 3px rgba(22, 36, 26, 0.04);
+  --crc-sombra-flutuante: 0 8px 24px -8px rgba(22, 36, 26, 0.18);
+
+  --crc-transicao: 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  background: var(--crc-fundo);
+  color: var(--crc-texto);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* 15px, e não 14: o item 22 é explícito contra fonte pequena, e desktop não
+     significa apertar tudo. */
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100dvh;
+}
+
+/* ==========================================================================
+   Tipografia — item 22. Hierarquia forte, e nada abaixo de 12px.
+   ========================================================================== */
+
+.crc-app .crc-titulo-pagina {
+  font-size: clamp(1.5rem, 1.2rem + 0.9vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.crc-app .crc-titulo-secao {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.crc-app .crc-titulo-cartao {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.crc-app .crc-corpo {
+  font-size: 0.9375rem;
+  color: var(--crc-texto-2);
+  margin: 0;
+}
+
+.crc-app .crc-meta {
+  font-size: 0.8125rem;
+  color: var(--crc-texto-3);
+  margin: 0;
+}
+
+.crc-app .crc-numero {
+  /* Tabular para os números não dançarem ao atualizar — um KPI que muda de
+     largura a cada refresh parece instável. */
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ==========================================================================
+   Layout
+   ========================================================================== */
+
+.crc-app .crc-shell {
+  display: grid;
+  /* `minmax(0, 1fr)` e não `1fr`: sem o mínimo zero, uma tabela larga faz a
+     coluna crescer além da viewport e a página inteira ganha rolagem
+     horizontal — o overflow que o item 25 proíbe. */
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.crc-app .crc-lateral {
+  background: var(--crc-superficie);
+  border-right: 1px solid var(--crc-borda);
+  padding: var(--crc-e5) var(--crc-e3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e1);
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.crc-app .crc-conteudo {
+  padding: var(--crc-e6) var(--crc-e8) var(--crc-e12);
+  /* O teto impede a linha de texto ficar longa demais em 2560px, e o `auto`
+     nas margens centraliza o que sobra. Item 25. */
+  max-width: 1600px;
+  width: 100%;
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.crc-app .crc-cabecalho-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--crc-e4);
+  margin-bottom: var(--crc-e6);
+}
+
+/* Grade que não estoura: cada coluna tem largura mínima e se acomoda sozinha.
+   É o `minmax()` + `auto-fit` que o item 25 pede. */
+.crc-app .crc-grade {
+  display: grid;
+  gap: var(--crc-e4);
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+}
+
+.crc-app .crc-pilha {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e4);
+}
+
+.crc-app .crc-linha {
+  display: flex;
+  align-items: center;
+  gap: var(--crc-e2);
+  flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Navegação
+   ========================================================================== */
+
+.crc-app .crc-marca {
+  display: flex;
+  align-items: center;
+  gap: var(--crc-e2);
+  padding: var(--crc-e2) var(--crc-e3) var(--crc-e5);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-marca span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--crc-primaria);
+  color: var(--crc-sobre-primaria);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.crc-app .crc-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--crc-e3);
+  padding: var(--crc-e2) var(--crc-e3);
+  border-radius: var(--crc-r-campo);
+  color: var(--crc-texto-2);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--crc-transicao), color var(--crc-transicao);
+}
+
+.crc-app .crc-nav-item:hover {
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-nav-item[aria-current="page"] {
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+  font-weight: 600;
+}
+
+/* O contador de pendências na navegação. Fica à direita e não empurra o rótulo. */
+.crc-app .crc-nav-item .crc-contador {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  border-radius: 999px;
+  padding: 1px var(--crc-e2);
+}
+
+/* ==========================================================================
+   Cartão — UM nível só. Item 45 proíbe card dentro de card dentro de card.
+   ========================================================================== */
+
+.crc-app .crc-cartao {
+  background: var(--crc-superficie);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  padding: var(--crc-e5);
+  box-shadow: var(--crc-sombra);
+}
+
+.crc-app .crc-cartao-compacto {
+  padding: var(--crc-e4);
+}
+
+/* Conteúdo DENTRO de um cartão usa separador, não outro cartão. */
+.crc-app .crc-separador {
+  height: 1px;
+  background: var(--crc-borda);
+  border: 0;
+  margin: var(--crc-e4) 0;
+}
+
+/* ==========================================================================
+   KPI
+   ========================================================================== */
+
+.crc-app .crc-kpi {
+  background: var(--crc-superficie);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  padding: var(--crc-e4) var(--crc-e5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e1);
+  min-width: 0;
+}
+
+.crc-app .crc-kpi-rotulo {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-kpi-valor {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--crc-texto);
+  /* Valor longo (R$ 1.234.567,89) não pode estourar o cartão. */
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-kpi-nota {
+  font-size: 0.75rem;
+  color: var(--crc-texto-3);
+}
+
+/* ==========================================================================
+   Botões
+   ========================================================================== */
+
+.crc-app .crc-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--crc-e2);
+  padding: 0 var(--crc-e4);
+  /* 38px: alvo confortável de clique sem parecer botão de celular. */
+  height: 38px;
+  border-radius: var(--crc-r-campo);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--crc-transicao), border-color var(--crc-transicao),
+    color var(--crc-transicao);
+}
+
+.crc-app .crc-botao:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Fundo verde sólido → texto BRANCO. Item 21, sem exceção. */
+.crc-app .crc-botao-primario {
+  background: var(--crc-primaria);
+  color: var(--crc-sobre-primaria);
+}
+
+.crc-app .crc-botao-primario:hover:not(:disabled) {
+  background: var(--crc-primaria-hover);
+}
+
+.crc-app .crc-botao-secundario {
+  background: var(--crc-superficie);
+  border-color: var(--crc-borda-forte);
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-botao-secundario:hover:not(:disabled) {
+  background: var(--crc-superficie-3);
+}
+
+.crc-app .crc-botao-discreto {
+  background: transparent;
+  color: var(--crc-texto-2);
+  padding: 0 var(--crc-e2);
+}
+
+.crc-app .crc-botao-discreto:hover:not(:disabled) {
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-botao-perigo {
+  background: var(--crc-superficie);
+  border-color: var(--crc-perigo);
+  color: var(--crc-perigo);
+}
+
+.crc-app .crc-botao-perigo:hover:not(:disabled) {
+  background: var(--crc-perigo-suave);
+}
+
+.crc-app .crc-botao-pequeno {
+  height: 32px;
+  font-size: 0.875rem;
+  padding: 0 var(--crc-e3);
+}
+
+/* ==========================================================================
+   Campos
+   ========================================================================== */
+
+.crc-app .crc-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e1);
+  min-width: 0;
+}
+
+.crc-app .crc-rotulo {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-entrada,
+.crc-app .crc-selecao,
+.crc-app .crc-area {
+  width: 100%;
+  background: var(--crc-superficie);
+  border: 1px solid var(--crc-borda-forte);
+  border-radius: var(--crc-r-campo);
+  padding: 0 var(--crc-e3);
+  height: 38px;
+  font-family: inherit;
+  /* 15px também no input: 14px no desktop já força o olho, e o item 22 é
+     explícito. Também impede o zoom automático do Safari no iOS. */
+  font-size: 0.9375rem;
+  color: var(--crc-texto);
+  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+}
+
+.crc-app .crc-area {
+  height: auto;
+  min-height: 92px;
+  padding: var(--crc-e2) var(--crc-e3);
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.crc-app .crc-entrada:focus,
+.crc-app .crc-selecao:focus,
+.crc-app .crc-area:focus {
+  outline: none;
+  border-color: var(--crc-primaria);
+  box-shadow: 0 0 0 3px var(--crc-primaria-suave);
+}
+
+.crc-app .crc-entrada::placeholder,
+.crc-app .crc-area::placeholder {
+  color: var(--crc-texto-3);
+}
+
+/* O contorno de foco precisa de 3:1 contra a superfície. Verde escuro sobre
+   branco mede 8.5:1; o lime da marca mede 1,7 e seria invisível justamente
+   para quem depende dele. Mesma decisão que o site tomou. */
+.crc-app :focus-visible {
+  outline: 3px solid var(--crc-primaria);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ==========================================================================
+   Etiquetas — item 45: nada de 30 badges. Quatro variantes, com significado.
+   ========================================================================== */
+
+.crc-app .crc-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--crc-e1);
+  padding: 2px var(--crc-e2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.crc-app .crc-etiqueta-neutra {
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+}
+.crc-app .crc-etiqueta-positiva {
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+.crc-app .crc-etiqueta-alerta {
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+.crc-app .crc-etiqueta-perigo {
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+}
+.crc-app .crc-etiqueta-info {
+  background: var(--crc-info-suave);
+  color: var(--crc-info);
+}
+
+/* ==========================================================================
+   Prioridade — a faixa colorida à esquerda do item na fila.
+   NUNCA só a cor comunica (item 65): o texto ao lado sempre diz a mesma coisa.
+   ========================================================================== */
+
+.crc-app .crc-prioridade {
+  border-left: 3px solid var(--crc-borda-forte);
+  padding-left: var(--crc-e4);
+}
+.crc-app .crc-prioridade-ALTA {
+  border-left-color: var(--crc-perigo);
+}
+.crc-app .crc-prioridade-MEDIA {
+  border-left-color: var(--crc-alerta);
+}
+.crc-app .crc-prioridade-BAIXA {
+  border-left-color: var(--crc-borda-forte);
+}
+
+/* ==========================================================================
+   Tabela — item 27
+   ========================================================================== */
+
+.crc-app .crc-tabela-caixa {
+  /* A rolagem horizontal fica AQUI, e não no body. Item 25. */
+  overflow-x: auto;
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  background: var(--crc-superficie);
+}
+
+.crc-app .crc-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.crc-app .crc-tabela th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--crc-superficie-2);
+  border-bottom: 1px solid var(--crc-borda);
+  padding: var(--crc-e3) var(--crc-e4);
+  text-align: left;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--crc-texto-2);
+  white-space: nowrap;
+}
+
+.crc-app .crc-tabela td {
+  padding: var(--crc-e3) var(--crc-e4);
+  border-bottom: 1px solid var(--crc-borda);
+  vertical-align: middle;
+}
+
+.crc-app .crc-tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.crc-app .crc-tabela tbody tr:hover td {
+  background: var(--crc-superficie-2);
+}
+
+/* ==========================================================================
+   Estados vazios — item 47: cada um ensina.
+   ========================================================================== */
+
+.crc-app .crc-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--crc-e2);
+  text-align: center;
+  padding: var(--crc-e10) var(--crc-e5);
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-vazio strong {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-vazio p {
+  max-width: 42ch;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+/* ==========================================================================
+   Esqueleto — item 153: reflete o layout real, sem spinner gigante ao centro.
+   ========================================================================== */
+
+.crc-app .crc-esqueleto {
+  background: linear-gradient(
+    90deg,
+    var(--crc-superficie-3) 25%,
+    var(--crc-borda) 37%,
+    var(--crc-superficie-3) 63%
+  );
+  background-size: 400% 100%;
+  animation: crc-brilho 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes crc-brilho {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crc-app .crc-esqueleto {
+    animation: none;
+  }
+  .crc-app * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   Avisos
+   ========================================================================== */
+
+.crc-app .crc-aviso {
+  display: flex;
+  gap: var(--crc-e3);
+  align-items: flex-start;
+  padding: var(--crc-e3) var(--crc-e4);
+  border-radius: var(--crc-r-campo);
+  border: 1px solid;
+  font-size: 0.9375rem;
+}
+
+.crc-app .crc-aviso-alerta {
+  background: var(--crc-alerta-suave);
+  border-color: #eccb96;
+  color: var(--crc-alerta);
+}
+.crc-app .crc-aviso-perigo {
+  background: var(--crc-perigo-suave);
+  border-color: #edb5ae;
+  color: var(--crc-perigo);
+}
+.crc-app .crc-aviso-info {
+  background: var(--crc-info-suave);
+  border-color: #b9d5e7;
+  color: var(--crc-info);
+}
+
+/* ==========================================================================
+   Inbox — três painéis
+   ========================================================================== */
+
+.crc-app .crc-inbox {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr) 300px;
+  gap: var(--crc-e4);
+  /* Altura fixa para os painéis rolarem por dentro, e não a página inteira. */
+  height: calc(100dvh - 190px);
+  min-height: 480px;
+}
+
+.crc-app .crc-painel {
+  background: var(--crc-superficie);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.crc-app .crc-painel-corpo {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.crc-app .crc-painel-topo {
+  padding: var(--crc-e3) var(--crc-e4);
+  border-bottom: 1px solid var(--crc-borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--crc-e2);
+  flex-shrink: 0;
+}
+
+.crc-app .crc-painel-rodape {
+  padding: var(--crc-e3);
+  border-top: 1px solid var(--crc-borda);
+  flex-shrink: 0;
+}
+
+.crc-app .crc-conversa-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--crc-e3) var(--crc-e4);
+  border: 0;
+  border-bottom: 1px solid var(--crc-borda);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.crc-app .crc-conversa-item:hover {
+  background: var(--crc-superficie-2);
+}
+
+.crc-app .crc-conversa-item[aria-selected="true"] {
+  background: var(--crc-primaria-suave);
+}
+
+/* ---- Mensagens --------------------------------------------------------- */
+
+.crc-app .crc-mensagens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e3);
+  padding: var(--crc-e4);
+}
+
+.crc-app .crc-balao {
+  max-width: 68%;
+  padding: var(--crc-e2) var(--crc-e3);
+  border-radius: 14px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  /* Mensagem colada sem espaço (URL longa) não pode estourar o painel. */
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-balao-entrada {
+  align-self: flex-start;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto);
+  border-bottom-left-radius: 4px;
+}
+
+/* Verde sólido → texto branco. Item 21. */
+.crc-app .crc-balao-saida {
+  align-self: flex-end;
+  background: var(--crc-primaria);
+  color: var(--crc-sobre-primaria);
+  border-bottom-right-radius: 4px;
+}
+
+/* Nota interna é visualmente OUTRA COISA — item 163. Se ela parecesse
+   mensagem, alguém escreveria uma achando que o paciente não veria. */
+.crc-app .crc-balao-nota {
+  align-self: flex-end;
+  background: var(--crc-alerta-suave);
+  border: 1px dashed #eccb96;
+  color: var(--crc-alerta);
+}
+
+/* ==========================================================================
+   Funil (kanban)
+   ========================================================================== */
+
+/* Os filtros e as visões salvas (item 147) ficam acima do quadro. */
+.crc-app .crc-filtros-funil {
+  margin-bottom: var(--crc-e3);
+}
+
+.crc-app .crc-filtros-funil .crc-selecao {
+  /* Largura própria: um `select` esticado numa linha de filtros vira o único
+     elemento que a pessoa enxerga, e os outros somem ao lado dele. */
+  width: auto;
+  min-width: 168px;
+}
+
+.crc-app .crc-visoes {
+  margin-bottom: var(--crc-e4);
+  padding-bottom: var(--crc-e3);
+  border-bottom: 1px solid var(--crc-borda);
+}
+
+/* O nome da visão e o × de apagar andam juntos: separá-los com `gap` faria o
+   × parecer pertencer à visão seguinte. */
+.crc-app .crc-visao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--crc-e1);
+}
+
+.crc-app .crc-funil {
+  display: flex;
+  gap: var(--crc-e3);
+  overflow-x: auto;
+  padding-bottom: var(--crc-e3);
+  /* A rolagem é do funil, não da página. */
+  scrollbar-gutter: stable;
+}
+
+.crc-app .crc-coluna {
+  flex: 0 0 272px;
+  background: var(--crc-superficie-2);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - 230px);
+}
+
+.crc-app .crc-coluna-topo {
+  padding: var(--crc-e3) var(--crc-e4);
+  border-bottom: 1px solid var(--crc-borda);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--crc-e2);
+}
+
+.crc-app .crc-coluna-corpo {
+  padding: var(--crc-e2);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e2);
+}
+
+/* O cartão do funil mostra SEIS coisas, não quinze (item 18 do Mega Prompt). */
+.crc-app .crc-cartao-funil {
+  background: var(--crc-superficie);
+  border: 1px solid var(--crc-borda);
+  border-radius: 10px;
+  padding: var(--crc-e3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e1);
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+}
+
+.crc-app .crc-cartao-funil:hover {
+  border-color: var(--crc-borda-forte);
+  box-shadow: var(--crc-sombra);
+}
+
+/* ==========================================================================
+   Responsividade — itens 25 e 68
+   ========================================================================== */
+
+@media (max-width: 1400px) {
+  .crc-app .crc-inbox {
+    /* O painel de contexto é o primeiro a sair: ele é apoio, não a conversa. */
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+  .crc-app .crc-inbox > :nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .crc-app .crc-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .crc-app .crc-lateral {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--crc-borda);
+    padding: var(--crc-e2);
+    gap: var(--crc-e1);
+  }
+  .crc-app .crc-marca {
+    padding: var(--crc-e2);
+  }
+  .crc-app .crc-nav-item {
+    white-space: nowrap;
+  }
+  .crc-app .crc-nav-item .crc-contador {
+    margin-left: var(--crc-e1);
+  }
+  .crc-app .crc-conteudo {
+    padding: var(--crc-e5) var(--crc-e4) var(--crc-e10);
+  }
+}
+
+@media (max-width: 860px) {
+  .crc-app .crc-inbox {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+  }
+  /* No celular, a lista some quando há conversa aberta — mostrar as duas
+     empilhadas obrigaria a rolar a lista inteira para chegar na conversa. */
+  .crc-app .crc-inbox[data-conversa-aberta="sim"] > :nth-child(1) {
+    display: none;
+  }
+  .crc-app .crc-painel {
+    max-height: 70dvh;
+  }
+  .crc-app .crc-balao {
+    max-width: 85%;
+  }
+  .crc-app .crc-cabecalho-pagina {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ==========================================================================
+   Utilitários mínimos
+   ========================================================================== */
+
+.crc-app .crc-so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.crc-app .crc-empurra {
+  margin-left: auto;
+}
+
+.crc-app .crc-truncar {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}

@@ -52,6 +52,26 @@ src/
 └── assets/                      fotos e vídeos
 ```
 
+### Os três sistemas que moram neste repo
+
+| Rota | O que é | Documentação |
+| --- | --- | --- |
+| `/` | O site institucional. É o que este README descreve. | aqui |
+| `/rh` | Portal de RH: vagas, candidaturas, triagem por IA. | [docs/PORTAL-RH.md](docs/PORTAL-RH.md) |
+| `/crc` | JP CRC OS: CRM, automação de recuperação e cobrança. | [docs/crc/](docs/crc/) |
+
+Os três compartilham build, domínio e Supabase, e nada mais: as tabelas do CRC
+têm prefixo `crc_`, o CSS dele vive inteiro sob `.crc-app`, e nenhum arquivo do
+site foi alterado para ele existir.
+
+**Para colocar o CRC no ar**, comece por
+[docs/crc/ATIVACAO-EM-PRODUCAO.md](docs/crc/ATIVACAO-EM-PRODUCAO.md) — o passo a
+passo de SQL, variáveis, credenciais e ordem de ativação. Os outros três
+documentos são [ARCHITECTURE](docs/crc/ARCHITECTURE.md) (como funciona),
+[RUNBOOK](docs/crc/RUNBOOK.md) (quando algo dá errado) e
+[FINAL-ACCEPTANCE](docs/crc/FINAL-ACCEPTANCE.md) (o que existe e o que não
+existe).
+
 ### `src/lib/jp.ts` é o arquivo que importa
 
 Telefone, WhatsApp, endereço, horário, avaliação do Google, tratamentos, FAQ, equipe e depoimentos vivem **só ali**. Trocar o telefone nesse arquivo atualiza o cabeçalho, o rodapé, os 8 links de WhatsApp, o formulário, os cards de contato e o JSON-LD de uma vez.
