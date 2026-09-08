@@ -42,21 +42,22 @@ import {
   analisarTodas,
   analisarUma,
   atualizarCandidatura,
+  calcularTrajetoDaCandidatura,
   entrarRh,
   estadoIa,
+  excluirCandidatura,
+  excluirCandidaturaAgora,
+  excluirGuiaAdmin,
+  excluirVagaAdmin,
   gerarFichaAdmin,
   gerarRanking,
   importarCurriculos,
-  excluirCandidatura,
-  excluirCandidaturaAgora,
-  restaurarCandidatura,
-  excluirGuiaAdmin,
-  excluirVagaAdmin,
   listarCandidaturas,
   listarGuiasAdmin,
   listarVagasAdmin,
   obterConfiguracoesAdmin,
   removerAnotacao,
+  restaurarCandidatura,
   sairRh,
   salvarConfiguracoesAdmin,
   salvarFichaAdmin,
@@ -781,6 +782,25 @@ function Painel({ dados }: { dados: DadosRh }) {
       }
     },
     [gerir, itens, avisar],
+  );
+
+  /**
+   * Enriquecimento em segundo plano: pede o trajeto até a clínica.
+   *
+   * SILENCIOSO nos dois sentidos — não abre o indicador de "salvando" (não é
+   * edição de ninguém) e não avisa quando falha. O trajeto é um a mais sobre a
+   * região que a ficha já mostra; um serviço público fora do ar não pode virar
+   * mensagem de erro vermelha na frente de quem só queria ler um currículo.
+   */
+  const pedirTrajeto = useCallback(
+    (id: string) => {
+      void calcularTrajetoDaCandidatura({ data: { id } })
+        .then((resposta) => {
+          if (resposta.ok) trocarItem(id, resposta.item);
+        })
+        .catch(() => undefined);
+    },
+    [trocarItem],
   );
 
   const anotar = useCallback(
@@ -1703,6 +1723,7 @@ function Painel({ dados }: { dados: DadosRh }) {
         salvando={gravacoes > 0}
         aoFechar={fecharGaveta}
         aoAtualizar={gerir}
+        aoCalcularTrajeto={pedirTrajeto}
         aoAnotar={anotar}
         aoRemoverAnotacao={apagarAnotacao}
         remetente={remetente}

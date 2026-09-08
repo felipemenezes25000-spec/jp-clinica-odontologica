@@ -45,6 +45,13 @@ export type Candidatura = {
   criadoEm: string;
   atualizadoEm: string;
 
+  /**
+   * Trajeto até a clínica. `null` até alguém calcular — e para os registros
+   * gravados antes deste campo existir ele chega como `undefined` do banco,
+   * então quem lê usa `?? null`.
+   */
+  trajeto: Trajeto | null;
+
   /** Vaga a que a pessoa se candidatou. Vazio quando é candidatura espontânea. */
   vagaId: string;
   /**
@@ -184,6 +191,30 @@ export type Candidatura = {
  * tela) gravaria "Cirurgião-dentista" numa candidatura ligada à vaga de
  * recepção, e as duas verdades nunca mais bateriam.
  */
+/**
+ * Distância e tempo até a clínica, por rua.
+ *
+ * Vem do OpenStreetMap (ver `servidor/rotas.ts`) e é GRAVADO na ficha porque a
+ * consulta é a um serviço público de terceiros: calculado uma vez, vale para
+ * sempre — o endereço da pessoa não muda e o da clínica também não. É `null`
+ * enquanto ninguém calculou, e continua `null` quando não deu para calcular
+ * (currículo que só diz "São Paulo", serviço fora do ar).
+ *
+ * NÃO substitui a região de `ia/proximidade.ts`: aquela é local, instantânea e
+ * funciona para todo mundo; esta é precisa e funciona para quem informou o
+ * bairro ou o CEP.
+ */
+export type Trajeto = {
+  /** Quilômetros por rua, uma casa decimal. */
+  km: number;
+  /** Minutos DE CARRO E SEM TRÂNSITO — a tela precisa dizer isso. */
+  minutos: number;
+  /** O endereço que foi consultado. É o que permite conferir o número. */
+  origem: string;
+  /** ISO. */
+  calculadoEm: string;
+};
+
 export type CamposGeriveis = Pick<
   Candidatura,
   "status" | "nota" | "etiquetas" | "responsavel" | "entrevistaEm" | "arquivada" | "area" | "vagaId"
@@ -327,6 +358,7 @@ export function candidaturaVazia(): Candidatura {
     criadoEm: "",
     atualizadoEm: "",
 
+    trajeto: null,
     vagaId: "",
     vagaTitulo: "",
 

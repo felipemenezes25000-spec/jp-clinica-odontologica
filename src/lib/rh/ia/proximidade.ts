@@ -432,6 +432,29 @@ function comIniciais(v: string): string {
  * "desconhecida" não vira aviso na ficha — vira, no máximo, a pergunta de onde
  * a pessoa mora.
  */
+/**
+ * Há endereço suficiente para pedir uma ROTA de verdade?
+ *
+ * Mesma cascata de `servidor/rotas.ts`, e mora aqui para o painel poder decidir
+ * sem chamar o servidor: sem isto, abrir a ficha de qualquer uma das 39 pessoas
+ * cujo currículo só diz "São Paulo" dispararia uma consulta que já se sabe que
+ * vai voltar vazia.
+ *
+ * "São Paulo" sozinho é NÃO de propósito: rotear até o centro da capital daria
+ * um número medido para um lugar adivinhado.
+ */
+export function temEnderecoParaRota(entrada: {
+  cep: string;
+  bairro: string;
+  cidade: string;
+}): boolean {
+  const cep = apenasDigitos(typeof entrada.cep === "string" ? entrada.cep : "");
+  if (cep.length === 8) return true;
+  if (typeof entrada.bairro === "string" && entrada.bairro.trim() !== "") return true;
+  const cidade = normalizar(typeof entrada.cidade === "string" ? entrada.cidade : "");
+  return cidade.length > 2 && cidade !== "sao paulo";
+}
+
 export function classificarProximidade(entrada: {
   cep: string;
   bairro: string;

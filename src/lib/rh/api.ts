@@ -695,6 +695,53 @@ export const atualizarCandidatura = createServerFn({ method: "POST" })
     return { ok: true, item };
   });
 
+/**
+ * Calcula (uma vez) o trajeto da clínica até onde a pessoa mora.
+ *
+ * NO SERVIDOR, e não no navegador, por três motivos: a chamada sai com o
+ * `User-Agent` que a política do OpenStreetMap exige, a fila de uma consulta
+ * por segundo vale para todo mundo que estiver com o painel aberto, e o IP da
+ * recepção não vai parar no log de um servidor público.
+ *
+ * Nunca recalcula o que já existe: o endereço da candidata não muda e o da
+ * clínica também não. Quem quiser refazer apaga o campo — não há botão para
+ * isso porque não há motivo para isso.
+ *
+ * Falha silenciosa é o comportamento certo aqui. Serviço fora do ar, endereço
+ * que ninguém reconhece, currículo que só diz "São Paulo": tudo devolve a ficha
+ * intacta, sem trajeto, e a região de `ia/proximidade.ts` continua na tela.
+ * Nada nesta cadeia pode transformar um serviço de terceiro numa ficha quebrada.
+ */
+export const calcularTrajetoDaCandidatura = createServerFn({ method: "POST" })
+  .validator((entrada: unknown): { id: string } => {
+    const bruto = objeto(entrada);
+    const id = texto(bruto["id"], 60);
+    if (id.length === 0) throw new Error("Candidatura não informada.");
+    return { id };
+  })
+  .handler(async ({ data }): Promise<RespostaItem> => {
+    if (!(await exigirAdmin())) return { ok: false, motivo: NAO_AUTENTICADO };
+
+    const { lerCandidatura, atualizarCandidaturaNoDisco } =
+      await import("./servidor/armazenamento");
+    const atual = await lerCandidatura(data.id);
+    if (atual === null) return { ok: false, motivo: "nao-encontrada" };
+    if (atual.trajeto) return { ok: true, item: atual };
+
+    const { calcularTrajeto } = await import("./servidor/rotas");
+    const trajeto = await calcularTrajeto({
+      cep: atual.cep,
+      bairro: atual.bairro,
+      cidade: atual.cidade,
+      uf: atual.uf,
+    });
+    if (trajeto === null) return { ok: false, motivo: "trajeto-indisponivel" };
+
+    const item = await atualizarCandidaturaNoDisco(data.id, (ficha) => ({ ...ficha, trajeto }));
+    if (item === null) return { ok: false, motivo: "nao-encontrada" };
+    return { ok: true, item };
+  });
+
 export const adicionarAnotacao = createServerFn({ method: "POST" })
   .validator((entrada: unknown): { id: string; texto: string } => {
     const bruto = objeto(entrada);

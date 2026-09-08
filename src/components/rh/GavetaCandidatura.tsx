@@ -26,6 +26,7 @@ import {
   ArchiveRestore,
   MapPin,
   MessageCircleQuestion,
+  Route,
   Tags,
   BadgeCheck,
   Briefcase,
@@ -65,7 +66,7 @@ import {
 } from "@/lib/rh/ficha";
 import type { FichaEntrevista } from "@/lib/rh/ficha";
 import { duvidasEmAberto, montarDuvidas } from "@/lib/rh/duvidas";
-import { classificarProximidade } from "@/lib/rh/ia/proximidade";
+import { classificarProximidade, temEnderecoParaRota } from "@/lib/rh/ia/proximidade";
 import { recomendacaoPor } from "@/lib/rh/ia/tipos";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
 import {
@@ -392,6 +393,11 @@ type PropsConteudo = {
   salvando: boolean;
   aoFechar: () => void;
   aoAtualizar: (id: string, campos: Partial<CamposGeriveis>) => void;
+  /**
+   * Pede o trajeto até a clínica. Chamado uma vez por ficha, em segundo plano —
+   * ver o efeito lá embaixo e o comentário na rota.
+   */
+  aoCalcularTrajeto: (id: string) => void;
   aoAnotar: (id: string, texto: string) => void;
   aoRemoverAnotacao: (id: string, anotacaoId: string) => void;
   /**
@@ -446,6 +452,7 @@ function ConteudoGaveta(props: PropsConteudo) {
     salvando,
     aoFechar,
     aoAtualizar,
+    aoCalcularTrajeto,
     aoAnotar,
     aoRemoverAnotacao,
     remetente,
@@ -530,6 +537,26 @@ function ConteudoGaveta(props: PropsConteudo) {
     [item.cep, item.bairro, item.cidade, item.uf],
   );
   const localDaPessoa = item.bairro.trim() || item.cidade.trim();
+
+  /**
+   * Trajeto: pede UMA vez por ficha, e só quando há endereço que dê rota.
+   *
+   * A checagem de `temEnderecoParaRota` acontece aqui, e não no servidor, para
+   * as 39 fichas cujo currículo só diz "São Paulo" não gastarem uma ida ao
+   * servidor que já se sabe que volta vazia. O resultado fica gravado na ficha,
+   * então abrir a mesma candidata amanhã não consulta nada.
+   */
+  const trajeto = item.trajeto ?? null;
+  const idDaFicha = item.id;
+  const podeTracar = temEnderecoParaRota({
+    cep: item.cep,
+    bairro: item.bairro,
+    cidade: item.cidade,
+  });
+  useEffect(() => {
+    if (trajeto !== null || !podeTracar || idDaFicha === "") return;
+    aoCalcularTrajeto(idDaFicha);
+  }, [idDaFicha, trajeto, podeTracar, aoCalcularTrajeto]);
 
   /* Quantas perguntas ainda não foram marcadas como lidas. É o que o rótulo da
      seção fechada promete — e é a única contagem da ficha que muda enquanto a
@@ -1013,6 +1040,22 @@ function ConteudoGaveta(props: PropsConteudo) {
                     {localDaPessoa === ""
                       ? proximidade.rotulo
                       : `${localDaPessoa} · ${proximidade.rotulo.toLowerCase()}`}
+                  </span>
+                )}
+                {/* O TRAJETO MEDIDO, quando existe. Pastilha própria e não
+                    junto da região porque são coisas diferentes: a região é
+                    conta nossa, local e instantânea; isto é rota de rua vinda
+                    do OpenStreetMap. O "de carro" não é detalhe — o número é de
+                    tráfego livre, e quem vai de ônibus leva bem mais. Dizer
+                    "35 min" sem dizer de quê seria promessa que a segunda-feira
+                    de manhã desmente. */}
+                {trajeto === null ? null : (
+                  <span
+                    title={`Rota de ${trajeto.origem} até a clínica, pelo OpenStreetMap.`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-0.5 text-[0.7rem] font-bold text-white ring-1 ring-white/30"
+                  >
+                    <Route className="h-3 w-3 shrink-0" aria-hidden="true" />
+                    {trajeto.km} km · {trajeto.minutos} min de carro
                   </span>
                 )}
                 {item.arquivada ? (
