@@ -526,6 +526,29 @@ export function vagaVazia(): Vaga {
  * único arquivo (e não espalhado em variáveis de ambiente) porque é conteúdo
  * editorial, não segredo.
  */
+/**
+ * A senha do painel, guardada como VERIFICADOR e nunca como senha.
+ *
+ * Fica fora de `ConfiguracoesRh` de propósito, e a razão é a tela: as
+ * configurações são entregues inteiras ao navegador para o formulário da aba
+ * Config desenhar os campos. Um hash de senha ali viajaria junto, ficaria no
+ * HTML da página e no cache do navegador — e hash exposto é hash que alguém
+ * leva para casa e ataca com calma. Este registro só existe do lado do
+ * servidor, e nenhuma server function o devolve.
+ *
+ * `sal` é sorteado por senha: sem ele, duas instalações com a mesma senha teriam
+ * o mesmo hash, e uma tabela pronta responderia as duas de uma vez.
+ */
+export type SenhaGuardada = {
+  /** Hoje sempre "scrypt". Nomeado para o dia em que mudar e os antigos ainda precisarem abrir. */
+  algoritmo: "scrypt";
+  /** Sal aleatório, em hexadecimal. */
+  sal: string;
+  /** Digest em hexadecimal. */
+  hash: string;
+  atualizadoEm: string;
+};
+
 export type ConfiguracoesRh = {
   tituloPortal: string;
   chamadaPortal: string;

@@ -97,7 +97,7 @@ export function CampoTexto(
   props: Comuns & {
     valor: string;
     aoMudar: (valor: string) => void;
-    tipo?: "text" | "email" | "tel" | "url" | "date" | undefined;
+    tipo?: "text" | "email" | "tel" | "url" | "date" | "password" | undefined;
     placeholder?: string | undefined;
     autoComplete?: string | undefined;
     inputMode?: "text" | "numeric" | "tel" | "email" | "url" | undefined;

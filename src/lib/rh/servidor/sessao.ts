@@ -5,7 +5,7 @@
  * login único de administração: a clínica tem uma pessoa cuidando do processo
  * seletivo, então usuário/senha por pessoa seria burocracia sem ganho real.
  */
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 import type { SessionConfig } from "@tanstack/react-start/server";
 
@@ -108,17 +108,163 @@ export function configuracaoSessao(): SessionConfig {
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* A senha, e onde ela mora                                                   */
+/* -------------------------------------------------------------------------- */
+
 /**
- * Compara digests de tamanho fixo com `timingSafeEqual`. Comparar as strings com
- * `===` vazaria, pelo tempo de resposta, o tamanho e o prefixo acertado da senha.
+ * DUAS FONTES, E A GUARDADA MANDA.
+ *
+ * `ADMIN_RH_PASSWORD` é a senha de instalação: é ela que abre o painel no dia em
+ * que ele sobe, antes de existir qualquer coisa no banco. A partir do momento em
+ * que alguém troca a senha pela própria tela, quem vale é a guardada — e a do
+ * ambiente PARA DE ABRIR o painel.
+ *
+ * Essa segunda metade é a parte que importa. Se a do ambiente continuasse
+ * valendo, "trocar a senha" não revogaria a antiga, que é exatamente o motivo
+ * pelo qual alguém troca uma senha. O botão faria de conta.
+ *
+ * O caminho de volta, para quem esquecer, é `RH_SENHA_RESET=1` no servidor: com
+ * ele a guardada é ignorada e a do ambiente abre de novo. Quem consegue mexer
+ * nas variáveis do servidor já controla o servidor inteiro — o interruptor não
+ * abre porta nenhuma que já não estivesse aberta, e evita cirurgia no banco.
  */
-export function conferirSenha(tentativa: string): boolean {
+function resetPedido(): boolean {
+  const v = (process.env["RH_SENHA_RESET"] ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "sim";
+}
+
+const TAMANHO_HASH = 64;
+
+function derivar(senha: string, sal: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scrypt(senha, sal, TAMANHO_HASH, (erro, chave) => {
+      if (erro) reject(erro);
+      else resolve(chave);
+    });
+  });
+}
+
+/**
+ * Compara sem vazar pelo relógio.
+ *
+ * `timingSafeEqual` exige buffers do mesmo tamanho e joga exceção quando não
+ * são; passar as senhas direto entregaria o tamanho da senha certa a quem
+ * medisse o erro. Por isso as duas viram digest de 32 bytes antes: o tamanho
+ * passa a ser sempre o mesmo, e o que sobra para o atacante é nada.
+ */
+function iguaisEmTempoConstante(a: string, b: string): boolean {
+  const da = createHash("sha256").update(a, "utf8").digest();
+  const db = createHash("sha256").update(b, "utf8").digest();
+  return timingSafeEqual(da, db);
+}
+
+export async function conferirSenha(tentativa: string): Promise<boolean> {
+  const { lerSenhaGuardada } = await import("./armazenamento");
+
+  let guardada = null;
+  try {
+    guardada = resetPedido() ? null : await lerSenhaGuardada();
+  } catch {
+    /* Banco fora do ar não pode virar "painel trancado para sempre": cai na
+       senha de instalação, que é o comportamento de antes desta função existir.
+       O erro aparece no log de quem cuida do servidor. */
+    guardada = null;
+  }
+
+  if (guardada !== null) {
+    const derivada = await derivar(tentativa, guardada.sal);
+    return iguaisEmTempoConstante(derivada.toString("hex"), guardada.hash);
+  }
+
   const esperada = senhaEsperada();
   if (esperada === null) return false;
+  return iguaisEmTempoConstante(tentativa, esperada);
+}
 
-  const a = createHash("sha256").update(tentativa, "utf8").digest();
-  const b = createHash("sha256").update(esperada, "utf8").digest();
-  return timingSafeEqual(a, b);
+/** Tamanho mínimo da senha nova. */
+export const MINIMO_SENHA = 10;
+
+/* Senhas que este repositório publica: a de desenvolvimento e a do exemplo do
+   .env. Recusadas por nome porque uma delas já esteve num arquivo versionado —
+   e senha que está no GitHub não é senha. */
+const SENHAS_PUBLICAS = [SENHA_DEV, "troque-esta-senha"];
+
+/**
+ * Troca a senha do painel. Devolve o motivo em português quando recusa.
+ *
+ * Exige a senha ATUAL mesmo com sessão aberta: sessão é o cookie de quem já
+ * entrou, e cookie roubado, notebook aberto na recepção ou aba esquecida num
+ * computador emprestado são as três formas realistas de alguém chegar aqui sem
+ * ser a dona do painel. Pedir a senha atual é o que separa "está usando a tela"
+ * de "é a pessoa".
+ */
+export async function trocarSenha(
+  atual: string,
+  nova: string,
+): Promise<{ ok: true } | { ok: false; erro: string }> {
+  if (!(await conferirSenha(atual))) {
+    return { ok: false, erro: "A senha atual não confere." };
+  }
+
+  const limpa = nova.trim();
+  if (limpa.length < MINIMO_SENHA) {
+    return {
+      ok: false,
+      erro: `A senha nova precisa ter pelo menos ${String(MINIMO_SENHA)} caracteres.`,
+    };
+  }
+  // Teto para não transformar um campo de texto em custo de CPU: scrypt sobre
+  // um megabyte de "a" trava o servidor por conta de uma requisição só.
+  if (limpa.length > 200) {
+    return { ok: false, erro: "A senha nova é longa demais." };
+  }
+  if (SENHAS_PUBLICAS.includes(limpa)) {
+    return {
+      ok: false,
+      erro: "Essa senha é a de exemplo do projeto e está publicada. Escolha outra.",
+    };
+  }
+  if (await conferirSenha(limpa)) {
+    return { ok: false, erro: "A senha nova é igual à atual." };
+  }
+
+  const sal = randomBytes(16).toString("hex");
+  const hash = (await derivar(limpa, sal)).toString("hex");
+
+  const { salvarSenhaGuardada } = await import("./armazenamento");
+  await salvarSenhaGuardada({
+    algoritmo: "scrypt",
+    sal,
+    hash,
+    atualizadoEm: new Date().toISOString(),
+  });
+
+  return { ok: true };
+}
+
+/**
+ * O que a tela precisa saber sobre a senha, sem que nada disso ajude a
+ * adivinhá-la: se já foi trocada alguma vez, quando, e se o modo de recuperação
+ * ficou ligado por engano.
+ */
+export async function estadoDaSenha(): Promise<{
+  propria: boolean;
+  atualizadoEm: string;
+  emRecuperacao: boolean;
+}> {
+  const emRecuperacao = resetPedido();
+  try {
+    const { lerSenhaGuardada } = await import("./armazenamento");
+    const guardada = await lerSenhaGuardada();
+    return {
+      propria: guardada !== null && !emRecuperacao,
+      atualizadoEm: guardada?.atualizadoEm ?? "",
+      emRecuperacao,
+    };
+  } catch {
+    return { propria: false, atualizadoEm: "", emRecuperacao };
+  }
 }
 
 /* -------------------------------------------------------------------------- */

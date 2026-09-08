@@ -29,6 +29,7 @@ import type { FiltrosRh } from "@/components/rh/BarraFiltros";
 import { CabecalhoRh } from "@/components/rh/CabecalhoRh";
 import type { AbaRh } from "@/components/rh/CabecalhoRh";
 import { ConfiguracoesPortal } from "@/components/rh/ConfiguracoesPortal";
+import type { RespostaEstadoSenha } from "@/lib/rh/api";
 import { GavetaCandidatura } from "@/components/rh/GavetaCandidatura";
 import { GestaoVagas } from "@/components/rh/GestaoVagas";
 import { Kanban } from "@/components/rh/Kanban";
@@ -45,6 +46,7 @@ import {
   calcularTrajetoDaCandidatura,
   entrarRh,
   estadoIa,
+  estadoSenhaRh,
   excluirCandidatura,
   excluirCandidaturaAgora,
   excluirGuiaAdmin,
@@ -181,6 +183,8 @@ type DadosRh = {
   config: ConfiguracoesRh;
   /** `null` quando a consulta falhou — ver `IA_INDISPONIVEL`. */
   ia: EstadoIaTela | null;
+  /** De onde vem a senha em uso. `null` quando não há sessão para perguntar. */
+  senha: RespostaEstadoSenha | null;
   /**
    * "Agora" carimbado pelo servidor. Todo texto relativo do painel ("há 3
    * minutos", "vaga no ar") sai do mesmo instante no HTML do SSR e na
@@ -222,11 +226,12 @@ export const Route = createFileRoute("/rh")({
         guias: [],
         config: configuracoesPadrao(),
         ia: null,
+        senha: null,
         agoraIso,
       };
     }
 
-    const [lista, vagas, guias, config, ia] = await Promise.all([
+    const [lista, vagas, guias, config, ia, senha] = await Promise.all([
       listarCandidaturas(),
       listarVagasAdmin(),
       // Mais uma leitura de disco, sem nenhuma chamada paga: o guia precisa
@@ -240,10 +245,16 @@ export const Route = createFileRoute("/rh")({
       // custa tempo de abertura — e sem ela a aba Triagem abriria dizendo que a
       // IA está desligada até a primeira consulta voltar.
       estadoIa(),
+      // Uma leitura de chave-valor, do mesmo tamanho da de configurações. Vem
+      // junto para a aba Config já abrir sabendo se a senha em uso é a que foi
+      // trocada por aqui ou ainda a do servidor — buscá-la depois faria a frase
+      // trocar de texto na frente de quem está lendo.
+      estadoSenhaRh(),
     ]);
 
     return {
       sessao,
+      senha,
       itens: lista.ok ? lista.itens : [],
       vagas: vagas.ok ? vagas.itens : [],
       guias: guias.ok ? guias.itens : [],
@@ -547,6 +558,7 @@ function Painel({ dados }: { dados: DadosRh }) {
   const [guias, setGuias] = useState<GuiaEntrevista[]>(dados.guias);
   const [config, setConfig] = useState<ConfiguracoesRh>(dados.config);
   const [ia, setIa] = useState<EstadoIaTela | null>(dados.ia);
+  const [senha, setSenha] = useState<RespostaEstadoSenha | null>(dados.senha);
 
   // Ressincroniza quando o loader roda de novo (botão atualizar, login, F5).
   useEffect(() => setItens(dados.itens), [dados.itens]);
@@ -554,6 +566,7 @@ function Painel({ dados }: { dados: DadosRh }) {
   useEffect(() => setGuias(dados.guias), [dados.guias]);
   useEffect(() => setConfig(dados.config), [dados.config]);
   useEffect(() => setIa(dados.ia), [dados.ia]);
+  useEffect(() => setSenha(dados.senha), [dados.senha]);
 
   /**
    * "Agora" congelado uma vez, como manda a regra de datas do projeto. O
@@ -1709,6 +1722,16 @@ function Painel({ dados }: { dados: DadosRh }) {
               salvando={gravacoes > 0}
               aoSalvar={salvarConfig}
               estadoIa={ia}
+              estadoSenha={senha}
+              aoTrocarSenha={(atualizadoEm) => {
+                /* A resposta do servidor carimba a hora; sem adotá-la a frase
+                   continuaria dizendo "ainda vale a senha do servidor" depois
+                   de a troca ter dado certo. */
+                setSenha((atual) =>
+                  atual === null ? null : { ...atual, propria: true, atualizadoEm },
+                );
+              }}
+              aoAvisar={avisar}
             />
           </div>
         ) : null}

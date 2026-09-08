@@ -362,7 +362,9 @@ export const entrarRh = createServerFn({ method: "POST" })
       };
     }
 
-    if (!conferirSenha(data.senha)) {
+    /* O `await` aqui não é estilo: `conferirSenha` devolve Promise, e `!promise`
+       é sempre `false` — sem ele qualquer senha entraria no painel. */
+    if (!(await conferirSenha(data.senha))) {
       registrarFalha(ip, agora);
       return { ok: false, erro: "Senha incorreta." };
     }
@@ -1169,6 +1171,80 @@ export const salvarConfiguracoesAdmin = createServerFn({ method: "POST" })
     const config: ConfiguracoesRh = { ...data.config, atualizadoEm: new Date().toISOString() };
     await salvarConfiguracoes(config);
     return { ok: true, config };
+  });
+
+/* -------------------------------------------------------------------------- */
+/* Senha do painel (exige admin)                                              */
+/* -------------------------------------------------------------------------- */
+
+export type RespostaSenha =
+  { ok: true; atualizadoEm: string } | { ok: false; erro: string; segundos?: number };
+
+/**
+ * O que a tela mostra sobre a senha. Nada aqui ajuda a adivinhá-la: é só se ela
+ * já foi trocada, quando, e o mínimo de caracteres para o formulário avisar
+ * antes de mandar.
+ */
+export type RespostaEstadoSenha = {
+  /** `true` quando vale a senha trocada pela tela; `false` quando vale a do servidor. */
+  propria: boolean;
+  atualizadoEm: string;
+  /** `RH_SENHA_RESET` ligado: a guardada está sendo ignorada. */
+  emRecuperacao: boolean;
+  minimo: number;
+};
+
+export const estadoSenhaRh = createServerFn({ method: "GET" }).handler(
+  async (): Promise<RespostaEstadoSenha | null> => {
+    if (!(await exigirAdmin())) return null;
+    const { estadoDaSenha, MINIMO_SENHA } = await import("./servidor/sessao");
+    return { ...(await estadoDaSenha()), minimo: MINIMO_SENHA };
+  },
+);
+
+export const trocarSenhaRh = createServerFn({ method: "POST" })
+  .validator((entrada: unknown): { atual: string; nova: string } => {
+    const bruto = objeto(entrada);
+    const atual = bruto["atual"];
+    const nova = bruto["nova"];
+    if (typeof atual !== "string" || typeof nova !== "string") {
+      throw new Error("Informe a senha atual e a nova.");
+    }
+    /* Sem `texto()`: ele corta em 500 e tira espaços das pontas, e senha com
+       espaço na ponta é senha — cortar em silêncio faria a pessoa gravar uma
+       coisa e depois entrar com outra. O tamanho é conferido em `trocarSenha`. */
+    return { atual, nova };
+  })
+  .handler(async ({ data }): Promise<RespostaSenha> => {
+    if (!(await exigirAdmin())) return { ok: false, erro: NAO_AUTENTICADO };
+
+    const { estadoBloqueio, limparFalhas, registrarFalha, trocarSenha } =
+      await import("./servidor/sessao");
+
+    /* O MESMO limitador do login, de propósito. Este endpoint confere a senha
+       atual, então serve para adivinhá-la — com uma sessão roubada, um laço
+       aqui testaria senha sem limite enquanto a tela de login trancava em cinco
+       tentativas. A porta dos fundos tem de ter a mesma fechadura da da frente. */
+    const ip = await ipDoPedido();
+    const agora = Date.now();
+    const bloqueio = estadoBloqueio(ip, agora);
+    if (bloqueio.bloqueado) {
+      return {
+        ok: false,
+        erro: "Muitas tentativas seguidas. Aguarde para tentar de novo.",
+        segundos: bloqueio.segundos,
+      };
+    }
+
+    const r = await trocarSenha(data.atual, data.nova);
+    if (!r.ok) {
+      if (r.erro === "A senha atual não confere.") registrarFalha(ip, agora);
+      return { ok: false, erro: r.erro };
+    }
+
+    limparFalhas(ip);
+    const { estadoDaSenha } = await import("./servidor/sessao");
+    return { ok: true, atualizadoEm: (await estadoDaSenha()).atualizadoEm };
   });
 
 /* -------------------------------------------------------------------------- */

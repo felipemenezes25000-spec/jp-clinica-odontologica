@@ -51,8 +51,7 @@ export function useAlturaAteOFimDaJanela(
          topo por causa da rolagem, zero é o limite útil: não faz sentido ganhar
          mais que a altura inteira da janela. */
       const topo = Math.max(0, Math.round(el.getBoundingClientRect().top));
-      const proxima =
-        `max(${minimo}, calc(100dvh - ${String(topo)}px - ${folga} - var(--rh-rodape-altura, 0px)))`;
+      const proxima = `max(${minimo}, calc(100dvh - ${String(topo)}px - ${folga} - var(--rh-rodape-altura, 0px)))`;
 
       setAltura((atual) => (atual === proxima ? atual : proxima));
     };

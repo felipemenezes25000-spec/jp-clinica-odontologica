@@ -22,7 +22,7 @@
  */
 import type { AnaliseIa, RankingSalvo } from "../ia/tipos";
 import type { GuiaEntrevista } from "../guia";
-import type { Candidatura, ConfiguracoesRh, Vaga } from "../tipos";
+import type { Candidatura, ConfiguracoesRh, SenhaGuardada, Vaga } from "../tipos";
 
 // Puros e idênticos nos dois lados. Ficam fora do despacho porque são
 // síncronos: quem chama `novoId()` não espera uma Promise de volta.
@@ -201,6 +201,14 @@ export async function lerConfiguracoes(): Promise<ConfiguracoesRh> {
 
 export async function salvarConfiguracoes(c: ConfiguracoesRh): Promise<void> {
   return (await driver()).salvarConfiguracoes(c);
+}
+
+export async function lerSenhaGuardada(): Promise<SenhaGuardada | null> {
+  return (await driver()).lerSenhaGuardada();
+}
+
+export async function salvarSenhaGuardada(s: SenhaGuardada): Promise<void> {
+  return (await driver()).salvarSenhaGuardada(s);
 }
 
 export async function salvarRanking(chave: string, dados: RankingSalvo): Promise<void> {

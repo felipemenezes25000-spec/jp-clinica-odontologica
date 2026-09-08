@@ -16,6 +16,7 @@ import path from "node:path";
 
 import { guiaSementeRecepcao, guiaVazio, type GuiaEntrevista } from "../guia";
 import type { AnaliseIa, RankingSalvo } from "../ia/tipos";
+import type { SenhaGuardada } from "../tipos";
 import {
   candidaturaVazia,
   configuracoesPadrao,
@@ -65,6 +66,12 @@ function arquivoContador(): string {
 
 function arquivoConfiguracoes(): string {
   return path.join(raiz(), "configuracoes.json");
+}
+
+/* Arquivo separado do de configurações pelo mesmo motivo que o tipo é separado:
+   `configuracoes.json` é lido e devolvido inteiro para a tela. */
+function arquivoSenha(): string {
+  return path.join(raiz(), "senha.json");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -682,6 +689,35 @@ export async function salvarConfiguracoes(c: ConfiguracoesRh): Promise<void> {
   await enfileirar(async () => {
     await mkdir(raiz(), { recursive: true });
     await escreverAtomico(arquivoConfiguracoes(), `${JSON.stringify(c, null, 2)}\n`);
+  });
+}
+
+export async function lerSenhaGuardada(): Promise<SenhaGuardada | null> {
+  try {
+    const bruto: unknown = JSON.parse(await readFile(arquivoSenha(), "utf8"));
+    if (bruto === null || typeof bruto !== "object" || Array.isArray(bruto)) return null;
+    const dados = bruto as Partial<SenhaGuardada>;
+    /* Sem `comPadrao`: registro pela metade não vira senha meia-boca, vira
+       "não há senha guardada" — e aí vale a do ambiente, que é o caminho de
+       volta para quem estragou o arquivo. */
+    if (dados.algoritmo !== "scrypt") return null;
+    if (typeof dados.sal !== "string" || dados.sal === "") return null;
+    if (typeof dados.hash !== "string" || dados.hash === "") return null;
+    return {
+      algoritmo: "scrypt",
+      sal: dados.sal,
+      hash: dados.hash,
+      atualizadoEm: typeof dados.atualizadoEm === "string" ? dados.atualizadoEm : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function salvarSenhaGuardada(s: SenhaGuardada): Promise<void> {
+  await enfileirar(async () => {
+    await mkdir(raiz(), { recursive: true });
+    await escreverAtomico(arquivoSenha(), `${JSON.stringify(s, null, 2)}\n`);
   });
 }
 

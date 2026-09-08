@@ -14,8 +14,10 @@ import { useEffect, useRef, useState } from "react";
 import { HardDrive, Info, Lock, Save, Sparkles, TriangleAlert } from "lucide-react";
 import { CampoTexto, CampoTextarea } from "@/components/rh/CampoTexto";
 import { Interruptor, ListaEditavel } from "@/components/rh/ControlesRh";
+import { TrocarSenha } from "@/components/rh/TrocarSenha";
 import { formatarDataHora, mascararTelefone } from "@/lib/rh/formatar";
 import { custoEstimado, formatarDolar } from "@/lib/rh/ia/precos";
+import type { RespostaEstadoSenha } from "@/lib/rh/api";
 import type { ConfiguracoesRh } from "@/lib/rh/tipos";
 import { LIMITES } from "@/lib/rh/tipos";
 
@@ -64,6 +66,10 @@ export function ConfiguracoesPortal(props: {
   salvando: boolean;
   aoSalvar: (c: ConfiguracoesRh) => void;
   estadoIa?: EstadoIaConfig | null;
+  /** `null` enquanto o painel ainda não consultou o servidor. */
+  estadoSenha?: RespostaEstadoSenha | null;
+  aoTrocarSenha?: (atualizadoEm: string) => void;
+  aoAvisar?: (tipo: "ok" | "erro", texto: string) => void;
 }) {
   const [form, setForm] = useState<ConfiguracoesRh>(props.config);
 
@@ -252,6 +258,14 @@ export function ConfiguracoesPortal(props: {
           />
         </section>
 
+        {props.aoTrocarSenha !== undefined && props.aoAvisar !== undefined ? (
+          <TrocarSenha
+            estado={props.estadoSenha ?? null}
+            aoTrocar={props.aoTrocarSenha}
+            aoAvisar={props.aoAvisar}
+          />
+        ) : null}
+
         <section className="space-y-4">
           <h3 className="flex items-center gap-2 font-display text-lg font-extrabold text-forest-2">
             <Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -410,10 +424,10 @@ export function ConfiguracoesPortal(props: {
               <span className="sr-only">Como se entra no painel</span>
             </dt>
             <dd>
-              O acesso a este painel usa uma senha única, guardada nas variáveis de ambiente do
-              servidor. Ela não fica gravada aqui e não aparece nesta tela: para trocá-la, quem
-              cuida da hospedagem altera a variável no provedor e publica de novo. Quem sai da
-              clínica perde o acesso no momento em que a senha é trocada.
+              O acesso a este painel usa uma senha única. Ela nasce nas variáveis de ambiente do
+              servidor e pode ser trocada aqui em cima, em “Senha do painel” — a troca vale na hora
+              e a senha anterior para de abrir. O painel guarda só uma marca embaralhada dela:
+              ninguém, nem quem cuida do servidor, consegue ler a senha de volta.
             </dd>
           </div>
           <div className="flex gap-3">

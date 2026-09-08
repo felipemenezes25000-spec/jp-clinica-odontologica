@@ -26,7 +26,7 @@
 // resto da camada de servidor já segue essa regra — quebrá-la aqui derrubaria
 // o importador em massa, que é justamente onde este driver mais é usado.
 import type { AnaliseIa, RankingSalvo } from "../ia/tipos";
-import type { Candidatura, ConfiguracoesRh, Vaga } from "../tipos";
+import type { Candidatura, ConfiguracoesRh, SenhaGuardada, Vaga } from "../tipos";
 import { candidaturaVazia, configuracoesPadrao, mimeDeCurriculo, vagaVazia } from "../tipos";
 import { guiaSementeRecepcao, guiaVazio, type GuiaEntrevista } from "../guia";
 import { vagasSemente } from "../vagas";
@@ -341,6 +341,27 @@ export async function lerConfiguracoes(): Promise<ConfiguracoesRh> {
 
 export async function salvarConfiguracoes(c: ConfiguracoesRh): Promise<void> {
   await gravarChave("configuracoes", c);
+}
+
+export async function lerSenhaGuardada(): Promise<SenhaGuardada | null> {
+  const bruto = await lerChave("senha");
+  if (bruto === null || typeof bruto !== "object" || Array.isArray(bruto)) return null;
+  const dados = bruto as Partial<SenhaGuardada>;
+  /* Registro pela metade vira "não há senha guardada", e não senha meia-boca:
+     assim a do ambiente volta a valer e ninguém fica trancado do lado de fora. */
+  if (dados.algoritmo !== "scrypt") return null;
+  if (typeof dados.sal !== "string" || dados.sal === "") return null;
+  if (typeof dados.hash !== "string" || dados.hash === "") return null;
+  return {
+    algoritmo: "scrypt",
+    sal: dados.sal,
+    hash: dados.hash,
+    atualizadoEm: typeof dados.atualizadoEm === "string" ? dados.atualizadoEm : "",
+  };
+}
+
+export async function salvarSenhaGuardada(s: SenhaGuardada): Promise<void> {
+  await gravarChave("senha", s);
 }
 
 export async function salvarRanking(chave: string, dados: RankingSalvo): Promise<void> {
