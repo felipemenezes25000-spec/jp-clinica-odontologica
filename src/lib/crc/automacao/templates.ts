@@ -141,6 +141,40 @@ export const TEMPLATES_PADRAO: Readonly<Record<string, string>> = {
   orcamento_parado:
     "Olá, {{primeiroNome}}! Aqui é da {{clinica}}. Ficou alguma dúvida sobre o orçamento que preparamos para você? Estou à disposição para explicar as opções.",
 
+  /*
+   * COBRANÇA — as três mensagens mais delicadas do sistema.
+   *
+   * O art. 42 do CDC proíbe expor o devedor a constrangimento ou ameaça, e
+   * isso se traduz em escolhas concretas de texto:
+   *
+   *   NENHUMA delas cita valor. O valor aparece quando a pessoa responde, ou
+   *   por telefone. Mandar "você deve R$ 1.240" num WhatsApp que pode ser lido
+   *   por outra pessoa na tela de bloqueio é constrangimento gratuito — e não
+   *   ajuda em nada a receber.
+   *
+   *   NENHUMA delas cita protesto, negativação, SPC, Serasa, juros ou prazo
+   *   final. Isso é ameaça, e ameaça é justamente o que a lei nomeia.
+   *
+   *   TODAS oferecem uma saída. "Se precisar de outra forma de pagamento, me
+   *   diga" transforma cobrança em conversa — e conversa é o que faz a pessoa
+   *   voltar a pagar.
+   *
+   *   O PRIMEIRO CONTATO ASSUME BOA-FÉ. Quase sempre é esquecimento, e tratar
+   *   quem esqueceu como inadimplente perde o paciente junto com a parcela.
+   */
+
+  cobranca_lembrete:
+    "Olá, {{primeiroNome}}! Aqui é da {{clinica}}. Passando só para lembrar que você tem uma parcela do seu tratamento com vencimento em {{data}}. Se já tiver pago, pode ignorar esta mensagem. Qualquer dúvida, é só me chamar.",
+
+  cobranca_recente:
+    "Oi, {{primeiroNome}}! Aqui é da {{clinica}}. Notamos que a parcela do seu tratamento que venceu em {{data}} ainda não foi identificada no nosso sistema. Pode ser só um cruzamento de datas — se você já pagou, me avisa que eu confiro aqui. Se preferir outra forma de pagamento, também podemos conversar.",
+
+  cobranca_atrasada:
+    "Olá, {{primeiroNome}}! Aqui é da {{clinica}}. Queria entender como está a situação da parcela do seu tratamento, que consta em aberto desde {{data}}. Se estiver difícil neste momento, me diga — a gente encontra um jeito de organizar junto. Se preferir tratar por telefone, é só avisar.",
+
+  cobranca_ja_pago:
+    "Obrigado por avisar, {{primeiroNome}}! Vou conferir com o financeiro e retorno. Se tiver o comprovante à mão, pode mandar por aqui que agiliza. Desculpe o incômodo.",
+
   lead_primeiro_contato:
     "Olá, {{primeiroNome}}! Aqui é da {{clinica}}, recebemos seu contato. Como podemos ajudar? Se quiser agendar uma avaliação, me diga qual período é melhor para você.",
 };

@@ -291,14 +291,33 @@ describe("templates", () => {
     }
   });
 
-  it("todo template diz de quem é a mensagem", () => {
+  it("todo template que INICIA contato diz de quem é a mensagem", () => {
     // Mensagem de número desconhecido sem identificação é indistinguível de
     // golpe — e o paciente bloqueia o número da clínica.
+    //
+    // A regra vale para quem começa a conversa. Template de RESPOSTA dentro de
+    // uma conversa já aberta não reapresenta a clínica: o paciente acabou de
+    // escrever para ela, e repetir "aqui é da JP" soa robótico.
+    const respostas = new Set(["cobranca_ja_pago"]);
+
     for (const [chave, modelo] of Object.entries(TEMPLATES_PADRAO)) {
-      if (chave === "aniversario") continue; // já cita a clínica no corpo
+      if (respostas.has(chave)) continue;
       expect(modelo, `${chave} precisa identificar a clínica`).toContain("{{clinica}}");
     }
-    expect(TEMPLATES_PADRAO["aniversario"]).toContain("{{clinica}}");
+  });
+
+  it("todo template de cobrança oferece uma saída ao paciente", () => {
+    // Cobrança sem caminho de resposta é só pressão. O que faz alguém voltar a
+    // pagar é a conversa, não a insistência.
+    for (const [chave, modelo] of Object.entries(TEMPLATES_PADRAO)) {
+      if (!chave.startsWith("cobranca_") || chave === "cobranca_ja_pago") continue;
+      expect(
+        /me\s+(avisa|diga|chamar)|podemos\s+conversar|conversar|é só avisar|organizar junto/iu.test(
+          modelo,
+        ),
+        `${chave} precisa oferecer uma saída`,
+      ).toBe(true);
+    }
   });
 
   it("nenhum template promete resultado clínico, cita preço ou pressiona", () => {

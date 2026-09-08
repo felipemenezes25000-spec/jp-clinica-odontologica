@@ -117,6 +117,9 @@ export const Route = createFileRoute("/api/crc/motor")({
             varreduras.push(await varrerConfirmacoes(organizationId, configuracao));
             varreduras.push(await varrerAniversarios(organizationId, configuracao));
 
+            const { varrerOrcamentosParados } = await import("@/lib/crc/aplicacao/orcamentos");
+            varreduras.push(await varrerOrcamentosParados(organizationId, configuracao));
+
             const { recalcularPrioridades } = await import("@/lib/crc/aplicacao/oportunidades");
             const { detectarOportunidadesParadas } = await import("@/lib/crc/aplicacao/tarefas");
             varreduras.push({

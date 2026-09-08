@@ -24,7 +24,11 @@ import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 import { interpretarWebhookMeta } from "./meta-cloud";
-import { _reiniciarSandboxMensageria, obterSandboxMensageria, provedorEscolhido } from "./provedores";
+import {
+  _reiniciarSandboxMensageria,
+  obterSandboxMensageria,
+  provedorEscolhido,
+} from "./provedores";
 import { ProvedorTwilio, interpretarWebhookTwilio } from "./twilio";
 
 const TOKEN = "token-de-teste-nao-usar-em-producao";

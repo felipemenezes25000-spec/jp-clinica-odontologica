@@ -241,6 +241,43 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
       saidas: [],
     },
   },
+  /* ---------------------------------------------------------------------- */
+  {
+    chave: "recuperacao_orcamento",
+    nome: "Recuperação de orçamento",
+    descricao:
+      "Quando um orçamento fica aberto sem retorno e o paciente não tem consulta marcada, abre a conversa sobre as dúvidas dele.",
+    definicao: {
+      gatilho: { tipo: "EVENTO", evento: "budget.pending" },
+      condicoes: [...CONDICOES_CONTATAVEL, { tipo: "SEM_CONSULTA_FUTURA" }],
+      passos: [
+        {
+          tipo: "ENVIAR_TEMPLATE",
+          template: "orcamento_parado",
+          rotulo: "Perguntar se ficou dúvida",
+        },
+        { tipo: "ESPERAR", minutos: 60 * 48, rotulo: "Esperar 2 dias" },
+        {
+          tipo: "SAIR_SE",
+          condicao: { tipo: "PACIENTE_RESPONDEU" },
+          motivo: "paciente_respondeu",
+          rotulo: "Parar se respondeu",
+        },
+        // Orçamento parado é a oportunidade de maior valor do sistema, e por
+        // isso ela SEMPRE termina em humano: uma negociação não se resolve por
+        // mensagem automática, e desistir aqui é deixar dinheiro na mesa.
+        {
+          tipo: "CRIAR_TAREFA",
+          titulo: "Ligar sobre o orçamento em aberto",
+          tipoTarefa: "NEGOCIAR",
+          prazoHoras: 24,
+          rotulo: "Passar para a equipe",
+        },
+        { tipo: "DEFINIR_PROXIMA_ACAO", acao: "Ligar sobre o orçamento", emHoras: 24 },
+      ],
+      saidas: SAIDAS_RECUPERACAO,
+    },
+  },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
