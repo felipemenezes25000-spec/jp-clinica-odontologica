@@ -9,10 +9,18 @@ errado, e como colocar no ar.
 
 ### 1. Aplicar o schema
 
-Abra o SQL Editor do Supabase e rode `supabase/02-crc-schema.sql` inteiro.
+Abra o SQL Editor do Supabase e rode, **nesta ordem**:
 
-É idempotente — rodar de novo não apaga nada. Este é o **único passo manual**
-do processo, e ele existe porque a API REST do Supabase não executa DDL.
+| Arquivo | O que traz |
+| --- | --- |
+| `supabase/02-crc-schema.sql` | As 36 tabelas, os índices, o RLS e as funções de reserva atômica. |
+| `supabase/03-crc-cobranca.sql` | Cobrança de inadimplência: `crc_charges` e `crc_payment_agreements`. |
+| `supabase/04-crc-visoes.sql` | O índice único das visões salvas. |
+
+Os três são **aditivos e idempotentes** — rodar de novo não apaga nada, e o
+03 e o 04 podem ser aplicados com o sistema no ar. Este é o **único passo
+manual** do processo, e ele existe porque a API REST do Supabase não executa
+DDL.
 
 ### 2. Cadastrar as variáveis
 
@@ -35,8 +43,8 @@ curl -X POST https://SEU-DOMINIO/api/crc/instalar \
   -H "Authorization: Bearer $CRON_SECRET"
 ```
 
-Cria a organização, a clínica, as dez etapas do funil, os dez templates e as
-seis automações — todas em **rascunho + simulação**. Nada é enviado a ninguém.
+Cria a organização, a clínica, as etapas do funil, os templates e as oito
+automações — todas em **rascunho + simulação**. Nada é enviado a ninguém.
 
 A resposta lista os próximos passos e avisa se algo faltou.
 
@@ -56,9 +64,19 @@ pelo que tem menor volume e maior janela de recuperação.
 2. Confirmação de consulta (volume previsível, resposta imediata)
 3. Retorno de rotina       (volume alto — só depois de os dois acima estarem calibrados)
 4. Reagendamento de cancelados
-5. Aniversário
-6. Orçamento               (quando a integração de orçamento existir)
+5. Reativação de inativos
+6. Aniversário
+7. Orçamento parado        (depois de importar a planilha de orçamentos)
+8. Cobrança de parcelas    (POR ÚLTIMO — leia o parágrafo abaixo)
 ```
+
+**A cobrança fica por último de propósito.** É a única automação que fala de
+dinheiro que o paciente deve, e o art. 42 do Código de Defesa do Consumidor
+proíbe expor a ridículo e constranger. O código já impõe o limite de três
+contatos, o intervalo de 72 horas entre eles e a recusa de texto com ameaça ou
+constrangimento — mas a primeira semana dela merece alguém lendo cada mensagem
+que sai, e uma parcela em negociação sai da automação e vira assunto de
+humano.
 
 Para cada uma, o caminho é: **Simulação → Só recomenda → Executa**, com pelo
 menos alguns dias em cada estágio.

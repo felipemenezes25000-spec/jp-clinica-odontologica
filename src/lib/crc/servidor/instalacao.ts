@@ -4,7 +4,7 @@
  * DUAS COISAS DIFERENTES, E A SEPARAÇÃO IMPORTA:
  *
  *   `instalar()` cria o que TODA organização precisa para funcionar:
- *   organização, clínica, etapas do funil, templates e as seis automações (em
+ *   organização, clínica, etapas do funil, templates e as oito automações (em
  *   rascunho + simulação). Roda em produção, é idempotente, e não cria nenhum
  *   dado fictício.
  *

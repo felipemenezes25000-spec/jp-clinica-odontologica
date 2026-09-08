@@ -86,7 +86,7 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
     return (
       <Vazio
         titulo="Nenhuma automação instalada."
-        explicacao="As seis automações iniciais são criadas junto com a organização, em modo de simulação. Se elas não aparecem aqui, a instalação inicial ainda não foi executada."
+        explicacao="As automações iniciais são criadas junto com a organização, em modo de simulação. Se elas não aparecem aqui, a instalação inicial ainda não foi executada."
       />
     );
   }

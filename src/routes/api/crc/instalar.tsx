@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/crc/instalar")({
                 resultado.usuarioAdmin.length === 0
                   ? "Cadastre CRC_ADMIN_EMAIL e CRC_ADMIN_SENHA e rode esta rota de novo para criar o primeiro usuário."
                   : `Entre em /crc com ${resultado.usuarioAdmin}.`,
-                "As seis automações foram criadas em RASCUNHO e modo Simulação. Elas não enviam nada até um gestor ativar.",
+                "As automações foram criadas em RASCUNHO e modo Simulação. Elas não enviam nada até um gestor ativar.",
                 "Cadastre DENTAL_OFFICE_BASE_URL, DENTAL_OFFICE_CLIENT_ID e DENTAL_OFFICE_SECRET para a sincronização começar.",
               ],
             },

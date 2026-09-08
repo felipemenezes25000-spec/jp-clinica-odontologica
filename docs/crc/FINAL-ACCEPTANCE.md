@@ -8,7 +8,7 @@ O item 283 pede estados distintos, e eles são usados aqui com rigor:
 | Estado | Significado |
 |---|---|
 | `IMPLEMENTADO` | O código existe, compila, tem teste, e nunca foi executado contra o serviço real. |
-| `TESTADO_COM_SANDBOX` | Exercitado ponta a ponta contra o adapter local. |
+| `TESTADO_COM_SANDBOX` | Exercitado ponta a ponta contra o adapter local e o banco de teste. |
 | `TESTADO_COM_API_REAL` | Rodou contra o serviço de verdade. |
 | `EM_PRODUCAO` | Ligado e em uso. |
 | `BLOQUEADO_POR_CREDENCIAL` | Pronto; falta exclusivamente credencial de terceiro. |
@@ -24,32 +24,67 @@ fornecidas, e o schema ainda não foi aplicado no Supabase.
 | Área | Código | Banco | Testes | Verificado na tela | Estado |
 |---|---|---|---|---|---|
 | Domínio (regras, score, telefone, horário, RBAC) | ✅ | — | 91 testes | — | `IMPLEMENTADO` |
-| Schema (36 tabelas, RLS, índices, RPCs) | ✅ | ⚠️ não aplicado | — | — | `IMPLEMENTADO` |
+| Schema (36 tabelas + cobrança + visões, RLS, índices, RPCs) | ✅ | ⚠️ não aplicado | — | — | `IMPLEMENTADO` |
 | Conector Dental Office | ✅ | ✅ | 38 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
-| Sincronização (paginação, falha parcial, transições) | ✅ | ✅ | parcial | — | `IMPLEMENTADO` |
-| Motor de eventos | ✅ | ✅ | parcial | — | `IMPLEMENTADO` |
-| Motor de automação (esperas duráveis, 3 modos) | ✅ | ✅ | 26 testes | — | `IMPLEMENTADO` |
-| Seis automações padrão | ✅ | ✅ | 26 testes | — | `IMPLEMENTADO` |
-| WhatsApp (porta + Meta Cloud + sandbox) | ✅ | ✅ | parcial | — | `BLOQUEADO_POR_CREDENCIAL` |
+| Sincronização (paginação, falha parcial, transições) | ✅ | ✅ | E2E | — | `TESTADO_COM_SANDBOX` |
+| Motor de eventos | ✅ | ✅ | E2E | — | `TESTADO_COM_SANDBOX` |
+| Motor de automação (esperas duráveis, 3 modos) | ✅ | ✅ | 27 + E2E | — | `TESTADO_COM_SANDBOX` |
+| Seis automações padrão | ✅ | ✅ | 27 testes | — | `IMPLEMENTADO` |
+| WhatsApp — porta + Twilio + Meta Cloud + sandbox | ✅ | ✅ | 25 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
 | IA (structured output, guardrails, fallback) | ✅ | ✅ | 23 testes | — | `IMPLEMENTADO` |
-| Sessão + RBAC | ✅ | ✅ | 12 testes | ✅ login | `IMPLEMENTADO` |
+| Orçamentos: leitor CSV, preview, import, varredura | ✅ | ✅ | 27 (leitor de CSV) | ⚠️ sem dados | `IMPLEMENTADO` |
+| Cobrança de inadimplência (CDC art. 42) | ✅ | ✅ | 33 (regras) | ⚠️ sem dados | `IMPLEMENTADO` |
+| Leads: captura pública, atribuição, speed-to-lead | ✅ | ✅ | 7 testes | — | `IMPLEMENTADO` |
+| Analytics / dashboard do gestor | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Exportação CSV com RBAC | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Visões salvas (item 147) | ✅ | ✅ | 14 testes | ⚠️ sem dados | `IMPLEMENTADO` |
+| Command palette (itens 28, 149) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Sessão + RBAC | ✅ | ✅ | 9 (dentro dos 91) | ✅ login | `IMPLEMENTADO` |
 | Design system | ✅ | — | — | ✅ 3 resoluções | `IMPLEMENTADO` |
-| Home operacional | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Inbox | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Funil | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Pacientes + ficha + timeline | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Automações (UI) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Integrações + kill switches | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Webhook + inbox pattern | ✅ | ✅ | — | — | `BLOQUEADO_POR_CREDENCIAL` |
+| Home, Meu trabalho, Inbox, Funil, Pacientes, Gestão, Importar, Automações, Integrações | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
+| Webhook + inbox pattern (Twilio e Meta) | ✅ | ✅ | 25 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
 | Cron do motor | ✅ | ✅ | — | — | `IMPLEMENTADO` |
-| Health check | ✅ | ✅ | — | — | `IMPLEMENTADO` |
-| Instalação | ✅ | ✅ | — | — | `IMPLEMENTADO` |
-| Orçamentos (Milestone 8) | ⚠️ só schema | ✅ | — | — | **NÃO IMPLEMENTADO** |
-| Dashboard executivo (Milestone 9) | ⚠️ só eventos | ✅ | — | — | **NÃO IMPLEMENTADO** |
-| Testes E2E (item 82) | ❌ | — | — | — | **NÃO IMPLEMENTADO** |
+| Health check / instalação | ✅ | ✅ | — | — | `IMPLEMENTADO` |
+| Testes de fluxo ponta a ponta (item 82) | ✅ | banco de teste | 25 testes | — | `TESTADO_COM_SANDBOX` |
 
 "⚠️ sem dados" significa: a tela compila, entra no build, e não pôde ser aberta
 com conteúdo real porque o schema ainda não está no banco.
+
+**310 testes**, em 10 arquivos. `npm run test` roda em ~2 segundos.
+
+---
+
+## O que os testes E2E acharam
+
+Isto é o argumento a favor do item 82, e vale registrar: os três defeitos
+abaixo passaram pelos 285 testes unitários e só apareceram com as peças
+rodando juntas.
+
+### 1. Causalidade da recuperação (item 62)
+
+`aoConcluirConsulta` fechava qualquer oportunidade aberta do paciente sem
+olhar **quando** a consulta aconteceu. Na primeira sincronização de uma base
+real — que emite uma conclusão para cada consulta do histórico — isso fecharia
+como "recuperada" toda oportunidade recém-aberta e registraria receita que
+ninguém recuperou, no primeiro dia de uso.
+
+Corrigido: só fecha o que já existia quando a consulta aconteceu.
+`aoCriarAgendamento` ganhou a guarda equivalente (só consulta futura encerra).
+Coberto por dois testes de regressão.
+
+### 2. Fora do horário não reagendava
+
+O veredicto `FORA_DO_HORARIO` vinha sem data de retorno. O motor não conseguia
+distinguir "espere até amanhã às 9h" de "o provedor falhou" e tratava as duas
+como falha transitória — uma jornada bloqueada às 23h tentaria de quinze em
+quinze minutos a noite inteira, enchendo o log de erro com algo que não é erro.
+
+Corrigido: o veredicto devolve `proximoInstanteUtil`.
+
+### 3. Relógio pela metade
+
+O motor recebe um `agora` injetável para calcular as esperas, mas o envio
+julgava o horário comercial pelo relógio de parede. Um relógio por execução.
 
 ---
 
@@ -57,37 +92,43 @@ com conteúdo real porque o schema ainda não está no banco.
 
 Estas são omissões reais, e não estão escondidas em nenhum lugar do código.
 
-### 1. Milestone 8 — Orçamentos (importador CSV, recuperação)
+### 1. Teste de navegador (a outra metade do item 82)
 
-O schema existe (`crc_budgets`, `crc_budget_items`), a regra de elegibilidade
-existe e é testada (`orcamentoElegivelParaRecuperacao`), o tipo de oportunidade
-`BUDGET_RECOVERY` existe. **Falta** o importador de CSV com preview, o
-`BudgetProvider` concreto e a automação de recuperação.
+Os 25 testes de fluxo rodam o sistema inteiro — sincronização, eventos,
+handlers, jornadas, política de contato, envio, resposta, encerramento — com
+**só o driver de banco** substituído por um Postgres em memória que reproduz os
+índices únicos, o índice parcial e as três reservas atômicas.
 
-Consequência prática: a Home mostra "valor potencial" com base em oportunidades
-sem valor, então o número aparece como `R$ 0,00` até isso existir.
+**Falta** a camada HTTP e o navegador: Playwright contra um ambiente de
+verdade. Ele não foi montado porque o schema não está aplicado e as credenciais
+não chegaram — um teste que não roda não protege nada. A lacuna está declarada
+no cabeçalho de `src/lib/crc/testes/fluxo.test.ts`.
 
-### 2. Milestone 9 — Dashboard executivo e analytics
+### 2. Agendamento pelo CRC
 
-Os eventos de funil e de receita são **gravados** no servidor no momento em que
-os fatos acontecem — essa parte funciona. **Falta** a tela de gestão com
-gráficos, funil visual, desempenho por campanha e por atendente, e o cálculo de
-speed-to-lead.
+O conector do Dental Office tem `criarAgendamento` e ele é exercitado pelo
+sandbox. **Falta** a tela que escolhe horário e confirma — hoje a jornada
+encaminha para um humano remarcar no sistema da clínica.
 
-### 3. Testes E2E (item 82)
+### 3. Segment engine componível (item 146)
 
-Não existem. A suíte tem 178 testes unitários e de contrato, que cobrem o que o
-item 79 lista como obrigatório. Os fluxos ponta a ponta do item 82 exigem banco
-de teste e Playwright, que não foram montados.
+O funil filtra por tipo, etapa e responsável, e o filtro vira visão salva. O
+item 146 pede filtros componíveis com `AND`/`OR` livres
+(`last_appointment > 180 days AND future_appointment = false`). Isso não
+existe; o que existe é um conjunto fechado de filtros.
 
-### 4. Leads e atribuição
+### 4. Estado na URL (item 148)
 
-`crc_leads` existe com todos os campos de UTM. **Falta** o formulário de
-captura, o roteamento de lead novo e o cálculo de speed-to-lead.
+O `/crc` navega por estado em React, não por rota. É uma decisão registrada em
+`src/routes/crc.tsx` (o ciclo de chunk do `docs/INCIDENTE-BUILD-500.md`), e o
+custo é este: não dá para mandar o link de uma visão filtrada para um colega.
+A visão salva compartilhada cobre parte do caso; o link direto, não.
 
-### 5. Command palette, visões salvas, exportação
+### 5. Multisseleção de tipo no funil
 
-Itens 28, 147 e 129. Não implementados.
+O filtro aceita **um** tipo por vez, embora o modelo de dados e o servidor já
+aceitem vários. Multisseleção acessível exige um componente próprio, e feito
+pela metade ele exclui quem navega por teclado.
 
 ---
 
@@ -97,12 +138,16 @@ Nenhuma delas depende de programação.
 
 | O que falta | Quem resolve | O que destrava |
 |---|---|---|
-| Rodar `supabase/02-crc-schema.sql` | Você, no SQL Editor | **Tudo.** É o único passo manual. |
+| Rodar `02-crc-schema.sql`, `03-crc-cobranca.sql`, `04-crc-visoes.sql` | Você, no SQL Editor | **Tudo.** É o único passo manual. |
 | `DENTAL_OFFICE_BASE_URL` / `CLIENT_ID` / `SECRET` | Dental Office | Sincronização real, agenda, agendamento |
-| Provedor de WhatsApp (Cloud API ou BSP) | Contratação | Envio e recebimento reais |
-| `WHATSAPP_APP_SECRET` | Provedor | O webhook (sem ele, nada é aceito) |
-| Aprovação de templates | Meta | Mensagem fora da janela de 24h |
-| Integração financeira | Dental Office | Trocar "valor potencial" por "receita" |
+| Twilio (`TWILIO_ACCOUNT_SID`, `AUTH_TOKEN`, `WHATSAPP_FROM`) **ou** Meta Cloud | Contratação | Envio e recebimento reais |
+| Aprovação de templates | Meta (mesmo via Twilio) | Mensagem fora da janela de 24h |
+| Exportação de orçamentos e de parcelas em aberto | Você, no sistema da clínica | A tela **Importar** já existe e aceita o CSV |
+| Integração financeira | Dental Office | Trocar "valor potencial" por receita conciliada |
+
+O provedor de WhatsApp é escolhido por `WHATSAPP_PROVEDOR=twilio|meta`. Os dois
+adapters existem atrás da mesma porta; trocar de um para o outro é uma variável
+de ambiente, não uma reescrita.
 
 ---
 
@@ -115,10 +160,11 @@ Nenhuma delas depende de programação.
 | `any` explícito | **Zero** |
 | Mock alimentando tela de produção | **Zero** — os sandboxes recusam subir em produção |
 | Botão sem ação | **Zero** — todo botão chama server function real |
+| Função sem porta | **Zero** — os dois importadores ganharam tela |
 | Secret em log | **Zero** — `mascarar()` é aplicada antes de qualquer gravação |
-| `npm run lint` | ✅ (1 aviso de `react-refresh`, não bloqueante) |
+| `npm run lint` | ✅ (3 avisos de `react-refresh`, não bloqueantes) |
 | `npm run typecheck` | ✅ com `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
-| `npm run test` | ✅ 178 testes |
+| `npm run test` | ✅ 310 testes |
 | `npm run build` | ✅ |
 
 Duas exceções conscientes ao item 113, ambas comentadas no código: `auditar()` e
@@ -146,10 +192,9 @@ O item 206 (não quebrar o RH) está cumprido por construção: tabelas com pref
 `crc_`, módulos em `src/lib/crc`, CSS inteiramente sob `.crc-app`, e zero
 alteração em arquivo existente do site ou do RH.
 
-**Não verificado:** as telas com dados (Home, Inbox, Funil, Pacientes,
-Automações, Integrações). Elas compilam e entram no build, mas não puderam ser
-abertas com conteúdo porque as tabelas `crc_*` não existem no Supabase.
-Aplicar o schema destrava essa verificação.
+**Não verificado:** as telas com dados. Elas compilam e entram no build, mas não
+puderam ser abertas com conteúdo porque as tabelas `crc_*` não existem no
+Supabase. Aplicar o schema destrava essa verificação.
 
 ---
 
@@ -159,9 +204,9 @@ Aplicar o schema destrava essa verificação.
 |---|---|---|
 | 251 | Dental Office: autentica, pagina, persiste, mapeia status, cria agendamento, trata erro, faz retry | Código completo; `BLOQUEADO_POR_CREDENCIAL` |
 | 252 | CRC: paciente pesquisável, ficha, oportunidade, tarefas, timeline, filtros, stages, histórico | ✅ implementado |
-| 253 | WhatsApp: envio, recebimento, dedupe, status, opt-out, persistência, falha visível | Código completo; `BLOQUEADO_POR_CREDENCIAL` |
+| 253 | WhatsApp: envio, recebimento, dedupe, status, opt-out, persistência, falha visível | Código completo, dois provedores; `BLOQUEADO_POR_CREDENCIAL` |
 | 254 | IA: classifica, schema válido, confiança, fallback, logging, escalonamento, custo | ✅ implementado e testado |
-| 255 | Automação: trigger, condição, wait durável, ação, saída, retry, idempotência, log, pausa | ✅ implementado e testado |
+| 255 | Automação: trigger, condição, wait durável, ação, saída, retry, idempotência, log, pausa | ✅ `TESTADO_COM_SANDBOX` ponta a ponta |
 | 256 | UX: desktop, mobile, sem overflow, estados completos, contraste, teclado | ✅ nas telas verificáveis |
 | 257 | Produção: migrations aplicadas, env, build, testes, deploy, health, smoke, integrações | ⚠️ falta aplicar o schema e as credenciais |
 
@@ -174,12 +219,14 @@ Aplicar o schema destrava essa verificação.
 > esperada, receber a resposta do paciente, atualizar os sistemas envolvidos,
 > registrar todo o histórico e refletir o resultado nos indicadores.
 
-**Ainda não aconteceu**, e não pode acontecer sem as credenciais.
+**Ainda não aconteceu com um evento REAL**, e não pode acontecer sem as
+credenciais.
 
-O que existe é a cadeia inteira construída, com cada elo testado no que dá para
-testar sem eles: os mapeadores aguentam as variações de payload, o motor de
-eventos deduplica por constraint, as jornadas sobrevivem a deploy, a política de
-contato bloqueia o que precisa bloquear, a IA recusa ação inventada, e o
-adapter de sandbox exercita o fluxo do item 49 do começo ao fim.
+Com um evento de sandbox, acontece a cada `npm run test`: o teste
+`fluxo do faltante — item 49` faz a falta virar evento, o evento virar
+oportunidade, a oportunidade virar jornada, a jornada esperar duas horas,
+mandar a mensagem dentro do horário comercial, receber a resposta do paciente,
+encerrar a jornada por conversão e registrar a recuperação — com a política de
+contato, o opt-out e os interruptores de emergência exercitados no caminho.
 
 No dia em que a credencial chegar, o que muda é uma variável de ambiente.

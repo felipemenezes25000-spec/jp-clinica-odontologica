@@ -27,7 +27,7 @@ import { TEMPLATES_PADRAO, aplicarVariaveis, renderizarComExemplo } from "./temp
 /* ========================================================================== */
 
 describe("catálogo de automações", () => {
-  it("cobre as seis automações que o item 48 do Mega Prompt pede", () => {
+  it("cobre as seis automações que o item 48 do Mega Prompt pede, e as duas de receita", () => {
     const chaves = AUTOMACOES_PADRAO.map((a) => a.chave);
     expect(chaves).toContain("recuperacao_faltas");
     expect(chaves).toContain("confirmacao_consulta");
@@ -35,6 +35,9 @@ describe("catálogo de automações", () => {
     expect(chaves).toContain("cancelamento_reagendamento");
     expect(chaves).toContain("reativacao_inativos");
     expect(chaves).toContain("aniversario");
+    // As duas que vieram depois: orçamento parado e cobrança de parcelas.
+    expect(chaves).toContain("recuperacao_orcamento");
+    expect(chaves).toContain("cobranca_parcelas");
   });
 
   it("não tem chave repetida", () => {
