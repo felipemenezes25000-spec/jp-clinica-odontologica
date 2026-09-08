@@ -20,15 +20,42 @@
  */
 import { useEffect, useState } from "react";
 
-import { carregarPanorama, type PanoramaDto } from "@/lib/crc/api";
+import { carregarPanorama, exportarCsv, type PanoramaDto } from "@/lib/crc/api";
 import { dinheiro, dinheiroCurto, porcentagem } from "@/lib/crc/dominio/formatar";
 import { MOTIVOS_PERDA } from "@/lib/crc/dominio/rotulos";
 
-import { Aviso, Cartao, Esqueleto, Kpi, Vazio } from "./base";
+import { Aviso, BarraDeRecado, Botao, Cartao, Esqueleto, Kpi, Vazio, useAcao } from "./base";
 
-export function Gestao() {
+export function Gestao({ podeExportar }: { podeExportar: boolean }) {
   const [panorama, setPanorama] = useState<PanoramaDto | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const acao = useAcao();
+
+  /**
+   * Baixa o CSV.
+   *
+   * O arquivo é montado no SERVIDOR e desce como texto; o navegador só o
+   * embrulha num Blob e dispara o download. Montar no cliente exigiria trazer
+   * as linhas todas para a tela primeiro — o que contorna o filtro de
+   * permissão que o servidor aplica, e é justamente o que o item 129 proíbe.
+   */
+  const exportar = (escopo: string): void => {
+    void acao.executar(
+      () => exportarCsv({ data: { escopo } }),
+      (r) => {
+        const blob = new Blob([r.conteudo], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = r.nomeArquivo;
+        link.click();
+        // Sem o revoke, cada exportação deixa o arquivo inteiro preso na
+        // memória da aba até ela ser fechada.
+        URL.revokeObjectURL(url);
+      },
+      "Arquivo gerado.",
+    );
+  };
 
   useEffect(() => {
     let vivo = true;
@@ -71,6 +98,44 @@ export function Gestao() {
 
   return (
     <>
+      <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
+
+      {podeExportar && (
+        <div
+          className="crc-linha"
+          style={{ justifyContent: "flex-end", marginBottom: "var(--crc-e4)" }}
+        >
+          <span className="crc-meta">Exportar:</span>
+          <Botao
+            pequeno
+            carregando={acao.rodando}
+            onClick={() => {
+              exportar("pacientes");
+            }}
+          >
+            Pacientes
+          </Botao>
+          <Botao
+            pequeno
+            carregando={acao.rodando}
+            onClick={() => {
+              exportar("oportunidades");
+            }}
+          >
+            Oportunidades
+          </Botao>
+          <Botao
+            pequeno
+            carregando={acao.rodando}
+            onClick={() => {
+              exportar("tarefas");
+            }}
+          >
+            Tarefas
+          </Botao>
+        </div>
+      )}
+
       {/*
         Item 63 em forma de aviso. Enquanto não houver integração financeira, o
         gestor precisa saber que está lendo POTENCIAL — senão ele leva o número

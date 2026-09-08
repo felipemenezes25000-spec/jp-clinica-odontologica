@@ -1322,6 +1322,66 @@ export const carregarPanorama = createServerFn({ method: "GET" }).handler(
     }),
 );
 
+/* -------------------------------------------------------------------------- */
+/* Exportação (item 129)                                                      */
+/* -------------------------------------------------------------------------- */
+
+export type EscopoExportacao = "pacientes" | "oportunidades" | "tarefas";
+
+/**
+ * Exporta dados administrativos em CSV.
+ *
+ * O ITEM 129 TEM UMA SEGUNDA METADE que é a que importa: "nunca expor mais
+ * dados que o usuário pode visualizar". Por isso a exportação NÃO é um dump —
+ * ela passa pelos mesmos filtros de clínica das telas, e o valor de orçamento
+ * só sai para quem tem `ver_financeiro`. Um CSV que ignora RBAC é a forma mais
+ * fácil de vazar o que a interface protege.
+ *
+ * O separador é ";" e o decimal é vírgula: o arquivo será aberto no Excel em
+ * português, e vírgula como separador transformaria "1,50" em duas colunas.
+ */
+export const exportarCsv = createServerFn({ method: "POST" })
+  .validator((e: { escopo: string }) => ({ escopo: String(e.escopo ?? "pacientes") }))
+  .handler(async ({ data }): Promise<Resposta<{ nomeArquivo: string; conteudo: string }>> =>
+    comContexto("exportar_dados", async (ctx) => {
+      const escopos: EscopoExportacao[] = ["pacientes", "oportunidades", "tarefas"];
+      if (!escopos.includes(data.escopo as EscopoExportacao)) {
+        return { ok: false as const, code: "ENTRADA_INVALIDA", message: "Escopo desconhecido." };
+      }
+
+      const { montarCsvDeExportacao } = await import("./aplicacao/exportacao");
+      const r = await montarCsvDeExportacao(
+        ctx.organizationId,
+        ctx.clinicIds,
+        data.escopo as EscopoExportacao,
+        ctx.pode("ver_financeiro"),
+      );
+
+      await (
+        await import("./servidor/registro")
+      ).auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "dados.exportados",
+        entityType: escopoParaEntidade(data.escopo as EscopoExportacao),
+        entityId: null,
+        depois: {
+          escopo: data.escopo,
+          linhas: r.linhas,
+          comFinanceiro: ctx.pode("ver_financeiro"),
+        },
+        requestId: ctx.requestId,
+      });
+
+      return { ok: true as const, nomeArquivo: r.nomeArquivo, conteudo: r.conteudo };
+    }),
+  );
+
+function escopoParaEntidade(escopo: EscopoExportacao): string {
+  return escopo === "pacientes" ? "patient" : escopo === "tarefas" ? "task" : "opportunity";
+}
+
 /** Item 179: o debugger de jornada. */
 export const carregarHistoricoJornada = createServerFn({ method: "GET" })
   .validator((e: { enrollmentId: string }) => ({ enrollmentId: String(e.enrollmentId ?? "") }))

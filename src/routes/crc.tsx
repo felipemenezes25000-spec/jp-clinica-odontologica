@@ -30,6 +30,7 @@ import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
 import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
 import { BuscaPacientes, CentralDoPaciente } from "@/components/crc/Pacientes";
+import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
 import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
 import "@/components/crc/crc.css";
 import { entrarNoCrc, estadoSessaoCrc, sairDoCrc, type EstadoSessao } from "@/lib/crc/api";
@@ -137,8 +138,25 @@ function PortalCrc() {
   const abaAtual = permitidas.some((n) => n.aba === aba) ? aba : (permitidas[0]?.aba ?? "home");
   const rotuloAtual = NAVEGACAO.find((n) => n.aba === abaAtual)?.rotulo ?? "Início";
 
+  const acoesDaPaleta: AcaoPaleta[] = permitidas.map((n) => ({
+    id: n.aba,
+    rotulo: `Ir para ${n.rotulo}`,
+    dica: "Navegação",
+    executar: () => {
+      setAba(n.aba);
+      if (n.aba !== "pacientes") setPacienteAberto(null);
+    },
+  }));
+
   return (
     <div className="crc-app">
+      {/*
+        A paleta lista só as abas que este papel alcança. Ela é atalho para o
+        que a pessoa já pode fazer — nunca um caminho paralelo que contorna a
+        navegação (e, com ela, o RBAC).
+      */}
+      <Paleta acoes={acoesDaPaleta} aoAbrirPaciente={abrirPaciente} />
+
       <div className="crc-shell">
         <nav className="crc-lateral" aria-label="Seções do CRC">
           <div className="crc-marca">
@@ -216,7 +234,9 @@ function PortalCrc() {
               />
             ))}
 
-          {abaAtual === "gestao" && <Gestao />}
+          {abaAtual === "gestao" && (
+            <Gestao podeExportar={usuario.permissoes.includes("exportar_dados")} />
+          )}
 
           {abaAtual === "automacoes" && (
             <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
