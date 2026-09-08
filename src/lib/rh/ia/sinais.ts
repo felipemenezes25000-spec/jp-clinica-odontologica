@@ -85,6 +85,38 @@ type EntradaSinais = {
   nomesJaExistentes?: { nome: string; telefone: string; id: string }[];
 };
 
+/* Só nível de CURSO, nunca "medio": ensino médio marcado como em andamento
+   quase sempre quer dizer ensino médio INCOMPLETO de quem parou de estudar há
+   anos — não alguém em aula hoje. Sem este recorte o alerta disparava para quem
+   não estuda, que é o oposto do que ele existe para avisar. */
+const NIVEIS_DE_CURSO = ["superior", "tecnico", "pos"];
+
+/** As formações que a pessoa está cursando AGORA. Vira evidência do sinal. */
+function formacoesEmCurso(e: ExtracaoCurriculo): ExtracaoCurriculo["formacoes"] {
+  return e.formacoes.filter(
+    (f) => f.emAndamento && f.curso.trim() !== "" && NIVEIS_DE_CURSO.includes(f.nivel),
+  );
+}
+
+/**
+ * "Esta pessoa está cursando faculdade ou técnico?" — a regra, em um lugar só.
+ *
+ * Existe exportada porque o FILTRO do painel precisa da mesma resposta que o
+ * sinal, e não podia lê-la do sinal gravado: `analise.sinais` é um retrato do
+ * dia em que a leitura rodou. Quando a regra mudou (ensino médio deixou de
+ * contar), os retratos antigos não mudaram junto — e o filtro, se olhasse para
+ * eles, diria "2 estudando" onde a extração mostra 15. A extração é dado bruto
+ * do currículo e não envelhece; a regra, aplicada por cima dela, sempre
+ * responde pelo critério de hoje.
+ *
+ * `area` entra porque em vaga de estágio estar cursando é pré-requisito, não
+ * alerta — e vale a área ATUAL da ficha, inclusive se o RH reclassificou.
+ */
+export function cursandoAgora(e: ExtracaoCurriculo, area: AreaVaga): boolean {
+  if (area === "estagio") return false;
+  return formacoesEmCurso(e).length > 0;
+}
+
 export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
   const { extracao: e, metricas: m, area, agora } = entrada;
   const sinais: Sinal[] = [];
@@ -109,14 +141,7 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
    *
    * Estágio fica de fora: ali estar cursando é pré-requisito, não alerta.
    */
-  /* Só nível de CURSO, nunca "medio": ensino médio marcado como em andamento
-     quase sempre quer dizer ensino médio INCOMPLETO de quem parou de estudar há
-     anos — não alguém em aula hoje. Sem este recorte o alerta disparava para
-     quem não estuda, que é o oposto do que ele existe para avisar. */
-  const NIVEIS_DE_CURSO = ["superior", "tecnico", "pos"];
-  const emCurso = e.formacoes.filter(
-    (f) => f.emAndamento && f.curso.trim() !== "" && NIVEIS_DE_CURSO.includes(f.nivel),
-  );
+  const emCurso = formacoesEmCurso(e);
   if (!ehEstagio && emCurso.length > 0) {
     sinais.push({
       chave: "estudo-em-andamento",

@@ -138,6 +138,29 @@ export function formatarData(iso: string): string {
   return `${doisDigitos(p.dia)}/${doisDigitos(p.mes)}/${p.ano}`;
 }
 
+/**
+ * O DIA de um carimbo ISO, no fuso da clínica, como "AAAA-MM-DD".
+ *
+ * É o formato que `<input type="date">` usa, então o filtro compara string com
+ * string e a comparação lexicográfica já é cronológica — sem `Date` nenhum no
+ * meio, que é o que evita o clássico "a candidatura das 21h de terça aparece na
+ * quarta" quando o navegador está em outro fuso.
+ *
+ * Passa pelo mesmo `decompor` do resto do arquivo de propósito: o painel inteiro
+ * lê datas no horário de Brasília, e um filtro que discordasse disso mostraria
+ * um número diferente do que a própria ficha diz que aconteceu.
+ */
+export function diaDe(iso: string): string {
+  const p = decompor(iso);
+  if (!p) return "";
+  return `${String(p.ano)}-${doisDigitos(p.mes)}-${doisDigitos(p.dia)}`;
+}
+
+/** O mesmo, para um `Date` — é como "hoje" e "ontem" viram texto de filtro. */
+export function diaDeData(data: Date): string {
+  return diaDe(data.toISOString());
+}
+
 export function formatarDataHora(iso: string): string {
   const p = decompor(iso);
   if (!p) return "";

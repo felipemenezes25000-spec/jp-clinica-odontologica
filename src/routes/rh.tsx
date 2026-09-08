@@ -1594,6 +1594,7 @@ function Painel({ dados }: { dados: DadosRh }) {
                 visiveis.length > 0 && itensSelecionados.length === visiveis.length
               }
               aoSelecionarVisiveis={selecionarVisiveis}
+              agora={agora}
             />
             {visao === "kanban" ? (
               <Kanban

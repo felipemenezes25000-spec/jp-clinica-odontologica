@@ -998,10 +998,13 @@ function ConteudoGaveta(props: PropsConteudo) {
                 {proximidade.banda === "desconhecida" ? null : (
                   <span
                     title={proximidade.base}
+                    /* "capital" é ausência de dado, não alerta: fica neutro
+                       como "media". O âmbar é só para trajeto longo de verdade,
+                       senão a cor deixa de querer dizer alguma coisa. */
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[0.7rem] font-bold ${
                       proximidade.banda === "perto"
                         ? "bg-lime/15 text-white ring-1 ring-lime/45"
-                        : proximidade.banda === "media"
+                        : proximidade.banda === "media" || proximidade.banda === "capital"
                           ? "bg-white/10 text-white ring-1 ring-white/30"
                           : "bg-amber-300/15 text-white ring-1 ring-amber-200/45"
                     }`}

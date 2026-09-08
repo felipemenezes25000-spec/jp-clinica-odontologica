@@ -24,8 +24,19 @@
 import { CLINICA } from "../../jp";
 import { apenasDigitos } from "../formatar";
 
-/** Do mais perto ao mais longe. "desconhecida" = o currículo não disse onde mora. */
-export type BandaProximidade = "perto" | "media" | "longe" | "fora" | "desconhecida";
+/**
+ * Do mais perto ao mais longe.
+ *
+ * "capital" é o caso mais comum do acervo e merece nome próprio: a pessoa mora
+ * em São Paulo e o currículo parou aí, sem bairro. Não é "desconhecida" — sabe-
+ * se a cidade — e não dá para dizer perto nem longe, porque São Paulo tem 100km
+ * de ponta a ponta. Separar os dois é o que faz a tela poder dizer "olhei, e o
+ * currículo não informou o bairro" em vez de simplesmente não mostrar nada, que
+ * se lê como sistema quebrado.
+ *
+ * "desconhecida" é quando não há endereço nenhum.
+ */
+export type BandaProximidade = "perto" | "media" | "longe" | "fora" | "capital" | "desconhecida";
 
 export type Proximidade = {
   banda: BandaProximidade;
@@ -165,6 +176,27 @@ const BAIRROS_MEDIA: string[] = [
  */
 const BAIRROS_LONGE: string[] = [
   "itaquera",
+  "cidade lider",
+  "jose bonifacio",
+  "parque do carmo",
+  "artur alvim",
+  "vila matilde",
+  "carrao",
+  "agua rasa",
+  "vila curuca",
+  "jardim helena",
+  "iguatemi",
+  "sao rafael",
+  "jardim iguatemi",
+  "vila jacui",
+  "lajeado",
+  "vila esperanca",
+  "belem",
+  "pari",
+  "caninde",
+  "cidade patriarca",
+  "vila carrao",
+  "jardim sao paulo",
   "cidade tiradentes",
   "sao mateus",
   "guaianases",
@@ -283,6 +315,79 @@ const MUNICIPIOS_MEDIA: string[] = [
   "itapevi",
 ];
 
+/**
+ * A região escrita por extenso, que é como muita gente resume o endereço no
+ * currículo ("Zona Norte, SP"). Vale a mesma régua do CEP.
+ */
+const REGIOES_ESCRITAS: { termo: string; banda: BandaProximidade; nome: string }[] = [
+  { termo: "zona norte", banda: "perto", nome: "Zona Norte" },
+  { termo: "zona oeste", banda: "media", nome: "Zona Oeste" },
+  { termo: "centro", banda: "media", nome: "Centro" },
+  { termo: "zona leste", banda: "longe", nome: "Zona Leste" },
+  { termo: "zona sul", banda: "longe", nome: "Zona Sul" },
+];
+
+/**
+ * Cidades de São Paulo FORA da região metropolitana, das que aparecem em
+ * currículo de gente que se candidata na capital.
+ *
+ * Existe por um motivo defensivo: sem ela, o passo final teria de escolher
+ * entre chamar de "fora da Grande São Paulo" qualquer nome que não reconheça —
+ * e foi assim que "Cidade Líder", bairro da zona leste, virou cidade do
+ * interior — ou calar sobre quem realmente mora longe. Com a lista, "Jundiaí" e
+ * "Leme" são afirmados porque são conhecidos, e o que sobra é declarado como
+ * não reconhecido, sem inventar banda nenhuma.
+ */
+const CIDADES_DE_FORA: string[] = [
+  "campinas",
+  "jundiai",
+  "sorocaba",
+  "santos",
+  "guaruja",
+  "praia grande",
+  "sao vicente",
+  "itanhaem",
+  "peruibe",
+  "sao jose dos campos",
+  "jacarei",
+  "taubate",
+  "caraguatatuba",
+  "ubatuba",
+  "sao sebastiao",
+  "ribeirao preto",
+  "piracicaba",
+  "limeira",
+  "americana",
+  "indaiatuba",
+  "itu",
+  "salto",
+  "braganca paulista",
+  "atibaia",
+  "sao carlos",
+  "araraquara",
+  "bauru",
+  "marilia",
+  "presidente prudente",
+  "sao jose do rio preto",
+  "franca",
+  "botucatu",
+  "registro",
+  "rio claro",
+  "araras",
+  "leme",
+  "mogi guacu",
+  "vinhedo",
+  "valinhos",
+  "cabreuva",
+  "campo limpo paulista",
+  "varzea paulista",
+  "louveira",
+  "jarinu",
+  "sumare",
+  "hortolandia",
+  "paulinia",
+];
+
 /** Minúsculo, sem acento, sem pontuação e sem espaço duplo. */
 function normalizar(v: string): string {
   return v
@@ -345,49 +450,21 @@ export function classificarProximidade(entrada: {
 
   const uf = ufCru.trim().toUpperCase();
   const cidade = normalizar(cidadeCrua);
-  const naCapital = cidade === "sao paulo" || cidade === "";
 
-  /* 1. CEP — só vale para quem está (ou não disse que não está) na capital. */
+  /* 1. CEP — o dado mais confiável, quando existe. */
   const cep = apenasDigitos(cepCru);
-  if (cep.length === 8 && naCapital && (uf === "SP" || uf === "")) {
+  if (cep.length === 8 && (cidade === "sao paulo" || cidade === "") && (uf === "SP" || uf === "")) {
     const regiao = REGIAO_POR_CEP[cep.slice(0, 2)];
     if (regiao) {
-      const mesmaRegiao = cep.slice(0, 2) === CEP_DA_CLINICA;
       return {
         banda: regiao.banda,
-        rotulo: mesmaRegiao ? "Mesma região da clínica" : regiao.nome,
+        rotulo: cep.slice(0, 2) === CEP_DA_CLINICA ? "Mesma região da clínica" : regiao.nome,
         base: `CEP ${cep.slice(0, 5)}-${cep.slice(5)} (${regiao.nome})`,
       };
     }
   }
 
-  /* 2. Bairro. */
-  const bairro = normalizar(bairroCru);
-  if (bairro.length > 2 && naCapital) {
-    if (contem(bairro, BAIRROS_PERTO)) {
-      return {
-        banda: "perto",
-        rotulo: "Mesma região da clínica",
-        base: `Bairro informado: ${bairroCru.trim()}`,
-      };
-    }
-    if (contem(bairro, BAIRROS_MEDIA)) {
-      return {
-        banda: "media",
-        rotulo: "Mesmo lado da cidade",
-        base: `Bairro informado: ${bairroCru.trim()}`,
-      };
-    }
-    if (contem(bairro, BAIRROS_LONGE)) {
-      return {
-        banda: "longe",
-        rotulo: "Outro lado da cidade",
-        base: `Bairro informado: ${bairroCru.trim()}`,
-      };
-    }
-  }
-
-  /* 3. Município. */
+  /* 2. Outro estado encerra a conversa antes de qualquer tabela de bairro. */
   if (uf.length === 2 && uf !== "SP") {
     return {
       banda: "fora",
@@ -395,17 +472,81 @@ export function classificarProximidade(entrada: {
       base: `Cidade informada: ${[cidadeCrua.trim(), uf].filter(Boolean).join("/")}`,
     };
   }
+
+  /* 3. MUNICÍPIO ANTES DE BAIRRO, e a ordem importa.
+     "Santana de Parnaíba" é município a 40km; "Santana" é bairro da zona norte.
+     Testando bairro primeiro, o município viraria o bairro e a ficha diria
+     "mesmo lado da cidade" para quem mora em outra cidade. */
   if (cidade.length > 2 && cidade !== "sao paulo") {
     const base = `Cidade informada: ${cidadeCrua.trim()}`;
     if (contem(cidade, MUNICIPIOS_MEDIA)) {
       return { banda: "media", rotulo: "Município vizinho", base };
     }
-    // Dentro da Grande São Paulo ainda é trajeto diário possível, ainda que
-    // longo; fora dela a conversa é outra (mudança, não deslocamento).
     if (GRANDE_SAO_PAULO.includes(cidade)) {
       return { banda: "longe", rotulo: "Outro extremo da Grande São Paulo", base };
     }
-    return { banda: "fora", rotulo: "Fora da Grande São Paulo", base };
+  }
+
+  /* 4. O LOCAL. Sai do campo `bairro` OU do campo `cidade` — a extração antiga
+     só tinha "cidade", e o modelo escrevia ali o que achasse ("Jaraguá",
+     "Cidade Líder", "Zona norte, SP"). Ignorar isso seria jogar fora o bairro de
+     metade do acervo por causa do nome do campo em que ele foi parar. */
+  const local = normalizar(bairroCru) || cidade;
+  const textoDoLocal = bairroCru.trim() || cidadeCrua.trim();
+  if (local.length > 2 && local !== "sao paulo") {
+    const base = `Local informado: ${textoDoLocal}`;
+
+    const regiao = REGIOES_ESCRITAS.find((r) => local.includes(r.termo));
+    if (regiao) {
+      return {
+        banda: regiao.banda,
+        rotulo: regiao.banda === "perto" ? "Mesma região da clínica" : regiao.nome,
+        base,
+      };
+    }
+    if (contem(local, BAIRROS_PERTO)) {
+      return { banda: "perto", rotulo: "Mesma região da clínica", base };
+    }
+    if (contem(local, BAIRROS_MEDIA)) {
+      return { banda: "media", rotulo: "Mesmo lado da cidade", base };
+    }
+    if (contem(local, BAIRROS_LONGE)) {
+      return { banda: "longe", rotulo: "Outro lado da cidade", base };
+    }
+  }
+
+  /* 5. Cidade conhecida do interior ou do litoral: aí sim, é fora. */
+  if (cidade.length > 2 && cidade !== "sao paulo" && contem(cidade, CIDADES_DE_FORA)) {
+    return {
+      banda: "fora",
+      rotulo: "Fora da Grande São Paulo",
+      base: `Cidade informada: ${cidadeCrua.trim()}`,
+    };
+  }
+
+  /* 6. NÃO RECONHECIDO — e é isso que a tela vai dizer.
+     Aqui estava o pior erro possível deste arquivo: chamar de "fora da Grande
+     São Paulo" tudo o que as tabelas não conheciam. "Cidade Líder" é bairro da
+     zona leste e era anunciado como cidade do interior — o RH leria "mora
+     longe demais" sobre alguém que mora na própria capital.
+     Um nome que não bateu com nada continua aparecendo na tela, escrito como
+     veio, com a banda em branco: quem lê "Jardim Aurora" decide melhor que
+     qualquer chute nosso. */
+  if (local.length > 2 && local !== "sao paulo") {
+    return {
+      banda: "capital",
+      rotulo: "confira o endereço",
+      base: `Local informado: ${textoDoLocal}`,
+    };
+  }
+
+  /* 7. São Paulo e ponto final — o caso mais comum do acervo. */
+  if (cidade === "sao paulo") {
+    return {
+      banda: "capital",
+      rotulo: "bairro não informado",
+      base: "O currículo diz São Paulo, mas não diz o bairro.",
+    };
   }
 
   return { banda: "desconhecida", rotulo: "Não informado", base: "" };
