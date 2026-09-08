@@ -17,11 +17,23 @@
  * RH clicar sem nenhuma ordem de grandeza na cabeça.
  */
 
-/** Tokens de ENTRADA por currículo: o dossiê, a rubrica e o texto do PDF. */
-export const TOKENS_ENTRADA_POR_CURRICULO = 4500;
+/**
+ * Tokens de ENTRADA por currículo: o dossiê, a rubrica e o texto do PDF.
+ *
+ * MEDIDO, não estimado no olho. Os dois números saem da média das 62 leituras
+ * que a clínica já pagou, lidas de `analise.tokensEntrada` e
+ * `analise.tokensSaida` — cada análise grava o próprio consumo.
+ *
+ * Estavam em 4.500 e 3.000, escritos antes de existir leitura nenhuma para
+ * conferir, e subestimavam a conta em 30%. Num módulo cuja razão de existir é
+ * "o dono levou um susto na fatura", errar para baixo é o único erro que não se
+ * pode cometer: quem clica em "analisar as 54 pendentes" tem de ver um número
+ * que a fatura confirme depois, não um que a desminta.
+ */
+export const TOKENS_ENTRADA_POR_CURRICULO = 8500;
 
 /** Tokens de SAÍDA por currículo: a análise em JSON, com as seis justificativas. */
-export const TOKENS_SAIDA_POR_CURRICULO = 3000;
+export const TOKENS_SAIDA_POR_CURRICULO = 3500;
 
 /**
  * Preço por 1 milhão de tokens, em dólar, na forma [entrada, saída].
