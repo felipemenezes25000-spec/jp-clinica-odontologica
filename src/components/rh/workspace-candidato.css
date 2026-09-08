@@ -160,6 +160,26 @@
     box-shadow: 0 20px 48px -38px rgba(3, 47, 1, 0.42);
   }
 
+  /* Na raia estreita, quatro campos em duas colunas criavam rótulos espremidos.
+     Uma coluna só deixa status → área → responsável → entrevista na ordem de
+     trabalho e reduz erro de leitura. */
+  .rh-admin
+    .rh-gaveta
+    section[aria-labelledby$="-gestao"]
+    > div[class~="grid"] {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  /* As explicações sob cada campo são corretas, mas repetitivas no uso diário.
+     O rótulo e o valor bastam; mensagens de erro/salvamento continuam visíveis. */
+  .rh-admin
+    .rh-gaveta
+    section[aria-labelledby$="-gestao"]
+    p[class~="mt-1.5"][class~="text-xs"] {
+    display: none;
+  }
+
   /* Com mouse, os controles de contato não precisam carregar o alvo de toque
      de 44px; isso devolve uma linha inteira de altura ao cabeçalho. */
   @media (pointer: fine) {
