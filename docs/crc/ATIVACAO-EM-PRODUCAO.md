@@ -19,6 +19,7 @@ auditado em [FINAL-ACCEPTANCE](FINAL-ACCEPTANCE.md).
 | **C.** Credenciais de terceiros | Dental Office e Twilio/Meta | Fora do nosso controle | O CRC abre e fica vazio: sem paciente e sem mensagem. |
 | **D.** Horário e política da clínica | Você, via SQL | ~10 min | Vale o padrão: seg–sex 8h–19h, sáb 8h–13h, 1 contato/dia. |
 | **E.** Três lacunas de código | Nós | Ver a lista | Nenhuma impede operar. |
+| **F.** Cron a cada 10 min | Você | ~5 min | O plano Hobby só dá cron diário; sem um pinger externo o faltante só recebe mensagem no dia seguinte. Ver a Parte G. |
 
 **O caminho crítico é o C, e só ele.** A e B se resolvem hoje, pela tela. D é
 opcional. E não bloqueia nada. Sem as credenciais do Dental Office e de um
@@ -531,8 +532,43 @@ alguém lendo cada mensagem que sai.
 | As mensagens estão saindo | `/crc` → Conversas | Mensagens de saída com status de entrega |
 | A recuperação está acontecendo | `/crc` → Gestão | "Saídas por conversão" > 0 |
 
-O cron está declarado em `vercel.json` e chama `/api/crc/motor` a cada 10
-minutos. As varreduras diárias (retorno, confirmação, aniversário, orçamento,
+### ⚠️ O motor bate UMA VEZ POR DIA, e isso precisa ser resolvido
+
+**A conta da Vercel é Hobby, e o plano Hobby só aceita cron diário.** O deploy
+foi recusado com `*/10 * * * *` e `vercel.json` foi ajustado para `0 9 * * *`
+(6h em São Paulo) — senão nada subia.
+
+O que isso custa: as varreduras diárias (retorno, confirmação, aniversário,
+orçamento, cobrança) continuam certas, porque elas são diárias por natureza. Mas
+**o fluxo do faltante deixa de funcionar como foi desenhado**: a falta vira
+oportunidade, a jornada espera duas horas — e aí espera até a próxima batida do
+motor, no dia seguinte. Uma mensagem que deveria sair às 11h sai às 6h do outro
+dia, quando o paciente já remarcou em outro lugar.
+
+**Duas saídas, e as duas funcionam:**
+
+| Saída | Custo | O que fazer |
+|---|---|---|
+| **Pinger externo** (recomendado) | Grátis | Um serviço de cron gratuito (cron-job.org, EasyCron, ou um workflow agendado do GitHub Actions) chamando a URL abaixo a cada 10 minutos. |
+| **Vercel Pro** | Mensalidade | Devolver `*/10 * * * *` ao `vercel.json` e publicar. |
+
+A chamada do pinger externo é esta — GET, com o header:
+
+```
+GET https://SEU-DOMINIO/api/crc/motor
+Authorization: Bearer SEU_CRON_SECRET
+```
+
+O `CRON_SECRET` é o mesmo do passo A.2. A rota falha fechada: sem o header, ela
+responde 401 e não faz nada — expô-la não abre porta nenhuma, mas o segredo é
+segredo.
+
+**O cron diário de `vercel.json` não atrapalha o pinger**: os dois chamam a
+mesma rota, e a reserva atômica (`FOR UPDATE SKIP LOCKED`) garante que duas
+chamadas sobrepostas nunca peguem a mesma linha. Deixe os dois.
+
+O cron está declarado em `vercel.json` e chama `/api/crc/motor` uma vez por dia
+(ver o aviso acima). As varreduras diárias (retorno, confirmação, aniversário, orçamento,
 cobrança) rodam só na volta das 9h UTC — ≈6h em São Paulo, para as jornadas
 nascerem antes do expediente e esperarem a abertura para falar com alguém.
 

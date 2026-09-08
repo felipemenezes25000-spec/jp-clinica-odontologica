@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/crc/motor",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
