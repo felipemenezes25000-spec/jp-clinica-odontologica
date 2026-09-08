@@ -18,7 +18,7 @@ import { apenasDigitos } from "../formatar";
 import type { AreaVaga } from "../tipos";
 import { emAnosMeses, paraMes } from "./metricas";
 import { classificarProximidade } from "./proximidade";
-import { tetoPorRotatividade } from "./rubricas";
+import { tetoPorDeslocamento, tetoPorGraduacaoEmSaude, tetoPorRotatividade } from "./rubricas";
 import type { ExtracaoCurriculo, MetricasPermanencia, SeveridadeSinal, Sinal } from "./tipos";
 import { severidadePor } from "./tipos";
 
@@ -570,15 +570,29 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
     });
   } else if (proximidade.banda === "longe" || proximidade.banda === "fora") {
     const foraDaGrande = proximidade.banda === "fora";
+    /* Sem minutos aqui de proposito: este motor nao conhece o trajeto medido,
+       que vive na ficha. Quando ele existe, quem manda e o calculo da nota em
+       `analise.ts` — e la o tempo real derruba este teto se for curto. */
+    const limiteTrajeto = tetoPorDeslocamento(proximidade.banda, null);
     sinais.push({
       chave: "trajeto-longo",
       origem: "documento",
-      severidade: foraDaGrande ? "medio" : "baixo",
+      severidade: foraDaGrande ? "alto" : "medio",
       categoria: "contato",
-      titulo: foraDaGrande ? "Endereço fora da Grande São Paulo" : "Mora do outro lado da cidade",
-      detalhe: foraDaGrande
-        ? `${proximidade.base}. A vaga é presencial na Vila Bruna, zona norte: vale confirmar se a pessoa já mudou, pretende mudar ou faz o trajeto todo dia. Distância não desqualifica ninguém — só precisa ser combinada antes.`
-        : `${proximidade.base}. A clínica fica na Vila Bruna, zona norte, e o trajeto atravessa a cidade. Não é impedimento: é o que precisa ser combinado antes de marcar entrevista, principalmente para quem abre a recepção de manhã.`,
+      titulo:
+        limiteTrajeto === null
+          ? foraDaGrande
+            ? "Endereço fora da Grande São Paulo"
+            : "Mora do outro lado da cidade"
+          : `${foraDaGrande ? "Fora da Grande São Paulo" : "Outro lado da cidade"}: nota não passa de ${String(limiteTrajeto.teto)}`,
+      detalhe:
+        `${proximidade.base}. ` +
+        (foraDaGrande
+          ? "A vaga é presencial na Vila Bruna, zona norte: vale confirmar se a pessoa já mudou, pretende mudar ou faz o trajeto todo dia."
+          : "A clínica fica na Vila Bruna, zona norte, e o trajeto atravessa a cidade — o que pesa em turno que abre de manhã.") +
+        (limiteTrajeto === null
+          ? " Distância não desqualifica ninguém — só precisa ser combinada antes."
+          : ` Por causa disso a nota não passa de ${String(limiteTrajeto.teto)}. O limite cai sozinho se o trajeto medido ficar em até 40 minutos: quando há rota calculada, é o tempo dela que vale, não a região.`),
       evidencias: [proximidade.base],
       perguntar:
         "Você mora hoje em qual região? Quanto tempo leva o trajeto até a Vila Bruna e como você viria?",

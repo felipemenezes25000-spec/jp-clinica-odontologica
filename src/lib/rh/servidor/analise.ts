@@ -28,7 +28,14 @@ import {
   type GuiaEntrevista,
 } from "../guia";
 import { calcularMetricas, emAnosMeses } from "../ia/metricas";
-import { notaPonderada, rubricaPara, tetoPorRotatividade } from "../ia/rubricas";
+import { classificarProximidade } from "../ia/proximidade";
+import {
+  notaPonderada,
+  rubricaPara,
+  tetoPorDeslocamento,
+  tetoPorGraduacaoEmSaude,
+  tetoPorRotatividade,
+} from "../ia/rubricas";
 import { comVeredito } from "../ia/veredito";
 import { ordenarSinais, sinaisDeCalculo } from "../ia/sinais";
 import { analiseVazia, extracaoVazia, VERSAO_ANALISE } from "../ia/tipos";
@@ -334,17 +341,33 @@ function completarComFormulario(e: ExtracaoCurriculo, c: Candidatura): ExtracaoC
 /* -------------------------------------------------------------------------- */
 
 /**
- * Aplica o teto de rotatividade sobre a nota já ponderada.
+ * Os TRÊS TETOS da clínica, aplicados sobre a nota já ponderada.
  *
- * Só ABAIXA, nunca levanta: uma trajetória estável não ganha ponto por isso
- * aqui (a permanência já vale 30% da régua). O teto existe para impedir que a
- * média ponderada leve para a faixa de prioridade quem tem padrão de saída
- * rápida — foi o pedido do cliente, e é conta sobre datas, não opinião.
+ * Só ABAIXAM, nunca levantam, e o menor deles manda. Cada um traduz uma regra
+ * rígida do dono para dentro do cálculo, em vez de deixá-la só como aviso na
+ * tela: rotatividade, graduação na área da saúde e deslocamento.
+ *
+ * POR QUE TETO E NÃO PESO. Os pesos da régua (30/25/15/15/10/5) foram fixados
+ * pelo cliente e valem para comparar QUALIDADE de perfil. Estas três regras não
+ * são qualidade: são eliminatórias. Uma candidata excelente que mora a uma hora
+ * e meia continua sendo excelente — só não serve para uma recepção que abre às
+ * oito. Misturar as duas coisas num peso destruiria as duas.
  */
-function comTeto(nota: number, metricas: MetricasPermanencia): number {
-  const limite = tetoPorRotatividade(metricas);
-  if (limite === null) return nota;
-  return Math.min(nota, limite.teto);
+function comTeto(
+  nota: number,
+  metricas: MetricasPermanencia,
+  extracao: ExtracaoCurriculo,
+  area: AreaVaga,
+  banda: string,
+  minutos: number | null,
+): number {
+  const limites = [
+    tetoPorRotatividade(metricas),
+    tetoPorGraduacaoEmSaude(extracao, area),
+    tetoPorDeslocamento(banda, minutos),
+  ].filter((l): l is { teto: number; motivo: string } => l !== null);
+
+  return limites.reduce((n, l) => Math.min(n, l.teto), nota);
 }
 
 function areaDaCandidatura(c: Candidatura): AreaVaga {
@@ -740,6 +763,15 @@ export async function analisarCandidatura(
     notaGeral: comTeto(
       criterios.length > 0 ? notaPonderada(criterios, rubrica.pesos) : julgada.avaliacao.notaGeral,
       metricas,
+      extracao,
+      area,
+      classificarProximidade({
+        cep: extracao.cep,
+        bairro: extracao.bairro,
+        cidade: extracao.cidade,
+        uf: extracao.uf,
+      }).banda,
+      c.trajeto?.minutos ?? null,
     ),
     recomendacao: julgada.avaliacao.recomendacao,
     resumoUmaLinha: julgada.avaliacao.resumoUmaLinha,

@@ -15,7 +15,7 @@
 import type { GuiaEntrevista } from "../guia";
 import type { AreaVaga } from "../tipos";
 import { emAnosMeses } from "./metricas";
-import type { ChaveCriterio, CriterioIa, MetricasPermanencia } from "./tipos";
+import type { ChaveCriterio, CriterioIa, ExtracaoCurriculo, MetricasPermanencia } from "./tipos";
 
 /** Sempre somam 100. É o que torna a nota geral comparável entre áreas. */
 export type PesosCriterios = Record<ChaveCriterio, number>;
@@ -933,6 +933,99 @@ export function tetoPorRotatividade(
   }
   if (proporcao >= 25) {
     return { teto: 75, motivo: `${quantos} (${String(proporcao)}%).` };
+  }
+  return null;
+}
+
+/**
+ * TETO POR GRADUAÇÃO NA ÁREA DA SAÚDE — regra do cliente, e a razão dela é
+ * específica: "altíssimo risco de saída a curto prazo, conflito com estágios e
+ * clínicas integradas, e desvio de foco da função burocrática de recepção para
+ * a cadeira".
+ *
+ * 55 é escolha deliberada, não número redondo. A régua da própria clínica diz
+ * que 50 a 64 é "avaliar se faltar candidata melhor": o teto tira a pessoa de
+ * "boa candidata" (65) e de prioridade (80), sem eliminá-la — porque uma
+ * estudante de odontologia excelente ainda pode ser a melhor da fila num mês
+ * fraco, e essa decisão é da clínica, não do cálculo.
+ *
+ * SÓ VALE ONDE O RISCO EXISTE. Numa vaga de recepção ou administrativa, quem
+ * cursa odontologia tende a sair para a cadeira. Numa vaga de dentista ou de
+ * ASB, cursar odontologia é o contrário de risco — é o caminho. E em estágio,
+ * estar cursando é pré-requisito. O teto se aplica apenas aos dois primeiros
+ * casos, e é isso que o impede de virar uma penalidade cega a quem estuda.
+ */
+const CURSOS_DE_SAUDE =
+  /odonto|enferm|farm[aá]c|fisioterap|biomedic|medicin|radiolog|nutri[cç]|t[eé]cnico em sa[uú]de|sa[uú]de bucal/i;
+
+export function tetoPorGraduacaoEmSaude(
+  e: ExtracaoCurriculo,
+  area: AreaVaga,
+): { teto: number; motivo: string } | null {
+  if (area !== "recepcao" && area !== "administrativo") return null;
+
+  const emCurso = (e.formacoes ?? []).filter(
+    (f) =>
+      f.emAndamento &&
+      ["superior", "tecnico", "pos"].includes(f.nivel) &&
+      CURSOS_DE_SAUDE.test(f.curso ?? ""),
+  );
+  if (emCurso.length === 0) return null;
+
+  const nomes = emCurso.map((f) => f.curso).join(", ");
+  return {
+    teto: 55,
+    motivo: `está cursando ${nomes}, e a vaga é de recepção — o risco é sair para a área clínica assim que o estágio ou a formatura chegar.`,
+  };
+}
+
+/**
+ * TETO POR DESLOCAMENTO — a outra regra rígida do cliente.
+ *
+ * A MEDIÇÃO MANDA, e o resto é substituto. Quando existe rota calculada, é o
+ * tempo dela que decide, porque foi ele que o cliente nomeou: "deslocamento de
+ * até 30–40 minutos". Só quando não há rota é que a região entra, e ela entra
+ * como aproximação declarada — nunca por cima de um número medido.
+ *
+ * É por isso que "outro município" não é teto automático: Caieiras fica mais
+ * perto da Vila Bruna do que boa parte da própria capital. O que elimina é o
+ * trajeto, não a fronteira da cidade — e quando o trajeto é conhecido, ele
+ * ganha da fronteira.
+ *
+ * 60 e 45 seguem a régua da clínica: 60 tira o "boa candidata", 45 é baixa
+ * prioridade. Ninguém é zerado por morar longe; quem faz uma hora e meia de
+ * trajeto por escolha própria continua na lista, embaixo.
+ */
+export function tetoPorDeslocamento(
+  banda: string,
+  minutos: number | null,
+): { teto: number; motivo: string } | null {
+  if (minutos !== null) {
+    if (minutos <= 40) return null;
+    if (minutos <= 60) {
+      return {
+        teto: 60,
+        motivo: `são ${String(minutos)} minutos de trajeto até a clínica, acima dos 40 que a rotina de recepção comporta.`,
+      };
+    }
+    return {
+      teto: 45,
+      motivo: `são ${String(minutos)} minutos de trajeto só na ida, o que desgasta em turno que abre cedo.`,
+    };
+  }
+
+  if (banda === "longe") {
+    return {
+      teto: 60,
+      motivo: "mora do outro lado da cidade, e o trajeto diário atravessa São Paulo.",
+    };
+  }
+  if (banda === "fora") {
+    return {
+      teto: 45,
+      motivo:
+        "mora fora da Grande São Paulo, o que torna o deslocamento diário inviável sem mudança.",
+    };
   }
   return null;
 }
