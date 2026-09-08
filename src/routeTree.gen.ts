@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CrcInstitucionalRouteImport } from './routes/crc-institucional'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
@@ -21,6 +22,11 @@ import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrcInstitucionalRoute = CrcInstitucionalRouteImport.update({
+  id: '/crc-institucional',
+  path: '/crc-institucional',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -61,6 +67,7 @@ const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/crc-institucional': typeof CrcInstitucionalRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/crc-institucional': typeof CrcInstitucionalRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/crc-institucional': typeof CrcInstitucionalRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/crc-institucional'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/crc-institucional'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/crc-institucional'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CrcInstitucionalRoute: typeof CrcInstitucionalRoute
   RhRoute: typeof RhRoute
   TrabalheConoscoRoute: typeof TrabalheConoscoRoute
   CarreirasSlugRoute: typeof CarreirasSlugRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crc-institucional': {
+      id: '/crc-institucional'
+      path: '/crc-institucional'
+      fullPath: '/crc-institucional'
+      preLoaderRoute: typeof CrcInstitucionalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CrcInstitucionalRoute: CrcInstitucionalRoute,
   RhRoute: RhRoute,
   TrabalheConoscoRoute: TrabalheConoscoRoute,
   CarreirasSlugRoute: CarreirasSlugRoute,
