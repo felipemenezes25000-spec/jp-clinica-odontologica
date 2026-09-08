@@ -1396,7 +1396,11 @@ function ConteudoGaveta(props: PropsConteudo) {
               sanfona={sanfona}
               titulo="O que perguntar"
               icone={MessageCircleQuestion}
-              resumo={conta(duvidasAbertas, "pergunta em aberto", "perguntas em aberto")}
+              /* "15 em aberto", e não "15 perguntas em aberto": na coluna
+                  estreita de 336px o rótulo longo quebrava em duas linhas e a
+                  fileira ia de 54px para 66px, quebrando o alinhamento com as
+                  vizinhas. A palavra "perguntas" já está no título ao lado. */
+              resumo={conta(duvidasAbertas, "em aberto", "em aberto")}
             >
               <PainelDuvidas
                 item={item}
@@ -1754,7 +1758,10 @@ function ConteudoGaveta(props: PropsConteudo) {
                 sanfona={sanfona}
                 titulo="Origem e registro"
                 icone={ShieldCheck}
-                resumo="datas e consentimento"
+                /* A data em que chegou, em vez de "datas e consentimento": cabe
+                  numa linha só e diz mais — é a informação que se procura
+                  quando se abre "Origem e registro". */
+                resumo={formatarData(item.criadoEm)}
               >
                 <ListaCampos campos={camposOrigem} />
                 <p className={AJUDA}>

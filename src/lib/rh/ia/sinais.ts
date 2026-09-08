@@ -18,6 +18,7 @@ import { apenasDigitos } from "../formatar";
 import type { AreaVaga } from "../tipos";
 import { emAnosMeses, paraMes } from "./metricas";
 import { classificarProximidade } from "./proximidade";
+import { tetoPorRotatividade } from "./rubricas";
 import type { ExtracaoCurriculo, MetricasPermanencia, SeveridadeSinal, Sinal } from "./tipos";
 import { severidadePor } from "./tipos";
 
@@ -266,17 +267,27 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
   }
 
   if (m.empregosCurtos >= 3 || m.inicios24Meses >= 3) {
+    /* O TETO ENTRA NO TEXTO DO SINAL, e não numa nota de rodapé: quem lê "57"
+       na ficha precisa saber, na mesma frase, que aquele número foi limitado e
+       por quê. Sem isso o RH compara um 57 com teto contra um 57 sem teto como
+       se fossem a mesma coisa. */
+    const limite = tetoPorRotatividade(m);
     sinais.push({
       chave: "rotatividade",
       origem: "calculo",
-      severidade: "alto",
+      severidade: limite !== null && limite.teto <= 60 ? "alto" : "medio",
       categoria: "permanencia",
-      titulo: "Padrão de trocas frequentes",
-      detalhe: `${m.empregosCurtos} ${m.empregosCurtos === 1 ? "vínculo durou" : "vínculos duraram"} menos de um ano e ${m.inicios24Meses} ${m.inicios24Meses === 1 ? "começou" : "começaram"} nos últimos 24 meses. Treinar alguém para a rotina da clínica leva cerca de dois meses, então o padrão importa — mas veja antes se não é uma sequência de contratos temporários.`,
+      titulo:
+        limite === null
+          ? "Padrão de vínculos curtos"
+          : `Vínculos curtos: nota limitada a ${String(limite.teto)}`,
+      detalhe:
+        `${String(m.empregosCurtos)} ${m.empregosCurtos === 1 ? "vínculo durou" : "vínculos duraram"} menos de um ano e ${String(m.inicios24Meses)} ${m.inicios24Meses === 1 ? "começou" : "começaram"} nos últimos 24 meses. Treinar alguém para a rotina da clínica leva cerca de dois meses, então o padrão importa — mas veja antes se não é uma sequência de contratos temporários.` +
+        (limite === null
+          ? ""
+          : ` A nota desta ficha foi limitada a ${String(limite.teto)} por causa disso: ${limite.motivo} O limite vale sobre a média dos seis critérios e não pode ser compensado por nota alta nos outros.`),
       evidencias: [
-        `Empregos com menos de 1 ano: ${m.empregosCurtos}${m.proporcaoCurtos != null ? ` (${m.proporcaoCurtos}% dos datados)` : ""}`,
-        `Iniciados nos últimos 24 meses: ${m.inicios24Meses}`,
-        `Mediana de permanência: ${emAnosMeses(m.medianaMeses)}`,
+        `Empregos com menos de 1 ano: ${String(m.empregosCurtos)}${m.proporcaoCurtos != null ? ` (${String(m.proporcaoCurtos)}% dos datados)` : ""}`,
       ],
       perguntar: "Me conta a sequência dos seus últimos empregos: o que levou a cada saída?",
       contaNaNota: true,

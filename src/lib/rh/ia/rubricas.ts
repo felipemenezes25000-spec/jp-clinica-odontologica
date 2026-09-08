@@ -885,6 +885,54 @@ export function textoDasAncoras(rubrica: Rubrica, metricas: MetricasPermanencia)
 }
 
 /**
+ * TETO DE NOTA POR ROTATIVIDADE — pedido do cliente: "períodos curtos em
+ * emprego abaixam a nota dela drasticamente".
+ *
+ * POR QUE UM TETO, E NÃO MAIS PESO EM "PERMANÊNCIA"
+ * A permanência já vale 30% da régua de recepção, e esses pesos foram fixados
+ * pelo cliente — mexer neles mudaria a nota de todo mundo e desalinharia as
+ * faixas de 80/65/50 que ele também definiu. Além disso, os 30% são uma nota
+ * que o MODELO dá: ele pode achar que quatro passagens de oito meses são "média
+ * permanência" e devolver 6 de 10, e aí a média ponderada devolve alguém com 72
+ * pontos e quatro empregos curtos.
+ *
+ * O teto é conta nossa, sobre datas que nós mesmos medimos. Ele não discute com
+ * o modelo: apenas impede que a média ponderada leve para a faixa de "chamar
+ * com prioridade" quem tem um padrão de saída rápida. É o mesmo princípio do
+ * resto do motor — julgamento é do modelo, conta é nossa.
+ *
+ * PRECISA DE PROVA ANTES DE PUNIR
+ * Só vale com três ou mais vínculos DATADOS. Com dois empregos, um curto vira
+ * "50% de rotatividade" e não quer dizer nada: pode ser primeiro emprego,
+ * contrato temporário ou empresa que fechou. Sem base, não há teto.
+ *
+ * As faixas seguem a régua do próprio cliente: 80 é "chamar com prioridade",
+ * 65 é "boa candidata", 50 é "avaliar se faltar melhor". Um quarto dos vínculos
+ * curtos já tira a prioridade; metade tira o "boa candidata"; a maioria curta
+ * leva para a faixa de baixa prioridade.
+ */
+export function tetoPorRotatividade(
+  m: MetricasPermanencia,
+): { teto: number; motivo: string } | null {
+  if (m.empregosDatados < 3) return null;
+  const proporcao = m.proporcaoCurtos;
+  if (proporcao === null) return null;
+
+  const quantos = `${String(m.empregosCurtos)} de ${String(m.empregosDatados)} vínculos datados duraram menos de um ano`;
+
+  if (proporcao >= 60) {
+    return { teto: 45, motivo: `${quantos} (${String(proporcao)}%).` };
+  }
+  if (proporcao >= 40) {
+    return { teto: 60, motivo: `${quantos} (${String(proporcao)}%).` };
+  }
+  if (proporcao >= 25) {
+    return { teto: 75, motivo: `${quantos} (${String(proporcao)}%).` };
+  }
+  return null;
+}
+
+/**
  * Nota 0..100 a partir das notas 0..10 dos critérios, ponderada pelos pesos da
  * rubrica.
  *

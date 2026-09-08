@@ -28,7 +28,7 @@ import {
   type GuiaEntrevista,
 } from "../guia";
 import { calcularMetricas, emAnosMeses } from "../ia/metricas";
-import { notaPonderada, rubricaPara } from "../ia/rubricas";
+import { notaPonderada, rubricaPara, tetoPorRotatividade } from "../ia/rubricas";
 import { comVeredito } from "../ia/veredito";
 import { ordenarSinais, sinaisDeCalculo } from "../ia/sinais";
 import { analiseVazia, extracaoVazia, VERSAO_ANALISE } from "../ia/tipos";
@@ -328,6 +328,20 @@ function completarComFormulario(e: ExtracaoCurriculo, c: Candidatura): ExtracaoC
 /* -------------------------------------------------------------------------- */
 /* Análise de uma candidatura                                                 */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Aplica o teto de rotatividade sobre a nota já ponderada.
+ *
+ * Só ABAIXA, nunca levanta: uma trajetória estável não ganha ponto por isso
+ * aqui (a permanência já vale 30% da régua). O teto existe para impedir que a
+ * média ponderada leve para a faixa de prioridade quem tem padrão de saída
+ * rápida — foi o pedido do cliente, e é conta sobre datas, não opinião.
+ */
+function comTeto(nota: number, metricas: MetricasPermanencia): number {
+  const limite = tetoPorRotatividade(metricas);
+  if (limite === null) return nota;
+  return Math.min(nota, limite.teto);
+}
 
 function areaDaCandidatura(c: Candidatura): AreaVaga {
   const conhecida = AREAS.some((a) => a.valor === c.area);
@@ -692,8 +706,13 @@ export async function analisarCandidatura(
     // o código faz a média ponderada (que é conta) — assim o RH consegue apontar
     // para o número e reproduzir de onde ele veio. Só cai para o valor do modelo
     // quando não veio critério nenhum, o que na prática nunca acontece.
-    notaGeral:
+    // O TETO POR ROTATIVIDADE entra DEPOIS da média ponderada, e por cima dela:
+    // é a única coisa no cálculo que o modelo não pode contornar dando nota alta
+    // nos outros cinco critérios. Ver `tetoPorRotatividade`.
+    notaGeral: comTeto(
       criterios.length > 0 ? notaPonderada(criterios, rubrica.pesos) : julgada.avaliacao.notaGeral,
+      metricas,
+    ),
     recomendacao: julgada.avaliacao.recomendacao,
     resumoUmaLinha: julgada.avaliacao.resumoUmaLinha,
     criterios,
