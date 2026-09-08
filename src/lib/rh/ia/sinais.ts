@@ -266,7 +266,13 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
     });
   }
 
-  if (m.empregosCurtos >= 3 || m.inicios24Meses >= 3) {
+  /* A CONDIÇÃO INCLUI O TETO, e isso não é redundância.
+     O alerta nascia com três vínculos curtos ou três inícios em 24 meses; o
+     teto de nota entra com 25% dos vínculos datados abaixo de um ano — dois
+     empregos curtos em três já bastam. Sem esta terceira condição existia o
+     pior caso possível: a nota caía para 45 e a ficha não dizia por quê. Número
+     limitado sem explicação ao lado é pior que número não limitado. */
+  if (m.empregosCurtos >= 3 || m.inicios24Meses >= 3 || tetoPorRotatividade(m) !== null) {
     /* O TETO ENTRA NO TEXTO DO SINAL, e não numa nota de rodapé: quem lê "57"
        na ficha precisa saber, na mesma frase, que aquele número foi limitado e
        por quê. Sem isso o RH compara um 57 com teto contra um 57 sem teto como
@@ -280,12 +286,16 @@ export function sinaisDeCalculo(entrada: EntradaSinais): Sinal[] {
       titulo:
         limite === null
           ? "Padrão de vínculos curtos"
-          : `Vínculos curtos: nota limitada a ${String(limite.teto)}`,
+          : /* "não passa de", e não "foi limitada a": o sinal é calculado sem
+               saber a nota final, e em quem já tirou 35 numa régua de teto 45 a
+               segunda frase seria mentira. O teto é um limite superior — dizer
+               isso é verdade tenha ele mordido ou não. */
+            `Vínculos curtos: nota não passa de ${String(limite.teto)}`,
       detalhe:
-        `${String(m.empregosCurtos)} ${m.empregosCurtos === 1 ? "vínculo durou" : "vínculos duraram"} menos de um ano e ${String(m.inicios24Meses)} ${m.inicios24Meses === 1 ? "começou" : "começaram"} nos últimos 24 meses. Treinar alguém para a rotina da clínica leva cerca de dois meses, então o padrão importa — mas veja antes se não é uma sequência de contratos temporários.` +
+        `${String(m.empregosCurtos)} de ${String(m.empregosDatados)} ${m.empregosDatados === 1 ? "vínculo datado durou" : "vínculos datados duraram"} menos de um ano${m.inicios24Meses > 0 ? `, e ${String(m.inicios24Meses)} ${m.inicios24Meses === 1 ? "começou" : "começaram"} nos últimos 24 meses` : ""}. Treinar alguém para a rotina da clínica leva cerca de dois meses, então o padrão importa — mas veja antes se não é uma sequência de contratos temporários.` +
         (limite === null
           ? ""
-          : ` A nota desta ficha foi limitada a ${String(limite.teto)} por causa disso: ${limite.motivo} O limite vale sobre a média dos seis critérios e não pode ser compensado por nota alta nos outros.`),
+          : ` Por causa disso a nota desta ficha não passa de ${String(limite.teto)}: ${limite.motivo} O limite vale sobre a média dos seis critérios e não pode ser compensado por nota alta nos outros.`),
       evidencias: [
         `Empregos com menos de 1 ano: ${String(m.empregosCurtos)}${m.proporcaoCurtos != null ? ` (${String(m.proporcaoCurtos)}% dos datados)` : ""}`,
       ],

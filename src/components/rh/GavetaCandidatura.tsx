@@ -1204,176 +1204,31 @@ function ConteudoGaveta(props: PropsConteudo) {
 
               O `max-w` existe porque em tela de 2560px duas colunas de 1200px
               seriam ilegíveis — linha de texto longa demais para o olho voltar. */}
-          <div className="mx-auto max-w-[1600px] space-y-4 xl:columns-2 xl:gap-5 xl:space-y-0 xl:[&>*]:mb-5 xl:[&>*]:break-inside-avoid">
-            {/* ---------- Faixa de gestão ---------- */}
-            <section aria-labelledby={`${uid}-gestao`} className="rh-vidro p-4 sm:p-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3
-                  id={`${uid}-gestao`}
-                  className="flex items-center gap-2 font-display text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-white"
-                >
-                  <BadgeCheck className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-                  Gestão do processo
-                </h3>
-                {/* Indicador discreto: avisa que gravou sem tirar nada da tela. */}
-                <p
-                  role="status"
-                  className="flex items-center gap-1.5 text-xs font-semibold text-white"
-                >
-                  {salvando ? (
-                    <>
-                      <LoaderCircle
-                        className="h-3.5 w-3.5 animate-spin text-lime"
-                        aria-hidden="true"
-                      />
-                      Salvando…
-                    </>
-                  ) : null}
-                </p>
-              </div>
+          <div className="rh-ficha mx-auto max-w-[1600px]">
+            {/* DUAS COLUNAS DE VERDADE, cada uma empacotando sozinha.
+                Antes era UMA grade com os blocos soltos dentro e a coluna
+                escolhida por CSS. Numa grade, a altura da linha é a do item
+                mais alto dela: "Leitura da IA" com 816px punha "Gestão do
+                processo", que tem 441px, numa linha de 816 — 375px de buraco
+                embaixo dela. E o mesmo acontecia em cada linha seguinte.
 
-              <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor={`${uid}-status`} className={ROTULO}>
-                    Status
-                  </label>
-                  <select
-                    id={`${uid}-status`}
-                    className={CAMPO}
-                    value={item.status}
-                    onChange={trocarStatus}
-                  >
-                    {STATUS.map((s) => (
-                      /* O <option> herda o fundo do sistema, não o do select: sem
-                       estas classes a lista aberta sai branco no branco. */
-                      <option key={s.valor} value={s.valor} className="bg-white text-ink">
-                        {s.rotulo}
-                      </option>
-                    ))}
-                  </select>
-                  <p className={AJUDA}>{pilula.descricao}</p>
-                </div>
-
-                {/* ÁREA — ao lado do status de propósito: são as duas perguntas
-                    de arrumação da ficha ("em que pé está" e "onde se encaixa"),
-                    e a segunda é a que o cliente pediu. */}
-                <div>
-                  <label htmlFor={`${uid}-area`} className={ROTULO}>
-                    Onde se encaixa
-                  </label>
-                  <select
-                    id={`${uid}-area`}
-                    className={CAMPO}
-                    value={item.area}
-                    onChange={trocarArea}
-                  >
-                    {AREAS.map((a) => (
-                      <option key={a.valor} value={a.valor} className="bg-white text-ink">
-                        {a.rotulo}
-                      </option>
-                    ))}
-                  </select>
-                  <p className={AJUDA}>
-                    Muda a régua da IA, o filtro e a etiqueta do cartão. O cargo que a pessoa
-                    escreveu continua em “Vaga pretendida”, e a troca fica no histórico.
-                  </p>
-                </div>
-
-                {/* VAGA — a outra metade de "onde essa pessoa deveria estar".
-                    A área diz que perfil é; esta diz de qual processo ela
-                    participa. Trocar aqui move a candidatura de fila. */}
-                <div>
-                  <label htmlFor={`${uid}-vaga-atual`} className={ROTULO}>
-                    Vaga do processo
-                  </label>
-                  <select
-                    id={`${uid}-vaga-atual`}
-                    className={CAMPO}
-                    value={item.vagaId}
-                    onChange={trocarVaga}
-                  >
-                    <option value="" className="bg-white text-ink">
-                      Candidatura espontânea (sem vaga)
-                    </option>
-                    {vagas.map((v) => (
-                      <option key={v.id} value={v.id} className="bg-white text-ink">
-                        {v.titulo}
-                        {v.status === "aberta" ? "" : ` — ${statusVagaPor(v.status).rotulo}`}
-                      </option>
-                    ))}
-                  </select>
-                  <p className={AJUDA}>
-                    {vagas.length === 0
-                      ? "Nenhuma vaga cadastrada ainda. Crie uma na aba Vagas para poder mover candidaturas para ela."
-                      : "Move a candidatura para outro processo: muda o filtro por vaga e o comparativo. A troca fica no histórico."}
-                  </p>
-                </div>
-
-                <div>
-                  <label htmlFor={`${uid}-responsavel`} className={ROTULO}>
-                    Responsável
-                  </label>
-                  <input
-                    id={`${uid}-responsavel`}
-                    type="text"
-                    className={CAMPO}
-                    placeholder="Quem está conduzindo"
-                    value={responsavel}
-                    onChange={(e) => setResponsavel(e.target.value)}
-                    onBlur={salvarResponsavel}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        salvarResponsavel();
-                      }
-                    }}
-                  />
-                  <p className={AJUDA}>Grava ao sair do campo ou no Enter.</p>
-                </div>
-
-                <div>
-                  <label htmlFor={`${uid}-entrevista`} className={ROTULO}>
-                    Entrevista
-                  </label>
-                  <input
-                    id={`${uid}-entrevista`}
-                    type="datetime-local"
-                    className={CAMPO}
-                    value={entrevista}
-                    onChange={(e) => setEntrevista(e.target.value)}
-                    onBlur={salvarEntrevista}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        salvarEntrevista();
-                      }
-                    }}
-                  />
-                  <p className={AJUDA}>
-                    {/* Sem promessa de "agenda do funil": não existe tela nenhuma
-                      que mostre esta data — nem no cartão, nem na tabela, nem no
-                      resumo. Ela fica na ficha e sai na exportação. */}
-                    {item.entrevistaEm.trim() === ""
-                      ? "Vale para qualquer status: dá para marcar a data antes de mover o candidato para Entrevista ou Teste prático. Grava ao sair do campo ou no Enter."
-                      : `${formatarDataHora(item.entrevistaEm)} — fica registrada nesta ficha e sai na exportação CSV. Grava ao sair do campo ou no Enter.`}
-                  </p>
-                </div>
-              </div>
-            </section>
-
-            {/* ---------- Leitura da IA ----------
+                Com um contêiner por coluna, cada pilha corre no seu ritmo e não
+                existe linha nenhuma para alinhar. É a diferença entre duas
+                colunas de jornal e uma tabela de duas células. */}
+            <div className="rh-ficha-principal">
+              {/* ---------- Leitura da IA ----------
               Primeira seção depois da faixa de gestão, e não no rodapé: é a
               informação mais cara e mais densa da tela (permanência calculada,
               sinais, perguntas de entrevista), e quem abre a ficha decide olhando
               para ela. Embaixo dos dados pessoais, ninguém rolaria até aqui. */}
-            <LeituraIa
-              item={item}
-              agora={agora}
-              analisando={analisando}
-              aoAnalisar={(forcar) => aoAnalisar(item.id, forcar)}
-            />
+              <LeituraIa
+                item={item}
+                agora={agora}
+                analisando={analisando}
+                aoAnalisar={(forcar) => aoAnalisar(item.id, forcar)}
+              />
 
-            {/* ---------- O que perguntar ----------
+              {/* ---------- O que perguntar ----------
               Entre a leitura da IA e a ficha, e nesta ordem porque é a ordem da
               cabeça de quem lê: primeiro o que a IA achou no currículo, depois
               o que ficou SEM resposta e precisa ser perguntado, e só então a
@@ -1385,502 +1240,661 @@ function ConteudoGaveta(props: PropsConteudo) {
               que a clínica decide se vale a pena chamar a pessoa. Marcar
               resposta antes de ter conversado não faria sentido — e sem ficha
               não há onde gravar sem inventar uma. */}
-            {/* SANFONA, e a que mais importa: com as quinze dúvidas abertas de
+              {/* SANFONA, e a que mais importa: com as quinze dúvidas abertas de
               uma vez este bloco sozinho tinha 4.929px — noventa por cento da
               altura da gaveta. O painel recebe `semCabecalho` porque o título
               agora é o botão que abre a seção; anunciar "O que perguntar" duas
               vezes seguidas é a poluição que estamos tirando. */}
-            <Secao
-              id={`${uid}-duvidas`}
-              chave="duvidas"
-              sanfona={sanfona}
-              titulo="O que perguntar"
-              icone={MessageCircleQuestion}
-              /* "15 em aberto", e não "15 perguntas em aberto": na coluna
+              <Secao
+                id={`${uid}-duvidas`}
+                chave="duvidas"
+                sanfona={sanfona}
+                titulo="O que perguntar"
+                icone={MessageCircleQuestion}
+                /* "15 em aberto", e não "15 perguntas em aberto": na coluna
                   estreita de 336px o rótulo longo quebrava em duas linhas e a
                   fileira ia de 54px para 66px, quebrando o alinhamento com as
                   vizinhas. A palavra "perguntas" já está no título ao lado. */
-              resumo={conta(duvidasAbertas, "em aberto", "em aberto")}
-            >
-              <PainelDuvidas
-                item={item}
-                leituras={duvidas.leituras}
-                respostas={duvidas.respostas}
-                semCabecalho
-                somenteLeitura={item.ficha === null}
-                // Clique de leitura sobe na hora: é um toque só, e a gaveta pode
-                // fechar no instante seguinte.
-                aoMudarLeitura={(id, leitura) =>
-                  editarDuvidas((f) => comLeituraDeDuvida(f, id, leitura), true)
-                }
-                // A anotação sobe por pausa, nunca por tecla.
-                aoMudarResposta={(id, texto) =>
-                  editarDuvidas((f) => comRespostaDeDuvida(f, id, texto), false)
-                }
-              />
-            </Secao>
+                resumo={conta(duvidasAbertas, "em aberto", "em aberto")}
+              >
+                <PainelDuvidas
+                  item={item}
+                  leituras={duvidas.leituras}
+                  respostas={duvidas.respostas}
+                  semCabecalho
+                  somenteLeitura={item.ficha === null}
+                  // Clique de leitura sobe na hora: é um toque só, e a gaveta pode
+                  // fechar no instante seguinte.
+                  aoMudarLeitura={(id, leitura) =>
+                    editarDuvidas((f) => comLeituraDeDuvida(f, id, leitura), true)
+                  }
+                  // A anotação sobe por pausa, nunca por tecla.
+                  aoMudarResposta={(id, texto) =>
+                    editarDuvidas((f) => comRespostaDeDuvida(f, id, texto), false)
+                  }
+                />
+              </Secao>
 
-            {/* ---------- Ficha de entrevista ----------
+              {/* ---------- Ficha de entrevista ----------
               Logo depois da leitura da IA, e nesta ordem: a leitura diz se vale
               a pena conversar, a ficha é a conversa. Antes dos dados pessoais
               porque é aqui que o dia de trabalho continua — quem abre a gaveta
               decide chamar, prepara a ficha e, na hora marcada, entra no modo
               entrevista. Os dados cadastrais são consulta, não fluxo. */}
-            <BlocoFicha
-              item={item}
-              guia={guia}
-              agora={agora}
-              gerando={gerandoFicha}
-              salvando={salvandoFicha}
-              aoGerar={(forcar) => aoGerarFicha(item.id, forcar)}
-              aoSalvar={(ficha) => aoSalvarFicha(item.id, ficha)}
-              aoAbrirModoEntrevista={() => aoAbrirModoEntrevista(item.id)}
-            />
+              <BlocoFicha
+                item={item}
+                guia={guia}
+                agora={agora}
+                gerando={gerandoFicha}
+                salvando={salvandoFicha}
+                aoGerar={(forcar) => aoGerarFicha(item.id, forcar)}
+                aoSalvar={(ficha) => aoSalvarFicha(item.id, ficha)}
+                aoAbrirModoEntrevista={() => aoAbrirModoEntrevista(item.id)}
+              />
 
-            {/* ETIQUETAS E ARQUIVO viraram uma seção à parte, fechada.
+              {/* ---------- Vaga pretendida ---------- */}
+              {camposVaga.length > 0 || item.especialidades.length > 0 || vaga ? (
+                <Secao
+                  id={`${uid}-vaga`}
+                  chave="vaga"
+                  sanfona={sanfona}
+                  titulo="Vaga pretendida"
+                  icone={Briefcase}
+                  resumo={vaga ? vaga.titulo : item.cargoDesejado.trim() || "espontânea"}
+                >
+                  {vaga ? (
+                    <p className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-white">
+                      {vaga.titulo}
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.7rem] font-bold ${statusVagaPor(vaga.status).pilulaEscura}`}
+                      >
+                        {statusVagaPor(vaga.status).rotulo}
+                      </span>
+                    </p>
+                  ) : item.vagaId !== "" ? (
+                    /* A vaga saiu do ar, mas o título ficou gravado na candidatura
+                   justamente para o processo continuar fazendo sentido. */
+                    <p className="mb-3 text-sm font-semibold text-white/85">
+                      {item.vagaTitulo.trim() === ""
+                        ? "A vaga desta candidatura não existe mais."
+                        : `${item.vagaTitulo} — vaga removida do painel.`}
+                    </p>
+                  ) : (
+                    <p className="mb-3 text-sm font-semibold text-white/85">
+                      Candidatura espontânea, sem vaga ligada.
+                    </p>
+                  )}
+                  <ListaCampos campos={camposVaga} />
+                  {item.especialidades.length > 0 ? (
+                    <div className="mt-3">
+                      <ChipsLeitura rotulo="Especialidades" itens={item.especialidades} />
+                    </div>
+                  ) : null}
+                </Secao>
+              ) : null}
+
+              {/* ---------- Dados pessoais ---------- */}
+              {camposPessoais.length > 0 ? (
+                <Secao
+                  id={`${uid}-pessoais`}
+                  chave="pessoais"
+                  sanfona={sanfona}
+                  titulo="Dados pessoais"
+                  icone={User}
+                  resumo={conta(camposPessoais.length, "campo", "campos")}
+                >
+                  <ListaCampos campos={camposPessoais} />
+                </Secao>
+              ) : null}
+
+              {/* ---------- Disponibilidade ---------- */}
+              {item.disponibilidade.length > 0 ? (
+                <Secao
+                  id={`${uid}-disponibilidade`}
+                  chave="disponibilidade"
+                  sanfona={sanfona}
+                  titulo="Disponibilidade"
+                  icone={CalendarClock}
+                  resumo={conta(item.disponibilidade.length, "turno", "turnos")}
+                >
+                  <GradeDisponibilidade
+                    chaves={item.disponibilidade}
+                    nome={primeiroNome(item.nome)}
+                  />
+                </Secao>
+              ) : null}
+
+              {aguardandoLeitura ? (
+                <div
+                  role="status"
+                  className="flex items-start gap-3 rounded-2xl border border-border-soft bg-mint/60 p-4"
+                >
+                  <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-forest" aria-hidden="true" />
+                  <p className="text-sm font-semibold leading-relaxed text-ink">
+                    Formação, experiência, cursos e idiomas ainda não aparecem porque o currículo
+                    não foi lido. O formulário do site pede só nome, WhatsApp e o arquivo — o resto
+                    sai da leitura. Use “Analisar este currículo”, logo abaixo.
+                  </p>
+                </div>
+              ) : null}
+
+              {/* ---------- Formação ---------- */}
+              {camposFormacao.length > 0 || temCro ? (
+                <Secao
+                  id={`${uid}-formacao`}
+                  chave="formacao"
+                  sanfona={sanfona}
+                  titulo="Formação"
+                  icone={GraduationCap}
+                  resumo={
+                    temCro ? `CRO ${item.cro}` : conta(camposFormacao.length, "campo", "campos")
+                  }
+                >
+                  {temCro ? (
+                    /* O CRO é o que decide se a pessoa pode atender: fora da lista
+                   de campos, em destaque, porque é a primeira coisa procurada. */
+                    <p className="mb-3 inline-flex items-center gap-2 rounded-xl bg-lime/15 px-3 py-2 text-sm font-extrabold text-white ring-1 ring-lime/35">
+                      <IdCard className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      CRO {item.cro}
+                      {item.croUf.trim() === "" ? "" : `/${item.croUf}`}
+                    </p>
+                  ) : null}
+                  <ListaCampos campos={camposFormacao} />
+                </Secao>
+              ) : null}
+
+              {/* ---------- Experiência ---------- */}
+              {temExperiencia ? (
+                <Secao
+                  id={`${uid}-experiencia`}
+                  chave="experiencia"
+                  sanfona={sanfona}
+                  titulo="Experiência"
+                  icone={Building2}
+                  resumo={conta(item.experiencias.length, "experiência", "experiências")}
+                >
+                  {faixaExperiencia !== "" ? (
+                    <p className="mb-3 text-sm font-semibold text-white">{faixaExperiencia}</p>
+                  ) : null}
+                  {item.experiencias.length > 0 ? (
+                    <ul className="space-y-2">
+                      {item.experiencias.map((exp, i) => (
+                        <li
+                          key={`${exp.empresa}-${exp.cargo}-${i}`}
+                          className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10"
+                        >
+                          <p className="text-sm font-extrabold text-white">
+                            {exp.cargo.trim() === "" ? "Cargo não informado" : exp.cargo}
+                          </p>
+                          <p className="mt-0.5 text-xs font-semibold text-white/85">
+                            {[exp.empresa, exp.periodo].filter((t) => t.trim() !== "").join(" · ")}
+                          </p>
+                          {exp.atividades.trim() !== "" ? (
+                            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-white/85">
+                              {exp.atividades}
+                            </p>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </Secao>
+              ) : null}
+
+              {/* ---------- Competências ---------- */}
+              {temHabilidades ? (
+                <Secao
+                  id={`${uid}-habilidades`}
+                  chave="habilidades"
+                  sanfona={sanfona}
+                  titulo="Competências"
+                  icone={Sparkles}
+                  resumo={conta(
+                    item.competencias.length + item.softwares.length + item.idiomas.length,
+                    "item",
+                    "itens",
+                  )}
+                >
+                  <div className="space-y-3">
+                    <ChipsLeitura rotulo="Competências" itens={item.competencias} />
+                    <ChipsLeitura rotulo="Softwares" itens={item.softwares} />
+                    <ChipsLeitura rotulo="Idiomas" itens={item.idiomas} />
+                  </div>
+                </Secao>
+              ) : null}
+
+              {/* ---------- Carta ---------- */}
+              {item.cartaApresentacao.trim() !== "" ? (
+                <Secao
+                  id={`${uid}-carta`}
+                  chave="carta"
+                  sanfona={sanfona}
+                  titulo="Carta de apresentação"
+                  icone={FileText}
+                  resumo="escrita pela pessoa"
+                >
+                  {/* pre-wrap: a pessoa escreveu em parágrafos e essa quebra é parte
+                  do que ela quis dizer. */}
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-white">
+                    {item.cartaApresentacao}
+                  </p>
+                </Secao>
+              ) : null}
+            </div>
+
+            <aside className="rh-ficha-lateral" aria-label="Gestão e registro">
+              {/* ---------- Faixa de gestão ---------- */}
+              <section aria-labelledby={`${uid}-gestao`} className="rh-vidro p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3
+                    id={`${uid}-gestao`}
+                    className="flex items-center gap-2 font-display text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-white"
+                  >
+                    <BadgeCheck className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+                    Gestão do processo
+                  </h3>
+                  {/* Indicador discreto: avisa que gravou sem tirar nada da tela. */}
+                  <p
+                    role="status"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-white"
+                  >
+                    {salvando ? (
+                      <>
+                        <LoaderCircle
+                          className="h-3.5 w-3.5 animate-spin text-lime"
+                          aria-hidden="true"
+                        />
+                        Salvando…
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor={`${uid}-status`} className={ROTULO}>
+                      Status
+                    </label>
+                    <select
+                      id={`${uid}-status`}
+                      className={CAMPO}
+                      value={item.status}
+                      onChange={trocarStatus}
+                    >
+                      {STATUS.map((s) => (
+                        /* O <option> herda o fundo do sistema, não o do select: sem
+                       estas classes a lista aberta sai branco no branco. */
+                        <option key={s.valor} value={s.valor} className="bg-white text-ink">
+                          {s.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                    <p className={AJUDA}>{pilula.descricao}</p>
+                  </div>
+
+                  {/* ÁREA — ao lado do status de propósito: são as duas perguntas
+                    de arrumação da ficha ("em que pé está" e "onde se encaixa"),
+                    e a segunda é a que o cliente pediu. */}
+                  <div>
+                    <label htmlFor={`${uid}-area`} className={ROTULO}>
+                      Onde se encaixa
+                    </label>
+                    <select
+                      id={`${uid}-area`}
+                      className={CAMPO}
+                      value={item.area}
+                      onChange={trocarArea}
+                    >
+                      {AREAS.map((a) => (
+                        <option key={a.valor} value={a.valor} className="bg-white text-ink">
+                          {a.rotulo}
+                        </option>
+                      ))}
+                    </select>
+                    <p className={AJUDA}>
+                      Muda a régua da IA, o filtro e a etiqueta do cartão. O cargo que a pessoa
+                      escreveu continua em “Vaga pretendida”, e a troca fica no histórico.
+                    </p>
+                  </div>
+
+                  {/* VAGA — a outra metade de "onde essa pessoa deveria estar".
+                    A área diz que perfil é; esta diz de qual processo ela
+                    participa. Trocar aqui move a candidatura de fila. */}
+                  <div>
+                    <label htmlFor={`${uid}-vaga-atual`} className={ROTULO}>
+                      Vaga do processo
+                    </label>
+                    <select
+                      id={`${uid}-vaga-atual`}
+                      className={CAMPO}
+                      value={item.vagaId}
+                      onChange={trocarVaga}
+                    >
+                      <option value="" className="bg-white text-ink">
+                        Candidatura espontânea (sem vaga)
+                      </option>
+                      {vagas.map((v) => (
+                        <option key={v.id} value={v.id} className="bg-white text-ink">
+                          {v.titulo}
+                          {v.status === "aberta" ? "" : ` — ${statusVagaPor(v.status).rotulo}`}
+                        </option>
+                      ))}
+                    </select>
+                    <p className={AJUDA}>
+                      {vagas.length === 0
+                        ? "Nenhuma vaga cadastrada ainda. Crie uma na aba Vagas para poder mover candidaturas para ela."
+                        : "Move a candidatura para outro processo: muda o filtro por vaga e o comparativo. A troca fica no histórico."}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label htmlFor={`${uid}-responsavel`} className={ROTULO}>
+                      Responsável
+                    </label>
+                    <input
+                      id={`${uid}-responsavel`}
+                      type="text"
+                      className={CAMPO}
+                      placeholder="Quem está conduzindo"
+                      value={responsavel}
+                      onChange={(e) => setResponsavel(e.target.value)}
+                      onBlur={salvarResponsavel}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          salvarResponsavel();
+                        }
+                      }}
+                    />
+                    <p className={AJUDA}>Grava ao sair do campo ou no Enter.</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor={`${uid}-entrevista`} className={ROTULO}>
+                      Entrevista
+                    </label>
+                    <input
+                      id={`${uid}-entrevista`}
+                      type="datetime-local"
+                      className={CAMPO}
+                      value={entrevista}
+                      onChange={(e) => setEntrevista(e.target.value)}
+                      onBlur={salvarEntrevista}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          salvarEntrevista();
+                        }
+                      }}
+                    />
+                    <p className={AJUDA}>
+                      {/* Sem promessa de "agenda do funil": não existe tela nenhuma
+                      que mostre esta data — nem no cartão, nem na tabela, nem no
+                      resumo. Ela fica na ficha e sai na exportação. */}
+                      {item.entrevistaEm.trim() === ""
+                        ? "Vale para qualquer status: dá para marcar a data antes de mover o candidato para Entrevista ou Teste prático. Grava ao sair do campo ou no Enter."
+                        : `${formatarDataHora(item.entrevistaEm)} — fica registrada nesta ficha e sai na exportação CSV. Grava ao sair do campo ou no Enter.`}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* ETIQUETAS E ARQUIVO viraram uma seção à parte, fechada.
                 Estavam no fim do formulário de gestão e sozinhos respondiam por
                 cerca de trezentos pixels — seis chips de sugestão, um campo de
                 texto, um botão e o "arquivar" — em cima do que o RH abre a
                 gaveta para fazer, que é decidir status e olhar a leitura. São
                 ações de arrumação, não de decisão: cabem atrás de um clique. */}
-            <Secao
-              id={`${uid}-etiquetas`}
-              chave="etiquetas"
-              sanfona={sanfona}
-              titulo="Etiquetas e arquivo"
-              icone={Tags}
-              resumo={conta(item.etiquetas.length, "etiqueta", "etiquetas")}
-            >
-              {/* ---- Etiquetas ---- */}
-              <div>
-                <p className={ROTULO} id={`${uid}-etiquetas-rotulo`}>
-                  Etiquetas
-                </p>
+              <Secao
+                id={`${uid}-etiquetas`}
+                chave="etiquetas"
+                sanfona={sanfona}
+                titulo="Etiquetas e arquivo"
+                icone={Tags}
+                resumo={conta(item.etiquetas.length, "etiqueta", "etiquetas")}
+              >
+                {/* ---- Etiquetas ---- */}
+                <div>
+                  <p className={ROTULO} id={`${uid}-etiquetas-rotulo`}>
+                    Etiquetas
+                  </p>
 
-                <div
-                  role="group"
-                  aria-labelledby={`${uid}-etiquetas-rotulo`}
-                  className="flex flex-wrap gap-1.5"
-                >
-                  {item.etiquetas.map((etq) => (
-                    /* O chip inteiro é o botão de remover. Um X de 24px dentro de
+                  <div
+                    role="group"
+                    aria-labelledby={`${uid}-etiquetas-rotulo`}
+                    className="flex flex-wrap gap-1.5"
+                  >
+                    {item.etiquetas.map((etq) => (
+                      /* O chip inteiro é o botão de remover. Um X de 24px dentro de
                        um chip de 40px seria alvo pequeno demais no celular. */
-                    <button
-                      key={etq}
-                      type="button"
-                      onClick={() => removerEtiqueta(etq)}
-                      aria-label={`Remover etiqueta ${etq}`}
-                      data-ativo="true"
-                      className="rh-chip rh-chip-escuro min-h-11!"
-                    >
-                      {etq}
-                      <X className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    </button>
-                  ))}
-                  {item.etiquetas.length === 0 ? (
-                    <p className="text-xs text-white/85">Nenhuma etiqueta ainda.</p>
-                  ) : null}
-                </div>
-
-                {sugestoesEtiqueta.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {sugestoesEtiqueta.map((etq) => (
                       <button
                         key={etq}
                         type="button"
-                        onClick={() => adicionarEtiqueta(etq)}
-                        aria-label={`Adicionar etiqueta ${etq}`}
+                        onClick={() => removerEtiqueta(etq)}
+                        aria-label={`Remover etiqueta ${etq}`}
+                        data-ativo="true"
                         className="rh-chip rh-chip-escuro min-h-11!"
                       >
-                        <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         {etq}
+                        <X className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       </button>
                     ))}
+                    {item.etiquetas.length === 0 ? (
+                      <p className="text-xs text-white/85">Nenhuma etiqueta ainda.</p>
+                    ) : null}
                   </div>
-                ) : null}
 
-                <div className="mt-2 flex flex-wrap items-end gap-2">
-                  <div className="min-w-[10rem] flex-1">
-                    <label htmlFor={`${uid}-nova-etiqueta`} className="sr-only">
-                      Nova etiqueta
-                    </label>
-                    <input
-                      id={`${uid}-nova-etiqueta`}
-                      type="text"
-                      className={CAMPO}
-                      placeholder="Etiqueta própria"
-                      value={novaEtiqueta}
-                      onChange={(e) => setNovaEtiqueta(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key !== "Enter") return;
-                        // Enter aqui adiciona a etiqueta; sem isto ele submeteria
-                        // o formulário mais próximo e a tela recarregaria.
-                        e.preventDefault();
+                  {sugestoesEtiqueta.length > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {sugestoesEtiqueta.map((etq) => (
+                        <button
+                          key={etq}
+                          type="button"
+                          onClick={() => adicionarEtiqueta(etq)}
+                          aria-label={`Adicionar etiqueta ${etq}`}
+                          className="rh-chip rh-chip-escuro min-h-11!"
+                        >
+                          <Plus className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                          {etq}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+
+                  <div className="mt-2 flex flex-wrap items-end gap-2">
+                    <div className="min-w-[10rem] flex-1">
+                      <label htmlFor={`${uid}-nova-etiqueta`} className="sr-only">
+                        Nova etiqueta
+                      </label>
+                      <input
+                        id={`${uid}-nova-etiqueta`}
+                        type="text"
+                        className={CAMPO}
+                        placeholder="Etiqueta própria"
+                        value={novaEtiqueta}
+                        onChange={(e) => setNovaEtiqueta(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter") return;
+                          // Enter aqui adiciona a etiqueta; sem isto ele submeteria
+                          // o formulário mais próximo e a tela recarregaria.
+                          e.preventDefault();
+                          adicionarEtiqueta(novaEtiqueta);
+                          setNovaEtiqueta("");
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
                         adicionarEtiqueta(novaEtiqueta);
                         setNovaEtiqueta("");
                       }}
-                    />
+                      disabled={novaEtiqueta.trim() === ""}
+                      className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-lime px-4 text-sm font-bold text-brand-deep transition hover:bg-lime/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/85"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden="true" />
+                      Adicionar
+                    </button>
                   </div>
+                </div>
+
+                <div className="mt-4 border-t border-white/10 pt-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      adicionarEtiqueta(novaEtiqueta);
-                      setNovaEtiqueta("");
-                    }}
-                    disabled={novaEtiqueta.trim() === ""}
-                    className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-lime px-4 text-sm font-bold text-brand-deep transition hover:bg-lime/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/85"
+                    onClick={() => aoAtualizar(item.id, { arquivada: !item.arquivada })}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-bold text-white ring-1 ring-white/20 transition hover:bg-white/20"
                   >
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    Adicionar
+                    {item.arquivada ? (
+                      <>
+                        <ArchiveRestore className="h-4 w-4" aria-hidden="true" />
+                        Tirar do arquivo
+                      </>
+                    ) : (
+                      <>
+                        <Archive className="h-4 w-4" aria-hidden="true" />
+                        Arquivar candidatura
+                      </>
+                    )}
                   </button>
+                  <p className={AJUDA}>
+                    Arquivar só esconde da lista padrão. Nada é apagado e o histórico continua
+                    inteiro.
+                  </p>
                 </div>
-              </div>
+              </Secao>
 
-              <div className="mt-4 border-t border-white/10 pt-3">
+              {/* ---------- Origem ---------- */}
+              {camposOrigem.length > 0 ? (
+                <Secao
+                  id={`${uid}-origem`}
+                  chave="origem"
+                  sanfona={sanfona}
+                  titulo="Origem e registro"
+                  icone={ShieldCheck}
+                  /* A data em que chegou, em vez de "datas e consentimento": cabe
+                  numa linha só e diz mais — é a informação que se procura
+                  quando se abre "Origem e registro". */
+                  resumo={formatarData(item.criadoEm)}
+                >
+                  <ListaCampos campos={camposOrigem} />
+                  <p className={AJUDA}>
+                    {item.consentimentoLgpd
+                      ? "O candidato aceitou o uso dos dados para fins de recrutamento (LGPD)."
+                      : "Sem registro de consentimento LGPD nesta candidatura."}
+                  </p>
+                  {guardaVencida ? (
+                    /* `role="note"` e não `alert`: a gaveta pode abrir com o prazo
+                   já vencido, e um alerta anunciado a cada abertura vira ruído
+                   que se aprende a ignorar. */
+                    <p
+                      role="note"
+                      className="mt-2 rounded-xl border border-amber-200/35 bg-amber-300/12 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-50"
+                    >
+                      Prazo de guarda vencido: passaram-se mais de {MESES_RETENCAO_LGPD} meses desde
+                      o envio, que é o prazo declarado no aviso aceito por esta pessoa. Exclua a
+                      candidatura ou peça um novo consentimento.
+                    </p>
+                  ) : diasDeGuarda !== null && diasDeGuarda <= 60 ? (
+                    <p className={AJUDA}>
+                      Prazo de guarda vence em{" "}
+                      {diasDeGuarda === 1 ? "1 dia" : `${diasDeGuarda} dias`}.
+                    </p>
+                  ) : null}
+                </Secao>
+              ) : null}
+
+              {/* ---------- Anotações ---------- */}
+              <Secao
+                id={`${uid}-anotacoes`}
+                chave="anotacoes"
+                sanfona={sanfona}
+                titulo="Anotações internas"
+                icone={StickyNote}
+                resumo={conta(item.anotacoes.length, "anotação", "anotações")}
+              >
+                <label htmlFor={`${uid}-nova-anotacao`} className="sr-only">
+                  Nova anotação
+                </label>
+                <textarea
+                  id={`${uid}-nova-anotacao`}
+                  className={`${CAMPO} min-h-28 resize-y`}
+                  rows={3}
+                  placeholder="O que ficou desta conversa?"
+                  value={rascunhoAnotacao}
+                  onChange={(e) => setRascunhoAnotacao(e.target.value)}
+                />
                 <button
                   type="button"
-                  onClick={() => aoAtualizar(item.id, { arquivada: !item.arquivada })}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-bold text-white ring-1 ring-white/20 transition hover:bg-white/20"
+                  onClick={adicionarAnotacao}
+                  disabled={rascunhoAnotacao.trim() === ""}
+                  className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-lime px-4 text-sm font-bold text-brand-deep transition hover:bg-lime/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/85"
                 >
-                  {item.arquivada ? (
-                    <>
-                      <ArchiveRestore className="h-4 w-4" aria-hidden="true" />
-                      Tirar do arquivo
-                    </>
-                  ) : (
-                    <>
-                      <Archive className="h-4 w-4" aria-hidden="true" />
-                      Arquivar candidatura
-                    </>
-                  )}
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  Adicionar anotação
                 </button>
-                <p className={AJUDA}>
-                  Arquivar só esconde da lista padrão. Nada é apagado e o histórico continua
-                  inteiro.
-                </p>
-              </div>
-            </Secao>
 
-            {/* ---------- Vaga pretendida ---------- */}
-            {camposVaga.length > 0 || item.especialidades.length > 0 || vaga ? (
-              <Secao
-                id={`${uid}-vaga`}
-                chave="vaga"
-                sanfona={sanfona}
-                titulo="Vaga pretendida"
-                icone={Briefcase}
-                resumo={vaga ? vaga.titulo : item.cargoDesejado.trim() || "espontânea"}
-              >
-                {vaga ? (
-                  <p className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-white">
-                    {vaga.titulo}
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.7rem] font-bold ${statusVagaPor(vaga.status).pilulaEscura}`}
-                    >
-                      {statusVagaPor(vaga.status).rotulo}
-                    </span>
-                  </p>
-                ) : item.vagaId !== "" ? (
-                  /* A vaga saiu do ar, mas o título ficou gravado na candidatura
-                   justamente para o processo continuar fazendo sentido. */
-                  <p className="mb-3 text-sm font-semibold text-white/85">
-                    {item.vagaTitulo.trim() === ""
-                      ? "A vaga desta candidatura não existe mais."
-                      : `${item.vagaTitulo} — vaga removida do painel.`}
-                  </p>
-                ) : (
-                  <p className="mb-3 text-sm font-semibold text-white/85">
-                    Candidatura espontânea, sem vaga ligada.
-                  </p>
-                )}
-                <ListaCampos campos={camposVaga} />
-                {item.especialidades.length > 0 ? (
-                  <div className="mt-3">
-                    <ChipsLeitura rotulo="Especialidades" itens={item.especialidades} />
-                  </div>
-                ) : null}
-              </Secao>
-            ) : null}
-
-            {/* ---------- Dados pessoais ---------- */}
-            {camposPessoais.length > 0 ? (
-              <Secao
-                id={`${uid}-pessoais`}
-                chave="pessoais"
-                sanfona={sanfona}
-                titulo="Dados pessoais"
-                icone={User}
-                resumo={conta(camposPessoais.length, "campo", "campos")}
-              >
-                <ListaCampos campos={camposPessoais} />
-              </Secao>
-            ) : null}
-
-            {/* ---------- Disponibilidade ---------- */}
-            {item.disponibilidade.length > 0 ? (
-              <Secao
-                id={`${uid}-disponibilidade`}
-                chave="disponibilidade"
-                sanfona={sanfona}
-                titulo="Disponibilidade"
-                icone={CalendarClock}
-                resumo={conta(item.disponibilidade.length, "turno", "turnos")}
-              >
-                <GradeDisponibilidade
-                  chaves={item.disponibilidade}
-                  nome={primeiroNome(item.nome)}
-                />
-              </Secao>
-            ) : null}
-
-            {aguardandoLeitura ? (
-              <div
-                role="status"
-                className="flex items-start gap-3 rounded-2xl border border-border-soft bg-mint/60 p-4"
-              >
-                <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-forest" aria-hidden="true" />
-                <p className="text-sm font-semibold leading-relaxed text-ink">
-                  Formação, experiência, cursos e idiomas ainda não aparecem porque o currículo não
-                  foi lido. O formulário do site pede só nome, WhatsApp e o arquivo — o resto sai da
-                  leitura. Use “Analisar este currículo”, logo abaixo.
-                </p>
-              </div>
-            ) : null}
-
-            {/* ---------- Formação ---------- */}
-            {camposFormacao.length > 0 || temCro ? (
-              <Secao
-                id={`${uid}-formacao`}
-                chave="formacao"
-                sanfona={sanfona}
-                titulo="Formação"
-                icone={GraduationCap}
-                resumo={
-                  temCro ? `CRO ${item.cro}` : conta(camposFormacao.length, "campo", "campos")
-                }
-              >
-                {temCro ? (
-                  /* O CRO é o que decide se a pessoa pode atender: fora da lista
-                   de campos, em destaque, porque é a primeira coisa procurada. */
-                  <p className="mb-3 inline-flex items-center gap-2 rounded-xl bg-lime/15 px-3 py-2 text-sm font-extrabold text-white ring-1 ring-lime/35">
-                    <IdCard className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    CRO {item.cro}
-                    {item.croUf.trim() === "" ? "" : `/${item.croUf}`}
-                  </p>
-                ) : null}
-                <ListaCampos campos={camposFormacao} />
-              </Secao>
-            ) : null}
-
-            {/* ---------- Experiência ---------- */}
-            {temExperiencia ? (
-              <Secao
-                id={`${uid}-experiencia`}
-                chave="experiencia"
-                sanfona={sanfona}
-                titulo="Experiência"
-                icone={Building2}
-                resumo={conta(item.experiencias.length, "experiência", "experiências")}
-              >
-                {faixaExperiencia !== "" ? (
-                  <p className="mb-3 text-sm font-semibold text-white">{faixaExperiencia}</p>
-                ) : null}
-                {item.experiencias.length > 0 ? (
-                  <ul className="space-y-2">
-                    {item.experiencias.map((exp, i) => (
-                      <li
-                        key={`${exp.empresa}-${exp.cargo}-${i}`}
-                        className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10"
-                      >
-                        <p className="text-sm font-extrabold text-white">
-                          {exp.cargo.trim() === "" ? "Cargo não informado" : exp.cargo}
+                {anotacoes.length > 0 ? (
+                  <ul className="mt-4 space-y-2">
+                    {anotacoes.map((a) => (
+                      <li key={a.id} className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
+                        <p className="flex flex-wrap items-center gap-x-2 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-white/85">
+                          {a.autor || "Equipe"}
+                          <span aria-hidden="true">·</span>
+                          <span className="normal-case tracking-normal">
+                            {formatarDataHora(a.criadoEm)}
+                          </span>
                         </p>
-                        <p className="mt-0.5 text-xs font-semibold text-white/85">
-                          {[exp.empresa, exp.periodo].filter((t) => t.trim() !== "").join(" · ")}
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-white">
+                          {a.texto}
                         </p>
-                        {exp.atividades.trim() !== "" ? (
-                          <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-white/85">
-                            {exp.atividades}
+
+                        {anotacaoEmDuvida === a.id ? (
+                          /* Confirmação no lugar do próprio botão: o RH não perde o
+                         contexto e ninguém apaga um registro por engano. */
+                          <p
+                            role="alert"
+                            className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/85"
+                          >
+                            Remover esta anotação?
+                            <button
+                              type="button"
+                              onClick={() => {
+                                aoRemoverAnotacao(item.id, a.id);
+                                setAnotacaoEmDuvida("");
+                              }}
+                              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-rose-400/20 px-3 font-bold text-rose-100 ring-1 ring-rose-300/45 transition hover:bg-rose-400/30"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                              Sim, remover
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAnotacaoEmDuvida("")}
+                              className="inline-flex min-h-11 items-center rounded-full bg-white/10 px-3 font-bold text-white ring-1 ring-white/20 transition hover:bg-white/20"
+                            >
+                              Cancelar
+                            </button>
                           </p>
-                        ) : null}
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setAnotacaoEmDuvida(a.id)}
+                            className="mt-1.5 inline-flex min-h-11 items-center gap-1.5 text-xs font-bold text-white/85 underline decoration-white/30 underline-offset-4 transition hover:text-white"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            Remover
+                          </button>
+                        )}
                       </li>
                     ))}
                   </ul>
-                ) : null}
-              </Secao>
-            ) : null}
-
-            {/* ---------- Competências ---------- */}
-            {temHabilidades ? (
-              <Secao
-                id={`${uid}-habilidades`}
-                chave="habilidades"
-                sanfona={sanfona}
-                titulo="Competências"
-                icone={Sparkles}
-                resumo={conta(
-                  item.competencias.length + item.softwares.length + item.idiomas.length,
-                  "item",
-                  "itens",
+                ) : (
+                  <p className="mt-3 text-sm text-white/85">
+                    Nenhuma anotação. O que for escrito aqui fica só para a equipe.
+                  </p>
                 )}
-              >
-                <div className="space-y-3">
-                  <ChipsLeitura rotulo="Competências" itens={item.competencias} />
-                  <ChipsLeitura rotulo="Softwares" itens={item.softwares} />
-                  <ChipsLeitura rotulo="Idiomas" itens={item.idiomas} />
-                </div>
               </Secao>
-            ) : null}
-
-            {/* ---------- Carta ---------- */}
-            {item.cartaApresentacao.trim() !== "" ? (
-              <Secao
-                id={`${uid}-carta`}
-                chave="carta"
-                sanfona={sanfona}
-                titulo="Carta de apresentação"
-                icone={FileText}
-                resumo="escrita pela pessoa"
-              >
-                {/* pre-wrap: a pessoa escreveu em parágrafos e essa quebra é parte
-                  do que ela quis dizer. */}
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-white">
-                  {item.cartaApresentacao}
-                </p>
-              </Secao>
-            ) : null}
-
-            {/* ---------- Origem ---------- */}
-            {camposOrigem.length > 0 ? (
-              <Secao
-                id={`${uid}-origem`}
-                chave="origem"
-                sanfona={sanfona}
-                titulo="Origem e registro"
-                icone={ShieldCheck}
-                /* A data em que chegou, em vez de "datas e consentimento": cabe
-                  numa linha só e diz mais — é a informação que se procura
-                  quando se abre "Origem e registro". */
-                resumo={formatarData(item.criadoEm)}
-              >
-                <ListaCampos campos={camposOrigem} />
-                <p className={AJUDA}>
-                  {item.consentimentoLgpd
-                    ? "O candidato aceitou o uso dos dados para fins de recrutamento (LGPD)."
-                    : "Sem registro de consentimento LGPD nesta candidatura."}
-                </p>
-                {guardaVencida ? (
-                  /* `role="note"` e não `alert`: a gaveta pode abrir com o prazo
-                   já vencido, e um alerta anunciado a cada abertura vira ruído
-                   que se aprende a ignorar. */
-                  <p
-                    role="note"
-                    className="mt-2 rounded-xl border border-amber-200/35 bg-amber-300/12 px-3 py-2 text-xs font-semibold leading-relaxed text-amber-50"
-                  >
-                    Prazo de guarda vencido: passaram-se mais de {MESES_RETENCAO_LGPD} meses desde o
-                    envio, que é o prazo declarado no aviso aceito por esta pessoa. Exclua a
-                    candidatura ou peça um novo consentimento.
-                  </p>
-                ) : diasDeGuarda !== null && diasDeGuarda <= 60 ? (
-                  <p className={AJUDA}>
-                    Prazo de guarda vence em {diasDeGuarda === 1 ? "1 dia" : `${diasDeGuarda} dias`}
-                    .
-                  </p>
-                ) : null}
-              </Secao>
-            ) : null}
-
-            {/* ---------- Anotações ---------- */}
-            <Secao
-              id={`${uid}-anotacoes`}
-              chave="anotacoes"
-              sanfona={sanfona}
-              titulo="Anotações internas"
-              icone={StickyNote}
-              resumo={conta(item.anotacoes.length, "anotação", "anotações")}
-            >
-              <label htmlFor={`${uid}-nova-anotacao`} className="sr-only">
-                Nova anotação
-              </label>
-              <textarea
-                id={`${uid}-nova-anotacao`}
-                className={`${CAMPO} min-h-28 resize-y`}
-                rows={3}
-                placeholder="O que ficou desta conversa?"
-                value={rascunhoAnotacao}
-                onChange={(e) => setRascunhoAnotacao(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={adicionarAnotacao}
-                disabled={rascunhoAnotacao.trim() === ""}
-                className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-lime px-4 text-sm font-bold text-brand-deep transition hover:bg-lime/85 disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-white/85"
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Adicionar anotação
-              </button>
-
-              {anotacoes.length > 0 ? (
-                <ul className="mt-4 space-y-2">
-                  {anotacoes.map((a) => (
-                    <li key={a.id} className="rounded-xl bg-white/5 p-3 ring-1 ring-white/10">
-                      <p className="flex flex-wrap items-center gap-x-2 text-[0.7rem] font-bold uppercase tracking-[0.1em] text-white/85">
-                        {a.autor || "Equipe"}
-                        <span aria-hidden="true">·</span>
-                        <span className="normal-case tracking-normal">
-                          {formatarDataHora(a.criadoEm)}
-                        </span>
-                      </p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-white">
-                        {a.texto}
-                      </p>
-
-                      {anotacaoEmDuvida === a.id ? (
-                        /* Confirmação no lugar do próprio botão: o RH não perde o
-                         contexto e ninguém apaga um registro por engano. */
-                        <p
-                          role="alert"
-                          className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-white/85"
-                        >
-                          Remover esta anotação?
-                          <button
-                            type="button"
-                            onClick={() => {
-                              aoRemoverAnotacao(item.id, a.id);
-                              setAnotacaoEmDuvida("");
-                            }}
-                            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-rose-400/20 px-3 font-bold text-rose-100 ring-1 ring-rose-300/45 transition hover:bg-rose-400/30"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                            Sim, remover
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setAnotacaoEmDuvida("")}
-                            className="inline-flex min-h-11 items-center rounded-full bg-white/10 px-3 font-bold text-white ring-1 ring-white/20 transition hover:bg-white/20"
-                          >
-                            Cancelar
-                          </button>
-                        </p>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setAnotacaoEmDuvida(a.id)}
-                          className="mt-1.5 inline-flex min-h-11 items-center gap-1.5 text-xs font-bold text-white/85 underline decoration-white/30 underline-offset-4 transition hover:text-white"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                          Remover
-                        </button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-sm text-white/85">
-                  Nenhuma anotação. O que for escrito aqui fica só para a equipe.
-                </p>
-              )}
-            </Secao>
+            </aside>
           </div>
         </div>
 

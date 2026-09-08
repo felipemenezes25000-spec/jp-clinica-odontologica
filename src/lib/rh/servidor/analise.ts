@@ -480,6 +480,12 @@ async function preencherComExtracao(
     uf: atual.uf || e.uf,
     linkedin: atual.linkedin || e.linkedin,
     cro: atual.cro || (e.registroProfissional.match(/\d{3,}/)?.[0] ?? ""),
+    // A UF do conselho vinha sendo jogada fora: "CRO-SP 12345" virava só
+    // "12345", e a ficha mostrava "CRO 12345" sem dizer de que estado — que é
+    // metade da informação quando se vai conferir o registro.
+    croUf:
+      atual.croUf ||
+      (e.registroProfissional.match(/CRO[\s-]*([A-Z]{2})/i)?.[1] ?? "").toUpperCase(),
 
     escolaridade: atual.escolaridade || (formacaoMaisAlta ? escolaridadeDe(formacaoMaisAlta) : ""),
     instituicao: atual.instituicao || (formacaoMaisAlta?.instituicao ?? ""),
@@ -492,8 +498,19 @@ async function preencherComExtracao(
     anosExperiencia: atual.anosExperiencia || faixa,
     softwares: atual.softwares.length > 0 ? atual.softwares : e.softwares,
     idiomas: atual.idiomas.length > 0 ? atual.idiomas : e.idiomas,
+    // Competências e especialidades passam a chegar na ficha. Estavam no
+    // currículo e no cadastro, mas não na extração — o bloco "Competências"
+    // mostrava só softwares e idiomas, e ficava vazio para quem chega pelo
+    // site, que envia apenas nome, WhatsApp e o arquivo.
+    competencias: atual.competencias.length > 0 ? atual.competencias : e.competencias,
+    especialidades: atual.especialidades.length > 0 ? atual.especialidades : e.especialidades,
 
     pretensao: atual.pretensao || e.pretensaoDeclarada,
+    /* O "objetivo" que a pessoa escreveu no topo do currículo vira o cargo
+       desejado quando o cadastro não tem nenhum — é literalmente a resposta à
+       pergunta "que vaga você quer", escrita por ela. Cortado em 80 para não
+       transformar um parágrafo de objetivo em título de cargo. */
+    cargoDesejado: atual.cargoDesejado || e.resumoObjetivo.trim().slice(0, 80),
   }));
 }
 

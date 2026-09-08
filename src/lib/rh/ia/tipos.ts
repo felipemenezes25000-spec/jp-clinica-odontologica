@@ -99,6 +99,22 @@ export type ExtracaoCurriculo = {
   cursos: string[];
   idiomas: string[];
   softwares: string[];
+  /**
+   * O que a pessoa sabe FAZER, em palavras curtas: "atendimento ao público",
+   * "agendamento", "faturamento de convênio", "esterilização".
+   *
+   * Existia no cadastro (`Candidatura.competencias`) e no bloco "Competências"
+   * da ficha, mas NÃO na extração — então a seção mostrava só softwares e
+   * idiomas, e o campo ficava vazio para sempre em quem chega pelo site, que só
+   * envia nome, WhatsApp e currículo. Era informação que estava no PDF e não
+   * chegava a lugar nenhum.
+   */
+  competencias: string[];
+  /**
+   * Especialidades odontológicas declaradas ("ortodontia", "endodontia").
+   * Vazio para quem não é da área clínica — e é isso que se espera.
+   */
+  especialidades: string[];
 
   /** CRO, "CRO-SP 12345", COREN... "" quando o documento não traz. */
   registroProfissional: string;
@@ -284,6 +300,8 @@ export function extracaoVazia(): ExtracaoCurriculo {
     empregos: [],
     cursos: [],
     idiomas: [],
+    competencias: [],
+    especialidades: [],
     softwares: [],
 
     registroProfissional: "",

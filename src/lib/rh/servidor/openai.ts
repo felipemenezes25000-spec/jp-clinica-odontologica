@@ -366,6 +366,8 @@ const ESQUEMA_EXTRACAO = {
     "cursos",
     "idiomas",
     "softwares",
+    "competencias",
+    "especialidades",
     "registroProfissional",
     "pretensaoDeclarada",
     "dadosSensiveisPresentes",
@@ -466,6 +468,17 @@ const ESQUEMA_EXTRACAO = {
     softwares: {
       type: "array",
       items: { type: "string" },
+      competencias: {
+        type: "array",
+        items: { type: "string" },
+        description:
+          "o que a pessoa sabe fazer, em palavras curtas: atendimento ao publico, agendamento, faturamento de convenio, esterilizacao. Nunca inventar: so o que o documento sustenta",
+      },
+      especialidades: {
+        type: "array",
+        items: { type: "string" },
+        description: "especialidades odontologicas declaradas, ou lista vazia",
+      },
       description: "Sistemas, prontuarios, ERPs e planilhas citados. Nada de suposicao.",
     },
     registroProfissional: {
@@ -581,6 +594,8 @@ function normalizarExtracao(bruto: unknown): ExtracaoCurriculo {
     empregos: normalizarEmpregos(o["empregos"]),
     cursos: textos(o["cursos"], 160, 40),
     idiomas: textos(o["idiomas"], 80, 12),
+    competencias: textos(o["competencias"], 80, 16),
+    especialidades: textos(o["especialidades"], 60, 10),
     softwares: textos(o["softwares"], 80, 30),
 
     registroProfissional: txt(o["registroProfissional"], 60),

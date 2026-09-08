@@ -255,34 +255,36 @@
     background: #f7f9f6;
   }
 
-  .rh-admin .rh-gaveta > div.rh-scroll > div {
+  /* Duas colunas, cada uma um contêiner. Ver o comentário no JSX: em GRADE, a
+     altura da linha é a do item mais alto, e "Gestão do processo" (441px) caía
+     numa linha de 816px por causa da "Leitura da IA" ao lado — 375px de vão. */
+  .rh-admin .rh-gaveta .rh-ficha {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(24rem, 28rem);
-    column-count: initial !important;
-    column-gap: 1.2rem !important;
-    row-gap: 0.78rem !important;
     align-items: start;
+    column-gap: 1.2rem;
     max-width: 108rem !important;
   }
 
-  .rh-admin .rh-gaveta > div.rh-scroll > div > * {
-    grid-column: 1;
+  .rh-admin .rh-gaveta .rh-ficha-principal,
+  .rh-admin .rh-gaveta .rh-ficha-lateral {
+    display: flex;
+    flex-direction: column;
+    gap: 0.78rem;
+    min-width: 0;
+  }
+
+  .rh-admin .rh-gaveta .rh-ficha > * > * {
     margin-block: 0 !important;
     break-inside: auto !important;
   }
 
-  /* Gestão: painel lateral fixo, compacto e sempre alcançável. */
-  .rh-admin
-    .rh-gaveta
-    > div.rh-scroll
-    > div
-    > section[aria-labelledby$="-gestao"] {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    grid-column: 2;
-    grid-row: 1;
-    align-self: start;
+  /* Gestão: painel lateral compacto.
+     NÃO é mais `position: sticky`. Um cartão que desliza junto com a rolagem
+     enquanto o resto da página anda é justamente o que o cliente pediu para
+     tirar — e, agora que a coluna lateral empacota sozinha, ele já fica no alto
+     sem precisar de truque nenhum. */
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] {
     padding: 1.05rem !important;
     border-color: color-mix(in oklab, var(--forest) 14%, white);
     border-radius: 1.1rem;
