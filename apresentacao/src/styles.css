@@ -9,6 +9,11 @@
  * texto tenha exatamente a mesma métrica nos dois.
  */
 
+/* As fontes entram por aqui, e não só pelo `index.html`: o Remotion não usa o
+   index.html do Vite, e sem este @import o render sairia com fonte de sistema —
+   outra métrica, outra quebra de linha, outro filme. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
+
 :root {
   --jp-fundo: #f7f8f2;
   --jp-papel: #fcfdf9;

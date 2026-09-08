@@ -204,7 +204,7 @@ export const estadoSessaoCrc = createServerFn({ method: "GET" }).handler(
 );
 
 export const entrarNoCrc = createServerFn({ method: "POST" })
-  .inputValidator((entrada: { email: string; senha: string }) => ({
+  .validator((entrada: { email: string; senha: string }) => ({
     email: String(entrada.email ?? "").slice(0, 200),
     senha: String(entrada.senha ?? "").slice(0, 200),
   }))
@@ -414,7 +414,7 @@ async function carregarNomes(
 /* -------------------------------------------------------------------------- */
 
 export const buscarPacientes = createServerFn({ method: "GET" })
-  .inputValidator((e: { termo: string }) => ({ termo: String(e.termo ?? "").slice(0, 120) }))
+  .validator((e: { termo: string }) => ({ termo: String(e.termo ?? "").slice(0, 120) }))
   .handler(async ({ data }): Promise<Resposta<{ itens: Paciente[] }>> =>
     comContexto("ver_paciente", async (ctx) => {
       const { procurarPacientes } = await import("./aplicacao/repositorios");
@@ -462,7 +462,7 @@ export type ItemTimeline = {
 };
 
 export const carregarFichaPaciente = createServerFn({ method: "GET" })
-  .inputValidator((e: { patientId: string }) => ({ patientId: String(e.patientId ?? "") }))
+  .validator((e: { patientId: string }) => ({ patientId: String(e.patientId ?? "") }))
   .handler(async ({ data }): Promise<Resposta<{ ficha: FichaPaciente }>> =>
     comContexto("ver_paciente", async (ctx) => {
       const { buscarPacientePorId, linhaParaAgendamento } =
@@ -628,7 +628,7 @@ export const carregarFunil = createServerFn({ method: "GET" }).handler(
 );
 
 export const moverOportunidade = createServerFn({ method: "POST" })
-  .inputValidator((e: { opportunityId: string; etapa: string; lostReason?: string }) => ({
+  .validator((e: { opportunityId: string; etapa: string; lostReason?: string }) => ({
     opportunityId: String(e.opportunityId ?? ""),
     etapa: String(e.etapa ?? ""),
     lostReason: e.lostReason === undefined ? undefined : String(e.lostReason).slice(0, 200),
@@ -702,7 +702,7 @@ export const carregarMeuTrabalho = createServerFn({ method: "GET" }).handler(
 );
 
 export const concluirTarefa = createServerFn({ method: "POST" })
-  .inputValidator((e: { taskId: string; notas?: string }) => ({
+  .validator((e: { taskId: string; notas?: string }) => ({
     taskId: String(e.taskId ?? ""),
     notas: e.notas === undefined ? undefined : String(e.notas).slice(0, 2000),
   }))
@@ -732,7 +732,7 @@ export const concluirTarefa = createServerFn({ method: "POST" })
   );
 
 export const assumirTarefa = createServerFn({ method: "POST" })
-  .inputValidator((e: { taskId: string }) => ({ taskId: String(e.taskId ?? "") }))
+  .validator((e: { taskId: string }) => ({ taskId: String(e.taskId ?? "") }))
   .handler(async ({ data }): Promise<RespostaSimples> =>
     comContexto("editar_tarefa", async (ctx) => {
       const { atribuirTarefa } = await import("./aplicacao/tarefas");
@@ -742,7 +742,7 @@ export const assumirTarefa = createServerFn({ method: "POST" })
   );
 
 export const criarTarefaManual = createServerFn({ method: "POST" })
-  .inputValidator((e: { patientId: string; titulo: string; tipo: string; prazoHoras: number }) => ({
+  .validator((e: { patientId: string; titulo: string; tipo: string; prazoHoras: number }) => ({
     patientId: String(e.patientId ?? ""),
     titulo: String(e.titulo ?? "").slice(0, 200),
     tipo: String(e.tipo ?? "LIGAR"),
@@ -796,7 +796,7 @@ export const criarTarefaManual = createServerFn({ method: "POST" })
 /* -------------------------------------------------------------------------- */
 
 export const carregarInbox = createServerFn({ method: "GET" })
-  .inputValidator((e: { apenasNaoLidas?: boolean; apenasMinhas?: boolean }) => ({
+  .validator((e: { apenasNaoLidas?: boolean; apenasMinhas?: boolean }) => ({
     apenasNaoLidas: e.apenasNaoLidas === true,
     apenasMinhas: e.apenasMinhas === true,
   }))
@@ -823,7 +823,7 @@ export const carregarInbox = createServerFn({ method: "GET" })
   );
 
 export const abrirConversa = createServerFn({ method: "POST" })
-  .inputValidator((e: { conversationId: string }) => ({
+  .validator((e: { conversationId: string }) => ({
     conversationId: String(e.conversationId ?? ""),
   }))
   .handler(
@@ -843,7 +843,7 @@ export const abrirConversa = createServerFn({ method: "POST" })
   );
 
 export const responderConversa = createServerFn({ method: "POST" })
-  .inputValidator((e: { conversationId: string; texto: string; notaInterna?: boolean }) => ({
+  .validator((e: { conversationId: string; texto: string; notaInterna?: boolean }) => ({
     conversationId: String(e.conversationId ?? ""),
     texto: String(e.texto ?? "").slice(0, 4000),
     notaInterna: e.notaInterna === true,
@@ -1006,7 +1006,7 @@ export const carregarAutomacoes = createServerFn({ method: "GET" }).handler(
 );
 
 export const mudarEstadoAutomacao = createServerFn({ method: "POST" })
-  .inputValidator((e: { automationId: string; status?: string; modo?: string }) => ({
+  .validator((e: { automationId: string; status?: string; modo?: string }) => ({
     automationId: String(e.automationId ?? ""),
     status: e.status === undefined ? undefined : String(e.status),
     modo: e.modo === undefined ? undefined : String(e.modo),
@@ -1271,7 +1271,7 @@ export const sincronizarAgora = createServerFn({ method: "POST" }).handler(
 );
 
 export const acionarInterruptor = createServerFn({ method: "POST" })
-  .inputValidator((e: { chave: string; ligado: boolean }) => ({
+  .validator((e: { chave: string; ligado: boolean }) => ({
     chave: String(e.chave ?? ""),
     ligado: e.ligado === true,
   }))
@@ -1301,7 +1301,7 @@ export const acionarInterruptor = createServerFn({ method: "POST" })
 
 /** Item 179: o debugger de jornada. */
 export const carregarHistoricoJornada = createServerFn({ method: "GET" })
-  .inputValidator((e: { enrollmentId: string }) => ({ enrollmentId: String(e.enrollmentId ?? "") }))
+  .validator((e: { enrollmentId: string }) => ({ enrollmentId: String(e.enrollmentId ?? "") }))
   .handler(async ({ data }): Promise<Resposta<{ passos: PassoJornadaDto[] }>> =>
     comContexto("ver_automacao", async (ctx) => {
       const { historicoDaJornada } = await import("./automacao/motor");

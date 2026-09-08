@@ -13,6 +13,17 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  css: {
+    /**
+     * PostCSS explicitamente vazio.
+     *
+     * Sem isto o Vite sobe a árvore de diretórios procurando `postcss.config.*`
+     * e acaba encontrando o da HOME do usuário — que traz um Tailwind v3 sem
+     * `content` configurado. O build passava, mas com aviso e com o preflight de
+     * outro projeto entrando no CSS desta peça. A apresentação usa CSS próprio.
+     */
+    postcss: {},
+  },
   build: {
     outDir: "dist",
     // O filme tem 28 cenas; deixar o aviso no padrão só produz ruído.

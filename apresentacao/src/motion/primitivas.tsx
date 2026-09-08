@@ -43,7 +43,7 @@ type BaseAparicao = {
   children: ReactNode;
 };
 
-function opacidadeDe(frame: number, p: BaseAparicao): number {
+function opacidadeDe(frame: number, p: Omit<BaseAparicao, "children">): number {
   const em = p.em ?? 0;
   const dur = p.dur ?? 18;
   const entrada = progresso(frame, em, dur, p.curva ?? easeOut);

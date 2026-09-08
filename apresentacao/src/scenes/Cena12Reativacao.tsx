@@ -60,7 +60,7 @@ export function Cena12Reativacao() {
       </CamadaDeConexoes>
 
       {/* A cadeia -------------------------------------------------------- */}
-      <Em x={CADEIA_X[0]} y={CADEIA_Y} zIndex={8}>
+      <Em x={CADEIA_X[0]!} y={CADEIA_Y} zIndex={8}>
         <div style={{ opacity: progresso(frame, 16, 22) }}>
           <No
             titulo="Segmentação"
@@ -71,7 +71,7 @@ export function Cena12Reativacao() {
         </div>
       </Em>
 
-      <Em x={CADEIA_X[1]} y={CADEIA_Y} zIndex={8}>
+      <Em x={CADEIA_X[1]!} y={CADEIA_Y} zIndex={8}>
         <div style={{ opacity: progresso(frame, 34, 22) }}>
           <No
             titulo="Lotes diários"
@@ -83,7 +83,7 @@ export function Cena12Reativacao() {
         </div>
       </Em>
 
-      <Em x={CADEIA_X[2]} y={CADEIA_Y} zIndex={8}>
+      <Em x={CADEIA_X[2]!} y={CADEIA_Y} zIndex={8}>
         <div style={{ opacity: progresso(frame, 52, 22) }}>
           <No
             marca="whatsapp"

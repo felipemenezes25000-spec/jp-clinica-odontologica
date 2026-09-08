@@ -69,7 +69,7 @@ function Wordmark({
   chave: ChaveMarca;
   altura: number;
   fundo: "claro" | "escuro";
-  style?: CSSProperties;
+  style?: CSSProperties | undefined;
 }) {
   const marca = MARCAS[chave];
   const tinta = fundo === "escuro" ? "#F2F6EE" : cor.tinta;
