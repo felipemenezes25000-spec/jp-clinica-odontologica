@@ -1,13 +1,13 @@
 /*
- * Workspace do candidato — redesign v2
+ * Workspace do candidato — redesign v3
  * -------------------------------------
- * A primeira versão só ampliava a antiga gaveta. Esta versão muda a hierarquia:
- * 1) cabeçalho verde = identidade + decisão + contato;
- * 2) coluna principal = IA, dúvidas e entrevista;
- * 3) raia lateral = gestão do processo;
- * 4) cadastro e metadados = portas compactas, sem competir com a decisão.
+ * Referência visual: ficha clara de recrutamento, muito espaço respirando,
+ * candidato e contato no topo, decisão da IA como protagonista e gestão do
+ * processo em uma raia lateral estável. O objetivo é parecer uma tela de
+ * produto, não um formulário gigante aberto dentro de uma gaveta.
  *
- * Este arquivo é deliberadamente escopado em `.rh-admin .rh-gaveta`.
+ * Tudo fica escopado em `.rh-admin .rh-gaveta` para não tocar kanban, portal
+ * público, entrevista ou impressão.
  */
 
 .rh-admin .rh-gaveta {
@@ -15,16 +15,16 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Superfícies                                                                 */
+/* Superfícies e sanfonas                                                      */
 /* -------------------------------------------------------------------------- */
 
 .rh-admin .rh-gaveta .rh-vidro {
-  border-color: color-mix(in oklab, var(--forest) 10%, white);
-  border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid color-mix(in oklab, var(--forest) 10%, white);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.99);
   box-shadow:
     0 1px 2px rgba(3, 47, 1, 0.025),
-    0 16px 34px -32px rgba(3, 47, 1, 0.26);
+    0 18px 40px -36px rgba(3, 47, 1, 0.28);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -32,11 +32,10 @@
 .rh-admin .rh-gaveta [data-rh-sanfona] {
   overflow: hidden;
   border-radius: 0.9rem;
-  background: rgba(255, 255, 255, 0.96);
+  background: white;
   box-shadow: none;
   transition:
     border-color 0.18s var(--ease-out),
-    background 0.18s var(--ease-out),
     box-shadow 0.18s var(--ease-out),
     transform 0.18s var(--ease-out);
 }
@@ -47,11 +46,10 @@
 
 .rh-admin .rh-gaveta [data-rh-sanfona][data-aberta="true"] {
   border-color: color-mix(in oklab, var(--forest) 24%, white);
-  background: white;
-  box-shadow: 0 18px 38px -34px rgba(3, 47, 1, 0.4);
+  box-shadow: 0 18px 38px -34px rgba(3, 47, 1, 0.38);
 }
 
-/* Itens de auditoria continuam disponíveis, mas visualmente recuam. */
+/* Auditoria e arrumação existem, mas não competem com a decisão. */
 .rh-admin .rh-gaveta :is(
     [data-sanfona-id*="-criterios"],
     [data-sanfona-id*="-sinais"],
@@ -59,58 +57,17 @@
     [data-sanfona-id*="-origem"],
     [data-sanfona-id*="-etiquetas"]
   ) {
-  background: color-mix(in oklab, var(--mint) 18%, white);
+  background: color-mix(in oklab, var(--mint) 16%, white);
   border-color: color-mix(in oklab, var(--forest) 8%, white);
 }
 
-/* As portas ligadas diretamente à decisão recebem mais definição. */
-.rh-admin .rh-gaveta :is(
-    [data-sanfona-id*="-fortes"],
-    [data-sanfona-id*="-atencao"],
-    [data-sanfona-id*="-perguntas"],
-    [data-sanfona-id*="-trajetoria"],
-    [data-sanfona-id*="-duvidas"]
-  ) {
-  border-color: color-mix(in oklab, var(--forest) 17%, white);
-}
-
 /* -------------------------------------------------------------------------- */
-/* Informação técnica da IA                                                   */
-/* -------------------------------------------------------------------------- */
-
-.rh-admin
-  .rh-gaveta
-  section.rh-vidro:has([data-sanfona-id*="-criterios"])
-  > footer
-  > p:first-child {
-  display: none;
-}
-
-.rh-admin
-  .rh-gaveta
-  section.rh-vidro:has([data-sanfona-id*="-criterios"])
-  > footer {
-  margin-top: 0.7rem !important;
-  padding-top: 0.65rem !important;
-}
-
-.rh-admin
-  .rh-gaveta
-  section.rh-vidro:has([data-sanfona-id*="-criterios"])
-  > p[class~="bg-amber-300/10"] {
-  padding: 0.6rem 0.75rem !important;
-  border-radius: 0.75rem !important;
-  font-size: 0.74rem !important;
-  line-height: 1.4 !important;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Tablet / notebook                                                           */
+/* Tablet                                                                      */
 /* -------------------------------------------------------------------------- */
 
 @media (min-width: 768px) and (max-width: 1279px) {
   .rh-admin .rh-gaveta {
-    width: min(62rem, calc(100vw - 1.25rem));
+    width: min(64rem, calc(100vw - 1rem));
   }
 }
 
@@ -119,75 +76,70 @@
 /* -------------------------------------------------------------------------- */
 
 @media (min-width: 1280px) {
-  /* Quase tela cheia, mas claramente modal. */
+  /* A ficha vira uma página de trabalho quase inteira. */
   .rh-admin .rh-gaveta {
-    top: 1rem;
-    right: 1rem;
-    bottom: 1rem;
-    width: min(106rem, calc(100vw - 2rem));
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(118rem, 100vw);
     overflow: hidden;
-    border: 1px solid color-mix(in oklab, var(--forest) 16%, white);
-    border-radius: 1.55rem;
-    background: #f5f8f3;
-    box-shadow: 0 42px 110px -52px rgba(1, 34, 12, 0.58);
-    --rh-entra-x: 1.5rem;
+    border-left: 1px solid color-mix(in oklab, var(--forest) 12%, white);
+    border-radius: 0;
+    background: #f7f9f6;
+    box-shadow: -28px 0 70px -54px rgba(3, 47, 1, 0.42);
+    --rh-entra-x: 1.25rem;
   }
 
   /* ---------------------------------------------------------------------- */
-  /* HERO: deixa de parecer o topo de uma ficha de formulário.              */
+  /* Cabeçalho: identidade à esquerda, contato à direita.                    */
   /* ---------------------------------------------------------------------- */
 
   .rh-admin .rh-gaveta > header.rh-scroll {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(28rem, 0.85fr);
+    grid-template-columns: minmax(30rem, 1fr) minmax(34rem, 0.95fr);
     grid-template-areas:
       "identity contact"
       "score contact";
-    column-gap: clamp(1.25rem, 2vw, 2.4rem);
-    row-gap: 0.85rem;
-    max-height: 52dvh !important;
+    column-gap: clamp(2rem, 3vw, 4rem);
+    row-gap: 0.7rem;
+    max-height: 43dvh !important;
     overflow-y: auto;
-    padding: 1.25rem 1.5rem 1.2rem !important;
-    border-bottom: 0 !important;
-    background:
-      radial-gradient(circle at 11% -35%, rgba(185, 255, 86, 0.22), transparent 24rem),
-      radial-gradient(circle at 86% 145%, rgba(116, 206, 27, 0.14), transparent 28rem),
-      linear-gradient(135deg, #032c11 0%, #063a16 54%, #04290f 100%) !important;
+    padding: 1.35rem clamp(1.6rem, 2.5vw, 3rem) 1.15rem !important;
+    border-bottom: 1px solid color-mix(in oklab, var(--forest) 10%, white) !important;
+    background: white !important;
   }
 
-  /* O tema claro global remapeia text-white para preto. No HERO isso volta a
-     ser branco de verdade: verde escuro = letra branca. */
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white!"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/85"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/90"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/25"] {
-    color: white !important;
+    color: var(--ink) !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/85"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/90"] {
-    color: rgba(255, 255, 255, 0.82) !important;
+    color: var(--ink-soft) !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/5"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/10"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/15"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/20"] {
-    background: rgba(255, 255, 255, 0.09) !important;
+    background: color-mix(in oklab, var(--mint) 56%, white) !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/15"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/20"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/25"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/30"] {
-    --tw-ring-color: rgba(255, 255, 255, 0.18) !important;
+    --tw-ring-color: color-mix(in oklab, var(--forest) 14%, transparent) !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll [class~="border-white/10"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="border-white/15"],
   .rh-admin .rh-gaveta > header.rh-scroll [class~="border-white/20"] {
-    border-color: rgba(255, 255, 255, 0.14) !important;
+    border-color: color-mix(in oklab, var(--forest) 11%, white) !important;
   }
 
   /* Identidade. */
@@ -198,51 +150,67 @@
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(1) > span:first-child {
-    width: 4rem !important;
-    height: 4rem !important;
-    border: 1px solid rgba(185, 255, 86, 0.34);
-    background: linear-gradient(145deg, rgba(185, 255, 86, 0.2), rgba(255, 255, 255, 0.08)) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-    font-size: 1.12rem !important;
+    width: 5.35rem !important;
+    height: 5.35rem !important;
+    border: 1px solid color-mix(in oklab, var(--forest) 14%, white);
+    background:
+      radial-gradient(circle at 30% 25%, white 0%, transparent 42%),
+      color-mix(in oklab, var(--mint) 72%, white) !important;
+    color: var(--forest) !important;
+    box-shadow: none;
+    font-size: 1.65rem !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll h2 {
-    font-size: clamp(1.45rem, 1.65vw, 1.85rem) !important;
-    letter-spacing: -0.035em;
+    font-size: clamp(1.55rem, 1.8vw, 2rem) !important;
+    letter-spacing: -0.04em;
+    color: #0d1710 !important;
   }
 
-  /* Fechar: canto superior, discreto. */
+  .rh-admin .rh-gaveta > header.rh-scroll h2 + p {
+    margin-top: 0.3rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Botão de fechar no canto, sem virar elemento de destaque. */
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(1) > button:last-child {
-    align-self: flex-start;
-    width: 2.55rem !important;
-    height: 2.55rem !important;
-    background: rgba(255, 255, 255, 0.08) !important;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.45rem !important;
+    height: 2.45rem !important;
+    background: color-mix(in oklab, var(--mint) 55%, white) !important;
+    color: var(--ink) !important;
     box-shadow: none;
   }
 
-  /* Nota da clínica + IA vira um único módulo visual de decisão. */
+  /* Nota da clínica fica como informação secundária logo abaixo da identidade. */
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(2) {
     grid-area: score;
     display: flex;
     align-items: center;
-    min-height: 3.8rem;
+    min-height: 2.55rem;
     margin-top: 0 !important;
-    padding: 0.7rem 0.85rem !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 1rem;
-    background: rgba(255, 255, 255, 0.075);
-    backdrop-filter: blur(8px);
+    padding: 0 !important;
+    border-top: 0 !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll .rh-estrela {
-    color: rgba(255, 255, 255, 0.36) !important;
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+    color: color-mix(in oklab, var(--ink-soft) 38%, white) !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll .rh-estrela[data-ativa="true"] {
-    color: #b7ff54 !important;
+    color: var(--forest) !important;
   }
 
-  /* Contato: painel operacional à direita do hero. */
+  /* O resumo duplicado da IA no cabeçalho recua; a análise grande vem logo abaixo. */
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(2) > div:nth-child(2) {
+    opacity: 0.82;
+  }
+
+  /* Central de contato. */
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) {
     grid-area: contact;
     align-self: center;
@@ -252,14 +220,13 @@
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) > section {
-    padding: 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 1.15rem;
-    background: rgba(255, 255, 255, 0.055);
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) > section > div {
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) a,
@@ -268,44 +235,39 @@
     white-space: nowrap;
   }
 
-  /* WhatsApp continua sendo a única ação visualmente primária. */
   .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-forest"] {
-    background: #fff !important;
-    color: #063a16 !important;
-    border-color: #fff !important;
-    box-shadow: 0 8px 24px -18px rgba(0, 0, 0, 0.8);
+    background: var(--forest) !important;
+    color: white !important;
+    border-color: var(--forest) !important;
+    box-shadow: 0 10px 24px -18px rgba(3, 47, 1, 0.72);
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-forest"] * {
-    color: #063a16 !important;
+    color: white !important;
   }
 
-  @media (pointer: fine) {
-    .rh-admin .rh-gaveta > header.rh-scroll [class~="min-h-11"],
-    .rh-admin .rh-gaveta > header.rh-scroll .rh-alvo-toque {
-      min-height: 2.3rem !important;
-    }
+  .rh-admin .rh-gaveta > header.rh-scroll .rh-alvo-toque,
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="min-h-11"] {
+    min-height: 2.6rem !important;
   }
 
   /* ---------------------------------------------------------------------- */
-  /* CORPO: decisão à esquerda, processo à direita.                         */
+  /* Corpo: decisão à esquerda, processo à direita.                          */
   /* ---------------------------------------------------------------------- */
 
   .rh-admin .rh-gaveta > div.rh-scroll {
-    padding: 1.25rem 1.4rem 1.5rem !important;
-    background:
-      linear-gradient(180deg, rgba(247, 250, 246, 0.96), #f5f8f3 42%),
-      #f5f8f3;
+    padding: 1.1rem clamp(1.6rem, 2.5vw, 3rem) 1.8rem !important;
+    background: #f7f9f6;
   }
 
   .rh-admin .rh-gaveta > div.rh-scroll > div {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(21rem, 23.5rem);
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 28rem);
     column-count: initial !important;
     column-gap: 1.2rem !important;
-    row-gap: 0.75rem !important;
+    row-gap: 0.78rem !important;
     align-items: start;
-    max-width: 103rem !important;
+    max-width: 108rem !important;
   }
 
   .rh-admin .rh-gaveta > div.rh-scroll > div > * {
@@ -314,7 +276,7 @@
     break-inside: auto !important;
   }
 
-  /* Gestão fica fixa no lado direito — não é mais o primeiro bloco da leitura. */
+  /* Gestão: painel lateral fixo, compacto e sempre alcançável. */
   .rh-admin
     .rh-gaveta
     > div.rh-scroll
@@ -324,22 +286,13 @@
     top: 0;
     z-index: 5;
     grid-column: 2;
-    grid-row: 1 / span 6;
+    grid-row: 1;
     align-self: start;
-    padding: 1rem !important;
-    border-color: color-mix(in oklab, var(--forest) 16%, white);
-    border-radius: 1.2rem;
-    background:
-      linear-gradient(180deg, color-mix(in oklab, var(--mint) 36%, white), white 28%);
-    box-shadow: 0 22px 48px -42px rgba(3, 47, 1, 0.42);
-  }
-
-  .rh-admin
-    .rh-gaveta
-    section[aria-labelledby$="-gestao"]
-    > div:first-child {
-    padding-bottom: 0.7rem;
-    border-bottom: 1px solid color-mix(in oklab, var(--forest) 10%, white);
+    padding: 1.05rem !important;
+    border-color: color-mix(in oklab, var(--forest) 14%, white);
+    border-radius: 1.1rem;
+    background: white;
+    box-shadow: 0 22px 48px -40px rgba(3, 47, 1, 0.38);
   }
 
   .rh-admin
@@ -347,33 +300,9 @@
     section[aria-labelledby$="-gestao"]
     > div[class~="grid"] {
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 0.72rem !important;
-    margin-top: 0.85rem !important;
+    gap: 0.68rem !important;
   }
 
-  .rh-admin
-    .rh-gaveta
-    section[aria-labelledby$="-gestao"]
-    label {
-    margin-bottom: 0.32rem !important;
-    color: var(--ink-soft) !important;
-    font-size: 0.64rem !important;
-    letter-spacing: 0.11em !important;
-  }
-
-  .rh-admin
-    .rh-gaveta
-    section[aria-labelledby$="-gestao"]
-    :is(select, input) {
-    min-height: 2.72rem !important;
-    padding-block: 0.55rem !important;
-    border-color: color-mix(in oklab, var(--forest) 12%, white) !important;
-    background: #f8faf7 !important;
-    color: var(--ink) !important;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  }
-
-  /* Microcopy repetitiva sai da rotina; erro/status permanecem. */
   .rh-admin
     .rh-gaveta
     section[aria-labelledby$="-gestao"]
@@ -381,56 +310,295 @@
     display: none;
   }
 
-  /* Leitura da IA é o primeiro grande cartão da coluna principal. */
-  .rh-admin .rh-gaveta > div.rh-scroll > div > :nth-child(2) {
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] select,
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] input {
+    min-height: 2.75rem !important;
+    border-radius: 0.72rem !important;
+    background: #f7faf6 !important;
+    border-color: color-mix(in oklab, var(--forest) 12%, white) !important;
+  }
+
+  /* O que perguntar + ficha + arrumação viram a continuação natural da sidebar. */
+  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-sanfona-id*="-duvidas"],
+  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-sanfona-id*="-etiquetas"],
+  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-sanfona-id*="-origem"],
+  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-sanfona-id*="-anotacoes"] {
+    grid-column: 2;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-sanfona-id*="-duvidas"] {
+    grid-row: 2;
+  }
+
+  /* Bloco de ficha de entrevista fica logo após as dúvidas no trilho lateral. */
+  .rh-admin
+    .rh-gaveta
+    > div.rh-scroll
+    > div
+    > section.rh-vidro:has(button[class*="Preparar"]) {
+    grid-column: 2;
+  }
+
+  /* IA sempre inaugura a coluna de decisão. */
+  .rh-admin .rh-gaveta > div.rh-scroll > div > section.rh-vidro:has([data-sanfona-id*="-criterios"]) {
     grid-column: 1;
     grid-row: 1;
-    border-color: color-mix(in oklab, var(--forest) 18%, white);
-    border-radius: 1.2rem;
-    background:
-      radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--mint) 52%, white), transparent 18rem),
-      white;
-    box-shadow: 0 24px 56px -46px rgba(3, 47, 1, 0.44);
   }
 
-  /* O que perguntar e ficha de entrevista ficam imediatamente abaixo, na ordem
-     de decisão. */
-  .rh-admin .rh-gaveta > div.rh-scroll > div > :nth-child(3),
-  .rh-admin .rh-gaveta > div.rh-scroll > div > :nth-child(4) {
+  /* ---------------------------------------------------------------------- */
+  /* Card de IA: o protagonista visual.                                      */
+  /* ---------------------------------------------------------------------- */
+
+  .rh-admin .rh-gaveta section.rh-vidro:has([data-sanfona-id*="-criterios"]) {
+    padding: 1.15rem !important;
+    border-color: color-mix(in oklab, var(--forest) 13%, white);
+    background:
+      radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--mint) 62%, white), transparent 18rem),
+      linear-gradient(145deg, #ffffff 0%, #fbfdf9 58%, #f5faf3 100%);
+    box-shadow: 0 24px 54px -46px rgba(3, 47, 1, 0.46);
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3 {
+    display: block !important;
+    margin-top: 0.9rem !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > div:first-child {
+    display: grid;
+    grid-template-columns: 8.2rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    gap: 0.35rem 1.15rem;
+    align-items: center;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > div:first-child
+    > div:first-child {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem !important;
+  }
+
+  /* Estrelas da IA somem do resumo principal: a nota numérica já é suficiente. */
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > div:first-child
+    > div:first-child
+    > span[role="img"] {
+    display: none;
+  }
+
+  /* A nota ganha presença de medidor circular, sem inventar percentual gráfico. */
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > div:first-child
+    > div:first-child
+    > p {
+    display: grid;
+    width: 7.25rem;
+    height: 7.25rem;
+    place-items: center;
+    border: 0.62rem solid color-mix(in oklab, var(--forest) 78%, var(--lime));
+    border-radius: 999px;
+    background: white;
+    box-shadow:
+      0 0 0 0.52rem color-mix(in oklab, var(--mint) 74%, white),
+      0 16px 32px -28px rgba(3, 47, 1, 0.6);
+    color: #102015 !important;
+    font-size: 2.25rem !important;
+    line-height: 0.9 !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > div:first-child
+    > div:first-child
+    > p
+    > span {
+    display: block;
+    margin-top: -1.55rem;
+    font-size: 0.78rem !important;
+    color: var(--ink-soft) !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > div:first-child
+    > p {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0 !important;
+    max-width: 54rem;
+    font-size: clamp(0.98rem, 1vw, 1.1rem) !important;
+    line-height: 1.62 !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-3.flex.flex-wrap.items-start.justify-between.gap-3
+    > p:last-child {
+    position: absolute;
+    top: 1.15rem;
+    right: 1.15rem;
+    font-size: 0.68rem !important;
+    opacity: 0.72;
+  }
+
+  .rh-admin .rh-gaveta section.rh-vidro:has([data-sanfona-id*="-criterios"]) {
+    position: relative;
+  }
+
+  /* Três portas principais viram cards de leitura rápida. */
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-4.space-y-2 {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem !important;
+    margin-top: 1rem !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > div.mt-4.space-y-2
+    > * {
+    margin-top: 0 !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    :is(
+      [data-sanfona-id*="-fortes"],
+      [data-sanfona-id*="-atencao"],
+      [data-sanfona-id*="-perguntas"]
+    ) {
+    min-height: 7.3rem;
+    background: white;
+    border-color: color-mix(in oklab, var(--forest) 12%, white);
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    :is(
+      [data-sanfona-id*="-fortes"],
+      [data-sanfona-id*="-atencao"],
+      [data-sanfona-id*="-perguntas"]
+    )
+    > h3
+    > button {
+    min-height: 7.1rem;
+    align-items: flex-start;
+    padding: 1rem !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    :is(
+      [data-sanfona-id*="-fortes"],
+      [data-sanfona-id*="-atencao"],
+      [data-sanfona-id*="-perguntas"]
+    )
+    [data-sanfona-resumo] {
+    margin-left: auto;
+    background: color-mix(in oklab, var(--mint) 60%, white) !important;
+  }
+
+  /* Os detalhes ficam abaixo dos três cards e atravessam a largura. */
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    :is(
+      [data-sanfona-id*="-criterios"],
+      [data-sanfona-id*="-sinais"],
+      [data-sanfona-id*="-trajetoria"],
+      [data-sanfona-id*="-impressao"]
+    ) {
+    grid-column: 1 / -1;
+  }
+
+  /* Metadado técnico: útil, mas nunca protagonista. */
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > footer
+    > p:first-child {
+    display: none;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > footer {
+    margin-top: 0.75rem !important;
+    padding-top: 0.65rem !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section.rh-vidro:has([data-sanfona-id*="-criterios"])
+    > p[class~="bg-amber-300/10"] {
+    padding: 0.58rem 0.72rem !important;
+    border-radius: 0.72rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1.42 !important;
+  }
+
+  /* Currículo ainda não analisado: convite limpo, sem parecer alerta. */
+  .rh-admin
+    .rh-gaveta
+    > div.rh-scroll
+    > div
+    > section.rh-vidro:not([aria-labelledby$="-gestao"]):has(button[class*="bg-lime"]) {
+    border-color: color-mix(in oklab, var(--forest) 12%, white);
+  }
+
+  /* Dados/currículo: portas compactas e legíveis na coluna principal. */
+  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-rh-sanfona]:not([data-sanfona-id*="-duvidas"]):not([data-sanfona-id*="-etiquetas"]):not([data-sanfona-id*="-origem"]):not([data-sanfona-id*="-anotacoes"]) {
     grid-column: 1;
   }
 
-  /* Depois do fluxo principal, as portas viram uma lista compacta. */
-  .rh-admin .rh-gaveta > div.rh-scroll [data-rh-sanfona] > h3 > button {
-    min-height: 3.15rem;
-    padding-block: 0.6rem !important;
-  }
-
-  .rh-admin .rh-gaveta > div.rh-scroll [data-rh-sanfona] [data-sanfona-resumo] {
-    background: color-mix(in oklab, var(--mint) 52%, white) !important;
-    color: var(--ink-soft) !important;
-    box-shadow: none;
-  }
-
-  /* Alerta de currículo ainda não lido vira nota de contexto, não banner. */
-  .rh-admin .rh-gaveta > div.rh-scroll [role="status"][class~="bg-mint/60"] {
-    padding: 0.78rem 0.9rem !important;
-    border-radius: 0.9rem !important;
-    background: color-mix(in oklab, var(--mint) 42%, white) !important;
-  }
-
-  /* Rodapé destrutivo não vira uma terceira barra fixa pesada. */
+  /* Barra de exclusão vira detalhe de rodapé, não uma terceira região da tela. */
   .rh-admin .rh-gaveta > footer {
-    padding: 0.65rem 1.35rem !important;
-    border-top-color: color-mix(in oklab, var(--forest) 8%, white) !important;
-    background: #f5f8f3 !important;
+    min-height: 3.1rem;
+    padding: 0.5rem clamp(1.6rem, 2.5vw, 3rem) !important;
+    background: white !important;
   }
 }
 
-/* Monitores realmente largos: um pouco mais de respiro na raia operacional. */
-@media (min-width: 1720px) {
-  .rh-admin .rh-gaveta > div.rh-scroll > div {
-    grid-template-columns: minmax(0, 1fr) 24rem;
+/* Mouse: densidade de produto desktop; toque continua usando os 44px globais. */
+@media (min-width: 1280px) and (pointer: fine) {
+  .rh-admin .rh-gaveta [data-rh-sanfona] > h3 > button {
+    min-height: 2.75rem;
   }
 }
 
@@ -444,9 +612,5 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .rh-admin .rh-gaveta [data-rh-sanfona] > h3 > button {
-    padding-inline: 0.85rem !important;
   }
 }
