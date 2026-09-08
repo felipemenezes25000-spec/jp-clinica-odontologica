@@ -1,0 +1,65 @@
+{
+  "_leia_me": "A narração falada e as legendas — o MESMO texto para os dois, para que nunca divirjam. `inicio` é o segundo DENTRO da cena (não do filme inteiro). A duração NÃO se escreve aqui: ela é medida do áudio gerado e gravada em `narracao.duracoes.json`, para que a legenda apareça e saia exatamente com a voz. Rode `npm run narracao` depois de mexer em qualquer texto.",
+  "_tom": "Frases curtas, palavras do dia a dia. Quem assiste não é da área de tecnologia: nada de 'webhook', 'evento', 'score', 'opt-out' ou nome de sistema em inglês na fala.",
+  "linhas": [
+    { "cena": "abertura", "inicio": 2.2, "texto": "Toda clínica gera sinais o dia inteiro." },
+    { "cena": "abertura", "inicio": 6.4, "texto": "O difícil é agir na hora certa." },
+
+    { "cena": "problema", "inicio": 0.9, "texto": "Pacientes que faltaram. Quem cancelou. Quem sumiu há meses." },
+    { "cena": "problema", "inicio": 5.6, "texto": "A informação existe. Só está espalhada em vários lugares." },
+
+    { "cena": "dentalOffice", "inicio": 0.9, "texto": "Tudo começa no Dental Office, onde ficam os pacientes, a agenda e os horários." },
+
+    { "cena": "integracao", "inicio": 0.8, "texto": "O JP CRC lê esses dados e organiza tudo sozinho." },
+
+    { "cena": "nucleo", "inicio": 1.2, "texto": "Aqui o dado vira oportunidade: alguém que precisa de contato." },
+
+    { "cena": "eventos", "inicio": 0.8, "texto": "O sistema percebe quem faltou, quem cancelou e quem sumiu." },
+
+    { "cena": "elegibilidade", "inicio": 0.8, "texto": "Antes de mandar mensagem, ele confere se pode falar com a pessoa." },
+
+    { "cena": "prioridade", "inicio": 0.8, "texto": "E põe na frente quem tem mais chance de voltar." },
+
+    { "cena": "divisao", "inicio": 0.8, "texto": "Caso simples, a automação resolve. Caso delicado, a equipe assume." },
+
+    { "cena": "automacoes", "inicio": 0.8, "texto": "São seis rotinas rodando todo dia, sem ninguém precisar lembrar." },
+
+    { "cena": "baseAntiga", "inicio": 1.2, "texto": "E os pacientes antigos voltam a ser lembrados, um por um." },
+
+    { "cena": "reativacao", "inicio": 0.8, "texto": "O contato sai aos poucos, com limite e respeito a quem pediu para parar." },
+
+    { "cena": "whatsapp", "inicio": 0.8, "texto": "A conversa acontece no WhatsApp, onde o paciente já está." },
+    { "cena": "whatsapp", "inicio": 5.4, "texto": "E é aqui que ele responde." },
+
+    { "cena": "ia", "inicio": 0.8, "texto": "A inteligência artificial lê a resposta e entende o que a pessoa quer." },
+
+    { "cena": "intencoes", "inicio": 0.7, "texto": "Ela separa quem quer marcar de quem precisa falar com alguém." },
+
+    { "cena": "agendamento", "inicio": 0.8, "texto": "Quando o paciente quer marcar, o sistema mostra os horários que existem de verdade." },
+    { "cena": "agendamento", "inicio": 6.4, "texto": "Confere de novo e cria a consulta." },
+
+    { "cena": "humano", "inicio": 0.8, "texto": "Se o caso é delicado, a automação para e chama a equipe." },
+
+    { "cena": "home", "inicio": 1.0, "texto": "A equipe abre o dia sabendo quem precisa dela." },
+
+    { "cena": "inbox", "inicio": 0.8, "texto": "Cada conversa chega com o histórico do paciente do lado." },
+
+    { "cena": "paciente360", "inicio": 0.8, "texto": "E cada paciente tem uma página com tudo que já aconteceu." },
+
+    { "cena": "resultados", "inicio": 0.8, "texto": "Nada se perde. Tudo fica registrado." },
+
+    { "cena": "funil", "inicio": 0.8, "texto": "Dá para ver quantos foram contatados, quantos responderam e quantos marcaram." },
+
+    { "cena": "antesDepois", "inicio": 0.8, "texto": "Menos trabalho manual. Mais constância." },
+
+    { "cena": "impacto", "inicio": 0.8, "texto": "Mais contato gera mais resposta. Mais resposta gera mais agenda." },
+
+    { "cena": "gestor", "inicio": 0.8, "texto": "E a gestão enxerga o que está dando resultado." },
+
+    { "cena": "ecossistema", "inicio": 1.2, "texto": "Do dado até a consulta marcada, um caminho só." },
+
+    { "cena": "frase", "inicio": 0.8, "texto": "O Dental Office guarda a operação. O JP CRC transforma isso em ação." },
+
+    { "cena": "final", "inicio": 1.4, "texto": "Mais organização, mais relacionamento e menos oportunidade esquecida." }
+  ]
+}
