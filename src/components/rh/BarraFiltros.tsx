@@ -567,6 +567,8 @@ export function BarraFiltros(props: {
      quantos estão ativos, então nada fica escondido sem aviso. */
   const [painelAberto, setPainelAberto] = useState(false);
   const barraRef = useRef<HTMLDivElement>(null);
+  const painelRef = useRef<HTMLDivElement>(null);
+  const botaoFiltrosRef = useRef<HTMLButtonElement>(null);
   // Começa na variável de tema (a rota pode fixá-la) e é corrigido por medição
   // logo no primeiro efeito. O valor inicial é o mesmo no servidor e no
   // navegador, então a hidratação não vê diferença nenhuma.
@@ -650,6 +652,53 @@ export function BarraFiltros(props: {
   // Cast obrigatório: `CSSProperties` não declara propriedades customizadas, e
   // é por variável que a medição chega às classes utilitárias do painel.
   const estiloPainel = { "--rh-painel-max": `calc(100dvh - ${topo} - 11rem)` } as CSSProperties;
+
+  /**
+   * FECHAR O PAINEL PELO ESC E PELO CLIQUE FORA.
+   *
+   * Aberto, o painel é uma camada flutuante que cobre 440px da lista — e até
+   * aqui a única saída era acertar de novo o mesmo botão que abriu. Quem
+   * abrisse os filtros e clicasse em qualquer outro lugar ficava com o painel
+   * pendurado por cima dos candidatos, que é a sensação de "isso fica ligado
+   * para sempre". Camada que cobre conteúdo fecha pelas duas portas que todo
+   * mundo já tenta primeiro.
+   *
+   * O Esc devolve o foco ao botão: quem navega por teclado sairia do painel
+   * para o início da página, sem referência de onde estava.
+   *
+   * O ouvinte é `pointerdown`, e não `click`: um clique que começa dentro do
+   * painel e termina fora (arrastar o polegar da barra de rolagem, selecionar
+   * o texto de um rótulo) dispara `click` no documento e fecharia o painel no
+   * meio do gesto.
+   */
+  useEffect(() => {
+    if (!painelAberto) return undefined;
+
+    const foraDaqui = (alvo: EventTarget | null): boolean => {
+      if (!(alvo instanceof Node)) return true;
+      if (painelRef.current?.contains(alvo) === true) return false;
+      // O botão tem o próprio alternador: fechar aqui também faria o clique
+      // valer duas vezes e o painel reabriria no mesmo gesto.
+      if (botaoFiltrosRef.current?.contains(alvo) === true) return false;
+      return true;
+    };
+
+    const aoApontar = (e: PointerEvent) => {
+      if (foraDaqui(e.target)) setPainelAberto(false);
+    };
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setPainelAberto(false);
+      botaoFiltrosRef.current?.focus();
+    };
+
+    document.addEventListener("pointerdown", aoApontar);
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("pointerdown", aoApontar);
+      document.removeEventListener("keydown", aoTeclar);
+    };
+  }, [painelAberto]);
 
   return (
     <div
@@ -741,6 +790,7 @@ export function BarraFiltros(props: {
           <span className="ml-auto" />
 
           <button
+            ref={botaoFiltrosRef}
             type="button"
             onClick={() => setPainelAberto((v) => !v)}
             aria-expanded={painelAberto}
@@ -825,6 +875,7 @@ export function BarraFiltros(props: {
             tela antes de a pessoa ver o primeiro candidato. */}
         <div
           id={idPainel}
+          ref={painelRef}
           /* A barra é grudenta e nasce colada no cabeçalho, então ela nunca
              rola: no celular, os sete controles empilhados passavam da altura da
              tela e os últimos ("Incluir arquivadas", "Limpar tudo") ficavam fora
