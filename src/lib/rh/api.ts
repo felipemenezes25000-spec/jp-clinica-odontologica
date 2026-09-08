@@ -1282,7 +1282,7 @@ export const analisarUma = createServerFn({ method: "POST" })
   });
 
 export const analisarTodas = createServerFn({ method: "POST" })
-  .validator((entrada: unknown): { ids: string[]; forcar: boolean } => {
+  .validator((entrada: unknown): { ids: string[]; forcar: boolean; refazerLeituraBoa: boolean } => {
     const bruto = objeto(entrada);
     const brutos = bruto["ids"];
     const ids = Array.isArray(brutos)
@@ -1291,7 +1291,13 @@ export const analisarTodas = createServerFn({ method: "POST" })
           .map((item) => texto(item, 60))
           .filter((item) => item.length > 0)
       : [];
-    return { ids, forcar: bruto["forcar"] === true };
+    /* `refazerLeituraBoa` atravessa a trava de "leitura boa não se refaz". Não
+       existe botão para ela: ver o comentário em `servidor/analise.ts`. */
+    return {
+      ids,
+      forcar: bruto["forcar"] === true,
+      refazerLeituraBoa: bruto["refazerLeituraBoa"] === true,
+    };
   })
   .handler(async ({ data }): Promise<RespostaAnaliseLote> => {
     if (!(await exigirAdmin())) return { ok: false, motivo: NAO_AUTENTICADO };
@@ -1308,13 +1314,15 @@ export const analisarTodas = createServerFn({ method: "POST" })
     const alvos =
       data.ids.length > 0
         ? todas.filter((c) => data.ids.includes(c.id))
-        : todas.filter((c) => data.forcar || precisaAnalisar(c));
+        : todas.filter((c) => data.forcar || data.refazerLeituraBoa || precisaAnalisar(c));
 
     const ids = alvos.slice(0, MAX_ANALISES_POR_CHAMADA).map((c) => c.id);
     if (ids.length === 0) return { ok: true, feitos: 0, falhas: [], itens: [] };
 
     const { analisarVarias } = await import("./servidor/analise");
-    const resultado = await analisarVarias(ids);
+    const resultado = await analisarVarias(ids, undefined, {
+      refazerLeituraBoa: data.refazerLeituraBoa,
+    });
 
     const itens: Candidatura[] = [];
     for (const id of ids) {

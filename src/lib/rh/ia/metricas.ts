@@ -91,7 +91,26 @@ export function calcularMetricas(empregos: EmpregoExtraido[], agora: Date): Metr
     // tempo sem número, em vez de inventar um valor ou virar um negativo que
     // envenenaria a média e a mediana.
     const fim = fimBruto != null && ini != null && fimBruto < ini ? null : fimBruto;
-    return { ...e, mesInicio: ini, mesFim: fim, meses: mesesEntre(ini, fim), datado: ini != null };
+    /* A duração pode vir de DUAS fontes, e a ordem importa:
+       1. das datas, quando existem — conta calculada;
+       2. da duração que o próprio currículo declara ("2 anos"), quando ele dá
+          o tempo em vez do período.
+       O segundo caso era descartado, e com ele ia embora justamente o que a
+       clínica mais quer saber. Ler "2 anos" não é inventar data nenhuma: a
+       pessoa continua sem `mesInicio`, então não entra em lacuna, sobreposição
+       nem ordem cronológica — só na conta de permanência, onde é a verdade. */
+    const calculada = mesesEntre(ini, fim);
+    const declarada =
+      typeof e.duracaoMesesDeclarada === "number" && e.duracaoMesesDeclarada > 0
+        ? e.duracaoMesesDeclarada
+        : null;
+    return {
+      ...e,
+      mesInicio: ini,
+      mesFim: fim,
+      meses: calculada ?? declarada,
+      datado: ini != null,
+    };
   });
 
   const datados = itens.filter((i) => i.datado);
@@ -168,6 +187,7 @@ export function calcularMetricas(empregos: EmpregoExtraido[], agora: Date): Metr
     totalEmpregos: itens.length,
     empregosDatados: datados.length,
     empregosSemData: itens.length - datados.length,
+    empregosComDuracao: comDuracao.length,
 
     mesesUltimoEmprego: ultimo?.meses ?? null,
     ultimoEmprego: ultimo

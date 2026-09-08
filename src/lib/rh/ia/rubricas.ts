@@ -914,11 +914,16 @@ export function textoDasAncoras(rubrica: Rubrica, metricas: MetricasPermanencia)
 export function tetoPorRotatividade(
   m: MetricasPermanencia,
 ): { teto: number; motivo: string } | null {
-  if (m.empregosDatados < 3) return null;
+  /* Vale a duração CONHECIDA, não só a datada: um currículo que diz "2 anos" em
+     cada emprego informa a permanência tão bem quanto um que dá os períodos, e
+     antes essa pessoa escapava do teto por um detalhe de formato. O `??` cobre
+     as análises gravadas antes deste campo existir. */
+  const base = m.empregosComDuracao ?? m.empregosDatados;
+  if (base < 3) return null;
   const proporcao = m.proporcaoCurtos;
   if (proporcao === null) return null;
 
-  const quantos = `${String(m.empregosCurtos)} de ${String(m.empregosDatados)} vínculos datados duraram menos de um ano`;
+  const quantos = `${String(m.empregosCurtos)} de ${String(base)} vínculos com duração conhecida ficaram menos de um ano`;
 
   if (proporcao >= 60) {
     return { teto: 45, motivo: `${quantos} (${String(proporcao)}%).` };

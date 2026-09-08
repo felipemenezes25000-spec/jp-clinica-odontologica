@@ -279,6 +279,8 @@ export function extracaoDoFormulario(c: Candidatura): ExtracaoCurriculo {
           inicio: datas.inicio,
           fim: datas.fim,
           atual: datas.atual,
+          // O formulário do site pede um período, nunca uma duração solta.
+          duracaoMesesDeclarada: null,
           descricao: e.atividades,
           ...classificarVinculo(e.empresa, e.cargo, e.atividades),
         };
@@ -286,6 +288,8 @@ export function extracaoDoFormulario(c: Candidatura): ExtracaoCurriculo {
     cursos: [c.posGraduacoes, c.cursos].filter((p) => p.length > 0),
     idiomas: c.idiomas,
     softwares: c.softwares,
+    competencias: c.competencias,
+    especialidades: c.especialidades,
 
     registroProfissional: c.cro ? `CRO-${c.croUf || "??"} ${c.cro}` : "",
     pretensaoDeclarada: c.pretensao,
@@ -518,7 +522,7 @@ export async function analisarCandidatura(
   id: string,
   /* `forcar` continua na assinatura: quem chama passa, e a decisão de reler
      agora é só do guarda abaixo. */
-  _opcoes: { forcar?: boolean },
+  _opcoes: { forcar?: boolean; refazerLeituraBoa?: boolean },
 ): Promise<ResultadoAnalise> {
   const armazenamento = await import("./armazenamento");
   const c = await armazenamento.lerCandidatura(id);
@@ -542,8 +546,15 @@ export async function analisarCandidatura(
    * Sem esta trava, o botão "Reanalisar" da ficha e o lote com `forcar`
    * continuariam sendo duas portas abertas para reprocessar o acervo inteiro
    * por engano.
+   *
+   * A ÚNICA PORTA QUE ATRAVESSA é `refazerLeituraBoa`, e ela não tem botão em
+   * lugar nenhum do painel — nem na ficha, nem no lote. Existe para a manutenção
+   * rara e deliberada em que a EXTRAÇÃO melhorou (um campo novo, uma instrução
+   * que faz o modelo achar datas que antes deixava passar) e vale a pena pagar
+   * para reler o acervo. Quem a usa escreve o nome dela, e escrever o nome já é
+   * a confirmação: nenhum clique distraído chega aqui.
    */
-  if (anterior !== null && anterior.erro === "") {
+  if (anterior !== null && anterior.erro === "" && _opcoes.refazerLeituraBoa !== true) {
     return { ok: true, analise: anterior };
   }
 
@@ -765,6 +776,8 @@ export async function analisarCandidatura(
 export async function analisarVarias(
   ids: string[],
   aoProgredir?: (feitos: number, total: number) => void,
+  /** Ver a trava em `analisarCandidatura`. Sem botão em lugar nenhum. */
+  opcoes: { refazerLeituraBoa?: boolean } = {},
 ): Promise<{ feitos: number; falhas: { id: string; motivo: string }[] }> {
   const total = ids.length;
   const falhas: { id: string; motivo: string }[] = [];
@@ -783,7 +796,7 @@ export async function analisarVarias(
       // Nenhuma exceção pode escapar daqui: um trabalhador que morre deixaria a
       // importação parada pela metade, sem dizer em qual currículo parou.
       try {
-        const resultado = await analisarCandidatura(id, {});
+        const resultado = await analisarCandidatura(id, opcoes);
         if (!resultado.ok) falhas.push({ id, motivo: resultado.motivo });
       } catch (erro) {
         falhas.push({ id, motivo: erro instanceof Error ? erro.message : "Falha inesperada." });

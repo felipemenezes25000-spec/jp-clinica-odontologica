@@ -55,6 +55,20 @@ export type EmpregoExtraido = {
   inicio: string;
   fim: string;
   atual: boolean;
+  /**
+   * Quanto tempo o currículo DIZ que durou, em meses, quando ele informa a
+   * duração e não as datas: "2 anos" vira 24, "6 meses" vira 6.
+   *
+   * Existe porque jogar isso fora era perder exatamente o que a clínica mais
+   * quer saber. A regra de nunca converter duração em DATA continua de pé — uma
+   * data inventada estraga lacuna, sobreposição e ordem cronológica. Mas a
+   * duração declarada não é invenção nenhuma: está escrita no documento, e
+   * responde sozinha à pergunta "quanto tempo ela ficou em cada emprego".
+   *
+   * `null` quando o currículo não declara duração. Fica `null` também quando há
+   * datas — aí a duração é calculada, e conta calculada ganha de conta lida.
+   */
+  duracaoMesesDeclarada: number | null;
   descricao: string;
   setor: string;
   atendimentoPublico: boolean;
@@ -153,6 +167,14 @@ export type MetricasPermanencia = {
   totalEmpregos: number;
   empregosDatados: number;
   empregosSemData: number;
+  /**
+   * Quantos vínculos têm DURAÇÃO conhecida — pelas datas ou pela duração que o
+   * currículo declara ("2 anos"). É sempre >= `empregosDatados`, e é a base
+   * honesta de tudo que fala de permanência: média, mediana, proporção de
+   * curtos e o teto de nota. `empregosDatados` continua existindo para o que
+   * depende de POSIÇÃO no tempo — lacuna, sobreposição, "último emprego".
+   */
+  empregosComDuracao: number;
 
   /** O número que a clínica mais precisa acertar. */
   mesesUltimoEmprego: number | null;
@@ -322,6 +344,7 @@ export function metricasVazias(): MetricasPermanencia {
   return {
     totalEmpregos: 0,
     empregosDatados: 0,
+    empregosComDuracao: 0,
     empregosSemData: 0,
 
     mesesUltimoEmprego: null,

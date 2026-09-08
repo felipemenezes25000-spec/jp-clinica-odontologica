@@ -431,6 +431,7 @@ const ESQUEMA_EXTRACAO = {
           "inicio",
           "fim",
           "atual",
+          "duracaoMesesDeclarada",
           "descricao",
           "setor",
           "atendimentoPublico",
@@ -448,6 +449,11 @@ const ESQUEMA_EXTRACAO = {
           fim: {
             type: "string",
             description: "AAAA-MM, ou AAAA, ou vazio se atual ou nao informado",
+          },
+          duracaoMesesDeclarada: {
+            type: ["integer", "null"],
+            description:
+              "So quando o curriculo informa a DURACAO em vez das datas: '2 anos' = 24, '6 meses' = 6, '1 ano e meio' = 18. null quando ha datas ou quando nao diz nada.",
           },
           atual: { type: "boolean" },
           descricao: { type: "string", description: "as atividades, resumidas em uma linha" },
@@ -468,18 +474,18 @@ const ESQUEMA_EXTRACAO = {
     softwares: {
       type: "array",
       items: { type: "string" },
-      competencias: {
-        type: "array",
-        items: { type: "string" },
-        description:
-          "o que a pessoa sabe fazer, em palavras curtas: atendimento ao publico, agendamento, faturamento de convenio, esterilizacao. Nunca inventar: so o que o documento sustenta",
-      },
-      especialidades: {
-        type: "array",
-        items: { type: "string" },
-        description: "especialidades odontologicas declaradas, ou lista vazia",
-      },
       description: "Sistemas, prontuarios, ERPs e planilhas citados. Nada de suposicao.",
+    },
+    competencias: {
+      type: "array",
+      items: { type: "string" },
+      description:
+        "o que a pessoa sabe FAZER, em expressoes curtas do documento: atendimento ao publico, agendamento, faturamento de convenio, esterilizacao. Nunca inventar.",
+    },
+    especialidades: {
+      type: "array",
+      items: { type: "string" },
+      description: "especialidades odontologicas escritas no documento, ou lista vazia",
     },
     registroProfissional: {
       type: "string",
@@ -509,9 +515,26 @@ const INSTRUCOES_EXTRACAO = `Voce le curriculos para a JP Clinica Integrada Odon
 Sua unica tarefa nesta etapa e EXTRAIR o que esta escrito. Nao julgue, nao interprete, nao elogie, nao resuma opiniao.
 
 Regras que nao podem ser quebradas:
-- NUNCA invente uma data. Se o curriculo lista um emprego sem periodo, deixe inicio e fim vazios.
-  Data inventada destroi o calculo de permanencia, que e justamente o que a clinica mais precisa saber.
+- AS DATAS DOS EMPREGOS SAO O DADO MAIS IMPORTANTE DESTE TRABALHO. Toda a decisao da clinica sobre
+  permanencia sai delas. PROCURE a data de cada vinculo antes de desistir: em curriculo brasileiro ela
+  aparece em muitos formatos, e quase sempre esta la em algum lugar.
+    "03/2023 a 04/2024"   "mar/23 - abr/24"   "2023 - 2024"   "03.2023 ate o momento"
+    "Desde janeiro de 2022"   "Jan/2020 a Dez/2021"   "01/2019 - atual"   "2021 a 2023"
+  Ela pode estar ao lado do nome da empresa, embaixo do cargo, numa coluna lateral, entre parenteses,
+  no fim da descricao das atividades, ou em cabecalho de secao. Leia a pagina inteira antes de deixar
+  inicio e fim vazios.
+- NUNCA invente uma data. Se, depois de procurar, o vinculo realmente nao tem periodo escrito, deixe
+  inicio e fim vazios. Data inventada destroi o calculo de permanencia.
+- MAS SE O CURRICULO DIZ A DURACAO em vez das datas ("2 anos", "6 meses", "1 ano e meio", "18 meses"),
+  ponha esse numero em duracaoMesesDeclarada, convertido para meses, e deixe inicio e fim vazios. Isso
+  NAO e inventar: e copiar o que esta escrito. Quando houver datas, duracaoMesesDeclarada e null.
 - Datas em AAAA-MM sempre que houver mes. So o ano quando so o ano aparece. Nunca converta "2 anos" em datas.
+- competencias e o que a pessoa sabe FAZER, em expressoes curtas tiradas do documento: "atendimento ao
+  publico", "agendamento", "faturamento de convenio", "esterilizacao", "controle de estoque". Vem tanto
+  de uma secao de habilidades quanto da descricao das atividades dos empregos. Nao repita o nome do
+  cargo, nao repita softwares (esses tem lista propria) e nao invente nada que o documento nao sustente.
+- especialidades so para area clinica odontologica, e so o que estiver escrito ("ortodontia",
+  "endodontia"). Lista vazia para todo mundo que nao e da area.
 - "atual" e true apenas quando o documento diz que a pessoa ainda trabalha la (atual, presente, ate hoje, ate o momento).
 - Mantenha a ordem em que os empregos aparecem no documento, mesmo que esteja fora de ordem cronologica.
 - setor / atendimentoPublico / administrativo / odontologico / saude sao classificacoes objetivas do que
@@ -540,6 +563,12 @@ function normalizarEmpregos(bruto: unknown): ExtracaoCurriculo["empregos"] {
       inicio: txt(e["inicio"], 10),
       fim: txt(e["fim"], 10),
       atual: e["atual"] === true,
+      duracaoMesesDeclarada: (() => {
+        const v = e["duracaoMesesDeclarada"];
+        if (typeof v !== "number" || !Number.isFinite(v)) return null;
+        // Teto de 50 anos: duração absurda é alucinação, não carreira longa.
+        return v > 0 && v <= 600 ? Math.round(v) : null;
+      })(),
       descricao: txt(e["descricao"], 600),
       setor: txt(e["setor"], 40),
       atendimentoPublico: e["atendimentoPublico"] === true,
