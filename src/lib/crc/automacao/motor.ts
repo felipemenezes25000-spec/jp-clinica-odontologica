@@ -587,6 +587,7 @@ async function executarPasso(
         proativo: true,
         porta: ctx.porta,
         configuracao: ctx.configuracao,
+        agora,
       });
 
       if (envio.ok) {

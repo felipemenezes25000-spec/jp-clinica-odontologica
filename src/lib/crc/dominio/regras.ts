@@ -7,7 +7,7 @@
  * sem relógio de parede, porque o "agora" sempre entra como argumento.
  */
 import type { ConfiguracaoCrc, HorarioComercial } from "./configuracao";
-import { dentroDoHorario } from "./configuracao";
+import { dentroDoHorario, proximoInstanteUtil } from "./configuracao";
 import type { CondicaoAutomacao, Paciente, SituacaoPaciente } from "./tipos";
 
 export const DIA_MS = 24 * 60 * 60 * 1000;
@@ -248,10 +248,16 @@ export function podeContatar(
     };
   }
   if (!dentroDoHorario(agora, horario)) {
+    // REAGENDA, e não apenas recusa. Sem a data de retorno o chamador não
+    // consegue distinguir "espere até amanhã às 9h" de "o provedor falhou", e
+    // trata as duas como falha transitória: uma jornada bloqueada às 23h
+    // tentaria de quinze em quinze minutos a noite inteira, enchendo o log de
+    // erro com algo que não é erro nenhum.
     return {
       pode: false,
       codigo: "FORA_DO_HORARIO",
       motivo: "Fora do horário de atendimento.",
+      reagendarPara: proximoInstanteUtil(agora, horario),
     };
   }
   return { pode: true };

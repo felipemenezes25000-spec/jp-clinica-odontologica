@@ -357,6 +357,13 @@ export type PedidoEnvio = {
   proativo: boolean;
   porta: PortaMensageria;
   configuracao?: ConfiguracaoCrc;
+  /**
+   * O relógio da decisão. O motor de jornadas já recebe um "agora" para calcular
+   * as esperas; se a política de contato usasse o relógio de parede em vez dele,
+   * o mesmo passo poderia agendar para as 9h e, um instante depois, julgar o
+   * horário comercial com outro "agora". Um só relógio por execução.
+   */
+  agora?: Date;
 };
 
 export type ResultadoEnvioMensagem =
@@ -367,7 +374,12 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
   const cfg = pedido.configuracao ?? CONFIGURACAO_PADRAO;
 
   if (pedido.proativo && pedido.patientId !== null) {
-    const veredicto = await avaliarPoliticaDeContato(pedido.organizationId, pedido.patientId, cfg);
+    const veredicto = await avaliarPoliticaDeContato(
+      pedido.organizationId,
+      pedido.patientId,
+      cfg,
+      pedido.agora ?? new Date(),
+    );
     if (!veredicto.pode) {
       return {
         ok: false,

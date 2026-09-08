@@ -321,6 +321,15 @@ export async function encerrarPorConversao(
     "INACTIVE_PATIENT",
     "ABANDONED_TREATMENT",
   ],
+  /**
+   * Só fecha o que JÁ EXISTIA neste instante (ISO).
+   *
+   * É a guarda de causalidade do item 62. Sem ela, um fato do passado — uma
+   * consulta concluída há seis meses, que a primeira sincronização traz como
+   * evento novo — fecharia como "recuperada" uma oportunidade aberta hoje de
+   * manhã. O número sairia bonito no painel e não teria acontecido.
+   */
+  criadasAte?: string,
 ): Promise<number> {
   const abertas = await selecionar("crc_opportunities", {
     colunas: "id,tipo,potential_value,origem,clinic_id",
@@ -329,6 +338,9 @@ export async function encerrarPorConversao(
       { coluna: "patient_id", op: "eq", valor: patientId },
       { coluna: "fechada_em", op: "is", valor: null },
       { coluna: "tipo", op: "in", valor: [...tipos] },
+      ...(criadasAte === undefined
+        ? []
+        : [{ coluna: "criado_em", op: "lte" as const, valor: criadasAte }]),
     ],
   });
 

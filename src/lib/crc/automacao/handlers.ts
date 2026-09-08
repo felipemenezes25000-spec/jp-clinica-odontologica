@@ -167,12 +167,22 @@ export async function aoConcluirConsulta(evento: EventoCrc): Promise<void> {
   const paciente = await pacienteDoEvento(evento);
   if (paciente === null) return;
 
+  // O INSTANTE DA CONSULTA, e não o do processamento. A primeira sincronização
+  // de uma base real emite uma conclusão para CADA consulta do histórico; sem
+  // esta linha, todas elas chegariam depois das oportunidades recém-abertas e
+  // fechariam o funil inteiro como "recuperado" — receita que ninguém
+  // recuperou, no primeiro dia de uso.
+  const quandoAconteceu =
+    evento.ocorridoEm.length > 0 ? evento.ocorridoEm : new Date().toISOString();
+
   const abertasDeRecuperacao = await selecionar("crc_opportunities", {
     colunas: "id,tipo,potential_value,origem",
     filtros: [
       { coluna: "organization_id", op: "eq", valor: evento.organizationId },
       { coluna: "patient_id", op: "eq", valor: paciente.id },
       { coluna: "fechada_em", op: "is", valor: null },
+      // A causalidade do item 62: a oportunidade precisa ser ANTERIOR à consulta.
+      { coluna: "criado_em", op: "lte", valor: quandoAconteceu },
       {
         coluna: "tipo",
         op: "in",
@@ -206,6 +216,8 @@ export async function aoConcluirConsulta(evento: EventoCrc): Promise<void> {
     evento.organizationId,
     paciente.id,
     "O paciente compareceu à consulta.",
+    undefined,
+    quandoAconteceu,
   );
 }
 
@@ -219,6 +231,13 @@ export async function aoConcluirConsulta(evento: EventoCrc): Promise<void> {
 export async function aoCriarAgendamento(evento: EventoCrc): Promise<void> {
   const paciente = await pacienteDoEvento(evento);
   if (paciente === null) return;
+
+  // SÓ CONSULTA FUTURA encerra a recuperação. Um agendamento antigo que a
+  // primeira carga traz pela primeira vez é histórico, não é um paciente que
+  // acabou de marcar — e fechar a oportunidade por causa dele apagaria
+  // exatamente o trabalho que a carga inicial acabou de descobrir.
+  const inicio = Date.parse(String(evento.payload["inicioEm"] ?? evento.ocorridoEm));
+  if (!Number.isFinite(inicio) || inicio <= Date.now()) return;
 
   await encerrarPorConversao(
     evento.organizationId,
