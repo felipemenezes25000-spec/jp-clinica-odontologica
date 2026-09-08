@@ -1301,6 +1301,27 @@ export const acionarInterruptor = createServerFn({ method: "POST" })
     }),
   );
 
+/* -------------------------------------------------------------------------- */
+/* Dashboard do gestor (Milestone 9)                                          */
+/* -------------------------------------------------------------------------- */
+
+export type PanoramaDto = import("./aplicacao/analytics").PanoramaGestor;
+
+/**
+ * O painel executivo.
+ *
+ * Exige `ver_analytics_gerencial`, que o papel `crc` NÃO tem — item 182: o
+ * atendente nao precisa ver ROAS na tela principal, e o gestor nao precisa
+ * ver todas as conversas abertas de imediato. Sao dois trabalhos diferentes.
+ */
+export const carregarPanorama = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ panorama: PanoramaDto }>> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { panoramaDoGestor } = await import("./aplicacao/analytics");
+      return { ok: true as const, panorama: await panoramaDoGestor(ctx.organizationId) };
+    }),
+);
+
 /** Item 179: o debugger de jornada. */
 export const carregarHistoricoJornada = createServerFn({ method: "GET" })
   .validator((e: { enrollmentId: string }) => ({ enrollmentId: String(e.enrollmentId ?? "") }))

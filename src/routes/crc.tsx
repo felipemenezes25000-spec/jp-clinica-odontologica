@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Automacoes } from "@/components/crc/Automacoes";
 import { Funil } from "@/components/crc/Funil";
+import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
 import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
@@ -47,7 +48,8 @@ export const Route = createFileRoute("/crc")({
   }),
 });
 
-type Aba = "home" | "trabalho" | "inbox" | "funil" | "pacientes" | "automacoes" | "integracoes";
+type Aba =
+  "home" | "trabalho" | "inbox" | "funil" | "pacientes" | "gestao" | "automacoes" | "integracoes";
 
 type ItemNav = { aba: Aba; rotulo: string; permissao: Permissao };
 
@@ -57,6 +59,7 @@ const NAVEGACAO: readonly ItemNav[] = [
   { aba: "inbox", rotulo: "Conversas", permissao: "ver_conversa" },
   { aba: "funil", rotulo: "Funil", permissao: "ver_oportunidade" },
   { aba: "pacientes", rotulo: "Pacientes", permissao: "ver_paciente" },
+  { aba: "gestao", rotulo: "Gestão", permissao: "ver_analytics_gerencial" },
   { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao" },
   { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes" },
 ];
@@ -212,6 +215,8 @@ function PortalCrc() {
                 }}
               />
             ))}
+
+          {abaAtual === "gestao" && <Gestao />}
 
           {abaAtual === "automacoes" && (
             <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
