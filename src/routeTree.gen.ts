@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CrcRouteImport } from './routes/crc'
+import { Route as CrcInstitucionalRouteImport } from './routes/crc-institucional'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
 import { Route as CarreirasSlugRouteImport } from './routes/carreiras/$slug'
 import { Route as TratamentosSlugRouteImport } from './routes/tratamentos/$slug'
 import { Route as ApiCrcInstalarRouteImport } from './routes/api/crc/instalar'
+import { Route as ApiCrcLeadRouteImport } from './routes/api/crc/lead'
 import { Route as ApiCrcMotorRouteImport } from './routes/api/crc/motor'
 import { Route as ApiCrcSaudeRouteImport } from './routes/api/crc/saude'
 import { Route as ApiCrcWhatsappRouteImport } from './routes/api/crc/whatsapp'
@@ -31,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const CrcRoute = CrcRouteImport.update({
   id: '/crc',
   path: '/crc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrcInstitucionalRoute = CrcInstitucionalRouteImport.update({
+  id: '/crc-institucional',
+  path: '/crc-institucional',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -63,6 +70,11 @@ const ApiCrcInstalarRoute = ApiCrcInstalarRouteImport.update({
   path: '/api/crc/instalar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrcLeadRoute = ApiCrcLeadRouteImport.update({
+  id: '/api/crc/lead',
+  path: '/api/crc/lead',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCrcMotorRoute = ApiCrcMotorRouteImport.update({
   id: '/api/crc/motor',
   path: '/api/crc/motor',
@@ -92,12 +104,14 @@ const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/crc': typeof CrcRoute
+  '/crc-institucional': typeof CrcInstitucionalRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
+  '/api/crc/lead': typeof ApiCrcLeadRoute
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
@@ -107,12 +121,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/crc': typeof CrcRoute
+  '/crc-institucional': typeof CrcInstitucionalRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras': typeof CarreirasIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
+  '/api/crc/lead': typeof ApiCrcLeadRoute
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
@@ -123,12 +139,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/crc': typeof CrcRoute
+  '/crc-institucional': typeof CrcInstitucionalRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
+  '/api/crc/lead': typeof ApiCrcLeadRoute
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
@@ -140,12 +158,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/crc'
+    | '/crc-institucional'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras/'
     | '/api/crc/instalar'
+    | '/api/crc/lead'
     | '/api/crc/motor'
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
@@ -155,12 +175,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/crc'
+    | '/crc-institucional'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras'
     | '/api/crc/instalar'
+    | '/api/crc/lead'
     | '/api/crc/motor'
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
@@ -170,12 +192,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/crc'
+    | '/crc-institucional'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras/'
     | '/api/crc/instalar'
+    | '/api/crc/lead'
     | '/api/crc/motor'
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
@@ -186,12 +210,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CrcRoute: typeof CrcRoute
+  CrcInstitucionalRoute: typeof CrcInstitucionalRoute
   RhRoute: typeof RhRoute
   TrabalheConoscoRoute: typeof TrabalheConoscoRoute
   CarreirasSlugRoute: typeof CarreirasSlugRoute
   TratamentosSlugRoute: typeof TratamentosSlugRoute
   CarreirasIndexRoute: typeof CarreirasIndexRoute
   ApiCrcInstalarRoute: typeof ApiCrcInstalarRoute
+  ApiCrcLeadRoute: typeof ApiCrcLeadRoute
   ApiCrcMotorRoute: typeof ApiCrcMotorRoute
   ApiCrcSaudeRoute: typeof ApiCrcSaudeRoute
   ApiCrcWhatsappRoute: typeof ApiCrcWhatsappRoute
@@ -213,6 +239,13 @@ declare module '@tanstack/react-router' {
       path: '/crc'
       fullPath: '/crc'
       preLoaderRoute: typeof CrcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crc-institucional': {
+      id: '/crc-institucional'
+      path: '/crc-institucional'
+      fullPath: '/crc-institucional'
+      preLoaderRoute: typeof CrcInstitucionalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -257,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCrcInstalarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/crc/lead': {
+      id: '/api/crc/lead'
+      path: '/api/crc/lead'
+      fullPath: '/api/crc/lead'
+      preLoaderRoute: typeof ApiCrcLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/crc/motor': {
       id: '/api/crc/motor'
       path: '/api/crc/motor'
@@ -298,12 +338,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CrcRoute: CrcRoute,
+  CrcInstitucionalRoute: CrcInstitucionalRoute,
   RhRoute: RhRoute,
   TrabalheConoscoRoute: TrabalheConoscoRoute,
   CarreirasSlugRoute: CarreirasSlugRoute,
   TratamentosSlugRoute: TratamentosSlugRoute,
   CarreirasIndexRoute: CarreirasIndexRoute,
   ApiCrcInstalarRoute: ApiCrcInstalarRoute,
+  ApiCrcLeadRoute: ApiCrcLeadRoute,
   ApiCrcMotorRoute: ApiCrcMotorRoute,
   ApiCrcSaudeRoute: ApiCrcSaudeRoute,
   ApiCrcWhatsappRoute: ApiCrcWhatsappRoute,
