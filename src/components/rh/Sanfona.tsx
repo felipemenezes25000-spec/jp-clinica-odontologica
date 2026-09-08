@@ -43,7 +43,7 @@ export function Sanfona(props: {
   return (
     <section
       className="rh-vidro overflow-hidden"
-      data-rh-sanfona
+      data-rh-sanfona="true"
       data-sanfona-id={id}
       data-aberta={aberta ? "true" : "false"}
     >
@@ -63,7 +63,7 @@ export function Sanfona(props: {
           </span>
           {resumo === undefined || resumo === "" ? null : (
             <span
-              data-sanfona-resumo
+              data-sanfona-resumo="true"
               className="shrink-0 rounded-full bg-white/10 px-2.5 py-1 text-[0.7rem] font-semibold text-white/85 ring-1 ring-white/10"
             >
               {resumo}
