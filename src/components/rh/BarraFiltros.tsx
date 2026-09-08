@@ -492,13 +492,20 @@ const ROTULO = "whitespace-nowrap text-[0.65rem] font-bold uppercase tracking-[0
 const BASE_CONTROLE =
   "min-w-[9.5rem] flex-1 basis-full sm:basis-[calc(50%-0.375rem)] lg:basis-auto";
 
-function Campo(props: { id: string; rotulo: string; children: ReactNode }) {
+/* Legenda do controle. Pequena e apagada de propósito: quem já sabe o que o
+   campo faz varre a linha sem tropeçar nela, e quem não sabe acha a resposta
+   sem precisar perguntar para ninguém. */
+const LEGENDA = "text-[0.68rem] font-medium leading-snug text-ink-soft";
+
+function Campo(props: { id: string; rotulo: string; ajuda?: string; children: ReactNode }) {
+  const ajuda = props.ajuda ?? "";
   return (
     <div className={`flex flex-col gap-1.5 ${BASE_CONTROLE}`}>
       <label htmlFor={props.id} className={ROTULO}>
         {props.rotulo}
       </label>
       {props.children}
+      {ajuda === "" ? null : <p className={LEGENDA}>{ajuda}</p>}
     </div>
   );
 }
@@ -508,34 +515,48 @@ function Campo(props: { id: string; rotulo: string; children: ReactNode }) {
  * nunca é só a cor: o botão do trilho anda para a direita e um "check" aparece
  * ao lado do rótulo — dá para ler em monocromático.
  */
-function Interruptor(props: { ligado: boolean; rotulo: string; aoAlternar: (v: boolean) => void }) {
+function Interruptor(props: {
+  ligado: boolean;
+  rotulo: string;
+  ajuda?: string;
+  aoAlternar: (v: boolean) => void;
+}) {
+  const ajuda = props.ajuda ?? "";
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={props.ligado}
-      onClick={() => props.aoAlternar(!props.ligado)}
-      className={`flex h-11 items-center gap-2.5 rounded-xl border px-3 text-left text-sm font-medium transition-colors ${BASE_CONTROLE} ${
-        props.ligado
-          ? "border-forest/30 bg-mint text-ink"
-          : "border-border-soft bg-white text-ink-soft hover:border-forest/20"
-      }`}
-    >
-      <span
-        aria-hidden="true"
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-          props.ligado ? "bg-lime" : "bg-white/25"
+    /* A medida de coluna saiu do botão e veio para este invólucro: com a legenda
+       embaixo, quem ocupa a célula da grade passa a ser o par botão + texto, e
+       não mais o botão sozinho. */
+    <div className={`flex flex-col gap-1.5 ${BASE_CONTROLE}`}>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={props.ligado}
+        onClick={() => props.aoAlternar(!props.ligado)}
+        className={`flex h-11 w-full items-center gap-2.5 rounded-xl border px-3 text-left text-sm font-medium transition-colors ${
+          props.ligado
+            ? "border-forest/30 bg-mint text-ink"
+            : "border-border-soft bg-white text-ink-soft hover:border-forest/20"
         }`}
       >
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
-            props.ligado ? "left-[1.125rem]" : "left-0.5"
+          aria-hidden="true"
+          className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+            props.ligado ? "bg-lime" : "bg-white/25"
           }`}
-        />
-      </span>
-      <span className="min-w-0 flex-1">{props.rotulo}</span>
-      {props.ligado ? <Check size={15} aria-hidden="true" className="shrink-0 text-lime" /> : null}
-    </button>
+        >
+          <span
+            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${
+              props.ligado ? "left-[1.125rem]" : "left-0.5"
+            }`}
+          />
+        </span>
+        <span className="min-w-0 flex-1">{props.rotulo}</span>
+        {props.ligado ? (
+          <Check size={15} aria-hidden="true" className="shrink-0 text-lime" />
+        ) : null}
+      </button>
+      {ajuda === "" ? null : <p className={LEGENDA}>{ajuda}</p>}
+    </div>
   );
 }
 
@@ -885,7 +906,7 @@ export function BarraFiltros(props: {
           style={estiloPainel}
           className={`${painelAberto ? "flex" : "hidden"} max-h-[var(--rh-painel-max)] flex-wrap items-end gap-3 overflow-y-auto border-t border-white/10 pt-3`}
         >
-          <Campo id={idArea} rotulo="Área">
+          <Campo id={idArea} rotulo="Área" ajuda="O tipo de vaga a que a pessoa se candidatou.">
             <select
               id={idArea}
               value={filtros.area}
@@ -903,7 +924,7 @@ export function BarraFiltros(props: {
             </select>
           </Campo>
 
-          <Campo id={idStatus} rotulo="Status">
+          <Campo id={idStatus} rotulo="Status" ajuda="Em que etapa do funil ela está agora.">
             <select
               id={idStatus}
               value={filtros.status}
@@ -921,7 +942,11 @@ export function BarraFiltros(props: {
             </select>
           </Campo>
 
-          <Campo id={idVaga} rotulo="Vaga">
+          <Campo
+            id={idVaga}
+            rotulo="Vaga"
+            ajuda="A vaga do processo. Candidatura espontânea fica fora."
+          >
             <select
               id={idVaga}
               value={filtros.vagaId}
@@ -1080,21 +1105,28 @@ export function BarraFiltros(props: {
                 {filtros.notaMinima > 0 ? `${filtros.notaMinima}+` : "Qualquer"}
               </span>
             </div>
+            {/* A legenda mais necessária do painel: esta é a nota que a CLÍNICA
+                dá na ficha, e logo abaixo existe outra chamada "Nota da IA".
+                Sem dizer de quem é cada uma, as duas viram a mesma coisa. */}
+            <p className={LEGENDA}>As estrelas que a clínica deu na ficha. Não é a nota da IA.</p>
           </div>
 
           <Interruptor
             ligado={filtros.somenteComCurriculo}
             rotulo="Só com currículo"
+            ajuda="Esconde quem se inscreveu sem anexar arquivo."
             aoAlternar={(v) => mudar({ somenteComCurriculo: v })}
           />
           <Interruptor
             ligado={filtros.incluirArquivadas}
             rotulo="Incluir arquivadas"
+            ajuda="Traz de volta as fichas que você tirou da lista."
             aoAlternar={(v) => mudar({ incluirArquivadas: v })}
           />
           <Interruptor
             ligado={filtros.verLixeira}
             rotulo="Ver lixeira"
+            ajuda="Mostra só as excluídas — ainda dá para restaurar."
             aoAlternar={(v) => mudar({ verLixeira: v })}
           />
 
@@ -1120,7 +1152,11 @@ export function BarraFiltros(props: {
               Triagem por IA
             </p>
 
-            <Campo id={idRecomendacao} rotulo="Recomendação">
+            <Campo
+              id={idRecomendacao}
+              rotulo="Recomendação"
+              ajuda="O veredito da leitura: entrevistar já, entrevistar, talvez ou descartar."
+            >
               <select
                 id={idRecomendacao}
                 value={filtros.recomendacao}
@@ -1138,7 +1174,11 @@ export function BarraFiltros(props: {
               </select>
             </Campo>
 
-            <Campo id={idNotaIa} rotulo="Nota da IA (mínima)">
+            <Campo
+              id={idNotaIa}
+              rotulo="Nota da IA (mínima)"
+              ajuda="De 0 a 100, pela régua da vaga. Não é a nota que você dá na ficha."
+            >
               <select
                 id={idNotaIa}
                 value={String(filtros.notaIaMinima)}
@@ -1156,7 +1196,11 @@ export function BarraFiltros(props: {
               </select>
             </Campo>
 
-            <Campo id={idFicha} rotulo="Ficha de entrevista">
+            <Campo
+              id={idFicha}
+              rotulo="Ficha de entrevista"
+              ajuda="Se o roteiro de entrevista dessa pessoa já foi montado."
+            >
               <select
                 id={idFicha}
                 value={filtros.estadoFicha}
@@ -1180,7 +1224,11 @@ export function BarraFiltros(props: {
 
             {/* PERMANÊNCIA — o critério que mais pesa na régua de recepção (30%)
                 e que o painel não deixava filtrar. */}
-            <Campo id={idPermanencia} rotulo="Permanência média">
+            <Campo
+              id={idPermanencia}
+              rotulo="Permanência média"
+              ajuda="Quanto tempo ela ficou, em média, em cada emprego."
+            >
               <select
                 id={idPermanencia}
                 value={String(filtros.permanenciaMinima)}
@@ -1202,7 +1250,11 @@ export function BarraFiltros(props: {
               </select>
             </Campo>
 
-            <Campo id={idExperiencia} rotulo="Experiência na área">
+            <Campo
+              id={idExperiencia}
+              rotulo="Experiência na área"
+              ajuda="Meses de experiência na ÁREA da vaga dela, não na carreira toda."
+            >
               <select
                 id={idExperiencia}
                 value={String(filtros.experienciaMinima)}
@@ -1227,7 +1279,11 @@ export function BarraFiltros(props: {
               </select>
             </Campo>
 
-            <Campo id={idEmpregada} rotulo="Trabalhando hoje">
+            <Campo
+              id={idEmpregada}
+              rotulo="Trabalhando hoje"
+              ajuda="Se o currículo mostra um emprego ainda em aberto."
+            >
               <select
                 id={idEmpregada}
                 value={filtros.empregada}
@@ -1246,7 +1302,11 @@ export function BarraFiltros(props: {
               </select>
             </Campo>
 
-            <Campo id={idProximidade} rotulo="Mora">
+            <Campo
+              id={idProximidade}
+              rotulo="Mora"
+              ajuda="Distância até a clínica, pelo CEP ou pelo bairro do currículo."
+            >
               <select
                 id={idProximidade}
                 value={filtros.proximidade}
@@ -1271,7 +1331,11 @@ export function BarraFiltros(props: {
               </select>
             </Campo>
 
-            <Campo id={idEstudando} rotulo="Faz faculdade">
+            <Campo
+              id={idEstudando}
+              rotulo="Faz faculdade"
+              ajuda="Se há curso superior ou técnico em andamento."
+            >
               <select
                 id={idEstudando}
                 value={filtros.estudando}
@@ -1293,11 +1357,13 @@ export function BarraFiltros(props: {
             <Interruptor
               ligado={filtros.somenteComAnalise}
               rotulo="Só com leitura da IA"
+              ajuda="Esconde quem ainda não foi lido pela IA."
               aoAlternar={(v) => mudar({ somenteComAnalise: v })}
             />
             <Interruptor
               ligado={filtros.comSinalCritico}
               rotulo="Com alerta crítico"
+              ajuda="Só quem tem sinal do nível mais grave, que pede olhar antes de ligar."
               aoAlternar={(v) => mudar({ comSinalCritico: v })}
             />
           </div>

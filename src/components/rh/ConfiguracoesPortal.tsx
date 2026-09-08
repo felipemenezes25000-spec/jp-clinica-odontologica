@@ -139,6 +139,10 @@ export function ConfiguracoesPortal(props: {
       <div className="rh-papel space-y-8 p-4 sm:p-6 [&_:focus-visible]:outline-forest-2">
         <section className="space-y-4">
           <h3 className="font-display text-lg font-extrabold text-forest-2">Textos da página</h3>
+          <p className="-mt-2 max-w-2xl text-sm font-medium leading-relaxed text-ink">
+            É o que a candidata lê na página de carreiras do site, antes de decidir se envia o
+            currículo. Ao salvar, entra no ar na hora.
+          </p>
 
           <CampoTexto
             campo="config-tituloPortal"
@@ -200,6 +204,10 @@ export function ConfiguracoesPortal(props: {
 
         <section className="space-y-4">
           <h3 className="font-display text-lg font-extrabold text-forest-2">Contato do RH</h3>
+          <p className="-mt-2 max-w-2xl text-sm font-medium leading-relaxed text-ink">
+            Para onde a clínica quer ser procurada. O e-mail recebe o aviso de candidatura nova; o
+            WhatsApp aparece para a candidata falar com vocês.
+          </p>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <CampoTexto
@@ -249,6 +257,10 @@ export function ConfiguracoesPortal(props: {
 
         <section className="space-y-4">
           <h3 className="font-display text-lg font-extrabold text-forest-2">Banco de talentos</h3>
+          <p className="-mt-2 max-w-2xl text-sm font-medium leading-relaxed text-ink">
+            Currículo enviado sem vaga aberta. Serve para ter gente na mão quando abrir uma vaga de
+            repente.
+          </p>
           <Interruptor
             rotulo="Aceitar candidaturas espontâneas"
             descricao="Desligado, o portal só aceita currículo ligado a uma vaga aberta: o formulário do banco de talentos sai do ar e quem tentar enviar recebe um aviso explicando."

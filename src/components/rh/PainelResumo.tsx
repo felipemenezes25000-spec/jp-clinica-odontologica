@@ -724,8 +724,8 @@ export function PainelResumo({
             valor={`${dados.conversao}%`}
             contexto={
               dados.total > 0
-                ? `${dados.contratados} de ${pluralizar(dados.total, "candidatura", "candidaturas")}`
-                : "Depende da primeira candidatura"
+                ? `${dados.contratados} de ${pluralizar(dados.total, "candidatura", "candidaturas")} viraram contratação`
+                : "Quantas candidaturas viram contratação"
             }
           />
         </div>

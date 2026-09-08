@@ -1510,6 +1510,11 @@ function ConteudoGaveta(props: PropsConteudo) {
                   </p>
                 </div>
 
+                <p className="mt-1.5 text-xs font-medium leading-relaxed text-white">
+                  É aqui que a ficha anda. Nada disto é visto pela candidata: são as marcações da
+                  clínica sobre onde ela está, a que vaga pertence e quem está conduzindo.
+                </p>
+
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <div>
                     <label htmlFor={`${uid}-status`} className={ROTULO}>
