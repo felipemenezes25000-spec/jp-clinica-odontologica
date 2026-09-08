@@ -14,7 +14,7 @@ import { useAlturaAteOFimDaJanela } from "@/components/rh/useAlturaDaJanela";
 import { duvidasImportantesDe } from "@/lib/rh/duvidas";
 import { leiturasDeDuvidas } from "@/lib/rh/ficha";
 import { iniciais, tempoRelativo } from "@/lib/rh/formatar";
-import { AREAS, STATUS } from "@/lib/rh/opcoes";
+import { AREAS, STATUS, STATUS_INICIAL, statusPor } from "@/lib/rh/opcoes";
 import { recomendacaoPor } from "@/lib/rh/ia/tipos";
 import type { Candidatura, StatusCandidatura } from "@/lib/rh/tipos";
 
@@ -196,7 +196,7 @@ export function Kanban(props: {
   aoSelecionar: (id: string, marcada: boolean) => void;
   aoMoverStatus: (id: string, status: StatusCandidatura) => void;
 }) {
-  const statusInicial = props.itens[0]?.status ?? STATUS[0].valor;
+  const statusInicial = props.itens[0]?.status ?? STATUS_INICIAL.valor;
   const [statusAtivo, setStatusAtivo] = useState<StatusCandidatura>(statusInicial);
   const [arrastando, setArrastando] = useState<string | null>(null);
   const [destino, setDestino] = useState<StatusCandidatura | null>(null);
@@ -212,10 +212,18 @@ export function Kanban(props: {
     [props.itens],
   );
 
-  const grupoAtivo = porStatus.find((grupo) => grupo.status.valor === statusAtivo) ?? porStatus[0];
+  /* O `find` sempre acha: `statusAtivo` é um valor do funil e `porStatus` cobre
+     o funil inteiro. O fallback existe para o compilador, e devolve a etapa
+     vazia em vez de um `undefined` que estouraria as duas linhas de baixo. */
+  const grupoAtivo = porStatus.find((grupo) => grupo.status.valor === statusAtivo) ?? {
+    status: statusPor(statusAtivo),
+    itens: [] as Candidatura[],
+  };
   const statusMeta = grupoAtivo.status;
   const itensAtivos = grupoAtivo.itens;
-  const selecionadasNaEtapa = itensAtivos.filter((item) => props.selecionadas.includes(item.id)).length;
+  const selecionadasNaEtapa = itensAtivos.filter((item) =>
+    props.selecionadas.includes(item.id),
+  ).length;
 
   const soltarNaEtapa = (event: DragEvent<HTMLElement>, status: StatusCandidatura) => {
     event.preventDefault();
@@ -329,12 +337,16 @@ export function Kanban(props: {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="truncate text-sm font-extrabold text-slate-950">{statusMeta.rotulo}</h3>
+                  <h3 className="truncate text-sm font-extrabold text-slate-950">
+                    {statusMeta.rotulo}
+                  </h3>
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.65rem] font-black tabular-nums text-slate-700">
                     {itensAtivos.length}
                   </span>
                 </div>
-                <p className="mt-0.5 truncate text-[0.68rem] text-slate-500">{statusMeta.descricao}</p>
+                <p className="mt-0.5 truncate text-[0.68rem] text-slate-500">
+                  {statusMeta.descricao}
+                </p>
               </div>
             </div>
 
@@ -363,10 +375,14 @@ export function Kanban(props: {
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             {itensAtivos.length === 0 ? (
               <div className="flex h-full min-h-44 flex-col items-center justify-center px-6 text-center">
-                <span className={`mb-3 h-3 w-3 rounded-full ${statusMeta.ponto}`} aria-hidden="true" />
+                <span
+                  className={`mb-3 h-3 w-3 rounded-full ${statusMeta.ponto}`}
+                  aria-hidden="true"
+                />
                 <p className="text-sm font-extrabold text-slate-800">{statusMeta.vazio}</p>
                 <p className="mt-1 max-w-md text-xs leading-relaxed text-slate-500">
-                  A etapa continua visível no topo e também funciona como destino para arrastar candidatos.
+                  A etapa continua visível no topo e também funciona como destino para arrastar
+                  candidatos.
                 </p>
               </div>
             ) : (

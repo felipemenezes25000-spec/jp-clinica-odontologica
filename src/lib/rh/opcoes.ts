@@ -259,7 +259,13 @@ export type ItemStatus = {
   vazio: string;
 };
 
-const STATUS_INICIAL: ItemStatus = {
+/**
+ * A primeira etapa do funil, com nome próprio. É exportada porque quem precisa
+ * dela precisa DELA, e não do índice zero de uma lista: `STATUS[0]` obriga cada
+ * chamador a lidar com um `undefined` que não existe, e um `"novo"` solto
+ * espalha pelo painel a decisão de onde o funil começa.
+ */
+export const STATUS_INICIAL: ItemStatus = {
   valor: "novo",
   rotulo: "Novo",
   descricao: "Chegou agora e ainda não foi lido.",
