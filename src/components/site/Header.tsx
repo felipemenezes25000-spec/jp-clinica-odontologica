@@ -88,7 +88,11 @@ export function Header() {
       {/* NAVEGAÇÃO PRINCIPAL */}
       <div className="border-b border-border-soft bg-[#FDFEFA]/95 backdrop-blur-xl">
         <div
-          className={`jp-container flex items-center justify-between gap-6 transition-all duration-300 ${
+          /* O gap é fluido porque é ele que separa o menu do logo e do botão,
+             e 24px fixos ficavam apertados justamente onde a barra é mais
+             estreita. Cresce com a largura, então em tela grande os três blocos
+             respiram sem precisar de outro ajuste. */
+          className={`jp-container flex items-center justify-between gap-[clamp(24px,2.2vw,44px)] transition-all duration-300 ${
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
@@ -115,17 +119,35 @@ export function Header() {
           </a>
 
           {/* O gap fluido é o que faz os itens caberem sem estourar: o navegador
-              aperta o espaçamento conforme a largura, em vez de quebrar a linha. */}
+              aperta o espaçamento conforme a largura, em vez de quebrar a linha.
+
+              A CONTA PRECISOU SER REFEITA quando o menu passou a ter dez itens.
+              Com 2vw de espaçamento, a 1280px a lista media 793px dentro de uma
+              caixa de 745 — e como ela é centralizada, o excesso vazava 24px
+              para CADA lado: "Início" entrava por baixo do logo e "Carreiras"
+              encostava no botão de agendar. Não era falta de margem, era a
+              linha não caber e ninguém segurar o transbordo.
+
+              São três medidas fluidas trabalhando juntas, e nenhuma delas
+              sozinha resolvia: o gap da barra afasta os blocos, este gap aperta
+              a lista, e o corpo do texto cede 1px na faixa estreita. Abaixo de
+              ~1470px o item fica em 13px; daí para cima volta aos 14.
+
+              O TETO DE 28px NÃO É ARREDONDAMENTO. A lista para de crescer em
+              900px (o max-w acima), mas o espaçamento continuaria subindo com a
+              tela: em 2560px, com os 34px de antes, os dez itens somavam 909 e
+              transbordavam de novo — o mesmo defeito, só que na outra ponta.
+              Com 28px eles somam 863 e sobra folga para variação de fonte. */}
           <nav
             className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
             aria-label="Navegação principal"
           >
-            <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(12px,2vw,34px)]">
+            <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(14px,1.25vw,28px)]">
               {NAV.map((item) => (
                 <li key={item.href} className="shrink-0">
                   <a
                     href={item.href}
-                    className="relative whitespace-nowrap py-3 text-[14px] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full"
+                    className="relative whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full"
                   >
                     {item.label}
                   </a>
