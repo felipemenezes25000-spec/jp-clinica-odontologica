@@ -15,6 +15,9 @@ import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
 import { Route as CarreirasSlugRouteImport } from './routes/carreiras/$slug'
 import { Route as TratamentosSlugRouteImport } from './routes/tratamentos/$slug'
+import { Route as ApiCrcMotorRouteImport } from './routes/api/crc/motor'
+import { Route as ApiCrcSaudeRouteImport } from './routes/api/crc/saude'
+import { Route as ApiCrcWhatsappRouteImport } from './routes/api/crc/whatsapp'
 import { Route as ApiRhVarrerRouteImport } from './routes/api/rh/varrer'
 import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/$id'
 
@@ -48,6 +51,21 @@ const TratamentosSlugRoute = TratamentosSlugRouteImport.update({
   path: '/tratamentos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrcMotorRoute = ApiCrcMotorRouteImport.update({
+  id: '/api/crc/motor',
+  path: '/api/crc/motor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCrcSaudeRoute = ApiCrcSaudeRouteImport.update({
+  id: '/api/crc/saude',
+  path: '/api/crc/saude',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCrcWhatsappRoute = ApiCrcWhatsappRouteImport.update({
+  id: '/api/crc/whatsapp',
+  path: '/api/crc/whatsapp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRhVarrerRoute = ApiRhVarrerRouteImport.update({
   id: '/api/rh/varrer',
   path: '/api/rh/varrer',
@@ -66,6 +84,9 @@ export interface FileRoutesByFullPath {
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
+  '/api/crc/motor': typeof ApiCrcMotorRoute
+  '/api/crc/saude': typeof ApiCrcSaudeRoute
+  '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
   '/api/rh/varrer': typeof ApiRhVarrerRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
@@ -76,6 +97,9 @@ export interface FileRoutesByTo {
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras': typeof CarreirasIndexRoute
+  '/api/crc/motor': typeof ApiCrcMotorRoute
+  '/api/crc/saude': typeof ApiCrcSaudeRoute
+  '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
   '/api/rh/varrer': typeof ApiRhVarrerRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
@@ -87,6 +111,9 @@ export interface FileRoutesById {
   '/carreiras/$slug': typeof CarreirasSlugRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
+  '/api/crc/motor': typeof ApiCrcMotorRoute
+  '/api/crc/saude': typeof ApiCrcSaudeRoute
+  '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
   '/api/rh/varrer': typeof ApiRhVarrerRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
@@ -99,6 +126,9 @@ export interface FileRouteTypes {
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras/'
+    | '/api/crc/motor'
+    | '/api/crc/saude'
+    | '/api/crc/whatsapp'
     | '/api/rh/varrer'
     | '/api/rh/curriculo/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +139,9 @@ export interface FileRouteTypes {
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras'
+    | '/api/crc/motor'
+    | '/api/crc/saude'
+    | '/api/crc/whatsapp'
     | '/api/rh/varrer'
     | '/api/rh/curriculo/$id'
   id:
@@ -119,6 +152,9 @@ export interface FileRouteTypes {
     | '/carreiras/$slug'
     | '/tratamentos/$slug'
     | '/carreiras/'
+    | '/api/crc/motor'
+    | '/api/crc/saude'
+    | '/api/crc/whatsapp'
     | '/api/rh/varrer'
     | '/api/rh/curriculo/$id'
   fileRoutesById: FileRoutesById
@@ -130,6 +166,9 @@ export interface RootRouteChildren {
   CarreirasSlugRoute: typeof CarreirasSlugRoute
   TratamentosSlugRoute: typeof TratamentosSlugRoute
   CarreirasIndexRoute: typeof CarreirasIndexRoute
+  ApiCrcMotorRoute: typeof ApiCrcMotorRoute
+  ApiCrcSaudeRoute: typeof ApiCrcSaudeRoute
+  ApiCrcWhatsappRoute: typeof ApiCrcWhatsappRoute
   ApiRhVarrerRoute: typeof ApiRhVarrerRoute
   ApiRhCurriculoIdRoute: typeof ApiRhCurriculoIdRoute
 }
@@ -178,6 +217,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TratamentosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/crc/motor': {
+      id: '/api/crc/motor'
+      path: '/api/crc/motor'
+      fullPath: '/api/crc/motor'
+      preLoaderRoute: typeof ApiCrcMotorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crc/saude': {
+      id: '/api/crc/saude'
+      path: '/api/crc/saude'
+      fullPath: '/api/crc/saude'
+      preLoaderRoute: typeof ApiCrcSaudeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/crc/whatsapp': {
+      id: '/api/crc/whatsapp'
+      path: '/api/crc/whatsapp'
+      fullPath: '/api/crc/whatsapp'
+      preLoaderRoute: typeof ApiCrcWhatsappRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/rh/varrer': {
       id: '/api/rh/varrer'
       path: '/api/rh/varrer'
@@ -202,6 +262,9 @@ const rootRouteChildren: RootRouteChildren = {
   CarreirasSlugRoute: CarreirasSlugRoute,
   TratamentosSlugRoute: TratamentosSlugRoute,
   CarreirasIndexRoute: CarreirasIndexRoute,
+  ApiCrcMotorRoute: ApiCrcMotorRoute,
+  ApiCrcSaudeRoute: ApiCrcSaudeRoute,
+  ApiCrcWhatsappRoute: ApiCrcWhatsappRoute,
   ApiRhVarrerRoute: ApiRhVarrerRoute,
   ApiRhCurriculoIdRoute: ApiRhCurriculoIdRoute,
 }
