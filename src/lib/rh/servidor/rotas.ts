@@ -148,53 +148,76 @@ function numero(v: unknown): number | null {
  * qualquer retângulo generoso da Grande São Paulo. O que resolve é comparar a
  * cidade que o currículo diz com a cidade que o mapa devolveu. Não batendo,
  * a resposta certa é NÃO TER resposta.
+ *
+ * TENTATIVAS EM ORDEM, e não uma pergunta só. Uma única consulta em texto
+ * corrido ("Rua X, Bairro Y, São Paulo, SP") falhava muito: medindo os
+ * currículos guardados, nove endereços em dez não achavam nada assim, e a ficha
+ * ficava sem trajeto tendo o CEP escrito no documento. A busca ESTRUTURADA do
+ * Nominatim (`street=` com `city=` e `state=`) acerta esses mesmos nove.
+ *
+ * A ordem é a da precisão, e para na primeira que passar na validação de
+ * município. O que NÃO entra na lista é o centro da cidade: para quem mora em
+ * São Paulo isso devolve o mesmo ponto para todo mundo — 15 km medidos para
+ * quem mora a 7 e para quem mora a 40. Número inventado com cara de medido é
+ * pior que número nenhum.
  */
-async function geocodificar(
-  consulta: string,
-  cidadeEsperada: string,
-): Promise<{ lat: number; lon: number } | null> {
-  const chave = `${consulta.trim().toLowerCase()}|${cidadeEsperada.trim().toLowerCase()}`;
-  if (consulta.trim() === "") return null;
-  const guardado = memoria.get(chave);
-  if (guardado !== undefined) return guardado;
+type Tentativa = { rotulo: string; params: string };
 
+async function geocodificar(
+  tentativas: Tentativa[],
+  cidadeEsperada: string,
+): Promise<{ lat: number; lon: number; rotulo: string } | null> {
+  /* A cidade que o resultado do mapa TEM de ter. Se o que veio como "cidade"
+     não é município nenhum que a gente conheça, é porque a extração guardou um
+     BAIRRO ali ("Jaraguá", "Cidade Líder"); nesse caso o município esperado
+     passa a ser a capital, que é onde esses bairros ficam — senão a validação
+     recusaria o resultado certo. */
+  const informada = normalizarCidade(cidadeEsperada);
+  const alvo = informada === "" || GRANDE_SAO_PAULO.includes(informada) ? informada : "sao paulo";
+
+  for (const tentativa of tentativas) {
+    const chave = `${tentativa.params}|${alvo}`;
+    const guardado = memoria.get(chave);
+    const ponto =
+      guardado !== undefined ? guardado : await consultarNominatim(tentativa.params, alvo);
+    if (guardado === undefined) memoria.set(chave, ponto);
+    if (ponto !== null) return { ...ponto, rotulo: tentativa.rotulo };
+  }
+  return null;
+}
+
+/** Uma consulta ao Nominatim, já filtrada pelo município esperado. */
+async function consultarNominatim(
+  params: string,
+  alvo: string,
+): Promise<{ lat: number; lon: number } | null> {
   /* Cinco resultados e `addressdetails`: o primeiro pode ser de outra cidade, e
      é preciso ver a cidade de cada um para escolher. */
   const url =
     "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=br" +
-    `&addressdetails=1&q=${encodeURIComponent(consulta)}`;
+    `&addressdetails=1&${params}`;
   const bruto = await emFila(() => buscarJson(url));
+  if (!Array.isArray(bruto)) return null;
 
-  /* Se o que veio como "cidade" não é município nenhum que a gente conheça, é
-     porque a extração antiga guardou um BAIRRO ali ("Jaraguá", "Cidade Líder").
-     Nesse caso o município esperado passa a ser a capital, que é onde esses
-     bairros ficam — senão a validação recusaria o resultado certo. */
-  const informada = normalizarCidade(cidadeEsperada);
-  const alvo = informada === "" || GRANDE_SAO_PAULO.includes(informada) ? informada : "sao paulo";
-  let ponto: { lat: number; lon: number } | null = null;
-  if (Array.isArray(bruto)) {
-    for (const cru of bruto) {
-      const item = cru as Record<string, unknown>;
-      const lat = numero(item["lat"]);
-      const lon = numero(item["lon"]);
-      if (lat === null || lon === null || !dentroDaGrandeSP({ lat, lon })) continue;
+  for (const cru of bruto) {
+    const item = cru as Record<string, unknown>;
+    const lat = numero(item["lat"]);
+    const lon = numero(item["lon"]);
+    if (lat === null || lon === null || !dentroDaGrandeSP({ lat, lon })) continue;
 
-      const endereco = (item["address"] ?? {}) as Record<string, unknown>;
-      const municipio = normalizarCidade(
-        [endereco["city"], endereco["town"], endereco["municipality"], endereco["village"]]
-          .map((v) => (typeof v === "string" ? v : ""))
-          .find((v) => v !== "") ?? "",
-      );
-      // Cidade esperada vazia só acontece quando nem o currículo diz: aí o
-      // recorte geográfico é tudo o que se tem, e já é melhor que nada.
-      if (alvo !== "" && municipio !== alvo) continue;
+    const endereco = (item["address"] ?? {}) as Record<string, unknown>;
+    const municipio = normalizarCidade(
+      [endereco["city"], endereco["town"], endereco["municipality"], endereco["village"]]
+        .map((v) => (typeof v === "string" ? v : ""))
+        .find((v) => v !== "") ?? "",
+    );
+    // Cidade esperada vazia só acontece quando nem o currículo diz: aí o
+    // recorte geográfico é tudo o que se tem, e já é melhor que nada.
+    if (alvo !== "" && municipio !== alvo) continue;
 
-      ponto = { lat, lon };
-      break;
-    }
+    return { lat, lon };
   }
-  memoria.set(chave, ponto);
-  return ponto;
+  return null;
 }
 
 /**
@@ -207,7 +230,9 @@ async function geocodificar(
  * bem. É também o que dá o endereço mais preciso que este módulo consegue:
  * rua, e não centro de bairro.
  */
-async function porCep(cep: string): Promise<{ consulta: string; cidade: string } | null> {
+type EnderecoDoCep = { logradouro: string; bairro: string; cidade: string; uf: string };
+
+async function porCep(cep: string): Promise<EnderecoDoCep | null> {
   const digitos = apenasDigitos(cep);
   if (digitos.length !== 8) return null;
 
@@ -216,13 +241,11 @@ async function porCep(cep: string): Promise<{ consulta: string; cidade: string }
   const dados = bruto as Record<string, unknown>;
   if (dados["erro"] !== undefined) return null;
 
-  const logradouro = typeof dados["logradouro"] === "string" ? dados["logradouro"] : "";
-  const bairro = typeof dados["bairro"] === "string" ? dados["bairro"] : "";
-  const cidade = typeof dados["localidade"] === "string" ? dados["localidade"] : "";
-  const uf = typeof dados["uf"] === "string" ? dados["uf"] : "";
-  const partes = [logradouro, bairro, cidade, uf].filter((p) => p.trim() !== "");
-  if (partes.length < 2) return null;
-  return { consulta: partes.join(", "), cidade };
+  const texto = (chave: string): string =>
+    typeof dados[chave] === "string" ? (dados[chave] as string).trim() : "";
+  const cidade = texto("localidade");
+  if (cidade === "") return null;
+  return { logradouro: texto("logradouro"), bairro: texto("bairro"), cidade, uf: texto("uf") };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -284,24 +307,52 @@ export async function calcularTrajeto(entrada: {
   const bairro = (entrada.bairro ?? "").trim();
   const uf = (entrada.uf ?? "").trim() || "SP";
 
-  let consulta = "";
+  const tentativas: Tentativa[] = [];
   /* A cidade que o resultado do mapa TEM de ter. Sai do CEP quando ele existe
      (é a fonte mais confiável) e do que o currículo informou nos outros casos. */
   let cidadeDoResultado = cidade || "São Paulo";
-  const porCepAchado = await porCep(entrada.cep ?? "");
-  if (porCepAchado) {
-    consulta = porCepAchado.consulta;
-    cidadeDoResultado = porCepAchado.cidade || cidadeDoResultado;
-  } else if (bairro !== "") {
-    consulta = [bairro, cidade || "São Paulo", uf].join(", ");
-  } else if (cidade !== "" && cidade.toLowerCase().replace(/\s+/g, " ") !== "são paulo") {
-    consulta = [cidade, uf].join(", ");
-    cidadeDoResultado = cidade;
-  } else {
-    return null;
+
+  const doCep = await porCep(entrada.cep ?? "");
+  if (doCep) {
+    cidadeDoResultado = doCep.cidade;
+    const uf2 = doCep.uf || uf;
+    if (doCep.logradouro !== "") {
+      tentativas.push({
+        rotulo: `${doCep.logradouro}, ${doCep.bairro || doCep.cidade}`,
+        params:
+          `street=${encodeURIComponent(doCep.logradouro)}` +
+          `&city=${encodeURIComponent(doCep.cidade)}&state=${encodeURIComponent(uf2)}`,
+      });
+    }
+    if (doCep.bairro !== "") {
+      tentativas.push({
+        rotulo: `${doCep.bairro}, ${doCep.cidade}`,
+        params: `q=${encodeURIComponent([doCep.bairro, doCep.cidade, uf2].join(", "))}`,
+      });
+    }
   }
 
-  const ponto = await geocodificar(consulta, cidadeDoResultado);
+  if (bairro !== "") {
+    const alvoCidade = cidade || "São Paulo";
+    tentativas.push({
+      rotulo: `${bairro}, ${alvoCidade}`,
+      params: `q=${encodeURIComponent([bairro, alvoCidade, uf].join(", "))}`,
+    });
+  }
+
+  /* Cidade do interior ou da Grande SP entra como último recurso: "de Caieiras
+     até a clínica" é resposta útil. A capital NÃO entra — ver o comentário de
+     `geocodificar` sobre o centro da cidade. */
+  if (tentativas.length === 0) {
+    if (cidade === "" || normalizarCidade(cidade) === "sao paulo") return null;
+    cidadeDoResultado = cidade;
+    tentativas.push({
+      rotulo: `${cidade}, ${uf}`,
+      params: `q=${encodeURIComponent([cidade, uf].join(", "))}`,
+    });
+  }
+
+  const ponto = await geocodificar(tentativas, cidadeDoResultado);
   if (ponto === null) return null;
 
   const rota = await rotaDeCarro(ponto);
@@ -310,7 +361,7 @@ export async function calcularTrajeto(entrada: {
   return {
     km: rota.km,
     minutos: rota.minutos,
-    origem: consulta,
+    origem: ponto.rotulo,
     calculadoEm: new Date().toISOString(),
   };
 }
