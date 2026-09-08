@@ -1,0 +1,35 @@
+{
+  "name": "jp-crc-apresentacao",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Tour interativo e vídeo renderizável do JP CRC / Revenue OS.",
+  "scripts": {
+    "dev": "vite --port 5180",
+    "build": "vite build",
+    "preview": "vite preview --port 5180",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run build",
+    "video:preview": "remotion studio src/remotion/index.ts",
+    "video:render": "remotion render src/remotion/index.ts JPCRCMain out/jp-crc-1080p.mp4 --log=verbose",
+    "video:render:vertical": "remotion render src/remotion/index.ts JPCRCVertical out/jp-crc-vertical.mp4",
+    "video:thumbnail": "remotion still src/remotion/index.ts JPCRCThumbnail out/jp-crc-capa.png",
+    "video:frame": "remotion still src/remotion/index.ts JPCRCMain out/frame.png --frame=0"
+  },
+  "dependencies": {
+    "@remotion/player": "4.0.522",
+    "framer-motion": "^12.23.26",
+    "lucide-react": "^0.575.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "remotion": "4.0.522"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.522",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^5.8.3",
+    "vite": "^7.1.0"
+  }
+}
