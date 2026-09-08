@@ -729,6 +729,167 @@ export const apagarVisaoSalva = createServerFn({ method: "POST" })
     }),
   );
 
+/* -------------------------------------------------------------------------- */
+/* Importação de planilha — itens 55, 189 (orçamentos) e a cobrança           */
+/* -------------------------------------------------------------------------- */
+
+export type EscopoImportacao = "orcamentos" | "cobrancas";
+
+/** O preview vai achatado: o item 138 de novo. */
+export type LinhaPreviewDto = {
+  paciente: string;
+  identificado: boolean;
+  aviso: string | null;
+  valor: string;
+  situacao: string;
+  jaExiste: boolean;
+};
+
+export type PreviewDto = {
+  linhas: LinhaPreviewDto[];
+  falhas: { linha: number; erro: string; conteudo: string }[];
+  total: number;
+  novos: number;
+  atualizados: number;
+  semPaciente: number;
+  comErro: number;
+  valorTotal: string;
+  /** Só na cobrança: quantas já passaram do limite da automação. */
+  antigas: number | null;
+};
+
+/** Quantas linhas o preview manda para a tela. O resumo conta TODAS. */
+const LINHAS_NO_PREVIEW = 50;
+
+function escopoValido(bruto: string): EscopoImportacao {
+  return bruto === "cobrancas" ? "cobrancas" : "orcamentos";
+}
+
+/**
+ * O preview NUNCA grava.
+ *
+ * É a diferença entre uma importação que a pessoa confere e uma que ela
+ * descobre depois. Item 189: "mostre 1.523 válidos, 41 avisos, 7 erros ANTES
+ * de gravar". Um preview que grava é só um relatório tardio.
+ */
+export const previewDeImportacao = createServerFn({ method: "POST" })
+  .validator((e: { escopo: string; conteudo: string }) => ({
+    escopo: escopoValido(String(e.escopo ?? "")),
+    conteudo: String(e.conteudo ?? ""),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ preview: PreviewDto }>> =>
+    comContexto("importar_dados", async (ctx) => {
+      if (data.conteudo.trim().length === 0) {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message: "O arquivo está vazio.",
+        };
+      }
+
+      if (data.escopo === "cobrancas") {
+        const { gerarPreviewCobrancas } = await import("./aplicacao/cobrancas");
+        const p = await gerarPreviewCobrancas(ctx.organizationId, data.conteudo);
+        return {
+          ok: true as const,
+          preview: {
+            linhas: p.validos.slice(0, LINHAS_NO_PREVIEW).map((l) => ({
+              paciente: l.paciente,
+              identificado: l.patientId !== null,
+              aviso: l.avisoPaciente,
+              valor: l.saldo,
+              situacao: l.fase,
+              jaExiste: l.jaExiste,
+            })),
+            falhas: p.falhas.slice(0, LINHAS_NO_PREVIEW),
+            total: p.resumo.total,
+            novos: p.resumo.novos,
+            atualizados: p.resumo.atualizados,
+            semPaciente: p.resumo.semPaciente,
+            comErro: p.resumo.comErro,
+            valorTotal: p.resumo.saldoTotal,
+            antigas: p.resumo.antigas,
+          },
+        };
+      }
+
+      const { gerarPreview, provedorCsv } = await import("./aplicacao/orcamentos");
+      const p = await gerarPreview(ctx.organizationId, provedorCsv(data.conteudo));
+      return {
+        ok: true as const,
+        preview: {
+          linhas: p.validos.slice(0, LINHAS_NO_PREVIEW).map((l) => ({
+            paciente: l.paciente,
+            identificado: l.patientId !== null,
+            aviso: l.avisoPaciente,
+            valor: l.totalValue,
+            situacao: l.status,
+            jaExiste: l.jaExiste,
+          })),
+          falhas: p.falhas.slice(0, LINHAS_NO_PREVIEW),
+          total: p.resumo.total,
+          novos: p.resumo.novos,
+          atualizados: p.resumo.atualizados,
+          semPaciente: p.resumo.semPaciente,
+          comErro: p.resumo.comErro,
+          valorTotal: p.resumo.valorTotal,
+          antigas: null,
+        },
+      };
+    }),
+  );
+
+export const confirmarImportacao = createServerFn({ method: "POST" })
+  .validator((e: { escopo: string; conteudo: string }) => ({
+    escopo: escopoValido(String(e.escopo ?? "")),
+    conteudo: String(e.conteudo ?? ""),
+  }))
+  .handler(
+    async ({
+      data,
+    }): Promise<
+      Resposta<{
+        criados: number;
+        atualizados: number;
+        falhados: number;
+        semPaciente: number;
+      }>
+    > =>
+      comContexto("importar_dados", async (ctx) => {
+        // A clínica da importação é a PRIMEIRA do escopo de quem importa, e não
+        // um parâmetro da tela: aceitar um `clinicId` do cliente abriria a porta
+        // para gravar na unidade de outra pessoa (item 71).
+        const clinicId = ctx.clinicIds[0];
+        if (clinicId === undefined) {
+          return {
+            ok: false as const,
+            code: "ENTRADA_INVALIDA",
+            message: "Você não está associado a nenhuma clínica.",
+          };
+        }
+
+        if (data.escopo === "cobrancas") {
+          const { importarCobrancas } = await import("./aplicacao/cobrancas");
+          const r = await importarCobrancas(
+            ctx.organizationId,
+            clinicId,
+            data.conteudo,
+            ctx.usuario.id,
+          );
+          return { ok: true as const, ...r };
+        }
+
+        const { importar, provedorCsv } = await import("./aplicacao/orcamentos");
+        const r = await importar(
+          ctx.organizationId,
+          clinicId,
+          provedorCsv(data.conteudo),
+          ctx.usuario.id,
+        );
+        return { ok: true as const, ...r };
+      }),
+  );
+
 export const moverOportunidade = createServerFn({ method: "POST" })
   .validator((e: { opportunityId: string; etapa: string; lostReason?: string }) => ({
     opportunityId: String(e.opportunityId ?? ""),

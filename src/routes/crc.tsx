@@ -28,6 +28,7 @@ import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
 import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
+import { Importar } from "@/components/crc/Importar";
 import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
 import { BuscaPacientes, CentralDoPaciente } from "@/components/crc/Pacientes";
 import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
@@ -50,7 +51,15 @@ export const Route = createFileRoute("/crc")({
 });
 
 type Aba =
-  "home" | "trabalho" | "inbox" | "funil" | "pacientes" | "gestao" | "automacoes" | "integracoes";
+  | "home"
+  | "trabalho"
+  | "inbox"
+  | "funil"
+  | "pacientes"
+  | "gestao"
+  | "importar"
+  | "automacoes"
+  | "integracoes";
 
 type ItemNav = { aba: Aba; rotulo: string; permissao: Permissao };
 
@@ -61,6 +70,7 @@ const NAVEGACAO: readonly ItemNav[] = [
   { aba: "funil", rotulo: "Funil", permissao: "ver_oportunidade" },
   { aba: "pacientes", rotulo: "Pacientes", permissao: "ver_paciente" },
   { aba: "gestao", rotulo: "Gestão", permissao: "ver_analytics_gerencial" },
+  { aba: "importar", rotulo: "Importar", permissao: "importar_dados" },
   { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao" },
   { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes" },
 ];
@@ -237,6 +247,8 @@ function PortalCrc() {
           {abaAtual === "gestao" && (
             <Gestao podeExportar={usuario.permissoes.includes("exportar_dados")} />
           )}
+
+          {abaAtual === "importar" && <Importar />}
 
           {abaAtual === "automacoes" && (
             <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
