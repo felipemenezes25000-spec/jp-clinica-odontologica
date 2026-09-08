@@ -42,9 +42,16 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { formatarDataHora, tempoRelativo } from "@/lib/rh/formatar";
-import { CHAVES_CRITERIO } from "@/lib/rh/ia/rubricas";
+import {
+  CHAVES_CRITERIO,
+  tetoPorDeslocamento,
+  tetoPorGraduacaoEmSaude,
+  tetoPorRotatividade,
+} from "@/lib/rh/ia/rubricas";
+import { classificarProximidade } from "@/lib/rh/ia/proximidade";
 import { VERSAO_ANALISE, recomendacaoPor } from "@/lib/rh/ia/tipos";
 import type { AnaliseIa, ChaveCriterio, CriterioIa } from "@/lib/rh/ia/tipos";
+import { AREAS } from "@/lib/rh/opcoes";
 import type { Candidatura } from "@/lib/rh/tipos";
 import { LinhaDoTempoEmpregos } from "./LinhaDoTempoEmpregos";
 import { PainelSinais } from "./PainelSinais";
@@ -333,6 +340,47 @@ function ListaComIcone(props: {
   );
 }
 
+/**
+ * POR QUE A NOTA PAROU AQUI — calculado na hora, e não lido da análise.
+ *
+ * Os três tetos da clínica (rotatividade, graduação na área da saúde e
+ * deslocamento) abaixam a nota em `servidor/analise.ts`, e até aqui a ficha
+ * mostrava só o número menor, sem dizer de onde ele veio. Quem abria a ficha de
+ * uma candidata forte via 55 sem explicação nenhuma, que é a pior forma de
+ * apresentar uma regra: parece erro do sistema, e não decisão da clínica.
+ *
+ * É RECALCULADO em vez de lido porque `analise.sinais` é o retrato do dia em
+ * que a leitura rodou. Quando um teto muda de número — ou nasce, como estes
+ * dois nasceram — o retrato antigo não muda junto, e a ficha passaria a mostrar
+ * uma nota nova com uma explicação velha. A extração e as métricas, que são a
+ * entrada dos três, não envelhecem: são o que estava escrito no documento.
+ *
+ * Só entram os tetos que de fato SEGURAM a nota (`teto <= notaGeral`). Anunciar
+ * um teto de 60 numa ficha de 35 seria verdade inútil: aquela nota não foi
+ * limitada por nada, ela é baixa por mérito próprio.
+ */
+function tetosQueSeguraram(item: Candidatura): { teto: number; motivo: string }[] {
+  const a = item.analise;
+  if (a === null || a.erro !== "") return [];
+
+  const area = AREAS.some((x) => x.valor === item.area) ? item.area : "outro";
+  const banda = classificarProximidade({
+    cep: item.cep,
+    bairro: item.bairro,
+    cidade: item.cidade,
+    uf: item.uf,
+  }).banda;
+
+  return [
+    tetoPorRotatividade(a.metricas),
+    tetoPorGraduacaoEmSaude(a.extracao, area),
+    tetoPorDeslocamento(banda, item.trajeto?.minutos ?? null),
+  ]
+    .filter((t): t is { teto: number; motivo: string } => t !== null)
+    .filter((t) => t.teto <= a.notaGeral)
+    .sort((x, y) => x.teto - y.teto);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Componente público                                                         */
 /* -------------------------------------------------------------------------- */
@@ -373,6 +421,7 @@ export function LeituraIa(props: {
   }, []);
 
   const configurada = props.estadoIa === undefined || props.estadoIa.configurada;
+  const tetos = tetosQueSeguraram(item);
 
   /**
    * Quais blocos da leitura estão abertos.
@@ -562,6 +611,27 @@ export function LeituraIa(props: {
               {analise.resumoUmaLinha}
             </p>
           ) : null}
+
+          {/* A regra da clínica que segurou o número, dita com todas as letras.
+              Fica colada na nota de propósito: é ali que a pergunta nasce. */}
+          {tetos.length === 0 ? null : (
+            <ul className="rh-tetos mt-2 space-y-1">
+              {tetos.map((t) => (
+                <li
+                  key={t.motivo}
+                  className="flex items-start gap-2 text-[0.8rem] leading-relaxed text-white"
+                >
+                  <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-lime" aria-hidden="true" />
+                  <span>
+                    <strong className="font-bold">
+                      Regra da clínica: a nota não passa de {t.teto}
+                    </strong>{" "}
+                    porque {t.motivo}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <p className="text-right text-[0.7rem] leading-relaxed text-white/85">

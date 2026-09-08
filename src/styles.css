@@ -2127,6 +2127,36 @@ textarea.rh-campo {
   color: white !important;
 }
 
+/* A MESMA REGRA, SEM LISTA PARA MANTER.
+   As duas listas acima nomeiam classe por classe os verdes da marca, e é assim
+   que a exceção falha: qualquer componente novo que pinte o próprio fundo
+   escuro com uma cor do Tailwind — `bg-emerald-700`, `bg-rose-600` — cai no
+   `text-white → ink` lá de cima e vira letra preta sobre fundo escuro, que é
+   exatamente o contrário da regra da clínica. Foi o que aconteceu com o
+   contador da etapa ativa do funil: 3,12:1, reprovado.
+
+   O que decide aqui é a forma do nome, e não o nome: nas escalas do Tailwind,
+   600 a 900 são os passos escuros. Um elemento que pede `text-white` E pinta o
+   fundo num desses passos está declarando fundo escuro, e a letra branca é a
+   resposta certa — hoje e para o componente que ainda não foi escrito. */
+.rh-admin
+  :is(
+    [class*="bg-"][class*="-600"],
+    [class*="bg-"][class*="-700"],
+    [class*="bg-"][class*="-800"],
+    [class*="bg-"][class*="-900"]
+  )[class~="text-white"],
+.rh-admin
+  :is(
+    [class*="bg-"][class*="-600"],
+    [class*="bg-"][class*="-700"],
+    [class*="bg-"][class*="-800"],
+    [class*="bg-"][class*="-900"]
+  )
+  [class~="text-white"] {
+  color: white !important;
+}
+
 .rh-admin main [class~="bg-lime"][class~="text-brand-deep"],
 .rh-admin .rh-gaveta [class~="bg-lime"][class~="text-brand-deep"] {
   color: white !important;
