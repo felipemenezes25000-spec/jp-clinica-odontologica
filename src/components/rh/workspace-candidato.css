@@ -1,48 +1,57 @@
 /*
- * Workspace do candidato
- * ----------------------
- * A ficha nasceu como drawer de 30rem. Isso funciona para consulta rápida,
- * mas ficou pequeno depois que a tela passou a reunir decisão, IA, entrevista
- * e dados cadastrais. Este arquivo só refina a gaveta do RH: nada daqui vaza
- * para o site público, kanban ou modo entrevista.
+ * Workspace do candidato — redesign v2
+ * -------------------------------------
+ * A primeira versão só ampliava a antiga gaveta. Esta versão muda a hierarquia:
+ * 1) cabeçalho verde = identidade + decisão + contato;
+ * 2) coluna principal = IA, dúvidas e entrevista;
+ * 3) raia lateral = gestão do processo;
+ * 4) cadastro e metadados = portas compactas, sem competir com a decisão.
  *
- * Estratégia:
- * - desktop grande: quase tela cheia, com leitura/decisão à esquerda e gestão
- *   do processo fixa à direita;
- * - notebook/tablet: gaveta larga, ainda em uma coluna;
- * - celular: preserva o bottom-sheet de 92dvh já definido em styles.css;
- * - sanfonas ficam compactas e só ganham presença quando abertas.
+ * Este arquivo é deliberadamente escopado em `.rh-admin .rh-gaveta`.
  */
 
 .rh-admin .rh-gaveta {
   color-scheme: light;
 }
 
-/* Papel mais calmo: menos sombra e menos “cartão dentro de cartão”. */
+/* -------------------------------------------------------------------------- */
+/* Superfícies                                                                 */
+/* -------------------------------------------------------------------------- */
+
 .rh-admin .rh-gaveta .rh-vidro {
-  border-color: color-mix(in oklab, var(--forest) 11%, white);
-  border-radius: 1rem;
+  border-color: color-mix(in oklab, var(--forest) 10%, white);
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.98);
   box-shadow:
-    0 1px 2px rgba(3, 47, 1, 0.035),
-    0 14px 34px -32px rgba(3, 47, 1, 0.28);
+    0 1px 2px rgba(3, 47, 1, 0.025),
+    0 16px 34px -32px rgba(3, 47, 1, 0.26);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .rh-admin .rh-gaveta [data-rh-sanfona] {
-  background: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: none;
   transition:
     border-color 0.18s var(--ease-out),
     background 0.18s var(--ease-out),
-    box-shadow 0.18s var(--ease-out);
+    box-shadow 0.18s var(--ease-out),
+    transform 0.18s var(--ease-out);
+}
+
+.rh-admin .rh-gaveta [data-rh-sanfona]:hover {
+  border-color: color-mix(in oklab, var(--forest) 20%, white);
 }
 
 .rh-admin .rh-gaveta [data-rh-sanfona][data-aberta="true"] {
-  border-color: color-mix(in oklab, var(--forest) 21%, white);
+  border-color: color-mix(in oklab, var(--forest) 24%, white);
   background: white;
-  box-shadow: 0 14px 34px -30px rgba(3, 47, 1, 0.3);
+  box-shadow: 0 18px 38px -34px rgba(3, 47, 1, 0.4);
 }
 
-/* Os blocos técnicos continuam acessíveis, mas deixam de competir visualmente
-   com pontos fortes, atenção e perguntas. */
+/* Itens de auditoria continuam disponíveis, mas visualmente recuam. */
 .rh-admin .rh-gaveta :is(
     [data-sanfona-id*="-criterios"],
     [data-sanfona-id*="-sinais"],
@@ -51,11 +60,10 @@
     [data-sanfona-id*="-etiquetas"]
   ) {
   background: color-mix(in oklab, var(--mint) 18%, white);
-  box-shadow: none;
+  border-color: color-mix(in oklab, var(--forest) 8%, white);
 }
 
-/* As portas que respondem diretamente “vale chamar?” recebem contraste um
-   pouco maior sem virar banners coloridos. */
+/* As portas ligadas diretamente à decisão recebem mais definição. */
 .rh-admin .rh-gaveta :is(
     [data-sanfona-id*="-fortes"],
     [data-sanfona-id*="-atencao"],
@@ -63,12 +71,13 @@
     [data-sanfona-id*="-trajetoria"],
     [data-sanfona-id*="-duvidas"]
   ) {
-  border-color: color-mix(in oklab, var(--forest) 16%, white);
+  border-color: color-mix(in oklab, var(--forest) 17%, white);
 }
 
-/* Metadado técnico da leitura é útil para auditoria, não para a decisão de
-   cinco segundos. Mantém o aviso humano e tira a linha de tokens da primeira
-   hierarquia visual. :has é suportado pelos navegadores-alvo atuais do painel. */
+/* -------------------------------------------------------------------------- */
+/* Informação técnica da IA                                                   */
+/* -------------------------------------------------------------------------- */
+
 .rh-admin
   .rh-gaveta
   section.rh-vidro:has([data-sanfona-id*="-criterios"])
@@ -81,98 +90,290 @@
   .rh-gaveta
   section.rh-vidro:has([data-sanfona-id*="-criterios"])
   > footer {
-  margin-top: 0.75rem !important;
+  margin-top: 0.7rem !important;
   padding-top: 0.65rem !important;
 }
 
-/* Aviso de régua antiga: ainda visível, porém com peso de nota contextual em
-   vez de dominar o cartão inteiro. */
 .rh-admin
   .rh-gaveta
   section.rh-vidro:has([data-sanfona-id*="-criterios"])
   > p[class~="bg-amber-300/10"] {
-  padding: 0.65rem 0.75rem !important;
-  font-size: 0.75rem !important;
+  padding: 0.6rem 0.75rem !important;
+  border-radius: 0.75rem !important;
+  font-size: 0.74rem !important;
   line-height: 1.4 !important;
 }
 
-/* Notebook: o drawer deixa de parecer uma aba estreita, mas ainda usa uma
-   coluna para não apertar os formulários. */
+/* -------------------------------------------------------------------------- */
+/* Tablet / notebook                                                           */
+/* -------------------------------------------------------------------------- */
+
 @media (min-width: 768px) and (max-width: 1279px) {
   .rh-admin .rh-gaveta {
-    width: min(56rem, calc(100vw - 1.5rem));
+    width: min(62rem, calc(100vw - 1.25rem));
   }
 }
 
-/* Desktop: vira workspace de decisão, não drawer. */
+/* -------------------------------------------------------------------------- */
+/* Desktop                                                                     */
+/* -------------------------------------------------------------------------- */
+
 @media (min-width: 1280px) {
+  /* Quase tela cheia, mas claramente modal. */
   .rh-admin .rh-gaveta {
-    top: clamp(0.75rem, 1.8vh, 1.5rem);
-    right: clamp(0.75rem, 1.8vw, 1.5rem);
-    bottom: clamp(0.75rem, 1.8vh, 1.5rem);
-    width: min(100rem, calc(100vw - clamp(1.5rem, 3.6vw, 3rem)));
-    border: 1px solid color-mix(in oklab, var(--forest) 14%, white);
-    border-radius: 1.5rem;
+    top: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    width: min(106rem, calc(100vw - 2rem));
     overflow: hidden;
-    box-shadow: 0 36px 100px -46px rgba(3, 47, 1, 0.46);
-    --rh-entra-x: 2rem;
+    border: 1px solid color-mix(in oklab, var(--forest) 16%, white);
+    border-radius: 1.55rem;
+    background: #f5f8f3;
+    box-shadow: 0 42px 110px -52px rgba(1, 34, 12, 0.58);
+    --rh-entra-x: 1.5rem;
   }
 
-  .rh-admin .rh-gaveta > header {
-    max-height: 48dvh !important;
-    padding: 1rem 1.35rem !important;
+  /* ---------------------------------------------------------------------- */
+  /* HERO: deixa de parecer o topo de uma ficha de formulário.              */
+  /* ---------------------------------------------------------------------- */
+
+  .rh-admin .rh-gaveta > header.rh-scroll {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(28rem, 0.85fr);
+    grid-template-areas:
+      "identity contact"
+      "score contact";
+    column-gap: clamp(1.25rem, 2vw, 2.4rem);
+    row-gap: 0.85rem;
+    max-height: 52dvh !important;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem 1.2rem !important;
+    border-bottom: 0 !important;
+    background:
+      radial-gradient(circle at 11% -35%, rgba(185, 255, 86, 0.22), transparent 24rem),
+      radial-gradient(circle at 86% 145%, rgba(116, 206, 27, 0.14), transparent 28rem),
+      linear-gradient(135deg, #032c11 0%, #063a16 54%, #04290f 100%) !important;
   }
 
-  .rh-admin .rh-gaveta > .rh-scroll {
-    padding: 1rem 1.25rem 1.35rem !important;
+  /* O tema claro global remapeia text-white para preto. No HERO isso volta a
+     ser branco de verdade: verde escuro = letra branca. */
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white!"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/85"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/90"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/25"] {
+    color: white !important;
   }
 
-  /* O markup já traz todos os blocos na ordem correta. Aqui a gestão sai da
-     coluna de leitura e ganha uma raia própria à direita. O restante continua
-     em fluxo único, então abrir uma sanfona nunca cria buracos de masonry. */
-  .rh-admin .rh-gaveta > .rh-scroll > div {
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/85"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="text-white/90"] {
+    color: rgba(255, 255, 255, 0.82) !important;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/5"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/10"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/15"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-white/20"] {
+    background: rgba(255, 255, 255, 0.09) !important;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/15"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/20"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/25"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="ring-white/30"] {
+    --tw-ring-color: rgba(255, 255, 255, 0.18) !important;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="border-white/10"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="border-white/15"],
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="border-white/20"] {
+    border-color: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  /* Identidade. */
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(1) {
+    grid-area: identity;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(1) > span:first-child {
+    width: 4rem !important;
+    height: 4rem !important;
+    border: 1px solid rgba(185, 255, 86, 0.34);
+    background: linear-gradient(145deg, rgba(185, 255, 86, 0.2), rgba(255, 255, 255, 0.08)) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    font-size: 1.12rem !important;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll h2 {
+    font-size: clamp(1.45rem, 1.65vw, 1.85rem) !important;
+    letter-spacing: -0.035em;
+  }
+
+  /* Fechar: canto superior, discreto. */
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(1) > button:last-child {
+    align-self: flex-start;
+    width: 2.55rem !important;
+    height: 2.55rem !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none;
+  }
+
+  /* Nota da clínica + IA vira um único módulo visual de decisão. */
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(2) {
+    grid-area: score;
+    display: flex;
+    align-items: center;
+    min-height: 3.8rem;
+    margin-top: 0 !important;
+    padding: 0.7rem 0.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.075);
+    backdrop-filter: blur(8px);
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll .rh-estrela {
+    color: rgba(255, 255, 255, 0.36) !important;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll .rh-estrela[data-ativa="true"] {
+    color: #b7ff54 !important;
+  }
+
+  /* Contato: painel operacional à direita do hero. */
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) {
+    grid-area: contact;
+    align-self: center;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    border-top: 0 !important;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) > section {
+    padding: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1.15rem;
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) > section > div {
+    justify-content: flex-end;
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) a,
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) button,
+  .rh-admin .rh-gaveta > header.rh-scroll > div:nth-of-type(3) span[class*="rounded-full"] {
+    white-space: nowrap;
+  }
+
+  /* WhatsApp continua sendo a única ação visualmente primária. */
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-forest"] {
+    background: #fff !important;
+    color: #063a16 !important;
+    border-color: #fff !important;
+    box-shadow: 0 8px 24px -18px rgba(0, 0, 0, 0.8);
+  }
+
+  .rh-admin .rh-gaveta > header.rh-scroll [class~="bg-forest"] * {
+    color: #063a16 !important;
+  }
+
+  @media (pointer: fine) {
+    .rh-admin .rh-gaveta > header.rh-scroll [class~="min-h-11"],
+    .rh-admin .rh-gaveta > header.rh-scroll .rh-alvo-toque {
+      min-height: 2.3rem !important;
+    }
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* CORPO: decisão à esquerda, processo à direita.                         */
+  /* ---------------------------------------------------------------------- */
+
+  .rh-admin .rh-gaveta > div.rh-scroll {
+    padding: 1.25rem 1.4rem 1.5rem !important;
+    background:
+      linear-gradient(180deg, rgba(247, 250, 246, 0.96), #f5f8f3 42%),
+      #f5f8f3;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(21rem, 23rem);
+    grid-template-columns: minmax(0, 1fr) minmax(21rem, 23.5rem);
     column-count: initial !important;
-    column-gap: 1.15rem !important;
-    row-gap: 0.8rem !important;
+    column-gap: 1.2rem !important;
+    row-gap: 0.75rem !important;
     align-items: start;
-    max-width: 100rem !important;
+    max-width: 103rem !important;
   }
 
-  .rh-admin .rh-gaveta > .rh-scroll > div > * {
+  .rh-admin .rh-gaveta > div.rh-scroll > div > * {
     grid-column: 1;
     margin-block: 0 !important;
     break-inside: auto !important;
   }
 
+  /* Gestão fica fixa no lado direito — não é mais o primeiro bloco da leitura. */
   .rh-admin
     .rh-gaveta
-    > .rh-scroll
+    > div.rh-scroll
     > div
     > section[aria-labelledby$="-gestao"] {
     position: sticky;
     top: 0;
-    z-index: 4;
+    z-index: 5;
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 1 / span 6;
     align-self: start;
-    box-shadow: 0 20px 48px -38px rgba(3, 47, 1, 0.42);
+    padding: 1rem !important;
+    border-color: color-mix(in oklab, var(--forest) 16%, white);
+    border-radius: 1.2rem;
+    background:
+      linear-gradient(180deg, color-mix(in oklab, var(--mint) 36%, white), white 28%);
+    box-shadow: 0 22px 48px -42px rgba(3, 47, 1, 0.42);
   }
 
-  /* Na raia estreita, quatro campos em duas colunas criavam rótulos espremidos.
-     Uma coluna só deixa status → área → responsável → entrevista na ordem de
-     trabalho e reduz erro de leitura. */
+  .rh-admin
+    .rh-gaveta
+    section[aria-labelledby$="-gestao"]
+    > div:first-child {
+    padding-bottom: 0.7rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--forest) 10%, white);
+  }
+
   .rh-admin
     .rh-gaveta
     section[aria-labelledby$="-gestao"]
     > div[class~="grid"] {
     grid-template-columns: minmax(0, 1fr) !important;
-    gap: 0.75rem !important;
+    gap: 0.72rem !important;
+    margin-top: 0.85rem !important;
   }
 
-  /* As explicações sob cada campo são corretas, mas repetitivas no uso diário.
-     O rótulo e o valor bastam; mensagens de erro/salvamento continuam visíveis. */
+  .rh-admin
+    .rh-gaveta
+    section[aria-labelledby$="-gestao"]
+    label {
+    margin-bottom: 0.32rem !important;
+    color: var(--ink-soft) !important;
+    font-size: 0.64rem !important;
+    letter-spacing: 0.11em !important;
+  }
+
+  .rh-admin
+    .rh-gaveta
+    section[aria-labelledby$="-gestao"]
+    :is(select, input) {
+    min-height: 2.72rem !important;
+    padding-block: 0.55rem !important;
+    border-color: color-mix(in oklab, var(--forest) 12%, white) !important;
+    background: #f8faf7 !important;
+    color: var(--ink) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  /* Microcopy repetitiva sai da rotina; erro/status permanecem. */
   .rh-admin
     .rh-gaveta
     section[aria-labelledby$="-gestao"]
@@ -180,29 +381,72 @@
     display: none;
   }
 
-  /* Com mouse, os controles de contato não precisam carregar o alvo de toque
-     de 44px; isso devolve uma linha inteira de altura ao cabeçalho. */
-  @media (pointer: fine) {
-    .rh-admin .rh-gaveta > header [class~="min-h-11"] {
-      min-height: 2.25rem !important;
-    }
+  /* Leitura da IA é o primeiro grande cartão da coluna principal. */
+  .rh-admin .rh-gaveta > div.rh-scroll > div > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    border-color: color-mix(in oklab, var(--forest) 18%, white);
+    border-radius: 1.2rem;
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in oklab, var(--mint) 52%, white), transparent 18rem),
+      white;
+    box-shadow: 0 24px 56px -46px rgba(3, 47, 1, 0.44);
+  }
+
+  /* O que perguntar e ficha de entrevista ficam imediatamente abaixo, na ordem
+     de decisão. */
+  .rh-admin .rh-gaveta > div.rh-scroll > div > :nth-child(3),
+  .rh-admin .rh-gaveta > div.rh-scroll > div > :nth-child(4) {
+    grid-column: 1;
+  }
+
+  /* Depois do fluxo principal, as portas viram uma lista compacta. */
+  .rh-admin .rh-gaveta > div.rh-scroll [data-rh-sanfona] > h3 > button {
+    min-height: 3.15rem;
+    padding-block: 0.6rem !important;
+  }
+
+  .rh-admin .rh-gaveta > div.rh-scroll [data-rh-sanfona] [data-sanfona-resumo] {
+    background: color-mix(in oklab, var(--mint) 52%, white) !important;
+    color: var(--ink-soft) !important;
+    box-shadow: none;
+  }
+
+  /* Alerta de currículo ainda não lido vira nota de contexto, não banner. */
+  .rh-admin .rh-gaveta > div.rh-scroll [role="status"][class~="bg-mint/60"] {
+    padding: 0.78rem 0.9rem !important;
+    border-radius: 0.9rem !important;
+    background: color-mix(in oklab, var(--mint) 42%, white) !important;
+  }
+
+  /* Rodapé destrutivo não vira uma terceira barra fixa pesada. */
+  .rh-admin .rh-gaveta > footer {
+    padding: 0.65rem 1.35rem !important;
+    border-top-color: color-mix(in oklab, var(--forest) 8%, white) !important;
+    background: #f5f8f3 !important;
   }
 }
 
-/* Monitores muito largos não deixam o texto virar uma linha interminável. */
+/* Monitores realmente largos: um pouco mais de respiro na raia operacional. */
 @media (min-width: 1720px) {
-  .rh-admin .rh-gaveta > .rh-scroll > div {
-    grid-template-columns: minmax(0, 1fr) 23.5rem;
+  .rh-admin .rh-gaveta > div.rh-scroll > div {
+    grid-template-columns: minmax(0, 1fr) 24rem;
   }
 }
 
-/* No celular, a densidade volta para toque e o título não disputa largura com
-   o resumo numérico. O bottom-sheet original continua mandando na geometria. */
+/* -------------------------------------------------------------------------- */
+/* Mobile                                                                      */
+/* -------------------------------------------------------------------------- */
+
 @media (max-width: 640px) {
   .rh-admin .rh-gaveta [data-rh-sanfona] [data-sanfona-resumo] {
     max-width: 7rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .rh-admin .rh-gaveta [data-rh-sanfona] > h3 > button {
+    padding-inline: 0.85rem !important;
   }
 }
