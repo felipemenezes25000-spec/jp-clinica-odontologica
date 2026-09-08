@@ -4,9 +4,51 @@ Tudo o que falta para o CRC sair do repositório e entrar na operação da
 clínica: o que fazer, em que ordem, com que comando, e como saber que
 funcionou.
 
-Este documento é o **caminho de ida**. Depois que o sistema estiver no ar,
-quem opera usa o [RUNBOOK](RUNBOOK.md). O que existe e o que não existe está
-auditado em [FINAL-ACCEPTANCE](FINAL-ACCEPTANCE.md).
+Este documento é o **caminho de ida**. Depois que o sistema estiver operando,
+quem cuida do dia a dia usa o [RUNBOOK](RUNBOOK.md). O que existe e o que não
+existe está auditado em [FINAL-ACCEPTANCE](FINAL-ACCEPTANCE.md).
+
+---
+
+## Onde estamos agora
+
+**O código está publicado.** `main` foi para produção na Vercel em 08/09/2026, e
+`/crc` responde em **https://www.jpclinicaodontologica.com.br/crc**.
+
+Isso não quer dizer que o CRC esteja funcionando — quer dizer que ele está
+servido. Hoje:
+
+```bash
+curl -sL https://www.jpclinicaodontologica.com.br/api/crc/saude
+```
+
+```json
+{"status":"degradado","app":"ok","banco":"indisponivel"}
+```
+
+`app: ok` é a aplicação de pé. `banco: indisponivel` é o schema que ainda não foi
+aplicado no Supabase. **É a Parte A.1 deste documento, e ela é a primeira coisa
+a fazer.**
+
+| | Estado |
+|---|---|
+| Site `/` e portal `/rh` | ✅ no ar, intactos |
+| Código do CRC publicado | ✅ |
+| Schema no Supabase (A.1) | ❌ **pendente — bloqueia tudo** |
+| Variáveis de ambiente (A.2) | ⚠️ faltam 4 — as duas do Supabase já estão lá |
+| Instalação inicial (A.3) | ❌ pendente |
+| Credenciais Dental Office (C.1) | ❌ aguardando terceiro |
+| Provedor de WhatsApp (C.2) | ❌ aguardando contratação |
+| Cron a cada 10 min (F) | ⚠️ hoje é diário — ver a Parte F |
+
+**Como publicar de novo**, depois de mexer em variável de ambiente ou em
+código:
+
+```bash
+npx vercel --prod --yes
+```
+
+O projeto já está linkado (`.vercel/project.json`); não precisa de mais nada.
 
 ---
 
@@ -19,16 +61,20 @@ auditado em [FINAL-ACCEPTANCE](FINAL-ACCEPTANCE.md).
 | **C.** Credenciais de terceiros | Dental Office e Twilio/Meta | Fora do nosso controle | O CRC abre e fica vazio: sem paciente e sem mensagem. |
 | **D.** Horário e política da clínica | Você, via SQL | ~10 min | Vale o padrão: seg–sex 8h–19h, sáb 8h–13h, 1 contato/dia. |
 | **E.** Três lacunas de código | Nós | Ver a lista | Nenhuma impede operar. |
-| **F.** Cron a cada 10 min | Você | ~5 min | O plano Hobby só dá cron diário; sem um pinger externo o faltante só recebe mensagem no dia seguinte. Ver a Parte G. |
+| **F.** Cron a cada 10 min | Você | ~5 min | O plano Hobby só dá cron diário; sem um pinger externo o faltante só recebe mensagem no dia seguinte. |
 
-**O caminho crítico é o C, e só ele.** A e B se resolvem hoje, pela tela. D é
-opcional. E não bloqueia nada. Sem as credenciais do Dental Office e de um
-provedor de WhatsApp, o sistema sobe, autentica, mostra as telas — e não tem o
-que mostrar.
+**A próxima ação é a A.1** — rodar os três SQL. Sem ela nada mais funciona, nem
+para testar.
+
+**Depois disso, o caminho crítico é o C**, e ele não depende de nós nem de você:
+sem as credenciais do Dental Office e de um provedor de WhatsApp, o sistema
+sobe, autentica, mostra as telas — e não tem o que mostrar. A e B se resolvem
+em uma tarde, pela tela. D é opcional. E não bloqueia nada. F é cinco minutos e
+vale muito.
 
 ---
 
-## Parte A — As 40 minutos que só dependem de você
+## Parte A — Os 40 minutos que só dependem de você
 
 ### A.1 Aplicar os três SQL
 
@@ -58,22 +104,34 @@ o erro.
 ### A.2 Cadastrar as variáveis mínimas
 
 Vercel → o projeto → Settings → Environment Variables, ambiente **Production**.
-São seis para o CRC subir:
 
-```
-CRC_SESSION_SECRET     32+ caracteres aleatórios
-CRC_ADMIN_EMAIL        seu e-mail
-CRC_ADMIN_SENHA        10+ caracteres
-CRON_SECRET            a Vercel gera sozinha
-SUPABASE_URL           já existe (o portal de RH usa)
-SUPABASE_SERVICE_ROLE  já existe (o portal de RH usa)
-```
+**As duas do Supabase já estão lá** — e isso não é suposição: se faltassem, o
+health check responderia `banco: "nao_configurado"`. Ele responde
+`"indisponivel"`, que significa "as credenciais funcionam e a consulta falhou"
+— ou seja, o schema da A.1.
 
-Gere o segredo de sessão assim:
+Faltam **quatro**:
+
+| Variável | Valor |
+|---|---|
+| `CRC_SESSION_SECRET` | 32+ caracteres aleatórios (comando abaixo) |
+| `CRC_ADMIN_EMAIL` | o e-mail do primeiro administrador — o seu |
+| `CRC_ADMIN_SENHA` | mínimo 10 caracteres |
+| `CRON_SECRET` | 32+ caracteres aleatórios (mesmo comando) |
+
+Gere os dois segredos assim, uma vez para cada:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
+
+> **Sobre o `CRON_SECRET`:** cadastre-o você. A Vercel não inventa o valor — ela
+> lê a variável e passa a mandar `Authorization: Bearer <CRON_SECRET>` nas
+> chamadas de cron. Se o projeto já tiver uma cadastrada, use a que está lá em
+> vez de criar outra: trocar o valor quebraria o cron do portal de RH, que usa o
+> mesmo segredo. **Sem ela, `/api/crc/motor` responde 503 e o CRC nunca faz
+> nada sozinho** — falhar fechada é o único comportamento aceitável numa rota que
+> manda mensagem para paciente.
 
 Se você **já sabe** o id da clínica no Dental Office, cadastre junto agora — a
 instalação o usa e você economiza uma volta:
@@ -89,13 +147,17 @@ rota é idempotente e atualiza o campo.
 > Vite embutir o valor no JavaScript que o navegador baixa — qualquer visitante
 > do site leria a chave.
 
-Faça um **redeploy** depois de cadastrar: variável nova só entra em vigor no
-próximo build.
+**Variável nova só entra em vigor no próximo build.** Depois de cadastrar as
+quatro, publique de novo:
+
+```bash
+npx vercel --prod --yes
+```
 
 ### A.3 Rodar a instalação
 
 ```bash
-curl -X POST https://SEU-DOMINIO/api/crc/instalar \
+curl -X POST https://www.jpclinicaodontologica.com.br/api/crc/instalar \
   -H "Authorization: Bearer SEU_CRON_SECRET"
 ```
 
@@ -109,7 +171,7 @@ que aparece "nenhum usuário administrador foi criado" se `CRC_ADMIN_EMAIL` ou
 ### A.4 Conferir a saúde
 
 ```bash
-curl https://SEU-DOMINIO/api/crc/saude
+curl https://www.jpclinicaodontologica.com.br/api/crc/saude
 ```
 
 `{"status":"ok","app":"ok","banco":"ok"}` é o que você quer ver.
@@ -124,7 +186,7 @@ estiver sondando.
 
 ### A.5 Entrar
 
-`https://SEU-DOMINIO/crc`, com o e-mail e a senha do passo A.2.
+`https://www.jpclinicaodontologica.com.br/crc`, com o e-mail e a senha do passo A.2.
 
 Você vai ver o sistema inteiro **vazio**. Isso é o esperado: sem as credenciais
 da Parte C não existe paciente para sincronizar.
@@ -252,11 +314,11 @@ recuperar faltante não vale a economia por mensagem.
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_WHATSAPP_FROM=      # no sandbox, +1 415 523 8886
-WHATSAPP_WEBHOOK_URL=https://SEU-DOMINIO/api/crc/whatsapp
+WHATSAPP_WEBHOOK_URL=https://www.jpclinicaodontologica.com.br/api/crc/whatsapp
 ```
 
 No console da Twilio, em Messaging, aponte o webhook de mensagem recebida para
-`https://SEU-DOMINIO/api/crc/whatsapp` (método POST).
+`https://www.jpclinicaodontologica.com.br/api/crc/whatsapp` (método POST).
 
 > **`WHATSAPP_WEBHOOK_URL` não é opcional, e é a causa nº 1 de webhook
 > recusado.** A Twilio assina a URL, não só o corpo. Atrás de um proxy — e a
@@ -438,14 +500,95 @@ multisseleção de tipo no funil.*
 
 ---
 
-## Parte F — A ordem de ativação
+## Parte F — O motor precisa bater mais de uma vez por dia
+
+**A conta da Vercel é Hobby, e o plano Hobby só aceita cron diário.** O deploy
+foi recusado com `*/10 * * * *` e `vercel.json` foi ajustado para `0 9 * * *`
+(6h em São Paulo) — senão nada subia.
+
+O que isso custa: as varreduras diárias (retorno, confirmação, aniversário,
+orçamento, cobrança) continuam certas, porque elas são diárias por natureza. Mas
+**o fluxo do faltante deixa de funcionar como foi desenhado**: a falta vira
+oportunidade, a jornada espera duas horas — e aí espera até a próxima batida do
+motor, no dia seguinte. Uma mensagem que deveria sair às 11h sai às 6h do outro
+dia, quando o paciente já remarcou em outro lugar.
+
+**Duas saídas, e as duas funcionam:**
+
+| Saída | Custo | O que fazer |
+|---|---|---|
+| **Pinger externo** (recomendado) | Grátis | Um serviço de cron gratuito (cron-job.org, EasyCron, ou um workflow agendado do GitHub Actions) chamando a URL abaixo a cada 10 minutos. |
+| **Vercel Pro** | Mensalidade | Devolver `*/10 * * * *` ao `vercel.json` e publicar. |
+
+A chamada do pinger externo é esta — GET, com o header:
+
+```
+GET https://www.jpclinicaodontologica.com.br/api/crc/motor
+Authorization: Bearer SEU_CRON_SECRET
+```
+
+O `CRON_SECRET` é o mesmo do passo A.2. A rota falha fechada: sem o header, ela
+responde 401 e não faz nada — expô-la não abre porta nenhuma, mas o segredo é
+segredo.
+
+#### O caminho mais curto: GitHub Actions
+
+O repositório já está no GitHub, então isto não exige criar conta em lugar
+nenhum. Em **Settings → Secrets and variables → Actions**, crie o secret
+`CRON_SECRET` com o mesmo valor da Vercel. Depois, o arquivo:
+
+`.github/workflows/motor-crc.yml`
+
+```yaml
+name: Motor do CRC
+on:
+  schedule:
+    # A cada 10 minutos. O agendador do GitHub costuma atrasar alguns minutos
+    # em horário de pico — e tudo bem: o motor é idempotente e o que ele não
+    # pegou nesta volta ele pega na próxima.
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  bater:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar o motor
+        run: |
+          curl -sS -f -X GET             "https://www.jpclinicaodontologica.com.br/api/crc/motor"             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+```
+
+`workflow_dispatch` deixa você disparar uma volta à mão pela aba Actions, que é
+útil no dia da ativação. O `-f` no curl faz o job falhar quando a rota devolve
+erro — sem ele, um 401 por segredo errado passaria despercebido por semanas.
+
+Se preferir precisão no horário, o **cron-job.org** é gratuito e dispara mais
+pontualmente que o GitHub. Os dois resolvem.
+
+**O cron diário de `vercel.json` não atrapalha o pinger**: os dois chamam a
+mesma rota, e a reserva atômica (`FOR UPDATE SKIP LOCKED`) garante que duas
+chamadas sobrepostas nunca peguem a mesma linha. Deixe os dois.
+
+---
+
+## Parte G — A ordem de ativação
 
 Nada aqui é opinião: cada passo depende do anterior ter dado certo.
 
-### Dia 1 — o sistema no ar
+### Dia 1 — tirar o CRC do "degradado"
 
-Parte A inteira. Ao final, você entra em `/crc` e vê as telas vazias.
-**Verificação:** `/api/crc/saude` responde `ok`, e o login funciona.
+O código já está publicado; falta o banco. Parte A inteira (os três SQL, as
+quatro variáveis que faltam, a instalação), mais a Parte F, que é rápida e evita
+uma surpresa desagradável lá na frente.
+
+Ao final, você entra em `/crc` e vê as telas vazias — o que é o esperado, porque
+ainda não há paciente nenhum.
+
+**Verificação:** `/api/crc/saude` responde `{"status":"ok"}` e o login funciona.
+
+Aproveite e faça a **Parte B** no mesmo dia: cadastre a equipe enquanto o
+sistema está vazio e ninguém depende dele. Cada pessoa com o próprio login desde
+o primeiro dia é o que faz o histórico valer alguma coisa depois.
 
 ### Dia 2 — a base real entra
 
@@ -521,67 +664,31 @@ alguém lendo cada mensagem que sai.
 
 ---
 
-## Parte G — Como saber que está funcionando
+## Parte H — Como saber que está funcionando
 
 | O que | Onde olhar | O que é normal |
 |---|---|---|
-| O app está de pé | `GET /api/crc/saude` | `{"status":"ok"}` |
-| O motor está batendo | Vercel → Logs, filtrando `/api/crc/motor` | Uma execução a cada 10 min, sem 5xx |
+| O app está de pé | `GET /api/crc/saude` | `{"status":"ok"}`. Hoje responde `degradado` — ver "Onde estamos agora". |
+| O motor está batendo | Vercel → Logs, filtrando `/api/crc/motor` | Uma execução a cada 10 min com o pinger da Parte F; **uma por dia sem ele**. Sempre 200, nunca 5xx. |
 | A sincronização está viva | `/crc` → Integrações | "Última sincronização" recente, sem erro |
 | As jornadas estão andando | `/crc` → Automações | "Em jornada" > 0 quando há faltantes |
 | As mensagens estão saindo | `/crc` → Conversas | Mensagens de saída com status de entrega |
 | A recuperação está acontecendo | `/crc` → Gestão | "Saídas por conversão" > 0 |
 
-### ⚠️ O motor bate UMA VEZ POR DIA, e isso precisa ser resolvido
-
-**A conta da Vercel é Hobby, e o plano Hobby só aceita cron diário.** O deploy
-foi recusado com `*/10 * * * *` e `vercel.json` foi ajustado para `0 9 * * *`
-(6h em São Paulo) — senão nada subia.
-
-O que isso custa: as varreduras diárias (retorno, confirmação, aniversário,
-orçamento, cobrança) continuam certas, porque elas são diárias por natureza. Mas
-**o fluxo do faltante deixa de funcionar como foi desenhado**: a falta vira
-oportunidade, a jornada espera duas horas — e aí espera até a próxima batida do
-motor, no dia seguinte. Uma mensagem que deveria sair às 11h sai às 6h do outro
-dia, quando o paciente já remarcou em outro lugar.
-
-**Duas saídas, e as duas funcionam:**
-
-| Saída | Custo | O que fazer |
-|---|---|---|
-| **Pinger externo** (recomendado) | Grátis | Um serviço de cron gratuito (cron-job.org, EasyCron, ou um workflow agendado do GitHub Actions) chamando a URL abaixo a cada 10 minutos. |
-| **Vercel Pro** | Mensalidade | Devolver `*/10 * * * *` ao `vercel.json` e publicar. |
-
-A chamada do pinger externo é esta — GET, com o header:
-
-```
-GET https://SEU-DOMINIO/api/crc/motor
-Authorization: Bearer SEU_CRON_SECRET
-```
-
-O `CRON_SECRET` é o mesmo do passo A.2. A rota falha fechada: sem o header, ela
-responde 401 e não faz nada — expô-la não abre porta nenhuma, mas o segredo é
-segredo.
-
-**O cron diário de `vercel.json` não atrapalha o pinger**: os dois chamam a
-mesma rota, e a reserva atômica (`FOR UPDATE SKIP LOCKED`) garante que duas
-chamadas sobrepostas nunca peguem a mesma linha. Deixe os dois.
-
-O cron está declarado em `vercel.json` e chama `/api/crc/motor` uma vez por dia
-(ver o aviso acima). As varreduras diárias (retorno, confirmação, aniversário, orçamento,
-cobrança) rodam só na volta das 9h UTC — ≈6h em São Paulo, para as jornadas
-nascerem antes do expediente e esperarem a abertura para falar com alguém.
+As varreduras diárias (retorno, confirmação, aniversário, orçamento, cobrança)
+rodam só na volta das 9h UTC — ≈6h em São Paulo, para as jornadas nascerem antes
+do expediente e esperarem a abertura para falar com alguém.
 
 Para forçar uma varredura fora de hora, em teste:
 
 ```bash
-curl "https://SEU-DOMINIO/api/crc/motor?varrer=1" \
+curl "https://www.jpclinicaodontologica.com.br/api/crc/motor?varrer=1" \
   -H "Authorization: Bearer SEU_CRON_SECRET"
 ```
 
 ---
 
-## Parte H — Como desligar em dez segundos
+## Parte I — Como desligar em dez segundos
 
 `/crc` → **Integrações** → Interruptores. São quatro, e o efeito é imediato — a
 próxima volta do motor já respeita:
