@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { tocarEfeito } from "@/audio/efeitos";
-import { EFEITOS_PADRAO_LIGADOS, TRILHA, VOLUME_TRILHA } from "@/data/audio";
-import { capituloNoFrame, cenaPorId, type IdCena } from "@/data/linhaDoTempo";
-import { FPS } from "@/design-system/tokens";
+import {
+  EFEITOS_PADRAO_LIGADOS,
+  NARRACAO,
+  TRILHA,
+  VOLUME_NARRACAO,
+  VOLUME_TRILHA,
+} from "@/data/audio";
+import { capituloNoFrame, cenaPorId, FPS_FILME, type IdCena } from "@/data/linhaDoTempo";
 import { Filme } from "@/film/Filme";
 import { useRelogio } from "@/hooks/useRelogio";
 import { useMovimentoReduzido, useTeclado, useTelaCheia } from "@/hooks/useTela";
@@ -17,63 +22,71 @@ import { asset } from "@/utils/asset";
 /**
  * O tour interativo.
  *
- * Junta as quatro peças que já existem separadas — relógio, filme, chrome e modo
- * explorar — e não faz mais nada. Toda a lógica de animação mora nas cenas; toda
- * a de tempo, no `useRelogio`. Aqui só se decide o que está visível.
+ * Junta relógio, filme, chrome e modo explorar — e resolve a única coisa
+ * genuinamente difícil daqui: manter a VOZ colada no vídeo.
  *
- * O que este componente resolve de verdade: som nunca começa sozinho, movimento
- * reduzido chega ao filme, e abrir o modo explorar pausa (deixar o vídeo rodando
- * atrás de um painel gasta bateria e confunde).
+ * Como a voz é uma trilha única alinhada ao frame 0, e o filme é função de
+ * `frame`, sincronizar é comparar `audio.currentTime` com `frame / fps` e
+ * corrigir quando a diferença passar de 0,25 s. Isso cobre pausa, arrasto da
+ * barra, salto de capítulo e a aba que ficou em segundo plano — todos os casos
+ * em que um `setTimeout` teria se perdido.
  */
 export function App() {
   const relogio = useRelogio();
   const movimentoReduzido = useMovimentoReduzido();
 
   const raiz = useRef<HTMLDivElement | null>(null);
-  const audio = useRef<HTMLAudioElement | null>(null);
+  const narracao = useRef<HTMLAudioElement | null>(null);
+  const trilha = useRef<HTMLAudioElement | null>(null);
   const { cheia, alternar: alternarTelaCheia } = useTelaCheia(raiz);
 
   const [comecou, setComecou] = useState(false);
-  const [som, setSom] = useState(EFEITOS_PADRAO_LIGADOS);
+  const [som, setSom] = useState(true);
   const [legendas, setLegendas] = useState(true);
   const [explorando, setExplorando] = useState(false);
 
   /* -------------------------------------------------------------------- */
-  /* Som                                                                  */
+  /* Áudio                                                                */
   /* -------------------------------------------------------------------- */
 
-  // A trilha segue o estado do filme. Sem isso ela continuaria tocando com o
-  // vídeo pausado, que é o erro mais comum deste tipo de peça.
+  // Toca e pausa junto com o filme. Sem isto a voz continuaria falando com o
+  // vídeo parado, que é o defeito mais comum deste tipo de peça.
   useEffect(() => {
-    const elemento = audio.current;
-    if (elemento === null) return;
-    elemento.volume = VOLUME_TRILHA;
-    if (som && relogio.tocando) {
-      void elemento.play().catch(() => {
-        // Sem gesto do usuário o navegador recusa. O botão de som é o gesto;
-        // se ainda assim falhar, o tour segue mudo — nada quebra.
-      });
-    } else {
-      elemento.pause();
+    for (const ref of [narracao, trilha]) {
+      const elemento = ref.current;
+      if (elemento === null) continue;
+      elemento.volume = ref === narracao ? VOLUME_NARRACAO : VOLUME_TRILHA;
+      elemento.muted = !som;
+      if (som && relogio.tocando && comecou) {
+        void elemento.play().catch(() => {
+          // Sem gesto do usuário o navegador recusa. O botão "Assistir" é o
+          // gesto; se ainda assim falhar, o tour segue mudo e legendado.
+        });
+      } else {
+        elemento.pause();
+      }
     }
-  }, [som, relogio.tocando]);
+  }, [som, relogio.tocando, comecou]);
 
-  // Sincroniza a trilha ao arrastar a barra. Meio segundo de tolerância evita
-  // reposicionar o áudio a cada frame e engasgar o som.
+  // Reancora o áudio quando o vídeo é movido. A tolerância de 0,25 s evita
+  // reposicionar a cada frame — o que engasgaria o som sem melhorar nada.
   useEffect(() => {
-    const elemento = audio.current;
-    if (elemento === null || !som) return;
-    const alvo = relogio.frame / FPS;
-    if (Math.abs(elemento.currentTime - alvo) > 0.5) elemento.currentTime = alvo;
-  }, [relogio.frame, som]);
+    const alvo = relogio.frame / FPS_FILME;
+    for (const ref of [narracao, trilha]) {
+      const elemento = ref.current;
+      if (elemento === null) continue;
+      if (Math.abs(elemento.currentTime - alvo) > 0.25) elemento.currentTime = alvo;
+    }
+  }, [relogio.frame]);
 
-  // Um "whoosh" por virada de capítulo. Sete no filme inteiro — discreto,
-  // como o briefing pede.
+  // Um "whoosh" por virada de capítulo. Sete no filme inteiro — discreto, e
+  // silencioso enquanto a voz está falando não é necessário: o efeito é curto e
+  // fica muito abaixo do volume da narração.
   const capituloAnterior = useRef<string | null>(null);
   useEffect(() => {
     const atual = capituloNoFrame(relogio.frame).chave;
     if (capituloAnterior.current !== null && capituloAnterior.current !== atual && relogio.tocando) {
-      tocarEfeito("whoosh", som);
+      tocarEfeito("whoosh", som && EFEITOS_PADRAO_LIGADOS);
     }
     capituloAnterior.current = atual;
   }, [relogio.frame, relogio.tocando, som]);
@@ -82,17 +95,21 @@ export function App() {
   /* Ações                                                                */
   /* -------------------------------------------------------------------- */
 
-  const assistir = useCallback(() => {
-    setComecou(true);
-    relogio.tocar();
-  }, [relogio]);
+  const assistir = useCallback(
+    (comSom: boolean) => {
+      setSom(comSom);
+      setComecou(true);
+      relogio.irPara(0);
+      relogio.tocar();
+    },
+    [relogio],
+  );
 
   const abrirExplorar = useCallback(() => {
     setComecou(true);
     relogio.pausar();
     setExplorando(true);
-    tocarEfeito("clique", som);
-  }, [relogio, som]);
+  }, [relogio]);
 
   const irParaCena = useCallback(
     (id: IdCena) => {
@@ -107,7 +124,7 @@ export function App() {
   useTeclado({
     alternar: () => {
       if (!comecou) {
-        assistir();
+        assistir(true);
         return;
       }
       relogio.alternar();
@@ -126,17 +143,23 @@ export function App() {
         Pular para os controles
       </a>
 
-      <div className="jp-visor" style={{ position: "relative" }}>
-        <div style={{ position: "relative", width: "100%", height: "100%" }}>
-          <Visor>
+      <div className="jp-visor">
+        <div className="jp-visor-area">
+          <Visor
+            sobreposicao={<Legendas frame={relogio.frame} visivel={legendas && comecou} />}
+          >
             <Filme frame={relogio.frame} movimentoReduzido={movimentoReduzido} />
           </Visor>
-
-          <Legendas frame={relogio.frame} visivel={legendas && comecou} />
         </div>
 
         <AnimatePresence>
-          {!comecou && <TelaInicial aoAssistir={assistir} aoExplorar={abrirExplorar} />}
+          {!comecou && (
+            <TelaInicial
+              aoAssistir={() => assistir(true)}
+              aoAssistirSemSom={() => assistir(false)}
+              aoExplorar={abrirExplorar}
+            />
+          )}
         </AnimatePresence>
       </div>
 
@@ -164,8 +187,11 @@ export function App() {
         aoIrParaCena={irParaCena}
       />
 
+      {NARRACAO !== null && (
+        <audio ref={narracao} src={asset(NARRACAO)} preload="auto" aria-hidden="true" />
+      )}
       {TRILHA !== null && (
-        <audio ref={audio} src={asset(TRILHA)} loop preload="auto" aria-hidden="true" />
+        <audio ref={trilha} src={asset(TRILHA)} loop preload="auto" aria-hidden="true" />
       )}
     </div>
   );

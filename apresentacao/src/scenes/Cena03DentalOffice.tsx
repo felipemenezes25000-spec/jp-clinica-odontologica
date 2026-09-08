@@ -33,7 +33,7 @@ export function Cena03DentalOffice() {
 
   return (
     <Palco>
-      <SeloDeCena numero={3} />
+      <SeloDeCena />
       <TituloDeCena
         kicker="A fonte"
         titulo={DENTAL_OFFICE.titulo}
@@ -98,8 +98,8 @@ export function Cena03DentalOffice() {
             marca="dentalOffice"
             acento={cor.dentalOffice}
             largura={440}
-            subtitulo="O sistema que a clínica já usa todo dia. O JP CRC lê dele — e devolve o agendamento criado."
-            rodape="Leitura incremental · webhooks · nada é sobrescrito"
+            subtitulo="O sistema que a clínica já usa todo dia. Dele saem os pacientes, a agenda e os horários."
+            rodape="O JP CRC só lê. Nada é apagado nem alterado lá."
             ativo
           />
         </div>
@@ -179,7 +179,7 @@ export function Cena03DentalOffice() {
             letterSpacing: "0.02em",
           }}
         >
-          Um fluxo de dados, contínuo
+          Tudo isso vira um fluxo só
         </div>
       </Em>
 

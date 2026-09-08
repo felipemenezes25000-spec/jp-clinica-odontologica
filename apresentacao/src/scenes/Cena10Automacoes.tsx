@@ -20,28 +20,29 @@ import { easeOutQuint, progresso } from "@/motion/timing";
 
 const GRADE_X = 170;
 const GRADE_Y = 292;
-const CARTAO_LARGURA = 500;
-const CARTAO_ALTURA = 176;
-const ESPACO = 40;
+const CARTAO_LARGURA = 372;
+const CARTAO_ALTURA = 166;
+const ESPACO = 30;
+const COLUNAS = 4;
 
 export function Cena10Automacoes() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={10} />
-      <TituloDeCena kicker="Automações" titulo={PAINEL_AUTOMACOES.titulo} em={2} />
+      <SeloDeCena />
+      <TituloDeCena kicker="O que roda sozinho" titulo={PAINEL_AUTOMACOES.titulo} em={2} />
 
       {AUTOMACOES.map((automacao, i) => {
-        const coluna = i % 3;
-        const linha = Math.floor(i / 3);
+        const coluna = i % COLUNAS;
+        const linha = Math.floor(i / COLUNAS);
         const t = progresso(frame, 24 + i * 9, 24, easeOutQuint);
 
         return (
           <Em
             key={automacao.nome}
             x={GRADE_X + coluna * (CARTAO_LARGURA + ESPACO)}
-            y={GRADE_Y + linha * (CARTAO_ALTURA + 28)}
+            y={GRADE_Y + linha * (CARTAO_ALTURA + 26)}
             largura={CARTAO_LARGURA}
             zIndex={8}
           >
@@ -72,10 +73,10 @@ export function Cena10Automacoes() {
                   <span
                     style={{
                       fontFamily: fonte.display,
-                      fontSize: tamanho.destaque,
+                      fontSize: tamanho.corpo,
                       fontWeight: 700,
                       color: cor.tinta,
-                      letterSpacing: "-0.018em",
+                      letterSpacing: "-0.015em",
                     }}
                   >
                     {automacao.nome}
@@ -108,13 +109,13 @@ export function Cena10Automacoes() {
 
                 <div
                   style={{
-                    fontFamily: fonte.mono,
-                    fontSize: tamanho.micro + 1,
-                    color: cor.tintaFraca,
+                    fontFamily: fonte.texto,
+                    fontSize: tamanho.legenda,
+                    color: cor.tintaSuave,
                     marginTop: 10,
                   }}
                 >
-                  {automacao.evento}
+                  Dispara {automacao.quando}
                 </div>
               </div>
 
@@ -138,7 +139,7 @@ export function Cena10Automacoes() {
                     color: cor.tintaSuave,
                   }}
                 >
-                  pacientes em jornada
+pessoas nesta fila
                 </span>
               </div>
             </div>
@@ -149,18 +150,18 @@ export function Cena10Automacoes() {
       {/* O pulso do dia -------------------------------------------------- */}
       {(
         [
-          { rotulo: "Em jornada agora", valor: BASE.emJornada, detalhe: "nas seis automações" },
-          { rotulo: "Responderam hoje", valor: BASE.responderamHoje, detalhe: "classificados pela IA" },
-          { rotulo: "Agendaram hoje", valor: BASE.agendaramHoje, detalhe: "consulta criada" },
+          { rotulo: "Sendo cuidados agora", valor: BASE.emJornada, detalhe: "nas seis rotinas" },
+          { rotulo: "Responderam hoje", valor: BASE.responderamHoje, detalhe: "e já foram lidos" },
+          { rotulo: "Marcaram hoje", valor: BASE.agendaramHoje, detalhe: "consulta na agenda" },
         ] as const
       ).map((metrica, i) => {
         const t = progresso(frame, 128 + i * 12, 26, easeOutQuint);
         return (
           <Em
             key={metrica.rotulo}
-            x={GRADE_X + i * (CARTAO_LARGURA + ESPACO)}
-            y={GRADE_Y + 2 * (CARTAO_ALTURA + 28) + 12}
-            largura={CARTAO_LARGURA}
+            x={GRADE_X + i * (536 + 36)}
+            y={GRADE_Y + 2 * (CARTAO_ALTURA + 26) + 14}
+            largura={536}
             zIndex={8}
           >
             <div style={{ opacity: t, transform: `translate3d(0, ${(1 - t) * 16}px, 0)` }}>
@@ -175,7 +176,7 @@ export function Cena10Automacoes() {
       })}
 
       {ILUSTRATIVO && (
-        <Em x={GRADE_X} y={952} zIndex={9}>
+        <Em x={GRADE_X} y={866} zIndex={9}>
           <div style={{ opacity: progresso(frame, 176, 24), display: "flex", gap: 16, alignItems: "center" }}>
             <Ilustrativo />
             <span

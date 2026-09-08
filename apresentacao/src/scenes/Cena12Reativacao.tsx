@@ -31,8 +31,8 @@ export function Cena12Reativacao() {
 
   return (
     <Palco>
-      <SeloDeCena numero={12} />
-      <TituloDeCena kicker="Reativação" titulo={REATIVACAO.titulo} em={2} />
+      <SeloDeCena />
+      <TituloDeCena kicker="Contato aos poucos" titulo={REATIVACAO.titulo} em={2} />
 
       <CamadaDeConexoes zIndex={4}>
         <Conexao
@@ -64,7 +64,7 @@ export function Cena12Reativacao() {
         <div style={{ opacity: progresso(frame, 16, 22) }}>
           <No
             titulo="Segmentação"
-            subtitulo="Tempo parado, especialidade e situação do tratamento."
+            subtitulo="Separa por quanto tempo faz, especialidade e situação."
             icone={<SlidersHorizontal size={20} strokeWidth={2.1} />}
             largura={CADEIA_LARGURA}
           />
@@ -75,7 +75,7 @@ export function Cena12Reativacao() {
         <div style={{ opacity: progresso(frame, 34, 22) }}>
           <No
             titulo="Lotes diários"
-            subtitulo="Volume controlado, priorizando quem tem mais chance de responder."
+            subtitulo="Poucos por dia, começando por quem tem mais chance de voltar."
             icone={<Layers size={20} strokeWidth={2.1} />}
             largura={CADEIA_LARGURA}
             ativo
@@ -88,14 +88,14 @@ export function Cena12Reativacao() {
           <No
             marca="whatsapp"
             acento={cor.whatsapp}
-            subtitulo="Só em horário comercial, uma mensagem por paciente por dia."
+            subtitulo="Só em horário comercial, uma mensagem por pessoa por dia."
             largura={CADEIA_LARGURA}
           />
         </div>
       </Em>
 
       {/* Os lotes -------------------------------------------------------- */}
-      <Em x={170} y={584} largura={760} zIndex={8}>
+      <Em x={170} y={528} largura={760} zIndex={8}>
         <div style={{ opacity: progresso(frame, 86, 26) }}>
           <Painel titulo="O lote de cada dia" padding={26}>
             {REATIVACAO.lotes.map((lote, i) => (
@@ -146,10 +146,10 @@ export function Cena12Reativacao() {
       </Em>
 
       {/* As proteções ---------------------------------------------------- */}
-      <Em x={990} y={584} largura={760} zIndex={8}>
+      <Em x={990} y={528} largura={760} zIndex={8}>
         <div style={{ opacity: progresso(frame, 108, 26) }}>
           <Painel
-            titulo="O que impede isso de virar spam"
+            titulo="O que impede o exagero"
             acao={<ShieldCheck size={26} strokeWidth={2.1} color={cor.verdeEscuro} />}
             padding={26}
           >
@@ -164,7 +164,7 @@ export function Cena12Reativacao() {
                     display: "flex",
                     alignItems: "center",
                     gap: 14,
-                    padding: "13px 0",
+                    padding: "11px 0",
                     borderBottom:
                       i === REATIVACAO.protecoes.length - 1 ? "none" : `1px solid ${cor.linha}`,
                   }}
@@ -203,7 +203,7 @@ export function Cena12Reativacao() {
         </div>
       </Em>
 
-      {/* Um lembrete do canal, para a costura com a cena 13. */}
+      {/* Um lembrete do canal, para a costura com a cena 14. */}
       <Em x={1280} y={188} zIndex={9}>
         <div
           style={{

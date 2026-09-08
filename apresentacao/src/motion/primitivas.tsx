@@ -246,6 +246,7 @@ export function Contador({
   prefixo = "",
   sufixo = "",
   moeda = false,
+  casas = 0,
   style,
   className,
 }: {
@@ -255,16 +256,24 @@ export function Contador({
   prefixo?: string;
   sufixo?: string;
   moeda?: boolean;
+  /** Casas decimais. Existe por causa de "3,4 min": arredondar para 3 mudaria
+   *  o dado que a tela afirma. */
+  casas?: number;
   style?: CSSProperties;
   className?: string;
 }) {
   const frame = useFrame();
   const t = progresso(frame, em, dur, easeOutQuint);
   const valor = ate * t;
+  const texto = moeda
+    ? formatarMoeda(valor)
+    : casas > 0
+      ? valor.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas })
+      : formatarNumero(valor);
   return (
     <span className={className} style={{ fontVariantNumeric: "tabular-nums", ...style }}>
       {prefixo}
-      {moeda ? formatarMoeda(valor) : formatarNumero(valor)}
+      {texto}
       {sufixo}
     </span>
   );

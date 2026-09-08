@@ -6,10 +6,15 @@
  * ponto-e-vírgula. Aqui dá para ler a peça inteira de cima a baixo sem abrir
  * nenhum `.tsx`.
  *
- * O vocabulário NÃO é inventado: "Faltou", "Retorno", "Paciente inativo",
- * "Orçamento parado", "Quer agendar", "Oferecer horários" são os mesmos rótulos
- * de `src/lib/crc/dominio/rotulos.ts` no sistema real. Um vídeo que chama as
- * coisas por outro nome ensina o time errado.
+ * A REGRA DE LINGUAGEM
+ * Quem assiste é dono de clínica, dentista, recepção, CRC — não gente de
+ * tecnologia. Então nada de `appointment.missed`, "webhook", "score", "opt-out",
+ * "job", "deduplicação" ou "evento". Cada uma dessas palavras foi trocada pela
+ * frase que a explica: "não veio na consulta", "mudou lá, chega aqui na hora",
+ * "nota de prioridade", "quem pediu para parar".
+ *
+ * Onde o termo do produto precisa aparecer (porque é o nome do botão que a
+ * pessoa vai clicar depois), ele vem com a explicação do lado — nunca sozinho.
  */
 
 export const MARCA = {
@@ -25,9 +30,15 @@ export const MARCA = {
 
 export const ABERTURA = {
   titulo: "JP CRC",
-  subtitulo:
-    "O novo cérebro de relacionamento e recuperação da JP Clínica Odontológica.",
-  pilares: ["CRM", "Automação", "IA", "WhatsApp", "Agendamento", "Receita"],
+  subtitulo: "O sistema que cuida do relacionamento com os pacientes da JP.",
+  pilares: [
+    "Organização",
+    "Automação",
+    "Inteligência artificial",
+    "WhatsApp",
+    "Agenda",
+    "Resultado",
+  ],
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -36,15 +47,15 @@ export const ABERTURA = {
 
 export const PROBLEMA = {
   sinais: [
-    "Paciente faltou",
-    "Paciente cancelou",
-    "Não volta há 1 ano",
-    "Lead sem resposta",
+    "Faltou na consulta",
+    "Desmarcou",
+    "Não volta há um ano",
+    "Pediu informação e ninguém respondeu",
     "Paciente antigo esquecido",
-    "Follow-up atrasado",
+    "Retorno prometido e esquecido",
   ],
   ondeMora: ["Planilha", "WhatsApp", "Agenda", "Memória da equipe"],
-  frase: "A clínica tem milhares de oportunidades.",
+  frase: "A clínica tem milhares de chances de trazer gente de volta.",
   fraseDois: "O difícil é saber quem precisa de atenção, quando e por quê.",
 } as const;
 
@@ -53,29 +64,29 @@ export const PROBLEMA = {
 /* -------------------------------------------------------------------------- */
 
 export const DENTAL_OFFICE = {
-  titulo: "Tudo começa com os dados da operação.",
+  titulo: "Tudo começa com o que a clínica já registra.",
   entidades: [
     "Pacientes",
-    "Agendamentos",
+    "Consultas marcadas",
     "Dentistas",
-    "Status da consulta",
-    "Horários disponíveis",
+    "Quem veio e quem faltou",
+    "Horários livres",
   ],
-  nota: "O Dental Office continua sendo o sistema da clínica. O JP CRC lê dele — não o substitui.",
+  nota: "O Dental Office continua sendo o sistema da clínica. O JP CRC só lê o que está lá — não muda e não substitui nada.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 04 — n8n + backend                                                         */
+/* 04 — A ponte entre os sistemas                                             */
 /* -------------------------------------------------------------------------- */
 
 export const INTEGRACAO = {
-  titulo: "Sincronizados, organizados e prontos para decisão.",
+  titulo: "Os dados chegam organizados e prontos para usar.",
   etapas: [
-    { nome: "Sync", detalhe: "Leitura incremental da agenda e da base" },
-    { nome: "Webhooks", detalhe: "Mudou lá, chega aqui" },
-    { nome: "Jobs", detalhe: "Varredura diária de retorno e inatividade" },
-    { nome: "Retry", detalhe: "Se a integração cai, tenta de novo" },
-    { nome: "Deduplicação", detalhe: "O mesmo paciente não vira dois" },
+    { nome: "Buscar", detalhe: "Puxa a agenda e a lista de pacientes." },
+    { nome: "Avisar na hora", detalhe: "Mudou algo lá, chega aqui na mesma hora." },
+    { nome: "Conferir todo dia", detalhe: "Uma varredura diária procura quem sumiu." },
+    { nome: "Tentar de novo", detalhe: "Se a conexão cai, ele tenta sozinho outra vez." },
+    { nome: "Sem repetido", detalhe: "O mesmo paciente nunca vira dois cadastros." },
   ],
 } as const;
 
@@ -84,140 +95,224 @@ export const INTEGRACAO = {
 /* -------------------------------------------------------------------------- */
 
 export const NUCLEO = {
-  titulo: "Aqui os dados deixam de ser registro.",
-  subtitulo: "Eles viram oportunidade.",
+  titulo: "Aqui o dado deixa de ser um registro.",
+  subtitulo: "Ele vira alguém para chamar.",
   modulos: [
-    { nome: "Pacientes", detalhe: "Base unificada" },
-    { nome: "CRM", detalhe: "Funil e etapas" },
-    { nome: "Oportunidades", detalhe: "O que precisa de ação" },
-    { nome: "Tarefas", detalhe: "Fila da equipe" },
-    { nome: "Conversas", detalhe: "Inbox por paciente" },
-    { nome: "Automações", detalhe: "Jornadas com regra" },
-    { nome: "IA", detalhe: "Intenção e próxima ação" },
-    { nome: "Analytics", detalhe: "O que gerou resultado" },
+    { nome: "Pacientes", detalhe: "Todo mundo num lugar só" },
+    { nome: "Funil", detalhe: "Em que ponto cada um está" },
+    { nome: "Quem chamar", detalhe: "A lista do que fazer hoje" },
+    { nome: "Tarefas", detalhe: "O que é da equipe" },
+    { nome: "Conversas", detalhe: "O WhatsApp de cada paciente" },
+    { nome: "Automações", detalhe: "As rotinas que rodam sozinhas" },
+    { nome: "Inteligência artificial", detalhe: "Lê as respostas" },
+    { nome: "Relatórios", detalhe: "O que deu certo" },
   ],
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 06 — Motor de eventos                                                      */
+/* 06 — O que o sistema percebe                                               */
 /* -------------------------------------------------------------------------- */
 
 export const EVENTOS = {
-  titulo: "O sistema observa a operação o tempo todo.",
+  titulo: "O sistema fica de olho na operação o tempo todo.",
   cartoes: [
-    { rotulo: "Faltou", evento: "appointment.missed" },
-    { rotulo: "Cancelou", evento: "appointment.cancelled" },
-    { rotulo: "Retorno vencido", evento: "patient.recall_due" },
-    { rotulo: "Paciente inativo", evento: "patient.inactive_detected" },
-    { rotulo: "Aniversário", evento: "patient.birthday" },
-    { rotulo: "Tratamento abandonado", evento: "patient.inactive_detected" },
-    { rotulo: "Lead novo", evento: "lead.created" },
-    { rotulo: "Orçamento parado", evento: "budget.pending" },
-    { rotulo: "Consulta a confirmar", evento: "appointment.upcoming" },
+    { rotulo: "Faltou", quando: "não veio na consulta de ontem" },
+    { rotulo: "Desmarcou", quando: "cancelou e não remarcou" },
+    { rotulo: "Passou da hora de voltar", quando: "o retorno venceu" },
+    { rotulo: "Sumiu", quando: "não aparece há muitos meses" },
+    { rotulo: "Aniversário", quando: "faz aniversário hoje" },
+    { rotulo: "Parou no meio", quando: "abandonou o tratamento" },
+    { rotulo: "Pediu informação", quando: "chegou agora e quer saber mais" },
+    { rotulo: "Orçamento parado", quando: "recebeu o orçamento e não respondeu" },
+    { rotulo: "Consulta a confirmar", quando: "tem consulta amanhã e não confirmou" },
+    { rotulo: "Parcela vencida", quando: "passou a data e não pagou" },
   ],
-  carimbo: "Evento detectado",
+  carimbo: "O sistema percebeu",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 07 — Motor de regras                                                       */
+/* 07 — As regras de contato                                                  */
 /* -------------------------------------------------------------------------- */
 
 export const ELEGIBILIDADE = {
-  titulo: "Nem todo evento vira mensagem.",
+  titulo: "Perceber não é o mesmo que mandar mensagem.",
   paciente: { nome: "Maria Souza", situacao: "Faltou ontem — 14:30, Ortodontia" },
   checagens: [
-    "Telefone válido",
-    "Sem consulta futura marcada",
-    "Não pediu para parar de receber",
-    "Não está em outra jornada",
-    "Dentro do horário permitido",
+    "Tem telefone válido",
+    "Não tem outra consulta já marcada",
+    "Nunca pediu para parar de receber",
+    "Não recebeu outra mensagem hoje",
+    "Está dentro do horário de atendimento",
   ],
-  veredicto: "Elegível",
-  nota: "As mesmas regras de `avaliarRecall` e `podeContatar` que rodam em produção.",
+  veredicto: "Pode falar com ela",
+  nota: "Se qualquer uma dessas respostas fosse não, a mensagem simplesmente não sairia.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 08 — Prioridade                                                            */
+/* 08 — Quem vem primeiro                                                     */
 /* -------------------------------------------------------------------------- */
 
 export const PRIORIDADE = {
-  titulo: "Nem todo paciente precisa da mesma atenção.",
+  titulo: "Quem vem primeiro?",
   fatoresTitulo: "Por que a Maria está no topo",
   criterios: [
-    "Urgência",
-    "Intenção declarada",
-    "Tempo parado",
-    "Engajamento recente",
-    "Valor potencial",
+    "Faz quanto tempo",
+    "O que a pessoa disse",
+    "Se respondeu há pouco",
+    "Se já tem consulta marcada",
+    "Valor do tratamento parado",
   ],
-  nota: "O score é auditável: a tela mostra o número e o que o formou.",
+  nota: "A nota aparece junto com o motivo. Ninguém precisa confiar no número às cegas.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 09 — Humano × automação                                                    */
+/* 09 — Humano e automação                                                    */
 /* -------------------------------------------------------------------------- */
 
 export const DIVISAO = {
-  titulo: "O sistema trabalha sozinho onde é seguro.",
-  subtitulo: "A equipe entra onde realmente agrega valor.",
+  titulo: "O sistema faz sozinho o que é seguro fazer sozinho.",
+  subtitulo: "O resto continua sendo com a equipe.",
   automacao: {
     titulo: "Automação",
     itens: [
-      "Faltou e não respondeu ainda",
-      "Retorno de rotina vencido",
-      "Confirmação de consulta",
-      "Aniversário",
+      "Faltou e ainda não respondeu",
+      "Está na hora do retorno de rotina",
+      "Confirmar a consulta de amanhã",
+      "Lembrar da parcela que venceu",
+      "Feliz aniversário",
     ],
   },
   humano: {
-    titulo: "CRC",
+    titulo: "A equipe",
     itens: [
-      "Dor ou queixa clínica",
-      "Pergunta de preço e negociação",
-      "Reclamação",
-      "Pedido para falar com a dentista",
+      "Está com dor ou com alguma queixa",
+      "Quer saber preço ou negociar",
+      "Está reclamando de algo",
+      "Quer renegociar um pagamento atrasado",
+      "Quer falar com a dentista",
     ],
   },
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 10 — Automações                                                            */
+/* 10 — As rotinas do dia                                                     */
 /* -------------------------------------------------------------------------- */
 
 export const PAINEL_AUTOMACOES = {
-  titulo: "As jornadas que rodam todo dia",
-  legendaModo: "Todas com três modos: simulação, só recomenda, executa.",
+  titulo: "As rotinas que rodam todo dia",
+  legendaModo:
+    "Cada rotina pode só sugerir para a equipe ou agir sozinha. Quem decide isso é a clínica.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 11 — Base antiga                                                           */
+/* 11 — Pacientes antigos                                                     */
 /* -------------------------------------------------------------------------- */
 
 export const BASE_ANTIGA = {
-  titulo: "A base antiga deixa de ficar esquecida.",
-  subtitulo: "Pacientes que a clínica já conquistou uma vez.",
-  rotuloTotal: "pacientes sem retorno recente",
-  rotuloElegiveis: "elegíveis para contato hoje",
+  titulo: "Os pacientes antigos param de ser esquecidos.",
+  subtitulo: "Gente que a clínica já conquistou uma vez.",
+  rotuloTotal: "pacientes sem voltar há um bom tempo",
+  rotuloElegiveis: "podem receber contato hoje",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 12 — Reativação em escala                                                  */
+/* 12 — Contato aos poucos                                                    */
 /* -------------------------------------------------------------------------- */
 
 export const REATIVACAO = {
-  titulo: "A escala aumenta sem perder o controle.",
+  titulo: "Falar com muita gente sem parecer spam.",
   lotes: [
     { rotulo: "Hoje", quantidade: 250 },
     { rotulo: "Amanhã", quantidade: 250 },
     { rotulo: "Depois", quantidade: 250 },
   ],
   protecoes: [
-    "Um contato por paciente por dia",
-    "Cooldown entre campanhas",
-    "Opt-out respeitado para sempre",
+    "No máximo uma mensagem por pessoa, por dia",
+    "Um tempo de descanso entre uma campanha e outra",
+    "Quem pede para parar nunca mais recebe",
     "Só em horário comercial",
-    "Prioridade antes de volume",
+    "Quem tem mais chance de voltar vem antes",
   ],
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* 13 — Campanhas e aniversariantes                                           */
+/* -------------------------------------------------------------------------- */
+
+export const CAMPANHAS = {
+  titulo: "Falar com um grupo inteiro sem perder o jeito de falar com um.",
+  subtitulo: "Campanha aqui não é disparo em massa.",
+  tipos: [
+    { nome: "Aniversariantes do mês", quando: "todo dia, de manhã", fila: 46 },
+    { nome: "Quem sumiu há mais de um ano", quando: "em lotes de 250 por dia", fila: 964 },
+    { nome: "Clareamento antes do verão", quando: "por tipo de tratamento", fila: 380 },
+    { nome: "Quem parou no meio do tratamento", quando: "uma vez por trimestre", fila: 512 },
+  ],
+  regra:
+    "Toda campanha passa pelas mesmas regras: uma mensagem por pessoa por dia, só em horário comercial, e quem pediu para parar fica de fora.",
+  resultado: "Última campanha: 312 enviadas · 58 responderam · 21 marcaram",
+  aniversario: {
+    autor: "Automação",
+    texto:
+      "Parabéns, João! A equipe da JP Clínica Odontológica deseja um ótimo dia para você. 🎉",
+    hora: "09:00",
+    nota: "No aniversário a mensagem não vende nada. Ela só cumprimenta — e é por isso que funciona.",
+  },
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* 18 — Lembrete e confirmação                                                */
+/* -------------------------------------------------------------------------- */
+
+export const LEMBRETES = {
+  titulo: "A consulta marcada também precisa ser lembrada.",
+  mensagem:
+    "Oi, Maria! Passando para lembrar da sua consulta amanhã, quinta, às 16:00, com a Dra. Juliana.",
+  opcoes: ["Confirmo", "Preciso remarcar"],
+  resposta: "Confirmo",
+  fechamento: "Perfeito! Te esperamos amanhã às 16h. 🙂",
+  quando: [
+    { rotulo: "3 dias antes", detalhe: "O primeiro aviso, com data, hora e dentista." },
+    { rotulo: "1 dia antes", detalhe: "O pedido de confirmação — é o que mais reduz falta." },
+    { rotulo: "2 horas antes", detalhe: "Só para quem ainda não confirmou." },
+  ],
+  vaga: {
+    titulo: "E quando a pessoa não pode vir?",
+    texto:
+      "O horário volta para a agenda na hora, e o sistema oferece para quem está esperando uma vaga. A cadeira não fica vazia.",
+  },
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* 19 — Cobrança de parcela                                                   */
+/* -------------------------------------------------------------------------- */
+
+export const COBRANCA = {
+  titulo: "Cobrar sem constranger.",
+  subtitulo: "A mensagem mais delicada que o sistema manda.",
+  mensagens: [
+    {
+      de: "clinica" as const,
+      autor: "Automação",
+      texto:
+        "Oi, Carlos! Tudo bem? Vi aqui que a parcela de março ficou em aberto. Quer que eu te mande o link para acertar?",
+      hora: "10:04",
+    },
+    { de: "paciente" as const, texto: "Pode mandar. Vou acertar na sexta", hora: "10:21" },
+    {
+      de: "clinica" as const,
+      autor: "Sistema",
+      texto: "Combinado! Te lembro na sexta, sem falta.",
+      hora: "10:21",
+    },
+  ],
+  regras: [
+    { rotulo: "Só depois de três dias", detalhe: "Ninguém é cobrado no dia seguinte ao vencimento." },
+    { rotulo: "Uma vez, não toda semana", detalhe: "Se não responder, vira tarefa da equipe — não outra mensagem." },
+    { rotulo: "Nunca em cima de quem já pagou", detalhe: "O sistema confere o pagamento antes de escrever." },
+    { rotulo: "Renegociar é com gente", detalhe: "Pedido de desconto ou de parcelamento vai direto para a equipe." },
+  ],
+  resultado: "47 parcelas resolvidas depois do lembrete · R$ 86.400 ainda na fila",
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -225,7 +320,7 @@ export const REATIVACAO = {
 /* -------------------------------------------------------------------------- */
 
 export const CONVERSA = {
-  titulo: "O relacionamento acontece onde o paciente já está.",
+  titulo: "A conversa acontece onde o paciente já está.",
   mensagens: [
     {
       de: "clinica" as const,
@@ -235,111 +330,112 @@ export const CONVERSA = {
     },
     { de: "paciente" as const, texto: "Oi! Quero marcar sim", hora: "09:31" },
   ],
-  nota: "Interface do próprio design system. A peça não copia a tela do WhatsApp.",
+  nota: "A tela de celular aqui é uma ilustração feita para o vídeo, não uma cópia do aplicativo.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 14 — IA                                                                    */
+/* 14 — A leitura da resposta                                                 */
 /* -------------------------------------------------------------------------- */
 
 export const IA = {
-  titulo: "A IA não escreve mensagem bonita.",
-  subtitulo: "Ela entende a intenção e decide a próxima ação permitida.",
+  titulo: "A inteligência artificial não serve para escrever bonito.",
+  subtitulo: "Ela serve para entender o que a pessoa quis dizer.",
   entrada: "Quero marcar sim",
   saida: [
-    { campo: "Intenção", valor: "Quer agendar" },
-    { campo: "Temperatura", valor: "Quente" },
-    { campo: "Confiança", valor: "97%" },
-    { campo: "Próxima ação", valor: "Oferecer horários" },
+    { campo: "O que ela quer", valor: "Marcar consulta" },
+    { campo: "Interesse", valor: "Alto" },
+    { campo: "Certeza da leitura", valor: "97%" },
+    { campo: "O que fazer agora", valor: "Mostrar horários" },
   ],
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 15 — Outras intenções                                                      */
+/* 15 — Outras respostas                                                      */
 /* -------------------------------------------------------------------------- */
 
 export const INTENCOES = {
   titulo: "E quando a resposta não é essa?",
   casos: [
-    { fala: "Me chama mês que vem", saida: "Pedido de retorno depois", acao: "Agendar follow-up" },
-    { fala: "Quanto custa?", saida: "Perguntou preço", acao: "Regra comercial · humano" },
-    { fala: "Quero falar com a doutora", saida: "Dúvida clínica", acao: "Passar para um atendente" },
-    { fala: "Não quero receber mensagens", saida: "Descadastro", acao: "Opt-out imediato" },
-    { fala: "Estou com dor", saida: "Dúvida clínica", acao: "Humano · prioridade" },
+    { fala: "Me chama mês que vem", saida: "Quer que chamem depois", acao: "Volta na data pedida" },
+    { fala: "Quanto custa?", saida: "Quer saber preço", acao: "Vai para a equipe" },
+    { fala: "Quero falar com a doutora", saida: "Dúvida sobre o tratamento", acao: "Vai para a equipe" },
+    { fala: "Não quero receber mensagens", saida: "Pediu para parar", acao: "Nunca mais recebe" },
+    { fala: "Estou com dor", saida: "Queixa de dor", acao: "Vai para a equipe, na frente" },
+    { fala: "Vou acertar semana que vem", saida: "Falou do pagamento", acao: "Volta na data combinada" },
   ],
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 16 — Agendamento                                                           */
+/* 16 — Marcando a consulta                                                   */
 /* -------------------------------------------------------------------------- */
 
 export const AGENDAMENTO = {
-  titulo: "Do interesse ao agendamento, sem troca manual entre sistemas.",
+  titulo: "Do “quero marcar” até a consulta na agenda.",
   oferta: "Tenho estes horários para quinta-feira. Qual prefere?",
   horarios: ["09:00", "14:30", "16:00"],
   escolha: "16h",
-  revalidando: "Revalidando disponibilidade no Dental Office…",
+  revalidando: "Conferindo se o horário ainda está livre…",
   confirmado: "16:00 continua livre",
-  criado: "Agendamento criado",
-  nota: "O horário é revalidado antes de confirmar. Se alguém ocupou nesse meio-tempo, o sistema oferece outro em vez de marcar em cima.",
+  criado: "Consulta marcada",
+  nota: "Se alguém na recepção pegar esse horário nesse meio-tempo, o sistema oferece outro em vez de marcar em cima.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 17 — Caso humano                                                           */
+/* 17 — Quando a equipe entra                                                 */
 /* -------------------------------------------------------------------------- */
 
 export const HUMANO = {
-  titulo: "Quando o caso exige julgamento, a automação para.",
+  titulo: "Quando o caso é delicado, a automação para.",
   paciente: "Ana Costa",
   fala: "Estou com dor e queria falar sobre um tratamento.",
-  classificacao: "Dúvida clínica · atendimento humano",
-  destino: "CRC · Dr. responsável",
-  nota: "A automação não some da conversa: ela entrega o contexto e sai.",
+  classificacao: "Queixa de dor · precisa de gente",
+  destino: "Equipe · dentista responsável",
+  nota: "A automação não some da conversa: ela entrega o histórico pronto para a equipe e sai.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 18 — Home operacional                                                      */
+/* 18 — A tela do dia                                                         */
 /* -------------------------------------------------------------------------- */
 
 export const HOME = {
   saudacao: "Boa tarde, Raphaela.",
-  linhaUm: "pacientes precisam da sua atenção.",
-  linhaDois: "estão sendo trabalhados automaticamente.",
+  linhaUm: "pacientes precisam de você hoje.",
+  linhaDois: "já estão sendo cuidados automaticamente.",
   cartoes: [
     { rotulo: "Consultas recuperadas", valor: 128, detalhe: "nos últimos 30 dias" },
-    { rotulo: "Pacientes reativados", valor: 193, detalhe: "base histórica" },
-    { rotulo: "Conversas aguardando", valor: 7, detalhe: "resposta da equipe" },
-    { rotulo: "Tarefas abertas", valor: 23, detalhe: "com prazo hoje" },
+    { rotulo: "Pacientes que voltaram", valor: 193, detalhe: "da base antiga" },
+    { rotulo: "Conversas esperando", valor: 7, detalhe: "resposta da equipe" },
+    { rotulo: "Parcelas em atraso", valor: 31, detalhe: "sendo cobradas com jeito" },
   ],
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 19 — Inbox                                                                 */
+/* 19 — As conversas                                                          */
 /* -------------------------------------------------------------------------- */
 
 export const INBOX = {
-  titulo: "A equipe recebe o contexto pronto.",
+  titulo: "A equipe recebe o histórico pronto, do lado da conversa.",
   contexto: [
     { rotulo: "Última consulta", valor: "12/03 · Ortodontia" },
-    { rotulo: "Próxima consulta", valor: "—" },
-    { rotulo: "Oportunidade", valor: "Faltou · prioridade 92" },
-    { rotulo: "Resumo da IA", valor: "Quer remarcar. Prefere fim de tarde." },
-    { rotulo: "Próxima ação", valor: "Oferecer horários" },
+    { rotulo: "Próxima consulta", valor: "nenhuma marcada" },
+    { rotulo: "Por que ela está aqui", valor: "Faltou · prioridade 92" },
+    { rotulo: "Resumo automático", valor: "Quer remarcar. Prefere fim de tarde." },
+    { rotulo: "O que fazer agora", valor: "Mostrar horários" },
   ],
 } as const;
 
 /* -------------------------------------------------------------------------- */
-/* 20 — Paciente 360                                                          */
+/* 20 — A ficha do paciente                                                   */
 /* -------------------------------------------------------------------------- */
 
 export const PACIENTE_360 = {
-  titulo: "Tudo o que a equipe precisa, num lugar só.",
-  abas: ["Resumo da IA", "Oportunidades", "Timeline", "Conversas", "Agenda", "Tarefas"],
+  titulo: "Tudo o que a equipe precisa saber, numa página só.",
+  abas: ["Resumo", "O que está em aberto", "Histórico", "Conversas", "Agenda", "Tarefas"],
   timeline: [
     { quando: "hoje, 09:31", o_que: "Respondeu no WhatsApp", quem: "Paciente" },
-    { quando: "hoje, 09:12", o_que: "Mensagem de recuperação enviada", quem: "Automação" },
+    { quando: "hoje, 09:12", o_que: "Recebeu a mensagem de retorno", quem: "Automação" },
     { quando: "ontem, 15:02", o_que: "Faltou na consulta", quem: "Dental Office" },
-    { quando: "12/03", o_que: "Consulta atendida · Ortodontia", quem: "Dental Office" },
+    { quando: "12/03", o_que: "Veio na consulta · Ortodontia", quem: "Dental Office" },
   ],
 } as const;
 
@@ -352,14 +448,19 @@ export const RESULTADOS_TEXTO = {
 } as const;
 
 export const FUNIL_TEXTO = {
-  titulo: "Do elegível ao tratamento.",
-  nota: "Cada etapa é medida — não estimada.",
+  titulo: "De quem podia ser chamado até quem começou o tratamento.",
+  nota: "Cada etapa é contada de verdade — nenhuma é estimativa.",
 } as const;
 
 export const ANTES_DEPOIS = {
-  titulo: "Menos esforço operacional. Mais consistência.",
-  antes: ["Planilhas", "Busca manual", "Esquecimento", "Follow-up irregular"],
-  depois: ["Fila inteligente", "Automação com regra", "IA para triagem", "Histórico e métricas"],
+  titulo: "Menos trabalho manual. Mais constância.",
+  antes: ["Planilhas", "Procurar na mão", "Esquecimento", "Retorno sem regularidade"],
+  depois: [
+    "Lista pronta do dia",
+    "Rotinas com regra clara",
+    "Leitura automática das respostas",
+    "Histórico e números",
+  ],
 } as const;
 
 export const IMPACTO = {
@@ -368,19 +469,19 @@ export const IMPACTO = {
     "Base de pacientes",
     "Mais contato",
     "Mais respostas",
-    "Mais agendamentos",
-    "Mais comparecimento",
+    "Mais consultas marcadas",
+    "Mais gente comparecendo",
     "Mais tratamentos",
     "Mais receita",
   ],
   aviso:
-    "A peça mostra o mecanismo e o valor potencial na fila. Nenhum percentual de aumento é prometido.",
+    "A peça mostra como funciona e o valor que está parado na fila. Nenhum aumento de receita é prometido aqui.",
 } as const;
 
 export const GESTOR_TEXTO = {
-  titulo: "O que o gestor passa a enxergar",
+  titulo: "O que a gestão passa a enxergar",
   notaValor:
-    "Valor potencial, e não receita confirmada: o fechamento financeiro depende de integração que ainda não está ligada.",
+    "É o valor dos tratamentos parados na fila — não dinheiro que já entrou no caixa.",
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -388,16 +489,16 @@ export const GESTOR_TEXTO = {
 /* -------------------------------------------------------------------------- */
 
 export const ECOSSISTEMA = {
-  titulo: "O ecossistema completo",
+  titulo: "Tudo junto, do começo ao fim",
   cadeia: [
     "Dental Office",
-    "Backend + n8n",
+    "A ponte entre os sistemas",
     "JP CRC",
-    "Automação + IA",
+    "Rotinas + inteligência artificial",
     "WhatsApp",
     "Paciente",
-    "Agendamento",
-    "Resultados",
+    "Consulta marcada",
+    "Resultado",
   ],
 } as const;
 
@@ -414,8 +515,8 @@ export const FINAL = {
   subtitulo: [
     "Mais relacionamento.",
     "Mais organização.",
-    "Mais pacientes recuperados.",
-    "Mais oportunidades aproveitadas.",
+    "Mais pacientes de volta.",
+    "Menos oportunidade esquecida.",
   ],
   assinatura: "JP Clínica Odontológica",
 } as const;
@@ -427,8 +528,9 @@ export const FINAL = {
 export const CAPA = {
   chamada: "Conheça o JP CRC",
   subtitulo:
-    "Sua base de pacientes não deveria ficar parada. Um tour de quatro minutos por como os dados da clínica viram relacionamento, agenda e resultado.",
-  assistir: "Assistir",
+    "Sua base de pacientes não deveria ficar parada. Em quatro minutos, com narração, você entende como os dados da clínica viram conversa, agenda e resultado.",
+  assistir: "Assistir com narração",
+  semSom: "Assistir sem som",
   explorar: "Explorar",
   duracao: "≈ 4 min",
 } as const;

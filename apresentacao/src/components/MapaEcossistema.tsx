@@ -19,7 +19,7 @@ import { curvaH, curvaV } from "@/utils/caminho";
 /**
  * O mapa do ecossistema inteiro.
  *
- * Usado em dois lugares: a cena 26 (onde a câmera se afasta e ele aparece
+ * Usado em dois lugares: a cena 29 (onde a câmera se afasta e ele aparece
  * montado) e o modo Explorar (onde a pessoa clica nele). É o mesmo componente
  * nos dois — se fossem dois, o mapa do vídeo e o mapa interativo divergiriam na
  * primeira alteração, e a peça passaria a contar duas arquiteturas.
@@ -60,7 +60,7 @@ export const NOS: readonly DefinicaoNo[] = [
   {
     chave: "dentalOffice",
     titulo: "Dental Office",
-    legenda: "Pacientes, agenda, status",
+    legenda: "Pacientes, agenda e horários da clínica",
     marca: "dentalOffice",
     acento: cor.dentalOffice,
     x: COLUNAS[0]!,
@@ -68,8 +68,8 @@ export const NOS: readonly DefinicaoNo[] = [
   },
   {
     chave: "n8n",
-    titulo: "Backend + n8n",
-    legenda: "Sync, webhooks, jobs",
+    titulo: "A ponte",
+    legenda: "Busca os dados e mantém tudo atualizado",
     icone: <Workflow size={20} strokeWidth={2.1} />,
     acento: cor.n8n,
     x: COLUNAS[1]!,
@@ -78,7 +78,7 @@ export const NOS: readonly DefinicaoNo[] = [
   {
     chave: "jp",
     titulo: "JP CRC",
-    legenda: "Eventos, oportunidades, fila",
+    legenda: "Percebe quem precisa de contato",
     marca: "jpSimbolo",
     acento: cor.verdeEscuro,
     x: COLUNAS[2]!,
@@ -86,8 +86,8 @@ export const NOS: readonly DefinicaoNo[] = [
   },
   {
     chave: "ia",
-    titulo: "Automação + IA",
-    legenda: "Regras, jornadas, intenção",
+    titulo: "Rotinas + IA",
+    legenda: "Decidem o que fazer, dentro das regras",
     icone: <Bot size={20} strokeWidth={2.1} />,
     acento: cor.ia,
     x: COLUNAS[3]!,
@@ -96,7 +96,7 @@ export const NOS: readonly DefinicaoNo[] = [
   {
     chave: "whatsapp",
     titulo: "WhatsApp",
-    legenda: "Entrega, leitura, resposta",
+    legenda: "A mensagem chega e a resposta volta",
     marca: "whatsapp",
     acento: cor.whatsapp,
     x: COLUNAS[3]!,
@@ -105,7 +105,7 @@ export const NOS: readonly DefinicaoNo[] = [
   {
     chave: "paciente",
     titulo: "Paciente",
-    legenda: "Responde, decide, comparece",
+    legenda: "Responde, decide e comparece",
     icone: <UserRound size={20} strokeWidth={2.1} />,
     acento: cor.tintaSuave,
     x: COLUNAS[2]!,
@@ -114,7 +114,7 @@ export const NOS: readonly DefinicaoNo[] = [
   {
     chave: "agendamento",
     titulo: "Agendamento",
-    legenda: "Horário revalidado e criado",
+    legenda: "Horário conferido e consulta criada",
     icone: <CalendarCheck size={20} strokeWidth={2.1} />,
     acento: cor.verde,
     x: COLUNAS[1]!,
@@ -123,7 +123,7 @@ export const NOS: readonly DefinicaoNo[] = [
   {
     chave: "resultado",
     titulo: "Resultados",
-    legenda: "Métricas e valor potencial",
+    legenda: "O que deu certo, em números",
     icone: <TrendingUp size={20} strokeWidth={2.1} />,
     acento: cor.verdeEscuro,
     x: COLUNAS[0]!,
@@ -240,7 +240,7 @@ export function MapaEcossistema({
               <div style={{ padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 13, minHeight: 42 }}>
                   {no.marca !== undefined ? (
-                    <Marca chave={no.marca} altura={no.marca === "jpSimbolo" ? 34 : 26} />
+                    <Marca chave={no.marca} altura={no.marca === "jpSimbolo" ? 34 : 30} />
                   ) : (
                     <span
                       style={{

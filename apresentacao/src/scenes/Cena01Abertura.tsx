@@ -22,8 +22,8 @@ export function Cena01Abertura() {
   // Cada pilar tem sua janela. O anterior sai enquanto o próximo entra, então
   // há sempre no máximo dois em tela — e o de baixo nunca some por completo,
   // o que daria a impressão de erro.
-  const inicioPilares = 132;
-  const passo = 22;
+  const inicioPilares = 128;
+  const passo = 26;
 
   const pontoSai = progresso(frame, 268, 62, easeOut);
 
@@ -80,9 +80,12 @@ export function Cena01Abertura() {
         <div style={{ position: "relative", height: 92 }}>
           {ABERTURA.pilares.map((pilar, i) => {
             const inicio = inicioPilares + i * passo;
-            const entra = progresso(frame, inicio, 16, easeOutQuint);
-            const sai = progresso(frame, inicio + passo, 16, easeOutQuint);
-            const visivel = entra - sai;
+            // A palavra que sai começa a sair ANTES de a próxima entrar (−8) e
+            // sai mais rápido (10 frames). Sem essa defasagem, duas ficavam
+            // legíveis no mesmo pixel e o quadro virava borrão.
+            const entra = progresso(frame, inicio, 14, easeOutQuint);
+            const sai = progresso(frame, inicio + passo - 8, 10, easeOutQuint);
+            const visivel = Math.max(0, entra - sai);
             if (visivel <= 0.002) return null;
 
             return (
@@ -94,7 +97,7 @@ export function Cena01Abertura() {
                   display: "grid",
                   placeItems: "center",
                   opacity: visivel,
-                  transform: `translate3d(0, ${(1 - entra) * 22 - sai * 22}px, 0)`,
+                  transform: `translate3d(0, ${(1 - entra) * 30 - sai * 34}px, 0)`,
                 }}
               >
                 <span

@@ -10,7 +10,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 19 — O inbox.
+ * CENA 22 — O inbox.
  *
  * Três colunas: a fila, a conversa e o contexto. A da direita é a que justifica
  * a cena — sem ela, o atendente abre uma conversa sem saber quem é a pessoa, e
@@ -24,17 +24,17 @@ const CONVERSAS = [
   { nome: "Maria Souza", trecho: "Quero marcar sim", quando: "agora", nao_lida: true },
   { nome: "João Lima", trecho: "Vocês atendem sábado?", quando: "12 min", nao_lida: true },
   { nome: "Ana Costa", trecho: "Estou com dor…", quando: "1 h", nao_lida: false },
-  { nome: "Carlos Antunes", trecho: "Vou pensar e te falo", quando: "ontem", nao_lida: false },
+  { nome: "Carlos Antunes", trecho: "Vou acertar essa semana", quando: "ontem", nao_lida: false },
 ] as const;
 
-export function Cena19Inbox() {
+export function Cena22Inbox() {
   const frame = useFrame();
 
   return (
     <Palco fundo="#EEF1EA">
-      <SeloDeCena numero={19} />
+      <SeloDeCena />
 
-      <Em x={140} y={140} zIndex={8}>
+      <Em x={140} y={118} zIndex={8}>
         <Crescer em={2} dur={36} deEscala={0.968}>
           <Janela ativo="Conversas">
             <div style={{ display: "flex", height: "100%" }}>
@@ -59,7 +59,7 @@ export function Cena19Inbox() {
                     padding: "0 8px 14px",
                   }}
                 >
-                  Conversas
+Conversas do dia
                 </div>
 
                 {CONVERSAS.map((conversa, i) => {
@@ -297,8 +297,8 @@ export function Cena19Inbox() {
 
                 {INBOX.contexto.map((linha, i) => {
                   const t = progresso(frame, 62 + i * 11, 22, easeOutQuint);
-                  const resumo = linha.rotulo === "Resumo da IA";
-                  const acao = linha.rotulo === "Próxima ação";
+                  const resumo = linha.rotulo === "Resumo automático";
+                  const acao = linha.rotulo === "O que fazer agora";
                   return (
                     <div
                       key={linha.rotulo}
@@ -347,7 +347,7 @@ export function Cena19Inbox() {
         </Crescer>
       </Em>
 
-      <Em x={140} y={962} largura={1640} zIndex={9}>
+      <Em x={140} y={906} largura={1640} zIndex={9}>
         <div
           style={{
             opacity: progresso(frame, 132, 26),

@@ -32,11 +32,11 @@ export const BASE = {
 } as const;
 
 export const SEGMENTOS_BASE = [
-  { rotulo: "6 a 12 meses", quantidade: 1187, cor: "#7FC241" },
-  { rotulo: "12 a 24 meses", quantidade: 1342, cor: "#56A805" },
-  { rotulo: "24 meses ou mais", quantidade: 964, cor: "#3B7A04" },
-  { rotulo: "Abandonou o tratamento", quantidade: 512, cor: "#B45309" },
-  { rotulo: "Nunca retornou", quantidade: 276, cor: "#8B978C" },
+  { rotulo: "Sumiu há 6 meses a 1 ano", quantidade: 1187, cor: "#7FC241" },
+  { rotulo: "Sumiu há 1 a 2 anos", quantidade: 1342, cor: "#56A805" },
+  { rotulo: "Sumiu há mais de 2 anos", quantidade: 964, cor: "#3B7A04" },
+  { rotulo: "Parou no meio do tratamento", quantidade: 512, cor: "#B45309" },
+  { rotulo: "Veio uma vez e não voltou", quantidade: 276, cor: "#8B978C" },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -44,10 +44,10 @@ export const SEGMENTOS_BASE = [
 /* -------------------------------------------------------------------------- */
 
 export const RESULTADOS = [
-  { rotulo: "Pacientes trabalhados", valor: 4281 },
+  { rotulo: "Pacientes chamados", valor: 4281 },
   { rotulo: "Responderam", valor: 1012 },
-  { rotulo: "Agendamentos", valor: 287 },
-  { rotulo: "Reativados", valor: 193 },
+  { rotulo: "Marcaram consulta", valor: 287 },
+  { rotulo: "Voltaram a se tratar", valor: 193 },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -55,12 +55,12 @@ export const RESULTADOS = [
 /* -------------------------------------------------------------------------- */
 
 export const FUNIL = [
-  { etapa: "Pacientes elegíveis", valor: 4281 },
-  { etapa: "Contatados", valor: 3410 },
+  { etapa: "Podiam ser chamados", valor: 4281 },
+  { etapa: "Foram chamados", valor: 3410 },
   { etapa: "Responderam", valor: 1012 },
-  { etapa: "Agendaram", valor: 287 },
-  { etapa: "Compareceram", valor: 214 },
-  { etapa: "Converteram", valor: 138 },
+  { etapa: "Marcaram consulta", valor: 287 },
+  { etapa: "Vieram na consulta", valor: 214 },
+  { etapa: "Começaram o tratamento", valor: 138 },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -75,6 +75,9 @@ export const FUNIL = [
  * isso de receita seria afirmar algo que o dado não sustenta.
  */
 export const GESTOR = {
+  /** Cobrança: quanto está vencido e quanto voltou a ser pago depois do contato. */
+  valorEmAtraso: 86_400,
+  cobrancasResolvidas: 47,
   pacientesReativados: 193,
   consultasRecuperadas: 128,
   conversao: 0.284,
@@ -88,12 +91,13 @@ export const GESTOR = {
 /* -------------------------------------------------------------------------- */
 
 export const AUTOMACOES = [
-  { nome: "Recuperação de faltantes", evento: "appointment.missed", emJornada: 24, ativa: true },
-  { nome: "Retorno (recall)", evento: "patient.recall_due", emJornada: 31, ativa: true },
-  { nome: "Cancelamentos", evento: "appointment.cancelled", emJornada: 11, ativa: true },
-  { nome: "Aniversário", evento: "patient.birthday", emJornada: 6, ativa: true },
-  { nome: "Reativação de base", evento: "patient.inactive_detected", emJornada: 250, ativa: true },
-  { nome: "Confirmação de consulta", evento: "appointment.upcoming", emJornada: 43, ativa: true },
+  { nome: "Quem faltou", quando: "no dia seguinte à falta", emJornada: 24, ativa: true },
+  { nome: "Hora de voltar", quando: "quando vence o retorno", emJornada: 31, ativa: true },
+  { nome: "Quem desmarcou", quando: "logo após o cancelamento", emJornada: 11, ativa: true },
+  { nome: "Aniversário", quando: "na manhã do aniversário", emJornada: 6, ativa: true },
+  { nome: "Pacientes antigos", quando: "em lotes, todo dia", emJornada: 250, ativa: true },
+  { nome: "Confirmar consulta", quando: "um dia antes", emJornada: 43, ativa: true },
+  { nome: "Parcela vencida", quando: "3 dias depois do vencimento", emJornada: 18, ativa: true },
 ] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -114,24 +118,24 @@ export const FILA = [
   },
   {
     nome: "João Lima",
-    motivo: "Lead novo — pediu avaliação",
-    sinal: "Quente",
+    motivo: "Pediu uma avaliação hoje de manhã",
+    sinal: "Muito interessado",
     prioridade: 84,
     tipo: "NEW_LEAD" as const,
   },
   {
     nome: "Ana Costa",
-    motivo: "Retorno previsto há 7 meses",
-    sinal: "Sem consulta futura",
+    motivo: "Devia ter voltado há 7 meses",
+    sinal: "Sem consulta marcada",
     prioridade: 71,
     tipo: "RECALL" as const,
   },
   {
     nome: "Carlos Antunes",
-    motivo: "Orçamento parado há 21 dias",
-    sinal: "Aguardando",
+    motivo: "Parcela vencida há 12 dias",
+    sinal: "Sem retorno",
     prioridade: 42,
-    tipo: "BUDGET_RECOVERY" as const,
+    tipo: "COBRANCA" as const,
   },
 ] as const;
 
@@ -144,8 +148,8 @@ export const FILA = [
  */
 export const FATORES_MARIA = [
   { rotulo: "Faltou na consulta", pontos: 26 },
-  { rotulo: "Pediu para agendar", pontos: 25 },
-  { rotulo: "Respondeu nas últimas horas", pontos: 18 },
-  { rotulo: "Sem consulta futura", pontos: 12 },
-  { rotulo: "Vínculo com a clínica", pontos: 11 },
+  { rotulo: "Disse que quer marcar", pontos: 25 },
+  { rotulo: "Respondeu hoje de manhã", pontos: 18 },
+  { rotulo: "Não tem outra consulta marcada", pontos: 12 },
+  { rotulo: "Já é paciente da casa", pontos: 11 },
 ] as const;

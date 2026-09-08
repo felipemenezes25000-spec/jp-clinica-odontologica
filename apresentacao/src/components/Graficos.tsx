@@ -330,7 +330,7 @@ export function NuvemDePacientes({
 /* -------------------------------------------------------------------------- */
 
 /**
- * A escada da cena 24. Cada degrau é um elo da cadeia, e a altura cresce — mas
+ * A escada da cena 27. Cada degrau é um elo da cadeia, e a altura cresce — mas
  * sem número no eixo, de propósito: a peça mostra o mecanismo, não uma projeção
  * (item 55). Prometer percentual sem dado seria mentira com gráfico.
  */

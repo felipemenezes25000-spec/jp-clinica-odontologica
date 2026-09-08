@@ -17,7 +17,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, mola, progresso } from "@/motion/timing";
 
 /**
- * CENA 16 — Agendamento automático.
+ * CENA 17 — Agendamento automático.
  *
  * A cena mais longa da peça, e a única que se dá ao trabalho de mostrar um
  * passo chato: a revalidação. Ela existe porque é ela que separa "o robô marca
@@ -28,8 +28,8 @@ import { easeOutQuint, mola, progresso } from "@/motion/timing";
  * pronta para o paciente. A cena mostra o caminho feliz; o outro existe.
  */
 
-const FONE = { x: 190, y: 132 };
-const PAINEL = { x: 740, y: 250, largura: 1010 };
+const FONE = { x: 190, y: 128 };
+const PAINEL = { x: 740, y: 262, largura: 1010 };
 
 const OFERTA = 34;
 const ESCOLHA = 108;
@@ -37,7 +37,7 @@ const REVALIDA = 150;
 const CONFIRMA = 210;
 const CRIADO = 246;
 
-export function Cena16Agendamento() {
+export function Cena17Agendamento() {
   const frame = useFrame();
 
   const revalidando =
@@ -45,9 +45,9 @@ export function Cena16Agendamento() {
 
   return (
     <Palco>
-      <SeloDeCena numero={16} />
+      <SeloDeCena />
       <TituloDeCena
-        kicker="Agendamento"
+        kicker="Marcando a consulta"
         titulo={AGENDAMENTO.titulo}
         em={2}
         y={92}
@@ -59,7 +59,7 @@ export function Cena16Agendamento() {
       {/* A conversa ------------------------------------------------------ */}
       <Em x={FONE.x} y={FONE.y} zIndex={10}>
         <Crescer em={4} dur={34} deEscala={0.96}>
-          <Fone>
+          <Fone altura={752}>
             <CabecalhoConversa />
             <Conversa>
               <Balao de="clinica" em={OFERTA} hora="09:33" autor="IA" entregue lida={frame > ESCOLHA}>
@@ -118,11 +118,11 @@ export function Cena16Agendamento() {
                   color: cor.tintaSuave,
                 }}
               >
-                agenda de quinta-feira · Ortodontia
+                agenda real de quinta-feira · Ortodontia
               </span>
             </div>
             <Selo fundo={cor.dentalOfficeFraco} cor={cor.dentalOffice}>
-              Disponibilidade real
+              Horários de verdade
             </Selo>
           </div>
 
@@ -239,12 +239,13 @@ export function Cena16Agendamento() {
       </Em>
 
       {/* O agendamento criado -------------------------------------------- */}
-      <Em x={PAINEL.x} y={790} largura={PAINEL.largura} zIndex={12}>
+      <Em x={PAINEL.x} y={762} largura={PAINEL.largura} zIndex={12}>
         <div
           style={{
             opacity: progresso(frame, CRIADO, 20),
             transform: `translate3d(0, ${(1 - progresso(frame, CRIADO, 26, easeOutQuint)) * 18}px, 0)`,
-            background: cor.verdeEscuro,
+            // Superfície escura da marca: sobre ela o verde claro se lê (4,96:1).
+            background: cor.profundo,
             borderRadius: raio.enorme,
             padding: "28px 34px",
             display: "flex",
@@ -281,17 +282,17 @@ export function Cena16Agendamento() {
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
-            <Selo fundo="#0E4A05" cor={cor.verde}>
+            <Selo fundo="#0B3A02" cor={cor.verde}>
               Dental Office
             </Selo>
-            <Selo fundo="#0E4A05" cor={cor.verde}>
+            <Selo fundo="#0B3A02" cor={cor.verde}>
               JP CRC
             </Selo>
           </div>
         </div>
       </Em>
 
-      <NotaDeCena em={CRIADO + 18} x={PAINEL.x} largura={PAINEL.largura} y={942}>
+      <NotaDeCena em={30} x={PAINEL.x} largura={PAINEL.largura} y={186}>
         {AGENDAMENTO.nota}
       </NotaDeCena>
     </Palco>

@@ -150,7 +150,7 @@ export function Cena09Divisao() {
 
   return (
     <Palco>
-      <SeloDeCena numero={9} />
+      <SeloDeCena />
       <TituloDeCena
         kicker="Quem faz o quê"
         titulo={DIVISAO.titulo}

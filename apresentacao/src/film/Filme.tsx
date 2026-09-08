@@ -1,4 +1,4 @@
-import { cenasVisiveis, DURACAO_TOTAL } from "@/data/linhaDoTempo";
+import { CENAS_POSICIONADAS, cenasVisiveis, DURACAO_TOTAL } from "@/data/linhaDoTempo";
 import { PALCO } from "@/design-system/tokens";
 import { ProvedorDeCena, ProvedorDeFrame, ProvedorDeMovimento } from "@/motion/frame";
 import { COMPONENTES } from "@/scenes";
@@ -59,6 +59,8 @@ export function Filme({
                   frameLocal={frameLocal}
                   duracao={cena.duracao}
                   transicao={opacidade}
+                  indice={cena.indice}
+                  total={CENAS_POSICIONADAS.length}
                 >
                   <Componente />
                 </ProvedorDeCena>

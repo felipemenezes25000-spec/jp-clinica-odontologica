@@ -10,7 +10,7 @@ import { aleatorio, easeOutQuint, progresso } from "@/motion/timing";
 import { curvaH } from "@/utils/caminho";
 
 /**
- * CENA 14 — A IA.
+ * CENA 15 — A IA.
  *
  * A frase do paciente entra de um lado e sai do outro como quatro campos. É a
  * imagem que desfaz a ideia de "IA que conversa": o que ela produz aqui é dado
@@ -23,18 +23,18 @@ import { curvaH } from "@/utils/caminho";
 
 const NUCLEO = { x: 830, y: 470 };
 
-export function Cena14Ia() {
+export function Cena15Ia() {
   const frame = useFrame();
   const processando = progresso(frame, 54, 40);
   const resultado = 88;
 
   return (
     <Palco>
-      <SeloDeCena numero={14} />
+      <SeloDeCena />
       <Halo x={NUCLEO.x} y={NUCLEO.y} raio={340} cor={cor.ia} intensidade={0.12} />
 
       <TituloDeCena
-        kicker="Inteligência"
+        kicker="A leitura da resposta"
         titulo={IA.titulo}
         subtitulo={IA.subtitulo}
         em={2}
@@ -92,7 +92,7 @@ export function Cena14Ia() {
               marginBottom: 12,
             }}
           >
-            Maria Souza · WhatsApp
+            Maria Souza respondeu no WhatsApp
           </div>
           <div
             style={{
@@ -170,7 +170,7 @@ export function Cena14Ia() {
             textTransform: "uppercase",
           }}
         >
-          Classificando
+          Lendo a resposta
         </div>
       </Em>
 
@@ -200,7 +200,7 @@ export function Cena14Ia() {
               color: cor.tintaSuave,
             }}
           >
-            Classificação da conversa
+            O que o sistema entendeu
           </div>
 
           {IA.saida.map((linha, i) => {

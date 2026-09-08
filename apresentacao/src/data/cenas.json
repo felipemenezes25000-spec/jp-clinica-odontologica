@@ -4,25 +4,28 @@
   "sobreposicaoSegundos": 0.5,
   "cenas": [
     { "id": "abertura", "nome": "Abertura", "segundos": 11, "capitulo": "introducao" },
-    { "id": "problema", "nome": "O problema", "segundos": 10, "capitulo": "introducao" },
+    { "id": "problema", "nome": "O problema", "segundos": 13, "capitulo": "introducao" },
 
     { "id": "dentalOffice", "nome": "Dental Office", "segundos": 8, "capitulo": "dados" },
     { "id": "integracao", "nome": "A ponte entre os sistemas", "segundos": 7, "capitulo": "dados" },
     { "id": "nucleo", "nome": "JP CRC", "segundos": 9, "capitulo": "dados" },
 
-    { "id": "eventos", "nome": "O que o sistema percebe", "segundos": 8, "capitulo": "oportunidades" },
+    { "id": "eventos", "nome": "O que o sistema percebe", "segundos": 10, "capitulo": "oportunidades" },
     { "id": "elegibilidade", "nome": "As regras de contato", "segundos": 8, "capitulo": "oportunidades" },
     { "id": "prioridade", "nome": "Quem vem primeiro", "segundos": 8, "capitulo": "oportunidades" },
-    { "id": "divisao", "nome": "Humano e automação", "segundos": 7, "capitulo": "oportunidades" },
+    { "id": "divisao", "nome": "Humano e automação", "segundos": 8, "capitulo": "oportunidades" },
 
-    { "id": "automacoes", "nome": "As rotinas do dia", "segundos": 8, "capitulo": "automacao" },
+    { "id": "automacoes", "nome": "As rotinas do dia", "segundos": 9, "capitulo": "automacao" },
     { "id": "baseAntiga", "nome": "Pacientes antigos", "segundos": 9, "capitulo": "automacao" },
     { "id": "reativacao", "nome": "Contato aos poucos", "segundos": 8, "capitulo": "automacao" },
+    { "id": "campanhas", "nome": "Campanhas e aniversariantes", "segundos": 11, "capitulo": "automacao" },
 
     { "id": "whatsapp", "nome": "WhatsApp", "segundos": 9, "capitulo": "conversa" },
     { "id": "ia", "nome": "A leitura da resposta", "segundos": 8, "capitulo": "conversa" },
-    { "id": "intencoes", "nome": "Outras respostas", "segundos": 7, "capitulo": "conversa" },
-    { "id": "agendamento", "nome": "Marcando a consulta", "segundos": 10, "capitulo": "conversa" },
+    { "id": "intencoes", "nome": "Outras respostas", "segundos": 8, "capitulo": "conversa" },
+    { "id": "agendamento", "nome": "Marcando a consulta", "segundos": 11, "capitulo": "conversa" },
+    { "id": "lembretes", "nome": "Lembrete e confirmacao", "segundos": 10, "capitulo": "conversa" },
+    { "id": "cobranca", "nome": "Cobranca de parcela", "segundos": 11, "capitulo": "conversa" },
     { "id": "humano", "nome": "Quando a equipe entra", "segundos": 7, "capitulo": "conversa" },
 
     { "id": "home", "nome": "A tela do dia", "segundos": 9, "capitulo": "operacao" },

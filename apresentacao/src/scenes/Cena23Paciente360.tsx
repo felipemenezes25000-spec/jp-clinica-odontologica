@@ -9,7 +9,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 20 — Paciente 360.
+ * CENA 23 — Paciente 360.
  *
  * A última tela de produto. A timeline mistura, na mesma coluna, o que veio do
  * Dental Office, o que a automação fez e o que o paciente respondeu — e essa
@@ -25,14 +25,14 @@ const ORIGEM_COR: Readonly<Record<string, string>> = {
   "Dental Office": cor.dentalOffice,
 };
 
-export function Cena20Paciente360() {
+export function Cena23Paciente360() {
   const frame = useFrame();
 
   return (
     <Palco fundo="#EEF1EA">
-      <SeloDeCena numero={20} />
+      <SeloDeCena />
 
-      <Em x={140} y={140} zIndex={8}>
+      <Em x={140} y={118} zIndex={8}>
         <Crescer em={2} dur={36} deEscala={0.968}>
           <Janela ativo="Pacientes">
             <div style={{ padding: "30px 36px", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -164,7 +164,7 @@ export function Cena20Paciente360() {
                       }}
                     >
                       <Sparkles size={14} strokeWidth={2.4} />
-                      Resumo da IA
+Resumo automático
                     </div>
                     <div
                       style={{
@@ -176,7 +176,7 @@ export function Cena20Paciente360() {
                       }}
                     >
                       Faltou na consulta de ontem e respondeu hoje de manhã querendo remarcar.
-                      Prefere fim de tarde. Tratamento ortodôntico em andamento — a interrupção
+                      Prefere fim de tarde. Está em tratamento de ortodontia — a interrupção
                       atrasa o plano.
                     </div>
                   </div>
@@ -201,7 +201,7 @@ export function Cena20Paciente360() {
                         color: cor.tintaFraca,
                       }}
                     >
-                      Oportunidade aberta
+O que está em aberto
                     </div>
                     <div
                       style={{
@@ -219,9 +219,9 @@ export function Cena20Paciente360() {
                           color: cor.tinta,
                         }}
                       >
-                        Recuperação de falta · etapa “Em contato”
+                        Recuperar a consulta perdida · em contato
                       </span>
-                      <Selo>Ação: oferecer horários</Selo>
+                      <Selo>Próximo passo: mostrar horários</Selo>
                     </div>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export function Cena20Paciente360() {
                       marginBottom: 18,
                     }}
                   >
-                    Linha do tempo
+Histórico
                   </div>
 
                   {PACIENTE_360.timeline.map((evento, i) => {
@@ -324,7 +324,7 @@ export function Cena20Paciente360() {
         </Crescer>
       </Em>
 
-      <Em x={140} y={962} largura={1640} zIndex={9}>
+      <Em x={140} y={906} largura={1640} zIndex={9}>
         <div
           style={{
             opacity: progresso(frame, 150, 26),

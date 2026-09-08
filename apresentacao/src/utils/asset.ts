@@ -23,3 +23,15 @@ export function asset(caminho: string): string {
   const limpo = caminho.replace(/^\/+/, "");
   return resolvedor === null ? `/${limpo}` : resolvedor(limpo);
 }
+
+/**
+ * Quando a peça é servida em subpasta.
+ *
+ * No site da clínica ela mora em `/crc-institucional/`, e um caminho começando
+ * com `/` apontaria para a raiz do domínio — o logo e a narração sumiriam. O
+ * `main.tsx` registra a base do Vite por aqui.
+ */
+export function resolverPelaBase(base: string): (caminho: string) => string {
+  const prefixo = base.endsWith("/") ? base : `${base}/`;
+  return (caminho) => `${prefixo}${caminho}`;
+}

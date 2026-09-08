@@ -1,9 +1,9 @@
 /**
  * O tour institucional do JP CRC — `/crc-institucional`.
  *
- * A peça inteira (28+ cenas, narração, legenda, modo explorar) vive em
+ * A peça inteira (31 cenas, narração, legenda, modo explorar) vive em
  * `apresentacao/`, um sub-projeto com o próprio `package.json`, e é construída
- * para `public/crc-institucional/`. Esta rota só a coloca em tela.
+ * para `public/crc-tour/`. Esta rota só a coloca em tela.
  *
  * POR QUE UM `<iframe>` E NÃO O COMPONENTE DIRETO
  *
@@ -26,7 +26,7 @@
  *
  * PARA ATUALIZAR O TOUR
  *   npm --prefix apresentacao run build
- * O resultado cai direto em `public/crc-institucional/`.
+ * O resultado cai direto em `public/crc-tour/`.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
@@ -38,8 +38,14 @@ const DESCRICAO =
   "Tour de quatro minutos, com narração e legenda, sobre o sistema que recupera faltas, " +
   "reativa pacientes antigos, dispara campanhas e lembretes e cuida da cobrança pelo WhatsApp.";
 
-/** Onde o app construído mora dentro de `public/`. */
-const TOUR = "/crc-institucional/index.html";
+/**
+ * Onde o app construído mora dentro de `public/`.
+ *
+ * A pasta NÃO pode se chamar `crc-institucional`: o servidor de arquivos
+ * estáticos responde antes do roteador e devolveria o index.html do tour em vez
+ * desta página — sem o caminho de volta e sem as metatags.
+ */
+const TOUR = "/crc-tour/index.html";
 
 export const Route = createFileRoute("/crc-institucional")({
   head: () => ({

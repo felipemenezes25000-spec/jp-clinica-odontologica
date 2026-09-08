@@ -5,8 +5,10 @@ import type { IdCena } from "./linhaDoTempo";
  * O conteúdo do modo Explorar.
  *
  * Itens 17, 18, 52 e 53. A diferença entre este modo e o filme é o controle: no
- * filme a peça decide a ordem; aqui quem decide é quem está olhando. O conteúdo
- * é o mesmo — o que muda é quem aperta o botão.
+ * filme a peça decide a ordem; aqui quem decide é quem está olhando.
+ *
+ * Mesma regra de linguagem do resto: nada de "evento", "webhook", "opt-out" ou
+ * nome de código. Quem abre esta tela é o mesmo público do vídeo.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -27,15 +29,15 @@ export const DICAS: readonly DicaNo[] = [
     chave: "dentalOffice",
     titulo: "Dental Office",
     texto:
-      "Fonte dos dados operacionais: pacientes, agendamentos, dentistas, status e horários disponíveis. O JP CRC lê de lá e devolve o agendamento criado.",
+      "É o sistema que a clínica já usa. Dele vêm os pacientes, a agenda, quem veio, quem faltou e quais horários estão livres. O JP CRC só lê — e devolve a consulta quando ela é marcada.",
     marca: "dentalOffice",
     cena: "dentalOffice",
   },
   {
     chave: "n8n",
-    titulo: "n8n",
+    titulo: "A ponte entre os sistemas",
     texto:
-      "Orquestra workflows e integrações auxiliares: webhooks, sincronizações periódicas, retentativa quando a integração cai.",
+      "Mantém os dois lados sempre iguais: busca a agenda, recebe avisos quando algo muda e tenta de novo sozinha se a conexão cair.",
     marca: "n8n",
     cena: "integracao",
   },
@@ -43,15 +45,15 @@ export const DICAS: readonly DicaNo[] = [
     chave: "jp",
     titulo: "JP CRC",
     texto:
-      "Inteligência operacional, CRM e automações. É onde o evento vira oportunidade, a oportunidade vira fila e a fila vira conversa.",
+      "O cérebro da operação. É aqui que um dado (“faltou ontem”) vira alguém para chamar, com prioridade e com o motivo à vista.",
     marca: "jp",
     cena: "nucleo",
   },
   {
     chave: "ia",
-    titulo: "IA",
+    titulo: "Rotinas + inteligência artificial",
     texto:
-      "Classifica intenção, mede temperatura e recomenda a próxima ação permitida. Não decide fora do que a regra autoriza.",
+      "As rotinas decidem quando falar. A inteligência artificial lê a resposta do paciente e diz o que fazer em seguida — sempre dentro do que a clínica autorizou.",
     marca: "ia",
     cena: "ia",
   },
@@ -59,7 +61,7 @@ export const DICAS: readonly DicaNo[] = [
     chave: "whatsapp",
     titulo: "WhatsApp",
     texto:
-      "O canal do relacionamento. Entrega, leitura e resposta voltam para a conversa do paciente dentro do CRC.",
+      "O canal onde a conversa acontece. Dá para ver se a mensagem foi entregue, se foi lida e o que a pessoa respondeu.",
     marca: "whatsapp",
     cena: "whatsapp",
   },
@@ -67,21 +69,21 @@ export const DICAS: readonly DicaNo[] = [
     chave: "paciente",
     titulo: "Paciente",
     texto:
-      "Quem responde, agenda e comparece. Todo o resto do sistema existe para chegar até aqui na hora certa.",
+      "Quem responde, escolhe o horário e aparece. Todo o resto existe para chegar até aqui na hora certa, sem incomodar.",
     cena: "agendamento",
   },
   {
-    chave: "equipe",
-    titulo: "Equipe / CRC",
+    chave: "agendamento",
+    titulo: "Consulta marcada",
     texto:
-      "Recebe apenas o que exige julgamento humano — com histórico, oportunidade e próxima ação já do lado.",
-    cena: "humano",
+      "O horário é conferido de novo antes de fechar. Se alguém pegou a vaga nesse meio-tempo, o sistema oferece outra em vez de marcar em cima.",
+    cena: "agendamento",
   },
   {
     chave: "resultado",
     titulo: "Resultados",
     texto:
-      "Consultas recuperadas, pacientes reativados, conversão e valor potencial na fila. Medido, não estimado.",
+      "Consultas recuperadas, pacientes que voltaram, parcelas em atraso resolvidas e quanto ainda está parado na fila. Tudo contado, nada estimado.",
     cena: "gestor",
   },
 ];
@@ -108,87 +110,89 @@ export type MiniFluxo = {
 export const FLUXOS: readonly MiniFluxo[] = [
   {
     chave: "faltantes",
-    titulo: "Recuperação de faltantes",
+    titulo: "Quem faltou na consulta",
     resumo: "A janela mais curta e mais valiosa: quem faltou ontem ainda está no assunto.",
     acento: "jp",
     cena: "elegibilidade",
     passos: [
-      { rotulo: "Faltou", detalhe: "O Dental Office marca a consulta como MISSED." },
-      { rotulo: "Detectado", detalhe: "O evento `appointment.missed` entra no motor." },
-      { rotulo: "Elegível", detalhe: "Telefone válido, sem consulta futura, sem opt-out." },
-      { rotulo: "WhatsApp", detalhe: "Mensagem de recuperação dentro do horário permitido." },
-      { rotulo: "Resposta", detalhe: "A IA classifica a intenção e escolhe a ação." },
-      { rotulo: "Agenda", detalhe: "Horários reais oferecidos e revalidados." },
-      { rotulo: "Recuperado", detalhe: "Consulta criada nos dois sistemas." },
+      { rotulo: "Faltou", detalhe: "A consulta de ontem fica marcada como não realizada." },
+      { rotulo: "O sistema percebe", detalhe: "Sem ninguém precisar olhar a agenda." },
+      { rotulo: "Confere as regras", detalhe: "Tem telefone, não tem outra consulta, não pediu para parar." },
+      { rotulo: "Manda mensagem", detalhe: "No WhatsApp, em horário comercial." },
+      { rotulo: "Lê a resposta", detalhe: "Entende se a pessoa quer remarcar ou não." },
+      { rotulo: "Mostra horários", detalhe: "Só os que existem de verdade na agenda." },
+      { rotulo: "Consulta remarcada", detalhe: "Criada nos dois sistemas, sem digitar duas vezes." },
     ],
   },
   {
     chave: "recall",
-    titulo: "Retorno (recall)",
+    titulo: "Está na hora de voltar",
     resumo: "O retorno de rotina que ninguém lembra de cobrar.",
     acento: "dentalOffice",
     cena: "eventos",
     passos: [
-      { rotulo: "6 meses sem retorno", detalhe: "Varredura diária sobre a base inteira." },
-      { rotulo: "Sem consulta futura", detalhe: "Quem já remarcou sai da fila na hora." },
-      { rotulo: "Contato", detalhe: "Mensagem de retorno, uma por paciente por dia." },
-      { rotulo: "Resposta", detalhe: "Interesse, adiamento ou descadastro." },
-      { rotulo: "Agenda", detalhe: "Quem quer, agenda ali mesmo." },
+      { rotulo: "Seis meses sem aparecer", detalhe: "Uma varredura diária olha a base inteira." },
+      { rotulo: "Já remarcou?", detalhe: "Quem já tem consulta marcada sai da fila na hora." },
+      { rotulo: "Contato", detalhe: "Uma mensagem por pessoa, por dia. Nunca mais que isso." },
+      { rotulo: "Resposta", detalhe: "Quer voltar, quer depois, ou não quer mais receber." },
+      { rotulo: "Agenda", detalhe: "Quem quer, marca ali mesmo na conversa." },
     ],
   },
   {
     chave: "base-antiga",
-    titulo: "Reativação da base antiga",
-    resumo: "Pacientes que a clínica já conquistou uma vez — e parou de falar com eles.",
+    titulo: "Pacientes antigos",
+    resumo: "Gente que a clínica já conquistou uma vez — e parou de falar com ela.",
     acento: "whatsapp",
     cena: "baseAntiga",
     passos: [
-      { rotulo: "Base antiga", detalhe: "Todo mundo sem retorno recente." },
-      { rotulo: "Segmentação", detalhe: "Por tempo parado, especialidade e situação." },
-      { rotulo: "Lotes", detalhe: "250 por dia, com cooldown entre campanhas." },
-      { rotulo: "WhatsApp", detalhe: "Só em horário comercial, respeitando opt-out." },
-      { rotulo: "IA", detalhe: "Separa quem quer voltar de quem pediu para parar." },
-      { rotulo: "Agendamento", detalhe: "Quem quer volta para a agenda." },
+      { rotulo: "A base inteira", detalhe: "Todo mundo que não aparece há muito tempo." },
+      { rotulo: "Separação", detalhe: "Por quanto tempo faz, especialidade e situação do tratamento." },
+      { rotulo: "Aos poucos", detalhe: "250 por dia, com descanso entre uma campanha e outra." },
+      { rotulo: "WhatsApp", detalhe: "Só em horário comercial, respeitando quem pediu para parar." },
+      { rotulo: "Leitura das respostas", detalhe: "Separa quem quer voltar de quem quer sossego." },
+      { rotulo: "De volta à agenda", detalhe: "Quem quer, volta a ser paciente." },
+    ],
+  },
+  {
+    chave: "cobranca",
+    titulo: "Parcela em atraso",
+    resumo: "Cobrar sem constranger — e sem depender de alguém lembrar da data.",
+    acento: "n8n",
+    cena: "eventos",
+    passos: [
+      { rotulo: "A parcela venceu", detalhe: "O sistema vê a data passar sem o pagamento." },
+      { rotulo: "Três dias de espera", detalhe: "Ninguém é cobrado no dia seguinte ao vencimento." },
+      { rotulo: "Lembrete gentil", detalhe: "Uma mensagem discreta, sem tom de cobrança dura." },
+      { rotulo: "Se responder", detalhe: "“Vou acertar semana que vem” vira um retorno agendado." },
+      { rotulo: "Se pedir prazo", detalhe: "Renegociação é conversa humana: vai para a equipe." },
+      { rotulo: "Resolvido", detalhe: "O pagamento entra e o paciente segue o tratamento." },
     ],
   },
   {
     chave: "leads",
-    titulo: "Lead novo",
-    resumo: "O contato que chegou agora e ainda está com o celular na mão.",
+    titulo: "Quem pediu informação agora",
+    resumo: "O contato que chegou há minutos e ainda está com o celular na mão.",
     acento: "ia",
     cena: "prioridade",
     passos: [
-      { rotulo: "Lead criado", detalhe: "Formulário, campanha ou indicação." },
-      { rotulo: "Prioridade alta", detalhe: "Peso base 30 — o maior da tabela." },
-      { rotulo: "Primeiro contato", detalhe: "Automático quando é seguro, humano quando não." },
-      { rotulo: "Qualificação", detalhe: "A IA lê a resposta e marca a temperatura." },
-      { rotulo: "Avaliação agendada", detalhe: "Etapa do funil muda sozinha." },
-    ],
-  },
-  {
-    chave: "orcamento",
-    titulo: "Orçamento parado",
-    resumo: "O tratamento que foi orçado, não foi recusado — e ficou parado.",
-    acento: "n8n",
-    cena: "eventos",
-    passos: [
-      { rotulo: "Orçamento criado", detalhe: "Registrado com valor e especialidade." },
-      { rotulo: "Sem decisão", detalhe: "Passou o prazo sem aprovação nem recusa." },
-      { rotulo: "Tarefa para o CRC", detalhe: "Negociação é conversa humana, não template." },
-      { rotulo: "Motivo registrado", detalhe: "Preço, distância, adiamento — fechado, vira relatório." },
+      { rotulo: "Chegou um contato", detalhe: "Formulário, campanha ou indicação." },
+      { rotulo: "Vai para a frente da fila", detalhe: "É o caso com maior chance de virar consulta." },
+      { rotulo: "Primeiro contato", detalhe: "Automático quando é seguro, humano quando não é." },
+      { rotulo: "Leitura do interesse", detalhe: "O sistema marca se a pessoa está quente ou fria." },
+      { rotulo: "Avaliação marcada", detalhe: "A etapa muda sozinha quando a consulta é criada." },
     ],
   },
   {
     chave: "escalonamento",
-    titulo: "Quando o humano entra",
+    titulo: "Quando a equipe entra",
     resumo: "A regra que decide o que a automação NÃO faz.",
     acento: "jp",
     cena: "humano",
     passos: [
-      { rotulo: "Dúvida clínica", detalhe: "Dor, sintoma, indicação: sempre humano." },
-      { rotulo: "Preço e negociação", detalhe: "Regra comercial, com um responsável." },
-      { rotulo: "Reclamação", detalhe: "Escala imediata, sem tentativa de resposta pronta." },
-      { rotulo: "Baixa confiança", detalhe: "Se a IA não tem certeza, ela não age." },
+      { rotulo: "Dor ou queixa", detalhe: "Sintoma é sempre com gente. A rotina para na hora." },
+      { rotulo: "Preço e negociação", detalhe: "Inclusive renegociar uma parcela atrasada." },
+      { rotulo: "Reclamação", detalhe: "Vai direto para uma pessoa, sem resposta pronta." },
+      { rotulo: "Dúvida do próprio sistema", detalhe: "Se ele não tem certeza do que a pessoa quis dizer, não age." },
     ],
   },
 ];
@@ -202,32 +206,32 @@ export type Camada = { chave: string; nome: string; descricao: string };
 export const CAMADAS: readonly Camada[] = [
   {
     chave: "fonte",
-    nome: "Fonte",
-    descricao: "Dental Office — a operação da clínica como ela é hoje.",
+    nome: "De onde vem",
+    descricao: "Dental Office — a operação da clínica como ela já é hoje.",
   },
   {
     chave: "integracao",
-    nome: "Integração",
-    descricao: "Backend e n8n: sync, webhooks, jobs, retentativa, deduplicação.",
+    nome: "A ponte",
+    descricao: "Mantém os dois lados atualizados, sem ninguém digitar nada duas vezes.",
   },
   {
     chave: "nucleo",
-    nome: "Núcleo",
-    descricao: "JP CRC: pacientes, CRM, oportunidades, tarefas, conversas, analytics.",
+    nome: "O cérebro",
+    descricao: "JP CRC: quem precisa de contato, por quê, e o que já foi feito.",
   },
   {
     chave: "acao",
-    nome: "Ação",
-    descricao: "Automações e IA decidem o que fazer, dentro das regras de contato.",
+    nome: "A decisão",
+    descricao: "Rotinas e inteligência artificial escolhem o que fazer, dentro das regras.",
   },
   {
     chave: "canal",
-    nome: "Canal",
-    descricao: "WhatsApp: entrega, leitura e resposta do paciente.",
+    nome: "A conversa",
+    descricao: "WhatsApp: a mensagem chega, a pessoa lê e responde.",
   },
   {
     chave: "resultado",
-    nome: "Resultado",
-    descricao: "Agendamento, comparecimento e o que a gestão consegue medir.",
+    nome: "O resultado",
+    descricao: "Consulta marcada, paciente que apareceu e o que a gestão consegue medir.",
   },
 ];

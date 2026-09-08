@@ -1,6 +1,6 @@
 import { AbsoluteFill, Audio, staticFile, useCurrentFrame } from "remotion";
 import { Marca } from "@/components/Marca";
-import { TRILHA, VOLUME_TRILHA } from "@/data/audio";
+import { NARRACAO, TRILHA, VOLUME_NARRACAO, VOLUME_TRILHA } from "@/data/audio";
 import { falaNoFrame } from "@/data/narracao";
 import { cor, fonte, PALCO, PALCO_VERTICAL } from "@/design-system/tokens";
 import { Filme } from "@/film/Filme";
@@ -96,6 +96,7 @@ export function FilmeVertical() {
         </div>
       )}
 
+      {NARRACAO !== null && <Audio src={staticFile(NARRACAO)} volume={VOLUME_NARRACAO} />}
       {TRILHA !== null && <Audio src={staticFile(TRILHA)} volume={VOLUME_TRILHA} />}
     </AbsoluteFill>
   );

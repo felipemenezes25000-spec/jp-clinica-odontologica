@@ -19,7 +19,7 @@ export function Janela({
   children,
   usuario = "Raphaela",
   largura = 1640,
-  altura = 800,
+  altura = 762,
 }: {
   /** Item da navegação em destaque. Precisa existir em NAVEGACAO. */
   ativo: string;

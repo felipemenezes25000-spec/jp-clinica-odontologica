@@ -15,11 +15,18 @@ import { PALCO } from "@/design-system/tokens";
  */
 export function Visor({
   children,
+  sobreposicao,
   radius = 26,
   sombra = true,
   className,
 }: {
   children: ReactNode;
+  /**
+   * Desenhado por CIMA do palco, mas FORA da escala dele — é onde a legenda
+   * mora. Se ela fosse escalada junto com o filme, ficaria com 8 px de altura
+   * num celular, que é justamente onde legenda mais importa.
+   */
+  sobreposicao?: ReactNode;
   radius?: number;
   sombra?: boolean;
   className?: string;
@@ -27,11 +34,23 @@ export function Visor({
   const caixaRef = useRef<HTMLDivElement | null>(null);
   const { escala, caixa } = useEscalaDoPalco(caixaRef);
 
+  /**
+   * `position: absolute; inset: 0` e não `width/height: 100%`.
+   *
+   * Com largura em porcentagem, o tamanho desta caixa acabava sendo ditado pelo
+   * palco que ela contém: o palco nasce com 960 px, a caixa mede 960, a escala
+   * se mantém em 0,5 e nada nunca muda. Num celular de 375 px o filme saía
+   * cortado pela direita. Absoluto quebra o ciclo — a caixa passa a valer o que
+   * o pai vale, e o palco se ajusta a ela.
+   *
+   * Exige que o pai esteja posicionado. `.jp-visor-area` e o mapa do modo
+   * explorar já estão.
+   */
   return (
     <div
       ref={caixaRef}
       className={className}
-      style={{ width: "100%", height: "100%", display: "grid", placeItems: "center" }}
+      style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}
     >
       <div
         className="jp-palco-caixa"
@@ -53,6 +72,7 @@ export function Visor({
         >
           {children}
         </div>
+        {sobreposicao}
       </div>
     </div>
   );

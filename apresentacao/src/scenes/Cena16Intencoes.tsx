@@ -7,7 +7,7 @@ import { useFrame } from "@/motion/frame";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 15 — Outras intenções.
+ * CENA 16 — Outras intenções.
  *
  * A cena que impede a peça de vender uma IA que só sabe lidar com o caso feliz.
  * Cinco respostas reais, e o que o sistema faz com cada uma — inclusive as duas
@@ -18,22 +18,22 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  * credibilidade ao resto.
  */
 
-const LINHA = { x: 200, largura: 1520, altura: 98, espaco: 20, y0: 306 };
+const LINHA = { x: 200, largura: 1520, altura: 82, espaco: 12, y0: 274 };
 const COL_FALA = 660;
 const COL_SAIDA = 380;
 
-export function Cena15Intencoes() {
+export function Cena16Intencoes() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={15} />
-      <TituloDeCena kicker="Leitura de intenção" titulo={INTENCOES.titulo} em={2} />
+      <SeloDeCena />
+      <TituloDeCena kicker="Outras respostas" titulo={INTENCOES.titulo} em={2} />
 
       {INTENCOES.casos.map((caso, i) => {
-        const em = 26 + i * 14;
+        const em = 24 + i * 12;
         const t = progresso(frame, em, 22, easeOutQuint);
-        const humano = caso.acao.includes("humano") || caso.acao.includes("Humano");
+        const humano = caso.acao.includes("equipe");
         const saida = progresso(frame, em + 8, 18, easeOutQuint);
         const acao = progresso(frame, em + 14, 18, easeOutQuint);
 
@@ -64,13 +64,13 @@ export function Cena15Intencoes() {
                   border: "1px solid #CFEEDC",
                   borderRadius: 20,
                   borderBottomRightRadius: 7,
-                  padding: "20px 26px",
+                  padding: "16px 26px",
                 }}
               >
                 <span
                   style={{
                     fontFamily: fonte.texto,
-                    fontSize: tamanho.destaque,
+                    fontSize: tamanho.corpo,
                     color: cor.tinta,
                     fontWeight: 500,
                   }}
@@ -92,7 +92,7 @@ export function Cena15Intencoes() {
                   width: COL_SAIDA,
                   flex: "none",
                   opacity: saida,
-                  padding: "16px 22px",
+                  padding: "12px 22px",
                   borderRadius: raio.medio,
                   background: cor.iaFraco,
                   border: `1px solid ${cor.ia}2e`,
@@ -109,7 +109,7 @@ export function Cena15Intencoes() {
                     marginBottom: 6,
                   }}
                 >
-                  Intenção
+                  O que quis dizer
                 </div>
                 <div
                   style={{
@@ -135,7 +135,7 @@ export function Cena15Intencoes() {
                 style={{
                   flex: 1,
                   opacity: acao,
-                  padding: "16px 22px",
+                  padding: "12px 22px",
                   borderRadius: raio.medio,
                   background: humano ? cor.branco : cor.menta,
                   border: `1px solid ${humano ? cor.bordaForte : "#CDE7B4"}`,
@@ -152,7 +152,7 @@ export function Cena15Intencoes() {
                     marginBottom: 6,
                   }}
                 >
-                  {humano ? "Passa para a equipe" : "Ação"}
+                  {humano ? "Quem resolve" : "O que acontece"}
                 </div>
                 <div
                   style={{
@@ -171,10 +171,10 @@ export function Cena15Intencoes() {
       })}
 
       {/* A régua que separa o que a automação faz do que ela não faz. */}
-      <Em x={LINHA.x} y={LINHA.y0 + 5 * (LINHA.altura + LINHA.espaco) + 8} largura={LINHA.largura} zIndex={9}>
+      <Em x={LINHA.x} y={LINHA.y0 + 6 * (LINHA.altura + LINHA.espaco) + 4} largura={LINHA.largura} zIndex={9}>
         <div
           style={{
-            opacity: progresso(frame, 128, 26),
+            opacity: progresso(frame, 118, 26),
             display: "flex",
             gap: 34,
             fontFamily: fonte.texto,
@@ -186,13 +186,13 @@ export function Cena15Intencoes() {
             <span
               style={{ width: 11, height: 11, borderRadius: 3, background: cor.menta, border: "1px solid #CDE7B4" }}
             />
-            Automação resolve
+O sistema resolve sozinho
           </span>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
             <span
               style={{ width: 11, height: 11, borderRadius: 3, background: cor.branco, border: `1px solid ${cor.bordaForte}` }}
             />
-            Equipe assume
+Vai para a equipe
           </span>
         </div>
       </Em>

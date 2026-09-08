@@ -18,16 +18,16 @@ import { curvaV } from "@/utils/caminho";
  */
 
 const SINAIS: readonly { x: number; y: number; largura: number; destino: number }[] = [
-  { x: 168, y: 236, largura: 300, destino: 0 },
-  { x: 560, y: 190, largura: 320, destino: 2 },
-  { x: 980, y: 244, largura: 340, destino: 1 },
-  { x: 1410, y: 196, largura: 330, destino: 3 },
-  { x: 300, y: 402, largura: 380, destino: 3 },
-  { x: 860, y: 420, largura: 330, destino: 0 },
+  { x: 150, y: 214, largura: 310, destino: 0 },
+  { x: 540, y: 170, largura: 300, destino: 2 },
+  { x: 960, y: 222, largura: 300, destino: 1 },
+  { x: 1350, y: 174, largura: 420, destino: 3 },
+  { x: 280, y: 372, largura: 380, destino: 3 },
+  { x: 840, y: 390, largura: 380, destino: 0 },
 ];
 
 const SISTEMAS_X = [280, 700, 1120, 1540];
-const SISTEMAS_Y = 720;
+const SISTEMAS_Y = 632;
 
 export function Cena02Problema() {
   const frame = useFrame();
@@ -35,9 +35,9 @@ export function Cena02Problema() {
   const entradaSinais = 4;
   const entradaSistemas = 74;
   const entradaLinhas = 104;
-  const entradaFrase = 158;
+  const entradaFrase = 176;
   // A partir daqui a confusão recua — e é isso, não um corte, que abre a cena 3.
-  const dissolve = progresso(frame, 236, 56, easeIn);
+  const dissolve = progresso(frame, 300, 66, easeIn);
 
   return (
     <Palco>
@@ -131,7 +131,7 @@ export function Cena02Problema() {
       </div>
 
       {/* A frase que nomeia o problema ---------------------------------- */}
-      <Em x={960} y={868} ancora="topo-centro" largura={1400} zIndex={20}>
+      <Em x={960} y={758} ancora="topo-centro" largura={1400} zIndex={20}>
         <div style={{ textAlign: "center" }}>
           <div
             style={{

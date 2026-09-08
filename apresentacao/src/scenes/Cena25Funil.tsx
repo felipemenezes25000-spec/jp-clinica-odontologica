@@ -7,27 +7,34 @@ import { useFrame } from "@/motion/frame";
 import { progresso } from "@/motion/timing";
 
 /**
- * CENA 22 — O funil.
+ * CENA 25 — O funil.
  *
  * Seis etapas, cada uma com o número e o percentual sobre o topo. O percentual é
  * o que transforma a figura de decorativa em útil: sem ele o funil é só uma
  * escada bonita; com ele dá para perguntar "por que caiu tanto entre contatado e
  * respondeu?" — que é a pergunta que faz alguém mexer na operação.
  */
-export function Cena22Funil() {
+export function Cena25Funil() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={22} />
-      <TituloDeCena kicker="Funil" titulo={FUNIL_TEXTO.titulo} em={2} y={104} />
+      <SeloDeCena />
+      <TituloDeCena
+        kicker="Etapa por etapa"
+        titulo={FUNIL_TEXTO.titulo}
+        em={2}
+        y={104}
+        largura={1240}
+        nivel={2}
+      />
 
       <Em x={170} y={288} zIndex={8}>
         <Funil etapas={FUNIL} em={26} largura={980} alturaEtapa={78} espaco={14} />
       </Em>
 
       {ILUSTRATIVO && (
-        <Em x={1566} y={292} zIndex={9}>
+        <Em x={1566} y={196} zIndex={9}>
           <div style={{ opacity: progresso(frame, 120, 26) }}>
             <Ilustrativo />
           </div>

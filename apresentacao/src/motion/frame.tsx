@@ -59,6 +59,11 @@ type Cena = {
   progresso: number;
   /** Opacidade que a transição impõe. A cena pode ler para reforçar o efeito. */
   transicao: number;
+  /** Posição na linha do tempo, base 0. O selo "07 / 31" sai daqui — escrito à
+   *  mão em cada arquivo, ele ficava errado toda vez que uma cena entrava no
+   *  meio do filme. */
+  indice: number;
+  total: number;
 };
 
 const CenaContexto = createContext<Cena | null>(null);
@@ -67,11 +72,15 @@ export function ProvedorDeCena({
   frameLocal,
   duracao,
   transicao,
+  indice = 0,
+  total = 1,
   children,
 }: {
   frameLocal: number;
   duracao: number;
   transicao: number;
+  indice?: number;
+  total?: number;
   children: ReactNode;
 }) {
   const valor = useMemo(
@@ -80,8 +89,10 @@ export function ProvedorDeCena({
       duracao,
       progresso: duracao > 0 ? Math.max(0, Math.min(1, frameLocal / duracao)) : 0,
       transicao,
+      indice,
+      total,
     }),
-    [frameLocal, duracao, transicao],
+    [frameLocal, duracao, transicao, indice, total],
   );
   return <CenaContexto.Provider value={valor}>{children}</CenaContexto.Provider>;
 }

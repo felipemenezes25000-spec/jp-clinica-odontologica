@@ -9,7 +9,7 @@ import { Crescer, Entrar } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 13 — WhatsApp.
+ * CENA 14 — WhatsApp.
  *
  * O momento em que o sistema deixa de ser diagrama e vira conversa. Depois de
  * doze cenas de arquitetura, ver uma frase escrita para uma pessoa recoloca a
@@ -17,24 +17,24 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  *
  * A etiqueta "Automação" acima do balão não é detalhe: ela é a diferença entre
  * o sistema fingir ser gente e o sistema dizer o que é. Quando a Raphaela
- * assume a conversa na cena 17, a etiqueta muda — e isso conta a história
+ * assume a conversa na cena 20, a etiqueta muda — e isso conta a história
  * sozinho.
  */
 
-const FONE = { x: 1210, y: 132 };
+const FONE = { x: 1210, y: 130 };
 
-export function Cena13WhatsApp() {
+export function Cena14WhatsApp() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={13} />
+      <SeloDeCena />
       <Halo x={1420} y={520} raio={420} cor={cor.whatsapp} intensidade={0.1} />
 
       <TituloDeCena kicker="O canal" titulo={CONVERSA.titulo} em={2} largura={900} nivel={2} />
 
       {/* Explicação do lado esquerdo ------------------------------------ */}
-      <Em x={170} y={392} largura={880} zIndex={9}>
+      <Em x={170} y={366} largura={880} zIndex={9}>
         <Entrar em={34} dur={28} de="baixo" distancia={18}>
           <div
             style={{
@@ -56,25 +56,24 @@ export function Cena13WhatsApp() {
             {
               titulo: "A mensagem tem contexto",
               texto:
-                "O sistema sabe que a consulta era ontem, às 14:30, e de qual especialidade. A frase não é genérica.",
+                "Ele sabe que a consulta era ontem, às 14:30, e de qual especialidade. A mensagem não é genérica.",
               em: 52,
             },
             {
               titulo: "A entrega é observada",
-              texto:
-                "Enviada, entregue, lida — os três estados voltam para a conversa do paciente dentro do CRC.",
+              texto: "Dá para ver se foi entregue e se a pessoa leu.",
               em: 74,
             },
             {
               titulo: "E a resposta volta para o sistema",
               texto:
-                "O que o paciente escreve não fica no celular de ninguém. Entra na conversa, e a IA lê.",
+                "O que o paciente escreve não fica no celular de ninguém: entra na ficha dele.",
               em: 96,
             },
           ] as const
         ).map((bloco) => (
           <Entrar key={bloco.titulo} em={bloco.em} dur={26} de="baixo" distancia={14}>
-            <div style={{ marginBottom: 28, display: "flex", gap: 18 }}>
+            <div style={{ marginBottom: 20, display: "flex", gap: 18 }}>
               <span
                 style={{
                   width: 8,
@@ -118,7 +117,7 @@ export function Cena13WhatsApp() {
       {/* O aparelho ------------------------------------------------------ */}
       <Em x={FONE.x} y={FONE.y} zIndex={10}>
         <Crescer em={18} dur={40} deEscala={0.955}>
-          <Fone>
+          <Fone altura={748}>
             <CabecalhoConversa />
             <Conversa>
               <Balao
@@ -142,8 +141,8 @@ export function Cena13WhatsApp() {
         </Crescer>
       </Em>
 
-      {/* O realce que leva para a cena 14 -------------------------------- */}
-      <Em x={FONE.x - 130} y={FONE.y + 596} zIndex={14}>
+      {/* O realce que leva para a cena 15 -------------------------------- */}
+      <Em x={FONE.x - 150} y={FONE.y + 560} zIndex={14}>
         <div
           style={{
             opacity: progresso(frame, 208, 20) * (1 - progresso(frame, 258, 12)),
@@ -166,12 +165,12 @@ export function Cena13WhatsApp() {
               letterSpacing: "0.04em",
             }}
           >
-            A IA lê esta resposta →
+            É esta resposta que o sistema lê →
           </span>
         </div>
       </Em>
 
-      <NotaDeCena em={140} largura={880}>
+      <NotaDeCena em={140} largura={880} y={860}>
         {CONVERSA.nota}
       </NotaDeCena>
     </Palco>

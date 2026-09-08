@@ -30,8 +30,8 @@ export function Cena04Integracao() {
 
   return (
     <Palco>
-      <SeloDeCena numero={4} />
-      <TituloDeCena kicker="A camada de integração" titulo={INTEGRACAO.titulo} em={2} />
+      <SeloDeCena />
+      <TituloDeCena kicker="A ponte entre os sistemas" titulo={INTEGRACAO.titulo} em={2} />
 
       <CamadaDeConexoes zIndex={4}>
         {/* Entrada: o mesmo barramento que saiu da cena 3. */}
@@ -100,7 +100,7 @@ export function Cena04Integracao() {
             marca="n8n"
             acento={cor.n8n}
             largura={360}
-            subtitulo="Orquestra workflows e integrações auxiliares."
+            subtitulo="Liga os dois sistemas e faz as tarefas repetidas."
           />
         </div>
       </Em>
@@ -111,7 +111,7 @@ export function Cena04Integracao() {
             titulo="Backend JP"
             acento={cor.verdeEscuro}
             largura={460}
-            subtitulo="Normaliza, guarda e prepara os dados para decisão."
+            subtitulo="Organiza e guarda tudo em um lugar só."
             ativo
           />
         </div>

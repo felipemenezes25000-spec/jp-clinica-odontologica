@@ -6,7 +6,7 @@ import { useFrame } from "@/motion/frame";
 import { easeOut, easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 23 — Antes e depois.
+ * CENA 26 — Antes e depois.
  *
  * A comparação mais direta da peça, e a que corre mais risco de soar arrogante.
  * A saída foi o tratamento visual: o lado "antes" não é ridicularizado — é só
@@ -20,15 +20,15 @@ const COLUNA = { largura: 700, y: 306 };
 const ESQUERDA = 200;
 const DIREITA = 1020;
 
-export function Cena23AntesDepois() {
+export function Cena26AntesDepois() {
   const frame = useFrame();
   const divisor = progresso(frame, 14, 36, easeOut);
 
   return (
     <Palco>
-      <SeloDeCena numero={23} />
+      <SeloDeCena />
       <TituloDeCena
-        kicker="Impacto operacional"
+        kicker="Antes e depois"
         titulo={ANTES_DEPOIS.titulo}
         alinhamento="centro"
         em={2}
@@ -156,8 +156,8 @@ export function Cena23AntesDepois() {
             lineHeight: 1.6,
           }}
         >
-          A equipe não desaparece do processo. O que desaparece é a parte em que alguém precisa
-          lembrar de tudo.
+          A equipe não sai do processo. O que sai é a parte em que alguém precisa lembrar de
+tudo sozinho.
         </div>
       </Em>
     </Palco>

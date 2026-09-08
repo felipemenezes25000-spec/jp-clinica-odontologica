@@ -30,7 +30,7 @@ export function Cena05Nucleo() {
 
   return (
     <Palco>
-      <SeloDeCena numero={5} />
+      <SeloDeCena />
       <Halo x={960} y={560} raio={560} intensidade={0.13} />
 
       <CamadaDeConexoes zIndex={3}>

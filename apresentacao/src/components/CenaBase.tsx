@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Corpo, Em, Kicker, Titulo } from "@/design-system/primitivas";
 import { cor, fonte, tamanho } from "@/design-system/tokens";
+import { useCena } from "@/motion/frame";
 import { Entrar } from "@/motion/primitivas";
 
 /**
@@ -83,13 +84,18 @@ export function TituloDeCena({
 
 /**
  * A nota de rodapé da cena — onde vão as ressalvas honestas ("exemplo
- * ilustrativo", "a peça não copia a interface do WhatsApp"). Discreta de
- * propósito: informa sem virar aviso legal no meio da composição.
+ * ilustrativo", "a tela de celular é ilustração"). Discreta de propósito:
+ * informa sem virar aviso legal no meio da composição.
+ *
+ * y=862 e não 966: dali para baixo é a ÁREA SEGURA DA LEGENDA. A legenda ocupa
+ * de y≈915 até o rodapé do quadro, e é o único elemento que pode morar lá.
+ * Nenhuma cena põe conteúdo abaixo de 915 — foi assim que a legenda deixou de
+ * cobrir texto.
  */
 export function NotaDeCena({
   children,
   em = 40,
-  y = 966,
+  y = 862,
   x = MARGEM,
   largura = 1000,
   style,
@@ -123,8 +129,13 @@ export function NotaDeCena({
 /**
  * Numeração discreta da cena, no canto. Serve de âncora para quem revisa
  * ("ajusta o timing da 14") e some visualmente na composição.
+ *
+ * O número vem da linha do tempo, não de um argumento: escrito à mão em cada
+ * arquivo, ele ficava errado toda vez que uma cena entrava no meio do filme.
  */
-export function SeloDeCena({ numero, total = 28 }: { numero: number; total?: number }) {
+export function SeloDeCena() {
+  const { indice, total } = useCena();
+  const numero = indice + 1;
   return (
     <Em x={1920 - MARGEM - 70} y={70} largura={70} zIndex={25}>
       <div

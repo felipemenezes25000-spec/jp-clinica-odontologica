@@ -12,9 +12,12 @@
     "check": "npm run typecheck && npm run build",
     "video:preview": "remotion studio src/remotion/index.ts",
     "video:render": "remotion render src/remotion/index.ts JPCRCMain out/jp-crc-1080p.mp4 --log=verbose",
+    "video:leve": "node scripts/comprimir-video.mjs",
     "video:render:vertical": "remotion render src/remotion/index.ts JPCRCVertical out/jp-crc-vertical.mp4",
     "video:thumbnail": "remotion still src/remotion/index.ts JPCRCThumbnail out/jp-crc-capa.png",
-    "video:frame": "remotion still src/remotion/index.ts JPCRCMain out/frame.png --frame=0"
+    "video:frame": "remotion still src/remotion/index.ts JPCRCMain out/frame.png --frame=0",
+    "narracao": "node scripts/gerar-narracao.mjs",
+    "trilha": "node scripts/gerar-trilha.mjs"
   },
   "dependencies": {
     "@remotion/player": "4.0.522",
@@ -29,6 +32,7 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.2.0",
+    "msedge-tts": "^2.0.7",
     "typescript": "^5.8.3",
     "vite": "^7.1.0"
   }

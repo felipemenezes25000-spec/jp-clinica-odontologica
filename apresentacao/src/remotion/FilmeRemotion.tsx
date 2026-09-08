@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { AbsoluteFill, Audio, continueRender, delayRender, staticFile, useCurrentFrame } from "remotion";
-import { TRILHA, VOLUME_TRILHA } from "@/data/audio";
+import { NARRACAO, TRILHA, VOLUME_NARRACAO, VOLUME_TRILHA } from "@/data/audio";
 import { Filme } from "@/film/Filme";
+import { LegendaGravada } from "./LegendaGravada";
 
 /**
  * A ponte entre o Remotion e o filme.
@@ -20,6 +21,10 @@ export function FilmeRemotion() {
   return (
     <AbsoluteFill style={{ background: "#F7F8F2" }}>
       <Filme frame={frame} movimentoReduzido={false} />
+      <LegendaGravada />
+      {/* A narração é uma trilha única alinhada ao frame 0 — a mesma que o tour
+          toca —, então o MP4 sai com voz e legenda no mesmo lugar do site. */}
+      {NARRACAO !== null && <Audio src={staticFile(NARRACAO)} volume={VOLUME_NARRACAO} />}
       {TRILHA !== null && <Audio src={staticFile(TRILHA)} volume={VOLUME_TRILHA} />}
     </AbsoluteFill>
   );

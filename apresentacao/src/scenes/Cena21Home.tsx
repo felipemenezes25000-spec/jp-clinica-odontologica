@@ -9,7 +9,7 @@ import { Contador, Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 18 — A home operacional.
+ * CENA 21 — A home operacional.
  *
  * Aqui a peça sai do diagrama e mostra o produto. A primeira frase da tela é a
  * tese inteira do sistema em duas linhas: um número que exige a pessoa, e outro
@@ -19,14 +19,14 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  * atenção é o que a tela grita.
  */
 
-export function Cena18Home() {
+export function Cena21Home() {
   const frame = useFrame();
 
   return (
     <Palco fundo="#EEF1EA">
-      <SeloDeCena numero={18} />
+      <SeloDeCena />
 
-      <Em x={140} y={140} zIndex={8}>
+      <Em x={140} y={118} zIndex={8}>
         <Crescer em={2} dur={40} deEscala={0.965}>
           <Janela ativo="Home">
             <div style={{ padding: "36px 40px", height: "100%", display: "flex", gap: 34 }}>
@@ -183,7 +183,7 @@ export function Cena18Home() {
                       textTransform: "uppercase",
                     }}
                   >
-                    por prioridade
+quem precisa mais vem antes
                   </span>
                 </div>
 
@@ -215,7 +215,7 @@ export function Cena18Home() {
                     opacity: progresso(frame, 176, 24),
                   }}
                 >
-                  + {BASE.precisamDeAtencao - FILA.length} na fila de hoje
+                  + {BASE.precisamDeAtencao - FILA.length} esperando na fila de hoje
                 </div>
               </div>
             </div>
@@ -224,7 +224,7 @@ export function Cena18Home() {
       </Em>
 
       {ILUSTRATIVO && (
-        <Em x={140} y={962} zIndex={9}>
+        <Em x={1466} y={74} zIndex={9}>
           <div style={{ opacity: progresso(frame, 196, 24) }}>
             <Ilustrativo />
           </div>

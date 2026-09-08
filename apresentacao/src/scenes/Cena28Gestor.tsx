@@ -10,7 +10,7 @@ import { Contador, Crescer } from "@/motion/primitivas";
 import { easeOutQuint, formatarMoeda, progresso } from "@/motion/timing";
 
 /**
- * CENA 25 — O painel do gestor.
+ * CENA 28 — O painel do gestor.
  *
  * A última tela de produto, e a mais delicada em termos do que pode ser
  * afirmado. Ela mostra "valor potencial na fila", não "receita atribuída": sem
@@ -22,24 +22,30 @@ import { easeOutQuint, formatarMoeda, progresso } from "@/motion/timing";
  */
 
 const METRICAS = [
-  { rotulo: "Pacientes reativados", valor: GESTOR.pacientesReativados, sufixo: "", detalhe: "base histórica, 90 dias" },
-  { rotulo: "Consultas recuperadas", valor: GESTOR.consultasRecuperadas, sufixo: "", detalhe: "faltas e cancelamentos" },
+  { rotulo: "Pacientes que voltaram", valor: GESTOR.pacientesReativados, sufixo: "", detalhe: "da base antiga, em 90 dias" },
+  { rotulo: "Consultas recuperadas", valor: GESTOR.consultasRecuperadas, sufixo: "", detalhe: "de faltas e cancelamentos" },
+  {
+    rotulo: "Parcelas em atraso resolvidas",
+    valor: GESTOR.cobrancasResolvidas,
+    sufixo: "",
+    detalhe: "depois do lembrete no WhatsApp",
+  },
   {
     rotulo: "Tempo médio de resposta",
     valor: GESTOR.tempoMedioRespostaMin,
     sufixo: " min",
-    detalhe: "do contato do paciente à réplica",
+    detalhe: "entre a pergunta e a resposta",
   },
 ] as const;
 
-export function Cena25Gestor() {
+export function Cena28Gestor() {
   const frame = useFrame();
 
   return (
     <Palco fundo="#EEF1EA">
-      <SeloDeCena numero={25} />
+      <SeloDeCena />
 
-      <Em x={140} y={140} zIndex={8}>
+      <Em x={140} y={118} zIndex={8}>
         <Crescer em={2} dur={36} deEscala={0.968}>
           <Janela ativo="Relatórios" usuario="Juliana">
             <div style={{ padding: "34px 40px", height: "100%" }}>
@@ -58,7 +64,7 @@ export function Cena25Gestor() {
 
               <div style={{ display: "flex", gap: 26, marginTop: 30 }}>
                 {/* Métricas simples ---------------------------------- */}
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 13 }}>
                   {METRICAS.map((metrica, i) => {
                     const t = progresso(frame, 34 + i * 12, 24, easeOutQuint);
                     return (
@@ -70,7 +76,7 @@ export function Cena25Gestor() {
                           background: cor.branco,
                           border: `1px solid ${cor.linha}`,
                           borderRadius: raio.grande,
-                          padding: "22px 26px",
+                          padding: "17px 26px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
@@ -110,7 +116,7 @@ export function Cena25Gestor() {
                         >
                           {metrica.sufixo === " min" ? (
                             <>
-                              <Contador ate={metrica.valor} em={46 + i * 12} dur={44} />
+                              <Contador ate={metrica.valor} em={46 + i * 12} dur={44} casas={1} />
                               {metrica.sufixo}
                             </>
                           ) : (
@@ -149,9 +155,9 @@ export function Cena25Gestor() {
                       lineHeight: 1.5,
                     }}
                   >
-                    de quem respondeu para
+de quem responde,
                     <br />
-                    consulta agendada
+quantos marcam consulta
                   </div>
                 </div>
 
@@ -162,7 +168,9 @@ export function Cena25Gestor() {
                     flex: "none",
                     opacity: progresso(frame, 86, 26),
                     transform: `translate3d(0, ${(1 - progresso(frame, 86, 32, easeOutQuint)) * 16}px, 0)`,
-                    background: cor.verdeEscuro,
+                    // #032F01 e não #095902: o verde claro do rótulo mede
+                    // 2,87:1 sobre o verde oficial e 4,96:1 sobre este.
+                    background: cor.profundo,
                     borderRadius: raio.enorme,
                     padding: 30,
                     display: "flex",
@@ -181,7 +189,7 @@ export function Cena25Gestor() {
                         color: cor.verde,
                       }}
                     >
-                      Valor potencial na fila
+                      Valor parado na fila
                     </div>
                     <div
                       style={{
@@ -206,7 +214,7 @@ export function Cena25Gestor() {
                         lineHeight: 1.55,
                       }}
                     >
-                      Soma dos orçamentos em aberto das oportunidades ativas.
+                      A soma dos tratamentos que foram orçados e ainda não começaram.
                     </div>
                   </div>
 
@@ -222,8 +230,8 @@ export function Cena25Gestor() {
                       opacity: progresso(frame, 128, 26),
                     }}
                   >
-                    Não é receita confirmada. O fechamento financeiro depende de integração que
-                    ainda não está ligada.
+                    Não é dinheiro que já entrou. É o que está
+esperando uma decisão do paciente.
                   </div>
                 </div>
               </div>
@@ -242,7 +250,12 @@ export function Cena25Gestor() {
                 }}
               >
                 <span>
-                  Investimento no período:{" "}
+                  Em atraso na fila:{" "}
+                  <strong style={{ color: cor.tinta }}>{formatarMoeda(GESTOR.valorEmAtraso)}</strong>
+                </span>
+                <span style={{ color: cor.bordaForte }}>·</span>
+                <span>
+                  Custo do sistema no período:{" "}
                   <strong style={{ color: cor.tinta }}>
                     {formatarMoeda(GESTOR.investimentoMensal)}
                   </strong>
@@ -256,7 +269,7 @@ export function Cena25Gestor() {
       </Em>
 
       {ILUSTRATIVO && (
-        <Em x={140} y={962} zIndex={9}>
+        <Em x={1466} y={74} zIndex={9}>
           <div style={{ opacity: progresso(frame, 160, 26) }}>
             <Ilustrativo />
           </div>

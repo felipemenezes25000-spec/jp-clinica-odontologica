@@ -1,12 +1,16 @@
-import { FPS } from "@/design-system/tokens";
+import CENAS_JSON from "./cenas.json";
 
 /**
  * O motor da linha do tempo.
  *
- * Uma lista de cenas com duração em frames, e `inicioFrame` DERIVADO — nunca
- * escrito à mão. É o que permite alongar a cena 7 sem tocar nas outras 21: o
- * início de cada uma é a soma das anteriores, calculada uma vez na carga do
- * módulo.
+ * A ordem e a duração das cenas vêm de `cenas.json`, e `inicioFrame` é DERIVADO —
+ * nunca escrito à mão. É o que permite alongar a cena 7 sem tocar nas outras 27.
+ *
+ * POR QUE JSON E NÃO CONSTANTE AQUI
+ * Porque o gerador de narração (`scripts/gerar-narracao.mjs`) roda em Node puro,
+ * sem TypeScript, e precisa dos MESMOS números para posicionar a voz na trilha.
+ * Se cada lado tivesse a sua cópia, mudar uma cena de lugar desalinharia o áudio
+ * — e ninguém perceberia até assistir.
  *
  * Item 45 do briefing, e a razão dele: com `setTimeout` por cena, pausar,
  * arrastar a barra ou renderizar um frame avulso viram três problemas
@@ -35,10 +39,13 @@ export type IdCena =
   | "automacoes"
   | "baseAntiga"
   | "reativacao"
+  | "campanhas"
   | "whatsapp"
   | "ia"
   | "intencoes"
   | "agendamento"
+  | "lembretes"
+  | "cobranca"
   | "humano"
   | "home"
   | "inbox"
@@ -60,51 +67,14 @@ export type DefinicaoCena = {
   capitulo: ChaveCapitulo;
 };
 
-const s = (segundos: number): number => Math.round(segundos * FPS);
+export const FPS_FILME: number = CENAS_JSON.fps;
 
-/**
- * As 28 cenas do storyboard, na ordem.
- *
- * As durações saíram de leitura em voz alta da narração de cada uma, com folga
- * para o olho pousar: uma cena que só apresenta um número precisa de menos tempo
- * que a que mostra uma decisão sendo tomada.
- */
-export const CENAS: readonly DefinicaoCena[] = [
-  { id: "abertura", nome: "Abertura", duracao: s(11), capitulo: "introducao" },
-  { id: "problema", nome: "O problema", duracao: s(10), capitulo: "introducao" },
-
-  { id: "dentalOffice", nome: "Dental Office", duracao: s(8), capitulo: "dados" },
-  { id: "integracao", nome: "n8n + backend", duracao: s(7), capitulo: "dados" },
-  { id: "nucleo", nome: "JP CRC", duracao: s(9), capitulo: "dados" },
-
-  { id: "eventos", nome: "Motor de eventos", duracao: s(8), capitulo: "oportunidades" },
-  { id: "elegibilidade", nome: "Motor de regras", duracao: s(8), capitulo: "oportunidades" },
-  { id: "prioridade", nome: "Prioridade", duracao: s(8), capitulo: "oportunidades" },
-  { id: "divisao", nome: "Humano × automação", duracao: s(7), capitulo: "oportunidades" },
-
-  { id: "automacoes", nome: "Automações", duracao: s(8), capitulo: "automacao" },
-  { id: "baseAntiga", nome: "Base antiga", duracao: s(9), capitulo: "automacao" },
-  { id: "reativacao", nome: "Reativação em escala", duracao: s(8), capitulo: "automacao" },
-
-  { id: "whatsapp", nome: "WhatsApp", duracao: s(9), capitulo: "conversa" },
-  { id: "ia", nome: "IA", duracao: s(8), capitulo: "conversa" },
-  { id: "intencoes", nome: "Outras intenções", duracao: s(7), capitulo: "conversa" },
-  { id: "agendamento", nome: "Agendamento", duracao: s(10), capitulo: "conversa" },
-  { id: "humano", nome: "Caso humano", duracao: s(7), capitulo: "conversa" },
-
-  { id: "home", nome: "Home operacional", duracao: s(9), capitulo: "operacao" },
-  { id: "inbox", nome: "Inbox", duracao: s(8), capitulo: "operacao" },
-  { id: "paciente360", nome: "Paciente 360", duracao: s(8), capitulo: "operacao" },
-
-  { id: "resultados", nome: "Resultados", duracao: s(8), capitulo: "resultados" },
-  { id: "funil", nome: "Funil", duracao: s(8), capitulo: "resultados" },
-  { id: "antesDepois", nome: "Antes e depois", duracao: s(7), capitulo: "resultados" },
-  { id: "impacto", nome: "Impacto financeiro", duracao: s(8), capitulo: "resultados" },
-  { id: "gestor", nome: "Painel do gestor", duracao: s(8), capitulo: "resultados" },
-  { id: "ecossistema", nome: "Ecossistema", duracao: s(9), capitulo: "resultados" },
-  { id: "frase", nome: "A frase", duracao: s(8), capitulo: "resultados" },
-  { id: "final", nome: "Final", duracao: s(9), capitulo: "resultados" },
-];
+export const CENAS: readonly DefinicaoCena[] = CENAS_JSON.cenas.map((c) => ({
+  id: c.id as IdCena,
+  nome: c.nome,
+  duracao: Math.round(c.segundos * CENAS_JSON.fps),
+  capitulo: c.capitulo as ChaveCapitulo,
+}));
 
 /**
  * A sobreposição entre cenas.
@@ -114,7 +84,9 @@ export const CENAS: readonly DefinicaoCena[] = [
  * uma emendar na entrada da outra — e é por isso que o palco às vezes desenha
  * duas cenas ao mesmo tempo.
  */
-export const SOBREPOSICAO = s(0.5);
+export const SOBREPOSICAO: number = Math.round(
+  CENAS_JSON.sobreposicaoSegundos * CENAS_JSON.fps,
+);
 
 export type CenaPosicionada = DefinicaoCena & {
   indice: number;
@@ -133,7 +105,7 @@ export const CENAS_POSICIONADAS: readonly CenaPosicionada[] = (() => {
 
 export const DURACAO_TOTAL: number = CENAS_POSICIONADAS.reduce((t, c) => t + c.duracao, 0);
 
-export const DURACAO_SEGUNDOS: number = DURACAO_TOTAL / FPS;
+export const DURACAO_SEGUNDOS: number = DURACAO_TOTAL / FPS_FILME;
 
 /* -------------------------------------------------------------------------- */
 /* Capítulos                                                                  */
@@ -147,12 +119,12 @@ export const DURACAO_SEGUNDOS: number = DURACAO_TOTAL / FPS;
  * fala com o paciente, o que sobra para a equipe, o que aparece no fim.
  */
 export const NOMES_CAPITULO: Readonly<Record<ChaveCapitulo, string>> = {
-  introducao: "Introdução",
-  dados: "Dados",
-  oportunidades: "Oportunidades",
-  automacao: "Automação",
-  conversa: "WhatsApp + IA",
-  operacao: "Operação",
+  introducao: "Começo",
+  dados: "De onde vêm os dados",
+  oportunidades: "Quem precisa de contato",
+  automacao: "O que roda sozinho",
+  conversa: "A conversa",
+  operacao: "O dia da equipe",
   resultados: "Resultados",
 };
 

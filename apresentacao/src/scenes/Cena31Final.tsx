@@ -8,7 +8,7 @@ import { easeIn, easeOutQuint, progresso } from "@/motion/timing";
 import { asset } from "@/utils/asset";
 
 /**
- * CENA 28 — Final.
+ * CENA 31 — Final.
  *
  * A fachada da clínica entra no fundo com 12% de opacidade sob um véu claro. É
  * o único momento em que a peça mostra o lugar físico — e ele fecha o arco:
@@ -17,7 +17,7 @@ import { asset } from "@/utils/asset";
  * A foto é a do próprio site (`src/assets/fachada-letreiro.webp`), copiada para
  * `public/fotos/`. Nada é buscado de fora: o render precisa funcionar sem rede.
  */
-export function Cena28Final() {
+export function Cena31Final() {
   const frame = useFrame();
   const saida = progresso(frame, 226, 44, easeIn);
 
@@ -31,8 +31,10 @@ export function Cena28Final() {
           backgroundImage: `url(${asset("fotos/fachada-letreiro.webp")})`,
           backgroundSize: "cover",
           backgroundPosition: "center 62%",
-          opacity: progresso(frame, 10, 70) * 0.14,
-          filter: "grayscale(0.35)",
+          // Entra com o resto e SAI com o resto: deixar a foto sozinha no fade
+          // final faria o filme terminar numa fotografia desbotada.
+          opacity: progresso(frame, 10, 70) * 0.12 * (1 - saida),
+          filter: "grayscale(0.4)",
         }}
       />
       <div

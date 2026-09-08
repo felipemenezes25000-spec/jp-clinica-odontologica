@@ -17,12 +17,12 @@ import { clamp, easeOut, easeOutQuint, interpolar, progresso } from "@/motion/ti
  * ser escolhido em tela, não aparecer do nada na cena 7.
  */
 
-const COLUNAS = 3;
-const CARTAO = { largura: 380, altura: 118 };
-const GRADE_X = 350;
-const GRADE_Y = 336;
-const ESPACO_X = 40;
-const ESPACO_Y = 36;
+const COLUNAS = 5;
+const CARTAO = { largura: 292, altura: 152 };
+const GRADE_X = 170;
+const GRADE_Y = 348;
+const ESPACO_X = 30;
+const ESPACO_Y = 30;
 
 const SCANNER_INICIO = 84;
 const SCANNER_DURACAO = 84;
@@ -43,7 +43,7 @@ export function Cena06Eventos() {
   const scannerX = interpolar(
     frame,
     [SCANNER_INICIO, SCANNER_INICIO + SCANNER_DURACAO],
-    [GRADE_X - 90, GRADE_X + COLUNAS * (CARTAO.largura + ESPACO_X) + 40],
+    [GRADE_X - 90, GRADE_X + COLUNAS * (CARTAO.largura + ESPACO_X) + 30],
     { curva: easeOut },
   );
   const scannerVisivel =
@@ -52,8 +52,8 @@ export function Cena06Eventos() {
 
   return (
     <Palco>
-      <SeloDeCena numero={6} />
-      <TituloDeCena kicker="Motor de eventos" titulo={EVENTOS.titulo} em={2} />
+      <SeloDeCena />
+      <TituloDeCena kicker="O que ele percebe" titulo={EVENTOS.titulo} em={2} />
 
       {/* Os cartões ----------------------------------------------------- */}
       {EVENTOS.cartoes.map((cartao, i) => {
@@ -63,7 +63,7 @@ export function Cena06Eventos() {
         // Quanto o scanner está perto do centro deste cartão.
         const centro = x + CARTAO.largura / 2;
         const distancia = Math.abs(scannerX - centro);
-        const varrido = clamp(1 - distancia / 230, 0, 1) * scannerVisivel;
+        const varrido = clamp(1 - distancia / 190, 0, 1) * scannerVisivel;
 
         // Depois da varredura, só o escolhido continua aceso.
         const escolhido = i === DESTAQUE ? progresso(frame, 176, 20) : 0;
@@ -92,24 +92,24 @@ export function Cena06Eventos() {
               <div
                 style={{
                   fontFamily: fonte.display,
-                  fontSize: tamanho.destaque,
+                  fontSize: tamanho.corpo,
                   fontWeight: 700,
                   color: cor.tinta,
-                  letterSpacing: "-0.018em",
+                  letterSpacing: "-0.015em",
+                  lineHeight: 1.15,
                 }}
               >
                 {cartao.rotulo}
               </div>
               <div
                 style={{
-                  fontFamily: fonte.mono,
-                  fontSize: tamanho.micro + 1,
-                  color: aceso > 0.3 ? cor.verdeEscuro : cor.tintaFraca,
+                  fontFamily: fonte.texto,
+                  fontSize: tamanho.legenda,
+                  color: aceso > 0.3 ? cor.verdeEscuro : cor.tintaSuave,
                   marginTop: 8,
-                  letterSpacing: "0.02em",
                 }}
               >
-                {cartao.evento}
+                {cartao.quando}
               </div>
             </div>
           </Em>
@@ -122,7 +122,7 @@ export function Cena06Eventos() {
           <div
             style={{
               width: 3,
-              height: 3 * (CARTAO.altura + ESPACO_Y) + 60,
+              height: 2 * (CARTAO.altura + ESPACO_Y) + 60,
               background: `linear-gradient(180deg, transparent, ${cor.verde}, transparent)`,
               opacity: scannerVisivel,
               boxShadow: `0 0 26px 6px ${cor.verde}44`,
@@ -132,7 +132,7 @@ export function Cena06Eventos() {
       )}
 
       {/* O carimbo ------------------------------------------------------ */}
-      <Em x={960} y={862} ancora="topo-centro" zIndex={20}>
+      <Em x={960} y={758} ancora="topo-centro" zIndex={20}>
         <div
           style={{
             opacity: progresso(frame, 184, 22),

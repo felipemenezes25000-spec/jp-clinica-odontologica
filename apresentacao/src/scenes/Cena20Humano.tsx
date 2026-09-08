@@ -9,9 +9,9 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 17 — O caso humano.
+ * CENA 20 — O caso humano.
  *
- * O espelho da cena 13: mesma tela, mesmo canal, resultado oposto. Ali a
+ * O espelho da cena 14: mesma tela, mesmo canal, resultado oposto. Ali a
  * automação seguiu; aqui ela para, e a etiqueta do balão muda de "Automação"
  * para "Raphaela · CRC".
  *
@@ -20,7 +20,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  * assunto em vez de mudança de decisão.
  */
 
-const FONE = { x: 190, y: 132 };
+const FONE = { x: 190, y: 128 };
 const COLUNA = { x: 740, largura: 1010 };
 
 const FALA = 24;
@@ -28,14 +28,14 @@ const VEREDICTO = 74;
 const PARADA = 118;
 const REPASSE = 148;
 
-export function Cena17Humano() {
+export function Cena20Humano() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={17} />
+      <SeloDeCena />
       <TituloDeCena
-        kicker="Escalonamento"
+        kicker="Quando a equipe entra"
         titulo={HUMANO.titulo}
         em={2}
         y={92}
@@ -46,7 +46,7 @@ export function Cena17Humano() {
 
       <Em x={FONE.x} y={FONE.y} zIndex={10}>
         <Crescer em={2} dur={32} deEscala={0.96}>
-          <Fone>
+          <Fone altura={752}>
             <CabecalhoConversa subtitulo="conversa em andamento" />
             <Conversa>
               <Balao de="paciente" em={FALA} hora="14:07">
@@ -73,7 +73,7 @@ export function Cena17Humano() {
           <Cartao acento={cor.ia} elevado padding={30}>
             <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
               <Selo fundo={cor.iaFraco} cor={cor.ia}>
-                Leitura da IA
+O que o sistema entendeu
               </Selo>
               <span
                 style={{
@@ -82,7 +82,7 @@ export function Cena17Humano() {
                   color: cor.tintaFraca,
                 }}
               >
-                confiança 94%
+                com 94% de certeza
               </span>
             </div>
             <div
@@ -135,7 +135,7 @@ export function Cena17Humano() {
               color: cor.alerta,
             }}
           >
-            A jornada automática é encerrada nesta conversa.
+            A rotina automática para aqui, nesta conversa.
           </span>
         </div>
       </Em>
@@ -180,7 +180,7 @@ export function Cena17Humano() {
                   color: cor.tintaSuave,
                 }}
               >
-                Conversa movida para
+A conversa foi para
               </div>
               <div
                 style={{
@@ -204,7 +204,7 @@ export function Cena17Humano() {
                   color: cor.tintaFraca,
                 }}
               >
-                com histórico e resumo anexados
+                com o histórico já anexado
               </span>
             </div>
           </div>

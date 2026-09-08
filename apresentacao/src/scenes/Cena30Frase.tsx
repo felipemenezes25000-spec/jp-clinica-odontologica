@@ -6,7 +6,7 @@ import { useFrame } from "@/motion/frame";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 27 — A frase.
+ * CENA 30 — A frase.
  *
  * Tela limpa, três linhas, uma de cada vez, no mesmo lugar. É o respiro antes do
  * fim — depois de 25 cenas de informação, a peça para de mostrar e só afirma.
@@ -19,12 +19,12 @@ import { easeOutQuint, progresso } from "@/motion/timing";
 const PRIMEIRA = 26;
 const PASSO = 62;
 
-export function Cena27Frase() {
+export function Cena30Frase() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={27} />
+      <SeloDeCena />
 
       <Em x={960} y={540} ancora="centro" largura={1500} zIndex={10}>
         <div style={{ textAlign: "center" }}>

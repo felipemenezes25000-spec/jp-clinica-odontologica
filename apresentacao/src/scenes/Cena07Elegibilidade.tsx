@@ -35,8 +35,8 @@ export function Cena07Elegibilidade() {
 
   return (
     <Palco>
-      <SeloDeCena numero={7} />
-      <TituloDeCena kicker="Motor de regras" titulo={ELEGIBILIDADE.titulo} em={2} />
+      <SeloDeCena />
+      <TituloDeCena kicker="As regras de contato" titulo={ELEGIBILIDADE.titulo} em={2} />
 
       <CamadaDeConexoes zIndex={4}>
         {ELEGIBILIDADE.checagens.map((_, i) => (
@@ -70,7 +70,7 @@ export function Cena07Elegibilidade() {
                 fontWeight: 600,
               }}
             >
-              Oportunidade criada
+              Alguém para chamar
             </div>
             <div
               style={{
@@ -98,7 +98,7 @@ export function Cena07Elegibilidade() {
             <div style={{ marginTop: 22, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <Selo>Faltou</Selo>
               <Selo fundo="#F1F4EF" cor={cor.tintaSuave}>
-                appointment.missed
+                Percebido automaticamente
               </Selo>
             </div>
           </Cartao>
@@ -163,7 +163,7 @@ export function Cena07Elegibilidade() {
             opacity: progresso(frame, veredictoEm, 18),
             transform: `scale(${0.92 + 0.08 * Math.min(1, mola(frame, veredictoEm))})`,
             transformOrigin: "left center",
-            background: cor.verdeEscuro,
+            background: cor.profundo,
             borderRadius: raio.medio + 4,
             padding: "22px 28px",
             display: "flex",

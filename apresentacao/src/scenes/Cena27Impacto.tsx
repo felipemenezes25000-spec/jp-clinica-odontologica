@@ -7,7 +7,7 @@ import { useFrame } from "@/motion/frame";
 import { progresso } from "@/motion/timing";
 
 /**
- * CENA 24 — Impacto financeiro.
+ * CENA 27 — Impacto financeiro.
  *
  * A cena que o briefing pede e que mais precisa de contenção. A escada cresce,
  * mas o eixo NÃO tem número — porque não existe número honesto para colocar ali.
@@ -17,14 +17,14 @@ import { progresso } from "@/motion/timing";
  * O item 55 é explícito: nada de "aumenta a receita em X%". A frase de rodapé
  * está em tela, não só na documentação.
  */
-export function Cena24Impacto() {
+export function Cena27Impacto() {
   const frame = useFrame();
 
   return (
     <Palco>
-      <SeloDeCena numero={24} />
+      <SeloDeCena />
       <TituloDeCena
-        kicker="Impacto"
+        kicker="O caminho até a receita"
         titulo={IMPACTO.titulo}
         alinhamento="centro"
         em={2}
@@ -32,11 +32,11 @@ export function Cena24Impacto() {
         nivel={2}
       />
 
-      <Em x={320} y={330} zIndex={8}>
-        <Escada etapas={IMPACTO.cadeia} em={26} largura={1280} altura={390} />
+      <Em x={320} y={296} zIndex={8}>
+        <Escada etapas={IMPACTO.cadeia} em={26} largura={1280} altura={352} />
       </Em>
 
-      <Em x={960} y={862} ancora="topo-centro" largura={1180} zIndex={9}>
+      <Em x={960} y={764} ancora="topo-centro" largura={1180} zIndex={9}>
         <div
           style={{
             opacity: progresso(frame, 150, 28),
@@ -55,7 +55,7 @@ export function Cena24Impacto() {
         </div>
       </Em>
 
-      <NotaDeCena em={172} x={360} largura={1200} y={962} style={{ textAlign: "center" }}>
+      <NotaDeCena em={172} x={360} largura={1200} y={866} style={{ textAlign: "center" }}>
         {IMPACTO.aviso}
       </NotaDeCena>
     </Palco>

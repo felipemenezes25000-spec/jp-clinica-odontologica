@@ -8,7 +8,7 @@ import { Barra, Contador } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 21 — Resultados acumulados.
+ * CENA 24 — Resultados acumulados.
  *
  * Quatro números grandes, com a barra embaixo mostrando a queda de um para o
  * outro. A barra existe para impedir a leitura errada: 287 agendamentos ao lado
@@ -23,19 +23,19 @@ const COLUNA_LARGURA = 380;
 const ESPACO = 40;
 const X0 = (1920 - (4 * COLUNA_LARGURA + 3 * ESPACO)) / 2;
 
-export function Cena21Resultados() {
+export function Cena24Resultados() {
   const frame = useFrame();
   const topo = RESULTADOS[0]!.valor;
 
   return (
     <Palco>
-      <SeloDeCena numero={21} />
+      <SeloDeCena />
       <TituloDeCena
-        kicker="Resultados"
+        kicker="O que se acumula"
         titulo={RESULTADOS_TEXTO.titulo}
         alinhamento="centro"
         em={2}
-        y={128}
+        y={118}
       />
 
       {RESULTADOS.map((resultado, i) => {
@@ -45,7 +45,7 @@ export function Cena21Resultados() {
           <Em
             key={resultado.rotulo}
             x={X0 + i * (COLUNA_LARGURA + ESPACO)}
-            y={396}
+            y={368}
             largura={COLUNA_LARGURA}
             zIndex={8}
           >
@@ -99,7 +99,7 @@ export function Cena21Resultados() {
                   fontVariantNumeric: "tabular-nums",
                 }}
               >
-                {i === 0 ? "base trabalhada" : `${((resultado.valor / topo) * 100).toFixed(1)}% da base`}
+                {i === 0 ? "todos que podiam ser chamados" : `${((resultado.valor / topo) * 100).toFixed(1)}% do total`}
               </div>
             </div>
           </Em>
@@ -107,14 +107,14 @@ export function Cena21Resultados() {
       })}
 
       {ILUSTRATIVO && (
-        <Em x={960} y={800} ancora="topo-centro" zIndex={9}>
+        <Em x={960} y={694} ancora="topo-centro" zIndex={9}>
           <div style={{ opacity: progresso(frame, 150, 26), textAlign: "center" }}>
             <Ilustrativo />
           </div>
         </Em>
       )}
 
-      <Em x={960} y={860} ancora="topo-centro" largura={1100} zIndex={9}>
+      <Em x={960} y={748} ancora="topo-centro" largura={1100} zIndex={9}>
         <div
           style={{
             opacity: progresso(frame, 164, 26),
@@ -125,8 +125,8 @@ export function Cena21Resultados() {
             lineHeight: 1.55,
           }}
         >
-          Os números que a clínica vai ver aqui são os dela. Estes servem para mostrar a forma do
-          relatório, não para prever resultado.
+          Os números que a clínica vai ver aqui são os dela. Estes servem só para mostrar como
+o relatório fica — não são uma previsão.
         </div>
       </Em>
     </Palco>

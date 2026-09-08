@@ -24,7 +24,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  *   aparecendo é essa afirmação.
  */
 
-const NUVEM = { x: 170, y: 356, largura: 1580, altura: 380 };
+const NUVEM = { x: 170, y: 336, largura: 1580, altura: 344 };
 const AGRUPA_EM = 118;
 
 export function Cena11BaseAntiga() {
@@ -33,9 +33,9 @@ export function Cena11BaseAntiga() {
 
   return (
     <Palco>
-      <SeloDeCena numero={11} />
+      <SeloDeCena />
       <TituloDeCena
-        kicker="Base histórica"
+        kicker="Pacientes antigos"
         titulo={BASE_ANTIGA.titulo}
         subtitulo={BASE_ANTIGA.subtitulo}
         em={2}
@@ -140,7 +140,7 @@ export function Cena11BaseAntiga() {
       })}
 
       {/* O fecho ---------------------------------------------------------- */}
-      <Em x={170} y={922} largura={1580} zIndex={12}>
+      <Em x={170} y={834} largura={1580} zIndex={12}>
         <div
           style={{
             opacity: progresso(frame, 208, 26),

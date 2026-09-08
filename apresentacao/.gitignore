@@ -1,5 +1,8 @@
 node_modules
-dist
+
+# Saída de render (MP4, PNG, roteiro). Grande e regenerável — o que vai para o
+# site é `../public/crc-tour/`, e esse SIM é versionado.
 out
+
 .remotion
 *.local

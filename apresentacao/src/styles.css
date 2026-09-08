@@ -129,11 +129,18 @@ button {
 }
 
 .jp-visor {
+  position: relative;
   flex: 1;
   min-height: 0;
-  display: grid;
-  place-items: center;
   padding: 18px 18px 0;
+}
+
+/* O retângulo real onde o palco cabe. Precisa estar posicionado: a caixa do
+   Visor é absoluta dentro dele (ver Visor.tsx). */
+.jp-visor-area {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .jp-controles {
@@ -302,23 +309,29 @@ button {
   margin-bottom: 3px;
 }
 
-/* Legenda ------------------------------------------------------------------- */
+/* Legenda -------------------------------------------------------------------
+   Ancorada na CAIXA DO PALCO (não no visor) e fora da escala do filme: assim
+   ela ocupa sempre a mesma faixa da imagem — de 3,4% do rodapé para cima — e
+   continua legível quando o filme encolhe num celular. As 28 cenas respeitam
+   essa faixa: nenhuma põe conteúdo abaixo de y=915 do palco. */
 
 .jp-legenda {
   position: absolute;
   left: 50%;
-  bottom: 46px;
+  bottom: 3.4%;
   transform: translateX(-50%);
-  max-width: 74%;
-  padding: 11px 20px;
+  max-width: 82%;
+  padding: clamp(8px, 1.1%, 16px) clamp(14px, 2.2%, 30px);
   border-radius: 14px;
-  background: rgba(3, 47, 1, 0.86);
+  background: rgba(3, 47, 1, 0.9);
   color: #f4f8f1;
-  font-size: 21px;
-  line-height: 1.4;
+  font-size: clamp(13px, 1.55vw, 25px);
+  line-height: 1.38;
+  font-weight: 500;
   text-align: center;
+  text-wrap: balance;
   z-index: 70;
-  backdrop-filter: blur(6px);
+  pointer-events: none;
 }
 
 /* Tela inicial -------------------------------------------------------------- */
@@ -377,11 +390,12 @@ button {
 
 /* Modo explorar ------------------------------------------------------------- */
 
+/* Opaco de propósito: com fundo translúcido, o quadro congelado do filme
+   aparecia atrás do mapa e competia com ele. */
 .jp-explorar {
   position: absolute;
   inset: 0;
-  background: rgba(247, 248, 242, 0.97);
-  backdrop-filter: blur(10px);
+  background: var(--jp-fundo);
   z-index: 95;
   overflow-y: auto;
 }
@@ -458,22 +472,53 @@ button {
     padding: 10px 10px 0;
   }
   .jp-controles {
-    gap: 8px;
+    gap: 6px;
     padding: 10px 12px 12px;
   }
   .jp-tempo {
-    min-width: 78px;
+    min-width: 74px;
     font-size: 12px;
+  }
+  .jp-botao-icone {
+    width: 36px;
+    height: 36px;
+  }
+  .jp-play {
+    width: 46px;
+    height: 46px;
   }
   .jp-capitulos {
     padding: 0 12px 12px;
     overflow-x: auto;
     flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .jp-capitulos::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Abaixo de 620 px não cabe tudo numa linha. A barra vira duas: transporte em
+   cima, trilha embaixo — que é onde ela precisa ser larga para dar para
+   arrastar com o dedo. */
+@media (max-width: 620px) {
+  .jp-controles {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .jp-trilha {
+    order: 10;
+    flex: 1 0 100%;
+    height: 30px;
+  }
+  .jp-trilha-fundo {
+    height: 8px;
   }
   .jp-legenda {
-    font-size: 15px;
-    bottom: 22px;
-    max-width: 92%;
-    padding: 8px 14px;
+    max-width: 94%;
+    bottom: 2.6%;
+    padding: 7px 12px;
+    font-size: clamp(12px, 3.6vw, 17px);
+    border-radius: 10px;
   }
 }

@@ -21,7 +21,7 @@ import { cinema, easeOutQuint, escalonar, interpolar, progresso } from "@/motion
  */
 
 const LINHA = { x: 170, largura: 800, altura: 96, espaco: 22 };
-const TOPO = 316;
+const TOPO = 336;
 
 /** Ordem em que os quatro entram — a de chegada, não a de prioridade. */
 const ORDEM_INICIAL = [3, 2, 0, 1];
@@ -35,8 +35,15 @@ export function Cena08Prioridade() {
 
   return (
     <Palco>
-      <SeloDeCena numero={8} />
-      <TituloDeCena kicker="Prioridade" titulo={PRIORIDADE.titulo} em={2} largura={860} />
+      <SeloDeCena />
+      <TituloDeCena
+        kicker="Quem vem primeiro"
+        titulo={PRIORIDADE.titulo}
+        subtitulo="O sistema reordena a fila sozinho, e mostra por quê."
+        em={2}
+        largura={880}
+        nivel={2}
+      />
 
       {/* A fila --------------------------------------------------------- */}
       {FILA.map((paciente, i) => {
@@ -194,7 +201,7 @@ export function Cena08Prioridade() {
       </Em>
 
       {/* Os critérios --------------------------------------------------- */}
-      <Em x={LINHA.x} y={TOPO + 4 * (LINHA.altura + LINHA.espaco) + 12} largura={820} zIndex={8}>
+      <Em x={LINHA.x} y={TOPO + 4 * (LINHA.altura + LINHA.espaco) - 6} largura={820} zIndex={8}>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {PRIORIDADE.criterios.map((criterio, i) => {
             const tt = progresso(frame, 176 + i * 8, 20, easeOutQuint);
@@ -220,7 +227,7 @@ export function Cena08Prioridade() {
         </div>
       </Em>
 
-      <NotaDeCena em={198} x={LINHA.x}>
+      <NotaDeCena em={198} x={1050} largura={700} y={786}>
         {PRIORIDADE.nota}
       </NotaDeCena>
     </Palco>
