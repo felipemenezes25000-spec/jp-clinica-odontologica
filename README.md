@@ -68,6 +68,8 @@ site foi alterado para ele existir.
 [docs/crc/ATIVACAO-EM-PRODUCAO.md](docs/crc/ATIVACAO-EM-PRODUCAO.md) — o passo a
 passo de SQL, variáveis, credenciais e ordem de ativação. Os outros três
 documentos são
+[ROTEIRO-DA-EQUIPE](docs/crc/ROTEIRO-DA-EQUIPE.md) (**a rotina de quem opera** —
+cinco minutos, para a recepção ler no primeiro dia),
 [CAPACIDADES-DENTAL-OFFICE](docs/crc/CAPACIDADES-DENTAL-OFFICE.md) (**o que dá e
 o que não dá para fazer com a API deles** — leia antes de planejar qualquer
 funcionalidade nova), [ARCHITECTURE](docs/crc/ARCHITECTURE.md) (como funciona),
