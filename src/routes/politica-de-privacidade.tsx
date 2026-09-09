@@ -139,76 +139,85 @@ function PoliticaDePrivacidade() {
             <div className="mt-10 rounded-[28px] border border-forest/10 bg-white px-6 shadow-[0_24px_70px_rgba(3,47,1,.05)] sm:px-9 lg:px-12">
               <Bloco numero="01" titulo="Quem é responsável pelos dados">
                 <p>
-                  A controladora dos dados tratados por este site é <strong>{CLINICA.razaoSocial}</strong>,
-                  inscrita no CNPJ sob nº <strong>{CLINICA.cnpj}</strong>, com atendimento em {CLINICA.endereco}.
+                  A controladora dos dados tratados por este site é{" "}
+                  <strong>{CLINICA.razaoSocial}</strong>, inscrita no CNPJ sob nº{" "}
+                  <strong>{CLINICA.cnpj}</strong>, com atendimento em {CLINICA.endereco}.
                 </p>
                 <p>
-                  Para assuntos de privacidade e proteção de dados, você pode falar com a clínica pelo
-                  WhatsApp <strong>{CLINICA.whatsapp}</strong> ou pelo telefone <strong>{CLINICA.telefone}</strong> e
-                  informar que o assunto é “Privacidade/LGPD”.
+                  Para assuntos de privacidade e proteção de dados, você pode falar com a clínica
+                  pelo WhatsApp <strong>{CLINICA.whatsapp}</strong> ou pelo telefone{" "}
+                  <strong>{CLINICA.telefone}</strong> e informar que o assunto é “Privacidade/LGPD”.
                 </p>
               </Bloco>
 
               <Bloco numero="02" titulo="Quais dados podemos receber pelo site">
                 <p>
                   No formulário de contato, recebemos os dados que você preenche: nome, telefone,
-                  forma de contato preferida, assunto de interesse, melhor período e, se você optar por
-                  escrever, o conteúdo da mensagem.
+                  forma de contato preferida, assunto de interesse, melhor período e, se você optar
+                  por escrever, o conteúdo da mensagem.
                 </p>
                 <p>
                   Quando o acesso ao site contém parâmetros de campanha, também podemos registrar a
-                  página de origem e identificadores de atribuição presentes na URL — por exemplo UTM,
-                  gclid ou fbclid — para entender qual divulgação trouxe o contato. Esses parâmetros só
-                  são registrados quando já estão presentes no endereço acessado.
+                  página de origem e identificadores de atribuição presentes na URL — por exemplo
+                  UTM, gclid ou fbclid — para entender qual divulgação trouxe o contato. Esses
+                  parâmetros só são registrados quando já estão presentes no endereço acessado.
                 </p>
                 <p>
                   No portal de carreiras, são tratados os dados informados na candidatura e os dados
-                  constantes do currículo anexado, juntamente com o registro do consentimento apresentado
-                  no próprio formulário.
+                  constantes do currículo anexado, juntamente com o registro do consentimento
+                  apresentado no próprio formulário.
                 </p>
               </Bloco>
 
               <Bloco numero="03" titulo="Para que usamos esses dados">
                 <p>Usamos os dados necessários para:</p>
                 <ul className="list-disc space-y-2 pl-5 marker:text-brand-text">
-                  <li>responder ao seu contato e organizar uma avaliação ou atendimento solicitado;</li>
-                  <li>abrir e relacionar corretamente a conversa iniciada pelo site com o WhatsApp;</li>
-                  <li>evitar cadastros duplicados e proteger os formulários contra uso automatizado indevido;</li>
+                  <li>
+                    responder ao seu contato e organizar uma avaliação ou atendimento solicitado;
+                  </li>
+                  <li>
+                    abrir e relacionar corretamente a conversa iniciada pelo site com o WhatsApp;
+                  </li>
+                  <li>
+                    evitar cadastros duplicados e proteger os formulários contra uso automatizado
+                    indevido;
+                  </li>
                   <li>entender a origem de contatos e a efetividade das divulgações da clínica;</li>
                   <li>conduzir processos seletivos quando você envia uma candidatura.</li>
                 </ul>
                 <p>
-                  O tratamento é realizado com as bases legais aplicáveis previstas na LGPD, de acordo
-                  com cada finalidade, como procedimentos preliminares solicitados pelo próprio titular,
-                  cumprimento de obrigações, legítimo interesse dentro dos limites legais e consentimento
-                  quando ele for necessário.
+                  O tratamento é realizado com as bases legais aplicáveis previstas na LGPD, de
+                  acordo com cada finalidade, como procedimentos preliminares solicitados pelo
+                  próprio titular, cumprimento de obrigações, legítimo interesse dentro dos limites
+                  legais e consentimento quando ele for necessário.
                 </p>
               </Bloco>
 
               <Bloco numero="04" titulo="Dados de saúde e outras informações sensíveis">
                 <p>
-                  O campo de mensagem do formulário é livre. Por isso, recomendamos que você não envie
-                  exames, diagnósticos, documentos médicos ou detalhes de saúde que não sejam necessários
-                  para pedir o primeiro contato.
+                  O campo de mensagem do formulário é livre. Por isso, recomendamos que você não
+                  envie exames, diagnósticos, documentos médicos ou detalhes de saúde que não sejam
+                  necessários para pedir o primeiro contato.
                 </p>
                 <p>
-                  Se você decidir informar algum dado sensível para explicar sua solicitação, a clínica
-                  poderá tratá-lo somente na medida necessária para compreender e responder ao contato,
-                  observando as regras específicas da LGPD para dados pessoais sensíveis.
+                  Se você decidir informar algum dado sensível para explicar sua solicitação, a
+                  clínica poderá tratá-lo somente na medida necessária para compreender e responder
+                  ao contato, observando as regras específicas da LGPD para dados pessoais
+                  sensíveis.
                 </p>
               </Bloco>
 
               <Bloco numero="05" titulo="Com quem os dados podem ser compartilhados">
                 <p>
-                  A JP pode utilizar fornecedores de tecnologia estritamente necessários para operar seus
-                  canais digitais, como serviços de hospedagem, banco de dados, armazenamento, mensageria
-                  e comunicação. Esses fornecedores tratam dados conforme a função técnica contratada e
-                  os controles aplicáveis a cada serviço.
+                  A JP pode utilizar fornecedores de tecnologia estritamente necessários para operar
+                  seus canais digitais, como serviços de hospedagem, banco de dados, armazenamento,
+                  mensageria e comunicação. Esses fornecedores tratam dados conforme a função
+                  técnica contratada e os controles aplicáveis a cada serviço.
                 </p>
                 <p>
-                  Ao escolher continuar a conversa pelo WhatsApp ou acessar conteúdos incorporados de
-                  terceiros, como mapas, passam a valer também os termos e políticas do respectivo
-                  fornecedor. A JP não vende dados pessoais a terceiros.
+                  Ao escolher continuar a conversa pelo WhatsApp ou acessar conteúdos incorporados
+                  de terceiros, como mapas, passam a valer também os termos e políticas do
+                  respectivo fornecedor. A JP não vende dados pessoais a terceiros.
                 </p>
                 <p>
                   Dados também poderão ser apresentados quando houver obrigação legal, regulatória,
@@ -219,14 +228,14 @@ function PoliticaDePrivacidade() {
               <Bloco numero="06" titulo="Por quanto tempo mantemos os dados">
                 <p>
                   Dados de contato são mantidos pelo período necessário para atender à solicitação,
-                  preservar o histórico útil do relacionamento e cumprir obrigações legais ou regulatórias
-                  aplicáveis. Quando não houver mais uma finalidade legítima para a guarda, os dados são
-                  eliminados ou anonimizados, conforme o caso.
+                  preservar o histórico útil do relacionamento e cumprir obrigações legais ou
+                  regulatórias aplicáveis. Quando não houver mais uma finalidade legítima para a
+                  guarda, os dados são eliminados ou anonimizados, conforme o caso.
                 </p>
                 <p>
-                  Para candidaturas enviadas pelo portal de carreiras, o prazo de retenção informado no
-                  processo seletivo é de <strong>24 meses</strong>, salvo necessidade legal específica ou
-                  nova autorização do titular.
+                  Para candidaturas enviadas pelo portal de carreiras, o prazo de retenção informado
+                  no processo seletivo é de <strong>24 meses</strong>, salvo necessidade legal
+                  específica ou nova autorização do titular.
                 </p>
               </Bloco>
 
@@ -234,34 +243,37 @@ function PoliticaDePrivacidade() {
                 <p>
                   Você pode solicitar, conforme a legislação aplicável, confirmação do tratamento,
                   acesso aos dados, correção de dados incompletos ou incorretos, informação sobre
-                  compartilhamentos, anonimização, bloqueio ou eliminação quando cabíveis, portabilidade
-                  nos termos da regulamentação e revogação do consentimento quando essa for a base usada.
+                  compartilhamentos, anonimização, bloqueio ou eliminação quando cabíveis,
+                  portabilidade nos termos da regulamentação e revogação do consentimento quando
+                  essa for a base usada.
                 </p>
                 <p>
-                  Para exercer um direito, fale com a clínica pelos canais indicados nesta política e
-                  informe “Privacidade/LGPD”. Podemos pedir informações adicionais apenas para confirmar
-                  sua identidade e evitar que dados sejam entregues ou alterados a pedido de outra pessoa.
+                  Para exercer um direito, fale com a clínica pelos canais indicados nesta política
+                  e informe “Privacidade/LGPD”. Podemos pedir informações adicionais apenas para
+                  confirmar sua identidade e evitar que dados sejam entregues ou alterados a pedido
+                  de outra pessoa.
                 </p>
               </Bloco>
 
               <Bloco numero="08" titulo="Segurança e acesso interno">
                 <p>
                   A clínica adota medidas técnicas e organizacionais para reduzir acesso indevido,
-                  alteração, perda ou divulgação não autorizada. As áreas internas de RH e relacionamento
-                  com pacientes não são páginas públicas de consulta e utilizam controles de autenticação
-                  e autorização.
+                  alteração, perda ou divulgação não autorizada. As áreas internas de RH e
+                  relacionamento com pacientes não são páginas públicas de consulta e utilizam
+                  controles de autenticação e autorização.
                 </p>
                 <p>
-                  Nenhum ambiente digital é absolutamente imune a incidentes. Se identificarmos um evento
-                  de segurança que exija comunicação nos termos da legislação, serão adotadas as medidas
-                  aplicáveis ao caso.
+                  Nenhum ambiente digital é absolutamente imune a incidentes. Se identificarmos um
+                  evento de segurança que exija comunicação nos termos da legislação, serão adotadas
+                  as medidas aplicáveis ao caso.
                 </p>
               </Bloco>
 
               <Bloco numero="09" titulo="Atualizações desta política">
                 <p>
-                  Esta política pode ser atualizada quando o site, os processos da clínica ou a legislação
-                  mudarem. A data exibida no topo identifica a versão atualmente publicada.
+                  Esta política pode ser atualizada quando o site, os processos da clínica ou a
+                  legislação mudarem. A data exibida no topo identifica a versão atualmente
+                  publicada.
                 </p>
               </Bloco>
             </div>
@@ -270,7 +282,9 @@ function PoliticaDePrivacidade() {
               <div>
                 <div className="flex items-center gap-2 text-lime">
                   <BriefcaseBusiness className="h-4 w-4" aria-hidden="true" />
-                  <span className="text-xs font-bold uppercase tracking-[.12em]">Dúvidas sobre seus dados?</span>
+                  <span className="text-xs font-bold uppercase tracking-[.12em]">
+                    Dúvidas sobre seus dados?
+                  </span>
                 </div>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">
                   Fale diretamente com a JP e informe que o assunto é Privacidade/LGPD.

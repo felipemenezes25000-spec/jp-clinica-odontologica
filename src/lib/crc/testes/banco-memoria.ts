@@ -143,6 +143,9 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // O índice do 05: lançar o mesmo mês e campanha de novo ATUALIZA, e não
   // soma uma segunda linha — senão corrigir um lançamento dobraria o gasto.
   crc_ad_spend: [{ colunas: ["organization_id", "mes", "campanha"] }],
+  // Uma mensagem por pessoa por campanha, garantida por constraint — e não
+  // pelo cuidado de quem chama.
+  crc_campaign_targets: [{ colunas: ["campaign_id", "patient_id"] }],
 };
 
 /**

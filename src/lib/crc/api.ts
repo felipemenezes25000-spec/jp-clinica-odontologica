@@ -1753,6 +1753,128 @@ export const carregarPanorama = createServerFn({ method: "GET" }).handler(
 );
 
 /* -------------------------------------------------------------------------- */
+/* Campanhas                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type CampanhaDto = {
+  id: string;
+  nome: string;
+  mensagem: string;
+  status: string;
+  porDia: number;
+  publico: number;
+  enviadas: number;
+  puladas: number;
+  pendentes: number;
+  diasSemVoltar: number | null;
+  semConsultaFutura: boolean;
+  especialidade: string | null;
+  situacao: string | null;
+};
+
+/**
+ * Campanha exige `gerenciar_automacao`, e não `enviar_mensagem`.
+ *
+ * Responder um paciente é atendimento; falar com novecentos de uma vez é
+ * decisão de operação. São coisas de tamanho diferente e não deviam caber na
+ * mesma permissão — a recepção responde conversa e não dispara campanha.
+ */
+export const carregarCampanhas = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ campanhas: CampanhaDto[] }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { listarCampanhas } = await import("./aplicacao/campanhas");
+      const campanhas = await listarCampanhas(ctx.organizationId);
+      return {
+        ok: true as const,
+        campanhas: campanhas.map((c) => ({
+          id: c.id,
+          nome: c.nome,
+          mensagem: c.mensagem,
+          status: c.status,
+          porDia: c.porDia,
+          publico: c.publico,
+          enviadas: c.enviadas,
+          puladas: c.puladas,
+          pendentes: c.pendentes,
+          diasSemVoltar: c.filtros.diasSemVoltar,
+          semConsultaFutura: c.filtros.semConsultaFutura,
+          especialidade: c.filtros.especialidade,
+          situacao: c.filtros.situacao,
+        })),
+      };
+    }),
+);
+
+/** O número que a tela mostra ANTES de qualquer envio, e que muda com o filtro. */
+export const contarPublicoDaCampanha = createServerFn({ method: "POST" })
+  .validator((e: { filtros?: unknown }) => ({ filtros: e.filtros }))
+  .handler(async ({ data }): Promise<Resposta<{ quantidade: number }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { contarPublico, lerFiltroPublico } = await import("./aplicacao/campanhas");
+      const quantidade = await contarPublico(ctx.organizationId, lerFiltroPublico(data.filtros));
+      return { ok: true as const, quantidade };
+    }),
+  );
+
+export const criarCampanhaNova = createServerFn({ method: "POST" })
+  .validator((e: { nome: string; mensagem: string; porDia: number; filtros?: unknown }) => ({
+    nome: String(e.nome ?? ""),
+    mensagem: String(e.mensagem ?? ""),
+    porDia: Number.isFinite(e.porDia) ? e.porDia : 120,
+    filtros: e.filtros,
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { criarCampanha, lerFiltroPublico } = await import("./aplicacao/campanhas");
+      const r = await criarCampanha({
+        organizationId: ctx.organizationId,
+        clinicId: ctx.clinicIds[0] ?? null,
+        nome: data.nome,
+        mensagem: data.mensagem,
+        filtros: lerFiltroPublico(data.filtros),
+        porDia: data.porDia,
+        autorId: ctx.usuario.id,
+      });
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+/** O "Revisar e agendar": congela o público e põe a campanha na fila. */
+export const agendarCampanhaExistente = createServerFn({ method: "POST" })
+  .validator((e: { campaignId: string }) => ({ campaignId: String(e.campaignId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { agendarCampanha } = await import("./aplicacao/campanhas");
+      const r = await agendarCampanha({
+        organizationId: ctx.organizationId,
+        campaignId: data.campaignId,
+        autorId: ctx.usuario.id,
+      });
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const pausarOuRetomarCampanha = createServerFn({ method: "POST" })
+  .validator((e: { campaignId: string; pausar: boolean }) => ({
+    campaignId: String(e.campaignId ?? ""),
+    pausar: e.pausar === true,
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { mudarStatusCampanha } = await import("./aplicacao/campanhas");
+      await mudarStatusCampanha({
+        organizationId: ctx.organizationId,
+        campaignId: data.campaignId,
+        status: data.pausar ? "PAUSADA" : "RODANDO",
+        autorId: ctx.usuario.id,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
 /* Investimento em anúncios e custo por paciente                              */
 /* -------------------------------------------------------------------------- */
 

@@ -30,6 +30,7 @@ import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
 
+import { Campanhas } from "@/components/crc/Campanhas";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
 import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
@@ -62,6 +63,7 @@ type Aba =
   | "gestao"
   | "importar"
   | "automacoes"
+  | "campanhas"
   | "integracoes"
   | "equipe";
 
@@ -76,6 +78,7 @@ const NAVEGACAO: readonly ItemNav[] = [
   { aba: "gestao", rotulo: "Gestão", permissao: "ver_analytics_gerencial" },
   { aba: "importar", rotulo: "Importar", permissao: "importar_dados" },
   { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao" },
+  { aba: "campanhas", rotulo: "Campanhas", permissao: "gerenciar_automacao" },
   { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes" },
   { aba: "equipe", rotulo: "Equipe", permissao: "gerenciar_usuarios" },
 ];
@@ -273,6 +276,8 @@ function PortalCrc() {
           {abaAtual === "integracoes" && (
             <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
           )}
+
+          {abaAtual === "campanhas" && <Campanhas />}
 
           {abaAtual === "equipe" && <Equipe />}
         </main>

@@ -1542,7 +1542,14 @@ function Painel({ dados }: { dados: DadosRh }) {
    * clínica quando o campo está em branco — nunca um nome inventado no código,
    * que chegaria ao WhatsApp de uma candidata como se fosse gente de verdade.
    */
-  const remetente = config.assinaturaRh.trim() === "" ? CLINICA.nome : config.assinaturaRh.trim();
+  /* VAZIO QUANDO NÃO HÁ ASSINATURA, e não o nome da clínica.
+     Trocar por `CLINICA.nome` produzia "Aqui é JP Clínica Integrada
+     Odontológica, da JP Clínica Integrada Odontológica." no WhatsApp da
+     candidata — porque `saudacao` já monta "Aqui é {quem}, da {clínica}", e
+     JÁ trata o vazio com "Somos da {clínica}". O padrão do chamador estava
+     desfazendo o tratamento que existia. A assinatura de e-mail e a linha de
+     histórico também omitem o nome sozinhas quando ele não vem. */
+  const remetente = config.assinaturaRh.trim();
 
   return (
     <div className="rh-admin rh-aurora flex min-h-dvh flex-col">

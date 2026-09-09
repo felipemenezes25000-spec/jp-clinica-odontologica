@@ -7,7 +7,8 @@
  *   1. sincroniza o Dental Office  → fatos novos viram eventos
  *   2. processa eventos pendentes  → oportunidades e jornadas nascem
  *   3. avança as jornadas vencidas → mensagens saem, tarefas são criadas
- *   4. na madrugada, varre a base  → recall, confirmação, cobrança, orçamento
+ *   4. envia a cota do dia das campanhas
+ *   5. na madrugada, varre a base  → recall, confirmação, cobrança, orçamento
  *
  * POR QUE UMA ROTA, E NÃO UM WORKER RESIDENTE (item 268)
  * Porque o projeto roda em serverless. Não existe processo que fique de pé
@@ -30,6 +31,7 @@ import { createFileRoute } from "@tanstack/react-router";
 type Relatorio = {
   sincronizacao: unknown;
   eventos: unknown;
+  campanhas: unknown;
   jornadas: unknown;
   varreduras: unknown[];
   duracaoMs: number;
@@ -167,6 +169,19 @@ export const Route = createFileRoute("/api/crc/motor")({
             30,
           );
 
+          // As campanhas saem DEPOIS das jornadas, e a ordem é deliberada: uma
+          // jornada é sobre um fato que aconteceu com aquela pessoa hoje; uma
+          // campanha é sobre um recorte da base. Quando o teto por hora aperta,
+          // quem tem motivo individual passa primeiro.
+          const { rodarCampanhas } = await import("@/lib/crc/aplicacao/campanhas");
+          const campanhas = await rodarCampanhas({
+            organizationId,
+            porta: provedor.configurado ? provedor.porta : null,
+            configuracao,
+            enviosPausados:
+              switches["kill_envios"] === true || switches["kill_automacoes"] === true,
+          });
+
           // As varreduras diárias só rodam na janela da madrugada. Rodá-las a
           // cada volta faria o mesmo trabalho vinte vezes por dia — e a
           // deduplicação seguraria o efeito, mas não o custo.
@@ -201,6 +216,7 @@ export const Route = createFileRoute("/api/crc/motor")({
           const relatorio: Relatorio = {
             sincronizacao,
             eventos,
+            campanhas,
             jornadas,
             varreduras,
             duracaoMs: Date.now() - comecou,
