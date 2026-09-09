@@ -1,0 +1,822 @@
+/*
+ * JP CRC — camada estrutural de UX.
+ *
+ * Diferente do `crc-premium.css`, que redefine a linguagem visual do produto,
+ * esta folha estiliza composições novas de tela. Nenhuma regra de negócio mora
+ * aqui e nenhum seletor escapa de `.crc-app`.
+ */
+
+/* ========================================================================== */
+/* HOME — command center                                                      */
+/* ========================================================================== */
+
+.crc-app .crc-home-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.crc-app .crc-home-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.31fr);
+  gap: 28px;
+  align-items: stretch;
+  padding: clamp(24px, 2.5vw, 36px);
+  overflow: hidden;
+  border: 1px solid rgba(8, 115, 59, 0.12);
+  border-radius: 30px;
+  background:
+    linear-gradient(118deg, rgba(255, 255, 255, 0.985) 0%, rgba(248, 252, 247, 0.96) 64%, rgba(236, 247, 236, 0.92) 100%);
+  box-shadow: 0 26px 72px -54px rgba(7, 65, 37, 0.58);
+}
+
+.crc-app .crc-home-hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 420px;
+  height: 420px;
+  right: -150px;
+  top: -250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(92, 177, 76, 0.2), rgba(8, 115, 59, 0.05) 46%, transparent 70%);
+}
+
+.crc-app .crc-home-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 36px;
+  right: 36px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(8, 115, 59, 0.16), transparent);
+}
+
+.crc-app .crc-home-hero-loading {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.crc-app .crc-home-hero-copy {
+  min-width: 0;
+  align-self: center;
+}
+
+.crc-app .crc-home-kicker,
+.crc-app .crc-trabalho-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 10px;
+  color: var(--crc-primaria);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.crc-app .crc-home-titulo {
+  margin: 0;
+  max-width: 760px;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-optical-sizing: auto;
+  font-size: clamp(2.05rem, 1.65rem + 1.65vw, 3.2rem);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.crc-app .crc-home-resumo {
+  max-width: 67ch;
+  margin: 14px 0 0;
+  color: var(--crc-texto-2);
+  font-size: clamp(0.98rem, 0.94rem + 0.12vw, 1.08rem);
+  line-height: 1.65;
+}
+
+.crc-app .crc-home-resumo strong {
+  color: var(--crc-texto);
+  font-weight: 700;
+}
+
+.crc-app .crc-home-status-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.crc-app .crc-home-foco {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(8, 115, 59, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.crc-app .crc-home-foco-ativo {
+  border-color: rgba(160, 92, 0, 0.2);
+  background: linear-gradient(155deg, #fffdf8, #fff7e9);
+}
+
+.crc-app .crc-home-foco-topo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-home-foco-icone {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-home-foco-ativo .crc-home-foco-icone {
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+
+.crc-app .crc-home-foco-icone svg {
+  width: 17px;
+  height: 17px;
+}
+
+.crc-app .crc-home-foco-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crc-app .crc-home-foco-numero {
+  margin-top: 18px;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: clamp(3.2rem, 2.4rem + 2.1vw, 5rem);
+  font-weight: 650;
+  line-height: 0.85;
+  letter-spacing: -0.07em;
+  font-variant-numeric: tabular-nums;
+}
+
+.crc-app .crc-home-foco-texto {
+  margin-top: 13px;
+  color: var(--crc-texto-2);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.crc-app .crc-home-foco-alerta {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-home-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crc-app .crc-home-metrica {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 13px;
+  align-items: center;
+  padding: 17px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 30px -28px rgba(8, 51, 31, 0.5);
+  transition: transform var(--crc-transicao), border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+}
+
+.crc-app .crc-home-metrica:hover {
+  transform: translateY(-2px);
+  border-color: var(--crc-borda-forte);
+  box-shadow: var(--crc-sombra-erguida);
+}
+
+.crc-app .crc-home-metrica-icone,
+.crc-app .crc-trabalho-resumo-icone {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-home-metrica[data-tom="alerta"] .crc-home-metrica-icone,
+.crc-app .crc-trabalho-resumo-card[data-tom="alerta"] .crc-trabalho-resumo-icone {
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+
+.crc-app .crc-home-metrica[data-tom="positivo"] .crc-home-metrica-icone,
+.crc-app .crc-trabalho-resumo-card[data-tom="positivo"] .crc-trabalho-resumo-icone {
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-home-metrica[data-tom="info"] .crc-home-metrica-icone,
+.crc-app .crc-trabalho-resumo-card[data-tom="info"] .crc-trabalho-resumo-icone {
+  background: var(--crc-info-suave);
+  color: var(--crc-info);
+}
+
+.crc-app .crc-trabalho-resumo-card[data-tom="perigo"] .crc-trabalho-resumo-icone {
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+}
+
+.crc-app .crc-home-metrica-icone svg,
+.crc-app .crc-trabalho-resumo-icone svg {
+  width: 19px;
+  height: 19px;
+}
+
+.crc-app .crc-home-metrica-copy,
+.crc-app .crc-trabalho-resumo-card > div {
+  min-width: 0;
+}
+
+.crc-app .crc-home-metrica-label,
+.crc-app .crc-trabalho-resumo-label {
+  display: block;
+  color: var(--crc-texto-3);
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+.crc-app .crc-home-metrica-valor,
+.crc-app .crc-trabalho-resumo-card strong {
+  display: block;
+  margin-top: 2px;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: 1.7rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+.crc-app .crc-home-metrica-nota,
+.crc-app .crc-trabalho-resumo-nota {
+  display: block;
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--crc-texto-3);
+  font-size: 0.69rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-home-grid-principal {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.72fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.crc-app .crc-home-prioridades,
+.crc-app .crc-home-lateral {
+  min-width: 0;
+}
+
+.crc-app .crc-home-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: sticky;
+  top: 86px;
+}
+
+.crc-app .crc-home-secao-topo,
+.crc-app .crc-trabalho-bloco-topo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+}
+
+.crc-app .crc-home-contagem,
+.crc-app .crc-trabalho-badge-alerta {
+  flex-shrink: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--crc-texto-2);
+  font-size: 0.73rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-home-card-titulo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 18px;
+}
+
+.crc-app .crc-home-card-icone {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-home-card-icone svg {
+  width: 18px;
+  height: 18px;
+}
+
+.crc-app .crc-home-resultado-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.crc-app .crc-home-resultado-grid > div {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 14px;
+  background: var(--crc-superficie-2);
+}
+
+.crc-app .crc-home-resultado-label {
+  display: block;
+  color: var(--crc-texto-3);
+  font-size: 0.69rem;
+  font-weight: 700;
+}
+
+.crc-app .crc-home-resultado-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: 1.45rem;
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.crc-app .crc-home-resultado-nota {
+  margin-top: 10px;
+  line-height: 1.45;
+}
+
+.crc-app .crc-home-fila .crc-fila-item {
+  gap: 15px;
+  padding-block: 17px;
+}
+
+.crc-app .crc-home-fila-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 16px;
+  margin-top: 9px;
+  color: var(--crc-texto-3);
+  font-size: 0.74rem;
+}
+
+.crc-app .crc-home-fila-meta strong {
+  color: var(--crc-texto-2);
+  font-weight: 700;
+}
+
+.crc-app .crc-home-porque {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--crc-borda);
+}
+
+.crc-app .crc-home-fila-acoes {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+/* ========================================================================== */
+/* MEU TRABALHO — fila pessoal                                                */
+/* ========================================================================== */
+
+.crc-app .crc-trabalho-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.crc-app .crc-trabalho-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 24px;
+  border: 1px solid rgba(8, 115, 59, 0.11);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 93% 20%, rgba(80, 166, 76, 0.09), transparent 190px),
+    rgba(255, 255, 255, 0.85);
+  box-shadow: 0 16px 44px -40px rgba(8, 51, 31, 0.48);
+}
+
+.crc-app .crc-trabalho-command > div {
+  min-width: 0;
+}
+
+.crc-app .crc-trabalho-command-titulo {
+  margin: 0;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: clamp(1.45rem, 1.25rem + 0.8vw, 2rem);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.crc-app .crc-trabalho-command p {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  color: var(--crc-texto-2);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.crc-app .crc-trabalho-command .crc-botao kbd {
+  display: inline-grid;
+  min-width: 22px;
+  height: 22px;
+  place-items: center;
+  margin-left: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  font: inherit;
+  font-size: 0.66rem;
+}
+
+.crc-app .crc-trabalho-resumo {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crc-app .crc-trabalho-resumo-card {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.crc-app .crc-trabalho-bloco {
+  min-width: 0;
+}
+
+.crc-app .crc-trabalho-bloco-topo {
+  align-items: center;
+}
+
+.crc-app .crc-trabalho-bloco-topo .crc-corpo {
+  max-width: 68ch;
+  margin-top: 6px;
+}
+
+.crc-app .crc-trabalho-filtros {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.crc-app .crc-trabalho-filtro {
+  border: 0;
+  border-radius: 9px;
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--crc-texto-2);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--crc-transicao), color var(--crc-transicao), box-shadow var(--crc-transicao);
+}
+
+.crc-app .crc-trabalho-filtro:hover {
+  color: var(--crc-texto);
+  background: var(--crc-superficie-3);
+}
+
+.crc-app .crc-trabalho-filtro[aria-pressed="true"] {
+  background: var(--crc-superficie);
+  color: var(--crc-primaria);
+  box-shadow: var(--crc-sombra);
+}
+
+.crc-app .crc-trabalho-superficie {
+  overflow: hidden;
+  border: 1px solid var(--crc-borda);
+  border-radius: 21px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 48px -44px rgba(8, 51, 31, 0.5);
+}
+
+.crc-app .crc-trabalho-superficie > .crc-vazio {
+  min-height: 180px;
+  display: grid;
+  align-content: center;
+}
+
+.crc-app .crc-trabalho-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crc-app .crc-trabalho-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 18px;
+  border-top: 1px solid var(--crc-borda);
+  transition: background var(--crc-transicao);
+}
+
+.crc-app .crc-trabalho-item:first-child {
+  border-top: 0;
+}
+
+.crc-app .crc-trabalho-item:hover {
+  background: var(--crc-superficie-2);
+}
+
+.crc-app .crc-trabalho-item[data-vencida="sim"] {
+  background: linear-gradient(90deg, rgba(187, 49, 38, 0.035), transparent 42%);
+}
+
+.crc-app .crc-trabalho-item[data-vencida="sim"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 13px;
+  bottom: 13px;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: var(--crc-perigo);
+}
+
+.crc-app .crc-trabalho-item-status {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-trabalho-item[data-vencida="sim"] .crc-trabalho-item-status {
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+}
+
+.crc-app .crc-trabalho-item-status svg {
+  width: 17px;
+  height: 17px;
+}
+
+.crc-app .crc-trabalho-item-corpo {
+  min-width: 0;
+}
+
+.crc-app .crc-trabalho-item-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.crc-app .crc-trabalho-item-topo > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--crc-texto);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-trabalho-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 5px;
+  color: var(--crc-texto-3);
+  font-size: 0.73rem;
+}
+
+.crc-app .crc-trabalho-item-corpo > p {
+  margin: 6px 0 0;
+  overflow: hidden;
+  color: var(--crc-texto-2);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-trabalho-item-acoes {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.crc-app .crc-trabalho-orfao .crc-trabalho-superficie {
+  border-color: rgba(160, 92, 0, 0.18);
+}
+
+.crc-app .crc-trabalho-badge-alerta {
+  border-color: rgba(160, 92, 0, 0.18);
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+
+/* ========================================================================== */
+/* Responsividade                                                             */
+/* ========================================================================== */
+
+@media (max-width: 1180px) {
+  .crc-app .crc-home-metricas,
+  .crc-app .crc-trabalho-resumo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app .crc-home-grid-principal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app .crc-home-lateral {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 840px) {
+  .crc-app .crc-home-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app .crc-home-foco {
+    min-height: 150px;
+  }
+
+  .crc-app .crc-home-foco-numero {
+    font-size: 3.4rem;
+  }
+
+  .crc-app .crc-trabalho-command,
+  .crc-app .crc-trabalho-bloco-topo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app .crc-trabalho-command .crc-botao {
+    align-self: flex-start;
+  }
+
+  .crc-app .crc-trabalho-item {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .crc-app .crc-trabalho-item-acoes {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 620px) {
+  .crc-app .crc-home-v2,
+  .crc-app .crc-trabalho-v2 {
+    gap: 16px;
+  }
+
+  .crc-app .crc-home-hero {
+    padding: 20px;
+    border-radius: 23px;
+  }
+
+  .crc-app .crc-home-titulo {
+    font-size: 2rem;
+  }
+
+  .crc-app .crc-home-metricas,
+  .crc-app .crc-trabalho-resumo,
+  .crc-app .crc-home-lateral,
+  .crc-app .crc-home-resultado-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app .crc-home-metrica,
+  .crc-app .crc-trabalho-resumo-card {
+    padding: 14px;
+  }
+
+  .crc-app .crc-home-fila .crc-fila-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .crc-app .crc-home-fila-acoes {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .crc-app .crc-home-fila-acoes .crc-botao {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .crc-app .crc-trabalho-command {
+    padding: 18px;
+  }
+
+  .crc-app .crc-trabalho-filtros {
+    width: 100%;
+  }
+
+  .crc-app .crc-trabalho-filtro {
+    flex: 1 1 auto;
+  }
+
+  .crc-app .crc-trabalho-item {
+    padding: 14px;
+  }
+
+  .crc-app .crc-trabalho-item-topo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .crc-app .crc-trabalho-item-topo > strong,
+  .crc-app .crc-trabalho-item-corpo > p {
+    white-space: normal;
+  }
+
+  .crc-app .crc-trabalho-item-acoes .crc-botao {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
