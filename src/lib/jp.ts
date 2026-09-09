@@ -137,15 +137,26 @@ export const GESTOR = {
   /**
    * Retrato de uma pessoa que existe. Não trocar por imagem de gerador.
    *
-   * Recortado da peça de divulgação dele (corpo inteiro, sentado, com o retrato
-   * ampliado ao fundo): região de 330x347 a partir de (206,196) do original de
-   * 941x1136, na mesma escala de cabeça do retrato da Dra. Juliana.
+   * Foto enviada pela clínica em 09/09/2026, feita na própria clínica: 1200x1600,
+   * já em 3:4. Substituiu o recorte que vinha da peça de divulgação dele — aquele
+   * era corpo inteiro, sentado, e obrigava a desviar do texto da peça.
    *
-   * Gravado sem reamostrar — 330x347 é o recorte cru. Cobre o card (106x112 CSS)
-   * até tela 3x com folga, então não há motivo para redimensionar.
+   * Recorte de (250,261) a (881,928) do original, reamostrado para 318x336.
+   * As duas medidas do enquadramento saíram do retrato da Dra. Juliana, para os
+   * dois cards do bloco ficarem na mesma escala: cabeça ocupando 70% da altura
+   * do quadro e 8% de ar acima dela.
    *
-   * Não abra mais o enquadramento para a direita: por volta de x+346 o "C" de
-   * CONSTRÓI, do texto da peça, entra no quadro.
+   * 318x336 é exatamente 3x o quadro do card (106x112 CSS) e tem a proporção
+   * dele, 0,9464. Isso importa: a img é object-cover, então um arquivo em 3:4
+   * "de verdade" (0,75) teria a base comida pelo quadro e o enquadramento
+   * medido aqui não seria o que aparece na tela.
+   *
+   * O fundo foi achatado na cor da parede atrás dele, (159,164,158), medida na
+   * própria foto. Sem isso entravam no quadro um quadro de certificado no alto
+   * à direita e um pictograma verde embaixo à esquerda — sujeira que o card da
+   * Dra. Juliana, de fundo liso, não tem. Manter o tom da parede dele, e não um
+   * branco: a luz do rosto foi tirada nesse ambiente e num fundo claro demais o
+   * recorte passa a parecer colado.
    */
   foto: fotoJeferson as string | undefined,
   texto: [
