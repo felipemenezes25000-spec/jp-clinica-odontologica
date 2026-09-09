@@ -26,6 +26,7 @@ import {
   pausarOuRetomarCampanha,
   type CampanhaDto,
 } from "@/lib/crc/api";
+import { TARIFA_BRL, categoriaDeCampanha, estimarCusto, reais } from "@/lib/crc/dominio/custo";
 import { ROTULO_SITUACAO } from "@/lib/crc/dominio/rotulos";
 import { SITUACOES_PACIENTE } from "@/lib/crc/dominio/tipos";
 
@@ -190,6 +191,12 @@ export function Campanhas() {
     [acao, recarregar],
   );
 
+  // A estimativa acompanha a contagem: mesmo público, mesma hora de leitura.
+  // `new Date()` aqui é seguro porque o modal só existe depois de um clique —
+  // não há render de servidor para divergir na hidratação.
+  const custo = publico === null ? null : estimarCusto(publico, categoriaDeCampanha(), new Date());
+  const dias = publico === null || porDia <= 0 ? 0 : Math.ceil(publico / porDia);
+
   if (erro !== null && campanhas === null) return <Aviso tom="perigo">{erro}</Aviso>;
   if (campanhas === null) return <ListaEsqueleto linhas={3} />;
 
@@ -245,7 +252,14 @@ export function Campanhas() {
                   ) : (
                     <>
                       <span className="crc-meta">{c.publico} no público</span>
-                      <span className="crc-meta">{c.enviadas} enviadas</span>
+                      {/* O gasto acumulado fica colado no número de enviadas
+                          porque é a mesma informação lida de dois jeitos — e
+                          porque é o dado que decide pausar uma campanha que
+                          está entregando pouco. */}
+                      <span className="crc-meta">
+                        {c.enviadas} enviadas ·{" "}
+                        {reais(estimarCusto(c.enviadas, categoriaDeCampanha(), new Date()).total)}
+                      </span>
                       <span className="crc-meta">{c.pendentes} na fila</span>
                       {/* As puladas aparecem sempre que existem: "312 de 964"
                           sem explicar os 652 restantes faz a equipe desconfiar
@@ -481,18 +495,58 @@ export function Campanhas() {
           <span className="crc-corpo">Só quem não tem consulta marcada</span>
         </label>
 
+        {/*
+          OS DOIS NÚMEROS TÊM O MESMO PESO, e isso é a decisão da tela.
+          Quantas pessoas e quanto custa são os dois lados de "vale a pena
+          mandar?". Enquanto só o primeiro aparecia, "964 entram nesse filtro"
+          era uma informação simpática que escondia R$ 301 — e ninguém aperta
+          enviar querendo descobrir isso na fatura.
+        */}
         <div
           className="crc-kpi"
           style={{ marginTop: "var(--crc-e4)", marginBottom: "var(--crc-e5)" }}
         >
-          <span className="crc-kpi-rotulo">Entram nesse filtro</span>
-          <span className="crc-kpi-valor">
-            {contando ? "…" : publico === null ? "—" : publico.toLocaleString("pt-BR")}
-          </span>
-          <span className="crc-kpi-nota">
-            {publico === 0
-              ? "Ninguém entra nesse recorte hoje. Ajuste o filtro."
-              : "O número muda quando você mexe no filtro."}
+          {/*
+            UM BLOCO SÓ, E NÃO DOIS CARTÕES. O modal tem 478px úteis; dois
+            cartões de KPI lado a lado sobrariam 2px e apertariam os dois
+            números. Mais que isso: são as duas metades da MESMA pergunta, e
+            separá-los em caixas sugeriria que dá para olhar uma e ignorar a
+            outra.
+          */}
+          <div className="crc-linha" style={{ gap: "var(--crc-e6)", alignItems: "flex-start" }}>
+            <div className="crc-pilha" style={{ gap: "var(--crc-e1)", minWidth: 0 }}>
+              <span className="crc-kpi-rotulo">Entram nesse filtro</span>
+              <span className="crc-kpi-valor">
+                {contando ? "…" : publico === null ? "—" : publico.toLocaleString("pt-BR")}
+              </span>
+            </div>
+
+            <div className="crc-pilha" style={{ gap: "var(--crc-e1)", minWidth: 0 }}>
+              <span className="crc-kpi-rotulo">Custo estimado</span>
+              <span className="crc-kpi-valor">
+                {contando || custo === null ? "…" : reais(custo.total)}
+              </span>
+            </div>
+          </div>
+
+          <span className="crc-kpi-nota" style={{ marginTop: "var(--crc-e2)" }}>
+            {publico === 0 ? (
+              "Ninguém entra nesse recorte hoje. Ajuste o filtro."
+            ) : (
+              <>
+                Campanha é <strong>marketing</strong> para a Meta — {reais(TARIFA_BRL.marketing)}{" "}
+                por mensagem entregue, contra {reais(TARIFA_BRL.utilidade)} de uma confirmação de
+                consulta.
+                {dias > 1 && custo !== null && (
+                  <>
+                    {" "}
+                    Saindo {porDia.toLocaleString("pt-BR")} por dia, são {dias} dias a cerca de{" "}
+                    {reais(custo.total / dias)} por dia.
+                  </>
+                )}{" "}
+                Os dois números mudam quando você mexe no filtro.
+              </>
+            )}
           </span>
         </div>
 

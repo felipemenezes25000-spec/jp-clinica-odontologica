@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { carregarAutomacoes, mudarEstadoAutomacao, type ResumoAutomacao } from "@/lib/crc/api";
+import { ROTULO_CATEGORIA, reais } from "@/lib/crc/dominio/custo";
 import { EXPLICACAO_MODO_AUTOMACAO, ROTULO_MODO_AUTOMACAO } from "@/lib/crc/dominio/rotulos";
 import type { ModoAutomacao } from "@/lib/crc/dominio/tipos";
 
@@ -38,6 +39,26 @@ import {
 import { BotaoJornadas, JornadasDaAutomacao } from "./JornadasDaAutomacao";
 
 const MODOS: ModoAutomacao[] = ["SHADOW", "RECOMENDAR", "EXECUTAR"];
+
+/**
+ * "2 de utilidade e 1 de marketing" — a composição, e não um rótulo único.
+ *
+ * Uma jornada mistura categorias com frequência, e resumir isso na mais cara
+ * ("3 mensagens de marketing" quando duas são utilidade) seria mentir sobre a
+ * conta justamente na linha que existe para não mentir sobre a conta.
+ *
+ * A ordem é da mais cara para a mais barata: quem lê rápido precisa bater o
+ * olho no marketing primeiro, porque é ele que domina o valor ao lado.
+ */
+function composicao(porCategoria: Record<string, number>): string {
+  const partes = (["marketing", "utilidade", "autenticacao", "servico"] as const)
+    .filter((c) => (porCategoria[c] ?? 0) > 0)
+    .map((c) => `${String(porCategoria[c])} de ${ROTULO_CATEGORIA[c].toLowerCase()}`);
+
+  if (partes.length === 0) return "nenhuma mensagem";
+  if (partes.length === 1) return partes[0] ?? "";
+  return `${partes.slice(0, -1).join(", ")} e ${partes[partes.length - 1] ?? ""}`;
+}
 
 export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
   const [automacoes, setAutomacoes] = useState<ResumoAutomacao[] | null>(null);
@@ -151,6 +172,24 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
                   {/* A métrica que importa. Ver o cabeçalho do arquivo. */}
                   <Numero rotulo="Agendaram por causa dela" valor={a.saidasPorConversao} destaque />
                 </div>
+
+                {/*
+                  O PREÇO DE LIGAR ESTA AUTOMAÇÃO, ao lado do botão que a liga.
+                  Sem isso, "Ativar" é uma decisão sem custo aparente — e a
+                  diferença entre uma jornada de utilidade e uma de marketing é
+                  de nove vezes, o que muda completamente se vale a pena para
+                  mil pacientes.
+
+                  "Até" e não "custa": quem responde a primeira mensagem sai da
+                  jornada antes da segunda, e esse é o caso de sucesso. O
+                  número é o caminho mais longo.
+                */}
+                {a.custo.mensagens > 0 && (
+                  <p className="crc-meta" style={{ marginTop: "var(--crc-e2)" }}>
+                    Até <strong>{reais(a.custo.atePorPaciente)} por paciente</strong> —{" "}
+                    {composicao(a.custo.porCategoria)}.
+                  </p>
+                )}
 
                 <div style={{ marginTop: "var(--crc-e3)" }}>
                   <BotaoJornadas

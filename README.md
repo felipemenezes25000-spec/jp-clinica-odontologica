@@ -66,10 +66,12 @@ site foi alterado para ele existir.
 
 **Para colocar o CRC no ar**, comece por
 [docs/crc/ATIVACAO-EM-PRODUCAO.md](docs/crc/ATIVACAO-EM-PRODUCAO.md) — o passo a
-passo de SQL, variáveis, credenciais e ordem de ativação. Os outros três
+passo de SQL, variáveis, credenciais e ordem de ativação. Os outros
 documentos são
 [ROTEIRO-DA-EQUIPE](docs/crc/ROTEIRO-DA-EQUIPE.md) (**a rotina de quem opera** —
 cinco minutos, para a recepção ler no primeiro dia),
+[CUSTO-DAS-MENSAGENS](docs/crc/CUSTO-DAS-MENSAGENS.md) (**quanto a Meta cobra e
+por quê** — marketing custa 9× utilidade, e é isso que decide a fatura),
 [CAPACIDADES-DENTAL-OFFICE](docs/crc/CAPACIDADES-DENTAL-OFFICE.md) (**o que dá e
 o que não dá para fazer com a API deles** — leia antes de planejar qualquer
 funcionalidade nova), [ARCHITECTURE](docs/crc/ARCHITECTURE.md) (como funciona),

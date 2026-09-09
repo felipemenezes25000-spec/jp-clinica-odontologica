@@ -1762,19 +1762,70 @@ export type ResumoAutomacao = {
   emJornada: number;
   concluidasNoMes: number;
   saidasPorConversao: number;
+  /**
+   * O que a jornada pode gastar de WhatsApp por paciente.
+   *
+   * Vem do servidor, e não do cliente, porque depende da DEFINIÇÃO ATIVA da
+   * automação — que o gestor pode ter editado. Calcular no cliente a partir do
+   * catálogo embutido mostraria o custo do que o sistema veio de fábrica, e não
+   * o do que ele está fazendo hoje.
+   */
+  custo: {
+    mensagens: number;
+    /** Quantas de cada categoria — a jornada pode misturar, e quase sempre mistura. */
+    porCategoria: Record<string, number>;
+    atePorPaciente: number;
+  };
 };
 
 export const carregarAutomacoes = createServerFn({ method: "GET" }).handler(
   async (): Promise<Resposta<{ automacoes: ResumoAutomacao[] }>> =>
     comContexto("ver_automacao", async (ctx) => {
       const { listarAutomacoes } = await import("./automacao/catalogo");
-      const { contar } = await import("./servidor/banco");
+      const { contar, selecionar } = await import("./servidor/banco");
+      const { perfilDeCustoDaJornada } = await import("./dominio/custo");
 
-      const inicioDoMes = new Date();
+      const agora = new Date();
+      const inicioDoMes = new Date(agora);
       inicioDoMes.setUTCDate(1);
       inicioDoMes.setUTCHours(0, 0, 0, 0);
 
       const automacoes = await listarAutomacoes(ctx.organizationId);
+
+      // As definições ativas em UMA consulta, e não uma por automação: são
+      // dez automações, e dez idas ao banco dentro de um laço que já faz três
+      // contagens cada é como uma tela de listagem vira lenta.
+      const versoes =
+        automacoes.length === 0
+          ? []
+          : await selecionar("crc_automation_versions", {
+              colunas: "automation_id,versao,definicao",
+              filtros: [{ coluna: "automation_id", op: "in", valor: automacoes.map((a) => a.id) }],
+              limite: 500,
+            });
+
+      const modelosPorAutomacao = new Map<string, string[]>();
+      for (const a of automacoes) {
+        const linha = versoes.find(
+          (v) => String(v["automation_id"] ?? "") === a.id && v["versao"] === a.versaoAtiva,
+        );
+        const definicao = linha?.["definicao"];
+        const passos =
+          typeof definicao === "object" && definicao !== null
+            ? (definicao as { passos?: unknown }).passos
+            : null;
+
+        const chaves: string[] = [];
+        if (Array.isArray(passos)) {
+          for (const p of passos) {
+            if (typeof p !== "object" || p === null) continue;
+            const passo = p as { tipo?: unknown; template?: unknown };
+            if (passo.tipo !== "ENVIAR_TEMPLATE") continue;
+            if (typeof passo.template === "string") chaves.push(passo.template);
+          }
+        }
+        modelosPorAutomacao.set(a.id, chaves);
+      }
 
       const resumos: ResumoAutomacao[] = [];
       for (const a of automacoes) {
@@ -1799,11 +1850,18 @@ export const carregarAutomacoes = createServerFn({ method: "GET" }).handler(
           ]),
         ]);
 
+        const perfil = perfilDeCustoDaJornada(modelosPorAutomacao.get(a.id) ?? [], agora);
+
         resumos.push({
           ...a,
           emJornada,
           concluidasNoMes: concluidas,
           saidasPorConversao: convertidas,
+          custo: {
+            mensagens: perfil.mensagens,
+            porCategoria: { ...perfil.porCategoria },
+            atePorPaciente: perfil.custoMaximoPorPaciente,
+          },
         });
       }
 
