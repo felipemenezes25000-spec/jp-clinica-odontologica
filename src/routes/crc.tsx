@@ -28,6 +28,8 @@ import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
 import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
+import { Logo } from "@/components/site/Logo";
+
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
 import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
@@ -173,8 +175,13 @@ function PortalCrc() {
       <div className="crc-shell">
         <nav className="crc-lateral" aria-label="Seções do CRC">
           <div className="crc-marca">
-            <span aria-hidden="true">JP</span>
-            CRC
+            <Logo
+              variante="lockup"
+              fundo="claro"
+              altura={24}
+              alt="JP Clínica Integrada Odontológica"
+            />
+            <span className="crc-modulo">CRC</span>
           </div>
 
           {permitidas.map((n) => (
@@ -298,9 +305,14 @@ function TelaDeEntrada({ aoEntrar }: { aoEntrar: () => void }) {
           void entrar();
         }}
       >
-        <div className="crc-marca" style={{ padding: "0 0 var(--crc-e4)" }}>
-          <span aria-hidden="true">JP</span>
-          CRC
+        <div className="crc-marca" style={{ padding: "0 0 var(--crc-e5)" }}>
+          <Logo
+            variante="lockup"
+            fundo="claro"
+            altura={30}
+            alt="JP Clínica Integrada Odontológica"
+          />
+          <span className="crc-modulo">CRC</span>
         </div>
 
         <h1 className="crc-titulo-secao" style={{ marginBottom: "var(--crc-e2)" }}>

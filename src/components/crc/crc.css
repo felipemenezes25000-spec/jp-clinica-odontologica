@@ -223,17 +223,31 @@
   color: var(--crc-texto);
 }
 
-.crc-app .crc-marca span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--crc-primaria);
-  color: var(--crc-sobre-primaria);
-  font-size: 0.75rem;
+/*
+ * "CRC" é LEGENDA da marca, e não um segundo logotipo.
+ *
+ * Aqui havia um selo verde escrito "JP". Com a marca de verdade ao lado, dois
+ * blocos coloridos competiriam pela mesma leitura — e a leitura certa é "JP
+ * Clínica Odontológica, módulo CRC", não "JP e CRC". Daí o traço vertical no
+ * lugar do selo: ele subordina sem sumir.
+ */
+.crc-app .crc-modulo {
+  padding-left: var(--crc-e2);
+  border-left: 1px solid var(--crc-borda);
+  font-size: 0.6875rem;
   font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--crc-texto-2);
+  white-space: nowrap;
+}
+
+/* A marca é SVG: sem `display: block` ela ganha a folga da linha de base e
+   desalinha do "CRC" por dois ou três pixels — o tipo de desalinho que
+   ninguém localiza e todo mundo sente. */
+.crc-app .crc-marca img {
+  display: block;
+  flex-shrink: 0;
 }
 
 .crc-app .crc-nav-item {
