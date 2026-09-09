@@ -26,6 +26,7 @@ import {
   useAcao,
 } from "./base";
 import { BarraDeVisoes, FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./Visoes";
+import "./crc-pipeline.css";
 
 type Etapa = { id: string; chave: string; nome: string; ordem: number; categoria: string };
 type Cartao = ItemPrioridade & { stageId: string | null };
@@ -100,10 +101,7 @@ export function Funil({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string
 
   const altas = useMemo(() => cartoes.filter((c) => c.faixa === "ALTA").length, [cartoes]);
   const emAutomacao = useMemo(() => cartoes.filter((c) => c.temJornadaAtiva).length, [cartoes]);
-  const filtrosAtivos =
-    filtro.tipos.length +
-    (filtro.etapaChave === null ? 0 : 1) +
-    (filtro.apenasMinhas ? 1 : 0);
+  const filtrosAtivos = filtro.tipos.length + (filtro.etapaChave === null ? 0 : 1) + (filtro.apenasMinhas ? 1 : 0);
 
   if (erro !== null && etapas === null) return <Aviso tom="perigo">{erro}</Aviso>;
   if (etapas === null) return <ListaEsqueleto linhas={4} />;
