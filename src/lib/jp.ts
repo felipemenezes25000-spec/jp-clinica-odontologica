@@ -66,7 +66,7 @@ export const CLINICA = {
   horario: "Segunda a sexta, 08:00 às 18:00",
   instagram: "https://www.instagram.com/jpclinicaodontologica/",
   facebook: "https://www.facebook.com/jpclinicaodontologica/",
-  provaSocial: "4,6★ no Google • 180 avaliações",
+  provaSocial: "4,6★ no Google • 182 avaliações",
 };
 
 /**
@@ -185,7 +185,7 @@ export const FUNDADORA = {
  * Avaliações reais de pacientes no Google.
  *
  * Nota e volume conferidos direto na ficha do Google em agosto de 2026:
- * 4,6 estrelas com 180 avaliações.
+ * 4,6 estrelas com 182 avaliações.
  *
  * Os textos abaixo vieram de um agregador (DentMap), que capturou apenas parte
  * das avaliações — vale conferir na ficha do Google e, se possível, ampliar
@@ -223,7 +223,7 @@ export const DEPOIMENTOS: Depoimento[] = [
     texto: "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!",
   },
   // ─── ⚠️ FICTÍCIOS — TROCAR POR AVALIAÇÕES REAIS DO GOOGLE ──────────────────
-  // A ficha tem 180 avaliações; só três foram transcritas até agora. Estes dois
+  // A ficha tem 182 avaliações; só três foram transcritas até agora. Estes dois
   // existem para completar a grade. Depoimento inventado sob o rótulo
   // "avaliação no Google" é propaganda enganosa — substituir antes de divulgar.
   {
