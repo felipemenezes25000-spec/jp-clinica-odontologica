@@ -131,6 +131,15 @@ export type Agendamento = {
 export type SlotDisponivel = {
   clinicId: string;
   dentistaExternoId: string;
+  /**
+   * A cadeira em que ESTE horário está livre.
+   *
+   * Não é escolha do CRC: é parte do horário. O Dental Office devolve o
+   * `chair_id` dentro de cada período livre, e exige a cadeira ao criar a
+   * consulta. Um horário sem cadeira não é agendável — por isso o campo é
+   * obrigatório aqui, e não opcional.
+   */
+  cadeiraExternaId: string;
   inicioEm: string;
   fimEm: string;
   duracaoMinutos: number;

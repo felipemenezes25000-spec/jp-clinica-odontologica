@@ -259,41 +259,123 @@ falta** — em vez de fingir que está funcionando.
 
 ### C.1 Dental Office
 
-**O que pedir a eles, exatamente:**
+**A API existe, é pública e está documentada.** Isto foi confirmado lendo a
+especificação OpenAPI 3.0.3 deles, e não um blog:
 
-> "Preciso de acesso à API para uma integração de CRM: a URL base do ambiente,
-> um `client_id` e um `client_secret` com permissão de **leitura** de pacientes
-> e agenda, e o identificador da nossa clínica no sistema. Se houver ambiente de
-> homologação, quero as credenciais dele também."
+- Documentação: <https://apidocs.dentaloffice.com.br/>
+- Especificação: <https://apidocs.dentaloffice.com.br/openapi.yml>
+- Suporte de integração: **api@dentaloffice.com.br**
 
-**O que cadastrar na Vercel:**
+#### O que pedir a eles
 
-```
-DENTAL_OFFICE_BASE_URL=
-DENTAL_OFFICE_CLIENT_ID=
-DENTAL_OFFICE_SECRET=
-DENTAL_OFFICE_CLINIC_ID=
-```
+> **O acesso à API está disponível apenas para clientes do plano Avançado ou
+> Completo.** É a primeira coisa a confirmar — sem o plano, nada do que vem
+> abaixo acontece.
 
-**Verificação, em três passos:**
+Aprovado o acesso, eles enviam **por e-mail** três dados:
 
-1. `/crc` → Integrações → o cartão do Dental Office deve dizer "Credenciais
-   configuradas".
-2. Botão **Testar conexão**. Ele autentica e faz um GET pequeno; nunca altera
-   dado.
-3. Botão **Sincronizar agora**. Ele traz pacientes **antes** da agenda, sempre —
-   um agendamento precisa do paciente para ter dono. A resposta diz quantos
-   foram criados, atualizados e falharam.
+| Variável | O que é |
+|---|---|
+| `DENTAL_OFFICE_BASE_URL` | a URL exclusiva do cliente. Vem **já terminada em `/v1`** |
+| `DENTAL_OFFICE_CLIENT_ID` | o identificador |
+| `DENTAL_OFFICE_SECRET` | a chave secreta |
 
-**O que esperar da primeira sincronização de uma base real:** ela emite um
-evento `appointment.completed` para *cada* consulta do histórico. Isso é
-intencional — é o que constrói o histórico do paciente. O que **não** acontece
-é uma avalanche de mensagem: eventos de falta e de cancelamento antigos são
-suprimidos na primeira carga, e a guarda de causalidade impede que uma consulta
-antiga feche como "recuperada" uma oportunidade aberta hoje.
+E falta uma quarta, que **não** vem no e-mail:
 
-Ainda assim: **rode a primeira sincronização com as automações em simulação.**
-Elas nascem assim; não mude antes.
+| `DENTAL_OFFICE_CLINIC_ID` | o id numérico da unidade |
+
+**Por que ela é obrigatória:** a API **não tem endpoint de listagem de
+clínicas**. O `clinic_id` é parâmetro de caminho na agenda e nas cadeiras, e
+precisa ser configurado. Ele aparece em qualquer agendamento devolvido por
+`GET /clinics/{clinic_id}/schedules` — peça ao suporte deles, ou leia de um
+agendamento existente.
+
+#### Como o CRC autentica
+
+`POST /auth/tokens` com `{client_id, secret}` devolve um Bearer válido por
+**24 horas**. O CRC guarda esse token em memória do processo, renova sozinho e
+**nunca o grava no banco** — token em tabela é alvo persistente para um ganho
+de milissegundos.
+
+#### O que o CRC usa da API
+
+| Operação | Para quê |
+|---|---|
+| `GET /customers` | sincronizar pacientes |
+| `GET /dentists` | sincronizar dentistas — **na raiz**, não sob a clínica |
+| `GET /clinics/{id}/schedules` | a agenda, filtrando por `start` e `end` |
+| `GET /clinics/{id}/schedules/available_hours` | horários livres |
+| `POST /clinics/{id}/schedules` | criar consulta |
+| `PATCH /clinics/{id}/schedules/{id}` | remarcar e cancelar |
+| `GET /status` | o teste de conexão da tela de Integrações |
+
+#### Três limites que mudam a operação, e não são detalhe
+
+**1. Não existe sincronização incremental de pacientes.**
+`GET /customers` aceita `q`, `page`, `clinic_id`, `active` e filtros de
+exclusão — e nada de "atualizado desde". Toda varredura de pacientes é
+completa.
+
+**2. O teto é de 5.000 requisições por período.**
+Somado ao item anterior, isso decide a estratégia: **pacientes uma vez ao dia,
+agenda com frequência**. A agenda pode ser frequente porque ela, sim, filtra
+por `start`/`end` — cada volta do motor lê só a janela que interessa.
+
+**3. Não há webhooks.**
+O Dental Office não avisa quando algo muda. É por isso que o CRC é construído
+sobre um motor que varre, e não sobre eventos empurrados. Não foi preguiça de
+arquitetura: é o que a API permite.
+
+#### O que a API NÃO expõe
+
+O Dental Office como produto tem financeiro, odontograma, anamnese, pagamentos
+e um CRM próprio. **Nada disso está na API pública v1.0.** Existir no produto
+não é existir no contrato.
+
+Consequência prática para o CRC: **o módulo de orçamento parado não pode ser
+automatizado** — ele continua dependendo de importação por planilha, e é isso
+que a tela de Importar faz hoje.
+
+#### Duas armadilhas conferidas na especificação
+
+**A URL base já vem com `/v1`.** Concatenar `/v1/...` no código produz
+`/v1/v1/customers` e 404 em toda chamada. O adapter tolera as duas grafias, mas
+o valor certo da variável é o que eles enviarem, sem mexer.
+
+**O verbo de atualização varia por recurso**, e não é engano deles:
+
+| `PUT` | `PATCH` |
+|---|---|
+| cadeiras, disciplinas, motivos, situações | pacientes, dentistas, usuários, imagens, documentos, **agenda** |
+
+O CRC só escreve em agenda, então usa `PATCH`. Padronizar o verbo "para ficar
+igual" apagaria os campos que o CRC não conhece — cadeira, motivo, observação
+da recepção.
+
+#### Uma decisão de leitura que evita erro caro
+
+A situação do agendamento é lida pelo **rótulo** (`schedule_situation.label`),
+e não pelo id numérico. A API permite cada clínica **criar** situações
+(`POST /schedule_situations`), então o id não é estável entre clínicas — o "4"
+de uma pode ser "Faltou" e o de outra, "Atendido". Os rótulos, esses são fixos:
+
+| Rótulo do Dental Office | Status no CRC |
+|---|---|
+| `to_confirm` | TO_CONFIRM |
+| `confirmed` | CONFIRMED |
+| `client_arrived`, `in_service` | IN_PROGRESS |
+| `fulfilled` | COMPLETED |
+| `absence` | MISSED |
+| `cancelled` | CANCELLED |
+
+#### Como saber que funcionou
+
+Na tela de **Integrações**, "Testar conexão" chama `GET /status`. Depois,
+**Sincronizar agora** deve trazer pacientes, dentistas e agenda — nesta ordem,
+porque o agendamento precisa do paciente para ligar `patient_id`, e a oferta de
+horário precisa do dentista para saber a quem perguntar.
+
+---
 
 ### C.2 WhatsApp
 

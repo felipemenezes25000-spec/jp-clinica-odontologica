@@ -1,0 +1,226 @@
+openapi: 3.0.3
+info:
+  title: API Dental Office
+  version: '1.0'
+  description: |
+    API RESTful para integração com o sistema Dental Office Cloud.
+
+    ## Primeiros Passos
+
+    Para iniciar a integração com a API, você precisa dos seguintes dados, fornecidos por email no momento da aprovação do acesso:
+
+    - **URL de acesso** — URL completa e exclusiva do seu cliente
+    - **client_id** — Identificador do cliente
+    - **secret** — Chave secreta do cliente
+
+    > **Importante:** O acesso à API está disponível apenas para clientes do plano **Avançado** ou **Completo**.
+
+    ## Autenticação
+
+    A API utiliza **Bearer Authentication**. O fluxo de autenticação funciona em 2 passos:
+
+    ### 1. Gerar o Token
+
+    Faça uma requisição `POST` para `/v1/auth/tokens` com suas credenciais:
+
+    ```json
+    {
+      "client_id": "seu_client_id",
+      "secret": "seu_secret"
+    }
+    ```
+
+    A resposta conterá o token de acesso:
+
+    ```json
+    {
+      "token": "eyJhbGciOiJIUzI1NiJ9..."
+    }
+    ```
+
+    ### 2. Usar o Token nas Requisições
+
+    Inclua o token no header `Authorization` de todas as requisições:
+
+    ```
+    Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+    ```
+
+    > O token expira em **24 horas**. Após esse período, gere um novo token.
+
+    ## URL Base
+
+    Cada cliente possui sua própria URL de acesso à API. A URL completa é fornecida por email junto com o `client_id` e `secret` no momento da aprovação do acesso.
+
+    ## Rate Limiting
+
+    A API possui um limite de **5.000 requisições** por período. Os headers de resposta indicam o uso:
+
+    | Header | Descrição |
+    |--------|-----------|
+    | `RateLimit-Limit` | Limite total de requisições |
+    | `RateLimit-Remaining` | Requisições restantes no período |
+
+    ## Paginação
+
+    Endpoints que retornam listas utilizam paginação. Use os parâmetros `page` e `per_page` na query string.
+
+    A resposta segue a estrutura:
+
+    ```json
+    {
+      "total_pages": 5,
+      "count": 48,
+      "from": 1,
+      "to": 10,
+      "current_page": 1,
+      "results": [...]
+    }
+    ```
+
+    ## Códigos de Erro
+
+    | Código | Descrição |
+    |--------|-----------|
+    | 401 | Token inválido ou expirado |
+    | 404 | Recurso não encontrado |
+    | 422 | Dados inválidos — detalhes no corpo da resposta |
+    | 500 | Erro interno do servidor |
+
+    Formato padrão de erro:
+
+    ```json
+    {
+      "errors": {
+        "email": ["E-mail já está sendo utilizado"]
+      }
+    }
+    ```
+  contact:
+    name: Suporte
+    email: api@dentaloffice.com.br
+servers:
+- url: https://demo.api.app.dentaloffice.com.br/v1
+  description: Production (URL de exemplo, substitua pela URL fornecida ao seu cliente)
+security:
+- bearerAuth: []
+tags:
+- name: Autenticação
+  description: Geração de tokens de acesso
+- name: Usuários
+  description: Gerenciamento de usuários do sistema
+- name: Dentistas
+  description: Gerenciamento de dentistas
+- name: Cadeiras
+  description: Cadeiras (equipos) da clínica
+- name: Disciplinas
+  description: Especialidades odontológicas
+- name: Pacientes
+  description: Gerenciamento de pacientes
+- name: Imagens do Paciente
+  description: Imagens vinculadas ao paciente
+- name: Documentos do Paciente
+  description: Documentos vinculados ao paciente
+- name: Evoluções do Paciente
+  description: Evoluções de tratamento do paciente
+- name: Agendamentos
+  description: Agendamentos da clínica
+- name: Tipos de Agendamento
+  description: Tipos de agendamento disponíveis
+- name: Situações do Agendamento
+  description: Situações possíveis do agendamento
+- name: Motivos do Agendamento
+  description: Motivos para agendamento
+- name: Status
+  description: Status da API
+x-tagGroups:
+- name: Autenticação
+  tags:
+  - Autenticação
+- name: Gerenciar Clínica
+  tags:
+  - Usuários
+  - Dentistas
+  - Cadeiras
+  - Disciplinas
+- name: Gerenciar Pacientes
+  tags:
+  - Pacientes
+  - Imagens do Paciente
+  - Documentos do Paciente
+  - Evoluções do Paciente
+- name: Gerenciar Agendamentos
+  tags:
+  - Agendamentos
+  - Tipos de Agendamento
+  - Situações do Agendamento
+  - Motivos do Agendamento
+- name: Status
+  tags:
+  - Status
+paths:
+  /auth/tokens:
+    $ref: ./paths/auth.yml#/auth~1tokens
+  /users:
+    $ref: ./paths/users.yml#/users
+  /users/{id}:
+    $ref: ./paths/users.yml#/users~1{id}
+  /dentists:
+    $ref: ./paths/dentists.yml#/dentists
+  /dentists/{id}:
+    $ref: ./paths/dentists.yml#/dentists~1{id}
+  /clinics/{clinic_id}/chairs:
+    $ref: ./paths/chairs.yml#/clinics~1{clinic_id}~1chairs
+  /clinics/{clinic_id}/chairs/{id}:
+    $ref: ./paths/chairs.yml#/clinics~1{clinic_id}~1chairs~1{id}
+  /clinics/{clinic_id}/chairs/restore:
+    $ref: ./paths/chairs.yml#/clinics~1{clinic_id}~1chairs~1restore
+  /clinics/{clinic_id}/chairs/work_schedules:
+    $ref: ./paths/chairs.yml#/clinics~1{clinic_id}~1chairs~1work_schedules
+  /disciplines:
+    $ref: ./paths/disciplines.yml#/disciplines
+  /disciplines/{id}:
+    $ref: ./paths/disciplines.yml#/disciplines~1{id}
+  /customers:
+    $ref: ./paths/customers.yml#/customers
+  /customers/{id}:
+    $ref: ./paths/customers.yml#/customers~1{id}
+  /customers/{customer_id}/images:
+    $ref: ./paths/customer-images.yml#/customers~1{customer_id}~1images
+  /customers/{customer_id}/images/{id}:
+    $ref: ./paths/customer-images.yml#/customers~1{customer_id}~1images~1{id}
+  /customers/{customer_id}/docs:
+    $ref: ./paths/customer-docs.yml#/customers~1{customer_id}~1docs
+  /customers/{customer_id}/docs/{id}:
+    $ref: ./paths/customer-docs.yml#/customers~1{customer_id}~1docs~1{id}
+  /customers/{customer_id}/evolutions:
+    $ref: ./paths/customer-evolutions.yml#/customers~1{customer_id}~1evolutions
+  /customers/{customer_id}/evolutions/{id}:
+    $ref: ./paths/customer-evolutions.yml#/customers~1{customer_id}~1evolutions~1{id}
+  /clinics/{clinic_id}/schedules:
+    $ref: ./paths/schedules.yml#/clinics~1{clinic_id}~1schedules
+  /clinics/{clinic_id}/schedules/{id}:
+    $ref: ./paths/schedules.yml#/clinics~1{clinic_id}~1schedules~1{id}
+  /clinics/{clinic_id}/schedules/available_hours:
+    $ref: ./paths/schedules.yml#/clinics~1{clinic_id}~1schedules~1available_hours
+  /schedule_types:
+    $ref: ./paths/schedule-types.yml#/schedule_types
+  /schedule_situations:
+    $ref: ./paths/schedule-situations.yml#/schedule_situations
+  /schedule_situations/{id}:
+    $ref: ./paths/schedule-situations.yml#/schedule_situations~1{id}
+  /schedule_reasons:
+    $ref: ./paths/schedule-reasons.yml#/schedule_reasons
+  /schedule_reasons/{id}:
+    $ref: ./paths/schedule-reasons.yml#/schedule_reasons~1{id}
+  /status:
+    $ref: ./paths/status.yml#/status
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Token válido por 24 horas. Obtido via POST /auth/tokens com client_id e secret.
+  schemas:
+    Error:
+      $ref: ./components/schemas.yml#/Error

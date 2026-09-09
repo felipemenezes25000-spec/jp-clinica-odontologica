@@ -249,29 +249,99 @@ describe("paginação", () => {
 describe("horários disponíveis", () => {
   const ctx = { clinicId: "c1", dentistaExternoId: "d1" };
 
-  it("aceita lista de strings", () => {
-    const slots = mapearSlots(["2026-09-08T14:00:00-03:00", "2026-09-08T14:30:00-03:00"], ctx);
+  /**
+   * O FORMATO REAL da API do Dental Office: agrupado por dia, com `periods`
+   * dentro, e `start_time`/`end_time`/`chair_id` em cada período.
+   *
+   * A versão anterior destes testes usava uma lista plana de `start`/`end` que
+   * a API nunca devolve — e foi assim que um adapter inteiro passou verde
+   * contra uma API imaginada.
+   */
+  const diaReal = (data: string, periodos: { de: string; ate: string; cadeira: number }[]) => [
+    {
+      date: data,
+      periods: periodos.map((p) => ({
+        start_time: p.de,
+        end_time: p.ate,
+        chair_id: p.cadeira,
+      })),
+    },
+  ];
+
+  it("lê o formato agrupado por dia, com a cadeira de cada período", () => {
+    const slots = mapearSlots(
+      diaReal("2026-09-08", [
+        { de: "2026-09-08T14:00:00-03:00", ate: "2026-09-08T14:30:00-03:00", cadeira: 1 },
+        { de: "2026-09-08T14:30:00-03:00", ate: "2026-09-08T15:00:00-03:00", cadeira: 1 },
+      ]),
+      ctx,
+    );
+
     expect(slots).toHaveLength(2);
     expect(slots[0]?.duracaoMinutos).toBe(30);
+    // A cadeira é o que torna o horário agendável: sem ela o POST é recusado.
+    expect(slots[0]?.cadeiraExternaId).toBe("1");
   });
 
-  it("calcula a duração quando há início e fim", () => {
+  it("calcula a duração pelo início e fim do período", () => {
     const slots = mapearSlots(
-      [{ start: "2026-09-08T14:00:00-03:00", end: "2026-09-08T14:50:00-03:00" }],
+      diaReal("2026-09-08", [
+        { de: "2026-09-08T14:00:00-03:00", ate: "2026-09-08T14:50:00-03:00", cadeira: 2 },
+      ]),
       ctx,
     );
     expect(slots[0]?.duracaoMinutos).toBe(50);
   });
 
-  it("remove horários repetidos e ordena", () => {
-    // A API repete o mesmo horário quando há mais de uma cadeira livre, e
-    // "14:00" duplicado na tela do paciente parece defeito.
+  it("junta vários dias numa lista só, ordenada", () => {
     const slots = mapearSlots(
-      ["2026-09-08T15:00:00-03:00", "2026-09-08T14:00:00-03:00", "2026-09-08T15:00:00-03:00"],
+      [
+        ...diaReal("2026-09-09", [
+          { de: "2026-09-09T09:00:00-03:00", ate: "2026-09-09T09:30:00-03:00", cadeira: 1 },
+        ]),
+        ...diaReal("2026-09-08", [
+          { de: "2026-09-08T15:00:00-03:00", ate: "2026-09-08T15:30:00-03:00", cadeira: 1 },
+        ]),
+      ],
       ctx,
     );
+
     expect(slots).toHaveLength(2);
     expect(slots[0]?.inicioEm.localeCompare(slots[1]?.inicioEm ?? "")).toBeLessThan(0);
+  });
+
+  it("o mesmo horário em duas cadeiras vira UM horário", () => {
+    // A API devolve o período uma vez por cadeira livre. Mostrar "14:00" duas
+    // vezes ao paciente parece defeito — fica a primeira cadeira, sempre a
+    // mesma, para o comportamento ser reproduzível.
+    const slots = mapearSlots(
+      diaReal("2026-09-08", [
+        { de: "2026-09-08T14:00:00-03:00", ate: "2026-09-08T14:30:00-03:00", cadeira: 1 },
+        { de: "2026-09-08T14:00:00-03:00", ate: "2026-09-08T14:30:00-03:00", cadeira: 7 },
+      ]),
+      ctx,
+    );
+
+    expect(slots).toHaveLength(1);
+    expect(slots[0]?.cadeiraExternaId).toBe("1");
+  });
+
+  it("horário SEM cadeira é descartado, e não oferecido", () => {
+    // Item 119 ganhou um motivo novo: sem `chair_id` a API recusa o POST, e
+    // oferecer esse horário ao paciente produziria uma promessa que quebra na
+    // hora de confirmar.
+    const slots = mapearSlots(
+      [
+        {
+          date: "2026-09-08",
+          periods: [
+            { start_time: "2026-09-08T14:00:00-03:00", end_time: "2026-09-08T14:30:00-03:00" },
+          ],
+        },
+      ],
+      ctx,
+    );
+    expect(slots).toHaveLength(0);
   });
 
   it("ignora entrada inválida em vez de inventar horário", () => {
@@ -370,8 +440,8 @@ describe("adapter de sandbox", () => {
     _reiniciarSandbox();
     const cliente = criarSandbox();
     const lote = await cliente.listarAgendamentos({
-      de: new Date(Date.now() - 500 * 24 * 3600 * 1000).toISOString(),
-      ate: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
+      de: "2020-01-01T00:00:00.000Z",
+      ate: "2030-01-01T00:00:00.000Z",
       pagina: 1,
       tamanho: 100,
     });
@@ -390,8 +460,7 @@ describe("adapter de sandbox", () => {
     const slots = await cliente.horariosDisponiveis({
       clinicaExternaId: "clin-1",
       dentistaExternoId: "dent-1",
-      de: new Date().toISOString(),
-      ate: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+      diasAFrente: 14,
       clinicId: "c1",
     });
     const alvo = slots[0];
@@ -402,6 +471,7 @@ describe("adapter de sandbox", () => {
       clinicaExternaId: "clin-1",
       pacienteExternoId: "do-1001",
       dentistaExternoId: "dent-1",
+      cadeiraExternaId: "cad-1",
       inicioEm: alvo.inicioEm,
       duracaoMinutos: 30,
     });
@@ -413,6 +483,7 @@ describe("adapter de sandbox", () => {
       clinicaExternaId: "clin-1",
       pacienteExternoId: "do-1003",
       dentistaExternoId: "dent-1",
+      cadeiraExternaId: "cad-1",
       inicioEm: alvo.inicioEm,
       duracaoMinutos: 30,
     });
@@ -427,14 +498,13 @@ describe("adapter de sandbox", () => {
     const slots = await cliente.horariosDisponiveis({
       clinicaExternaId: "clin-1",
       dentistaExternoId: "dent-1",
-      de: new Date().toISOString(),
-      ate: new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString(),
+      diasAFrente: 14,
       clinicId: "c1",
     });
 
     const lote = await cliente.listarAgendamentos({
-      de: new Date().toISOString(),
-      ate: new Date(Date.now() + 14 * 24 * 3600 * 1000).toISOString(),
+      de: "2020-01-01T00:00:00.000Z",
+      ate: "2030-01-01T00:00:00.000Z",
       pagina: 1,
       tamanho: 100,
     });
@@ -452,8 +522,7 @@ describe("adapter de sandbox", () => {
     const slots = await criarSandbox().horariosDisponiveis({
       clinicaExternaId: "clin-1",
       dentistaExternoId: "dent-1",
-      de: new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(),
-      ate: new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString(),
+      diasAFrente: 14,
       clinicId: "c1",
     });
     for (const s of slots) {

@@ -1,0 +1,161 @@
+disciplines:
+  get:
+    tags:
+    - Disciplinas
+    summary: Listar
+    description: Lista as disciplinas cadastradas.
+    parameters:
+    - name: q
+      in: query
+      schema:
+        type: string
+    - name: page
+      in: query
+      schema:
+        type: string
+    - name: per_page
+      in: query
+      schema:
+        type: string
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+            - id: 2
+              name: Banco do Brasil
+              created_at: '2025-03-12T20:12:16.000Z'
+              updated_at: '2025-03-12T20:12:16.000Z'
+              deleted_at: null
+  post:
+    tags:
+    - Disciplinas
+    summary: Cadastrar
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              discipline:
+                type: object
+                properties:
+                  name:
+                    type: string
+          example:
+            discipline:
+              name: Brasil
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 3
+              name: Brasil
+              created_at: '2025-03-12T20:15:10.538Z'
+              updated_at: '2025-03-12T20:15:10.538Z'
+              deleted_at: null
+      '422':
+        description: Unprocessable Entity (WebDAV) (RFC 4918)
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+              - Name já está em uso.
+disciplines/{id}:
+  get:
+    tags:
+    - Disciplinas
+    summary: Show
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+            - id: 2
+              name: Banco do Brasil
+              created_at: '2025-03-12T20:12:16.000Z'
+              updated_at: '2025-03-12T20:12:16.000Z'
+              deleted_at: null
+            - id: 3
+              name: Safra
+              created_at: '2025-03-12T20:15:10.000Z'
+              updated_at: '2025-03-12T20:15:40.000Z'
+              deleted_at: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              error: Discipline not found
+  put:
+    tags:
+    - Disciplinas
+    summary: Alterar
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              discipline:
+                type: object
+                properties:
+                  name:
+                    type: string
+          example:
+            discipline:
+              name: Safra
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 3
+              name: Safra
+              created_at: '2025-03-12T20:15:10.000Z'
+              updated_at: '2025-03-12T20:15:40.127Z'
+              deleted_at: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              error: Discipline not found
+  delete:
+    tags:
+    - Disciplinas
+    summary: Remover
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+  parameters:
+  - name: id
+    in: path
+    required: true
+    schema:
+      type: integer
+    description: ID do recurso

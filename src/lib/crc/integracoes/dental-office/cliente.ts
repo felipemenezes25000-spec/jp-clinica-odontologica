@@ -70,17 +70,33 @@ export type PortaDentalOffice = {
     clinicaExternaId: string,
     externalId: string,
   ): Promise<AgendamentoExterno | null>;
+  /**
+   * Horários livres de um dentista.
+   *
+   * `diasAFrente` — e não um intervalo de datas. A API do Dental Office aceita
+   * só `dentist_id` e `next` (quantidade de dias após hoje, padrão 9); não há
+   * como pedir "de 10 a 20 de outubro". Manter um `de`/`ate` na assinatura
+   * seria prometer um recorte que o adapter não consegue cumprir, e alguém
+   * confiaria nele.
+   */
   horariosDisponiveis(opcoes: {
     clinicaExternaId: string;
     dentistaExternoId: string;
-    de: string;
-    ate: string;
+    diasAFrente: number;
     clinicId: string;
   }): Promise<SlotDisponivel[]>;
+  /**
+   * Cria a consulta.
+   *
+   * `cadeiraExternaId` é OBRIGATÓRIO na API deles, e vem do próprio horário:
+   * cada período devolvido por `available_hours` traz o `chair_id` em que ele
+   * está livre. Não é um dado que o CRC escolhe — é parte do horário.
+   */
   criarAgendamento(dados: {
     clinicaExternaId: string;
     pacienteExternoId: string;
     dentistaExternoId: string;
+    cadeiraExternaId: string;
     inicioEm: string;
     duracaoMinutos: number;
     descricao?: string;
@@ -88,10 +104,19 @@ export type PortaDentalOffice = {
     | { ok: true; externalId: string }
     | { ok: false; codigo: "SLOT_OCUPADO" | "RECUSADO"; detalhe: string }
   >;
+  /**
+   * Muda a situação da consulta no Dental Office.
+   *
+   * `situacaoExternaId` é o id da situação NAQUELA clínica, resolvido por
+   * `GET /schedule_situations`. Sem ele o adapter cai no código numérico
+   * padrão, que acerta na configuração de fábrica e pode errar numa clínica
+   * que criou situações próprias — por isso quem tem o id deve passá-lo.
+   */
   atualizarStatusAgendamento(
     clinicaExternaId: string,
     externalId: string,
     status: StatusAgendamento,
+    situacaoExternaId?: number,
   ): Promise<{ ok: boolean; detalhe: string }>;
   /** Identifica o adapter na UI e no log. `sandbox` nunca pode aparecer em produção. */
   readonly nome: "dental_office" | "sandbox";
@@ -135,13 +160,26 @@ class ClienteDentalOffice implements PortaDentalOffice {
   private async chamar(
     caminho: string,
     opcoes: {
-      metodo?: "GET" | "POST" | "PUT" | "DELETE";
+      metodo?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
       corpo?: unknown;
       query?: Record<string, string | number | undefined>;
       operacao: string;
     },
   ): Promise<unknown> {
-    const url = new URL(this.credenciais.baseUrl + caminho);
+    /*
+     * A URL BASE JÁ TERMINA EM /v1.
+     *
+     * O Dental Office entrega, junto do client_id e do secret, uma URL
+     * exclusiva do cliente — e ela vem com o /v1 no fim
+     * (`https://SEU.api.app.dentaloffice.com.br/v1`). Concatenar "/v1/..." aqui
+     * produzia `/v1/v1/customers` e um 404 em toda chamada.
+     *
+     * Tolerar as duas formas é deliberado: quem cadastrar a variável sem o /v1
+     * também funciona. Uma integração que só aceita uma grafia da URL vira
+     * chamado de suporte no dia da ativação.
+     */
+    const base = this.credenciais.baseUrl.replace(/\/+$/u, "").replace(/\/v1$/u, "");
+    const url = new URL(`${base}/v1${caminho}`);
     for (const [chave, valor] of Object.entries(opcoes.query ?? {})) {
       if (valor !== undefined) url.searchParams.set(chave, String(valor));
     }
@@ -206,30 +244,45 @@ class ClienteDentalOffice implements PortaDentalOffice {
 
   async testarConexao(): Promise<{ ok: boolean; detalhe: string }> {
     try {
-      // Item 133: GET pequeno e seguro. `limit=1` para não puxar a base.
-      await this.chamar("/v1/clinics", { query: { limit: 1 }, operacao: "testar_conexao" });
+      // `/status` é o endpoint de saúde da API deles: não devolve dado de
+      // paciente nenhum e serve exatamente para isto. Antes aqui havia
+      // `/clinics`, que não existe na API — o teste de conexão dava 404 e
+      // dizia "credenciais recusadas" mesmo com credencial correta.
+      await this.chamar("/status", { operacao: "testar_conexao" });
       return { ok: true, detalhe: "Autenticação e leitura funcionando." };
     } catch (erro) {
       return { ok: false, detalhe: erro instanceof Error ? erro.message : String(erro) };
     }
   }
 
-  async listarClinicas(): Promise<ClinicaExterna[]> {
-    const corpo = await this.chamar("/v1/clinics", { operacao: "listar_clinicas" });
-    const pagina = interpretarPagina(corpo, 1, 100);
-    return pagina.itens
-      .map((i) => mapearClinica(i))
-      .filter((r): r is { ok: true; valor: ClinicaExterna } => r.ok)
-      .map((r) => r.valor);
+  /**
+   * A API do Dental Office NÃO tem endpoint de clínicas.
+   *
+   * O `clinic_id` é parâmetro de caminho em agenda e cadeiras, e vem da
+   * configuração (`DENTAL_OFFICE_CLINIC_ID`) — não de uma listagem. Este método
+   * existe porque a porta o declara e a instalação o usa para descobrir a
+   * unidade; ele devolve a clínica configurada, e lista vazia quando ela não
+   * foi informada.
+   *
+   * Devolver vazio é melhor que inventar: a tela de Integrações mostra "nenhuma
+   * clínica" e o admin sabe qual variável falta, em vez de o sync rodar contra
+   * um id que não existe.
+   */
+  listarClinicas(): Promise<ClinicaExterna[]> {
+    const id = (process.env["DENTAL_OFFICE_CLINIC_ID"] ?? "").trim();
+    if (id.length === 0) return Promise.resolve([]);
+    return Promise.resolve([{ externalId: id, nome: "Clínica configurada" }]);
   }
 
-  async listarDentistas(clinicaExternaId: string): Promise<DentistaExterno[]> {
-    const corpo = await this.chamar(
-      `/v1/clinics/${encodeURIComponent(clinicaExternaId)}/dentists`,
-      {
-        operacao: "listar_dentistas",
-      },
-    );
+  /**
+   * `GET /dentists` — na RAIZ, e não sob a clínica.
+   *
+   * O parâmetro `clinicaExternaId` continua na assinatura porque a porta o
+   * declara e o sandbox o usa; a API real não o aceita, e ignorá-lo aqui é
+   * mais honesto que mudar a interface inteira por um endpoint.
+   */
+  async listarDentistas(_clinicaExternaId: string): Promise<DentistaExterno[]> {
+    const corpo = await this.chamar("/dentists", { operacao: "listar_dentistas" });
     const pagina = interpretarPagina(corpo, 1, 200);
     return pagina.itens
       .map((i) => mapearDentista(i))
@@ -242,15 +295,29 @@ class ClienteDentalOffice implements PortaDentalOffice {
     tamanho: number;
     atualizadosDesde?: string;
   }): Promise<LoteMapeado<PacienteExterno>> {
-    const corpo = await this.chamar("/v1/customers", {
+    /*
+     * NÃO EXISTE SINCRONIZAÇÃO INCREMENTAL DE PACIENTES.
+     *
+     * `GET /customers` aceita `q`, `page`, `clinic_id`, `active` e filtros de
+     * EXCLUSÃO — e nada de "atualizado desde". Conferido na especificação.
+     *
+     * A consequência é operacional e precisa ficar escrita: toda varredura de
+     * pacientes é completa. Com o teto de 5.000 requisições da API, isso manda
+     * o sync de pacientes ser RARO (uma vez ao dia) enquanto o de agenda pode
+     * ser frequente — porque a agenda, essa sim, filtra por `start` e `end`.
+     *
+     * O `atualizadosDesde` continua na assinatura para o dia em que eles
+     * adicionarem o filtro. Enviá-lo hoje seria só ruído na query.
+     */
+    const corpo = await this.chamar("/customers", {
       operacao: "listar_pacientes",
       query: {
         page: opcoes.pagina,
-        limit: opcoes.tamanho,
-        // Item 7 do Mega Prompt: sincronização incremental quando a API
-        // suporta. Se ela ignorar o parâmetro, cai no full sync — que é
-        // correto, só mais caro.
-        updated_since: opcoes.atualizadosDesde,
+        per_page: opcoes.tamanho,
+        // "both" traz ativos e inativos: o CRC precisa do inativo para não
+        // recriá-lo como novo a cada varredura, e as regras já filtram por
+        // `ativo` do lado de cá.
+        active: "both",
       },
     });
 
@@ -265,14 +332,28 @@ class ClienteDentalOffice implements PortaDentalOffice {
     pagina: number;
     tamanho: number;
   }): Promise<LoteMapeado<AgendamentoExterno>> {
-    const corpo = await this.chamar("/v1/schedules", {
+    /*
+     * A agenda fica SOB a clínica, e filtra por `start`/`end` — não por
+     * `start_date`/`end_date`. É este filtro que permite sincronizar a agenda
+     * com frequência sem estourar o teto de requisições, já que os pacientes
+     * não têm filtro incremental.
+     */
+    const clinica = (opcoes.clinicaExternaId ?? "").trim();
+    if (clinica.length === 0) {
+      throw new ErroHttp("Falta o identificador da clínica para listar a agenda.", {
+        status: 400,
+        transitorio: false,
+        corpo: "DENTAL_OFFICE_CLINIC_ID ausente.",
+      });
+    }
+
+    const corpo = await this.chamar(`/clinics/${encodeURIComponent(clinica)}/schedules`, {
       operacao: "listar_agendamentos",
       query: {
-        clinic_id: opcoes.clinicaExternaId,
-        start_date: opcoes.de.slice(0, 10),
-        end_date: opcoes.ate.slice(0, 10),
+        start: opcoes.de.slice(0, 10),
+        end: opcoes.ate.slice(0, 10),
         page: opcoes.pagina,
-        limit: opcoes.tamanho,
+        per_page: opcoes.tamanho,
       },
     });
 
@@ -285,7 +366,7 @@ class ClienteDentalOffice implements PortaDentalOffice {
     externalId: string,
   ): Promise<AgendamentoExterno | null> {
     const corpo = await this.chamar(
-      `/v1/clinics/${encodeURIComponent(clinicaExternaId)}/schedules/${encodeURIComponent(externalId)}`,
+      `/clinics/${encodeURIComponent(clinicaExternaId)}/schedules/${encodeURIComponent(externalId)}`,
       { operacao: "obter_agendamento" },
     );
     if (corpo === null) return null;
@@ -296,17 +377,24 @@ class ClienteDentalOffice implements PortaDentalOffice {
   async horariosDisponiveis(opcoes: {
     clinicaExternaId: string;
     dentistaExternoId: string;
-    de: string;
-    ate: string;
+    diasAFrente: number;
     clinicId: string;
   }): Promise<SlotDisponivel[]> {
+    /*
+     * `next` é a QUANTIDADE DE DIAS após hoje, e não uma data.
+     *
+     * O padrão da API é 9. O teto de 60 aqui é nosso: pedir "os próximos 365
+     * dias" devolveria uma resposta enorme para um caso que não existe — quem
+     * marca consulta escolhe entre horários das próximas semanas, não do ano
+     * que vem.
+     */
+    const dias = Math.max(1, Math.min(60, Math.floor(opcoes.diasAFrente)));
+
     const corpo = await this.chamar(
-      `/v1/clinics/${encodeURIComponent(opcoes.clinicaExternaId)}/dentists/${encodeURIComponent(
-        opcoes.dentistaExternoId,
-      )}/available_hours`,
+      `/clinics/${encodeURIComponent(opcoes.clinicaExternaId)}/schedules/available_hours`,
       {
         operacao: "horarios_disponiveis",
-        query: { start_date: opcoes.de.slice(0, 10), end_date: opcoes.ate.slice(0, 10) },
+        query: { dentist_id: opcoes.dentistaExternoId, next: dias },
       },
     );
 
@@ -321,6 +409,7 @@ class ClienteDentalOffice implements PortaDentalOffice {
     clinicaExternaId: string;
     pacienteExternoId: string;
     dentistaExternoId: string;
+    cadeiraExternaId: string;
     inicioEm: string;
     duracaoMinutos: number;
     descricao?: string;
@@ -329,21 +418,34 @@ class ClienteDentalOffice implements PortaDentalOffice {
     | { ok: false; codigo: "SLOT_OCUPADO" | "RECUSADO"; detalhe: string }
   > {
     try {
-      const corpo = await this.chamar("/v1/schedules", {
-        metodo: "POST",
-        operacao: "criar_agendamento",
-        corpo: {
-          clinic_id: dados.clinicaExternaId,
-          customer_id: dados.pacienteExternoId,
-          dentist_id: dados.dentistaExternoId,
-          start: dados.inicioEm,
-          end: new Date(Date.parse(dados.inicioEm) + dados.duracaoMinutos * 60000).toISOString(),
-          description: dados.descricao ?? "Agendado pelo JP CRC",
-          // 1 = Confirmar. Nasce pendente de confirmação, como qualquer
-          // agendamento feito pela recepção.
-          status: codigoDeStatusAgendamento("TO_CONFIRM"),
+      /*
+       * O CORPO É ANINHADO EM `schedule`, e a cadeira é obrigatória.
+       *
+       * `schedule_situation_id` fica de FORA de propósito: o id da situação é
+       * criado por clínica (a API expõe `POST /schedule_situations`), então
+       * mandar um número fixo daqui acertaria numa clínica e erraria em outra.
+       * Sem ele, a consulta nasce na situação padrão do Dental Office — que é
+       * exatamente o que a recepção veria ao marcar pela tela deles.
+       */
+      const corpo = await this.chamar(
+        `/clinics/${encodeURIComponent(dados.clinicaExternaId)}/schedules`,
+        {
+          metodo: "POST",
+          operacao: "criar_agendamento",
+          corpo: {
+            schedule: {
+              customer_id: dados.pacienteExternoId,
+              dentist_id: dados.dentistaExternoId,
+              chair_id: dados.cadeiraExternaId,
+              start: dados.inicioEm,
+              end: new Date(
+                Date.parse(dados.inicioEm) + dados.duracaoMinutos * 60000,
+              ).toISOString(),
+              obs: dados.descricao ?? "Agendado pelo JP CRC",
+            },
+          },
         },
-      });
+      );
 
       const id =
         typeof corpo === "object" && corpo !== null && "id" in corpo
@@ -372,14 +474,39 @@ class ClienteDentalOffice implements PortaDentalOffice {
     clinicaExternaId: string,
     externalId: string,
     status: StatusAgendamento,
+    situacaoExternaId?: number,
   ): Promise<{ ok: boolean; detalhe: string }> {
     try {
+      /*
+       * PATCH, e não PUT — a API diz "envie apenas os atributos a serem
+       * alterados". Um PUT trocaria o registro inteiro e apagaria o que o CRC
+       * não conhece (cadeira, motivo, observação da recepção).
+       *
+       * NÃO PADRONIZE O VERBO DESTE ARQUIVO. A API do Dental Office mistura os
+       * dois de propósito, e conferimos recurso por recurso na especificação:
+       *
+       *   PUT    cadeiras, disciplinas, motivos, situações
+       *   PATCH  pacientes, dentistas, usuários, imagens, documentos, AGENDA
+       *
+       * O CRC só escreve em agenda, então aqui é PATCH. Trocar por PUT
+       * "para ficar igual ao resto" é o tipo de arrumação que parece limpeza e
+       * apaga dado da recepção.
+       *
+       * A situação vai pelo id numérico porque não há outro caminho de
+       * escrita: o `label` é só de leitura. Quem chama precisa ter resolvido o
+       * id via `GET /schedule_situations` — e é por isso que
+       * `situacaoExternaId` existe na assinatura.
+       */
       await this.chamar(
-        `/v1/clinics/${encodeURIComponent(clinicaExternaId)}/schedules/${encodeURIComponent(externalId)}`,
+        `/clinics/${encodeURIComponent(clinicaExternaId)}/schedules/${encodeURIComponent(externalId)}`,
         {
-          metodo: "PUT",
+          metodo: "PATCH",
           operacao: "atualizar_status_agendamento",
-          corpo: { status: codigoDeStatusAgendamento(status) },
+          corpo: {
+            schedule: {
+              schedule_situation_id: situacaoExternaId ?? codigoDeStatusAgendamento(status),
+            },
+          },
         },
       );
       return { ok: true, detalhe: "Status atualizado no Dental Office." };

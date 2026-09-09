@@ -1,0 +1,1069 @@
+clinics/{clinic_id}/schedules:
+  get:
+    tags:
+    - Agendamentos
+    summary: Listar Agendamentos
+    description: Lista os agendamentos da clínica.
+    security:
+    - bearerAuth: []
+    parameters:
+    - name: q
+      in: query
+      schema:
+        type: string
+      description: Busca
+    - name: page
+      in: query
+      schema:
+        type: integer
+      description: Página
+    - name: dentist_id
+      in: query
+      schema:
+        type: integer
+      description: Identificador do dentista
+    - name: start
+      in: query
+      schema:
+        type: string
+        format: date
+      description: Data inicial da busca
+    - name: end
+      in: query
+      schema:
+        type: string
+        format: date
+      description: Data final da busca
+    - name: chair_id
+      in: query
+      schema:
+        type: integer
+      description: Identificador de cadeira
+    - name: customer_id
+      in: query
+      schema:
+        type: integer
+      description: Identificador do paciente
+    - name: schedule_situation
+      in: query
+      schema:
+        type: integer
+      description: Identificador da situação do agendamento
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+            - id: 2
+              clinic_id: 1
+              chair_id: 1
+              dentist_id: 1
+              customer_id: 1
+              description: Ana Silva (paciente exemplo)
+              schedule_start: '2023-03-03T12:30:00.000Z'
+              schedule_end: '2023-03-03T13:00:00.000Z'
+              phone: null
+              cellphone: null
+              email: null
+              duration: 30
+              periodic: null
+              notes: null
+              schedule_type_id: 1
+              schedule_reason_id: 2
+              schedule_situation_id: 4
+              marketing_action_id: null
+              arrived_at: null
+              served_at: null
+              sms_confirmation: null
+              personal: false
+              teleconsultation: null
+              confirm_by_sms: null
+              confirm_by_whatsapp: null
+              confirmed_by_whatsapp: null
+              public: false
+              discipline_id: null
+              title: Ana Silva (paciente exemplo)
+              start: '2023-03-03T12:30:00.000Z'
+              end: '2023-03-03T13:00:00.000Z'
+              record_number: '1'
+              schedule_situation:
+                id: 4
+                name: Faltou
+                color: '#e74b4b'
+                font_color: '#ffffff'
+                label: absence
+              textColor: '#ffffff'
+              borderColor: '#8a2c2c'
+              backgroundColor: '#e74b4b'
+              className: absence
+              schedule_reason:
+                id: 2
+                name: Cirurgia
+              schedule_type:
+                id: 1
+                name: Consulta
+                color: null
+                font_color: null
+              customer:
+                id: 1
+                name: Ana Silva (paciente exemplo)
+                photo_url:
+                  thumb: url da imagem
+                  medium: url da imagem
+                  original: url da imagem
+                contacts_attributes:
+                - id: 1
+                  phone: (11) 95092-5252
+                  cellphone: (11) 93802-6902
+                  email: ana_silva@dentaloffice.com.br
+                dental_insurance_name: Particular
+              chair:
+                id: 1
+                name: Cadeira Principal
+                created_at: '2015-01-01T01:02:03.000Z'
+                updated_at: '2015-01-01T01:02:03.000Z'
+                deleted_at: null
+              dentist:
+                id: 1
+                name: Dentista 1
+                specialty_id: 2
+                duration: 30
+                birth_date: null
+                rg: null
+                cpf: null
+                cr_type: null
+                cr_number: null
+                cr_uf: null
+                commission_type: 0
+                commission_percent: '50.0'
+                commission_prosthetic: true
+                commission_prosthetic_percent: '1.0'
+                semester: null
+                register_number: null
+                dentist_type: dentist
+                chair_ids: []
+                gender: 0
+                memed_id: null
+                user_id: null
+                deleted_at: null
+                cnes: null
+                hired_tiss: null
+                cbos: null
+                created_at: '2015-01-01T01:02:03.000Z'
+                updated_at: '2023-03-13T12:24:18.000Z'
+  post:
+    tags:
+    - Agendamentos
+    summary: Criar Agendamento
+    description: Gera um registro de agendamento.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              schedule:
+                type: object
+                properties:
+                  chair_id:
+                    type: integer
+                    description: Identificador da cadeira
+                  dentist_id:
+                    type: integer
+                    description: Identificador do dentista
+                  customer_id:
+                    type: integer
+                    description: Identificador do paciente
+                  schedule_type_id:
+                    type: integer
+                    description: Identificador do tipo de agendamento
+                  schedule_situation_id:
+                    type: integer
+                    description: Identificador da situação do agendamento
+                  schedule_reason_id:
+                    type: integer
+                    description: Identificador do motivo do agendamento
+                  start:
+                    type: string
+                    format: date-time
+                    description: Data e hora de início
+                  end:
+                    type: string
+                    format: date-time
+                    description: Data e hora de fim
+                  obs:
+                    type: string
+                    description: Observações
+                  note:
+                    type: string
+                    description: Nota
+                  customer_name:
+                    type: string
+                    description: Nome do paciente (quando não informar customer_id)
+                  customer_phone:
+                    type: string
+                    description: Telefone do paciente
+                required:
+                - chair_id
+                - dentist_id
+                - start
+                - end
+          example:
+            schedule:
+              chair_id: 1
+              dentist_ids:
+              - 1
+              customer_id: 3
+              schedule_start: '2024-11-30 11:00:00'
+              duration: 30
+              discipline_id: 1
+    security:
+    - bearerAuth: []
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 4
+              clinic_id: 1
+              chair_id: 1
+              dentist_id: 1
+              customer_id: 1
+              description: null
+              schedule_start: '2023-01-03T12:00:00.000Z'
+              schedule_end: '2023-01-03T12:30:00.000Z'
+              phone: null
+              cellphone: null
+              email: null
+              duration: 30
+              periodic: null
+              notes: null
+              schedule_type_id: 1
+              schedule_reason_id: null
+              schedule_situation_id: 1
+              marketing_action_id: null
+              arrived_at: null
+              served_at: null
+              deleted_at: null
+              created_at: '2023-03-09T12:19:11.075Z'
+              updated_at: '2023-03-09T12:19:11.075Z'
+              sms_confirmation: null
+              personal: false
+              schedule_integration_id: 1
+              confirm_by_whatsapp: null
+              confirm_by_sms: null
+              confirmed_by_whatsapp: null
+              teleconsultation: null
+              job_id: null
+              periodic_schedule_id: null
+              public: false
+              discipline_id: null
+              imported: false
+  parameters:
+  - name: clinic_id
+    in: path
+    schema:
+      type: string
+    required: true
+clinics/{clinic_id}/schedules/{id}:
+  get:
+    tags:
+    - Agendamentos
+    summary: Ver Agendamento
+    description: Apresenta os dados de determinado agendamento.
+    security:
+    - bearerAuth: []
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 1
+              clinic_id: 1
+              chair_id: 1
+              dentist_id: 1
+              customer_id: 1
+              description: Ana Silva (paciente exemplo)
+              schedule_start: '2023-02-06T13:00:00.000Z'
+              schedule_end: '2023-02-06T13:30:00.000Z'
+              phone: null
+              cellphone: null
+              email: null
+              duration: 30
+              periodic: null
+              notes: null
+              schedule_type_id: 1
+              schedule_reason_id: 3
+              schedule_situation_id: 7
+              marketing_action_id: null
+              arrived_at: null
+              served_at: null
+              sms_confirmation: null
+              personal: false
+              teleconsultation: null
+              confirm_by_sms: null
+              confirm_by_whatsapp: null
+              confirmed_by_whatsapp: null
+              public: false
+              discipline_id: null
+              customer:
+                id: 1
+                title: Sra.
+                name: Ana Silva (paciente exemplo)
+                photo: local da imagem
+                record_number: '1'
+                customer_group_id: 1
+                customer_situation_id: 1
+                record_date: '2023-03-08'
+                gender: 1
+                dental_arcade: null
+                birth_date: '1990-01-01'
+                birth_place: Arujá
+                marital_status: 1
+                dentist_id: 1
+                document_id: 1
+                is_holder: true
+                holder_id: null
+                company_id: null
+                department: null
+                profession_id: null
+                father_name: João Silva
+                father_profession_id: null
+                mother_name: Maria Silva
+                mother_profession_id: null
+                is_sponsor: true
+                sponsor_id: null
+                indicator_id: 2
+                indicator_type: null
+                payment_credit: '0.0'
+                father_rg: null
+                father_cpf: null
+                father_phone: null
+                mother_rg: null
+                mother_cpf: null
+                mother_phone: null
+                obs: null
+                active: true
+                asaas_sms_notifications: false
+                created_at: '2023-03-08T19:50:34.000Z'
+                updated_at: '2023-03-09T12:19:11.000Z'
+                contacts_attributes:
+                - id: 1
+                  contact_type: null
+                  name: null
+                  email: ana_silva@dentaloffice.com.br
+                  phone: (11) 95092-5252
+                  cellphone: (11) 93802-6902
+                  fax: (11) 4652-6047
+                  homepage: null
+                  message_phone: (11) 95092-5252
+                  message_contact: Maria
+                  created_at: '2023-03-08T19:50:34.000Z'
+                  updated_at: '2023-03-08T19:50:34.000Z'
+                photo_url:
+                  thumb: url da imagem
+                  medium: url da imagem
+                  original: url imagem
+              dentist:
+                id: 1
+                name: Dentista 1
+                specialty_id: 2
+                duration: 30
+                birth_date: null
+                rg: null
+                cpf: null
+                cr_type: null
+                cr_number: null
+                cr_uf: null
+                commission_type: 0
+                commission_percent: null
+                commission_prosthetic: false
+                commission_prosthetic_percent: null
+                semester: null
+                register_number: null
+                dentist_type: dentist
+                chair_ids: []
+                gender: null
+                memed_id: null
+                user_id: null
+                deleted_at: null
+                cnes: null
+                hired_tiss: null
+                cbos: null
+                created_at: '2015-01-01T01:02:03.000Z'
+                updated_at: '2015-01-01T01:02:03.000Z'
+              chair:
+                id: 1
+                name: Cadeira Principal
+                created_at: '2015-01-01T01:02:03.000Z'
+                updated_at: '2015-01-01T01:02:03.000Z'
+                deleted_at: null
+              schedule_situation:
+                id: 7
+                name: Atendido
+                color: '#3a63a1'
+                font_color: '#ffffff'
+                label: fulfilled
+              schedule_reason:
+                id: 3
+                name: Profilaxia
+              schedule_type:
+                id: 1
+                name: Consulta
+                color: null
+                font_color: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  patch:
+    tags:
+    - Agendamentos
+    summary: Alterar Agendamento
+    description: Altera um registro de agendamento, basta enviar apenas os atributos a serem alterados.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              schedule:
+                type: object
+                properties:
+                  chair_id:
+                    type: integer
+                    description: Identificador da cadeira
+                  dentist_id:
+                    type: integer
+                    description: Identificador do dentista
+                  customer_id:
+                    type: integer
+                    description: Identificador do paciente
+                  schedule_type_id:
+                    type: integer
+                    description: Identificador do tipo de agendamento
+                  schedule_situation_id:
+                    type: integer
+                    description: Identificador da situação do agendamento
+                  schedule_reason_id:
+                    type: integer
+                    description: Identificador do motivo do agendamento
+                  start:
+                    type: string
+                    format: date-time
+                    description: Data e hora de início
+                  end:
+                    type: string
+                    format: date-time
+                    description: Data e hora de fim
+                  obs:
+                    type: string
+                    description: Observações
+                  note:
+                    type: string
+                    description: Nota
+                  customer_name:
+                    type: string
+                    description: Nome do paciente
+                  customer_phone:
+                    type: string
+                    description: Telefone do paciente
+          example:
+            schedule:
+              schedule_start: '2023-01-05 12:00:00'
+    security:
+    - bearerAuth: []
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+  delete:
+    tags:
+    - Agendamentos
+    summary: Remover Agendamento
+    description: Exclui o registro de agendamento.
+    security:
+    - bearerAuth: []
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+  parameters:
+  - name: clinic_id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'
+  - name: id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'
+clinics/{clinic_id}/schedules/available_hours:
+  get:
+    tags:
+    - Agendamentos
+    summary: Horários Disponíveis
+    description: Retorna os horários disponíveis de um determinado dentista na clínica.
+    security:
+    - bearerAuth: []
+    parameters:
+    - name: dentist_id
+      in: query
+      schema:
+        type: integer
+      description: (REQUIRED) Identificador do Dentista
+      example: '1'
+    - name: next
+      in: query
+      schema:
+        type: integer
+      description: Quantidade de dias após o dia atual, por padrão é 9
+      example: '2'
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              example-0:
+                summary: 200 - OK
+                value:
+                - date: '2023-03-15'
+                  periods:
+                  - start_time: '2023-03-15T08:00:00.000Z'
+                    end_time: '2023-03-15T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T08:30:00.000Z'
+                    end_time: '2023-03-15T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T09:00:00.000Z'
+                    end_time: '2023-03-15T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T09:30:00.000Z'
+                    end_time: '2023-03-15T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T10:00:00.000Z'
+                    end_time: '2023-03-15T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T10:30:00.000Z'
+                    end_time: '2023-03-15T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T11:00:00.000Z'
+                    end_time: '2023-03-15T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T11:30:00.000Z'
+                    end_time: '2023-03-15T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T14:00:00.000Z'
+                    end_time: '2023-03-15T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T14:30:00.000Z'
+                    end_time: '2023-03-15T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T15:00:00.000Z'
+                    end_time: '2023-03-15T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T15:30:00.000Z'
+                    end_time: '2023-03-15T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T16:00:00.000Z'
+                    end_time: '2023-03-15T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T16:30:00.000Z'
+                    end_time: '2023-03-15T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T17:00:00.000Z'
+                    end_time: '2023-03-15T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-15T17:30:00.000Z'
+                    end_time: '2023-03-15T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-16'
+                  periods:
+                  - start_time: '2023-03-16T08:00:00.000Z'
+                    end_time: '2023-03-16T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T08:30:00.000Z'
+                    end_time: '2023-03-16T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T09:00:00.000Z'
+                    end_time: '2023-03-16T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T09:30:00.000Z'
+                    end_time: '2023-03-16T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T10:00:00.000Z'
+                    end_time: '2023-03-16T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T10:30:00.000Z'
+                    end_time: '2023-03-16T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T11:00:00.000Z'
+                    end_time: '2023-03-16T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T11:30:00.000Z'
+                    end_time: '2023-03-16T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T14:00:00.000Z'
+                    end_time: '2023-03-16T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T14:30:00.000Z'
+                    end_time: '2023-03-16T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T15:00:00.000Z'
+                    end_time: '2023-03-16T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T15:30:00.000Z'
+                    end_time: '2023-03-16T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T16:00:00.000Z'
+                    end_time: '2023-03-16T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T16:30:00.000Z'
+                    end_time: '2023-03-16T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T17:00:00.000Z'
+                    end_time: '2023-03-16T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T17:30:00.000Z'
+                    end_time: '2023-03-16T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-17'
+                  periods:
+                  - start_time: '2023-03-17T08:00:00.000Z'
+                    end_time: '2023-03-17T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T08:30:00.000Z'
+                    end_time: '2023-03-17T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T09:00:00.000Z'
+                    end_time: '2023-03-17T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T09:30:00.000Z'
+                    end_time: '2023-03-17T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T10:00:00.000Z'
+                    end_time: '2023-03-17T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T10:30:00.000Z'
+                    end_time: '2023-03-17T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T11:00:00.000Z'
+                    end_time: '2023-03-17T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T11:30:00.000Z'
+                    end_time: '2023-03-17T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T14:00:00.000Z'
+                    end_time: '2023-03-17T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T14:30:00.000Z'
+                    end_time: '2023-03-17T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T15:00:00.000Z'
+                    end_time: '2023-03-17T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T15:30:00.000Z'
+                    end_time: '2023-03-17T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T16:00:00.000Z'
+                    end_time: '2023-03-17T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T16:30:00.000Z'
+                    end_time: '2023-03-17T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T17:00:00.000Z'
+                    end_time: '2023-03-17T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T17:30:00.000Z'
+                    end_time: '2023-03-17T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-20'
+                  periods:
+                  - start_time: '2023-03-20T08:00:00.000Z'
+                    end_time: '2023-03-20T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T08:30:00.000Z'
+                    end_time: '2023-03-20T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T09:00:00.000Z'
+                    end_time: '2023-03-20T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T09:30:00.000Z'
+                    end_time: '2023-03-20T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T10:00:00.000Z'
+                    end_time: '2023-03-20T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T10:30:00.000Z'
+                    end_time: '2023-03-20T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T11:00:00.000Z'
+                    end_time: '2023-03-20T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T11:30:00.000Z'
+                    end_time: '2023-03-20T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T14:00:00.000Z'
+                    end_time: '2023-03-20T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T14:30:00.000Z'
+                    end_time: '2023-03-20T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T15:00:00.000Z'
+                    end_time: '2023-03-20T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T15:30:00.000Z'
+                    end_time: '2023-03-20T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T16:00:00.000Z'
+                    end_time: '2023-03-20T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T16:30:00.000Z'
+                    end_time: '2023-03-20T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T17:00:00.000Z'
+                    end_time: '2023-03-20T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-20T17:30:00.000Z'
+                    end_time: '2023-03-20T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-21'
+                  periods:
+                  - start_time: '2023-03-21T08:00:00.000Z'
+                    end_time: '2023-03-21T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T08:30:00.000Z'
+                    end_time: '2023-03-21T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T09:00:00.000Z'
+                    end_time: '2023-03-21T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T09:30:00.000Z'
+                    end_time: '2023-03-21T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T10:00:00.000Z'
+                    end_time: '2023-03-21T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T10:30:00.000Z'
+                    end_time: '2023-03-21T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T11:00:00.000Z'
+                    end_time: '2023-03-21T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T11:30:00.000Z'
+                    end_time: '2023-03-21T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T14:00:00.000Z'
+                    end_time: '2023-03-21T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T14:30:00.000Z'
+                    end_time: '2023-03-21T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T15:00:00.000Z'
+                    end_time: '2023-03-21T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T15:30:00.000Z'
+                    end_time: '2023-03-21T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T16:00:00.000Z'
+                    end_time: '2023-03-21T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T16:30:00.000Z'
+                    end_time: '2023-03-21T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T17:00:00.000Z'
+                    end_time: '2023-03-21T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-21T17:30:00.000Z'
+                    end_time: '2023-03-21T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-22'
+                  periods:
+                  - start_time: '2023-03-22T08:00:00.000Z'
+                    end_time: '2023-03-22T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T08:30:00.000Z'
+                    end_time: '2023-03-22T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T09:00:00.000Z'
+                    end_time: '2023-03-22T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T09:30:00.000Z'
+                    end_time: '2023-03-22T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T10:00:00.000Z'
+                    end_time: '2023-03-22T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T10:30:00.000Z'
+                    end_time: '2023-03-22T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T11:00:00.000Z'
+                    end_time: '2023-03-22T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T11:30:00.000Z'
+                    end_time: '2023-03-22T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T14:00:00.000Z'
+                    end_time: '2023-03-22T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T14:30:00.000Z'
+                    end_time: '2023-03-22T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T15:00:00.000Z'
+                    end_time: '2023-03-22T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T15:30:00.000Z'
+                    end_time: '2023-03-22T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T16:00:00.000Z'
+                    end_time: '2023-03-22T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T16:30:00.000Z'
+                    end_time: '2023-03-22T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T17:00:00.000Z'
+                    end_time: '2023-03-22T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-22T17:30:00.000Z'
+                    end_time: '2023-03-22T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-23'
+                  periods:
+                  - start_time: '2023-03-23T08:00:00.000Z'
+                    end_time: '2023-03-23T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T08:30:00.000Z'
+                    end_time: '2023-03-23T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T09:00:00.000Z'
+                    end_time: '2023-03-23T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T09:30:00.000Z'
+                    end_time: '2023-03-23T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T10:00:00.000Z'
+                    end_time: '2023-03-23T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T10:30:00.000Z'
+                    end_time: '2023-03-23T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T11:00:00.000Z'
+                    end_time: '2023-03-23T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T11:30:00.000Z'
+                    end_time: '2023-03-23T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T14:00:00.000Z'
+                    end_time: '2023-03-23T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T14:30:00.000Z'
+                    end_time: '2023-03-23T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T15:00:00.000Z'
+                    end_time: '2023-03-23T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T15:30:00.000Z'
+                    end_time: '2023-03-23T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T16:00:00.000Z'
+                    end_time: '2023-03-23T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T16:30:00.000Z'
+                    end_time: '2023-03-23T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T17:00:00.000Z'
+                    end_time: '2023-03-23T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-23T17:30:00.000Z'
+                    end_time: '2023-03-23T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-24'
+                  periods:
+                  - start_time: '2023-03-24T08:00:00.000Z'
+                    end_time: '2023-03-24T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T08:30:00.000Z'
+                    end_time: '2023-03-24T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T09:00:00.000Z'
+                    end_time: '2023-03-24T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T09:30:00.000Z'
+                    end_time: '2023-03-24T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T10:00:00.000Z'
+                    end_time: '2023-03-24T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T10:30:00.000Z'
+                    end_time: '2023-03-24T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T11:00:00.000Z'
+                    end_time: '2023-03-24T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T11:30:00.000Z'
+                    end_time: '2023-03-24T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T14:00:00.000Z'
+                    end_time: '2023-03-24T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T14:30:00.000Z'
+                    end_time: '2023-03-24T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T15:00:00.000Z'
+                    end_time: '2023-03-24T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T15:30:00.000Z'
+                    end_time: '2023-03-24T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T16:00:00.000Z'
+                    end_time: '2023-03-24T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T16:30:00.000Z'
+                    end_time: '2023-03-24T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T17:00:00.000Z'
+                    end_time: '2023-03-24T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-24T17:30:00.000Z'
+                    end_time: '2023-03-24T18:00:00.000Z'
+                    chair_id: 1
+              example-1:
+                summary: 200 - OK
+                value:
+                - date: '2023-03-16'
+                  periods:
+                  - start_time: '2023-03-16T08:00:00.000Z'
+                    end_time: '2023-03-16T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T08:30:00.000Z'
+                    end_time: '2023-03-16T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T09:00:00.000Z'
+                    end_time: '2023-03-16T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T09:30:00.000Z'
+                    end_time: '2023-03-16T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T10:00:00.000Z'
+                    end_time: '2023-03-16T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T10:30:00.000Z'
+                    end_time: '2023-03-16T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T11:00:00.000Z'
+                    end_time: '2023-03-16T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T11:30:00.000Z'
+                    end_time: '2023-03-16T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T14:00:00.000Z'
+                    end_time: '2023-03-16T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T14:30:00.000Z'
+                    end_time: '2023-03-16T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T15:00:00.000Z'
+                    end_time: '2023-03-16T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T15:30:00.000Z'
+                    end_time: '2023-03-16T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T16:00:00.000Z'
+                    end_time: '2023-03-16T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T16:30:00.000Z'
+                    end_time: '2023-03-16T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T17:00:00.000Z'
+                    end_time: '2023-03-16T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-16T17:30:00.000Z'
+                    end_time: '2023-03-16T18:00:00.000Z'
+                    chair_id: 1
+                - date: '2023-03-17'
+                  periods:
+                  - start_time: '2023-03-17T08:00:00.000Z'
+                    end_time: '2023-03-17T08:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T08:30:00.000Z'
+                    end_time: '2023-03-17T09:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T09:00:00.000Z'
+                    end_time: '2023-03-17T09:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T09:30:00.000Z'
+                    end_time: '2023-03-17T10:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T10:00:00.000Z'
+                    end_time: '2023-03-17T10:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T10:30:00.000Z'
+                    end_time: '2023-03-17T11:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T11:00:00.000Z'
+                    end_time: '2023-03-17T11:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T11:30:00.000Z'
+                    end_time: '2023-03-17T12:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T14:00:00.000Z'
+                    end_time: '2023-03-17T14:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T14:30:00.000Z'
+                    end_time: '2023-03-17T15:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T15:00:00.000Z'
+                    end_time: '2023-03-17T15:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T15:30:00.000Z'
+                    end_time: '2023-03-17T16:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T16:00:00.000Z'
+                    end_time: '2023-03-17T16:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T16:30:00.000Z'
+                    end_time: '2023-03-17T17:00:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T17:00:00.000Z'
+                    end_time: '2023-03-17T17:30:00.000Z'
+                    chair_id: 1
+                  - start_time: '2023-03-17T17:30:00.000Z'
+                    end_time: '2023-03-17T18:00:00.000Z'
+                    chair_id: 1
+  parameters:
+  - name: clinic_id
+    in: path
+    schema:
+      type: integer
+    required: true
+    description: Identificador da Clínica
+    example: '1'

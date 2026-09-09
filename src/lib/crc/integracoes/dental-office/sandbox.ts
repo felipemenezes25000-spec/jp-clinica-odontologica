@@ -298,10 +298,18 @@ class SandboxDentalOffice implements PortaDentalOffice {
    * sandbox ofereceria um horário e recusaria a criação nele, o que faria
    * parecer bug no fluxo de agendamento.
    */
+  /**
+   * Espelha a API real: `next` é a QUANTIDADE DE DIAS após hoje, e cada
+   * período livre carrega a cadeira em que ele está.
+   *
+   * O sandbox precisa mentir o MENOS possível. Foi justamente ele que deixou
+   * um adapter inteiro passar nos testes contra uma API inventada — se ele
+   * aceitar um intervalo de datas que a API real não aceita, o mesmo erro
+   * volta na próxima mudança.
+   */
   horariosDisponiveis(opcoes: {
     dentistaExternoId: string;
-    de: string;
-    ate: string;
+    diasAFrente: number;
     clinicId: string;
   }): Promise<SlotDisponivel[]> {
     const ocupados = new Set(
@@ -311,8 +319,8 @@ class SandboxDentalOffice implements PortaDentalOffice {
     );
 
     const slots: SlotDisponivel[] = [];
-    const de = new Date(Date.parse(opcoes.de));
-    const ate = Date.parse(opcoes.ate);
+    const de = new Date();
+    const ate = Date.now() + Math.max(1, Math.min(60, opcoes.diasAFrente)) * DIA;
 
     for (let d = new Date(de); d.getTime() <= ate; d = new Date(d.getTime() + DIA)) {
       const diaSemana = d.getUTCDay();
@@ -331,6 +339,9 @@ class SandboxDentalOffice implements PortaDentalOffice {
           slots.push({
             clinicId: opcoes.clinicId,
             dentistaExternoId: opcoes.dentistaExternoId,
+            // Uma cadeira só no sandbox: a clínica de teste tem a "cad-1", e é
+            // a mesma que `criarAgendamento` grava.
+            cadeiraExternaId: "cad-1",
             inicioEm: iso,
             fimEm: new Date(inicio.getTime() + 30 * 60000).toISOString(),
             duracaoMinutos: 30,
@@ -345,6 +356,7 @@ class SandboxDentalOffice implements PortaDentalOffice {
   criarAgendamento(dados: {
     pacienteExternoId: string;
     dentistaExternoId: string;
+    cadeiraExternaId: string;
     inicioEm: string;
     duracaoMinutos: number;
     descricao?: string;
@@ -376,7 +388,7 @@ class SandboxDentalOffice implements PortaDentalOffice {
       clinicaExternaId: "clin-1",
       dentistaExternoId: dados.dentistaExternoId,
       dentistaNome: "Dra. Juliana Pelisser",
-      cadeiraExternaId: "cad-1",
+      cadeiraExternaId: dados.cadeiraExternaId,
       inicioEm: dados.inicioEm,
       fimEm: new Date(Date.parse(dados.inicioEm) + dados.duracaoMinutos * 60000).toISOString(),
       descricao: dados.descricao ?? "Agendado pelo JP CRC (sandbox)",

@@ -72,6 +72,8 @@ export type ContextoAgendamento = {
 /** O que o paciente vê, já pronto para entrar na mensagem. */
 export type OpcaoDeHorario = OpcaoOferecida & {
   dentistaExternoId: string;
+  /** A cadeira em que este horário está livre. Exigida para criar a consulta. */
+  cadeiraExternaId: string;
   duracaoMinutos: number;
   fimEm: string;
   dentistaNome: string | null;
@@ -158,8 +160,15 @@ export async function oferecerHorarios(
     };
   }
 
-  const de = ctx.agora.toISOString();
-  const ate = new Date(ctx.agora.getTime() + (pedido.janelaDias ?? 14) * 86_400_000).toISOString();
+  /*
+   * DIAS À FRENTE, e não um intervalo de datas.
+   *
+   * A API do Dental Office aceita só `dentist_id` e `next` em
+   * `available_hours` — não existe "de 10 a 20 de outubro". Guardar o
+   * horizonte como número de dias é o que o adapter consegue cumprir de
+   * verdade; um `de`/`ate` aqui seria uma promessa que morre na borda.
+   */
+  const diasAFrente = pedido.janelaDias ?? 14;
 
   const encontrados: SlotDisponivel[] = [];
   for (const dentistaExternoId of dentistas) {
@@ -167,8 +176,7 @@ export async function oferecerHorarios(
       const slots = await ctx.cliente.horariosDisponiveis({
         clinicaExternaId: ctx.clinicaExternaId,
         dentistaExternoId,
-        de,
-        ate,
+        diasAFrente,
         clinicId: ctx.clinicId,
       });
       encontrados.push(...slots);
@@ -208,6 +216,7 @@ export async function oferecerHorarios(
   const opcoes: OpcaoDeHorario[] = [...porDia.values()].map((s) => ({
     ...descreverSlot(s, ctx.configuracao.horarioComercial.fuso),
     dentistaExternoId: s.dentistaExternoId,
+    cadeiraExternaId: s.cadeiraExternaId,
     duracaoMinutos: s.duracaoMinutos,
     fimEm: s.fimEm,
     dentistaNome: nomes.get(s.dentistaExternoId) ?? null,
@@ -382,6 +391,9 @@ async function reservar(
     clinicaExternaId: ctx.clinicaExternaId,
     pacienteExternoId,
     dentistaExternoId: opcao.dentistaExternoId,
+    // A cadeira não é escolha nossa: ela veio junto do horário livre, e a API
+    // do Dental Office a exige para criar a consulta.
+    cadeiraExternaId: opcao.cadeiraExternaId,
     inicioEm: opcao.inicioEm,
     duracaoMinutos: opcao.duracaoMinutos,
     descricao: "Agendado pelo JP CRC",
@@ -467,11 +479,19 @@ async function reservar(
  */
 async function slotAindaLivre(ctx: ContextoAgendamento, opcao: OpcaoDeHorario): Promise<boolean> {
   try {
+    /*
+     * A REVALIDAÇÃO PEDE A JANELA ATÉ O DIA DA CONSULTA.
+     *
+     * Não dá para perguntar "este minuto ainda está livre?": a API só aceita
+     * "os próximos N dias". Então pede-se até o dia do horário e procura-se o
+     * instante exato na resposta. Custa alguns kilobytes a mais e preserva a
+     * garantia que importa — só grava o que a agenda ainda oferece.
+     */
+    const diasAte = Math.ceil((Date.parse(opcao.inicioEm) - ctx.agora.getTime()) / 86_400_000);
     const slots = await ctx.cliente.horariosDisponiveis({
       clinicaExternaId: ctx.clinicaExternaId,
       dentistaExternoId: opcao.dentistaExternoId,
-      de: opcao.inicioEm,
-      ate: new Date(new Date(opcao.inicioEm).getTime() + 60_000).toISOString(),
+      diasAFrente: Math.max(1, diasAte + 1),
       clinicId: ctx.clinicId,
     });
     return slots.some((s) => s.inicioEm === opcao.inicioEm);
@@ -565,6 +585,7 @@ function lerOpcoes(bruto: unknown): OpcaoDeHorario[] {
       horaLocal,
       diaLocal: typeof o["diaLocal"] === "string" ? o["diaLocal"] : inicioEm.slice(0, 10),
       dentistaExternoId: String(o["dentistaExternoId"] ?? ""),
+      cadeiraExternaId: String(o["cadeiraExternaId"] ?? ""),
       duracaoMinutos: Number(o["duracaoMinutos"] ?? 30),
       fimEm: typeof o["fimEm"] === "string" ? o["fimEm"] : inicioEm,
       dentistaNome: typeof o["dentistaNome"] === "string" ? o["dentistaNome"] : null,

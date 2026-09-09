@@ -1,0 +1,10 @@
+status:
+  get:
+    tags:
+    - Status
+    summary: Status
+    responses:
+      '200':
+        description: Successful response
+        content:
+          application/json: {}

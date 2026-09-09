@@ -1,0 +1,40 @@
+auth/tokens:
+  post:
+    tags:
+    - Autenticação
+    summary: Gerar Token de Acesso
+    description: Gera o Token de Acesso para as rotas da API. O token gerado é do tipo Bearer Token e deverá ser enviado juntamente
+      com as requisições.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              client_id:
+                type: string
+              secret:
+                type: string
+          example:
+            client_id: xxxx
+            secret: xxxx
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              token: '[token válido por 24h]'
+      '401':
+        description: Unauthorized
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Conta não cadastrada
+    security: []

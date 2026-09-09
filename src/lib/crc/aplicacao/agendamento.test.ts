@@ -115,8 +115,7 @@ describe("oferecer", () => {
     const daAgenda = await ctx.cliente.horariosDisponiveis({
       clinicaExternaId: "clin-1",
       dentistaExternoId: "dent-1",
-      de: AGORA.toISOString(),
-      ate: new Date(AGORA.getTime() + 14 * 86_400_000).toISOString(),
+      diasAFrente: 14,
       clinicId: CLINICA,
     });
     const reais = new Set(daAgenda.map((s) => s.inicioEm));
@@ -222,8 +221,7 @@ describe("aceitar", () => {
     const livres = await ctx.cliente.horariosDisponiveis({
       clinicaExternaId: "clin-1",
       dentistaExternoId: escolhido.dentistaExternoId,
-      de: escolhido.inicioEm,
-      ate: new Date(new Date(escolhido.inicioEm).getTime() + 60_000).toISOString(),
+      diasAFrente: 14,
       clinicId: CLINICA,
     });
     expect(livres.some((s) => s.inicioEm === escolhido.inicioEm)).toBe(false);
@@ -246,6 +244,7 @@ describe("aceitar", () => {
       clinicaExternaId: "clin-1",
       pacienteExternoId: "outro-paciente",
       dentistaExternoId: escolhido.dentistaExternoId,
+      cadeiraExternaId: "cad-1",
       inicioEm: escolhido.inicioEm,
       duracaoMinutos: 30,
     });

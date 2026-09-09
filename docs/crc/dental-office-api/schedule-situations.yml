@@ -1,0 +1,239 @@
+schedule_situations:
+  get:
+    tags:
+    - Situações do Agendamento
+    summary: Listar
+    description: Lista as situações de agendamento.
+    parameters:
+    - name: q
+      in: query
+      schema:
+        type: string
+      description: Filtro por nome de situações de agendamento
+    - name: page
+      in: query
+      schema:
+        type: integer
+      description: Número da página para paginação
+    - name: per_page
+      in: query
+      schema:
+        type: integer
+      description: Quantidade de situações por página
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+            - id: 1
+              name: Confirmar
+              color: '#c86088'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#773951'
+              label: to_confirm
+            - id: 2
+              name: Confirmado
+              color: '#81d681'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#4d7f4d'
+              label: confirmed
+            - id: 3
+              name: Desmarcou
+              color: '#8f8f24'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#86864d'
+              label: cancelled
+            - id: 4
+              name: Faltou
+              color: '#e74b4b'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#8a2c2c'
+              label: absence
+            - id: 5
+              name: Paciente Chegou
+              color: '#4aa15e'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#2c6038'
+              label: client_arrived
+            - id: 6
+              name: Em Atendimento
+              color: '#d8a271'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#816043'
+              label: in_service
+            - id: 7
+              name: Atendido
+              color: '#3a63a1'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:32:51.000Z'
+              updated_at: '2025-03-07T19:32:51.000Z'
+              border_color: '#4e7d7a'
+              label: fulfilled
+            - id: 8
+              name: Itau
+              color: '#B3B3B3'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:44:56.000Z'
+              updated_at: '2025-03-07T19:44:56.000Z'
+              border_color: '#B3B3B3'
+              label: itau_654
+            - id: 9
+              name: Safra
+              color: '#B3B3B3'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-07T19:53:07.000Z'
+              updated_at: '2025-03-07T20:09:03.000Z'
+              border_color: '#B3B3B3'
+              label: brasil_823
+  post:
+    tags:
+    - Situações do Agendamento
+    summary: Cadastrar
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              schedule_situation:
+                type: object
+                properties:
+                  name:
+                    type: string
+          example:
+            schedule_situation:
+              name: Banco do Brasil
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 12
+              name: Banco do Brasil
+              color: '#B3B3B3'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-11T14:57:46.416Z'
+              updated_at: '2025-03-11T14:57:46.416Z'
+              border_color: '#B3B3B3'
+              label: banco_do_brasil_215
+      '422':
+        description: Unprocessable Entity (WebDAV) (RFC 4918)
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+              - Nome já está em uso.
+schedule_situations/{id}:
+  get:
+    tags:
+    - Situações do Agendamento
+    summary: Show
+    responses:
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              error: ScheduleSituation not found
+  put:
+    tags:
+    - Situações do Agendamento
+    summary: Alterar
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              schedule_situation:
+                type: object
+                properties:
+                  name:
+                    type: string
+          example:
+            schedule_situation:
+              name: Safra
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 11
+              name: Safra
+              color: '#B3B3B3'
+              font_color: '#ffffff'
+              deleted_at: null
+              created_at: '2025-03-11T13:40:21.000Z'
+              updated_at: '2025-03-11T14:58:30.330Z'
+              border_color: '#B3B3B3'
+              label: bb_165
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              error: ScheduleSituation not found
+  delete:
+    tags:
+    - Situações do Agendamento
+    summary: Remover
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              error: ScheduleSituation not found
+  parameters:
+  - name: id
+    in: path
+    required: true
+    schema:
+      type: integer
+    description: ID do recurso

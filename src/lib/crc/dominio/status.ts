@@ -48,6 +48,40 @@ export function statusAgendamentoDeCodigo(codigo: unknown): StatusAgendamento | 
   return AGENDA_POR_CODIGO[n] ?? null;
 }
 
+/**
+ * Os rótulos que o Dental Office usa para as situações de agenda.
+ *
+ * ESTE É O CAMINHO CERTO DE LEITURA, e o numérico é o de emergência.
+ *
+ * A API deles expõe `POST /schedule_situations`: cada clínica pode CRIAR as
+ * próprias situações. Logo o `schedule_situation_id` não é estável entre
+ * clínicas — o "4" de uma pode ser "Faltou" e o "4" de outra, "Atendido". O
+ * `label` é a categoria semântica do sistema deles e vem em toda resposta,
+ * dentro de `schedule_situation`.
+ *
+ * Ler pelo número é o tipo de erro que não aparece em teste e aparece em
+ * produção mandando mensagem de falta para quem compareceu.
+ *
+ * `client_arrived` e `in_service` viram AMBOS `IN_PROGRESS`: para as regras
+ * deste sistema — "tem consulta futura?", "faltou?" — chegar na recepção e
+ * estar na cadeira são o mesmo fato, e distingui-los criaria um estado que
+ * nenhuma regra consulta.
+ */
+const AGENDA_POR_ROTULO: Readonly<Record<string, StatusAgendamento>> = {
+  to_confirm: "TO_CONFIRM",
+  confirmed: "CONFIRMED",
+  client_arrived: "IN_PROGRESS",
+  in_service: "IN_PROGRESS",
+  fulfilled: "COMPLETED",
+  absence: "MISSED",
+  cancelled: "CANCELLED",
+};
+
+export function statusAgendamentoDeRotulo(rotulo: unknown): StatusAgendamento | null {
+  if (typeof rotulo !== "string") return null;
+  return AGENDA_POR_ROTULO[rotulo.trim().toLowerCase()] ?? null;
+}
+
 /** Caminho de volta: usado ao escrever confirmação de volta no Dental Office. */
 export function codigoDeStatusAgendamento(status: StatusAgendamento): number {
   return AGENDA_PARA_CODIGO[status];

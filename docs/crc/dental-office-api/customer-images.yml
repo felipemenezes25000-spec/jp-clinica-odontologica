@@ -1,0 +1,256 @@
+customers/{customer_id}/images:
+  get:
+    tags:
+    - Imagens do Paciente
+    summary: Listar Imagens
+    description: Consulta imagens de um determinado paciente.
+    security:
+    - bearerAuth: []
+    parameters:
+    - name: page
+      in: query
+      schema:
+        type: integer
+      description: Página da busca
+    - name: q
+      in: query
+      schema:
+        type: string
+      description: Busca por nome
+    - name: tag
+      in: query
+      schema:
+        type: string
+      description: Filtra pela tag desejada
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              total_pages: 1
+              count: 1
+              from: 1
+              to: 1
+              current_page: 1
+              results:
+              - id: 3
+                customer_id: 1
+                name: Camera Intra Oral
+                description: null
+                file: //local do arquivo
+                created_at: '2023-03-08T19:50:50.000Z'
+                updated_at: '2023-03-08T19:50:50.000Z'
+                file_url:
+                  original: url da imagem
+                  medium: url da imagem
+                  thumb: url da imagem
+                  full: url da imagem
+                tag_list:
+                - camera-intra-oral
+  post:
+    tags:
+    - Imagens do Paciente
+    summary: Cadastrar Imagens
+    description: Adiciona imagens a um determinado paciente.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              customer_image:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    description: Descrição da imagem
+                  file:
+                    type: string
+                    description: Imagem em base 64
+                  name:
+                    type: string
+                    description: Título da imagem
+                  tag_list:
+                    type: string
+                    description: Tags da imagem separadas por vírgula
+                required:
+                - name
+                - file
+          example:
+            customer_image:
+              description: Descrição da imagem
+              file: (conteúdo binário da imagem)
+              name: Teste de Imagem
+              tag_list: radiografia, camera-intra-oral
+    security:
+    - bearerAuth: []
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 5
+              customer_id: 1
+              name: Teste de Imagem
+              description: Descrição da imagem
+              file_file_name: data
+              file_content_type: image/png
+              file_file_size: 3752
+              file_updated_at: '2023-03-15T18:14:31.640Z'
+              deleted_at: null
+              created_at: '2023-03-15T18:14:31.848Z'
+              updated_at: '2023-03-15T18:14:31.848Z'
+      '422':
+        description: Unprocessable Entity (WebDAV) (RFC 4918)
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                file_content_type:
+                - Tipo do arquivo não é válido(a)
+                file:
+                - File não é válido(a)
+  parameters:
+  - name: customer_id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'
+customers/{customer_id}/images/{id}:
+  get:
+    tags:
+    - Imagens do Paciente
+    summary: Ver Imagem
+    description: Consulta os atributos de determinada imagem.
+    security:
+    - bearerAuth: []
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 5
+              customer_id: 1
+              name: Teste de Imagem
+              description: Descrição da imagem
+              tag_list:
+              - radiografia
+              - camera-intra-oral
+              file: local da imagem
+              deleted_at: null
+              created_at: '2023-03-15T18:14:31.000Z'
+              updated_at: '2023-03-15T18:14:31.000Z'
+              file_url:
+                original: url da imagem
+                medium: url da imagem
+                thumb: url da imagem
+                full: url da imagem
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  patch:
+    tags:
+    - Imagens do Paciente
+    summary: Alterar Imagem
+    description: Altera determinado registro de imagem.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              customer_image:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    description: Descrição da imagem
+                  file:
+                    type: string
+                    description: Imagem em base 64
+                  name:
+                    type: string
+                    description: Título da imagem
+                  tag_list:
+                    type: string
+                    description: Tags da imagem separadas por vírgula
+          example:
+            customer_image:
+              description: descrição
+    security:
+    - bearerAuth: []
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  delete:
+    tags:
+    - Imagens do Paciente
+    summary: Remover Imagem
+    description: Exclui determinada imagem.
+    security:
+    - bearerAuth: []
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  parameters:
+  - name: customer_id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'
+  - name: id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'

@@ -29,6 +29,7 @@ import {
   especialidadeDeCodigo,
   situacaoDeCodigo,
   statusAgendamentoDeCodigo,
+  statusAgendamentoDeRotulo,
 } from "../../dominio/status";
 import type { SituacaoPaciente, SlotDisponivel, StatusAgendamento } from "../../dominio/tipos";
 
@@ -153,7 +154,12 @@ function extrairTelefone(bruto: Record<string, unknown>): {
     if (v !== null) candidatos.push(v);
   }
 
-  for (const contato of lista(primeiroCampo(bruto, "contacts", "contatos", "phones"))) {
+  // `contacts_attributes` é o nome real no Dental Office — ele aparece no
+  // paciente aninhado dentro do agendamento. No paciente de topo os telefones
+  // vêm soltos (`phone`, `cellphone`), e a varredura acima já os pega.
+  for (const contato of lista(
+    primeiroCampo(bruto, "contacts_attributes", "contacts", "contatos", "phones"),
+  )) {
     if (!ehObjeto(contato)) {
       const direto = textoOpcional(contato);
       if (direto !== null) candidatos.push(direto);
@@ -220,6 +226,10 @@ export function mapearAgendamento(
   const inicio = dataHoraIso(
     primeiroCampo(
       bruto,
+      // `schedule_start` primeiro: é o nome canônico na resposta do Dental
+      // Office. O `start` também vem, como espelho para o calendário do front
+      // deles — ler o canônico protege de o espelho sumir numa versão futura.
+      "schedule_start",
       "start",
       "start_at",
       "startAt",
@@ -236,8 +246,30 @@ export function mapearAgendamento(
     return { ok: false, campo: "inicio", erro: "O agendamento veio sem data/hora reconhecível." };
   }
 
-  const codigoStatus = primeiroCampo(bruto, "status", "situation", "status_id", "situacao");
-  const status = statusAgendamentoDeCodigo(codigoStatus);
+  /*
+   * O RÓTULO PRIMEIRO, o número só como último recurso.
+   *
+   * A API deixa cada clínica CRIAR situações (`POST /schedule_situations`), o
+   * que torna o `schedule_situation_id` instável entre clínicas — o "4" de uma
+   * pode ser "Faltou" e o de outra, "Atendido". O `label` dentro de
+   * `schedule_situation` é a categoria semântica do sistema deles, e essa não
+   * muda.
+   */
+  const situacao = primeiroCampo(bruto, "schedule_situation", "situation_object");
+  const rotulo = ehObjeto(situacao)
+    ? primeiroCampo(situacao, "label", "slug")
+    : primeiroCampo(bruto, "schedule_situation_label", "label");
+
+  const codigoStatus = primeiroCampo(
+    bruto,
+    "schedule_situation_id",
+    "status",
+    "situation",
+    "status_id",
+    "situacao",
+  );
+
+  const status = statusAgendamentoDeRotulo(rotulo) ?? statusAgendamentoDeCodigo(codigoStatus);
   if (status === null) {
     // Aqui rejeitar É o certo. Chutar `TO_CONFIRM` num status desconhecido
     // colocaria o agendamento na fila de confirmação; chutar `MISSED` mandaria
@@ -245,7 +277,7 @@ export function mapearAgendamento(
     return {
       ok: false,
       campo: "status",
-      erro: `Status de agenda desconhecido: ${JSON.stringify(codigoStatus)}.`,
+      erro: `Status de agenda desconhecido: ${JSON.stringify(rotulo ?? codigoStatus)}.`,
     };
   }
 
@@ -267,10 +299,17 @@ export function mapearAgendamento(
       dentistaExternoId: textoOpcional(
         primeiroCampo(bruto, "dentist_id", "dentistId", "professional_id", "dentista_id"),
       ),
-      dentistaNome: textoOpcional(primeiroCampo(bruto, "dentist_name", "dentistName", "dentista")),
+      // O Dental Office devolve o dentista aninhado (`dentist: { name }`); o
+      // campo plano existe em algumas respostas. Os dois caminhos entram.
+      dentistaNome: textoOpcional(
+        primeiroCampo(bruto, "dentist_name", "dentistName", "dentista", "dentist.name"),
+      ),
       cadeiraExternaId: textoOpcional(primeiroCampo(bruto, "chair_id", "chairId", "cadeira_id")),
       inicioEm: inicio,
-      fimEm: dataHoraIso(primeiroCampo(bruto, "end", "end_at", "endAt", "fim"), fusoOffset),
+      fimEm: dataHoraIso(
+        primeiroCampo(bruto, "schedule_end", "end", "end_at", "endAt", "fim"),
+        fusoOffset,
+      ),
       descricao: textoOpcional(
         primeiroCampo(bruto, "description", "descricao", "observation", "observacao"),
       ),
@@ -292,25 +331,55 @@ export function mapearAgendamento(
  * em vez de exibir um horário de fim inventado como se fosse informação da
  * clínica.
  */
+/**
+ * Os horários livres, no formato REAL do Dental Office.
+ *
+ * A resposta vem AGRUPADA POR DIA, e não como uma lista plana:
+ *
+ *   [ { date: "2026-09-10",
+ *       periods: [ { start_time, end_time, chair_id }, ... ] } ]
+ *
+ * A versão anterior deste mapeador procurava uma lista plana de `start`/`end`
+ * e teria devolvido zero horários contra a API de verdade — sem erro, sem log,
+ * só uma agenda que parecia sempre lotada. O formato plano continua aceito
+ * porque o sandbox e eventuais respostas antigas o usam.
+ *
+ * A CADEIRA É O QUE MUDA A REGRA: cada período diz em qual cadeira ele está
+ * livre, e criar a consulta exige esse id. Período sem cadeira é descartado —
+ * ele não é agendável, e oferecê-lo ao paciente produziria uma recusa na hora
+ * de confirmar.
+ */
 export function mapearSlots(
   corpo: unknown,
   contexto: { clinicId: string; dentistaExternoId: string; fusoOffset?: string },
 ): SlotDisponivel[] {
   const fuso = contexto.fusoOffset ?? "-03:00";
-  const cruas = Array.isArray(corpo)
+
+  const raiz = Array.isArray(corpo)
     ? corpo
     : lista(primeiroCampo(corpo, "data", "hours", "slots", "available_hours"));
+
+  // Achata os dias em períodos. Um item sem `periods` é tratado como o próprio
+  // período, que é o formato plano.
+  const cruas: unknown[] = [];
+  for (const item of raiz) {
+    const periodos = ehObjeto(item) ? primeiroCampo(item, "periods", "hours", "periodos") : null;
+    if (Array.isArray(periodos)) cruas.push(...periodos);
+    else cruas.push(item);
+  }
 
   const slots: SlotDisponivel[] = [];
   for (const item of cruas) {
     const inicioBruto = ehObjeto(item)
-      ? primeiroCampo(item, "start", "start_at", "hour", "time", "inicio", "datetime")
+      ? primeiroCampo(item, "start_time", "start", "start_at", "hour", "time", "inicio", "datetime")
       : item;
 
     const inicio = dataHoraIso(inicioBruto, fuso);
     if (inicio === null) continue;
 
-    const fimBruto = ehObjeto(item) ? primeiroCampo(item, "end", "end_at", "fim") : undefined;
+    const fimBruto = ehObjeto(item)
+      ? primeiroCampo(item, "end_time", "end", "end_at", "fim")
+      : undefined;
     const fim = dataHoraIso(fimBruto, fuso);
 
     const duracaoInformada = ehObjeto(item)
@@ -322,18 +391,26 @@ export function mapearSlots(
         ? Math.max(1, Math.round((Date.parse(fim) - Date.parse(inicio)) / 60000))
         : (duracaoInformada ?? 30);
 
+    const cadeira = ehObjeto(item)
+      ? textoOpcional(primeiroCampo(item, "chair_id", "chairId", "cadeira_id"))
+      : null;
+    // Sem cadeira o horário não pode virar consulta: a API exige o id no POST.
+    if (cadeira === null) continue;
+
     slots.push({
       clinicId: contexto.clinicId,
       dentistaExternoId: contexto.dentistaExternoId,
+      cadeiraExternaId: cadeira,
       inicioEm: inicio,
       fimEm: fim ?? new Date(Date.parse(inicio) + duracaoMinutos * 60000).toISOString(),
       duracaoMinutos,
     });
   }
 
-  // Ordenados e sem repetição: a API às vezes devolve o mesmo horário duas
-  // vezes quando há mais de uma cadeira livre, e mostrar "14:00" duplicado ao
-  // paciente parece defeito.
+  // Ordenados e sem repetição: a API devolve o mesmo horário uma vez por
+  // cadeira livre, e mostrar "14:00" três vezes ao paciente parece defeito.
+  // Fica a PRIMEIRA cadeira de cada horário — qualquer uma serve, e escolher
+  // sempre a mesma torna o comportamento reproduzível.
   const vistos = new Set<string>();
   return slots
     .filter((s) => {

@@ -1,0 +1,41 @@
+schedule_types:
+  get:
+    tags:
+    - Tipos de Agendamento
+    summary: Listar
+    description: Lista os tipos de agendamento.
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              total_pages: 1
+              count: 5
+              from: 1
+              to: 5
+              current_page: 1
+              results:
+              - id: 4
+                name: Compromisso Pessoal
+              - id: 1
+                name: Consulta
+              - id: 5
+                name: Outro
+              - id: 3
+                name: Periódico
+              - id: 2
+                name: Retorno
+    parameters:
+    - name: q
+      in: query
+      schema:
+        type: string
+      description: Filtro por nome do tipo de agendamento
+    - name: page
+      in: query
+      schema:
+        type: integer
+      description: Número da página para paginação

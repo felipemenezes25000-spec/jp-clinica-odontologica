@@ -1,0 +1,298 @@
+customers/{customer_id}/docs:
+  get:
+    tags:
+    - Documentos do Paciente
+    summary: Listar Documentos
+    description: Consulta documentos de um determinado paciente.
+    security:
+    - bearerAuth: []
+    parameters:
+    - name: page
+      in: query
+      schema:
+        type: integer
+      description: Página da busca
+    - name: q
+      in: query
+      schema:
+        type: string
+      description: Busca por nome
+    - name: treatment_id
+      in: query
+      schema:
+        type: integer
+      description: Filtra pelo tratamento desejado
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              example-0:
+                summary: 200 - OK
+                value:
+                  total_pages: 1
+                  count: 1
+                  from: 1
+                  to: 1
+                  current_page: 1
+                  results:
+                  - id: 2
+                    customer_id: 1
+                    name: Teste de Docs
+                    description: Descrição do doc
+                    file: ''
+                    file_file_name: data
+                    created_at: '2023-02-28T18:08:48.000Z'
+                    updated_at: '2023-02-28T18:08:48.000Z'
+                    file_urls:
+                      original: ''
+                      pdf: ''
+                    file_file_ext: data
+              example-1:
+                summary: 200 - OK
+                value:
+                  total_pages: 1
+                  count: 1
+                  from: 1
+                  to: 1
+                  current_page: 1
+                  results:
+                  - id: 1
+                    customer_id: 1
+                    name: Pós Operatório
+                    description: null
+                    file: local do arquivo
+                    file_file_name: pos_operatorio.pdf
+                    created_at: '2023-03-10T12:10:27.000Z'
+                    updated_at: '2023-03-10T12:10:27.000Z'
+                    file_urls:
+                      original: url do arquivo
+                      pdf: url do arquivo
+                    file_file_ext: pdf
+  post:
+    tags:
+    - Documentos do Paciente
+    summary: Cadastrar Documentos
+    description: Adiciona documentos a um determinado paciente.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              customer_doc:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    description: Descrição do documento
+                  file:
+                    type: string
+                    description: Documento em base 64
+                  name:
+                    type: string
+                    description: Título do documento
+                  treatment_id:
+                    type: integer
+                    description: Identificador do tratamento
+                required:
+                - name
+                - file
+          example:
+            customer_doc:
+              description: Descrição do doc
+              file: (conteúdo binário do documento)
+              name: Teste de Docs
+              tag_list: radiografia
+    security:
+    - bearerAuth: []
+    responses:
+      '201':
+        description: Created
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              id: 21
+              customer_id: 1
+              name: Teste de Docs
+              description: Descrição do doc
+              file_file_name: data
+              file_content_type: application/pdf
+              file_file_size: 25834
+              file_updated_at: '2024-07-30T22:29:59.199Z'
+              deleted_at: null
+              created_at: '2024-07-30T22:29:59.215Z'
+              updated_at: '2024-07-30T22:29:59.215Z'
+              treatment_id: null
+      '422':
+        description: Unprocessable Entity (WebDAV) (RFC 4918)
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                file_content_type:
+                - Tipo do arquivo não é válido(a)
+                file:
+                - File não é válido(a)
+  parameters:
+  - name: customer_id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'
+customers/{customer_id}/docs/{id}:
+  get:
+    tags:
+    - Documentos do Paciente
+    summary: Visualizar Documento
+    description: Consulta os atributos de determinado documento.
+    security:
+    - bearerAuth: []
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: object
+            examples:
+              example-0:
+                summary: 200 - OK
+                value:
+                  total_pages: 1
+                  count: 1
+                  from: 1
+                  to: 1
+                  current_page: 1
+                  results:
+                  - id: 2
+                    customer_id: 1
+                    name: Teste de Docs
+                    description: Descrição do doc
+                    file: ''
+                    file_file_name: data
+                    created_at: '2023-02-28T18:08:48.000Z'
+                    updated_at: '2023-02-28T18:08:48.000Z'
+                    file_urls:
+                      original: ''
+                      pdf: ''
+                    file_file_ext: data
+              example-1:
+                summary: 200 - OK
+                value:
+                  id: 1
+                  customer_id: 1
+                  name: Pós Operatório
+                  description: null
+                  file: local do arquivo
+                  file_file_name: pos_operatorio.pdf
+                  created_at: '2023-03-08T19:50:52.000Z'
+                  updated_at: '2023-03-08T19:50:52.000Z'
+                  tag_list:
+                  - pos-operatorio
+                  file_file_ext: pdf
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  patch:
+    tags:
+    - Documentos do Paciente
+    summary: Alterar Documento
+    description: Altera registro de documento.
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              customer_doc:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    description: Descrição do documento
+                  file:
+                    type: string
+                    description: Documento em base 64
+                  name:
+                    type: string
+                    description: Título do documento
+                  treatment_id:
+                    type: integer
+                    description: Identificador do tratamento
+          example:
+            customer_doc:
+              description: descrição
+    security:
+    - bearerAuth: []
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  delete:
+    tags:
+    - Documentos do Paciente
+    summary: Remover Documento
+    description: Exclui determinado documento.
+    security:
+    - bearerAuth: []
+    responses:
+      '204':
+        description: No Content
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: null
+      '404':
+        description: Not Found
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+              errors:
+                'Erro:':
+                - Registro não encontrado.
+  parameters:
+  - name: customer_id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '1'
+  - name: id
+    in: path
+    schema:
+      type: integer
+    required: true
+    example: '2'
