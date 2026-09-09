@@ -27,6 +27,7 @@ import {
   contarPublico,
   criarCampanha,
   lerFiltroPublico,
+  opcoesDoPublico,
   rodarCampanhas,
   FILTRO_PUBLICO_VAZIO,
 } from "./campanhas";
@@ -105,6 +106,37 @@ describe("o recorte", () => {
     // O padrão do filtro é o seguro: falar com quem já tem consulta é o erro
     // mais caro de uma campanha.
     expect(await contarPublico(ORG, lerFiltroPublico({}), HORARIO_UTIL)).toBe(1);
+  });
+
+  it("filtra por convênio quando o Dental Office informa o campo", async () => {
+    paciente("p-1", { convenio: "Amil Dental" });
+    paciente("p-2", { convenio: "Odontoprev" });
+    paciente("p-3");
+
+    const f = lerFiltroPublico({ convenio: "Amil Dental" });
+    expect(await contarPublico(ORG, f, HORARIO_UTIL)).toBe(1);
+
+    // Sem filtro de convênio, todos entram — inclusive quem é particular.
+    expect(await contarPublico(ORG, { ...FILTRO_PUBLICO_VAZIO }, HORARIO_UTIL)).toBe(3);
+  });
+
+  it("as opções vêm da base, e ficam vazias quando o campo não vem", async () => {
+    paciente("p-1", { convenio: "Amil Dental", especialidade: "Ortodontia" });
+    paciente("p-2", { convenio: null, especialidade: "Ortodontia" });
+
+    const com = await opcoesDoPublico(ORG);
+    expect(com.convenios).toEqual(["Amil Dental"]);
+    // Sem repetir: a mesma especialidade em dois pacientes é uma opção.
+    expect(com.especialidades).toEqual(["Ortodontia"]);
+
+    limparBanco();
+    definirRelogio(HORARIO_UTIL);
+    paciente("p-9", { convenio: null });
+
+    // É este caso que faz o campo de convênio sumir da tela em vez de aparecer
+    // vazio e nunca casar com ninguém.
+    const sem = await opcoesDoPublico(ORG);
+    expect(sem.convenios).toEqual([]);
   });
 
   it("filtro desconhecido não vira consulta", async () => {

@@ -286,6 +286,62 @@
 }
 
 /* ==========================================================================
+   Abas da ficha do paciente
+   ========================================================================== */
+
+.crc-app .crc-abas {
+  gap: 0;
+  border-bottom: 1px solid var(--crc-borda);
+  /* Em tela estreita as seis abas viram rolagem horizontal DELAS, e não da
+     página — o overflow que o item 25 proíbe é o do documento. */
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: thin;
+}
+
+.crc-app .crc-aba {
+  appearance: none;
+  background: none;
+  border: 0;
+  /* A borda transparente reserva o espaço da borda ativa: sem ela, o rótulo
+     pula dois pixels a cada troca de aba. */
+  border-bottom: 2px solid transparent;
+  padding: var(--crc-e3) var(--crc-e4);
+  font: inherit;
+  font-weight: 600;
+  color: var(--crc-texto-2);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--crc-e2);
+}
+
+.crc-app .crc-aba:hover {
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-aba-ativa {
+  color: var(--crc-primaria);
+  border-bottom-color: var(--crc-primaria);
+}
+
+.crc-app .crc-aba:focus-visible {
+  outline: 2px solid var(--crc-primaria);
+  outline-offset: -2px;
+  border-radius: var(--crc-r-campo) var(--crc-r-campo) 0 0;
+}
+
+.crc-app .crc-aba .crc-contador {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  border-radius: 999px;
+  padding: 1px var(--crc-e2);
+}
+
+/* ==========================================================================
    Cartão — UM nível só. Item 45 proíbe card dentro de card dentro de card.
    ========================================================================== */
 

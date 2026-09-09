@@ -262,6 +262,7 @@ async function gravarPaciente(ctx: ContextoSync, externo: PacienteExterno): Prom
     genero: externo.genero,
     situacao: externo.situacao,
     especialidade: externo.especialidade,
+    convenio: externo.convenio,
     ativo: externo.ativo,
     telefone: externo.telefone,
     telefone_bruto: externo.telefoneBruto,

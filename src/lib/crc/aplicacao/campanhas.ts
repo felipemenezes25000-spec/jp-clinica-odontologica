@@ -52,6 +52,8 @@ export type FiltroPublico = {
   /** Só quem não tem consulta futura marcada. */
   semConsultaFutura: boolean;
   especialidade: string | null;
+  /** O plano de saúde. Só existe quando o Dental Office informa o campo. */
+  convenio: string | null;
   situacao: SituacaoPaciente | null;
 };
 
@@ -59,6 +61,7 @@ export const FILTRO_PUBLICO_VAZIO: FiltroPublico = {
   diasSemVoltar: null,
   semConsultaFutura: true,
   especialidade: null,
+  convenio: null,
   situacao: null,
 };
 
@@ -74,6 +77,7 @@ export function lerFiltroPublico(bruto: unknown): FiltroPublico {
   const dias = Number(o["diasSemVoltar"]);
   const situacao = String(o["situacao"] ?? "");
   const especialidade = String(o["especialidade"] ?? "").trim();
+  const convenio = String(o["convenio"] ?? "").trim();
 
   return {
     diasSemVoltar: Number.isFinite(dias) && dias > 0 ? Math.min(3650, Math.floor(dias)) : null,
@@ -81,6 +85,7 @@ export function lerFiltroPublico(bruto: unknown): FiltroPublico {
     // o erro mais caro de uma campanha, e o padrão precisa ser o seguro.
     semConsultaFutura: o["semConsultaFutura"] !== false,
     especialidade: especialidade.length > 0 ? especialidade.slice(0, 80) : null,
+    convenio: convenio.length > 0 ? convenio.slice(0, 80) : null,
     situacao: (SITUACOES_PACIENTE as readonly string[]).includes(situacao)
       ? (situacao as SituacaoPaciente)
       : null,
@@ -113,6 +118,9 @@ function filtrosDoPublico(organizationId: string, f: FiltroPublico, agora: Date)
   if (f.especialidade !== null) {
     filtros.push({ coluna: "especialidade", op: "eq", valor: f.especialidade });
   }
+  if (f.convenio !== null) {
+    filtros.push({ coluna: "convenio", op: "eq", valor: f.convenio });
+  }
   if (f.situacao !== null) {
     filtros.push({ coluna: "situacao", op: "eq", valor: f.situacao });
   }
@@ -133,6 +141,46 @@ export function contarPublico(
   agora = new Date(),
 ): Promise<number> {
   return contar("crc_patients", filtrosDoPublico(organizationId, filtro, agora));
+}
+
+/**
+ * As especialidades e os convênios que EXISTEM na base.
+ *
+ * A primeira versão desta tela pedia especialidade como texto livre, e isso era
+ * uma armadilha: "Implantodontia" digitado como "implantodontia" casa com
+ * ninguém, e a tela mostra zero sem explicar que o erro foi de digitação.
+ *
+ * Aqui a lista vem do banco. E o efeito colateral é o que resolve o convênio: se
+ * o Dental Office não informar o campo, nenhum paciente tem convênio, a lista
+ * volta vazia e a tela **não mostra o filtro**. Um filtro visível que nunca casa
+ * com ninguém faz a clínica concluir que o sistema está quebrado.
+ */
+export async function opcoesDoPublico(
+  organizationId: string,
+): Promise<{ especialidades: string[]; convenios: string[] }> {
+  const linhas = await selecionar("crc_patients", {
+    colunas: "especialidade,convenio",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "arquivado", op: "eq", valor: false },
+    ],
+    // Teto alto e leitura de duas colunas: é uma consulta por abertura de
+    // modal, e o distinct em memória evita uma RPC só para isso.
+    limite: 5000,
+  });
+
+  const especialidades = new Set<string>();
+  const convenios = new Set<string>();
+  for (const l of linhas) {
+    const e = typeof l["especialidade"] === "string" ? l["especialidade"].trim() : "";
+    const c = typeof l["convenio"] === "string" ? l["convenio"].trim() : "";
+    if (e.length > 0) especialidades.add(e);
+    if (c.length > 0) convenios.add(c);
+  }
+
+  const ordenar = (s: Set<string>): string[] => [...s].sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+  return { especialidades: ordenar(especialidades), convenios: ordenar(convenios) };
 }
 
 /* -------------------------------------------------------------------------- */

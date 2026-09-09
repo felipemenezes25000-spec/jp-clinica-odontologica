@@ -43,6 +43,14 @@ export type PacienteExterno = {
   genero: string | null;
   situacao: SituacaoPaciente;
   especialidade: string | null;
+  /**
+   * O plano de saúde, quando o Dental Office informa.
+   *
+   * `null` é o caso esperado até a credencial chegar, e continua sendo o caso
+   * se a API deles não devolver o campo — por isso nada no sistema exige que
+   * ele exista.
+   */
+  convenio: string | null;
   ativo: boolean;
   telefone: string | null;
   telefoneBruto: string | null;
@@ -80,6 +88,20 @@ export function mapearPaciente(bruto: unknown): Validacao<PacienteExterno> {
       situacao,
       especialidade: especialidadeDeCodigo(
         primeiroCampo(bruto, "specialty", "specialty_id", "especialidade"),
+      ),
+      // A lista de nomes é generosa de propósito, como no resto do mapper: não
+      // sabemos como o Dental Office chama este campo, e descobrir custa uma
+      // sincronização inteira. Tentar seis nomes custa nada.
+      convenio: textoOpcional(
+        primeiroCampo(
+          bruto,
+          "insurance",
+          "health_plan",
+          "healthPlan",
+          "convenio",
+          "convênio",
+          "plano",
+        ),
       ),
       // Item 114: a ausência do campo `active` não pode significar "inativo".
       // Um paciente marcado inativo por engano some da operação inteira.

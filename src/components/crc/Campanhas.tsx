@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   agendarCampanhaExistente,
   carregarCampanhas,
+  carregarOpcoesDePublico,
   contarPublicoDaCampanha,
   criarCampanhaNova,
   pausarOuRetomarCampanha,
@@ -46,6 +47,7 @@ type Filtros = {
   diasSemVoltar: number | null;
   semConsultaFutura: boolean;
   especialidade: string | null;
+  convenio: string | null;
   situacao: string | null;
 };
 
@@ -53,6 +55,7 @@ const FILTROS_INICIAIS: Filtros = {
   diasSemVoltar: 365,
   semConsultaFutura: true,
   especialidade: null,
+  convenio: null,
   situacao: null,
 };
 
@@ -83,6 +86,10 @@ export function Campanhas() {
   const [porDia, setPorDia] = useState(120);
   const [filtros, setFiltros] = useState<Filtros>({ ...FILTROS_INICIAIS });
 
+  const [opcoes, setOpcoes] = useState<{ especialidades: string[]; convenios: string[] }>({
+    especialidades: [],
+    convenios: [],
+  });
   const [publico, setPublico] = useState<number | null>(null);
   const [contando, setContando] = useState(false);
   const relogio = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,6 +112,16 @@ export function Campanhas() {
 
   useEffect(() => {
     void recarregar();
+    void (async () => {
+      try {
+        const r = await carregarOpcoesDePublico();
+        if (r.ok) setOpcoes({ especialidades: r.especialidades, convenios: r.convenios });
+      } catch {
+        // Sem as opções a tela continua montando campanha — só sem os dois
+        // filtros que dependem delas.
+        setOpcoes({ especialidades: [], convenios: [] });
+      }
+    })();
   }, [recarregar]);
 
   // A contagem prévia. 300ms depois do último ajuste: quem mexe num filtro
@@ -342,19 +359,57 @@ export function Campanhas() {
           )}
         </Campo>
 
-        <Campo rotulo="Especialidade" dica="Em branco, todas.">
-          {(id) => (
-            <Entrada
-              id={id}
-              value={filtros.especialidade ?? ""}
-              placeholder="Implantodontia"
-              onChange={(e) => {
-                const v = e.target.value.trim();
-                setFiltros((f) => ({ ...f, especialidade: v.length > 0 ? v : null }));
-              }}
-            />
-          )}
-        </Campo>
+        {/* Lista vinda do banco, e não texto livre: "implantodontia" digitado em
+            minúsculas casaria com ninguém, e a tela mostraria zero sem explicar
+            que o erro foi de digitação. */}
+        {opcoes.especialidades.length > 0 && (
+          <Campo rotulo="Especialidade" dica="Em branco, todas.">
+            {(id) => (
+              <select
+                id={id}
+                className="crc-selecao"
+                value={filtros.especialidade ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFiltros((f) => ({ ...f, especialidade: v === "" ? null : v }));
+                }}
+              >
+                <option value="">Todas as especialidades</option>
+                {opcoes.especialidades.map((e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Campo>
+        )}
+
+        {/* O convênio só aparece quando algum paciente tem um. Enquanto o Dental
+            Office não informar o campo, um filtro visível que nunca casa com
+            ninguém faria a clínica concluir que o sistema está quebrado. */}
+        {opcoes.convenios.length > 0 && (
+          <Campo rotulo="Convênio" dica="Em branco, todos — inclusive quem é particular.">
+            {(id) => (
+              <select
+                id={id}
+                className="crc-selecao"
+                value={filtros.convenio ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFiltros((f) => ({ ...f, convenio: v === "" ? null : v }));
+                }}
+              >
+                <option value="">Todos os convênios</option>
+                {opcoes.convenios.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Campo>
+        )}
 
         <label className="crc-linha" style={{ marginTop: "var(--crc-e2)" }}>
           <input

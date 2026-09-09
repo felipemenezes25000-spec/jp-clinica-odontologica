@@ -1769,6 +1769,7 @@ export type CampanhaDto = {
   diasSemVoltar: number | null;
   semConsultaFutura: boolean;
   especialidade: string | null;
+  convenio: string | null;
   situacao: string | null;
 };
 
@@ -1799,9 +1800,25 @@ export const carregarCampanhas = createServerFn({ method: "GET" }).handler(
           diasSemVoltar: c.filtros.diasSemVoltar,
           semConsultaFutura: c.filtros.semConsultaFutura,
           especialidade: c.filtros.especialidade,
+          convenio: c.filtros.convenio,
           situacao: c.filtros.situacao,
         })),
       };
+    }),
+);
+
+/**
+ * As opções de filtro que existem na base.
+ *
+ * Vem do banco, e não de uma lista fixa: é o que impede um filtro digitado
+ * errado casar com ninguém, e o que faz o campo de convênio sumir da tela
+ * enquanto o Dental Office não informar o campo.
+ */
+export const carregarOpcoesDePublico = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ especialidades: string[]; convenios: string[] }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { opcoesDoPublico } = await import("./aplicacao/campanhas");
+      return { ok: true as const, ...(await opcoesDoPublico(ctx.organizationId)) };
     }),
 );
 
