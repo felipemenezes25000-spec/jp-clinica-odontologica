@@ -175,10 +175,13 @@ function PortalCrc() {
       <div className="crc-shell">
         <nav className="crc-lateral" aria-label="Seções do CRC">
           <div className="crc-marca">
+            {/* 44px é o piso que o cabeçalho do site já estabeleceu e deixou
+                escrito: abaixo disso o "Clínica Odontológica" desenhado dentro
+                da marca deixa de ser legível, e ela vira enfeite. */}
             <Logo
               variante="lockup"
               fundo="claro"
-              altura={24}
+              altura={44}
               alt="JP Clínica Integrada Odontológica"
             />
             <span className="crc-modulo">CRC</span>
@@ -309,7 +312,7 @@ function TelaDeEntrada({ aoEntrar }: { aoEntrar: () => void }) {
           <Logo
             variante="lockup"
             fundo="claro"
-            altura={30}
+            altura={52}
             alt="JP Clínica Integrada Odontológica"
           />
           <span className="crc-modulo">CRC</span>
