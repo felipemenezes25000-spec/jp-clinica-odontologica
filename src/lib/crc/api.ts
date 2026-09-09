@@ -73,6 +73,17 @@ export type ResumoHome = {
   receitaConfirmada: string;
   prioridades: ItemPrioridade[];
   frescorDados: string | null;
+  /**
+   * A janela de atendimento de HOJE, no fuso da clínica. `null` nos dois
+   * campos quando hoje é dia fechado.
+   *
+   * A tela usa isto para desenhar onde estamos no dia — e é o que explica,
+   * sem ninguém precisar perguntar, por que a mensagem de alguém "ainda não
+   * saiu": ela está esperando a janela abrir.
+   */
+  janelaDeHoje: { inicio: string | null; fim: string | null };
+  /** A clínica está dentro da janela agora? O pulso da automação depende disto. */
+  dentroDoHorario: boolean;
 };
 
 export type ItemPrioridade = {
@@ -268,6 +279,8 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
       const { ROTULO_TIPO_OPORTUNIDADE } = await import("./dominio/rotulos");
       const { saudacao, somarDinheiro } = await import("./dominio/formatar");
       const { lerEstadoDeSincronizacao } = await import("./aplicacao/sincronizacao");
+      const { lerConfiguracao } = await import("./servidor/configuracao");
+      const { dentroDoHorario, partesLocais } = await import("./dominio/configuracao");
 
       const org = ctx.organizationId;
       const inicioDoMes = new Date();
@@ -363,6 +376,22 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         .sort()
         .pop();
 
+      /*
+       * A janela de HOJE, e não a semana inteira.
+       *
+       * O índice do vetor `dias` é o dia da semana começando no domingo, e o
+       * dia é lido no FUSO DA CLÍNICA — a Vercel roda em UTC, e às 21h de uma
+       * terça em São Paulo o servidor já acha que é quarta. Ler o dia errado
+       * aqui desenharia a janela de sábado num sábado que ainda não chegou.
+       */
+      const cfg = await lerConfiguracao(org);
+      const horario = cfg.horarioComercial;
+      const agoraNaClinica = new Date();
+      const diaLocal = partesLocais(agoraNaClinica, horario.fuso).diaSemana;
+      const doDia = horario.dias[diaLocal] ?? null;
+      const janela = { inicio: doDia?.inicio ?? null, fim: doDia?.fim ?? null };
+      const aberta = dentroDoHorario(agoraNaClinica, horario);
+
       const resumo: ResumoHome = {
         saudacao: saudacao(),
         precisamDeAtencao: precisamDeAtencao.length,
@@ -383,6 +412,8 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         ),
         prioridades,
         frescorDados: maisRecente ?? null,
+        janelaDeHoje: janela,
+        dentroDoHorario: aberta,
       };
 
       return { ok: true as const, resumo };

@@ -21,13 +21,18 @@
 
 .crc-app {
   /* ---- Superfícies ------------------------------------------------------ */
-  /* Cinza levíssimo, não branco: o card branco em cima precisa se destacar
-     sem precisar de sombra pesada nem borda escura. */
-  --crc-fundo: #f6f7f6;
+  /*
+   * OSSO, E NÃO CINZA. O cinza neutro é o fundo padrão de todo painel de
+   * SaaS, e não diz nada sobre onde este software é usado. Este é o tom do
+   * gesso de modelo odontológico — quente o suficiente para o branco do cartão
+   * flutuar em cima sem sombra pesada, e com um resto de verde que o amarra à
+   * marca. É a única licença cromática do produto, e ela é do assunto.
+   */
+  --crc-fundo: #f2f4ef;
   --crc-superficie: #ffffff;
-  --crc-superficie-2: #fbfcfb;
+  --crc-superficie-2: #fafbf8;
   /* Para linha de tabela em hover e faixas alternadas. */
-  --crc-superficie-3: #f1f3f1;
+  --crc-superficie-3: #ecefe9;
 
   /* ---- Texto ------------------------------------------------------------ */
   /* Quase preto com um toque da matiz da marca — preto puro numa tela de
@@ -42,8 +47,8 @@
   /* Um tom só, como o site fez com --border-soft. Bordas em três cinzas
      diferentes é o tipo de coisa que ninguém nota e que faz a tela parecer
      descuidada. */
-  --crc-borda: #e2e7e2;
-  --crc-borda-forte: #cdd5ce;
+  --crc-borda: #e0e5dd;
+  --crc-borda-forte: #c8d1c6;
 
   /* ---- Marca ------------------------------------------------------------ */
   --crc-primaria: #095902;
@@ -74,46 +79,211 @@
   --crc-e10: 2.5rem;
   --crc-e12: 3rem;
 
-  /* ---- Raio (item 24: nada excessivamente arredondado) ------------------ */
-  --crc-r-campo: 9px;
-  --crc-r-cartao: 13px;
-  --crc-r-modal: 16px;
+  /* ---- Raio: por PAPEL, e não um valor só ------------------------------- */
+  /*
+   * Raio único em tudo achata a hierarquia — é o `rounded-lg` em cada div que
+   * denuncia interface gerada. Aqui cada raio diz o que a coisa é: campo é
+   * pequeno e preciso, cartão é uma superfície, modal é uma folha por cima.
+   */
+  --crc-r-campo: 8px;
+  --crc-r-cartao: 14px;
+  --crc-r-modal: 20px;
+  --crc-r-pilula: 999px;
 
-  /* ---- Elevação --------------------------------------------------------- */
-  /* Duas sombras, e as duas são sutis. O item 45 proíbe card dentro de card;
-     com hierarquia bem feita, sombra forte deixa de ser necessária. */
+  /* ---- Elevação: quatro degraus, cada um com um trabalho ---------------- */
+  /*
+   * A sombra aqui não é enfeite: ela responde "a que distância do papel isto
+   * está?". Repouso quase colado; algo levantado pelo cursor sobe um degrau; o
+   * que flutua sobre o conteúdo (paleta, modal) sobe dois. A luz vem de cima,
+   * sempre, e a cor da sombra tem a matiz da tinta — sombra cinza puro sobre
+   * fundo quente parece sujeira.
+   */
   --crc-sombra: 0 1px 2px rgba(22, 36, 26, 0.05), 0 1px 3px rgba(22, 36, 26, 0.04);
+  --crc-sombra-erguida: 0 2px 4px rgba(22, 36, 26, 0.06), 0 6px 16px -6px rgba(22, 36, 26, 0.12);
   --crc-sombra-flutuante: 0 8px 24px -8px rgba(22, 36, 26, 0.18);
+  --crc-sombra-modal: 0 24px 64px -16px rgba(22, 36, 26, 0.28);
 
+  /* ---- Movimento -------------------------------------------------------- */
+  /*
+   * DUAS CURVAS, E CADA UMA TEM UM MOTIVO.
+   *
+   * `--crc-transicao` é a de resposta: rápida e sem exagero, para hover e
+   * foco. Numa ferramenta de trabalho, o cursor cruza dezenas de elementos por
+   * minuto — animação longa aqui vira arrasto.
+   *
+   * `--crc-mola` tem um leve avanço além do destino. Ela é reservada ao que
+   * ENTRA na tela: o painel que abre, o item que chega na fila. É o único
+   * lugar onde este produto se permite um gesto.
+   */
   --crc-transicao: 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --crc-mola: 420ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Tipografia ------------------------------------------------------- */
+  /*
+   * A display é a MESMA da marca JP, já carregada pelo site. Caráter vindo da
+   * própria identidade, e não de uma fonte da moda — e sem uma requisição a
+   * mais. `opsz` é variável: o número grande do painel ganha correção óptica
+   * que uma fonte estática não tem.
+   */
+  --crc-fonte-display: "Bricolage Grotesque", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --crc-fonte-corpo: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --crc-fonte-dado: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", monospace;
 
   background: var(--crc-fundo);
   color: var(--crc-texto);
-  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--crc-fonte-corpo);
   /* 15px, e não 14: o item 22 é explícito contra fonte pequena, e desktop não
      significa apertar tudo. */
   font-size: 15px;
   line-height: 1.5;
   min-height: 100dvh;
+  /* O texto fica mais fino e mais legível em tela; sem isto o Inter engorda
+     no macOS e a hierarquia de peso some. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+}
+
+/* ==========================================================================
+   Um tema só, e de propósito
+   ==========================================================================
+
+   Aqui existiu um tema escuro completo, e ele foi retirado a pedido.
+
+   Fica o registro do porquê a decisão é defensável: esta é a ferramenta de uma
+   clínica cuja identidade é impressa — jaleco, fachada, cartão, o verde sobre
+   branco. Um segundo visual dobra a superfície de teste (todo contraste, todo
+   estado, toda tela, duas vezes) para servir uma preferência que a operação
+   não pediu. Comprometer-se com UM visual é escolha, e não omissão.
+
+   O `color-scheme: light` no bloco acima não é decoração: sem ele, o navegador
+   de quem usa o sistema operacional em escuro pinta os controles nativos
+   (campo, seleção, barra de rolagem) em escuro dentro de uma tela clara — e o
+   resultado é um formulário preto no meio de um cartão branco.
+   ========================================================================== */
+
+/* ==========================================================================
+   Movimento — e o respeito a quem não quer nenhum
+   ==========================================================================
+
+   TUDO O QUE ANIMA NESTE PRODUTO PASSA POR AQUI, e tudo desliga junto. Um
+   `prefers-reduced-motion` esquecido num único componente basta para provocar
+   enjoo em quem tem sensibilidade vestibular — e a pessoa não tem como saber
+   qual tela evitar.
+   ========================================================================== */
+
+@keyframes crc-surgir {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes crc-pulsar {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes crc-crescer {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/*
+ * A ENTRADA ESCALONADA DA FILA.
+ *
+ * Os itens chegam em sequência, com 28ms entre eles. É curto de propósito: o
+ * suficiente para o olho perceber ORDEM (quem está no topo chegou primeiro,
+ * porque é o mais urgente), e curto demais para virar espera. Passar de oito
+ * itens, o atraso trava — vinte itens a 28ms seriam meio segundo de gente
+ * olhando para uma lista se montando.
+ */
+.crc-app .crc-entra {
+  animation: crc-surgir var(--crc-mola) both;
+}
+.crc-app .crc-entra:nth-child(1) {
+  animation-delay: 0ms;
+}
+.crc-app .crc-entra:nth-child(2) {
+  animation-delay: 28ms;
+}
+.crc-app .crc-entra:nth-child(3) {
+  animation-delay: 56ms;
+}
+.crc-app .crc-entra:nth-child(4) {
+  animation-delay: 84ms;
+}
+.crc-app .crc-entra:nth-child(5) {
+  animation-delay: 112ms;
+}
+.crc-app .crc-entra:nth-child(6) {
+  animation-delay: 140ms;
+}
+.crc-app .crc-entra:nth-child(7) {
+  animation-delay: 168ms;
+}
+.crc-app .crc-entra:nth-child(n + 8) {
+  animation-delay: 196ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crc-app *,
+  .crc-app *::before,
+  .crc-app *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* ==========================================================================
    Tipografia — item 22. Hierarquia forte, e nada abaixo de 12px.
    ========================================================================== */
 
+/*
+ * O TÍTULO USA A DISPLAY DA MARCA, e não a fonte do corpo em negrito.
+ *
+ * `font-optical-sizing: auto` é o que essa fonte tem de melhor e o que quase
+ * ninguém usa: em 30px ela afina as hastes e aperta o espaçamento sozinha, do
+ * jeito que um tipógrafo faria à mão. Uma fonte estática no mesmo tamanho
+ * parece pesada demais — e é essa diferença que o olho lê como "caprichado"
+ * sem conseguir nomear.
+ */
 .crc-app .crc-titulo-pagina {
-  font-size: clamp(1.5rem, 1.2rem + 0.9vw, 1.875rem);
+  font-family: var(--crc-fonte-display);
+  font-optical-sizing: auto;
+  font-size: clamp(1.625rem, 1.2rem + 1.1vw, 2.125rem);
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
   margin: 0;
+  /* Título de duas linhas não pode quebrar deixando uma palavra órfã. */
+  text-wrap: balance;
 }
 
 .crc-app .crc-titulo-secao {
-  font-size: 1.125rem;
+  font-family: var(--crc-fonte-display);
+  font-optical-sizing: auto;
+  font-size: 1.0625rem;
   font-weight: 600;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
   margin: 0;
 }
 
@@ -260,7 +430,31 @@
   font-size: 0.9375rem;
   font-weight: 500;
   text-decoration: none;
-  transition: background var(--crc-transicao), color var(--crc-transicao);
+  position: relative;
+  transition:
+    background var(--crc-transicao),
+    color var(--crc-transicao);
+}
+
+/*
+ * O TRAÇO QUE MARCA A SEÇÃO ATUAL.
+ *
+ * Ele nasce com altura zero e cresce a partir do centro. O efeito é o de um
+ * indicador que ACOMPANHA a navegação em vez de piscar em outro lugar — e o
+ * `transform` de um pseudo-elemento não força recálculo de layout, então
+ * clicar entre abas continua instantâneo mesmo com a lista inteira na tela.
+ */
+.crc-app .crc-nav-item::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  border-radius: 0 var(--crc-r-pilula) var(--crc-r-pilula) 0;
+  background: var(--crc-primaria);
+  transform: translateY(-50%);
+  transition: height var(--crc-mola);
 }
 
 .crc-app .crc-nav-item:hover {
@@ -272,6 +466,10 @@
   background: var(--crc-primaria-suave);
   color: var(--crc-primaria);
   font-weight: 600;
+}
+
+.crc-app .crc-nav-item[aria-current="page"]::before {
+  height: 1.25rem;
 }
 
 /* O contador de pendências na navegação. Fica à direita e não empurra o rótulo. */
@@ -353,6 +551,30 @@
   box-shadow: var(--crc-sombra);
 }
 
+/*
+ * SÓ O QUE É CLICÁVEL SE LEVANTA.
+ *
+ * Cartão que sobe no hover sem ter ação é promessa quebrada: a pessoa move o
+ * mouse, o cartão reage, ela clica e nada acontece. Este modificador entra
+ * apenas onde existe destino — e por isso o cursor também muda.
+ */
+.crc-app .crc-cartao-acionavel {
+  cursor: pointer;
+  transition:
+    transform var(--crc-transicao),
+    box-shadow var(--crc-transicao),
+    border-color var(--crc-transicao);
+}
+.crc-app .crc-cartao-acionavel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--crc-sombra-erguida);
+  border-color: var(--crc-borda-forte);
+}
+.crc-app .crc-cartao-acionavel:active {
+  transform: translateY(0);
+  box-shadow: var(--crc-sombra);
+}
+
 .crc-app .crc-cartao-compacto {
   padding: var(--crc-e4);
 }
@@ -378,19 +600,34 @@
   flex-direction: column;
   gap: var(--crc-e1);
   min-width: 0;
+  position: relative;
+  overflow: hidden;
 }
 
+/*
+ * O rótulo em versalete estreito.
+ *
+ * Ele precisa ser LIDO DEPOIS do número, e não antes — quem olha um painel
+ * busca a cifra e só então confere do que ela é. Caixa alta pequena com
+ * espaçamento aberto entrega isso: presente para quem procura, silenciosa para
+ * quem está varrendo.
+ */
 .crc-app .crc-kpi-rotulo {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--crc-texto-3);
 }
 
 .crc-app .crc-kpi-valor {
-  font-size: 1.75rem;
+  font-family: var(--crc-fonte-display);
+  font-optical-sizing: auto;
+  font-size: 2rem;
   font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  /* Tabular para o número não dançar de largura ao atualizar. */
   font-variant-numeric: tabular-nums;
   color: var(--crc-texto);
   /* Valor longo (R$ 1.234.567,89) não pode estourar o cartão. */
@@ -400,6 +637,37 @@
 .crc-app .crc-kpi-nota {
   font-size: 0.75rem;
   color: var(--crc-texto-3);
+  line-height: 1.35;
+}
+
+/*
+ * O KPI QUE É O TRABALHO.
+ *
+ * Cinco cartões idênticos não têm hierarquia: "pacientes esperando por você"
+ * fica com o mesmo peso de "consultas recuperadas no mês", e um é ação
+ * enquanto o outro é placar. Este modificador dá ao único acionável a cor de
+ * atenção e um pouco mais de presença — e ele é usado UMA vez por tela.
+ */
+.crc-app .crc-kpi-foco {
+  border-color: var(--crc-alerta);
+  background: linear-gradient(180deg, var(--crc-alerta-suave) 0%, var(--crc-superficie) 62%);
+}
+.crc-app .crc-kpi-foco .crc-kpi-valor {
+  color: var(--crc-alerta);
+  font-size: 2.625rem;
+}
+.crc-app .crc-kpi-foco .crc-kpi-rotulo {
+  color: var(--crc-alerta);
+}
+
+/* Nada esperando é uma boa notícia, e a tela pode dizer isso em verde. */
+.crc-app .crc-kpi-calmo {
+  border-color: var(--crc-primaria-borda);
+  background: linear-gradient(180deg, var(--crc-primaria-suave) 0%, var(--crc-superficie) 62%);
+}
+.crc-app .crc-kpi-calmo .crc-kpi-valor,
+.crc-app .crc-kpi-calmo .crc-kpi-rotulo {
+  color: var(--crc-primaria);
 }
 
 /* ==========================================================================
@@ -421,7 +689,9 @@
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--crc-transicao), border-color var(--crc-transicao),
+  transition:
+    background var(--crc-transicao),
+    border-color var(--crc-transicao),
     color var(--crc-transicao);
 }
 
@@ -508,7 +778,9 @@
      explícito. Também impede o zoom automático do Safari no iOS. */
   font-size: 0.9375rem;
   color: var(--crc-texto);
-  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+  transition:
+    border-color var(--crc-transicao),
+    box-shadow var(--crc-transicao);
 }
 
 .crc-app .crc-area {
@@ -923,7 +1195,9 @@
   width: 100%;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+  transition:
+    border-color var(--crc-transicao),
+    box-shadow var(--crc-transicao);
 }
 
 .crc-app .crc-cartao-funil:hover {
@@ -1021,4 +1295,538 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
+}
+
+/* ==========================================================================
+   Foco — uma regra para o produto inteiro
+   ==========================================================================
+
+   `:focus-visible`, e não `:focus`: o anel precisa aparecer para quem navega
+   por teclado e NÃO aparecer ao redor do botão que a pessoa acabou de clicar
+   com o mouse. Essa distinção é a razão de tanta gente ter desligado o outline
+   por completo no passado — e desligar é o que torna um produto inoperável
+   sem mouse.
+
+   O anel tem duas camadas: um vão da cor do fundo e o traço por cima. Assim
+   ele continua visível sobre botão verde, sobre linha de tabela e sobre o
+   modal, sem precisar de uma regra por componente.
+   ========================================================================== */
+
+.crc-app :focus-visible {
+  outline: 2px solid var(--crc-primaria);
+  outline-offset: 2px;
+  border-radius: var(--crc-r-campo);
+}
+
+.crc-app .crc-botao-primario:focus-visible {
+  outline-color: var(--crc-texto);
+}
+
+/*
+ * O alvo mínimo de toque. Um ícone de 16px num botão de 20px é impossível de
+ * acertar num tablet de recepção, que é onde metade desta operação acontece.
+ *
+ * AS EXCEÇÕES SÃO POR PAPEL, E NÃO POR CLASSE. `role="switch"` tem altura de
+ * desenho (24px) e a regra genérica o esticava para 32 — medido no navegador —
+ * deformando a pílula e deslocando o botão de dentro. Declarar a exceção pelo
+ * papel protege qualquer interruptor futuro; por classe, protegeria só o que
+ * existe hoje.
+ */
+.crc-app button:not([role="switch"]):not(.crc-tema button),
+.crc-app [role="button"],
+.crc-app a.crc-nav-item {
+  min-height: 32px;
+}
+
+/* ==========================================================================
+   O PORQUÊ — a nota aberta nas razões que a somam
+   ==========================================================================
+
+   ESTE É O COMPONENTE-ASSINATURA DO PRODUTO, e a razão dele é uma frase que já
+   estava no sistema muito antes desta folha: *ninguém discute com uma fila que
+   explica a si mesma.*
+
+   Todo CRM ordena uma lista por um número. O que nenhum mostra é DE ONDE o
+   número veio. Aqui a nota 92 aparece decomposta — faltou (+26), disse que
+   quer marcar (+25), respondeu há pouco (+18), sem outra consulta (+15), já se
+   tratou aqui (+8) — e cada parcela tem largura proporcional ao que pesou.
+
+   POR QUE ISSO MUDA O USO: a recepcionista deixa de "confiar no sistema" e
+   passa a CONCORDAR com ele. E quando discorda, sabe exatamente de qual
+   parcela discorda — o que é a única forma de a regra melhorar com o tempo.
+
+   A cor sozinha nunca comunica: cada faixa carrega `title` e a lista abaixo
+   repete tudo em texto. Quem usa leitor de tela recebe a mesma informação.
+   ========================================================================== */
+
+.crc-app .crc-porque {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e3);
+}
+
+.crc-app .crc-porque-barra {
+  display: flex;
+  height: 10px;
+  border-radius: var(--crc-r-pilula);
+  overflow: hidden;
+  background: var(--crc-superficie-3);
+  /* A barra inteira cresce da esquerda uma vez, ao aparecer. É o único
+     movimento da tela que dura mais que um piscar — e ele existe porque a
+     leitura correta é "isto SOMA até 92", não "isto é 92". */
+  transform-origin: left center;
+  animation: crc-crescer var(--crc-mola) both;
+}
+
+.crc-app .crc-porque-fatia {
+  height: 100%;
+  min-width: 3px;
+  /* Fio da cor do cartão entre as fatias: separa sem inventar uma sexta cor. */
+  box-shadow: inset -1px 0 0 var(--crc-superficie);
+}
+.crc-app .crc-porque-fatia:last-child {
+  box-shadow: none;
+}
+
+/* As cinco intensidades vêm da MESMA cor da marca, e não de cinco matizes
+   diferentes. Cinco cores implicariam cinco significados; aqui o significado é
+   um só — peso — e o que varia é a força. */
+.crc-app .crc-porque-f1 {
+  background: var(--crc-primaria);
+}
+.crc-app .crc-porque-f2 {
+  background: color-mix(in oklab, var(--crc-primaria) 78%, var(--crc-superficie));
+}
+.crc-app .crc-porque-f3 {
+  background: color-mix(in oklab, var(--crc-primaria) 58%, var(--crc-superficie));
+}
+.crc-app .crc-porque-f4 {
+  background: color-mix(in oklab, var(--crc-primaria) 40%, var(--crc-superficie));
+}
+.crc-app .crc-porque-f5 {
+  background: color-mix(in oklab, var(--crc-primaria) 26%, var(--crc-superficie));
+}
+
+/* Parcela NEGATIVA — quem já tem consulta, quem já foi contatado hoje. Ela é a
+   promessa do produto ("não incomodamos duas vezes") e por isso não pode ser
+   mais uma faixa verde: é a única que muda de cor. */
+.crc-app .crc-porque-fatia-desconta {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--crc-borda-forte) 0 4px,
+    var(--crc-superficie-3) 4px 8px
+  );
+}
+
+.crc-app .crc-porque-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--crc-e2) var(--crc-e4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-porque-lista li {
+  display: flex;
+  align-items: center;
+  gap: var(--crc-e2);
+}
+
+.crc-app .crc-porque-ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.crc-app .crc-porque-peso {
+  font-family: var(--crc-fonte-dado);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--crc-texto-3);
+}
+
+/* ==========================================================================
+   A FITA DO DIA — a janela de atendimento, com o agora marcado
+   ==========================================================================
+
+   TEMPO É A MATÉRIA DESTE SISTEMA. Tudo aqui é sobre QUANDO: a espera de duas
+   horas depois da falta, o intervalo mínimo entre contatos, a janela em que se
+   pode falar com paciente, a mensagem que é ADIADA e não cancelada quando o
+   expediente fecha.
+
+   Um painel comum esconde isso em texto ("horário comercial: 08:00–19:00").
+   Esta fita mostra: onde estamos no dia, quanto falta para fechar, e — quando
+   há envio agendado — em que ponto da faixa ele vai cair. É a explicação
+   visual de por que a mensagem de alguém "ainda não saiu".
+   ========================================================================== */
+
+.crc-app .crc-fita {
+  position: relative;
+  height: 34px;
+  border-radius: var(--crc-r-campo);
+  background: var(--crc-superficie-3);
+  overflow: hidden;
+}
+
+/* A faixa aberta: a parte do dia em que a clínica pode falar. */
+.crc-app .crc-fita-janela {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--crc-primaria-suave);
+  border-left: 1px solid var(--crc-primaria-borda);
+  border-right: 1px solid var(--crc-primaria-borda);
+}
+
+/* O agora. Fininho e da cor de atenção — é o único ponto móvel da tela. */
+.crc-app .crc-fita-agora {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--crc-alerta);
+  transition: left var(--crc-mola);
+}
+.crc-app .crc-fita-agora::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-alerta);
+  transform: translateX(-50%);
+}
+
+/* Um envio agendado dentro da janela. */
+.crc-app .crc-fita-marca {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-primaria);
+  transform: translate(-50%, -50%);
+}
+
+.crc-app .crc-fita-horas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--crc-e1);
+  font-family: var(--crc-fonte-dado);
+  font-size: 0.6875rem;
+  color: var(--crc-texto-3);
+}
+
+/* ==========================================================================
+   O PULSO — o sinal de que a máquina está trabalhando
+   ==========================================================================
+
+   Uma tela que diz "82 pacientes estão sendo cuidados automaticamente" precisa
+   provar que isso é verdade AGORA, e não uma frase escrita no HTML. O pulso é
+   essa prova: ele bate enquanto o motor está dentro da janela de operação, e
+   fica parado e cinza quando não está.
+
+   É deliberadamente pequeno. Um indicador de status que chama atenção compete
+   com o trabalho; este só é notado por quem procura.
+   ========================================================================== */
+
+.crc-app .crc-pulso {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--crc-e2);
+  font-size: 0.75rem;
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-pulso-ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-primaria);
+  flex-shrink: 0;
+  animation: crc-pulsar 2.4s ease-in-out infinite;
+}
+
+.crc-app .crc-pulso[data-ativo="nao"] .crc-pulso-ponto {
+  background: var(--crc-borda-forte);
+  animation: none;
+}
+
+/* ==========================================================================
+   Fila do dia — a linha que é o trabalho
+   ==========================================================================
+
+   O item da fila NÃO é um cartão. Card dentro de card dentro de card é o que
+   transforma uma lista de dezesseis pessoas em dezesseis caixas empilhadas
+   pedindo atenção igual. Aqui a lista é uma superfície só, e o que separa as
+   linhas é um fio — com a faixa de prioridade à esquerda fazendo o trabalho de
+   hierarquia que a caixa faria pior.
+   ========================================================================== */
+
+.crc-app .crc-fila {
+  display: flex;
+  flex-direction: column;
+  background: var(--crc-superficie);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  box-shadow: var(--crc-sombra);
+  overflow: hidden;
+}
+
+.crc-app .crc-fila-item {
+  display: flex;
+  /*
+   * TOPO, E NÃO CENTRO.
+   *
+   * Com a explicação da nota aberta, a linha fica alta — e centralizar joga o
+   * disco do score e os botões para a metade da altura, longe do nome a que
+   * pertencem. O olho passa a ler "92" como se fosse de outro paciente.
+   * Alinhado ao topo, os três elementos começam na mesma linha de base
+   * qualquer que seja a altura da linha.
+   */
+  align-items: flex-start;
+  gap: var(--crc-e4);
+  width: 100%;
+  padding: var(--crc-e4) var(--crc-e5);
+  border: 0;
+  border-top: 1px solid var(--crc-borda);
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: background var(--crc-transicao);
+}
+.crc-app .crc-fila-item:first-child {
+  border-top: 0;
+}
+.crc-app .crc-fila-item:hover {
+  background: var(--crc-superficie-2);
+}
+
+/*
+ * A faixa de urgência.
+ *
+ * Ela cresce no hover — de 3px para 5px. É o retorno mais barato que existe:
+ * confirma qual linha está sob o cursor sem mover nada de lugar, o que numa
+ * lista longa evita a sensação de conteúdo escorregando.
+ */
+.crc-app .crc-fila-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--crc-borda-forte);
+  transition: width var(--crc-transicao);
+}
+.crc-app .crc-fila-item:hover::before {
+  width: 5px;
+}
+.crc-app .crc-fila-item[data-urgencia="ALTA"]::before {
+  background: var(--crc-alerta);
+}
+.crc-app .crc-fila-item[data-urgencia="MEDIA"]::before {
+  background: var(--crc-primaria);
+}
+
+/*
+ * A NOTA, em disco.
+ *
+ * Ela precisa ser lida à distância — é por ela que a fila está ordenada. A
+ * largura fixa impede que "7" e "92" desalinhem os nomes ao lado, que é o
+ * detalhe que faz uma lista parecer torta sem ninguém saber por quê.
+ */
+.crc-app .crc-fila-nota {
+  display: grid;
+  place-items: center;
+  /* O disco tem 44px e a linha do nome, 22px. Descer 1px encosta o centro do
+     número na altura-x do nome — alinhamento óptico, que é o que o olho lê. */
+  margin-top: -1px;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--crc-r-campo);
+  background: var(--crc-superficie-3);
+  font-family: var(--crc-fonte-display);
+  font-optical-sizing: auto;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--crc-texto-2);
+}
+.crc-app .crc-fila-item[data-urgencia="ALTA"] .crc-fila-nota {
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+
+.crc-app .crc-fila-corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.crc-app .crc-fila-nome {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--crc-texto);
+  /* Nome comprido trunca em vez de empurrar a etiqueta para fora da linha. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-fila-motivo {
+  font-size: 0.8125rem;
+  color: var(--crc-texto-3);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Alternador de tema
+   ========================================================================== */
+
+.crc-app .crc-tema {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-superficie-3);
+  border: 1px solid var(--crc-borda);
+}
+
+.crc-app .crc-tema button {
+  border: 0;
+  background: transparent;
+  color: var(--crc-texto-3);
+  border-radius: var(--crc-r-pilula);
+  padding: 3px var(--crc-e3);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  min-height: 0;
+  cursor: pointer;
+  transition:
+    background var(--crc-transicao),
+    color var(--crc-transicao);
+}
+
+.crc-app .crc-tema button[aria-pressed="true"] {
+  background: var(--crc-superficie);
+  color: var(--crc-texto);
+  box-shadow: var(--crc-sombra);
+}
+
+/* ==========================================================================
+   Responsivo — a recepção também usa tablet
+   ==========================================================================
+
+   Abaixo de 1024px a barra lateral vira uma faixa horizontal rolável no topo.
+   NÃO vira menu escondido atrás de um ícone: num tablet de balcão, o que está
+   escondido não é usado, e a navegação é o produto.
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .crc-app .crc-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app .crc-lateral {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--crc-e1);
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 1px solid var(--crc-borda);
+    padding: var(--crc-e2) var(--crc-e4);
+    /* Sem isto o rolamento horizontal para no meio de um item e o rótulo
+       aparece cortado — o que parece bug e é só falta de encaixe. */
+    scroll-snap-type: x proximity;
+  }
+
+  .crc-app .crc-lateral > * {
+    scroll-snap-align: start;
+  }
+
+  .crc-app .crc-nav-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* O traço do item ativo vai para baixo quando a navegação é horizontal. */
+  .crc-app .crc-nav-item::before {
+    left: 50%;
+    top: auto;
+    bottom: -0.5rem;
+    width: 0;
+    height: 3px;
+    border-radius: var(--crc-r-pilula) var(--crc-r-pilula) 0 0;
+    transform: translateX(-50%);
+    transition: width var(--crc-mola);
+  }
+  .crc-app .crc-nav-item[aria-current="page"]::before {
+    width: 1.25rem;
+    height: 3px;
+  }
+
+  .crc-app .crc-conteudo {
+    padding: var(--crc-e5) var(--crc-e4) var(--crc-e10);
+  }
+}
+
+@media (max-width: 640px) {
+  .crc-app .crc-fila-item {
+    padding: var(--crc-e3) var(--crc-e4);
+    gap: var(--crc-e3);
+  }
+  .crc-app .crc-fila-nota {
+    width: 38px;
+    height: 38px;
+    font-size: 0.9375rem;
+  }
+  .crc-app .crc-kpi-foco .crc-kpi-valor {
+    font-size: 2.125rem;
+  }
+}
+
+/* ==========================================================================
+   Painel duplo — o trabalho e o contexto
+   ==========================================================================
+
+   DUAS COLUNAS QUE NÃO SÃO IGUAIS: a da esquerda ocupa o dobro porque é o
+   trabalho, e a da direita é contexto. Meio a meio diria que as duas pedem a
+   mesma atenção, e não pedem.
+
+   Abaixo de 1100px elas empilham — e a ordem do HTML já está certa, com o
+   trabalho primeiro. Empilhar contexto acima de trabalho é o erro que faz
+   quem abre no tablet rolar para achar a fila.
+   ========================================================================== */
+
+.crc-app .crc-painel-duplo {
+  display: grid;
+  gap: var(--crc-e5);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .crc-app .crc-painel-duplo {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

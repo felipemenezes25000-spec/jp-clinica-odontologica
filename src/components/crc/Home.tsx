@@ -3,23 +3,31 @@
  *
  * "Não quero dashboard cheio de cards inúteis. Quero uma Home operacional."
  *
- * O QUE ISSO SIGNIFICOU NAS DECISÕES DESTA TELA:
+ * O QUE MUDOU NESTA REVISÃO, E POR QUÊ
  *
- *   A frase vem antes dos números. "17 oportunidades precisam da sua atenção,
- *   82 estão sendo tratadas automaticamente" responde as quatro perguntas do
- *   item 44 (o que aconteceu, por que importa, o que eu faço, o que o sistema
- *   já faz) numa linha — antes de qualquer KPI.
+ * Antes esta tela abria com CINCO CARTÕES IGUAIS. É o gesto mais comum de
+ * painel e um dos piores: "pacientes esperando por você" ganhava exatamente o
+ * mesmo peso de "consultas recuperadas no mês" — e um é trabalho a fazer
+ * enquanto o outro é placar do passado. Cinco pesos iguais não são hierarquia;
+ * são a ausência dela.
  *
- *   Cinco KPIs, não quinze. Cada um responde a uma pergunta que alguém faz de
- *   verdade. Um sexto card só porque o dado existe é exatamente o que o item 45
- *   proíbe.
+ * Agora a tela é uma FRASE, e a frase tem duas metades:
  *
- *   As prioridades mostram POR QUÊ. O item 173 pede explicabilidade, e ela é o
- *   que separa "o sistema mandou ligar" de "o sistema mandou ligar porque ela
- *   pediu para agendar e respondeu hoje".
+ *   À ESQUERDA, O TRABALHO. Um número grande, na cor de atenção, e logo abaixo
+ *   dele a fila — porque a resposta para "quantos precisam de mim" é inútil
+ *   sem o "quem".
  *
- *   Doze itens no máximo. O item 15 é literal: "não mostrar 300 coisas de uma
- *   vez". A fila completa mora no Funil.
+ *   À DIREITA, O SOSSEGO. Quantos a máquina está cuidando sozinha, com o pulso
+ *   provando que ela roda agora, e a fita do dia mostrando onde estamos na
+ *   janela de atendimento. É o que responde "e o resto?" antes de perguntarem.
+ *
+ * O PORQUÊ DEIXOU DE SER UM CLIQUE. A explicação da nota estava escondida atrás
+ * de um botão "Por que 92/100?". Escondida, ela não é usada; e uma fila que
+ * ninguém entende é uma fila em que ninguém confia. O primeiro item da lista
+ * traz a decomposição aberta, sempre — é o que ensina a ler todos os outros.
+ *
+ * Doze itens no máximo. O item 15 é literal: "não mostrar 300 coisas de uma
+ * vez". A fila completa mora no Funil.
  */
 import { useEffect, useState } from "react";
 
@@ -32,6 +40,7 @@ import {
   tempoRelativo,
 } from "@/lib/crc/dominio/formatar";
 
+import { FitaDoDia, Porque, Pulso, type RazaoDaNota } from "./assinatura";
 import { Aviso, Cartao, Esqueleto, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
 
 export function Home({
@@ -70,21 +79,27 @@ export function Home({
   if (resumo === null) {
     return (
       <>
+        <div style={{ marginBottom: "var(--crc-e6)" }}>
+          <Esqueleto altura={38} largura="52%" />
+          <div style={{ height: "var(--crc-e3)" }} />
+          <Esqueleto altura={16} largura="70%" />
+        </div>
         <div className="crc-grade" style={{ marginBottom: "var(--crc-e6)" }}>
-          {[0, 1, 2, 3, 4].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div key={i} className="crc-kpi">
               <Esqueleto altura={12} largura="60%" />
               <div style={{ height: "var(--crc-e2)" }} />
-              <Esqueleto altura={26} largura="45%" />
+              <Esqueleto altura={30} largura="45%" />
             </div>
           ))}
         </div>
-        <ListaEsqueleto linhas={4} />
+        <ListaEsqueleto linhas={5} />
       </>
     );
   }
 
   const primeiroNome = nomeUsuario.trim().split(/\s+/u)[0] ?? "";
+  const temTrabalho = resumo.precisamDeAtencao > 0;
 
   return (
     <>
@@ -96,16 +111,19 @@ export function Home({
 
         {/* A frase que resume o dia. É ela que faz o funcionário sentir que o
             sistema está trabalhando por ele (item 50 do Mega Prompt). */}
-        <p className="crc-corpo" style={{ marginTop: "var(--crc-e2)", fontSize: "1.0625rem" }}>
-          {resumo.precisamDeAtencao === 0 ? (
-            <>Nenhum paciente está esperando você agora. </>
-          ) : (
+        <p
+          className="crc-corpo"
+          style={{ marginTop: "var(--crc-e2)", fontSize: "1.0625rem", maxWidth: "62ch" }}
+        >
+          {temTrabalho ? (
             <>
               <strong style={{ color: "var(--crc-texto)" }}>
                 {plural(resumo.precisamDeAtencao, "paciente precisa", "pacientes precisam")}
               </strong>{" "}
-              da sua atenção.{" "}
+              da sua atenção agora.{" "}
             </>
+          ) : (
+            <>Nenhum paciente está esperando você agora. </>
           )}
           {resumo.emAutomacao > 0 && (
             <>
@@ -115,77 +133,126 @@ export function Home({
           )}
         </p>
 
-        {/* Item 136: quando os dados são velhos, a tela avisa. Um CRC operando
-            sobre uma sincronização de ontem toma decisão errada em silêncio. */}
-        {resumo.frescorDados !== null && (
-          <p className="crc-meta" style={{ marginTop: "var(--crc-e2)" }}>
-            {frescor(resumo.frescorDados)}
-          </p>
-        )}
+        <div className="crc-linha" style={{ marginTop: "var(--crc-e3)", gap: "var(--crc-e4)" }}>
+          <Pulso
+            ativo={resumo.dentroDoHorario}
+            texto={
+              resumo.dentroDoHorario
+                ? "Automação ativa — dentro do horário de atendimento"
+                : "Fora do horário: o que estiver na fila sai na abertura"
+            }
+          />
+          {/* Item 136: quando os dados são velhos, a tela avisa. Um CRC
+              operando sobre uma sincronização de ontem decide errado em
+              silêncio. */}
+          {resumo.frescorDados !== null && (
+            <span className="crc-meta">{frescor(resumo.frescorDados)}</span>
+          )}
+        </div>
       </header>
 
-      <div className="crc-grade" style={{ marginBottom: "var(--crc-e8)" }}>
-        <Kpi
-          rotulo="Precisam de você"
-          valor={resumo.precisamDeAtencao.toLocaleString("pt-BR")}
-          nota="Sem automação cuidando"
-        />
-        <Kpi
-          rotulo="Suas tarefas"
-          valor={resumo.tarefasHoje.toLocaleString("pt-BR")}
-          nota="Abertas e em andamento"
-        />
-        <Kpi
-          rotulo="Conversas esperando"
-          valor={resumo.conversasEsperando.toLocaleString("pt-BR")}
-          nota="Com mensagem não lida"
-        />
-        <Kpi
-          rotulo="Consultas recuperadas"
-          valor={resumo.consultasRecuperadas.toLocaleString("pt-BR")}
-          nota="Neste mês"
-        />
-        {/*
-          ITEM 63 EM CÓDIGO. Enquanto não houver integração financeira, este
-          número é POTENCIAL — e o rótulo diz isso, em vez de chamar de
-          "receita recuperada" e o dashboard mentir.
-        */}
-        <Kpi
-          rotulo={
-            Number.parseFloat(resumo.receitaConfirmada) > 0
-              ? "Receita recuperada"
-              : "Valor potencial recuperado"
-          }
-          valor={dinheiroCurto(
-            Number.parseFloat(resumo.receitaConfirmada) > 0
-              ? resumo.receitaConfirmada
-              : resumo.valorPotencialRecuperado,
-          )}
-          nota={
-            Number.parseFloat(resumo.receitaConfirmada) > 0
-              ? "Confirmada neste mês"
-              : "Ainda sem confirmação financeira"
-          }
-        />
+      {/*
+        DUAS COLUNAS, E ELAS NÃO SÃO IGUAIS.
+        A da esquerda é o trabalho e ocupa o dobro; a da direita é contexto. Um
+        layout meio a meio diria que as duas pedem a mesma atenção, e não pedem.
+      */}
+      <div className="crc-painel-duplo" style={{ marginBottom: "var(--crc-e8)" }}>
+        <div className="crc-grade">
+          <Kpi
+            rotulo="Precisam de você"
+            valor={resumo.precisamDeAtencao.toLocaleString("pt-BR")}
+            nota="Sem automação cuidando"
+            destaque={temTrabalho ? "foco" : "calmo"}
+          />
+          <Kpi
+            rotulo="Suas tarefas"
+            valor={resumo.tarefasHoje.toLocaleString("pt-BR")}
+            nota="Abertas e em andamento"
+          />
+          <Kpi
+            rotulo="Conversas esperando"
+            valor={resumo.conversasEsperando.toLocaleString("pt-BR")}
+            nota="Com mensagem não lida"
+          />
+        </div>
+
+        <Cartao>
+          <h2 className="crc-titulo-cartao" style={{ marginBottom: "var(--crc-e3)" }}>
+            O dia da clínica
+          </h2>
+          <FitaDoDia inicio={resumo.janelaDeHoje.inicio} fim={resumo.janelaDeHoje.fim} />
+
+          <hr className="crc-separador" />
+
+          <div className="crc-grade" style={{ gap: "var(--crc-e3)" }}>
+            <div>
+              <div className="crc-kpi-rotulo">Recuperadas</div>
+              <div className="crc-kpi-valor" style={{ fontSize: "1.5rem" }}>
+                {resumo.consultasRecuperadas.toLocaleString("pt-BR")}
+              </div>
+              <div className="crc-kpi-nota">consultas neste mês</div>
+            </div>
+            <div>
+              {/*
+                Item 63: potencial e confirmado NUNCA no mesmo número. Sem
+                integração financeira este número é POTENCIAL — e o rótulo diz
+                isso, em vez de chamar de "receita" e o painel mentir.
+              */}
+              <div className="crc-kpi-rotulo">
+                {Number.parseFloat(resumo.receitaConfirmada) > 0 ? "Receita" : "Potencial"}
+              </div>
+              <div className="crc-kpi-valor" style={{ fontSize: "1.5rem" }}>
+                {dinheiroCurto(
+                  Number.parseFloat(resumo.receitaConfirmada) > 0
+                    ? resumo.receitaConfirmada
+                    : resumo.valorPotencialRecuperado,
+                )}
+              </div>
+              <div className="crc-kpi-nota">
+                {Number.parseFloat(resumo.receitaConfirmada) > 0
+                  ? "confirmada neste mês"
+                  : "ainda sem confirmação"}
+              </div>
+            </div>
+          </div>
+        </Cartao>
       </div>
 
-      <Cartao titulo="Prioridades de hoje">
-        {resumo.prioridades.length === 0 ? (
+      <div
+        className="crc-linha"
+        style={{ marginBottom: "var(--crc-e3)", justifyContent: "space-between" }}
+      >
+        <h2 className="crc-titulo-secao">Prioridades de hoje</h2>
+        {resumo.prioridades.length > 0 && (
+          <span className="crc-meta">
+            {plural(resumo.prioridades.length, "item na fila", "itens na fila")}
+          </span>
+        )}
+      </div>
+
+      {resumo.prioridades.length === 0 ? (
+        <Cartao>
           <Vazio
             titulo="Nenhuma oportunidade esperando você agora."
             explicacao="As automações continuam monitorando a base. Quando um paciente precisar de contato humano, ele aparece aqui."
           />
-        ) : (
-          <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {resumo.prioridades.map((item, indice) => (
-              <li key={item.opportunityId}>
-                {indice > 0 && <hr className="crc-separador" />}
-                <LinhaPrioridade item={item} aoAbrir={aoAbrirPaciente} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </Cartao>
+        </Cartao>
+      ) : (
+        <div className="crc-fila">
+          {resumo.prioridades.map((item, indice) => (
+            <LinhaPrioridade
+              key={item.opportunityId}
+              item={item}
+              /* O PRIMEIRO ABRE EXPLICADO. Ele é o que ensina a ler a fila
+                 inteira: quem entende por que ela está no topo passa a
+                 entender a ordem toda. Abrir todos seria uma parede de
+                 barras — a explicação viraria ruído em vez de leitura. */
+              explicadoDeSaida={indice === 0}
+              aoAbrir={aoAbrirPaciente}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 }
@@ -204,30 +271,49 @@ const TOM_FAIXA: Readonly<Record<ItemPrioridade["faixa"], "perigo" | "alerta" | 
   BAIXA: "neutra",
 };
 
+/** Os fatores vêm do servidor no formato do domínio; a barra fala outro. */
+function paraRazoes(fatores: ItemPrioridade["fatores"]): RazaoDaNota[] {
+  return fatores.map((f) => ({ rotulo: f.rotulo, peso: f.pontos }));
+}
+
 function LinhaPrioridade({
   item,
+  explicadoDeSaida,
   aoAbrir,
 }: {
   item: ItemPrioridade;
+  explicadoDeSaida: boolean;
   aoAbrir: (patientId: string) => void;
 }) {
-  const [explicando, setExplicando] = useState(false);
+  const [explicando, setExplicando] = useState(explicadoDeSaida);
 
   return (
-    <div className={`crc-prioridade crc-prioridade-${item.faixa}`}>
-      <div className="crc-linha" style={{ gap: "var(--crc-e3)", alignItems: "flex-start" }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
+    <div className="crc-entra" data-urgencia={item.faixa}>
+      <div className="crc-fila-item" data-urgencia={item.faixa} style={{ cursor: "default" }}>
+        {/*
+          A NOTA EM DISCO, e não em texto solto: é por ela que a fila está
+          ordenada, e ela precisa ser lida de longe. A largura é fixa para que
+          "7" e "92" não desalinhem os nomes ao lado.
+        */}
+        <span
+          className="crc-fila-nota"
+          title={`Nota de prioridade: ${String(item.score)} de 100`}
+          aria-hidden="true"
+        >
+          {item.score}
+        </span>
+
+        <div className="crc-fila-corpo">
           <div className="crc-linha" style={{ gap: "var(--crc-e2)" }}>
-            <h3 className="crc-titulo-cartao">{item.nome}</h3>
-            {/*
-              A etiqueta repete a informação da faixa colorida de propósito —
-              item 65: nenhuma ação pode depender só de cor.
-            */}
+            <span className="crc-fila-nome">{item.nome}</span>
+            {/* A etiqueta repete a informação da faixa colorida de propósito —
+                item 65: nenhuma ação pode depender só de cor. */}
             <Etiqueta tom={TOM_FAIXA[item.faixa]}>{ROTULO_FAIXA[item.faixa]}</Etiqueta>
             <Etiqueta>{item.tipoRotulo}</Etiqueta>
+            {item.temJornadaAtiva && <Etiqueta tom="info">Automação cuidando</Etiqueta>}
           </div>
 
-          <p className="crc-corpo" style={{ marginTop: "var(--crc-e1)" }}>
+          <p className="crc-fila-motivo" title={item.motivo}>
             {item.motivo}
           </p>
 
@@ -251,67 +337,44 @@ function LinhaPrioridade({
           {/*
             ITEM 173 — "Por que prioridade alta?".
             Os fatores exibidos são os MESMOS que ordenaram a fila; eles vêm
-            gravados junto do score, e não são recalculados aqui. Se fossem,
-            a explicação poderia divergir da ordem, que é pior do que não
+            gravados junto do score, e não são recalculados aqui. Se fossem, a
+            explicação poderia divergir da ordem, que é pior do que não
             explicar nada.
           */}
-          {item.fatores.length > 0 && (
-            <div style={{ marginTop: "var(--crc-e2)" }}>
-              <button
-                type="button"
-                className="crc-botao crc-botao-discreto crc-botao-pequeno"
-                aria-expanded={explicando}
-                onClick={() => {
-                  setExplicando((v) => !v);
-                }}
-              >
-                {explicando ? "Ocultar" : `Por que ${String(item.score)}/100?`}
-              </button>
-
-              {explicando && (
-                <ul
-                  style={{
-                    listStyle: "none",
-                    margin: "var(--crc-e2) 0 0",
-                    padding: 0,
-                    display: "grid",
-                    gap: "2px",
-                  }}
-                >
-                  {item.fatores.map((f) => (
-                    <li key={f.rotulo} className="crc-meta">
-                      <span
-                        style={{
-                          fontVariantNumeric: "tabular-nums",
-                          fontWeight: 600,
-                          color: f.pontos >= 0 ? "var(--crc-primaria)" : "var(--crc-texto-3)",
-                          marginRight: "var(--crc-e2)",
-                        }}
-                      >
-                        {f.pontos >= 0 ? "+" : ""}
-                        {f.pontos}
-                      </span>
-                      {f.rotulo}
-                    </li>
-                  ))}
-                </ul>
-              )}
+          {item.fatores.length > 0 && explicando && (
+            <div style={{ marginTop: "var(--crc-e3)" }}>
+              <Porque total={item.score} razoes={paraRazoes(item.fatores)} />
             </div>
           )}
         </div>
 
-        {/* Item 4: o botão faz coisa de verdade — abre a central do paciente. */}
-        {item.patientId !== null && (
-          <button
-            type="button"
-            className="crc-botao crc-botao-secundario crc-botao-pequeno"
-            onClick={() => {
-              if (item.patientId !== null) aoAbrir(item.patientId);
-            }}
-          >
-            Abrir paciente
-          </button>
-        )}
+        <div className="crc-linha" style={{ gap: "var(--crc-e2)", flexShrink: 0 }}>
+          {item.fatores.length > 0 && (
+            <button
+              type="button"
+              className="crc-botao crc-botao-discreto crc-botao-pequeno"
+              aria-expanded={explicando}
+              onClick={() => {
+                setExplicando((v) => !v);
+              }}
+            >
+              {explicando ? "Ocultar" : "Por quê?"}
+            </button>
+          )}
+
+          {/* Item 4: o botão faz coisa de verdade — abre a central do paciente. */}
+          {item.patientId !== null && (
+            <button
+              type="button"
+              className="crc-botao crc-botao-secundario crc-botao-pequeno"
+              onClick={() => {
+                if (item.patientId !== null) aoAbrir(item.patientId);
+              }}
+            >
+              Abrir
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

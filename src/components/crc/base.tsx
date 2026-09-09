@@ -102,9 +102,19 @@ export function Kpi({
   rotulo,
   valor,
   nota,
+  destaque,
 }: {
   rotulo: string;
   valor: string;
+  /**
+   * O único KPI acionável da tela.
+   *
+   * "foco" é para o número que representa TRABALHO A FAZER; "calmo" é o mesmo
+   * número quando ele é zero, que é boa notícia e merece ser dita em verde.
+   * Usar em mais de um cartão por tela desfaz o efeito: se tudo é destaque,
+   * nada é.
+   */
+  destaque?: "foco" | "calmo";
   /**
    * A linha de baixo.
    *
@@ -115,8 +125,13 @@ export function Kpi({
    */
   nota?: string;
 }) {
+  const classe =
+    destaque === undefined
+      ? "crc-kpi"
+      : `crc-kpi crc-kpi-${destaque === "foco" ? "foco" : "calmo"}`;
+
   return (
-    <div className="crc-kpi">
+    <div className={classe}>
       <span className="crc-kpi-rotulo">{rotulo}</span>
       <span className="crc-kpi-valor">{valor}</span>
       {nota !== undefined && <span className="crc-kpi-nota">{nota}</span>}
