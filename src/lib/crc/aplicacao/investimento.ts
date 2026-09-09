@@ -190,10 +190,19 @@ function dividir(investido: number, quantidade: number): string | null {
   return moeda(investido / quantidade);
 }
 
-const noPeriodo = (organizationId: string, periodo: Periodo): Filtro[] => [
+/**
+ * O período, com a coluna de data DE CADA TABELA.
+ *
+ * `crc_leads` marca o instante em `criado_em`; `crc_funnel_events` marca em
+ * `ocorrido_em`, porque um evento de funil registra QUANDO O FATO ACONTECEU, e
+ * não quando a linha foi gravada — são coisas diferentes quando o
+ * processamento atrasa. Assumir `criado_em` nas duas foi o que quebrou este
+ * painel: a consulta voltava 400 e a tela dizia "algo deu errado".
+ */
+const noPeriodo = (organizationId: string, periodo: Periodo, coluna: string): Filtro[] => [
   { coluna: "organization_id", op: "eq", valor: organizationId },
-  { coluna: "criado_em", op: "gte", valor: periodo.de },
-  { coluna: "criado_em", op: "lt", valor: periodo.ate },
+  { coluna, op: "gte", valor: periodo.de },
+  { coluna, op: "lt", valor: periodo.ate },
 ];
 
 /**
@@ -229,7 +238,7 @@ export async function panoramaDeInvestimento(
 
   const leads = await selecionar("crc_leads", {
     colunas: "id,utm_campaign,primeira_resposta_em",
-    filtros: noPeriodo(organizationId, periodo),
+    filtros: noPeriodo(organizationId, periodo, "criado_em"),
     limite: 5000,
   });
 
@@ -239,11 +248,11 @@ export async function panoramaDeInvestimento(
   // fato acontece — e não recalculado depois a partir do estado atual.
   const [agendaram, compareceram] = await Promise.all([
     contar("crc_funnel_events", [
-      ...noPeriodo(organizationId, periodo),
+      ...noPeriodo(organizationId, periodo, "ocorrido_em"),
       { coluna: "etapa", op: "eq", valor: "consulta_agendada" },
     ]),
     contar("crc_funnel_events", [
-      ...noPeriodo(organizationId, periodo),
+      ...noPeriodo(organizationId, periodo, "ocorrido_em"),
       { coluna: "etapa", op: "eq", valor: "consulta_recuperada" },
     ]),
   ]);
