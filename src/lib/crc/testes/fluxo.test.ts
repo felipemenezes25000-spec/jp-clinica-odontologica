@@ -138,6 +138,16 @@ async function sincronizarTudo(): Promise<void> {
  * fixa apodrece: a suíte passaria hoje e começaria a falhar num sábado
  * qualquer, sem ninguém ter mexido em nada — e o time perderia a tarde
  * procurando um bug que é do calendário. Derivar do relógio resolve a classe.
+ *
+ * E ELE É O RELÓGIO DE TODA A SUÍTE, inclusive o de `processarEventos`. Fora do
+ * horário comercial `proximoInstanteUtil` empurra este instante para a abertura
+ * seguinte — um ponto no FUTURO — e a jornada recém-inscrita ficava vencida por
+ * acidente. Dentro do horário comercial ele é o próprio `new Date()` do
+ * carregamento do módulo, o processamento do evento acontece milissegundos
+ * DEPOIS, e a mesma jornada nascia com `resume_at` à frente do worker: não era
+ * reservada, ficava ACTIVE e três testes deste arquivo falhavam conforme a HORA
+ * do dia em que a suíte rodava. Passar o instante para quem grava `resume_at` é
+ * o que tira o acaso do meio.
  */
 const HORARIO_UTIL = proximoInstanteUtil(new Date(), CONFIGURACAO_PADRAO.horarioComercial);
 
@@ -268,7 +278,7 @@ describe("fluxo do faltante — item 49", () => {
     instalarHandlers();
     await sincronizarTudo();
 
-    const r = await processarEventos(50);
+    const r = await processarEventos(50, HORARIO_UTIL);
     expect(r.processados).toBeGreaterThan(0);
 
     const oportunidades = conteudo("crc_opportunities").filter(
@@ -288,7 +298,7 @@ describe("fluxo do faltante — item 49", () => {
   it("NÃO cria oportunidade para quem já tem consulta marcada", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const paulo = conteudo("crc_patients").find((p) => p["external_id"] === "do-1008");
     const dele = conteudo("crc_opportunities").filter((o) => o["patient_id"] === paulo?.["id"]);
@@ -298,7 +308,7 @@ describe("fluxo do faltante — item 49", () => {
   it("NÃO cria oportunidade para paciente sem telefone", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const fernanda = conteudo("crc_patients").find((p) => p["external_id"] === "do-1007");
     expect(fernanda?.["telefone"]).toBeNull();
@@ -309,7 +319,7 @@ describe("fluxo do faltante — item 49", () => {
   it("a jornada espera antes de falar — não manda mensagem na hora da falta", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     // O primeiro passo é ESPERAR 2h: tempo de o paciente ligar por conta
     // própria e de a recepção registrar uma remarcação de balcão.
@@ -325,7 +335,7 @@ describe("fluxo do faltante — item 49", () => {
   it("depois da espera, a mensagem sai", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
     await rodarCiclo(contextoDeExecucao(HORARIO_UTIL), 10);
 
     // Só a de Maria acorda: a de João continua na espera dela, e o teste é
@@ -346,7 +356,7 @@ describe("fluxo do faltante — item 49", () => {
   it("a resposta do paciente ENCERRA a jornada", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
     await rodarCiclo(contextoDeExecucao(HORARIO_UTIL), 10);
 
     acordar(MARIA_FALTOU);
@@ -394,7 +404,7 @@ describe("causalidade da recuperação — item 62", () => {
     // recém-aberta como "recuperada" e registra receita que ninguém recuperou.
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const dela = conteudo("crc_opportunities").find((o) => o["chave_dedupe"] === MARIA_FALTOU);
     expect(dela?.["fechada_em"] ?? null, "a oportunidade continua ABERTA").toBeNull();
@@ -408,7 +418,7 @@ describe("causalidade da recuperação — item 62", () => {
   it("mas a consulta POSTERIOR fecha, e aí a recuperação é real", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const maria = conteudo("crc_patients").find((p) => p["external_id"] === "do-1001");
     const patientId = String(maria?.["id"] ?? "");
@@ -424,7 +434,7 @@ describe("causalidade da recuperação — item 62", () => {
       fingerprint: "appointment.completed:ag-9001",
       ocorridoEm: new Date(HORARIO_UTIL.getTime() + 3_600_000).toISOString(),
     });
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const dela = conteudo("crc_opportunities").find((o) => o["chave_dedupe"] === MARIA_FALTOU);
     expect(dela?.["fechada_em"], "agora sim, fechada").toBeTruthy();
@@ -444,7 +454,7 @@ describe("idempotência", () => {
   it("o mesmo evento processado duas vezes gera UMA oportunidade e UMA jornada", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const oportunidades = conteudo("crc_opportunities").length;
     const jornadas = conteudo("crc_automation_enrollments").length;
@@ -456,7 +466,7 @@ describe("idempotência", () => {
       e["travado_ate"] = null;
       e["tentativas"] = 0;
     }
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     expect(conteudo("crc_opportunities").length).toBe(oportunidades);
     expect(conteudo("crc_automation_enrollments").length).toBe(jornadas);
@@ -544,7 +554,7 @@ describe("concorrência", () => {
   it("dois workers NÃO pegam a mesma jornada", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     // UMA jornada elegível, dois workers. Com duas na fila cada um pegaria a
     // sua e o teste passaria sem provar nada sobre o `SKIP LOCKED`.
@@ -565,7 +575,10 @@ describe("concorrência", () => {
     await sincronizarTudo();
 
     const total = conteudo("crc_events").filter((e) => e["status"] === "PENDENTE").length;
-    const [a, b] = await Promise.all([processarEventos(50), processarEventos(50)]);
+    const [a, b] = await Promise.all([
+      processarEventos(50, HORARIO_UTIL),
+      processarEventos(50, HORARIO_UTIL),
+    ]);
 
     expect(a.reservados + b.reservados).toBe(total);
   });
@@ -579,7 +592,7 @@ describe("opt-out", () => {
   it("o pedido do paciente encerra as jornadas na hora", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     expect(
       conteudo("crc_automation_enrollments").filter((j) => j["status"] === "ACTIVE"),
@@ -610,7 +623,7 @@ describe("opt-out", () => {
   it("depois do opt-out, nenhuma mensagem sai mesmo com a jornada acordada", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     await receberMensagem(ORG, CLINICA, {
       providerMessageId: "wamid.pare",
@@ -640,7 +653,7 @@ describe("horário comercial", () => {
   it("mensagem da madrugada é ADIADA, e não enviada nem cancelada", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     // 05h UTC = 02h em São Paulo.
     const madrugada = new Date("2026-09-08T05:00:00.000Z");
@@ -673,7 +686,7 @@ describe("interruptores de emergência", () => {
   it("com os envios pausados, a automação registra e não manda", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     adormecer(JOAO_CANCELOU);
     acordar(MARIA_FALTOU, HORARIO_UTIL, 1);
@@ -695,7 +708,7 @@ describe("interruptores de emergência", () => {
   it("com as automações pausadas, nenhuma jornada avança", async () => {
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     const ciclo = await rodarCiclo(
       { ...contextoDeExecucao(HORARIO_UTIL), automacoesPausadas: true },
@@ -716,7 +729,7 @@ describe("modo simulação", () => {
 
     instalarHandlers();
     await sincronizarTudo();
-    await processarEventos(50);
+    await processarEventos(50, HORARIO_UTIL);
 
     for (const j of conteudo("crc_automation_enrollments")) {
       j["resume_at"] = new Date(HORARIO_UTIL.getTime() - 1000).toISOString();

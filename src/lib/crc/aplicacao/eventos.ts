@@ -106,8 +106,15 @@ function linhaParaEvento(l: Linha): EventoCrc {
  * função registrada por tipo; adicionar um comportamento novo é adicionar um
  * arquivo, não editar um arquivo de mil linhas que todo mundo mexe ao mesmo
  * tempo.
+ *
+ * O `agora` é o instante do LOTE, e não o do handler. Um lote de cinquenta
+ * eventos leva segundos para processar; se cada handler lesse o próprio
+ * relógio, dois eventos do mesmo paciente decidiriam "tem consulta futura?"
+ * contra instantes diferentes, e a jornada nasceria com um `resume_at` que o
+ * worker já considera passado — ou, pior, ainda futuro. Handler que não liga
+ * para a hora simplesmente omite o parâmetro.
  */
-export type Handler = (evento: EventoCrc) => Promise<void>;
+export type Handler = (evento: EventoCrc, agora: Date) => Promise<void>;
 
 const handlers = new Map<TipoEvento, Handler[]>();
 
@@ -151,7 +158,10 @@ const MAX_TENTATIVAS = 5;
  * repescado; depois de `MAX_TENTATIVAS` vai para a dead letter, onde um humano
  * decide. Isso é o item 16 aplicado a eventos, e o 78.
  */
-export async function processarEventos(limite = 25): Promise<ResultadoProcessamento> {
+export async function processarEventos(
+  limite = 25,
+  agora = new Date(),
+): Promise<ResultadoProcessamento> {
   const linhas = await rpc("crc_reservar_eventos", { limite, lock_segundos: 120 });
   const eventos = linhas.map(linhaParaEvento);
 
@@ -177,7 +187,7 @@ export async function processarEventos(limite = 25): Promise<ResultadoProcessame
       // Sequencial de propósito. Dois handlers do mesmo evento podem mexer no
       // mesmo paciente (criar oportunidade e iniciar jornada), e em paralelo a
       // segunda leria o estado antes de a primeira gravar.
-      for (const handler of meus) await handler(evento);
+      for (const handler of meus) await handler(evento, agora);
 
       await marcar(evento.id, "PROCESSADO", null);
       resultado.processados += 1;

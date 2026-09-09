@@ -68,6 +68,7 @@ async function abrirTrabalho(dados: {
   automacaoChave: string;
   patientId: string;
   clinicId: string;
+  agora: Date;
 }): Promise<void> {
   const { evento } = dados;
 
@@ -105,6 +106,7 @@ async function abrirTrabalho(dados: {
     // jornada, quantas vezes o evento for reprocessado (item 84).
     chaveDedupe: dados.chaveDedupe,
     contexto: { eventoTipo: evento.tipo, motivo: dados.motivo },
+    agora: dados.agora,
   });
 }
 
@@ -113,14 +115,14 @@ async function abrirTrabalho(dados: {
 /* -------------------------------------------------------------------------- */
 
 /** Item 49 — o fluxo E2E do faltante começa aqui. */
-export async function aoFaltar(evento: EventoCrc): Promise<void> {
+export async function aoFaltar(evento: EventoCrc, agora = new Date()): Promise<void> {
   const paciente = await pacienteDoEvento(evento);
   if (paciente === null) return;
 
   // O mundo mudou desde o evento? O paciente pode ter remarcado entre a falta e
   // o processamento. Sem esta conferência, a jornada nasceria e sairia no
   // primeiro passo — barulho no log e uma oportunidade fantasma no funil.
-  if (temConsultaFutura(paciente.proximaConsultaEm, new Date())) return;
+  if (temConsultaFutura(paciente.proximaConsultaEm, agora)) return;
   if (paciente.optOutEm !== null || paciente.telefone === null) return;
 
   const externalId = String(evento.payload["externalId"] ?? evento.entityId ?? "");
@@ -133,13 +135,14 @@ export async function aoFaltar(evento: EventoCrc): Promise<void> {
     automacaoChave: "recuperacao_faltas",
     patientId: paciente.id,
     clinicId: paciente.clinicId,
+    agora,
   });
 }
 
-export async function aoCancelar(evento: EventoCrc): Promise<void> {
+export async function aoCancelar(evento: EventoCrc, agora = new Date()): Promise<void> {
   const paciente = await pacienteDoEvento(evento);
   if (paciente === null) return;
-  if (temConsultaFutura(paciente.proximaConsultaEm, new Date())) return;
+  if (temConsultaFutura(paciente.proximaConsultaEm, agora)) return;
   if (paciente.optOutEm !== null || paciente.telefone === null) return;
 
   const externalId = String(evento.payload["externalId"] ?? evento.entityId ?? "");
@@ -152,6 +155,7 @@ export async function aoCancelar(evento: EventoCrc): Promise<void> {
     automacaoChave: "cancelamento_reagendamento",
     patientId: paciente.id,
     clinicId: paciente.clinicId,
+    agora,
   });
 }
 
@@ -335,7 +339,7 @@ export async function aoCriarLead(evento: EventoCrc): Promise<void> {
   }
 }
 
-export async function aoMudarSituacao(evento: EventoCrc): Promise<void> {
+export async function aoMudarSituacao(evento: EventoCrc, agora = new Date()): Promise<void> {
   if (evento.payload["para"] !== "ABANDONO") return;
 
   const externalId = String(evento.payload["externalId"] ?? "");
@@ -349,7 +353,7 @@ export async function aoMudarSituacao(evento: EventoCrc): Promise<void> {
 
   const paciente = linhaParaPaciente(linha);
   if (paciente.optOutEm !== null || paciente.telefone === null) return;
-  if (temConsultaFutura(paciente.proximaConsultaEm, new Date())) return;
+  if (temConsultaFutura(paciente.proximaConsultaEm, agora)) return;
 
   await abrirTrabalho({
     evento,
@@ -359,6 +363,7 @@ export async function aoMudarSituacao(evento: EventoCrc): Promise<void> {
     automacaoChave: "reativacao_inativos",
     patientId: paciente.id,
     clinicId: paciente.clinicId,
+    agora,
   });
 }
 
@@ -774,6 +779,7 @@ export async function varrerRecall(
       opportunityId: resultado.oportunidade?.id ?? null,
       chaveDedupe: chave,
       contexto: { diasSemConsulta: veredicto.diasSemConsulta },
+      agora,
     });
     if (inscricao.inscrito) inscritos += 1;
   }
@@ -827,6 +833,7 @@ export async function varrerConfirmacoes(
       // deve receber duas confirmações.
       chaveDedupe: `CONFIRMACAO:${String(linha["external_id"] ?? linha["id"] ?? "")}`,
       contexto: { inicioEm: String(linha["inicio_em"] ?? "") },
+      agora,
     });
     if (inscricao.inscrito) inscritos += 1;
   }
@@ -880,6 +887,7 @@ export async function varrerAniversarios(
       patientId: String(linha["id"] ?? ""),
       // O ANO entra na chave: uma felicitação por ano, e não uma na vida.
       chaveDedupe: `ANIVERSARIO:${String(linha["id"] ?? "")}:${String(hoje.ano)}`,
+      agora,
     });
     if (inscricao.inscrito) inscritos += 1;
   }

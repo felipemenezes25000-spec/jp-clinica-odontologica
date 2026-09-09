@@ -150,6 +150,18 @@ export type PedidoInscricao = {
   /** Item 84: o mesmo evento processado duas vezes gera UMA jornada. */
   chaveDedupe: string;
   contexto?: Record<string, unknown>;
+  /**
+   * O instante da inscrição — explícito, como em todo o `dominio/`.
+   *
+   * `new Date()` aqui dentro leria um relógio DIFERENTE do que o chamador já
+   * usou para decidir inscrever, e a diferença não é acadêmica: o `resume_at`
+   * que nasce alguns milissegundos à frente do `agora` do worker faz a jornada
+   * não ser reservada na volta seguinte. Ela fica ACTIVE, parada, sem erro
+   * nenhum no log — o pior tipo de defeito de relógio, porque parece
+   * intermitente. Recebendo o instante de fora, a inscrição e a reserva falam
+   * do mesmo agora.
+   */
+  agora: Date;
 };
 
 export type ResultadoInscricao =
@@ -178,7 +190,7 @@ export async function inscrever(pedido: PedidoInscricao): Promise<ResultadoInscr
   const ctx: ContextoCondicao = {
     paciente,
     pacienteRespondeu: false,
-    agora: new Date(),
+    agora: pedido.agora,
   };
 
   if (!todasVerdadeiras(automacao.definicao.condicoes, ctx)) {
@@ -194,7 +206,7 @@ export async function inscrever(pedido: PedidoInscricao): Promise<ResultadoInscr
     event_id: pedido.eventId ?? null,
     status: "ACTIVE",
     passo_atual: 0,
-    resume_at: new Date().toISOString(),
+    resume_at: pedido.agora.toISOString(),
     contexto: pedido.contexto ?? {},
     chave_dedupe: pedido.chaveDedupe,
   });
