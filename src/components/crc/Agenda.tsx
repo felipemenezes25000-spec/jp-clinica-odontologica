@@ -35,6 +35,7 @@ import type { StatusAgendamento } from "@/lib/crc/dominio/tipos";
 import { Aviso, Botao, Etiqueta, Kpi, ListaEsqueleto, Vazio, type TomEtiqueta } from "./base";
 import "./crc-screens.css";
 import "./crc-polish.css";
+import "./crc-qa.css";
 
 /**
  * O tom de cada status.
@@ -58,8 +59,6 @@ function nomeDoDia(dia: string, hoje: string, amanha: string): string {
   if (dia === hoje) return "hoje";
   if (dia === amanha) return "amanhã";
 
-  // `T12:00` no meio do dia: construir a partir da meia-noite faz o fuso
-  // negativo puxar a data para o dia anterior na formatação.
   const d = new Date(`${dia}T12:00:00`);
   return d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
 }
@@ -108,21 +107,9 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
   return (
     <div className="crc-pilha">
       <div className="crc-grade">
-        <Kpi
-          rotulo="A confirmar"
-          valor={String(aConfirmar)}
-          nota="pacientes que ainda não responderam"
-        />
-        <Kpi
-          rotulo="Consultas na janela"
-          valor={String(total)}
-          nota={`próximos ${String(janelaDias)} dias`}
-        />
-        <Kpi
-          rotulo="Dias com atendimento"
-          valor={String(dias?.length ?? 0)}
-          nota="dias vazios não são listados"
-        />
+        <Kpi rotulo="A confirmar" valor={String(aConfirmar)} nota="pacientes que ainda não responderam" />
+        <Kpi rotulo="Consultas na janela" valor={String(total)} nota={`próximos ${String(janelaDias)} dias`} />
+        <Kpi rotulo="Dias com atendimento" valor={String(dias?.length ?? 0)} nota="dias vazios não são listados" />
       </div>
 
       <div className="crc-linha">
@@ -131,9 +118,7 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
             key={n}
             pequeno
             variante={janelaDias === n ? "primario" : "discreto"}
-            onClick={() => {
-              setJanelaDias(n);
-            }}
+            onClick={() => setJanelaDias(n)}
           >
             {n} dias
           </Botao>
@@ -199,8 +184,6 @@ function LinhaDaAgenda({
           {[
             item.dentistaNome,
             item.pacienteTelefone === null ? null : telefoneParaTela(item.pacienteTelefone),
-            // Só marca o que o CRC fez. "Marcado pela recepção" é o caso
-            // comum, e etiquetar o comum enche a tela de ruído.
             item.peloCrc ? "marcado pelo CRC" : null,
           ]
             .filter((v) => v !== null)
@@ -211,8 +194,6 @@ function LinhaDaAgenda({
     </>
   );
 
-  // Sem paciente vinculado não há ficha para abrir: a linha vira texto, e não
-  // um botão que não faz nada.
   if (item.patientId === null) {
     return (
       <li
@@ -234,9 +215,7 @@ function LinhaDaAgenda({
         type="button"
         className="crc-conversa-item"
         style={{ display: "flex", alignItems: "center", gap: "var(--crc-e3)", width: "100%" }}
-        onClick={() => {
-          aoAbrirPaciente(item.patientId as string);
-        }}
+        onClick={() => aoAbrirPaciente(item.patientId as string)}
       >
         {conteudo}
       </button>
