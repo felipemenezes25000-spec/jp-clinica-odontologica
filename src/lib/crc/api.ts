@@ -31,6 +31,7 @@ import type {
   Mensagem,
   Oportunidade,
   Paciente,
+  StatusAgendamento,
   Tarefa,
   TipoTarefa,
   Usuario,
@@ -455,6 +456,338 @@ export const buscarEmTodoLugar = createServerFn({ method: "GET" })
       });
 
       return { ok: true as const, panorama: { ...panorama, resultados } };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Configurações                                                              */
+/* -------------------------------------------------------------------------- */
+
+export type JanelaDoDia = { inicio: string; fim: string } | null;
+
+export type ConfiguracoesDto = {
+  recallDias: number;
+  recallLongoDias: number;
+  inatividadeDias: number;
+  orcamentoParadoDias: number;
+  faltaEsperaHoras: number;
+  confirmacaoAntecedenciaHoras: number;
+  contatosPorDia: number;
+  cooldownHoras: number;
+  tentativasPorJornada: number;
+  envioPorHora: number;
+  iaConfiancaAutomatica: number;
+  iaConfiancaSugestao: number;
+  /** Domingo a sábado, na ordem. `null` é dia fechado. */
+  dias: JanelaDoDia[];
+  fuso: string;
+  feriados: string[];
+  flags: Record<string, boolean>;
+  /** Só admin e gestor mexem em flag. A tela desabilita para os demais. */
+  podeMexerEmFlags: boolean;
+};
+
+export const carregarConfiguracoes = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ configuracoes: ConfiguracoesDto }>> =>
+    comContexto("ver_integracoes", async (ctx) => {
+      const { lerConfiguracao, lerFlags } = await import("./servidor/configuracao");
+      const [cfg, flags] = await Promise.all([
+        lerConfiguracao(ctx.organizationId),
+        lerFlags(ctx.organizationId),
+      ]);
+
+      return {
+        ok: true as const,
+        configuracoes: {
+          recallDias: cfg.recallDias,
+          recallLongoDias: cfg.recallLongoDias,
+          inatividadeDias: cfg.inatividadeDias,
+          orcamentoParadoDias: cfg.orcamentoParadoDias,
+          faltaEsperaHoras: cfg.faltaEsperaHoras,
+          confirmacaoAntecedenciaHoras: cfg.confirmacaoAntecedenciaHoras,
+          contatosPorDia: cfg.contatosPorDia,
+          cooldownHoras: cfg.cooldownHoras,
+          tentativasPorJornada: cfg.tentativasPorJornada,
+          envioPorHora: cfg.envioPorHora,
+          iaConfiancaAutomatica: cfg.iaConfiancaAutomatica,
+          iaConfiancaSugestao: cfg.iaConfiancaSugestao,
+          dias: cfg.horarioComercial.dias.map((d) =>
+            d === null || d === undefined ? null : { inicio: d.inicio, fim: d.fim },
+          ),
+          fuso: cfg.horarioComercial.fuso,
+          feriados: [...cfg.horarioComercial.feriados],
+          flags,
+          podeMexerEmFlags: ctx.pode("gerenciar_autopilot"),
+        },
+      };
+    }),
+);
+
+/**
+ * Os limites de cada número, e por que eles existem.
+ *
+ * O TETO IMPORTA MAIS QUE O PISO. Um `envioPorHora` de 50.000 não é
+ * "configuração agressiva": é a conta de WhatsApp da clínica sendo bloqueada
+ * numa tarde. Um `contatosPorDia` de 20 é assédio com aparência de campanha.
+ * A tela mostra o intervalo, e o servidor recusa fora dele — porque a tela
+ * pode ser contornada e o servidor não.
+ */
+const LIMITES: Readonly<Record<string, { min: number; max: number }>> = {
+  recallDias: { min: 30, max: 1095 },
+  recallLongoDias: { min: 60, max: 1825 },
+  inatividadeDias: { min: 60, max: 1825 },
+  orcamentoParadoDias: { min: 1, max: 365 },
+  faltaEsperaHoras: { min: 1, max: 168 },
+  confirmacaoAntecedenciaHoras: { min: 2, max: 168 },
+  // Mais de três contatos no mesmo dia é perseguição, não relacionamento.
+  contatosPorDia: { min: 1, max: 3 },
+  cooldownHoras: { min: 1, max: 720 },
+  tentativasPorJornada: { min: 1, max: 10 },
+  envioPorHora: { min: 1, max: 1000 },
+};
+
+export const salvarConfiguracaoNumerica = createServerFn({ method: "POST" })
+  .validator((e: { chave: string; valor: number }) => ({
+    chave: String(e.chave ?? ""),
+    valor: Number(e.valor ?? 0),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ salvo: true }>> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const limite = LIMITES[data.chave];
+      if (limite === undefined) {
+        return { ok: false as const, code: "VALIDACAO", message: "Configuração desconhecida." };
+      }
+      if (!Number.isFinite(data.valor) || data.valor < limite.min || data.valor > limite.max) {
+        return {
+          ok: false as const,
+          code: "VALIDACAO",
+          message: `O valor precisa estar entre ${String(limite.min)} e ${String(limite.max)}.`,
+        };
+      }
+
+      const { gravarConfiguracao } = await import("./servidor/configuracao");
+      await gravarConfiguracao(
+        ctx.organizationId,
+        data.chave,
+        Math.round(data.valor),
+        ctx.usuario.id,
+      );
+      return { ok: true as const, salvo: true as const };
+    }),
+  );
+
+/**
+ * O horário comercial inteiro, de uma vez.
+ *
+ * SALVAR DIA A DIA SERIA PIOR: entre um `POST` e o seguinte, a clínica ficaria
+ * com metade da semana nova e metade velha — e uma jornada rodando nesse
+ * intervalo leria uma semana que ninguém configurou.
+ */
+export const salvarHorarioComercial = createServerFn({ method: "POST" })
+  .validator((e: { dias: JanelaDoDia[] }) => ({
+    dias: Array.isArray(e.dias) ? e.dias.slice(0, 7) : [],
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ salvo: true }>> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      if (data.dias.length !== 7) {
+        return { ok: false as const, code: "VALIDACAO", message: "A semana precisa ter 7 dias." };
+      }
+
+      const hhmm = /^([01]\d|2[0-3]):[0-5]\d$/u;
+      for (const dia of data.dias) {
+        if (dia === null) continue;
+        if (!hhmm.test(dia.inicio) || !hhmm.test(dia.fim)) {
+          return { ok: false as const, code: "VALIDACAO", message: "Horário inválido." };
+        }
+        // Fim antes do início produz uma janela que nunca abre — e o efeito
+        // não é erro, é silêncio: a automação reagenda para sempre.
+        if (dia.fim <= dia.inicio) {
+          return {
+            ok: false as const,
+            code: "VALIDACAO",
+            message: "O fim do expediente precisa ser depois do início.",
+          };
+        }
+      }
+
+      const { lerConfiguracao, gravarConfiguracao } = await import("./servidor/configuracao");
+      const cfg = await lerConfiguracao(ctx.organizationId);
+
+      await gravarConfiguracao(
+        ctx.organizationId,
+        "horarioComercial",
+        { ...cfg.horarioComercial, dias: data.dias },
+        ctx.usuario.id,
+      );
+      return { ok: true as const, salvo: true as const };
+    }),
+  );
+
+export const definirFeatureFlag = createServerFn({ method: "POST" })
+  .validator((e: { chave: string; ligada: boolean }) => ({
+    chave: String(e.chave ?? ""),
+    ligada: Boolean(e.ligada),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ salvo: true }>> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { FLAGS } = await import("./dominio/configuracao");
+      const conhecidas = new Set<string>(Object.values(FLAGS));
+      if (!conhecidas.has(data.chave)) {
+        return { ok: false as const, code: "VALIDACAO", message: "Flag desconhecida." };
+      }
+
+      const { definirFlag } = await import("./servidor/configuracao");
+      await definirFlag(
+        ctx.organizationId,
+        data.chave as import("./dominio/configuracao").ChaveFlag,
+        data.ligada,
+        ctx.usuario.id,
+      );
+      return { ok: true as const, salvo: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Agenda                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type ItemDaAgenda = {
+  id: string;
+  patientId: string | null;
+  pacienteNome: string;
+  /** O telefone é o que a recepção usa quando precisa ligar antes da hora. */
+  pacienteTelefone: string | null;
+  dentistaNome: string | null;
+  inicioEm: string;
+  fimEm: string | null;
+  status: StatusAgendamento;
+  descricao: string | null;
+  /** Marcado pelo CRC, e não digitado por alguém. A tela distingue. */
+  peloCrc: boolean;
+};
+
+export type DiaDaAgenda = {
+  /** "AAAA-MM-DD" no fuso da clínica. */
+  dia: string;
+  itens: ItemDaAgenda[];
+};
+
+export type PanoramaDaAgenda = {
+  de: string;
+  ate: string;
+  dias: DiaDaAgenda[];
+  /** Quantos ainda não confirmaram. É o número que vira trabalho hoje. */
+  aConfirmar: number;
+};
+
+/**
+ * A agenda da clínica, agrupada por dia.
+ *
+ * POR QUE ESTA TELA EXISTE, se o Dental Office já tem uma agenda: porque a
+ * pergunta que ela responde é outra. A agenda do Dental Office responde "quem
+ * vem"; esta responde "o que a agenda está pedindo de nós" — quem não
+ * confirmou, quem faltou e ainda não foi procurado, quem o CRC marcou sozinho.
+ * Ela é a agenda vista pelo lado do relacionamento.
+ *
+ * O AGRUPAMENTO É POR DIA LOCAL, e não por dia UTC. Uma consulta às 21h de
+ * terça em São Paulo é quarta em UTC, e uma agenda que mostra o paciente no
+ * dia errado é pior que agenda nenhuma.
+ */
+export const carregarAgenda = createServerFn({ method: "GET" })
+  .validator((e: { de?: string; ate?: string }) => ({
+    de: String(e.de ?? "").slice(0, 10),
+    ate: String(e.ate ?? "").slice(0, 10),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ panorama: PanoramaDaAgenda }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { selecionar } = await import("./servidor/banco");
+      const { lerConfiguracao } = await import("./servidor/configuracao");
+      const { partesLocais } = await import("./dominio/configuracao");
+      const { linhaParaAgendamento } = await import("./aplicacao/repositorios");
+
+      const cfg = await lerConfiguracao(ctx.organizationId);
+      const fuso = cfg.horarioComercial.fuso;
+
+      // A janela padrão são catorze dias a partir de hoje: cobre a semana que
+      // vem inteira, que é o horizonte em que a recepção age.
+      const hoje = new Date();
+      const de = data.de.length === 10 ? `${data.de}T00:00:00.000Z` : hoje.toISOString();
+      const ate =
+        data.ate.length === 10
+          ? `${data.ate}T23:59:59.999Z`
+          : new Date(hoje.getTime() + 14 * 86_400_000).toISOString();
+
+      const linhas = await selecionar("crc_appointments", {
+        filtros: [
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+          { coluna: "inicio_em", op: "gte", valor: de },
+          { coluna: "inicio_em", op: "lte", valor: ate },
+        ],
+        ordenar: [{ coluna: "inicio_em", ascendente: true }],
+        limite: 500,
+      });
+
+      const agendamentos = linhas.map(linhaParaAgendamento).filter((a) => ctx.alcanca(a.clinicId));
+
+      // Os nomes numa consulta só. Um `select` por agendamento seria 200
+      // viagens ao banco para desenhar duas semanas.
+      const ids = [...new Set(agendamentos.map((a) => a.patientId).filter((v) => v !== null))];
+      const pacientes =
+        ids.length === 0
+          ? []
+          : await selecionar("crc_patients", {
+              colunas: "id,nome,telefone",
+              filtros: [
+                { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+                { coluna: "id", op: "in", valor: ids },
+              ],
+              limite: 500,
+            });
+
+      const porId = new Map(
+        pacientes.map((p) => [
+          String(p["id"] ?? ""),
+          {
+            nome: typeof p["nome"] === "string" ? p["nome"] : "Paciente",
+            telefone: typeof p["telefone"] === "string" ? p["telefone"] : null,
+          },
+        ]),
+      );
+
+      const porDia = new Map<string, ItemDaAgenda[]>();
+      let aConfirmar = 0;
+
+      for (const a of agendamentos) {
+        const p = partesLocais(new Date(a.inicioEm), fuso);
+        const dia = `${String(p.ano)}-${String(p.mes).padStart(2, "0")}-${String(p.dia).padStart(2, "0")}`;
+        const ficha = a.patientId === null ? undefined : porId.get(a.patientId);
+
+        if (a.status === "TO_CONFIRM") aConfirmar += 1;
+
+        const lista = porDia.get(dia) ?? [];
+        lista.push({
+          id: a.id,
+          patientId: a.patientId,
+          // Agendamento sem paciente ligado acontece: é a consulta de alguém
+          // que ainda não foi sincronizado. Esconder seria pior — o horário
+          // está ocupado de qualquer jeito.
+          pacienteNome: ficha?.nome ?? "Sem paciente vinculado",
+          pacienteTelefone: ficha?.telefone ?? null,
+          dentistaNome: a.dentistaNome,
+          inicioEm: a.inicioEm,
+          fimEm: a.fimEm,
+          status: a.status,
+          descricao: a.descricao,
+          peloCrc: (a.descricao ?? "").includes("JP CRC"),
+        });
+        porDia.set(dia, lista);
+      }
+
+      const dias = [...porDia.entries()]
+        .map(([dia, itens]) => ({ dia, itens }))
+        .sort((x, y) => x.dia.localeCompare(y.dia));
+
+      return { ok: true as const, panorama: { de, ate, dias, aConfirmar } };
     }),
   );
 

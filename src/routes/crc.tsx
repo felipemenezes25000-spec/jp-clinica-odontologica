@@ -23,6 +23,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 
 import { Automacoes } from "@/components/crc/Automacoes";
+import { Agenda } from "@/components/crc/Agenda";
 import { Funil } from "@/components/crc/Funil";
 import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
@@ -31,6 +32,7 @@ import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
 
 import { Campanhas } from "@/components/crc/Campanhas";
+import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
 import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
@@ -58,6 +60,7 @@ type Aba =
   | "home"
   | "trabalho"
   | "inbox"
+  | "agenda"
   | "funil"
   | "pacientes"
   | "gestao"
@@ -65,6 +68,7 @@ type Aba =
   | "automacoes"
   | "campanhas"
   | "integracoes"
+  | "configuracoes"
   | "equipe";
 
 type ItemNav = { aba: Aba; rotulo: string; permissao: Permissao };
@@ -74,6 +78,9 @@ const NAVEGACAO: readonly ItemNav[] = [
   { aba: "trabalho", rotulo: "Meu trabalho", permissao: "ver_tarefa" },
   { aba: "inbox", rotulo: "Conversas", permissao: "ver_conversa" },
   { aba: "funil", rotulo: "Funil", permissao: "ver_oportunidade" },
+  // Entre o Funil e Pacientes de propósito: a agenda é onde a oportunidade
+  // vira hora marcada, e é lida logo depois de decidir quem chamar.
+  { aba: "agenda", rotulo: "Agenda", permissao: "ver_paciente" },
   { aba: "pacientes", rotulo: "Pacientes", permissao: "ver_paciente" },
   { aba: "gestao", rotulo: "Gestão", permissao: "ver_analytics_gerencial" },
   { aba: "importar", rotulo: "Importar", permissao: "importar_dados" },
@@ -81,6 +88,9 @@ const NAVEGACAO: readonly ItemNav[] = [
   { aba: "campanhas", rotulo: "Campanhas", permissao: "gerenciar_automacao" },
   { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes" },
   { aba: "equipe", rotulo: "Equipe", permissao: "gerenciar_usuarios" },
+  // Por último, ao lado de Integrações: são as duas telas de quem administra,
+  // e nenhuma delas é usada no trabalho do dia.
+  { aba: "configuracoes", rotulo: "Configurações", permissao: "ver_integracoes" },
 ];
 
 function PortalCrc() {
@@ -269,6 +279,8 @@ function PortalCrc() {
 
           {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
 
+          {abaAtual === "agenda" && <Agenda aoAbrirPaciente={abrirPaciente} />}
+
           {abaAtual === "pacientes" &&
             (pacienteAberto === null ? (
               <BuscaPacientes aoAbrirPaciente={abrirPaciente} />
@@ -301,6 +313,8 @@ function PortalCrc() {
           {abaAtual === "campanhas" && <Campanhas />}
 
           {abaAtual === "equipe" && <Equipe />}
+
+          {abaAtual === "configuracoes" && <Configuracoes />}
         </main>
       </div>
     </div>
