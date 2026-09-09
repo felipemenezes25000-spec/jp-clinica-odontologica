@@ -132,15 +132,15 @@ export const MODELOS: ModeloMensagem[] = [
   },
   {
     chave: "nao-seguiu",
-    rotulo: "Retorno de não seguimento",
+    rotulo: "Retorno sem entrevista",
     descricao:
-      "Encerra o processo com respeito, sem promessa falsa, e oferece o banco de talentos.",
+      "Para quem não chegou a ser chamada: agradece a candidatura, diz que a vaga foi para outro perfil e oferece o banco de talentos.",
     icone: "HeartHandshake",
     // E-mail na frente: recusa é notícia que a pessoa pode querer ler sozinha,
     // sem o outro lado vendo que ela abriu.
     canais: ["email", "whatsapp"],
     assunto: "Retorno sobre o nosso processo seletivo",
-    quandoUsar: "Quando a vaga foi para outra pessoa e o processo acabou para ela.",
+    quandoUsar: "Quando a vaga foi para outra pessoa e não houve entrevista.",
   },
   {
     chave: "nao-seguiu-entrevista",
@@ -669,18 +669,23 @@ function textoProposta(ctx: ContextoMensagem): string[] {
  * bairro, essa pessoa vai cruzar com a recepcionista no mercado.
  */
 function textoNaoSeguiu(ctx: ContextoMensagem): string[] {
-  const { item } = ctx;
+  const nome = nomeParaSaudacao(ctx.item.nome);
 
   return [
-    saudacao(item, ctx),
+    /* MESMA ABERTURA E MESMO FECHO do retorno pós-entrevista: é o padrão que a
+       clínica escolheu, e duas mensagens de recusa com vozes diferentes soariam
+       como duas empresas. O que muda é só a frase do meio — aqui a pessoa não
+       foi entrevistada, então agradecer "por participar da nossa entrevista"
+       seria falso. */
+    nome === "" ? "Olá! Tudo bem? 😊" : `Olá, ${nome}! Tudo bem? 😊`,
     // "Agradecemos", e não "obrigado/obrigada": quem assina muda, e o texto não
     // pode sair no gênero errado de quem está escrevendo.
-    `Agradecemos a sua participação no nosso processo para a vaga${daVaga(item)} e o tempo que você dedicou à gente.`,
+    "Passando para agradecer o seu interesse em fazer parte da nossa equipe e o tempo que você dedicou a se candidatar.",
     // Sem "você foi muito bem, mas…" e sem "entraremos em contato em breve": os
     // dois são falsos e a pessoa fica esperando por um telefonema que não vem.
-    "Dessa vez seguimos com outra pessoa para essa vaga.",
+    "Queremos informar que, desta vez, decidimos seguir com outro perfil para a vaga. Sabemos que processos exigem energia, por isso fazemos questão de dar esse retorno de forma transparente.",
     "Se você quiser, guardamos o seu currículo no nosso banco de talentos e falamos com você quando abrir uma oportunidade do seu perfil. É só me responder por aqui.",
-    "Desejo tudo de bom para você.",
+    "Desejamos muito sucesso e sorte em toda a sua jornada profissional 💚",
   ];
 }
 
@@ -858,11 +863,15 @@ function relevancia(chave: ChaveModelo, item: Candidatura): number | null {
 
     case "nao-seguiu-entrevista":
       if (status === "contratado") return null;
-      // Sem sinal de entrevista o modelo não é oferecido: ele agradece por uma
-      // conversa, e oferecer isso para quem nunca foi chamada é convidar o RH
-      // a mandar uma mentira sem perceber.
-      if (!houveEntrevista(item)) return null;
-      return status === "reprovado" ? 97 : 20;
+      /* SEMPRE OFERECIDO, e a ordem é que muda.
+         A primeira versão escondia o modelo quando a ficha não tinha data nem
+         nada preenchido — e escondeu justamente na hora de usar, porque
+         entrevista feita sem ninguém preencher a ficha é o caso comum num dia
+         corrido. Quem sabe se a conversa aconteceu é quem conversou; o sistema
+         só sabe o que foi digitado. Então ele ordena e não decide: com sinal de
+         entrevista este vem primeiro, sem sinal ele desce e o outro assume. */
+      if (houveEntrevista(item)) return status === "reprovado" ? 97 : 20;
+      return status === "reprovado" ? 88 : 12;
 
     case "banco-de-talentos":
       if (status === "contratado") return null;
