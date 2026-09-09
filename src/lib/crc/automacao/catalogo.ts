@@ -17,7 +17,13 @@
  * WAIT → BRANCH → EXIT CONDITIONS.
  */
 import type { DefinicaoAutomacao } from "../dominio/tipos";
-import { gravar, inserirIgnorandoDuplicata, selecionar, selecionarUm } from "../servidor/banco";
+import {
+  atualizar,
+  gravar,
+  inserirIgnorandoDuplicata,
+  selecionar,
+  selecionarUm,
+} from "../servidor/banco";
 
 export type AutomacaoPadrao = {
   chave: string;
@@ -330,9 +336,18 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
 /**
  * Cria as automações que ainda não existem, em RASCUNHO + SHADOW.
  *
- * `inserirIgnorandoDuplicata` na automação e upsert na versão: rodar de novo
- * não muda o status nem o modo de uma automação que o gestor já ativou — o que
- * seria o pior efeito colateral possível de um seed.
+ * DUAS COISAS DIFERENTES MORAM NA MESMA LINHA, e rodar de novo trata cada uma
+ * do seu jeito:
+ *
+ *   `status`, `modo` e `versao_ativa` são DO GESTOR. Um seed que os
+ *   sobrescrevesse desligaria em silêncio uma automação que alguém ligou — o
+ *   pior efeito colateral possível aqui. Eles só são escritos na criação.
+ *
+ *   `nome` e `descricao` são DO CATÁLOGO, e são texto que aparece na tela.
+ *   Antes eles também ficavam congelados na primeira instalação, e o efeito era
+ *   este: um erro de digitação corrigido no código continuava errado na tela
+ *   para sempre, porque nada nunca reescrevia a linha. Agora a atualização
+ *   alcança os dois campos — e só eles.
  */
 export async function semearAutomacoes(
   organizationId: string,
@@ -353,6 +368,17 @@ export async function semearAutomacoes(
 
     if (linha === null) {
       existentes += 1;
+      // Já existia: alinha só o texto do catálogo, sem tocar no que o gestor
+      // decidiu. O filtro por `chave` é o que garante que a atualização atinge
+      // uma linha só.
+      await atualizar(
+        "crc_automations",
+        [
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+          { coluna: "chave", op: "eq", valor: padrao.chave },
+        ],
+        { nome: padrao.nome, descricao: padrao.descricao },
+      );
       continue;
     }
     criadas += 1;
