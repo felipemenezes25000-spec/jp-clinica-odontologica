@@ -4,9 +4,10 @@
  * É esta rota que faz o CRC funcionar sozinho. A Vercel a chama pelo cron
  * declarado em `vercel.json`, e cada chamada faz uma volta completa:
  *
- *   1. processa eventos pendentes  → oportunidades e jornadas nascem
- *   2. avança as jornadas vencidas → mensagens saem, tarefas são criadas
- *   3. cobra os jobs da fila       → sincronização e trabalho pesado
+ *   1. sincroniza o Dental Office  → fatos novos viram eventos
+ *   2. processa eventos pendentes  → oportunidades e jornadas nascem
+ *   3. avança as jornadas vencidas → mensagens saem, tarefas são criadas
+ *   4. na madrugada, varre a base  → recall, confirmação, cobrança, orçamento
  *
  * POR QUE UMA ROTA, E NÃO UM WORKER RESIDENTE (item 268)
  * Porque o projeto roda em serverless. Não existe processo que fique de pé
@@ -27,6 +28,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 type Relatorio = {
+  sincronizacao: unknown;
   eventos: unknown;
   jornadas: unknown;
   varreduras: unknown[];
@@ -38,6 +40,55 @@ function json(corpo: unknown, status: number): Response {
     status,
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
+}
+
+/**
+ * Traz o que mudou no Dental Office, ou explica por que não trouxe.
+ *
+ * TRÊS DECISÕES, e as três existem para a mesma coisa: a sincronização não pode
+ * derrubar o resto do ciclo.
+ *
+ *   SEM CREDENCIAL NÃO É ERRO. Enquanto o Dental Office não liberar o acesso,
+ *   isto devolve "não configurado" e o motor segue processando eventos e
+ *   avançando jornadas. Tratar ausência de credencial como falha encheria o log
+ *   de erro todo dia com algo que a gente já sabe.
+ *
+ *   PACIENTES ANTES DA AGENDA, sempre: um agendamento precisa do paciente para
+ *   ter dono. Na ordem inversa, a primeira carga grava a agenda inteira órfã.
+ *
+ *   A FALHA É CAPTURADA AQUI. Se a API do Dental Office estiver fora, as
+ *   jornadas que já estão em voo precisam continuar andando — elas não dependem
+ *   dele. O cursor não avança e a próxima volta tenta de novo.
+ */
+async function sincronizar(
+  organizationId: string,
+  clinica: Record<string, unknown>,
+): Promise<unknown> {
+  const { criarClienteDentalOffice } = await import("@/lib/crc/integracoes/dental-office/cliente");
+
+  const cliente = criarClienteDentalOffice({ organizationId });
+  if (!cliente.ok) return { pulada: true, motivo: cliente.motivo, faltando: cliente.faltando };
+
+  const { sincronizarAgendamentos, sincronizarPacientes } =
+    await import("@/lib/crc/aplicacao/sincronizacao");
+
+  const contexto = {
+    organizationId,
+    clinicId: String(clinica["id"] ?? ""),
+    clinicaExternaId: String(clinica["external_id"] ?? ""),
+    cliente: cliente.cliente,
+  };
+
+  try {
+    const pacientes = await sincronizarPacientes(contexto);
+    const agenda = await sincronizarAgendamentos(contexto);
+    return { pacientes, agenda };
+  } catch (erro) {
+    const { descreverErro, registrar } = await import("@/lib/crc/servidor/registro");
+    const detalhe = descreverErro(erro);
+    registrar("erro", "Sincronização falhou no ciclo do motor.", { organizationId, detalhe });
+    return { falhou: true, detalhe };
+  }
 }
 
 export const Route = createFileRoute("/api/crc/motor")({
@@ -60,7 +111,7 @@ export const Route = createFileRoute("/api/crc/motor")({
         try {
           const { selecionarUm } = await import("@/lib/crc/servidor/banco");
           const clinica = await selecionarUm("crc_clinics", {
-            colunas: "id,organization_id",
+            colunas: "id,organization_id,external_id",
             filtros: [{ coluna: "ativa", op: "eq", valor: true }],
             ordenar: [{ coluna: "criado_em", ascendente: true }],
           });
@@ -77,6 +128,20 @@ export const Route = createFileRoute("/api/crc/motor")({
           const { instalarHandlers, varrerAniversarios, varrerConfirmacoes, varrerRecall } =
             await import("@/lib/crc/automacao/handlers");
           instalarHandlers();
+
+          // A SINCRONIZAÇÃO VEM PRIMEIRO, e vem aqui.
+          //
+          // Antes disso ela só acontecia quando alguém clicava em "Sincronizar
+          // agora" na tela de Integrações. O efeito era silencioso e grave: as
+          // varreduras diárias liam o espelho da agenda, e um espelho que
+          // ninguém atualiza faz a confirmação de amanhã olhar para a agenda de
+          // semana passada. O sistema parecia vivo e estava trabalhando sobre
+          // dados velhos.
+          //
+          // Rodar a cada volta é barato porque a sincronização é INCREMENTAL:
+          // depois da primeira carga ela pede só o que mudou desde o cursor
+          // guardado em `crc_sync_state`.
+          const sincronizacao = await sincronizar(organizationId, clinica);
 
           const { processarEventos } = await import("@/lib/crc/aplicacao/eventos");
           const eventos = await processarEventos(40);
@@ -134,6 +199,7 @@ export const Route = createFileRoute("/api/crc/motor")({
           }
 
           const relatorio: Relatorio = {
+            sincronizacao,
             eventos,
             jornadas,
             varreduras,
