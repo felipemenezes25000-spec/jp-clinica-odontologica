@@ -157,6 +157,10 @@ export async function sincronizarPacientes(ctx: ContextoSync): Promise<ResumoSyn
   const modo = cursor === null ? "FULL" : "INCREMENTAL";
   const syncJobId = await abrirSyncJob(ctx, recurso, modo, cursor);
 
+  // Antes da primeira página: o paciente traz `specialty_ids` em número, e sem
+  // esta tabela o CRC gravaria "4" onde deveria estar "Endodontia".
+  await carregarEspecialidades(ctx);
+
   const tamanho = ctx.tamanhoPagina ?? TAMANHO_PAGINA_PADRAO;
   const maxPaginas = ctx.maxPaginas ?? MAX_PAGINAS_PADRAO;
 
@@ -261,7 +265,7 @@ async function gravarPaciente(ctx: ContextoSync, externo: PacienteExterno): Prom
     nascimento: externo.nascimento,
     genero: externo.genero,
     situacao: externo.situacao,
-    especialidade: externo.especialidade,
+    especialidade: nomeDaEspecialidade(ctx, externo.especialidade),
     convenio: externo.convenio,
     ativo: externo.ativo,
     telefone: externo.telefone,
@@ -304,6 +308,48 @@ async function gravarPaciente(ctx: ContextoSync, externo: PacienteExterno): Prom
   }
 
   return false;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Especialidades                                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A tabela de especialidades da execução corrente.
+ *
+ * Vive no contexto da sincronização e não num cache global: uma sincronização
+ * é uma unidade de trabalho, e carregar a tabela uma vez por execução é a
+ * granularidade certa — cache global envelheceria sem ninguém notar, e uma
+ * consulta por paciente consumiria a cota da API para traduzir uma palavra.
+ */
+const especialidadesDaExecucao = new WeakMap<ContextoSync, Map<string, string>>();
+
+async function carregarEspecialidades(ctx: ContextoSync): Promise<void> {
+  if (especialidadesDaExecucao.has(ctx)) return;
+  try {
+    especialidadesDaExecucao.set(ctx, await ctx.cliente.listarEspecialidades());
+  } catch (erro) {
+    // Falhar aqui não pode derrubar a sincronização de pacientes: sem a
+    // tabela, a especialidade fica com o id, que é pior que o nome e melhor
+    // que perder o paciente inteiro.
+    registrar("aviso", "Não foi possível ler as especialidades; o id será mantido.", {
+      organizationId: ctx.organizationId,
+      detalhe: descreverErro(erro),
+    });
+    especialidadesDaExecucao.set(ctx, new Map());
+  }
+}
+
+/**
+ * Traduz o id para o nome, mantendo o id quando não conhece.
+ *
+ * Guardar o id cru é deliberado: ele ainda agrupa pacientes da mesma
+ * especialidade, e no dia em que a tabela carregar a tradução acontece na
+ * próxima sincronização sem migração nenhuma.
+ */
+function nomeDaEspecialidade(ctx: ContextoSync, valor: string | null): string | null {
+  if (valor === null) return null;
+  return especialidadesDaExecucao.get(ctx)?.get(valor) ?? valor;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -15,11 +15,11 @@ Para quem opera o sistema no dia a dia: o que fazer quando algo dá errado.
 
 Abra o SQL Editor do Supabase e rode, **nesta ordem**:
 
-| Arquivo | O que traz |
-| --- | --- |
-| `supabase/02-crc-schema.sql` | As 36 tabelas, os índices, o RLS e as funções de reserva atômica. |
+| Arquivo                        | O que traz                                                           |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `supabase/02-crc-schema.sql`   | As 36 tabelas, os índices, o RLS e as funções de reserva atômica.    |
 | `supabase/03-crc-cobranca.sql` | Cobrança de inadimplência: `crc_charges` e `crc_payment_agreements`. |
-| `supabase/04-crc-visoes.sql` | O índice único das visões salvas. |
+| `supabase/04-crc-visoes.sql`   | O índice único das visões salvas.                                    |
 
 Todos são **aditivos e idempotentes** — rodar de novo não apaga nada, e do 03
 em diante podem ser aplicados com o sistema no ar. Este é o **único passo
@@ -179,15 +179,15 @@ em `crc_ai_calls`.
 
 ## Onde olhar
 
-| Pergunta | Onde |
-|---|---|
-| O que falhou de vez? | `crc_dead_letters` (status PENDENTE) |
-| Quem mudou o quê? | `crc_audit_logs` |
-| O que a integração respondeu? | `crc_integration_logs` |
-| O que a jornada fez? | Debugger da jornada, na ficha do paciente |
-| Quanto a IA custou? | `crc_ai_calls` |
-| A sincronização está em dia? | Integrações → Sincronização |
-| O sistema está de pé? | `GET /api/crc/saude` |
+| Pergunta                      | Onde                                      |
+| ----------------------------- | ----------------------------------------- |
+| O que falhou de vez?          | `crc_dead_letters` (status PENDENTE)      |
+| Quem mudou o quê?             | `crc_audit_logs`                          |
+| O que a integração respondeu? | `crc_integration_logs`                    |
+| O que a jornada fez?          | Debugger da jornada, na ficha do paciente |
+| Quanto a IA custou?           | `crc_ai_calls`                            |
+| A sincronização está em dia?  | Integrações → Sincronização               |
+| O sistema está de pé?         | `GET /api/crc/saude`                      |
 
 Todo log da aplicação sai em JSON no stdout da Vercel, com `requestId` para
 correlacionar as linhas de um mesmo pedido.
@@ -199,12 +199,12 @@ correlacionar as linhas de um mesmo pedido.
 Integrações → Interruptores. Nada é perdido: o que estava em andamento continua
 de onde parou quando você liberar.
 
-| Interruptor | Quando usar |
-|---|---|
-| Pausar todas as automações | Algo sistêmico está errado e você não sabe o quê |
-| Pausar envios de WhatsApp | Suspeita de mensagem indevida; as jornadas seguem registrando |
-| Pausar escritas no Dental Office | O CRC pode estar criando agendamento errado |
-| Pausar ações automáticas da IA | Classificação claramente ruim |
+| Interruptor                      | Quando usar                                                   |
+| -------------------------------- | ------------------------------------------------------------- |
+| Pausar todas as automações       | Algo sistêmico está errado e você não sabe o quê              |
+| Pausar envios de WhatsApp        | Suspeita de mensagem indevida; as jornadas seguem registrando |
+| Pausar escritas no Dental Office | O CRC pode estar criando agendamento errado                   |
+| Pausar ações automáticas da IA   | Classificação claramente ruim                                 |
 
 Todo acionamento é auditado com nome e horário.
 

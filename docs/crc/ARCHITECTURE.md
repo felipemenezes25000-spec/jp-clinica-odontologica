@@ -2,6 +2,13 @@
 
 ## A ideia em uma frase
 
+> **Antes de planejar qualquer coisa nova:** leia
+> [CAPACIDADES-DENTAL-OFFICE](CAPACIDADES-DENTAL-OFFICE.md). A API v1.0 deles
+> expõe pacientes, dentistas, agenda e cadeiras — e **não** expõe financeiro,
+> orçamento nem webhooks. Existir no produto Dental Office não é existir na
+> API, e foi por confundir os dois que o adapter nasceu falando com endpoints
+> que não existem.
+
 O Dental Office continua sendo o sistema clínico. O JP CRC transforma o que
 acontece lá — faltas, cancelamentos, silêncios longos — em **oportunidades**,
 que viram **jornadas**, que viram **contato**, que vira **agendamento**.
@@ -111,16 +118,16 @@ confiança e problema de LGPD).
 
 Toda a idempotência é **constraint no banco**, não cuidado no código:
 
-| O quê | Chave |
-|---|---|
-| Paciente/agendamento | `unique(organization_id, external_source, external_id)` |
-| Evento | `unique(organization_id, fingerprint)` |
-| Oportunidade | `unique(organization_id, chave_dedupe) where fechada_em is null` |
-| Tarefa | `unique(organization_id, chave_dedupe) where status in (OPEN, IN_PROGRESS)` |
-| Mensagem recebida | `unique(organization_id, provider_message_id)` |
-| Mensagem enviada | `unique(organization_id, chave_dedupe)` |
-| Jornada | `unique(organization_id, automation_id, chave_dedupe)` |
-| Webhook | `unique(provedor, external_id)` |
+| O quê                | Chave                                                                       |
+| -------------------- | --------------------------------------------------------------------------- |
+| Paciente/agendamento | `unique(organization_id, external_source, external_id)`                     |
+| Evento               | `unique(organization_id, fingerprint)`                                      |
+| Oportunidade         | `unique(organization_id, chave_dedupe) where fechada_em is null`            |
+| Tarefa               | `unique(organization_id, chave_dedupe) where status in (OPEN, IN_PROGRESS)` |
+| Mensagem recebida    | `unique(organization_id, provider_message_id)`                              |
+| Mensagem enviada     | `unique(organization_id, chave_dedupe)`                                     |
+| Jornada              | `unique(organization_id, automation_id, chave_dedupe)`                      |
+| Webhook              | `unique(provedor, external_id)`                                             |
 
 Os índices parciais importam: uma oportunidade fechada libera a chave, porque o
 paciente faltar de novo no mês seguinte é outro fato.

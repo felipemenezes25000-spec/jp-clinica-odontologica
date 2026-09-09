@@ -265,6 +265,17 @@ class SandboxDentalOffice implements PortaDentalOffice {
     ]);
   }
 
+  listarEspecialidades(): Promise<Map<string, string>> {
+    return Promise.resolve(
+      new Map([
+        ["2", "Cirurgia"],
+        ["4", "Endodontia"],
+        ["5", "Ortodontia"],
+        ["6", "Periodontia"],
+      ]),
+    );
+  }
+
   listarPacientes(opcoes: {
     pagina: number;
     tamanho: number;

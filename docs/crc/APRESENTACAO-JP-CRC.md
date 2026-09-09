@@ -306,12 +306,12 @@ O lote de cada dia é escolhido pela clínica — o padrão é **120 por dia**.
 **Falar com um grupo inteiro sem perder o jeito de falar com um.** Campanha aqui
 não é disparo em massa.
 
-| Campanha                         | Quando                  | Na fila |
-| -------------------------------- | ----------------------- | ------: |
-| Aniversariantes do mês           | todo dia, de manhã      |      46 |
-| Quem sumiu há mais de um ano     | em lotes diários        |     964 |
-| Clareamento antes do verão       | por tipo de tratamento  |     380 |
-| Quem parou no meio do tratamento | uma vez por trimestre   |     512 |
+| Campanha                         | Quando                 | Na fila |
+| -------------------------------- | ---------------------- | ------: |
+| Aniversariantes do mês           | todo dia, de manhã     |      46 |
+| Quem sumiu há mais de um ano     | em lotes diários       |     964 |
+| Clareamento antes do verão       | por tipo de tratamento |     380 |
+| Quem parou no meio do tratamento | uma vez por trimestre  |     512 |
 
 > Toda campanha passa pelas mesmas regras: uma mensagem por pessoa por dia, só em
 > horário comercial, e quem pediu para parar fica de fora.

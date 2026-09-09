@@ -23,7 +23,7 @@ curl -sL https://www.jpclinicaodontologica.com.br/api/crc/saude
 ```
 
 ```json
-{"status":"ok","app":"ok","banco":"ok"}
+{ "status": "ok", "app": "ok", "banco": "ok" }
 ```
 
 **Atualizado:** o schema 02 a 04 foi aplicado, as variáveis foram cadastradas e
@@ -31,18 +31,18 @@ a instalação rodou — `/api/crc/saude` responde `{"status":"ok"}`. O que falt
 banco são os arquivos **05** e **06**, que chegaram depois: sem eles as telas de
 Campanhas e de custo por paciente abrem com erro.
 
-| | Estado |
-|---|---|
-| Site `/` e portal `/rh` | ✅ no ar, intactos |
-| Código do CRC publicado | ✅ |
-| Schema 02, 03 e 04 no Supabase | ✅ aplicados |
+|                                               | Estado                                               |
+| --------------------------------------------- | ---------------------------------------------------- |
+| Site `/` e portal `/rh`                       | ✅ no ar, intactos                                   |
+| Código do CRC publicado                       | ✅                                                   |
+| Schema 02, 03 e 04 no Supabase                | ✅ aplicados                                         |
 | **Schema 05 e 06** (investimento e campanhas) | ❌ **pendentes** — as telas abrem com erro até rodar |
-| Variáveis de ambiente (A.2) | ✅ cadastradas |
-| Instalação inicial (A.3) | ✅ executada |
-| Equipe (B) | ⚠️ só o administrador |
-| Credenciais Dental Office (C.1) | ❌ aguardando terceiro |
-| Provedor de WhatsApp (C.2) | ❌ aguardando contratação |
-| Cron a cada 10 min (F) | ⚠️ hoje é diário — ver a Parte F |
+| Variáveis de ambiente (A.2)                   | ✅ cadastradas                                       |
+| Instalação inicial (A.3)                      | ✅ executada                                         |
+| Equipe (B)                                    | ⚠️ só o administrador                                |
+| Credenciais Dental Office (C.1)               | ❌ aguardando terceiro                               |
+| Provedor de WhatsApp (C.2)                    | ❌ aguardando contratação                            |
+| Cron a cada 10 min (F)                        | ⚠️ hoje é diário — ver a Parte F                     |
 
 **Como publicar de novo**, depois de mexer em variável de ambiente ou em
 código:
@@ -57,14 +57,14 @@ O projeto já está linkado (`.vercel/project.json`); não precisa de mais nada.
 
 ## O resumo em uma tela
 
-| Bloco | Depende de quem | Tempo | Sem isso, o que acontece |
-|---|---|---|---|
-| **A.** Banco, variáveis e instalação | Você | ~40 min | O `/crc` não abre. Nada funciona. |
-| **B.** Acesso da equipe | Você, pela tela | ~2 min por pessoa | Só existe o login do administrador. |
-| **C.** Credenciais de terceiros | Dental Office e Twilio/Meta | Fora do nosso controle | O CRC abre e fica vazio: sem paciente e sem mensagem. |
-| **D.** Horário e política da clínica | Você, via SQL | ~10 min | Vale o padrão: seg–sex 8h–19h, sáb 8h–13h, 1 contato/dia. |
-| **E.** Três lacunas de código | Nós | Ver a lista | Nenhuma impede operar. |
-| **F.** Cron a cada 10 min | Você | ~5 min | O plano Hobby só dá cron diário; sem um pinger externo o faltante só recebe mensagem no dia seguinte. |
+| Bloco                                | Depende de quem             | Tempo                  | Sem isso, o que acontece                                                                              |
+| ------------------------------------ | --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| **A.** Banco, variáveis e instalação | Você                        | ~40 min                | O `/crc` não abre. Nada funciona.                                                                     |
+| **B.** Acesso da equipe              | Você, pela tela             | ~2 min por pessoa      | Só existe o login do administrador.                                                                   |
+| **C.** Credenciais de terceiros      | Dental Office e Twilio/Meta | Fora do nosso controle | O CRC abre e fica vazio: sem paciente e sem mensagem.                                                 |
+| **D.** Horário e política da clínica | Você, via SQL               | ~10 min                | Vale o padrão: seg–sex 8h–19h, sáb 8h–13h, 1 contato/dia.                                             |
+| **E.** Três lacunas de código        | Nós                         | Ver a lista            | Nenhuma impede operar.                                                                                |
+| **F.** Cron a cada 10 min            | Você                        | ~5 min                 | O plano Hobby só dá cron diário; sem um pinger externo o faltante só recebe mensagem no dia seguinte. |
 
 **A próxima ação é rodar o 05 e o 06** — os dois SQL que chegaram depois da
 primeira instalação.
@@ -84,15 +84,15 @@ vale muito.
 SQL Editor do Supabase, **nesta ordem**, um de cada vez. Os cinco são aditivos
 e idempotentes — o 03 ao 06 podem ser aplicados com o sistema no ar:
 
-| Arquivo | O que cria |
-|---|---|
-| `supabase/02-crc-schema.sql` | As 36 tabelas, os índices, o RLS e as três funções de reserva atômica. |
-| `supabase/03-crc-cobranca.sql` | `crc_charges` e `crc_payment_agreements` (cobrança de inadimplência). |
-| `supabase/04-crc-visoes.sql` | O índice único das visões salvas. |
-| `supabase/05-crc-investimento.sql` | `crc_ad_spend` — o investimento em anúncios, para o custo por paciente. |
-| `supabase/06-crc-campanhas.sql` | `crc_campaigns` e `crc_campaign_targets` — as campanhas. |
-| `supabase/07-crc-convenio.sql` | A coluna `convenio` em `crc_patients`, para o filtro de campanha. |
-| `supabase/08-crc-agendamento.sql` | `crc_dentists` e `crc_scheduling_offers` — **necessário para o CRC marcar consulta**. Sem a primeira não há por quem perguntar horário livre; sem a segunda o sistema não lembra o que ofereceu. |
+| Arquivo                            | O que cria                                                                                                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `supabase/02-crc-schema.sql`       | As 36 tabelas, os índices, o RLS e as três funções de reserva atômica.                                                                                                                           |
+| `supabase/03-crc-cobranca.sql`     | `crc_charges` e `crc_payment_agreements` (cobrança de inadimplência).                                                                                                                            |
+| `supabase/04-crc-visoes.sql`       | O índice único das visões salvas.                                                                                                                                                                |
+| `supabase/05-crc-investimento.sql` | `crc_ad_spend` — o investimento em anúncios, para o custo por paciente.                                                                                                                          |
+| `supabase/06-crc-campanhas.sql`    | `crc_campaigns` e `crc_campaign_targets` — as campanhas.                                                                                                                                         |
+| `supabase/07-crc-convenio.sql`     | A coluna `convenio` em `crc_patients`, para o filtro de campanha.                                                                                                                                |
+| `supabase/08-crc-agendamento.sql`  | `crc_dentists` e `crc_scheduling_offers` — **necessário para o CRC marcar consulta**. Sem a primeira não há por quem perguntar horário livre; sem a segunda o sistema não lembra o que ofereceu. |
 
 Rodar de novo não apaga nada. É o único passo manual da instalação, e ele existe
 porque a API REST do Supabase não executa DDL.
@@ -119,12 +119,12 @@ health check responderia `banco: "nao_configurado"`. Ele responde
 
 Faltam **quatro**:
 
-| Variável | Valor |
-|---|---|
+| Variável             | Valor                                      |
+| -------------------- | ------------------------------------------ |
 | `CRC_SESSION_SECRET` | 32+ caracteres aleatórios (comando abaixo) |
-| `CRC_ADMIN_EMAIL` | o e-mail do primeiro administrador — o seu |
-| `CRC_ADMIN_SENHA` | mínimo 10 caracteres |
-| `CRON_SECRET` | 32+ caracteres aleatórios (mesmo comando) |
+| `CRC_ADMIN_EMAIL`    | o e-mail do primeiro administrador — o seu |
+| `CRC_ADMIN_SENHA`    | mínimo 10 caracteres                       |
+| `CRON_SECRET`        | 32+ caracteres aleatórios (mesmo comando)  |
 
 Gere os dois segredos assim, uma vez para cada:
 
@@ -217,14 +217,14 @@ que importa quando algo dá errado.
 
 ### Os seis papéis
 
-| Papel | O que alcança |
-|---|---|
-| **Administração** | Tudo, incluindo cadastrar e desativar gente. |
-| **Gestão** | A operação inteira, os números e as automações. Não mexe em usuários. |
-| **CRC** | A fila, as conversas e as oportunidades. Vê valor de orçamento. |
-| **Recepção** | A fila e as conversas do dia. Não vê valor de orçamento. |
-| **Dentista** | Pacientes e tarefas clínicas. Não vê a operação comercial. |
-| **Marketing** | Campanhas, funil e números. Não abre conversa de paciente. |
+| Papel             | O que alcança                                                         |
+| ----------------- | --------------------------------------------------------------------- |
+| **Administração** | Tudo, incluindo cadastrar e desativar gente.                          |
+| **Gestão**        | A operação inteira, os números e as automações. Não mexe em usuários. |
+| **CRC**           | A fila, as conversas e as oportunidades. Vê valor de orçamento.       |
+| **Recepção**      | A fila e as conversas do dia. Não vê valor de orçamento.              |
+| **Dentista**      | Pacientes e tarefas clínicas. Não vê a operação comercial.            |
+| **Marketing**     | Campanhas, funil e números. Não abre conversa de paciente.            |
 
 A tela mostra a explicação de cada papel embaixo do campo, porque a pergunta
 real de quem cadastra é "esta pessoa vai poder ver orçamento?".
@@ -274,11 +274,11 @@ especificação OpenAPI 3.0.3 deles, e não um blog:
 
 Aprovado o acesso, eles enviam **por e-mail** três dados:
 
-| Variável | O que é |
-|---|---|
-| `DENTAL_OFFICE_BASE_URL` | a URL exclusiva do cliente. Vem **já terminada em `/v1`** |
-| `DENTAL_OFFICE_CLIENT_ID` | o identificador |
-| `DENTAL_OFFICE_SECRET` | a chave secreta |
+| Variável                  | O que é                                                   |
+| ------------------------- | --------------------------------------------------------- |
+| `DENTAL_OFFICE_BASE_URL`  | a URL exclusiva do cliente. Vem **já terminada em `/v1`** |
+| `DENTAL_OFFICE_CLIENT_ID` | o identificador                                           |
+| `DENTAL_OFFICE_SECRET`    | a chave secreta                                           |
 
 E falta uma quarta, que **não** vem no e-mail:
 
@@ -299,15 +299,15 @@ de milissegundos.
 
 #### O que o CRC usa da API
 
-| Operação | Para quê |
-|---|---|
-| `GET /customers` | sincronizar pacientes |
-| `GET /dentists` | sincronizar dentistas — **na raiz**, não sob a clínica |
-| `GET /clinics/{id}/schedules` | a agenda, filtrando por `start` e `end` |
-| `GET /clinics/{id}/schedules/available_hours` | horários livres |
-| `POST /clinics/{id}/schedules` | criar consulta |
-| `PATCH /clinics/{id}/schedules/{id}` | remarcar e cancelar |
-| `GET /status` | o teste de conexão da tela de Integrações |
+| Operação                                      | Para quê                                               |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `GET /customers`                              | sincronizar pacientes                                  |
+| `GET /dentists`                               | sincronizar dentistas — **na raiz**, não sob a clínica |
+| `GET /clinics/{id}/schedules`                 | a agenda, filtrando por `start` e `end`                |
+| `GET /clinics/{id}/schedules/available_hours` | horários livres                                        |
+| `POST /clinics/{id}/schedules`                | criar consulta                                         |
+| `PATCH /clinics/{id}/schedules/{id}`          | remarcar e cancelar                                    |
+| `GET /status`                                 | o teste de conexão da tela de Integrações              |
 
 #### Três limites que mudam a operação, e não são detalhe
 
@@ -322,14 +322,14 @@ A especificação diz literalmente "por período" e nunca define qual. Não exis
 `RateLimit-Reset` publicado: só `RateLimit-Limit` e `RateLimit-Remaining`. E a
 diferença decide a arquitetura:
 
-| Se a janela for | Precisamos de | Situação |
-|---|---|---|
-| por hora | ~129 | folga enorme |
-| **por dia** | ~3.100 | **cabe, com 38% de sobra** |
-| por mês | ~93.000 | impossível |
+| Se a janela for | Precisamos de | Situação                   |
+| --------------- | ------------- | -------------------------- |
+| por hora        | ~129          | folga enorme               |
+| **por dia**     | ~3.100        | **cabe, com 38% de sobra** |
+| por mês         | ~93.000       | impossível                 |
 
-*(base: motor a cada 1 minuto = 1.440 voltas/dia, 2 requisições por volta, mais
-200 de varredura completa de pacientes)*
+_(base: motor a cada 1 minuto = 1.440 voltas/dia, 2 requisições por volta, mais
+200 de varredura completa de pacientes)_
 
 **O sistema mede isso sozinho.** O adapter lê `RateLimit-Remaining` em toda
 resposta e registra no diário quando o número SOBE — o instante da virada é a
@@ -373,8 +373,8 @@ o valor certo da variável é o que eles enviarem, sem mexer.
 
 **O verbo de atualização varia por recurso**, e não é engano deles:
 
-| `PUT` | `PATCH` |
-|---|---|
+| `PUT`                                     | `PATCH`                                                         |
+| ----------------------------------------- | --------------------------------------------------------------- |
 | cadeiras, disciplinas, motivos, situações | pacientes, dentistas, usuários, imagens, documentos, **agenda** |
 
 O CRC só escreve em agenda, então usa `PATCH`. Padronizar o verbo "para ficar
@@ -388,14 +388,14 @@ e não pelo id numérico. A API permite cada clínica **criar** situações
 (`POST /schedule_situations`), então o id não é estável entre clínicas — o "4"
 de uma pode ser "Faltou" e o de outra, "Atendido". Os rótulos, esses são fixos:
 
-| Rótulo do Dental Office | Status no CRC |
-|---|---|
-| `to_confirm` | TO_CONFIRM |
-| `confirmed` | CONFIRMED |
-| `client_arrived`, `in_service` | IN_PROGRESS |
-| `fulfilled` | COMPLETED |
-| `absence` | MISSED |
-| `cancelled` | CANCELLED |
+| Rótulo do Dental Office        | Status no CRC |
+| ------------------------------ | ------------- |
+| `to_confirm`                   | TO_CONFIRM    |
+| `confirmed`                    | CONFIRMED     |
+| `client_arrived`, `in_service` | IN_PROGRESS   |
+| `fulfilled`                    | COMPLETED     |
+| `absence`                      | MISSED        |
+| `cancelled`                    | CANCELLED     |
 
 #### Como saber que funcionou
 
@@ -415,12 +415,12 @@ trocar depois é mudar uma linha.
 WHATSAPP_PROVEDOR=twilio    # ou meta
 ```
 
-| | Twilio | Meta Cloud API |
-|---|---|---|
-| Começa a enviar | Hoje, no sandbox | Depois da verificação do Business Manager (semanas) |
-| Exige BM verificado | Não, para testar | Sim |
-| Custo | Preço da Meta + taxa da Twilio | Só o preço da Meta |
-| Suporte | Humano | Documentação |
+|                     | Twilio                         | Meta Cloud API                                      |
+| ------------------- | ------------------------------ | --------------------------------------------------- |
+| Começa a enviar     | Hoje, no sandbox               | Depois da verificação do Business Manager (semanas) |
+| Exige BM verificado | Não, para testar               | Sim                                                 |
+| Custo               | Preço da Meta + taxa da Twilio | Só o preço da Meta                                  |
+| Suporte             | Humano                         | Documentação                                        |
 
 **A recomendação é começar pela Twilio** e migrar para a Meta se e quando o
 volume justificar. Sair de um mês parado esperando verificação para começar a
@@ -517,17 +517,17 @@ gravado.
 
 Se o padrão serve, pule esta parte. O padrão é:
 
-| Configuração | Padrão |
-|---|---|
-| Horário | seg–sex 08:00–19:00, sáb 08:00–13:00, dom fechado |
-| Fuso | America/Sao_Paulo |
-| Contatos proativos por paciente por dia | 1 |
-| Intervalo mínimo entre contatos | 24h |
-| Tentativas por jornada | 3 |
-| Retorno de rotina | 180 dias |
-| Paciente inativo | 240 dias |
-| Espera antes de falar com quem faltou | 2h |
-| Antecedência da confirmação | 24h |
+| Configuração                            | Padrão                                            |
+| --------------------------------------- | ------------------------------------------------- |
+| Horário                                 | seg–sex 08:00–19:00, sáb 08:00–13:00, dom fechado |
+| Fuso                                    | America/Sao_Paulo                                 |
+| Contatos proativos por paciente por dia | 1                                                 |
+| Intervalo mínimo entre contatos         | 24h                                               |
+| Tentativas por jornada                  | 3                                                 |
+| Retorno de rotina                       | 180 dias                                          |
+| Paciente inativo                        | 240 dias                                          |
+| Espera antes de falar com quem faltou   | 2h                                                |
+| Antecedência da confirmação             | 24h                                               |
 
 ### Mudar o horário comercial
 
@@ -606,11 +606,11 @@ ano.
 As cinco aparecem em **Configurações → Recursos**, e três delas gatilham
 comportamento de verdade:
 
-| Flag | O que muda quando liga |
-|---|---|
-| `auto_scheduling` | O CRC passa a oferecer horários reais quando o paciente pede para marcar. |
+| Flag                      | O que muda quando liga                                                                                     |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `auto_scheduling`         | O CRC passa a oferecer horários reais quando o paciente pede para marcar.                                  |
 | `dental_office_writeback` | A reserva é gravada no Dental Office. Desligada, o aceite do paciente vira tarefa para a recepção digitar. |
-| `ai_autopilot` | A leitura automática pode agir, e não só classificar e sugerir. |
+| `ai_autopilot`            | A leitura automática pode agir, e não só classificar e sugerir.                                            |
 
 `ai_autopilot` é a linha que separa **a IA ler** de **a IA falar**. Desligada,
 a conversa continua sendo classificada — resumo, temperatura e escalonamento
@@ -652,9 +652,9 @@ humano remarcar, que é o comportamento de hoje.
 
 ### O que continua faltando
 
-*Teste de navegador (Playwright), segment engine componível do item 146, estado
+_Teste de navegador (Playwright), segment engine componível do item 146, estado
 na URL do item 148, multisseleção de tipo no funil, e o campo de feriados
-citado acima. Todos detalhados no FINAL-ACCEPTANCE.*
+citado acima. Todos detalhados no FINAL-ACCEPTANCE._
 
 ---
 
@@ -673,13 +673,13 @@ chamada **num lugar só** — a rota `/api/crc/motor`.
 
 ### O que isso significa na prática
 
-| Acontece | Quando o paciente percebe |
-|---|---|
-| Mensagem chega | **Na hora.** Ela aparece na Inbox imediatamente, e qualquer atendente responde 24h por dia. |
-| Leitura pela IA, resumo, temperatura | Na batida seguinte do motor |
-| Resposta automática | Na batida seguinte do motor |
-| Oferta de horário e agendamento | Na batida seguinte do motor |
-| Mensagem de jornada (falta, retorno, cobrança) | Na batida seguinte do motor |
+| Acontece                                       | Quando o paciente percebe                                                                   |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Mensagem chega                                 | **Na hora.** Ela aparece na Inbox imediatamente, e qualquer atendente responde 24h por dia. |
+| Leitura pela IA, resumo, temperatura           | Na batida seguinte do motor                                                                 |
+| Resposta automática                            | Na batida seguinte do motor                                                                 |
+| Oferta de horário e agendamento                | Na batida seguinte do motor                                                                 |
+| Mensagem de jornada (falta, retorno, cobrança) | Na batida seguinte do motor                                                                 |
 
 **Com o cron diário de hoje, "a batida seguinte" pode ser daqui a 23 horas.**
 Uma pessoa que escreve às 14h só recebe resposta automática às 9h do dia
@@ -713,10 +713,10 @@ a jornada é reagendada para a abertura seguinte e o paciente recebe às 8h.
 
 **Duas saídas, e as duas funcionam:**
 
-| Saída | Custo | O que fazer |
-|---|---|---|
-| **Pinger externo** (recomendado) | Grátis | Um serviço de cron gratuito (cron-job.org, EasyCron, ou um workflow agendado do GitHub Actions) chamando a URL abaixo a cada 10 minutos. |
-| **Vercel Pro** | Mensalidade | Devolver `*/10 * * * *` ao `vercel.json` e publicar. |
+| Saída                            | Custo       | O que fazer                                                                                                                              |
+| -------------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Pinger externo** (recomendado) | Grátis      | Um serviço de cron gratuito (cron-job.org, EasyCron, ou um workflow agendado do GitHub Actions) chamando a URL abaixo a cada 10 minutos. |
+| **Vercel Pro**                   | Mensalidade | Devolver `*/10 * * * *` ao `vercel.json` e publicar.                                                                                     |
 
 A chamada do pinger externo é esta — GET, com o header:
 
@@ -769,11 +769,11 @@ chamadas sobrepostas nunca peguem a mesma linha. Deixe os dois.
 
 ### Quer resposta em 1 minuto?
 
-| Caminho | Custo | Frequência possível |
-|---|---|---|
-| **cron-job.org** | Grátis | Até **1 minuto** |
-| **GitHub Actions** | Grátis | Mínimo **5 minutos** (limite do agendador do GitHub, e ele ainda atrasa em horário de pico) |
-| **Vercel Pro** | US$ 20/mês | 1 minuto, trocando `0 9 * * *` por `* * * * *` |
+| Caminho            | Custo      | Frequência possível                                                                         |
+| ------------------ | ---------- | ------------------------------------------------------------------------------------------- |
+| **cron-job.org**   | Grátis     | Até **1 minuto**                                                                            |
+| **GitHub Actions** | Grátis     | Mínimo **5 minutos** (limite do agendador do GitHub, e ele ainda atrasa em horário de pico) |
+| **Vercel Pro**     | US$ 20/mês | 1 minuto, trocando `0 9 * * *` por `* * * * *`                                              |
 
 Para conversa em tempo real, **1 minuto é o alvo** — é a diferença entre o
 paciente sentir que falou com a clínica e sentir que caiu num robô lento.
@@ -833,10 +833,10 @@ espelha a conversa nem as anotações no Dental Office.
 
 **O que ele escreve — as duas únicas escritas que existem:**
 
-| Ação | Método | Quando |
-|---|---|---|
-| Criar consulta | `POST` | Quando o paciente aceita um horário oferecido |
-| Mudar status / cancelar | `PUT` | Quando a consulta é cancelada pelo CRC |
+| Ação                    | Método | Quando                                        |
+| ----------------------- | ------ | --------------------------------------------- |
+| Criar consulta          | `POST` | Quando o paciente aceita um horário oferecido |
+| Mudar status / cancelar | `PUT`  | Quando a consulta é cancelada pelo CRC        |
 
 **O que ele NÃO escreve:**
 
@@ -883,6 +883,7 @@ Assim que as credenciais do Dental Office chegarem: Parte C.1, e
 **Sincronizar agora**.
 
 Depois disso, confira à mão, na tela de Pacientes:
+
 - os nomes vieram completos e sem caractere estranho;
 - os telefones estão em formato brasileiro e com DDD (quem não tem DDD é
   recusado de propósito — o sistema não adivinha);
@@ -953,14 +954,14 @@ alguém lendo cada mensagem que sai.
 
 ## Parte H — Como saber que está funcionando
 
-| O que | Onde olhar | O que é normal |
-|---|---|---|
-| O app está de pé | `GET /api/crc/saude` | `{"status":"ok"}`. Hoje responde `degradado` — ver "Onde estamos agora". |
-| O motor está batendo | Vercel → Logs, filtrando `/api/crc/motor` | Uma execução a cada 10 min com o pinger da Parte F; **uma por dia sem ele**. Sempre 200, nunca 5xx. |
-| A sincronização está viva | `/crc` → Integrações | "Última sincronização" recente, sem erro |
-| As jornadas estão andando | `/crc` → Automações | "Em jornada" > 0 quando há faltantes |
-| As mensagens estão saindo | `/crc` → Conversas | Mensagens de saída com status de entrega |
-| A recuperação está acontecendo | `/crc` → Gestão | "Saídas por conversão" > 0 |
+| O que                          | Onde olhar                                | O que é normal                                                                                      |
+| ------------------------------ | ----------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| O app está de pé               | `GET /api/crc/saude`                      | `{"status":"ok"}`. Hoje responde `degradado` — ver "Onde estamos agora".                            |
+| O motor está batendo           | Vercel → Logs, filtrando `/api/crc/motor` | Uma execução a cada 10 min com o pinger da Parte F; **uma por dia sem ele**. Sempre 200, nunca 5xx. |
+| A sincronização está viva      | `/crc` → Integrações                      | "Última sincronização" recente, sem erro                                                            |
+| As jornadas estão andando      | `/crc` → Automações                       | "Em jornada" > 0 quando há faltantes                                                                |
+| As mensagens estão saindo      | `/crc` → Conversas                        | Mensagens de saída com status de entrega                                                            |
+| A recuperação está acontecendo | `/crc` → Gestão                           | "Saídas por conversão" > 0                                                                          |
 
 As varreduras diárias (retorno, confirmação, aniversário, orçamento, cobrança)
 rodam só na volta das 9h UTC — ≈6h em São Paulo, para as jornadas nascerem antes
@@ -980,12 +981,12 @@ curl "https://www.jpclinicaodontologica.com.br/api/crc/motor?varrer=1" \
 `/crc` → **Integrações** → Interruptores. São quatro, e o efeito é imediato — a
 próxima volta do motor já respeita:
 
-| Interruptor | Quando usar |
-|---|---|
-| **Pausar envios de WhatsApp** | Mensagem errada saindo. As jornadas continuam avançando e registram o que teriam enviado. |
-| **Pausar todas as automações** | Algo sistêmico está errado e você não sabe o quê. Nenhuma jornada avança. |
-| **Pausar escritas no Dental Office** | Suspeita de que estamos gravando coisa errada lá. |
-| **Pausar ações automáticas da IA** | A IA está classificando mal. As conversas viram tarefa humana. |
+| Interruptor                          | Quando usar                                                                               |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| **Pausar envios de WhatsApp**        | Mensagem errada saindo. As jornadas continuam avançando e registram o que teriam enviado. |
+| **Pausar todas as automações**       | Algo sistêmico está errado e você não sabe o quê. Nenhuma jornada avança.                 |
+| **Pausar escritas no Dental Office** | Suspeita de que estamos gravando coisa errada lá.                                         |
+| **Pausar ações automáticas da IA**   | A IA está classificando mal. As conversas viram tarefa humana.                            |
 
 Nenhum deles perde trabalho: jornada pausada retoma de onde parou quando você
 liberar.
@@ -998,35 +999,35 @@ rápidos e mais cirúrgicos — prefira-os.
 
 ## Anexo — todas as variáveis
 
-| Variável | Obrigatória? | Sem ela |
-|---|---|---|
-| `SUPABASE_URL` | **Sim** | O CRC não abre |
-| `SUPABASE_SERVICE_ROLE` | **Sim** | O CRC não abre |
-| `CRC_SESSION_SECRET` | **Sim** ¹ | Login indisponível |
-| `CRC_ADMIN_EMAIL` | **Sim** | Nenhum usuário é criado |
-| `CRC_ADMIN_SENHA` | **Sim** | Nenhum usuário é criado (mín. 10 caracteres) |
-| `CRON_SECRET` | **Sim** | O motor responde 503 e a instalação é bloqueada |
-| `CRC_ADMIN_NOME` | Não | Vale "Administração" |
-| `DENTAL_OFFICE_BASE_URL` | Para sincronizar | Integrações mostra "não configurada" |
-| `DENTAL_OFFICE_CLIENT_ID` | Para sincronizar | idem |
-| `DENTAL_OFFICE_SECRET` | Para sincronizar | idem |
-| `DENTAL_OFFICE_CLINIC_ID` | Para a agenda | A sincronização de agenda não sabe qual unidade consultar |
-| `WHATSAPP_PROVEDOR` | Não | Vale `twilio` |
-| `TWILIO_ACCOUNT_SID` | Se Twilio | Nada é enviado nem recebido |
-| `TWILIO_AUTH_TOKEN` | Se Twilio | idem |
-| `TWILIO_WHATSAPP_FROM` | Se Twilio | idem |
-| `WHATSAPP_WEBHOOK_URL` | **Se Twilio** | Todo webhook recusado por assinatura |
-| `WHATSAPP_TOKEN` | Se Meta | Nada é enviado |
-| `WHATSAPP_PHONE_ID` | Se Meta | idem |
-| `WHATSAPP_APP_SECRET` | **Se Meta** | Nenhum webhook é aceito |
-| `WHATSAPP_VERIFY_TOKEN` | Se Meta | O handshake de verificação falha |
-| `WHATSAPP_API_VERSAO` | Não | Vale `v21.0` |
-| `OPENAI_API_KEY` | Não | Conversas não são pré-lidas; viram tarefa humana |
-| `OPENAI_MODEL_CRC` | Não | Vale `gpt-5.6-luna` |
-| `CRC_USD_BRL` | Não | Vale 5.5 (só afeta o custo exibido) |
-| `DENTAL_OFFICE_SANDBOX` | Não | **Ignorada em produção**, por trava de código |
-| `WHATSAPP_SANDBOX` | Não | **Ignorada em produção**, por trava de código |
-| `CRC_IA_SANDBOX` | Não | **Ignorada em produção**, por trava de código |
+| Variável                  | Obrigatória?     | Sem ela                                                   |
+| ------------------------- | ---------------- | --------------------------------------------------------- |
+| `SUPABASE_URL`            | **Sim**          | O CRC não abre                                            |
+| `SUPABASE_SERVICE_ROLE`   | **Sim**          | O CRC não abre                                            |
+| `CRC_SESSION_SECRET`      | **Sim** ¹        | Login indisponível                                        |
+| `CRC_ADMIN_EMAIL`         | **Sim**          | Nenhum usuário é criado                                   |
+| `CRC_ADMIN_SENHA`         | **Sim**          | Nenhum usuário é criado (mín. 10 caracteres)              |
+| `CRON_SECRET`             | **Sim**          | O motor responde 503 e a instalação é bloqueada           |
+| `CRC_ADMIN_NOME`          | Não              | Vale "Administração"                                      |
+| `DENTAL_OFFICE_BASE_URL`  | Para sincronizar | Integrações mostra "não configurada"                      |
+| `DENTAL_OFFICE_CLIENT_ID` | Para sincronizar | idem                                                      |
+| `DENTAL_OFFICE_SECRET`    | Para sincronizar | idem                                                      |
+| `DENTAL_OFFICE_CLINIC_ID` | Para a agenda    | A sincronização de agenda não sabe qual unidade consultar |
+| `WHATSAPP_PROVEDOR`       | Não              | Vale `twilio`                                             |
+| `TWILIO_ACCOUNT_SID`      | Se Twilio        | Nada é enviado nem recebido                               |
+| `TWILIO_AUTH_TOKEN`       | Se Twilio        | idem                                                      |
+| `TWILIO_WHATSAPP_FROM`    | Se Twilio        | idem                                                      |
+| `WHATSAPP_WEBHOOK_URL`    | **Se Twilio**    | Todo webhook recusado por assinatura                      |
+| `WHATSAPP_TOKEN`          | Se Meta          | Nada é enviado                                            |
+| `WHATSAPP_PHONE_ID`       | Se Meta          | idem                                                      |
+| `WHATSAPP_APP_SECRET`     | **Se Meta**      | Nenhum webhook é aceito                                   |
+| `WHATSAPP_VERIFY_TOKEN`   | Se Meta          | O handshake de verificação falha                          |
+| `WHATSAPP_API_VERSAO`     | Não              | Vale `v21.0`                                              |
+| `OPENAI_API_KEY`          | Não              | Conversas não são pré-lidas; viram tarefa humana          |
+| `OPENAI_MODEL_CRC`        | Não              | Vale `gpt-5.6-luna`                                       |
+| `CRC_USD_BRL`             | Não              | Vale 5.5 (só afeta o custo exibido)                       |
+| `DENTAL_OFFICE_SANDBOX`   | Não              | **Ignorada em produção**, por trava de código             |
+| `WHATSAPP_SANDBOX`        | Não              | **Ignorada em produção**, por trava de código             |
+| `CRC_IA_SANDBOX`          | Não              | **Ignorada em produção**, por trava de código             |
 
 ¹ Se ausente, o CRC cai na `RH_SESSION_SECRET`. Isso é conveniência de
 instalação, não recomendação: com chaves separadas, trocar a do RH não desloga o

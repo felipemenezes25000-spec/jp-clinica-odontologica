@@ -246,6 +246,63 @@ describe("paginação", () => {
 /* Horários disponíveis (item 19)                                             */
 /* ========================================================================== */
 
+describe("os campos do paciente, como a API realmente os manda", () => {
+  /*
+   * Estes três vinham SEMPRE nulos e ninguém percebia — `null` não é erro, é
+   * silêncio. Cada um desliga uma funcionalidade inteira: sem especialidade o
+   * filtro de campanha fica sem opções, sem convênio ele se esconde, e sem
+   * situação a automação de abandono nunca dispara.
+   */
+  const doJeitoDaApi = {
+    id: 2,
+    name: "Max Cavalera",
+    phone: "1140028922",
+    cellphone: "11940028922",
+    active: true,
+    customer_situation_id: 7,
+    specialty_ids: [4, 5],
+    dental_insurance_id: 3,
+  };
+
+  it("situação vem de `customer_situation_id`, e não de `situation`", () => {
+    const r = mapearPaciente(doJeitoDaApi);
+    if (!r.ok) throw new Error(r.erro);
+    // 7 = abandono na tabela padrão. É o que faz a automação de abandono ter
+    // alguém para trabalhar.
+    expect(r.valor.situacao).toBe("ABANDONO");
+  });
+
+  it("especialidade vem do ARRAY `specialty_ids`, e fica a primeira", () => {
+    const r = mapearPaciente(doJeitoDaApi);
+    if (!r.ok) throw new Error(r.erro);
+    // O id cru: quem traduz para "Endodontia" é a sincronização, consultando
+    // /disciplines uma vez por execução.
+    expect(r.valor.especialidade).toBe("4");
+  });
+
+  it("sem nome de convênio, guarda o id em vez de perder o dado", () => {
+    const r = mapearPaciente(doJeitoDaApi);
+    if (!r.ok) throw new Error(r.erro);
+    // Não existe endpoint que liste convênios. O id ainda agrupa pacientes do
+    // mesmo plano, e é melhor que null.
+    expect(r.valor.convenio).toBe("3");
+  });
+
+  it("quando o nome do convênio vem (agenda), ele vence o id", () => {
+    const r = mapearPaciente({ ...doJeitoDaApi, dental_insurance_name: "Amil Dental" });
+    if (!r.ok) throw new Error(r.erro);
+    expect(r.valor.convenio).toBe("Amil Dental");
+  });
+
+  it("situação desconhecida não rejeita o paciente", () => {
+    // Item 114: a base do CRC não pode ficar menor que a do Dental Office por
+    // causa de um campo que ninguém preencheu.
+    const r = mapearPaciente({ id: 9, name: "Sem situação", cellphone: "11940028922" });
+    if (!r.ok) throw new Error(r.erro);
+    expect(r.valor.situacao).toBe("DESCONHECIDO");
+  });
+});
+
 describe("a anotação do agendamento", () => {
   it("`notes` vence `description`, porque `description` é o nome do paciente", () => {
     // Descoberto cruzando a especificação com o exemplo de resposta: o Dental

@@ -252,7 +252,8 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
     chave: "recuperacao_orcamento",
     nome: "Recuperação de orçamento",
     descricao:
-      "Quando um orçamento fica aberto sem retorno e o paciente não tem consulta marcada, abre a conversa sobre as dúvidas dele.",
+      "Quando um orçamento fica aberto sem retorno e o paciente não tem consulta marcada, abre a conversa sobre as dúvidas dele. " +
+      "Depende de importar a planilha de orçamentos: a API do Dental Office não expõe financeiro, então nada avisa o sistema sozinho.",
     definicao: {
       gatilho: { tipo: "EVENTO", evento: "budget.pending" },
       condicoes: [...CONDICOES_CONTATAVEL, { tipo: "SEM_CONSULTA_FUTURA" }],
@@ -289,7 +290,8 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
     chave: "cobranca_parcelas",
     nome: "Cobrança de parcelas em aberto",
     descricao:
-      "Lembra da parcela a vencer e pergunta sobre a que ficou em aberto. Para em três contatos e passa para a equipe — o art. 42 do CDC não permite insistir.",
+      "Lembra da parcela a vencer e pergunta sobre a que ficou em aberto. Para em três contatos e passa para a equipe — o art. 42 do CDC não permite insistir. " +
+      "Depende de importar a planilha de parcelas: a API do Dental Office não expõe financeiro.",
     definicao: {
       gatilho: { tipo: "VARREDURA", seletor: "ABANDONO" },
       condicoes: CONDICOES_CONTATAVEL,

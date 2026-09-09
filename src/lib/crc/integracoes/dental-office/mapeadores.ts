@@ -59,6 +59,22 @@ export type PacienteExterno = {
   clinicaExternaId: string | null;
 };
 
+/**
+ * A primeira especialidade do paciente, como id em texto.
+ *
+ * `specialty_ids` é um array; o CRC trabalha com uma por paciente. A tradução
+ * do id para o nome acontece na sincronização, que consulta `/disciplines`.
+ */
+function primeiraEspecialidade(bruto: Record<string, unknown>): string | null {
+  const ids = primeiroCampo(bruto, "specialty_ids", "specialties", "especialidades");
+  if (Array.isArray(ids)) {
+    const primeiro = ids.find((v) => v !== null && v !== undefined);
+    if (primeiro !== undefined) return String(primeiro);
+  }
+  // Formatos antigos e o sandbox continuam funcionando.
+  return especialidadeDeCodigo(primeiroCampo(bruto, "specialty", "specialty_id", "especialidade"));
+}
+
 export function mapearPaciente(bruto: unknown): Validacao<PacienteExterno> {
   if (!ehObjeto(bruto)) {
     return { ok: false, campo: "paciente", erro: "O registro não é um objeto." };
@@ -73,9 +89,23 @@ export function mapearPaciente(bruto: unknown): Validacao<PacienteExterno> {
   // Situação desconhecida NÃO rejeita o paciente: ele continua sendo um
   // paciente, só não entra em jornada que dependa da situação. Rejeitar aqui
   // faria a base do CRC ficar menor que a do Dental Office sem motivo.
+  /*
+   * `customer_situation_id` é o nome real — os outros são tentativas antigas.
+   *
+   * ATENÇÃO AO QUE ISTO PRESSUPÕE: o número é interpretado pela tabela padrão
+   * (1 primeira consulta, 2 em tratamento, 3 concluído, 4 alta, 7 abandono).
+   * Não há endpoint que liste as situações de paciente, então não dá para
+   * confirmar que a clínica usa os ids de fábrica. Se ela criou os próprios, a
+   * leitura sai errada — e é por isso que "qual endpoint lista as situações de
+   * paciente?" está na lista de perguntas ao Dental Office.
+   *
+   * Enquanto a resposta não vem, errar para DESCONHECIDO é seguro: paciente
+   * com situação desconhecida não entra em jornada que dependa dela.
+   */
   const situacao =
-    situacaoDeCodigo(primeiroCampo(bruto, "situation", "customer_situation", "situacao")) ??
-    "DESCONHECIDO";
+    situacaoDeCodigo(
+      primeiroCampo(bruto, "customer_situation_id", "situation", "customer_situation", "situacao"),
+    ) ?? "DESCONHECIDO";
 
   const { telefone, bruto: telefoneBruto } = extrairTelefone(bruto);
 
@@ -87,23 +117,39 @@ export function mapearPaciente(bruto: unknown): Validacao<PacienteExterno> {
       nascimento: dataIso(primeiroCampo(bruto, "birth_date", "birthDate", "nascimento")),
       genero: textoOpcional(primeiroCampo(bruto, "gender", "genero", "sexo")),
       situacao,
-      especialidade: especialidadeDeCodigo(
-        primeiroCampo(bruto, "specialty", "specialty_id", "especialidade"),
-      ),
+      /*
+       * `specialty_ids` é um ARRAY de números, e não um campo simples.
+       *
+       * A primeira da lista é a que vale para o CRC: as regras e o filtro de
+       * campanha trabalham com uma especialidade por paciente, e um paciente
+       * com três não deveria aparecer em três segmentos diferentes da mesma
+       * campanha.
+       *
+       * O NÚMERO VIRA NOME no sincronizador, que consulta `GET /disciplines`
+       * uma vez por execução. Aqui fica só o id, porque o mapeador é puro e
+       * não faz requisição.
+       */
+      especialidade: primeiraEspecialidade(bruto),
       // A lista de nomes é generosa de propósito, como no resto do mapper: não
       // sabemos como o Dental Office chama este campo, e descobrir custa uma
       // sincronização inteira. Tentar seis nomes custa nada.
-      convenio: textoOpcional(
-        primeiroCampo(
-          bruto,
-          "insurance",
-          "health_plan",
-          "healthPlan",
-          "convenio",
-          "convênio",
-          "plano",
-        ),
-      ),
+      /*
+       * O CONVÊNIO É UM PROBLEMA CONHECIDO, e não um esquecimento.
+       *
+       * `GET /customers` devolve `dental_insurance_id` — um número — e NÃO
+       * existe endpoint que liste os convênios para resolver o nome. O nome
+       * (`dental_insurance_name`) aparece só dentro do paciente aninhado na
+       * resposta da AGENDA.
+       *
+       * Então: se o nome vier (agenda), usa. Se vier só o id, guarda o id como
+       * texto — é melhor que `null`, porque permite agrupar pacientes do mesmo
+       * convênio mesmo sem saber o nome dele, e o dia em que o endpoint
+       * existir a tradução é uma migração de uma linha.
+       */
+      convenio:
+        textoOpcional(
+          primeiroCampo(bruto, "dental_insurance_name", "insurance_name", "convenio", "plano"),
+        ) ?? textoOpcional(primeiroCampo(bruto, "dental_insurance_id", "insurance_id")),
       // Item 114: a ausência do campo `active` não pode significar "inativo".
       // Um paciente marcado inativo por engano some da operação inteira.
       ativo: interpretarAtivo(primeiroCampo(bruto, "active", "ativo", "is_active")),

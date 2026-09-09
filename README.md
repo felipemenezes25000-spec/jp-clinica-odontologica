@@ -54,11 +54,11 @@ src/
 
 ### Os três sistemas que moram neste repo
 
-| Rota | O que é | Documentação |
-| --- | --- | --- |
-| `/` | O site institucional. É o que este README descreve. | aqui |
-| `/rh` | Portal de RH: vagas, candidaturas, triagem por IA. | [docs/PORTAL-RH.md](docs/PORTAL-RH.md) |
-| `/crc` | JP CRC OS: CRM, automação de recuperação e cobrança. | [docs/crc/](docs/crc/) |
+| Rota   | O que é                                              | Documentação                           |
+| ------ | ---------------------------------------------------- | -------------------------------------- |
+| `/`    | O site institucional. É o que este README descreve.  | aqui                                   |
+| `/rh`  | Portal de RH: vagas, candidaturas, triagem por IA.   | [docs/PORTAL-RH.md](docs/PORTAL-RH.md) |
+| `/crc` | JP CRC OS: CRM, automação de recuperação e cobrança. | [docs/crc/](docs/crc/)                 |
 
 Os três compartilham build, domínio e Supabase, e nada mais: as tabelas do CRC
 têm prefixo `crc_`, o CSS dele vive inteiro sob `.crc-app`, e nenhum arquivo do
@@ -67,7 +67,10 @@ site foi alterado para ele existir.
 **Para colocar o CRC no ar**, comece por
 [docs/crc/ATIVACAO-EM-PRODUCAO.md](docs/crc/ATIVACAO-EM-PRODUCAO.md) — o passo a
 passo de SQL, variáveis, credenciais e ordem de ativação. Os outros três
-documentos são [ARCHITECTURE](docs/crc/ARCHITECTURE.md) (como funciona),
+documentos são
+[CAPACIDADES-DENTAL-OFFICE](docs/crc/CAPACIDADES-DENTAL-OFFICE.md) (**o que dá e
+o que não dá para fazer com a API deles** — leia antes de planejar qualquer
+funcionalidade nova), [ARCHITECTURE](docs/crc/ARCHITECTURE.md) (como funciona),
 [RUNBOOK](docs/crc/RUNBOOK.md) (quando algo dá errado) e
 [FINAL-ACCEPTANCE](docs/crc/FINAL-ACCEPTANCE.md) (o que existe e o que não
 existe).

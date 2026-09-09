@@ -54,6 +54,14 @@ export type PortaDentalOffice = {
   testarConexao(): Promise<{ ok: boolean; detalhe: string }>;
   listarClinicas(): Promise<ClinicaExterna[]>;
   listarDentistas(clinicaExternaId: string): Promise<DentistaExterno[]>;
+  /**
+   * As especialidades da clínica, do id para o nome.
+   *
+   * Existe porque `GET /customers` devolve `specialty_ids` — números — e sem
+   * esta tabela o CRC guardaria "4" no lugar de "Endodontia". O filtro de
+   * campanha por especialidade mostraria uma lista de números ao gestor.
+   */
+  listarEspecialidades(): Promise<Map<string, string>>;
   listarPacientes(opcoes: {
     pagina: number;
     tamanho: number;
@@ -354,6 +362,30 @@ class ClienteDentalOffice implements PortaDentalOffice {
       .map((i) => mapearDentista(i))
       .filter((r): r is { ok: true; valor: DentistaExterno } => r.ok)
       .map((r) => r.valor);
+  }
+
+  /**
+   * `GET /disciplines` — a tabela de especialidades da clínica.
+   *
+   * Chamada UMA VEZ por sincronização, e não por paciente: são dezenas de
+   * especialidades contra milhares de pacientes, e uma consulta por paciente
+   * consumiria a cota inteira da API para traduzir uma palavra.
+   */
+  async listarEspecialidades(): Promise<Map<string, string>> {
+    const corpo = await this.chamar("/disciplines", { operacao: "listar_especialidades" });
+    const pagina = interpretarPagina(corpo, 1, 200);
+
+    const mapa = new Map<string, string>();
+    for (const item of pagina.itens) {
+      if (typeof item !== "object" || item === null) continue;
+      const o = item as Record<string, unknown>;
+      const id = o["id"];
+      const nome = o["name"];
+      if (id === null || id === undefined) continue;
+      if (typeof nome !== "string" || nome.trim().length === 0) continue;
+      mapa.set(String(id), nome.trim());
+    }
+    return mapa;
   }
 
   async listarPacientes(opcoes: {

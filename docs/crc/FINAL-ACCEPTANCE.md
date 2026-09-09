@@ -5,13 +5,13 @@ de Execução.
 
 O item 283 pede estados distintos, e eles são usados aqui com rigor:
 
-| Estado | Significado |
-|---|---|
-| `IMPLEMENTADO` | O código existe, compila, tem teste, e nunca foi executado contra o serviço real. |
-| `TESTADO_COM_SANDBOX` | Exercitado ponta a ponta contra o adapter local e o banco de teste. |
-| `TESTADO_COM_API_REAL` | Rodou contra o serviço de verdade. |
-| `EM_PRODUCAO` | Ligado e em uso. |
-| `BLOQUEADO_POR_CREDENCIAL` | Pronto; falta exclusivamente credencial de terceiro. |
+| Estado                     | Significado                                                                       |
+| -------------------------- | --------------------------------------------------------------------------------- |
+| `IMPLEMENTADO`             | O código existe, compila, tem teste, e nunca foi executado contra o serviço real. |
+| `TESTADO_COM_SANDBOX`      | Exercitado ponta a ponta contra o adapter local e o banco de teste.               |
+| `TESTADO_COM_API_REAL`     | Rodou contra o serviço de verdade.                                                |
+| `EM_PRODUCAO`              | Ligado e em uso.                                                                  |
+| `BLOQUEADO_POR_CREDENCIAL` | Pronto; falta exclusivamente credencial de terceiro.                              |
 
 **Nada neste documento está marcado como `TESTADO_COM_API_REAL` ou
 `EM_PRODUCAO`.** As credenciais do Dental Office e do WhatsApp não foram
@@ -25,35 +25,35 @@ fornecidas, e o schema ainda não foi aplicado no Supabase.
 
 ## Quadro geral
 
-| Área | Código | Banco | Testes | Verificado na tela | Estado |
-|---|---|---|---|---|---|
-| Domínio (regras, score, telefone, horário, RBAC) | ✅ | — | 91 testes | — | `IMPLEMENTADO` |
-| Schema (36 tabelas + cobrança + visões, RLS, índices, RPCs) | ✅ | ⚠️ não aplicado | — | — | `IMPLEMENTADO` |
-| Conector Dental Office | ✅ | ✅ | 38 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
-| Sincronização (paginação, falha parcial, transições) | ✅ | ✅ | E2E | — | `TESTADO_COM_SANDBOX` |
-| Motor de eventos | ✅ | ✅ | E2E | — | `TESTADO_COM_SANDBOX` |
-| Motor de automação (esperas duráveis, 3 modos) | ✅ | ✅ | 27 + E2E | — | `TESTADO_COM_SANDBOX` |
-| Seis automações padrão | ✅ | ✅ | 27 testes | — | `IMPLEMENTADO` |
-| WhatsApp — porta + Twilio + Meta Cloud + sandbox | ✅ | ✅ | 25 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
-| IA (structured output, guardrails, fallback) | ✅ | ✅ | 23 testes | — | `IMPLEMENTADO` |
-| Orçamentos: leitor CSV, preview, import, varredura | ✅ | ✅ | 27 (leitor de CSV) | ⚠️ sem dados | `IMPLEMENTADO` |
-| Cobrança de inadimplência (CDC art. 42) | ✅ | ✅ | 33 (regras) | ⚠️ sem dados | `IMPLEMENTADO` |
-| Leads: captura pública, atribuição, speed-to-lead | ✅ | ✅ | 7 testes | — | `IMPLEMENTADO` |
-| Analytics / dashboard do gestor | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Exportação CSV com RBAC | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Visões salvas (item 147) | ✅ | ✅ | 14 testes | ⚠️ sem dados | `IMPLEMENTADO` |
-| Cadastro de equipe (itens 37, 74) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Leitor de jornadas e da simulação (itens 95, 96, 179) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Tarefa manual + atalho `c` (item 149) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Captura de lead pelo site (com atribuição) | ✅ | ✅ | 7 testes | ✅ POST 200 | `IMPLEMENTADO` |
-| Command palette (itens 28, 149) | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Sessão + RBAC | ✅ | ✅ | 9 (dentro dos 91) | ✅ login | `IMPLEMENTADO` |
-| Design system | ✅ | — | — | ✅ 3 resoluções | `IMPLEMENTADO` |
-| Home, Meu trabalho, Inbox, Funil, Pacientes, Gestão, Importar, Automações, Integrações, Equipe | ✅ | ✅ | — | ⚠️ sem dados | `IMPLEMENTADO` |
-| Webhook + inbox pattern (Twilio e Meta) | ✅ | ✅ | 25 testes | — | `BLOQUEADO_POR_CREDENCIAL` |
-| Cron do motor | ✅ | ✅ | — | — | `IMPLEMENTADO` |
-| Health check / instalação | ✅ | ✅ | — | — | `IMPLEMENTADO` |
-| Testes de fluxo ponta a ponta (item 82) | ✅ | banco de teste | 25 testes | — | `TESTADO_COM_SANDBOX` |
+| Área                                                                                           | Código | Banco           | Testes             | Verificado na tela | Estado                     |
+| ---------------------------------------------------------------------------------------------- | ------ | --------------- | ------------------ | ------------------ | -------------------------- |
+| Domínio (regras, score, telefone, horário, RBAC)                                               | ✅     | —               | 91 testes          | —                  | `IMPLEMENTADO`             |
+| Schema (36 tabelas + cobrança + visões, RLS, índices, RPCs)                                    | ✅     | ⚠️ não aplicado | —                  | —                  | `IMPLEMENTADO`             |
+| Conector Dental Office                                                                         | ✅     | ✅              | 38 testes          | —                  | `BLOQUEADO_POR_CREDENCIAL` |
+| Sincronização (paginação, falha parcial, transições)                                           | ✅     | ✅              | E2E                | —                  | `TESTADO_COM_SANDBOX`      |
+| Motor de eventos                                                                               | ✅     | ✅              | E2E                | —                  | `TESTADO_COM_SANDBOX`      |
+| Motor de automação (esperas duráveis, 3 modos)                                                 | ✅     | ✅              | 27 + E2E           | —                  | `TESTADO_COM_SANDBOX`      |
+| Seis automações padrão                                                                         | ✅     | ✅              | 27 testes          | —                  | `IMPLEMENTADO`             |
+| WhatsApp — porta + Twilio + Meta Cloud + sandbox                                               | ✅     | ✅              | 25 testes          | —                  | `BLOQUEADO_POR_CREDENCIAL` |
+| IA (structured output, guardrails, fallback)                                                   | ✅     | ✅              | 23 testes          | —                  | `IMPLEMENTADO`             |
+| Orçamentos: leitor CSV, preview, import, varredura                                             | ✅     | ✅              | 27 (leitor de CSV) | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Cobrança de inadimplência (CDC art. 42)                                                        | ✅     | ✅              | 33 (regras)        | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Leads: captura pública, atribuição, speed-to-lead                                              | ✅     | ✅              | 7 testes           | —                  | `IMPLEMENTADO`             |
+| Analytics / dashboard do gestor                                                                | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Exportação CSV com RBAC                                                                        | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Visões salvas (item 147)                                                                       | ✅     | ✅              | 14 testes          | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Cadastro de equipe (itens 37, 74)                                                              | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Leitor de jornadas e da simulação (itens 95, 96, 179)                                          | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Tarefa manual + atalho `c` (item 149)                                                          | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Captura de lead pelo site (com atribuição)                                                     | ✅     | ✅              | 7 testes           | ✅ POST 200        | `IMPLEMENTADO`             |
+| Command palette (itens 28, 149)                                                                | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Sessão + RBAC                                                                                  | ✅     | ✅              | 9 (dentro dos 91)  | ✅ login           | `IMPLEMENTADO`             |
+| Design system                                                                                  | ✅     | —               | —                  | ✅ 3 resoluções    | `IMPLEMENTADO`             |
+| Home, Meu trabalho, Inbox, Funil, Pacientes, Gestão, Importar, Automações, Integrações, Equipe | ✅     | ✅              | —                  | ⚠️ sem dados       | `IMPLEMENTADO`             |
+| Webhook + inbox pattern (Twilio e Meta)                                                        | ✅     | ✅              | 25 testes          | —                  | `BLOQUEADO_POR_CREDENCIAL` |
+| Cron do motor                                                                                  | ✅     | ✅              | —                  | —                  | `IMPLEMENTADO`             |
+| Health check / instalação                                                                      | ✅     | ✅              | —                  | —                  | `IMPLEMENTADO`             |
+| Testes de fluxo ponta a ponta (item 82)                                                        | ✅     | banco de teste  | 25 testes          | —                  | `TESTADO_COM_SANDBOX`      |
 
 "⚠️ sem dados" significa: a tela compila, entra no build, e não pôde ser aberta
 com conteúdo real porque o schema ainda não está no banco.
@@ -112,11 +112,16 @@ verdade. Ele não foi montado porque o schema não está aplicado e as credencia
 não chegaram — um teste que não roda não protege nada. A lacuna está declarada
 no cabeçalho de `src/lib/crc/testes/fluxo.test.ts`.
 
-### 2. Agendamento pelo CRC
+### 2. Agendamento pelo CRC — feito
 
-O conector do Dental Office tem `criarAgendamento` e ele é exercitado pelo
-sandbox. **Falta** a tela que escolhe horário e confirma — hoje a jornada
-encaminha para um humano remarcar no sistema da clínica.
+O fluxo inteiro existe: oferecer horários reais, revalidar antes de gravar,
+criar a consulta e cancelar. Escrito contra a especificação OpenAPI publicada
+deles e coberto por `contrato.test.ts`, que intercepta o `fetch` e confere URL,
+método e corpo.
+
+Falta a credencial. Três travas nascem desligadas — `dental_office_writeback`,
+`auto_scheduling` e o kill switch `kill_escritas_do`; com qualquer uma delas
+barrando, o aceite do paciente vira tarefa para a recepção, nunca silêncio.
 
 ### 3. Segment engine componível (item 146)
 
@@ -161,14 +166,14 @@ sugerirem um controle que não existe.
 
 Nenhuma delas depende de programação.
 
-| O que falta | Quem resolve | O que destrava |
-|---|---|---|
-| Rodar `02-crc-schema.sql`, `03-crc-cobranca.sql`, `04-crc-visoes.sql` | Você, no SQL Editor | **Tudo.** É o único passo manual. |
-| `DENTAL_OFFICE_BASE_URL` / `CLIENT_ID` / `SECRET` | Dental Office | Sincronização real, agenda, agendamento |
-| Twilio (`TWILIO_ACCOUNT_SID`, `AUTH_TOKEN`, `WHATSAPP_FROM`) **ou** Meta Cloud | Contratação | Envio e recebimento reais |
-| Aprovação de templates | Meta (mesmo via Twilio) | Mensagem fora da janela de 24h |
-| Exportação de orçamentos e de parcelas em aberto | Você, no sistema da clínica | A tela **Importar** já existe e aceita o CSV |
-| Integração financeira | Dental Office | Trocar "valor potencial" por receita conciliada |
+| O que falta                                                                    | Quem resolve                                         | O que destrava                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rodar `02-crc-schema.sql`, `03-crc-cobranca.sql`, `04-crc-visoes.sql`          | Você, no SQL Editor                                  | **Tudo.** É o único passo manual.                                                                                                                  |
+| `DENTAL_OFFICE_BASE_URL` / `CLIENT_ID` / `SECRET` / **`CLINIC_ID`**            | Dental Office (**exige plano Avançado ou Completo**) | Sincronização real, agenda, agendamento                                                                                                            |
+| Twilio (`TWILIO_ACCOUNT_SID`, `AUTH_TOKEN`, `WHATSAPP_FROM`) **ou** Meta Cloud | Contratação                                          | Envio e recebimento reais                                                                                                                          |
+| Aprovação de templates                                                         | Meta (mesmo via Twilio)                              | Mensagem fora da janela de 24h                                                                                                                     |
+| Exportação de orçamentos e de parcelas em aberto                               | Você, no sistema da clínica                          | A tela **Importar** já existe e aceita o CSV                                                                                                       |
+| Integração financeira                                                          | Dental Office                                        | Trocar "valor potencial" por receita conciliada. **A API v1.0 não expõe financeiro** — está fora do contrato público, não é questão de credencial. |
 
 O provedor de WhatsApp é escolhido por `WHATSAPP_PROVEDOR=twilio|meta`. Os dois
 adapters existem atrás da mesma porta; trocar de um para o outro é uma variável
@@ -178,20 +183,20 @@ de ambiente, não uma reescrita.
 
 ## Auditoria de código (itens 112, 113, 114)
 
-| Verificação | Resultado |
-|---|---|
-| `TODO` / `FIXME` / `HACK` críticos | **Zero** |
-| `catch {}` vazio em fluxo crítico | **Zero** |
-| `any` explícito | **Zero** |
-| Mock alimentando tela de produção | **Zero** — os sandboxes recusam subir em produção |
-| Botão sem ação | **Zero** — todo botão chama server function real |
-| Formulário do site → lead no CRC | ✅ verificado no navegador: `POST /api/crc/lead` → 200, e o WhatsApp abre em seguida |
-| Função sem porta | **Duas**, e as duas estão na lista de omissões: `gravarConfiguracao` (número 6) e `flagLigada` (número 7). As outras três ganharam tela. |
-| Secret em log | **Zero** — `mascarar()` é aplicada antes de qualquer gravação |
-| `npm run lint` | ✅ (3 avisos de `react-refresh`, não bloqueantes) |
-| `npm run typecheck` | ✅ com `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` |
-| `npm run test` | ✅ 310 testes |
-| `npm run build` | ✅ |
+| Verificação                        | Resultado                                                                                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `TODO` / `FIXME` / `HACK` críticos | **Zero**                                                                                                                                 |
+| `catch {}` vazio em fluxo crítico  | **Zero**                                                                                                                                 |
+| `any` explícito                    | **Zero**                                                                                                                                 |
+| Mock alimentando tela de produção  | **Zero** — os sandboxes recusam subir em produção                                                                                        |
+| Botão sem ação                     | **Zero** — todo botão chama server function real                                                                                         |
+| Formulário do site → lead no CRC   | ✅ verificado no navegador: `POST /api/crc/lead` → 200, e o WhatsApp abre em seguida                                                     |
+| Função sem porta                   | **Duas**, e as duas estão na lista de omissões: `gravarConfiguracao` (número 6) e `flagLigada` (número 7). As outras três ganharam tela. |
+| Secret em log                      | **Zero** — `mascarar()` é aplicada antes de qualquer gravação                                                                            |
+| `npm run lint`                     | ✅ (3 avisos de `react-refresh`, não bloqueantes)                                                                                        |
+| `npm run typecheck`                | ✅ com `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`                                                                |
+| `npm run test`                     | ✅ 310 testes                                                                                                                            |
+| `npm run build`                    | ✅                                                                                                                                       |
 
 Duas exceções conscientes ao item 113, ambas comentadas no código: `auditar()` e
 `registrarIntegracao()` engolem a própria falha e a registram no log. A
@@ -204,15 +209,15 @@ auditoria impedir o atendente de concluir uma tarefa.
 
 Feita em `vite dev`, sem o schema aplicado.
 
-| Verificação | Resultado |
-|---|---|
-| `/crc` renderiza | ✅ tela de entrada, design system aplicado |
-| 1366×768 | ✅ sem overflow |
-| 1920×1080 | ✅ sem overflow |
-| 375×812 (mobile) | ✅ `scrollWidth === innerWidth`, sem rolagem horizontal |
-| Console em `/crc` | ✅ zero erros |
-| **Regressão: site `/`** | ✅ carrega, zero erros |
-| **Regressão: portal `/rh`** | ✅ carrega, zero erros |
+| Verificação                 | Resultado                                               |
+| --------------------------- | ------------------------------------------------------- |
+| `/crc` renderiza            | ✅ tela de entrada, design system aplicado              |
+| 1366×768                    | ✅ sem overflow                                         |
+| 1920×1080                   | ✅ sem overflow                                         |
+| 375×812 (mobile)            | ✅ `scrollWidth === innerWidth`, sem rolagem horizontal |
+| Console em `/crc`           | ✅ zero erros                                           |
+| **Regressão: site `/`**     | ✅ carrega, zero erros                                  |
+| **Regressão: portal `/rh`** | ✅ carrega, zero erros                                  |
 
 O item 206 (não quebrar o RH) está cumprido por construção: tabelas com prefixo
 `crc_`, módulos em `src/lib/crc`, CSS inteiramente sob `.crc-app`, e zero
@@ -226,15 +231,15 @@ Supabase. Aplicar o schema destrava essa verificação.
 
 ## Critérios finais do contrato
 
-| Item | Critério | Situação |
-|---|---|---|
-| 251 | Dental Office: autentica, pagina, persiste, mapeia status, cria agendamento, trata erro, faz retry | Código completo; `BLOQUEADO_POR_CREDENCIAL` |
-| 252 | CRC: paciente pesquisável, ficha, oportunidade, tarefas, timeline, filtros, stages, histórico | ✅ implementado |
-| 253 | WhatsApp: envio, recebimento, dedupe, status, opt-out, persistência, falha visível | Código completo, dois provedores; `BLOQUEADO_POR_CREDENCIAL` |
-| 254 | IA: classifica, schema válido, confiança, fallback, logging, escalonamento, custo | ✅ implementado e testado |
-| 255 | Automação: trigger, condição, wait durável, ação, saída, retry, idempotência, log, pausa | ✅ `TESTADO_COM_SANDBOX` ponta a ponta |
-| 256 | UX: desktop, mobile, sem overflow, estados completos, contraste, teclado | ✅ nas telas verificáveis |
-| 257 | Produção: migrations aplicadas, env, build, testes, deploy, health, smoke, integrações | ⚠️ falta aplicar o schema e as credenciais |
+| Item | Critério                                                                                           | Situação                                                     |
+| ---- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| 251  | Dental Office: autentica, pagina, persiste, mapeia status, cria agendamento, trata erro, faz retry | Código completo; `BLOQUEADO_POR_CREDENCIAL`                  |
+| 252  | CRC: paciente pesquisável, ficha, oportunidade, tarefas, timeline, filtros, stages, histórico      | ✅ implementado                                              |
+| 253  | WhatsApp: envio, recebimento, dedupe, status, opt-out, persistência, falha visível                 | Código completo, dois provedores; `BLOQUEADO_POR_CREDENCIAL` |
+| 254  | IA: classifica, schema válido, confiança, fallback, logging, escalonamento, custo                  | ✅ implementado e testado                                    |
+| 255  | Automação: trigger, condição, wait durável, ação, saída, retry, idempotência, log, pausa           | ✅ `TESTADO_COM_SANDBOX` ponta a ponta                       |
+| 256  | UX: desktop, mobile, sem overflow, estados completos, contraste, teclado                           | ✅ nas telas verificáveis                                    |
+| 257  | Produção: migrations aplicadas, env, build, testes, deploy, health, smoke, integrações             | ⚠️ falta aplicar o schema e as credenciais                   |
 
 ---
 

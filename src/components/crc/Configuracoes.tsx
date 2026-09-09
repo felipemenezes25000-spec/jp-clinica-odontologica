@@ -211,7 +211,9 @@ const FLAGS_INERTES: Readonly<Record<string, { nome: string; explicacao: string 
   },
   budget_integration: {
     nome: "Leitura de orçamentos",
-    explicacao: "Ainda não faz nada: espera a API de orçamentos do Dental Office.",
+    explicacao:
+      "Ainda não faz nada, e não é esquecimento: a API v1.0 do Dental Office não expõe financeiro. " +
+      "Até existir, orçamentos entram pela tela de Importar.",
   },
 };
 

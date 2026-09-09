@@ -4,10 +4,10 @@ Uma apresentação audiovisual de 5:24 sobre o que o JP CRC faz, com narração 
 português e legenda sincronizada. Existe em dois formatos, gerados do **mesmo
 código**:
 
-| Formato | Onde                                                     |
-| ------- | -------------------------------------------------------- |
+| Formato | Onde                                                         |
+| ------- | ------------------------------------------------------------ |
 | Web     | `https://www.jpclinicaodontologica.com.br/crc-institucional` |
-| Vídeo   | `apresentacao/out/jp-crc-1080p.mp4` (1920×1080, 30 fps)   |
+| Vídeo   | `apresentacao/out/jp-crc-1080p.mp4` (1920×1080, 30 fps)      |
 
 ## Onde está o quê
 
@@ -34,15 +34,15 @@ Vercel roda só o `vite build` da raiz e não entra no sub-projeto.
 
 Está dentro de `apresentacao/`:
 
-| Arquivo             | Assunto                                             |
-| ------------------- | --------------------------------------------------- |
-| `README.md`         | Visão geral, comandos, tarefas comuns               |
-| `STORYBOARD.md`     | As 35 cenas, uma a uma                              |
-| `CONTENT.md`        | Editar textos, números, narração e voz              |
-| `MOTION-SYSTEM.md`  | Como a animação funciona (e o que ela proíbe)       |
-| `RENDERING.md`      | Gerar o MP4                                         |
-| `ASSETS.md`         | Logos, fotos e áudio                                |
-| `PUBLICACAO.md`     | Como o tour chega ao site                           |
+| Arquivo            | Assunto                                       |
+| ------------------ | --------------------------------------------- |
+| `README.md`        | Visão geral, comandos, tarefas comuns         |
+| `STORYBOARD.md`    | As 35 cenas, uma a uma                        |
+| `CONTENT.md`       | Editar textos, números, narração e voz        |
+| `MOTION-SYSTEM.md` | Como a animação funciona (e o que ela proíbe) |
+| `RENDERING.md`     | Gerar o MP4                                   |
+| `ASSETS.md`        | Logos, fotos e áudio                          |
+| `PUBLICACAO.md`    | Como o tour chega ao site                     |
 
 ## O que a peça cobre
 
