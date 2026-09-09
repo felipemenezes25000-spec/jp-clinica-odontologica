@@ -1091,3 +1091,124 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
+
+
+/* ==========================================================================
+   Login — o esqueleto
+   ==========================================================================
+
+   O QUE ACONTECEU: a reescrita do `crc-premium.css` manteve a pele nova do
+   login (o gradiente escuro, a trama de 44px, o cartão de 28px de raio) e
+   perdeu a base que ela pressupunha. O resultado era a tela abrindo com o
+   título em #102519 — quase preto — sobre um painel #042c20. Ilegível, e é a
+   PRIMEIRA tela que qualquer pessoa vê do sistema.
+
+   Junto foi a grade de duas colunas: o painel virou uma faixa no topo e o
+   cartão de acesso encolheu num canto.
+
+   Vale a mesma divisão do guia: valor que se vê é do `crc-premium.css`, o que
+   está aqui é a estrutura e as cores que o desenho novo não redeclarou. Nada
+   aqui repete propriedade que ele define — conferido uma a uma.
+   ========================================================================== */
+
+.crc-app .crc-login {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(390px, 0.88fr);
+  overflow: hidden;
+}
+
+.crc-app .crc-login-apresentacao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100dvh;
+  padding: clamp(32px, 5vw, 72px);
+  overflow: hidden;
+  /* A linha que faltava. Sem ela o texto herda o #102519 do corpo e some
+     dentro do próprio painel. */
+  color: #fff;
+}
+
+.crc-app .crc-login-lockup {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: fit-content;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.crc-app .crc-login-copy {
+  position: relative;
+  /* Acima da trama do ::after, senão o texto fica sob a grade decorativa. */
+  z-index: 1;
+  max-width: 690px;
+  margin-block: auto;
+}
+
+.crc-app .crc-login-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: #bfe991;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.crc-app .crc-login-copy h1 {
+  margin: 0;
+  font-family: var(--crc-fonte-display);
+  font-weight: 650;
+  text-wrap: balance;
+}
+
+.crc-app .crc-login-copy p {
+  max-width: 58ch;
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.7;
+}
+
+.crc-app .crc-login-provas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 34px;
+}
+
+/* O desenho novo declara só `border-color`; sem estilo e espessura, borda
+   nenhuma é desenhada. */
+.crc-app .crc-login-prova {
+  position: relative;
+  z-index: 1;
+  padding: 14px;
+  border-style: solid;
+  border-width: 1px;
+  border-radius: 15px;
+}
+
+.crc-app .crc-login-prova strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.875rem;
+}
+
+.crc-app .crc-login-prova span {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.crc-app .crc-login-formulario {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: clamp(24px, 5vw, 64px);
+}
