@@ -20,6 +20,7 @@ import "./crc-screens.css";
 import "./crc-polish.css";
 import "./crc-qa.css";
 import "./crc-agenda.css";
+import "./crc-shell-harmony.css";
 
 const TOM: Readonly<Record<StatusAgendamento, TomEtiqueta>> = {
   TO_CONFIRM: "alerta",
@@ -123,14 +124,7 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
         </div>
         <div className="crc-agenda-periodos-v2" role="group" aria-label="Período da agenda">
           {[7, 14, 30].map((n) => (
-            <button
-              key={n}
-              type="button"
-              aria-pressed={janelaDias === n}
-              onClick={() => setJanelaDias(n)}
-            >
-              {n} dias
-            </button>
+            <button key={n} type="button" aria-pressed={janelaDias === n} onClick={() => setJanelaDias(n)}>{n} dias</button>
           ))}
         </div>
       </section>
@@ -139,10 +133,7 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
         <ListaEsqueleto linhas={5} />
       ) : dias.length === 0 ? (
         <div className="crc-agenda-vazio-v2">
-          <Vazio
-            titulo="Nenhuma consulta na janela"
-            explicacao="Ou a agenda está mesmo vazia, ou o Dental Office ainda não foi sincronizado. A tela de Integrações diz qual dos dois."
-          />
+          <Vazio titulo="Nenhuma consulta na janela" explicacao="Ou a agenda está mesmo vazia, ou o Dental Office ainda não foi sincronizado. A tela de Integrações diz qual dos dois." />
         </div>
       ) : (
         <div className="crc-agenda-dias-v2">
@@ -151,20 +142,11 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
             return (
               <section key={d.dia} className="crc-agenda-dia-v2" data-hoje={d.dia === hoje ? "sim" : "nao"}>
                 <header className="crc-agenda-dia-topo-v2">
-                  <div>
-                    <span className="crc-agenda-dia-data-v2">{nomeDoDia(d.dia, hoje, amanha)}</span>
-                    <small>{d.itens.length} {d.itens.length === 1 ? "consulta" : "consultas"}</small>
-                  </div>
-                  <div className="crc-agenda-dia-status-v2">
-                    {pendentes > 0 && <span>{pendentes} a confirmar</span>}
-                    {d.dia === hoje && <strong>Hoje</strong>}
-                  </div>
+                  <div><span className="crc-agenda-dia-data-v2">{nomeDoDia(d.dia, hoje, amanha)}</span><small>{d.itens.length} {d.itens.length === 1 ? "consulta" : "consultas"}</small></div>
+                  <div className="crc-agenda-dia-status-v2">{pendentes > 0 && <span>{pendentes} a confirmar</span>}{d.dia === hoje && <strong>Hoje</strong>}</div>
                 </header>
-
                 <ul className="crc-agenda-lista-v2">
-                  {d.itens.map((item) => (
-                    <LinhaDaAgenda key={item.id} item={item} aoAbrirPaciente={aoAbrirPaciente} />
-                  ))}
+                  {d.itens.map((item) => <LinhaDaAgenda key={item.id} item={item} aoAbrirPaciente={aoAbrirPaciente} />)}
                 </ul>
               </section>
             );
@@ -175,75 +157,23 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
   );
 }
 
-function ResumoAgenda({
-  icone: Icone,
-  rotulo,
-  valor,
-  nota,
-  tom = "neutro",
-  destaque = false,
-}: {
-  icone: typeof CalendarDays;
-  rotulo: string;
-  valor: number;
-  nota: string;
-  tom?: "neutro" | "alerta" | "positivo" | "info";
-  destaque?: boolean;
-}) {
-  return (
-    <article className={`crc-agenda-resumo-card-v2${destaque ? " crc-agenda-resumo-destaque-v2" : ""}`} data-tom={tom}>
-      <span><Icone aria-hidden="true" /></span>
-      <div>
-        <small>{rotulo}</small>
-        <strong>{valor}</strong>
-        <em>{nota}</em>
-      </div>
-    </article>
-  );
+function ResumoAgenda({ icone: Icone, rotulo, valor, nota, tom = "neutro", destaque = false }: { icone: typeof CalendarDays; rotulo: string; valor: number; nota: string; tom?: "neutro" | "alerta" | "positivo" | "info"; destaque?: boolean }) {
+  return <article className={`crc-agenda-resumo-card-v2${destaque ? " crc-agenda-resumo-destaque-v2" : ""}`} data-tom={tom}><span><Icone aria-hidden="true" /></span><div><small>{rotulo}</small><strong>{valor}</strong><em>{nota}</em></div></article>;
 }
 
-function LinhaDaAgenda({
-  item,
-  aoAbrirPaciente,
-}: {
-  item: ItemDaAgenda;
-  aoAbrirPaciente: (patientId: string) => void;
-}) {
+function LinhaDaAgenda({ item, aoAbrirPaciente }: { item: ItemDaAgenda; aoAbrirPaciente: (patientId: string) => void }) {
   const corpo = (
     <>
-      <div className="crc-agenda-hora-v2">
-        <Clock3 aria-hidden="true" />
-        <strong>{hora(item.inicioEm)}</strong>
-      </div>
-
+      <div className="crc-agenda-hora-v2"><Clock3 aria-hidden="true" /><strong>{hora(item.inicioEm)}</strong></div>
       <div className="crc-agenda-paciente-v2">
         <strong>{item.pacienteNome}</strong>
-        <span>
-          {[item.dentistaNome, item.pacienteTelefone === null ? null : telefoneParaTela(item.pacienteTelefone)]
-            .filter((v) => v !== null)
-            .join(" · ")}
-        </span>
+        <span>{[item.dentistaNome, item.pacienteTelefone === null ? null : telefoneParaTela(item.pacienteTelefone)].filter((v) => v !== null).join(" · ")}</span>
         {item.peloCrc && <small><Bot aria-hidden="true" /> Marcado pelo CRC</small>}
       </div>
-
-      <div className="crc-agenda-status-v2">
-        <Etiqueta tom={TOM[item.status]}>{ROTULO_STATUS_AGENDA[item.status]}</Etiqueta>
-        {item.patientId !== null && <ArrowUpRight aria-hidden="true" />}
-      </div>
+      <div className="crc-agenda-status-v2"><Etiqueta tom={TOM[item.status]}>{ROTULO_STATUS_AGENDA[item.status]}</Etiqueta>{item.patientId !== null && <ArrowUpRight aria-hidden="true" />}</div>
     </>
   );
 
   if (item.patientId === null) return <li className="crc-agenda-item-v2">{corpo}</li>;
-
-  return (
-    <li>
-      <button
-        type="button"
-        className="crc-agenda-item-v2 crc-agenda-item-botao-v2"
-        onClick={() => aoAbrirPaciente(item.patientId as string)}
-      >
-        {corpo}
-      </button>
-    </li>
-  );
+  return <li><button type="button" className="crc-agenda-item-v2 crc-agenda-item-botao-v2" onClick={() => aoAbrirPaciente(item.patientId as string)}>{corpo}</button></li>;
 }
