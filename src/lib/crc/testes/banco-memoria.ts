@@ -150,9 +150,7 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // O índice do 08. Duas ofertas abertas na mesma conversa fazem "pode ser as
   // 10:40" virar loteria entre dois conjuntos de opções — e o banco recusa a
   // segunda antes de qualquer código ter chance de errar.
-  crc_scheduling_offers: [
-    { colunas: ["conversation_id"], onde: (l) => l["status"] === "ABERTA" },
-  ],
+  crc_scheduling_offers: [{ colunas: ["conversation_id"], onde: (l) => l["status"] === "ABERTA" }],
 };
 
 /**
