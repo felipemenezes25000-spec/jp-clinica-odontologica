@@ -158,9 +158,18 @@ export function Footer() {
               Conteúdo informativo. Indicações e resultados dependem de avaliação profissional
               individual.
             </p>
-            <p className="mt-1">
-              © {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.
-            </p>
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 sm:justify-end">
+              <a
+                href="/politica-de-privacidade"
+                className="font-semibold text-white underline decoration-white/25 underline-offset-2 transition hover:text-lime"
+              >
+                Política de Privacidade
+              </a>
+              <span aria-hidden="true" className="hidden text-white/35 sm:inline">
+                •
+              </span>
+              <span>© {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.</span>
+            </div>
           </div>
         </div>
       </div>
