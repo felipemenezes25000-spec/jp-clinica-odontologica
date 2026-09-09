@@ -8,6 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   BarChart3,
+  Compass,
   CalendarDays,
   Cable,
   ChevronRight,
@@ -91,9 +92,31 @@ type GrupoNav = {
 
 type TomLegenda = "neutra" | "positiva" | "alerta" | "perigo" | "info";
 
+/**
+ * O que uma tela precisa dizer sobre si mesma.
+ *
+ * `descricao` responde "o que é isto". `acoes` responde a pergunta que vem
+ * logo depois, e que nenhuma interface responde sozinha: **o que acontece se
+ * eu clicar?**
+ *
+ * Os dois são separados de propósito. Descrição é leitura de uma vez; a lista
+ * de ação -> efeito é consulta, e é o que alguém relê no terceiro dia quando
+ * está com o dedo em cima de "Revisar e agendar" sem saber se aquilo já manda
+ * mensagem para 964 pessoas.
+ */
 type GuiaAba = {
   sobretitulo: string;
+  /**
+   * Uma linha, no imperativo do usuário e não do sistema.
+   *
+   * Aparece em DOIS lugares a partir de uma única fonte: no mapa do CRC dentro
+   * da Home e como `title` de cada item do menu. Duplicar esse texto seria
+   * garantir que um dos dois envelhecesse.
+   */
+  paraQue: string;
   descricao: string;
+  /** `faca` é o que se clica; `efeito` é o que muda no mundo depois. */
+  acoes: readonly { faca: string; efeito: string }[];
   legendas: readonly { rotulo: string; tom: TomLegenda }[];
 };
 
@@ -126,18 +149,94 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
     itens: [
       { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes", icone: Cable },
       { aba: "equipe", rotulo: "Equipe", permissao: "gerenciar_usuarios", icone: UserRoundCog },
-      { aba: "configuracoes", rotulo: "Configurações", permissao: "ver_integracoes", icone: Settings2 },
+      {
+        aba: "configuracoes",
+        rotulo: "Configurações",
+        permissao: "ver_integracoes",
+        icone: Settings2,
+      },
     ],
   },
 ];
 
 const NAVEGACAO: readonly ItemNav[] = GRUPOS_NAVEGACAO.flatMap((grupo) => grupo.itens);
 
-const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
+/**
+ * O guia de cada tela.
+ *
+ * ESTE OBJETO É A DOCUMENTAÇÃO DO PRODUTO, e vive dentro dele. Um manual em
+ * PDF numa pasta compartilhada envelhece na primeira semana; um texto que
+ * aparece ao lado do botão que ele descreve envelhece junto com o botão, e
+ * quem mexe no botão vê o texto.
+ *
+ * REGRA AO ESCREVER `efeito`: dizer o que muda DEPOIS do clique, no mundo do
+ * paciente e da clínica — não repetir o nome do botão em outras palavras.
+ * "Envia a mensagem" não ensina nada; "manda no WhatsApp na hora, e não dá
+ * para desfazer" ensina.
+ *
+ * Toda linha aqui foi conferida contra o componente que ela descreve. Uma
+ * legenda que mente é pior que legenda nenhuma: ela é lida com confiança.
+ */
+const GUIA_ABAS: Record<Aba, GuiaAba> = {
+  home: {
+    sobretitulo: "O dia da clínica",
+    paraQue: "quem precisa de você hoje, em ordem",
+    descricao:
+      "A primeira frase responde o dia: quantos pacientes precisam de você agora e quantos a automação está cuidando sozinha. A fila abaixo já vem na ordem certa — comece do topo e desça. Se sobrar tempo no fim do dia, ótimo; se não sobrar, você trabalhou o que mais importava.",
+    acoes: [
+      {
+        faca: "Por quê?",
+        efeito:
+          "Abre a decomposição da nota: de onde vieram os pontos daquele paciente. O primeiro da fila já vem com ela aberta, para ensinar a ler os outros.",
+      },
+      {
+        faca: "Abrir",
+        efeito:
+          "Leva à ficha do paciente, com histórico, conversas, oportunidades e tarefas no mesmo lugar.",
+      },
+      {
+        faca: "Ctrl + K",
+        efeito:
+          "Busca global, de qualquer tela: encontra paciente, conversa ou tarefa sem passar pelo menu.",
+      },
+      {
+        faca: "A fita do dia, à direita",
+        efeito:
+          "Mostra onde estamos na janela de atendimento. Fora dela a automação não fala com ninguém — ela espera e envia na abertura.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Precisa de você", tom: "perigo" },
+      { rotulo: "Automação cuidando", tom: "info" },
+      { rotulo: "Em dia", tom: "positiva" },
+    ],
+  },
   trabalho: {
     sobretitulo: "Sua fila pessoal",
+    paraQue: "suas tarefas, e só as suas",
     descricao:
-      "Tudo que depende de você agora, organizado para reduzir decisão manual e impedir que uma tarefa sem responsável desapareça da operação.",
+      "Cada tarefa aqui nasceu de alguma coisa: uma automação que desistiu, um caso que precisa de gente, um paciente que a máquina não devia atender sozinha. Quando aparecer \u201cVocê está em dia\u201d, é verdade — pode fechar a tela.",
+    acoes: [
+      {
+        faca: "Assumir",
+        efeito:
+          "Põe a tarefa no seu nome. Ela sai da lista dos outros, e ninguém faz o mesmo contato em dobro.",
+      },
+      {
+        faca: "Concluir",
+        efeito:
+          "Tira da sua lista. O registro continua no histórico do paciente — concluir não apaga nada.",
+      },
+      {
+        faca: "Ver paciente",
+        efeito: "Abre a ficha de quem a tarefa é sobre, sem perder o lugar na lista.",
+      },
+      {
+        faca: "Nova tarefa",
+        efeito:
+          "Cria uma tarefa à mão, para algo que o sistema não viu. Você escolhe o responsável e o prazo.",
+      },
+    ],
     legendas: [
       { rotulo: "Vencida / urgente", tom: "perigo" },
       { rotulo: "Em andamento", tom: "info" },
@@ -146,8 +245,33 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   inbox: {
     sobretitulo: "Atendimento em tempo real",
+    paraQue: "o WhatsApp da clínica, com contexto ao lado",
     descricao:
-      "Leia o contexto antes de responder, diferencie conversa do paciente de nota interna e mantenha todo contato rastreável em um único lugar.",
+      "Três colunas: as conversas, a conversa aberta e o contexto do paciente. Antes de responder, leia o resumo automático da direita — ele diz em uma linha o que a pessoa quer e economiza a leitura de quinze mensagens.",
+    acoes: [
+      {
+        faca: "Só não lidas",
+        efeito: "Esconde tudo que já foi respondido. Clique de novo para ver a lista inteira.",
+      },
+      {
+        faca: "A chave Resposta ao paciente / Nota interna",
+        efeito:
+          "Em Nota interna, o que você escreve fica SÓ no sistema — o paciente não recebe. Confira qual dos dois está ligado antes de enviar: é o único erro desta tela que o paciente enxerga.",
+      },
+      {
+        faca: "Enviar",
+        efeito: "Manda pelo WhatsApp na hora. Não dá para desfazer nem apagar do celular dele.",
+      },
+      {
+        faca: "Ver ficha",
+        efeito: "Abre a ficha completa do paciente sem fechar a conversa.",
+      },
+      {
+        faca: 'Quando aparecer "outro atendente está respondendo"',
+        efeito:
+          "Não responda junto. Duas pessoas no mesmo paciente ao mesmo tempo é o pior que acontece nesta tela — fale com quem abriu.",
+      },
+    ],
     legendas: [
       { rotulo: "Recebida", tom: "neutra" },
       { rotulo: "Enviada", tom: "positiva" },
@@ -156,18 +280,52 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   agenda: {
     sobretitulo: "Da oportunidade ao horário marcado",
+    paraQue: "o que a agenda está pedindo de vocês",
     descricao:
-      "Visualize compromissos e contexto do paciente sem perder a ligação entre recuperação, confirmação e atendimento.",
+      "Não é a agenda do Dental Office repetida. Lá ela responde \u201cquem vem\u201d; aqui ela responde \u201co que a agenda está pedindo de nós\u201d: quem não confirmou, quem o CRC marcou sozinho, quem tem horário e mesmo assim continua na fila de alguém. Dia sem consulta não aparece.",
+    acoes: [
+      {
+        faca: "7 / 14 / 30 dias",
+        efeito: "Muda a janela mostrada. Os três números do topo acompanham.",
+      },
+      {
+        faca: "Marcar e desmarcar",
+        efeito:
+          "Não acontece aqui — esta tela é de leitura. Remarcar é na conversa (onde o paciente está) ou no Dental Office (onde a recepção já trabalha). Uma terceira porta seria uma terceira chance de as duas discordarem.",
+      },
+    ],
     legendas: [
       { rotulo: "Confirmado", tom: "positiva" },
-      { rotulo: "Acompanhar", tom: "alerta" },
+      { rotulo: "A confirmar", tom: "alerta" },
       { rotulo: "Informação", tom: "info" },
     ],
   },
   funil: {
     sobretitulo: "Pipeline de relacionamento",
+    paraQue: "toda oportunidade aberta, por etapa",
     descricao:
-      "Veja em que etapa cada oportunidade está, quem precisa de ação humana e o que a automação já está conduzindo sozinha.",
+      "A fila inteira, que na Home aparece cortada nos doze primeiros. Cada cartão diz em que etapa a oportunidade está e se a automação já está conduzindo sozinha.",
+    acoes: [
+      {
+        faca: "Filtrar por etapa / por tipo",
+        efeito: "Recorta a lista. Os dois filtros somam — etapa E tipo ao mesmo tempo.",
+      },
+      {
+        faca: "Salvar esta visão",
+        efeito:
+          "Guarda o filtro atual com um nome, para voltar a ele com um clique. Marcando compartilhada, o resto da equipe também vê.",
+      },
+      {
+        faca: "Limpar filtros",
+        efeito: "Volta a mostrar tudo. Não apaga nenhuma visão salva.",
+      },
+      { faca: "Abrir", efeito: "Vai para a ficha do paciente daquela oportunidade." },
+      {
+        faca: "Marcar como perdida",
+        efeito:
+          "Encerra a oportunidade e pede o motivo. As automações dela param na hora, e o motivo alimenta o relatório de perdas na Gestão.",
+      },
+    ],
     legendas: [
       { rotulo: "Prioridade alta", tom: "perigo" },
       { rotulo: "Prioridade média", tom: "alerta" },
@@ -176,8 +334,24 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   pacientes: {
     sobretitulo: "Visão única do paciente",
+    paraQue: "a ficha completa de uma pessoa",
     descricao:
-      "Encontre rapidamente uma pessoa e reúna histórico, oportunidades, conversas e próximos passos sem caçar informação em telas diferentes.",
+      "Busque por nome ou telefone e veja tudo de uma pessoa num lugar só: linha do tempo, agenda, conversas, oportunidades abertas e tarefas — sem caçar informação em telas diferentes.",
+    acoes: [
+      {
+        faca: "Buscar",
+        efeito:
+          "A partir de 2 letras a lista aparece sozinha, sem apertar nada. Telefone também funciona.",
+      },
+      {
+        faca: "Abrir, em Conversas",
+        efeito: "Pula direto para o WhatsApp dessa pessoa, com a conversa já selecionada.",
+      },
+      {
+        faca: "Concluir, em Tarefas",
+        efeito: "Fecha uma tarefa dela sem sair da ficha.",
+      },
+    ],
     legendas: [
       { rotulo: "Histórico", tom: "neutra" },
       { rotulo: "Oportunidade", tom: "info" },
@@ -186,8 +360,21 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   gestao: {
     sobretitulo: "Performance com contexto",
+    paraQue: "quanto a operação está recuperando",
     descricao:
-      "Acompanhe recuperação, produtividade e impacto financeiro distinguindo resultado confirmado de valor apenas potencial.",
+      "O painel de quem cobra resultado, separado da Home de propósito: a Home responde \u201co que eu faço agora\u201d, esta responde \u201cquanto isso está trazendo de volta\u201d. Enquanto não houver financeiro integrado, o número grande se chama valor POTENCIAL — e a tela escreve isso, porque chamar potencial de receita seria a mentira mais cara de um painel.",
+    acoes: [
+      {
+        faca: "Oportunidades / Pacientes / Tarefas",
+        efeito:
+          "Baixa a lista em CSV, já com o período aplicado. Abre no Excel para cruzar com o que você quiser.",
+      },
+      {
+        faca: "O funil e as barras",
+        efeito:
+          "Cada valor também aparece escrito ao lado da barra — gráfico que só existe como forma é invisível para quem usa leitor de tela.",
+      },
+    ],
     legendas: [
       { rotulo: "Resultado", tom: "positiva" },
       { rotulo: "Potencial", tom: "info" },
@@ -196,8 +383,26 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   importar: {
     sobretitulo: "Entrada de dados com segurança",
+    paraQue: "trazer planilha do Dental Office",
     descricao:
-      "Pré-visualize, valide e só então grave novos dados. A tela existe para transformar arquivos externos em informação confiável para a operação.",
+      "Em dois tempos, e é isso que torna a tela segura. Primeiro a prévia, que NÃO grava nada. Só depois a confirmação. É por aqui que entram orçamentos e parcelas, que a API do Dental Office não expõe.",
+    acoes: [
+      {
+        faca: "Escolher arquivo",
+        efeito:
+          "A planilha é lida no seu próprio navegador. Nada é gravado ainda, e não fica arquivo nenhum no servidor.",
+      },
+      {
+        faca: "A prévia",
+        efeito:
+          "Diz quantas linhas entram, quantas atualizam, quantas estão sem paciente e quais estão erradas — com o número da linha no Excel, para você não caçar.",
+      },
+      {
+        faca: "Confirmar",
+        efeito:
+          "Grava de verdade. É um segundo clique de propósito: importar 1.500 orçamentos não pode acontecer por acidente.",
+      },
+    ],
     legendas: [
       { rotulo: "Prévia", tom: "info" },
       { rotulo: "Validado", tom: "positiva" },
@@ -206,8 +411,39 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   automacoes: {
     sobretitulo: "Jornadas que trabalham sozinhas",
+    paraQue: "as jornadas que rodam sem ninguém",
     descricao:
-      "Entenda o que dispara cada fluxo, quais passos serão executados e quando uma jornada deve parar antes de ativá-la.",
+      "Cada jornada dispara sozinha a partir de um sinal: alguém faltou, alguém sumiu, amanhã tem consulta a confirmar. O MODO decide o quanto ela pode agir, e é o centro da tela: simulação → só recomenda → executa.",
+    acoes: [
+      {
+        faca: "Ver jornada",
+        efeito:
+          "Abre os passos na ordem: o que dispara, quanto espera, o que envia e em que condição ela para antes do fim.",
+      },
+      {
+        faca: "Simulação",
+        efeito:
+          "Ela calcula tudo e registra o que faria, sem falar com nenhum paciente. É como toda automação nasce.",
+      },
+      {
+        faca: "Só recomenda",
+        efeito: "Ela sugere o contato e deixa a decisão com uma pessoa.",
+      },
+      {
+        faca: "Executa",
+        efeito:
+          "Ela manda mensagem de verdade. Só um gestor pode ligar isso, e o botão pede confirmação.",
+      },
+      {
+        faca: "Ativar / Pausar",
+        efeito: "Liga ou congela a jornada inteira, sem mexer no modo dela.",
+      },
+      {
+        faca: 'A linha "Até R$ X por paciente"',
+        efeito:
+          "Diz o que essa jornada custa de WhatsApp por pessoa, e de que categoria são as mensagens. Marketing custa 9 vezes utilidade.",
+      },
+    ],
     legendas: [
       { rotulo: "Ativa", tom: "positiva" },
       { rotulo: "Pausada", tom: "alerta" },
@@ -216,8 +452,39 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   campanhas: {
     sobretitulo: "Comunicação em escala, sem perder controle",
+    paraQue: "falar com um grupo, sem virar disparo",
     descricao:
-      "Planeje grupos de contato com leitura clara de estado, público e andamento antes de qualquer execução em massa.",
+      "Três passos, nessa ordem: quem recebe, o que chega, quando sai. Toda campanha passa pelas mesmas regras de uma mensagem individual — uma por pessoa por dia, só em horário comercial, e quem pediu para parar fica de fora.",
+    acoes: [
+      {
+        faca: "Montar campanha",
+        efeito: "Abre os três passos. Nada é enviado, e nada é salvo ainda.",
+      },
+      {
+        faca: "Mexer nos filtros",
+        efeito:
+          "O número de pessoas E o custo estimado se recalculam sozinhos. Os dois têm o mesmo peso na tela porque são as duas metades da mesma decisão.",
+      },
+      {
+        faca: "Criar rascunho",
+        efeito:
+          "Salva a campanha e NÃO envia nada. O público ainda não está congelado — dá para conferir com calma.",
+      },
+      {
+        faca: "Revisar e agendar",
+        efeito:
+          "É aqui que começa a enviar. Congela o público e entra na fila, no ritmo de \u201cquantas por dia\u201d que você escolheu.",
+      },
+      {
+        faca: "Pausar / Retomar",
+        efeito: "Interrompe o envio no meio. O que já saiu, saiu — mas o resto da fila para.",
+      },
+      {
+        faca: '"X puladas pelas regras"',
+        efeito:
+          "São pessoas que entraram no filtro e não receberam: já tinham sido contatadas hoje, pediram para parar, ou estão fora do horário. Aparece sempre que existe.",
+      },
+    ],
     legendas: [
       { rotulo: "Rascunho", tom: "neutra" },
       { rotulo: "Em execução", tom: "info" },
@@ -226,39 +493,206 @@ const GUIA_ABAS: Record<Exclude<Aba, "home">, GuiaAba> = {
   },
   integracoes: {
     sobretitulo: "Saúde das conexões",
+    paraQue: "estado real de cada conexão",
     descricao:
-      "Veja rapidamente quais serviços externos estão prontos, o que ainda precisa de credencial e onde uma falha exige intervenção técnica.",
+      "A tela que não pode mentir. Ela mostra três estados diferentes, e a diferença importa: sem credencial (e diz QUAL variável falta), em sandbox (dados de exemplo, em amarelo) e conectada de verdade. Um cartão verde genérico faria a equipe achar que mensagens estão saindo quando não estão.",
+    acoes: [
+      {
+        faca: "Testar conexão",
+        efeito: "Faz uma chamada real ao serviço e mostra o que voltou, inclusive o erro.",
+      },
+      {
+        faca: "Sincronizar agora",
+        efeito: "Puxa pacientes e agenda do Dental Office sem esperar o próximo ciclo automático.",
+      },
+      {
+        faca: "Pausar agora",
+        efeito:
+          "O interruptor de emergência: para as mensagens NA HORA. Enquanto estiver pausado a equipe acompanha os pacientes à mão, e a ação fica na auditoria com o seu nome.",
+      },
+    ],
     legendas: [
       { rotulo: "Conectada", tom: "positiva" },
-      { rotulo: "Pendente", tom: "alerta" },
+      { rotulo: "Sandbox / pendente", tom: "alerta" },
       { rotulo: "Falha", tom: "perigo" },
     ],
   },
   equipe: {
     sobretitulo: "Acesso e responsabilidade",
+    paraQue: "quem entra e o que cada um pode",
     descricao:
-      "Administre pessoas e permissões com clareza sobre quem pode ver, operar ou alterar cada parte sensível do CRC.",
+      "Um login por pessoa. Não é organização: é o que faz o histórico dizer QUEM fez, em vez de \u201calguém\u201d. Cada papel vem com a frase do que ele pode ver e fazer, porque um menu com seis substantivos não responde \u201cela vai ver valor de orçamento?\u201d.",
+    acoes: [
+      {
+        faca: "Cadastrar pessoa",
+        efeito:
+          "Cria o acesso na hora. A senha é escolhida aqui e entregue pessoalmente — não existe e-mail de convite, então ninguém fica esperando um.",
+      },
+      {
+        faca: "Trocar senha",
+        efeito: "Define uma nova imediatamente. A pessoa entra com ela no próximo login.",
+      },
+      {
+        faca: "Tirar acesso",
+        efeito:
+          "A pessoa não entra mais, e o histórico dela CONTINUA. Apagar o usuário deixaria meses de tarefas e mensagens órfãs.",
+      },
+      {
+        faca: "Devolver acesso",
+        efeito: "Reativa o login na hora, com o mesmo histórico.",
+      },
+    ],
     legendas: [
       { rotulo: "Usuário ativo", tom: "positiva" },
       { rotulo: "Permissões", tom: "info" },
-      { rotulo: "Acesso restrito", tom: "neutra" },
+      { rotulo: "Sem acesso", tom: "neutra" },
     ],
   },
   configuracoes: {
     sobretitulo: "Regras da operação",
+    paraQue: "as regras que a automação obedece",
     descricao:
-      "Centralize parâmetros que mudam o comportamento do CRC e trate configurações críticas como parte da segurança da clínica.",
+      "Os números que governam o comportamento do sistema: quantos dias até o retorno de rotina, quantas horas de espera depois de uma falta, quantas mensagens o mesmo paciente pode receber por dia. Cada campo diz o que muda se você mexer, para a consequência ser prevista antes e não descoberta pelo WhatsApp de um paciente irritado.",
+    acoes: [
+      {
+        faca: "Mudar um número",
+        efeito:
+          "Salva sozinho ao sair do campo. Não existe \u201csalvar tudo\u201d — ajustar um número não deveria virar uma transação de doze campos.",
+      },
+      {
+        faca: "O intervalo ao lado do campo",
+        efeito:
+          "É o que o sistema aceita. O servidor recusa fora dele mesmo que a tela seja contornada.",
+      },
+      {
+        faca: "Salvar a semana",
+        efeito:
+          "Grava o horário em que a automação pode falar. Fora dele ela não envia: espera e manda na abertura do dia seguinte.",
+      },
+      { faca: "Descartar", efeito: "Volta a semana ao que estava salvo, sem gravar." },
+    ],
     legendas: [
       { rotulo: "Operação", tom: "info" },
-      { rotulo: "Seguro", tom: "positiva" },
+      { rotulo: "Salvo", tom: "positiva" },
       { rotulo: "Requer revisão", tom: "alerta" },
     ],
   },
 };
 
+/**
+ * A chave que liga o guia, guardada entre sessões.
+ *
+ * UMA DECISÃO, E NÃO TREZE. Guardar por tela faria alguém fechar o guia doze
+ * vezes antes de ficar em paz. Quem já sabe usar o CRC desliga uma vez e nunca
+ * mais vê; quem chegou hoje encontra tudo aberto sem procurar botão nenhum.
+ *
+ * Por isso o padrão é LIGADO. Um guia que começa fechado só ajuda quem já
+ * sabia que ele existia — exatamente quem não precisa dele.
+ */
+const CHAVE_GUIA = "crc:guia-aberto";
+
+function lerPreferenciaDoGuia(): boolean {
+  try {
+    return window.localStorage.getItem(CHAVE_GUIA) !== "0";
+  } catch {
+    // Navegador com armazenamento bloqueado, aba anônima, iframe restrito: o
+    // guia aparece. Falhar para o lado de explicar demais é o lado certo.
+    return true;
+  }
+}
+
+function gravarPreferenciaDoGuia(aberto: boolean): void {
+  try {
+    window.localStorage.setItem(CHAVE_GUIA, aberto ? "1" : "0");
+  } catch {
+    // Sem persistir, a escolha vale só nesta sessão. É melhor que quebrar.
+  }
+}
+
+/**
+ * O painel "o que dá para fazer aqui".
+ *
+ * É UMA LISTA DE DEFINIÇÃO, e não uma tabela nem uma sequência de cartões.
+ * Cada linha é um par — o que se clica e o que acontece — e `<dl>` é
+ * literalmente isso em HTML: um leitor de tela anuncia "Assumir: põe a tarefa
+ * no seu nome", que é a frase certa.
+ *
+ * O MAPA DO CRC SÓ APARECE NA HOME. Repetir as treze telas em todas as telas
+ * seria ruído; na Home ele responde a pergunta do primeiro dia — "onde fica o
+ * quê?" — usando o mesmo `paraQue` que serve de dica no menu, sem texto
+ * duplicado para envelhecer.
+ */
+function GuiaDaTela({
+  guia,
+  tela,
+  mapa,
+  aoDesligar,
+}: {
+  guia: GuiaAba;
+  tela: string;
+  mapa: readonly { rotulo: string; paraQue: string; icone: LucideIcon }[] | null;
+  aoDesligar: () => void;
+}) {
+  return (
+    <section className="crc-guia" aria-label={`Como usar ${tela}`}>
+      <div className="crc-guia-topo">
+        <span className="crc-guia-selo">
+          <Compass aria-hidden="true" />
+          Como usar
+        </span>
+        <p className="crc-guia-resumo">{guia.descricao}</p>
+      </div>
+
+      <dl className="crc-guia-lista">
+        {guia.acoes.map((acao) => (
+          <div key={acao.faca} className="crc-guia-par">
+            <dt className="crc-guia-faca">{acao.faca}</dt>
+            <dd className="crc-guia-efeito">{acao.efeito}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {mapa !== null && (
+        <div className="crc-guia-mapa">
+          <div className="crc-guia-mapa-titulo">O CRC inteiro, em uma lista</div>
+          <ul className="crc-guia-mapa-lista">
+            {mapa.map((m) => {
+              const Icone = m.icone;
+              return (
+                <li key={m.rotulo}>
+                  <Icone aria-hidden="true" />
+                  <strong>{m.rotulo}</strong>
+                  <span>{m.paraQue}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      <button type="button" className="crc-guia-desligar" onClick={aoDesligar}>
+        Já sei usar — não mostrar mais
+      </button>
+    </section>
+  );
+}
+
 function PortalCrc() {
   const [sessao, setSessao] = useState<EstadoSessao | null>(null);
   const [aba, setAba] = useState<Aba>("home");
+  /*
+    Ler o localStorage já no inicializador é seguro AQUI porque este componente
+    nunca chega ao HTML do servidor: enquanto a sessão não carrega, a tela é
+    "Carregando…". Não há render de servidor para divergir na hidratação.
+  */
+  const [guiaAberto, setGuiaAberto] = useState<boolean>(() =>
+    typeof window === "undefined" ? true : lerPreferenciaDoGuia(),
+  );
+
+  const alternarGuia = useCallback((ligado: boolean) => {
+    setGuiaAberto(ligado);
+    gravarPreferenciaDoGuia(ligado);
+  }, []);
   const [conversaAberta, setConversaAberta] = useState<string | null>(null);
   const [pacienteAberto, setPacienteAberto] = useState<string | null>(null);
 
@@ -326,7 +760,13 @@ function PortalCrc() {
   const abaAtual = permitidas.some((n) => n.aba === aba) ? aba : (permitidas[0]?.aba ?? "home");
   const itemAtual = NAVEGACAO.find((n) => n.aba === abaAtual) ?? NAVEGACAO[0]!;
   const IconeAtual = itemAtual.icone;
-  const guiaAtual = abaAtual === "home" ? null : GUIA_ABAS[abaAtual];
+  const guiaAtual = GUIA_ABAS[abaAtual];
+
+  /*
+    A ficha de um paciente é o único lugar onde o guia atrapalha: quem chegou
+    ali veio de um clique com destino, e o que ele quer ver é a pessoa.
+  */
+  const naFichaDoPaciente = abaAtual === "pacientes" && pacienteAberto !== null;
 
   const gruposPermitidos = GRUPOS_NAVEGACAO.map((grupo) => ({
     ...grupo,
@@ -384,6 +824,9 @@ function PortalCrc() {
                     key={n.aba}
                     type="button"
                     className="crc-nav-item"
+                    /* A mesma linha do mapa do CRC, para quem passa o mouse
+                       antes de clicar em algo que nunca abriu. */
+                    title={`${n.rotulo} — ${GUIA_ABAS[n.aba].paraQue}`}
                     aria-current={abaAtual === n.aba ? "page" : undefined}
                     onClick={() => {
                       setAba(n.aba);
@@ -433,14 +876,28 @@ function PortalCrc() {
               <ChevronRight aria-hidden="true" />
               <span>{itemAtual.rotulo}</span>
             </div>
-            <div className="crc-atalho-dica" title="Use Ctrl+K ou ⌘K para abrir a busca global">
-              <Search aria-hidden="true" />
-              <span>Buscar ou navegar</span>
-              <kbd>Ctrl K</kbd>
+            <div className="crc-barra-acoes">
+              <button
+                type="button"
+                className="crc-guia-botao"
+                aria-expanded={guiaAberto}
+                onClick={() => {
+                  alternarGuia(!guiaAberto);
+                }}
+              >
+                <Compass aria-hidden="true" />
+                <span>{guiaAberto ? "Ocultar guia" : "Como usar esta tela"}</span>
+              </button>
+
+              <div className="crc-atalho-dica" title="Use Ctrl+K ou ⌘K para abrir a busca global">
+                <Search aria-hidden="true" />
+                <span>Buscar ou navegar</span>
+                <kbd>Ctrl K</kbd>
+              </div>
             </div>
           </div>
 
-          {abaAtual !== "home" && !(abaAtual === "pacientes" && pacienteAberto !== null) && guiaAtual !== null && (
+          {abaAtual !== "home" && !naFichaDoPaciente && (
             <header className="crc-cabecalho-pagina crc-cabecalho-premium">
               <div className="crc-cabecalho-icone" aria-hidden="true">
                 <IconeAtual />
@@ -459,6 +916,25 @@ function PortalCrc() {
                 ))}
               </div>
             </header>
+          )}
+
+          {guiaAberto && !naFichaDoPaciente && (
+            <GuiaDaTela
+              guia={guiaAtual}
+              tela={itemAtual.rotulo}
+              mapa={
+                abaAtual === "home"
+                  ? permitidas.map((n) => ({
+                      rotulo: n.rotulo,
+                      paraQue: GUIA_ABAS[n.aba].paraQue,
+                      icone: n.icone,
+                    }))
+                  : null
+              }
+              aoDesligar={() => {
+                alternarGuia(false);
+              }}
+            />
           )}
 
           {abaAtual === "home" && (
@@ -572,7 +1048,14 @@ function TelaDeEntrada({ aoEntrar }: { aoEntrar: () => void }) {
           </div>
         </div>
 
-        <div style={{ position: "relative", zIndex: 1, color: "rgba(255,255,255,.52)", fontSize: ".75rem" }}>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            color: "rgba(255,255,255,.52)",
+            fontSize: ".75rem",
+          }}
+        >
           Uso interno • JP Clínica Integrada Odontológica
         </div>
       </section>
@@ -596,7 +1079,10 @@ function TelaDeEntrada({ aoEntrar }: { aoEntrar: () => void }) {
           </div>
 
           <div className="crc-sobretitulo">Acesso interno</div>
-          <h2 className="crc-titulo-pagina" style={{ fontSize: "2rem", marginBottom: "var(--crc-e2)" }}>
+          <h2
+            className="crc-titulo-pagina"
+            style={{ fontSize: "2rem", marginBottom: "var(--crc-e2)" }}
+          >
             Bem-vindo de volta.
           </h2>
           <p className="crc-corpo" style={{ marginBottom: "var(--crc-e6)" }}>

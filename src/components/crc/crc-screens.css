@@ -949,3 +949,273 @@
     width: 100%;
   }
 }
+
+
+/* ==========================================================================
+   O guia da tela — "o que dá para fazer aqui"
+   ==========================================================================
+
+   ELE É MATERIAL DE CONSULTA, E NÃO CONTEÚDO. Por isso é o único bloco grande
+   do CRC SEM sombra: os cartões de trabalho flutuam sobre o fundo, este fica
+   assentado nele. É o que faz o olho passar por cima dele quando está com
+   pressa, e voltar a ele quando está com dúvida — sem que ninguém precise
+   fechar nada.
+
+   A LISTA É UMA GRADE DE DUAS COLUNAS: o que se clica à esquerda, o que
+   acontece à direita. Ler a coluna da esquerda de cima a baixo é como se acha
+   a linha certa, e é por isso que ela tem largura fixa — coluna que muda de
+   largura a cada linha não se lê na vertical.
+   ========================================================================== */
+
+.crc-app .crc-guia {
+  margin-bottom: var(--crc-e6);
+  padding: var(--crc-e5);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-cartao);
+  background: var(--crc-superficie-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e4);
+}
+
+.crc-app .crc-guia-topo {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--crc-e3);
+}
+
+.crc-app .crc-guia-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--crc-primaria-borda);
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  /* O selo alinha pela linha de base do texto ao lado, não pelo topo da
+     caixa — senão ele "sobe" e a linha inteira parece torta. */
+  transform: translateY(1px);
+}
+
+.crc-app .crc-guia-selo svg {
+  width: 13px;
+  height: 13px;
+}
+
+.crc-app .crc-guia-resumo {
+  flex: 1 1 22rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--crc-texto-2);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  /* Perto de 65 caracteres é onde o olho encontra a próxima linha sem
+     esforço; sem isto, num monitor de 27" a frase vira uma faixa. */
+  max-width: 68ch;
+}
+
+/* ---- ação -> efeito ------------------------------------------------------ */
+
+.crc-app .crc-guia-lista {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.crc-app .crc-guia-par {
+  display: grid;
+  grid-template-columns: minmax(0, 15.5rem) minmax(0, 1fr);
+  gap: var(--crc-e2) var(--crc-e5);
+  padding: var(--crc-e3) 0;
+  border-top: 1px solid var(--crc-borda);
+}
+
+.crc-app .crc-guia-par:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.crc-app .crc-guia-par:last-child {
+  padding-bottom: 0;
+}
+
+.crc-app .crc-guia-faca {
+  margin: 0;
+  color: var(--crc-texto);
+  font-weight: 650;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  /* Nome de botão longo quebra dentro da coluna em vez de empurrar a grade. */
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-guia-efeito {
+  margin: 0;
+  color: var(--crc-texto-2);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  max-width: 72ch;
+}
+
+/* ---- o mapa do CRC (só na Home) ------------------------------------------ */
+
+.crc-app .crc-guia-mapa {
+  padding-top: var(--crc-e4);
+  border-top: 1px solid var(--crc-borda);
+}
+
+.crc-app .crc-guia-mapa-titulo {
+  margin-bottom: var(--crc-e3);
+  color: var(--crc-texto-3);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.crc-app .crc-guia-mapa-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
+  gap: var(--crc-e2) var(--crc-e5);
+}
+
+.crc-app .crc-guia-mapa-lista li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 7px;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.crc-app .crc-guia-mapa-lista svg {
+  width: 14px;
+  height: 14px;
+  color: var(--crc-primaria);
+  /* Ícone alinhado pela base do texto fica alto demais; um empurrão o senta
+     na linha. */
+  transform: translateY(2px);
+}
+
+.crc-app .crc-guia-mapa-lista strong {
+  color: var(--crc-texto);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.crc-app .crc-guia-mapa-lista span {
+  color: var(--crc-texto-3);
+  min-width: 0;
+}
+
+/* ---- desligar ------------------------------------------------------------ */
+
+.crc-app .crc-guia-desligar {
+  align-self: flex-start;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--crc-texto-3);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.crc-app .crc-guia-desligar:hover {
+  color: var(--crc-texto-2);
+}
+
+/* ---- o botão na barra de contexto ---------------------------------------- */
+
+.crc-app .crc-barra-acoes {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--crc-e2);
+  justify-content: flex-end;
+}
+
+.crc-app .crc-guia-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 7px 11px;
+  border: 1px solid var(--crc-primaria-borda);
+  border-radius: 10px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.crc-app .crc-guia-botao svg {
+  width: 15px;
+  height: 15px;
+}
+
+.crc-app .crc-guia-botao:hover {
+  border-color: var(--crc-primaria);
+}
+
+/* ---- telas estreitas ----------------------------------------------------- */
+
+/*
+ * ABAIXO DE 860px A BARRA DE CONTEXTO INTEIRA É ESCONDIDA (crc-premium.css):
+ * trilha e atalho de teclado não servem a quem está no celular. O botão do
+ * guia servia — e ia junto, o que deixava quem desligasse o guia no celular
+ * sem NENHUMA forma de trazê-lo de volta.
+ *
+ * A barra volta, com uma única coisa dentro. Ela deixa de ser "contexto" e
+ * passa a ser a linha do guia, alinhada à direita como estava.
+ */
+@media (max-width: 860px) {
+  .crc-app .crc-barra-contexto:has(.crc-guia-botao) {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 0;
+    margin-bottom: var(--crc-e3);
+  }
+  .crc-app .crc-barra-contexto .crc-barra-trilha,
+  .crc-app .crc-barra-contexto .crc-atalho-dica {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .crc-app .crc-guia {
+    padding: var(--crc-e4);
+  }
+  /* Duas colunas em 360px dariam 90px para o nome do botão. Empilhado, o par
+     continua legível: o que se clica, e logo abaixo o que acontece. */
+  .crc-app .crc-guia-par {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .crc-app .crc-guia-mapa-lista li {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  /* Sem o ícone a linha do mapa cabe; o nome e a explicação são o conteúdo. */
+  .crc-app .crc-guia-mapa-lista svg {
+    display: none;
+  }
+  .crc-app .crc-guia-mapa-lista strong {
+    white-space: normal;
+  }
+}
