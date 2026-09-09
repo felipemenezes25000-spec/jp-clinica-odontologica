@@ -173,9 +173,26 @@
 @media (max-width: 1100px) {
   .crc-app .crc-lateral {
     scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 10px;
+    overscroll-behavior-x: contain;
+    gap: 5px;
+    box-shadow: 0 10px 30px -28px rgba(7, 92, 34, 0.48);
   }
+
   .crc-app .crc-lateral::-webkit-scrollbar {
     display: none;
+  }
+
+  .crc-app .crc-nav-item {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+    border: 1px solid transparent;
+  }
+
+  .crc-app .crc-nav-item[aria-current="page"] {
+    border-color: rgba(7, 92, 34, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.48);
   }
 }
 
@@ -197,6 +214,21 @@
   }
 }
 
+@media (max-width: 760px) {
+  /* No celular, o lockup completo gastava quase a largura de três módulos.
+     A navegação vira a marca funcional do produto e o logo permanece no login. */
+  .crc-app .crc-lateral .crc-marca {
+    display: none;
+  }
+
+  .crc-app .crc-lateral {
+    min-height: 62px;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(18px) saturate(1.08);
+  }
+}
+
 @media (max-width: 560px) {
   .crc-app .crc-botao:not(.crc-botao-pequeno) {
     min-height: 42px;
@@ -210,6 +242,46 @@
   .crc-app .crc-vazio {
     min-height: 160px;
     padding-inline: 14px;
+  }
+
+  /* Rail de módulos: ícone em cima, nome embaixo. É muito mais fácil varrer
+     com o polegar do que treze botões horizontais de largura imprevisível. */
+  .crc-app .crc-lateral {
+    align-items: stretch;
+    min-height: 70px;
+    gap: 4px;
+    padding-block: 5px;
+  }
+
+  .crc-app .crc-nav-grupo {
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .crc-app .crc-nav-item {
+    display: grid;
+    grid-template-rows: 20px auto;
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    min-width: 72px;
+    min-height: 58px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: 0.69rem;
+    font-weight: 650;
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  .crc-app .crc-nav-item svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .crc-app .crc-nav-item[aria-current="page"] {
+    background: linear-gradient(180deg, var(--crc-primaria-suave), #f2f8ef);
+    color: var(--crc-primaria);
   }
 }
 
