@@ -91,6 +91,8 @@ e idempotentes — o 03 ao 06 podem ser aplicados com o sistema no ar:
 | `supabase/04-crc-visoes.sql` | O índice único das visões salvas. |
 | `supabase/05-crc-investimento.sql` | `crc_ad_spend` — o investimento em anúncios, para o custo por paciente. |
 | `supabase/06-crc-campanhas.sql` | `crc_campaigns` e `crc_campaign_targets` — as campanhas. |
+| `supabase/07-crc-convenio.sql` | A coluna `convenio` em `crc_patients`, para o filtro de campanha. |
+| `supabase/08-crc-agendamento.sql` | `crc_dentists` e `crc_scheduling_offers` — **necessário para o CRC marcar consulta**. Sem a primeira não há por quem perguntar horário livre; sem a segunda o sistema não lembra o que ofereceu. |
 
 Rodar de novo não apaga nada. É o único passo manual da instalação, e ele existe
 porque a API REST do Supabase não executa DDL.
@@ -395,9 +397,12 @@ CRC_USD_BRL=5.5
 
 ## Parte D — Ajustar a clínica
 
-**Hoje isto só se faz por SQL.** A função que grava configuração existe
-(`gravarConfiguracao`, com auditoria e invalidação de cache), mas nenhuma tela a
-chama. É a lacuna E.1 lá embaixo.
+**Isto se faz na tela de Configurações**, dentro do próprio CRC — não precisa
+mais de SQL nem da gente. Todo ajuste fica auditado, com quem mudou e quando.
+
+O SQL abaixo continua documentado porque é o caminho de emergência: serve
+quando ninguém consegue entrar na tela, e serve para conferir o que está
+gravado.
 
 Se o padrão serve, pule esta parte. O padrão é:
 
@@ -469,39 +474,69 @@ imediato.
 
 ## Parte E — O que ainda depende de código nosso
 
-Três lacunas. **Nenhuma impede a operação de começar.**
+**As três lacunas desta seção foram fechadas em 09/09/2026.** O que resta aqui
+é o que sobrou depois delas — e nada impede a operação de começar.
 
-### E.1 Tela de configuração da clínica — atrapalha a autonomia
+### Fechado: tela de configuração da clínica
 
-Descrito na Parte D. Trocar o horário de atendimento ou incluir um feriado
-exige SQL, o que na prática significa exigir a gente. A escrita e a auditoria já
-existem (`gravarConfiguracao`); o trabalho é o formulário de horário semanal,
-que tem mais detalhe de interface do que parece. **Esforço: médio.**
+Existe em **Configurações**. Horário semanal dia a dia (com "fechado" como
+estado próprio, e não como campo vazio), prazos das automações, limites de
+contato e os limiares de confiança da IA. Cada campo diz o que muda no mundo se
+o número mudar, e o intervalo permitido é validado nos dois lados — a tela
+mostra, o servidor recusa.
 
-### E.2 As feature flags não fazem nada
+Trocar o horário de atendimento deixou de exigir SQL. **Incluir feriado ainda
+exige**: a lista existe em `horarioComercial.feriados` e é respeitada pelo
+motor, mas não tem campo na tela. Esforço pequeno, e o impacto é um dia por
+ano.
 
-As cinco flags do item 42 (`ai_autopilot`, `auto_scheduling`,
-`budget_integration`, `automatic_whatsapp`, `dental_office_writeback`) existem
-como tabela, nascem desligadas e são lidas para a tela de Integrações — que não
-as exibe. **Nenhuma delas gatilha comportamento.**
+### Fechado: as feature flags agora fazem coisa
 
-O que de fato controla o envio hoje são duas coisas, e as duas funcionam: o
-**modo da automação** (Simulação → Só recomenda → Executa) e os **interruptores
-de emergência**. Não há risco escondido aqui; há uma promessa não cumprida.
-Vale ou implementar as flags, ou removê-las. **Esforço: pequeno nos dois
-caminhos.**
+As cinco aparecem em **Configurações → Recursos**, e três delas gatilham
+comportamento de verdade:
 
-### E.3 Agendar pelo CRC
+| Flag | O que muda quando liga |
+|---|---|
+| `auto_scheduling` | O CRC passa a oferecer horários reais quando o paciente pede para marcar. |
+| `dental_office_writeback` | A reserva é gravada no Dental Office. Desligada, o aceite do paciente vira tarefa para a recepção digitar. |
+| `ai_autopilot` | A leitura automática pode agir, e não só classificar e sugerir. |
 
-O conector do Dental Office tem `criarAgendamento` e ele é exercitado pelo
-sandbox. Falta a tela que escolhe horário e confirma. Hoje a jornada encaminha
-para um humano remarcar no sistema da clínica — o que funciona, mas é o passo
-manual do fluxo. **Esforço: médio-grande**, e depende de credencial de escrita
-no Dental Office, que é diferente da de leitura.
+`automatic_whatsapp` e `budget_integration` continuam sendo promessa de
+produto: a primeira é redundante com o kill switch de envio, a segunda espera a
+API de orçamentos. Estão na tela com a explicação do que fazem — ligar
+qualquer uma delas hoje não muda nada, e isso está dito.
 
-*Também não existem, e estão detalhadas no FINAL-ACCEPTANCE: teste de navegador
-(Playwright), segment engine componível do item 146, estado na URL do item 148 e
-multisseleção de tipo no funil.*
+Só admin e gestor mexem em flag (`gerenciar_autopilot`). Toda uma nasce
+desligada.
+
+### Fechado: agendar pelo CRC
+
+O fluxo inteiro existe e tem teste ponta a ponta contra o sandbox do Dental
+Office:
+
+1. O paciente diz que quer marcar; a IA classifica a intenção.
+2. O CRC busca horários **reais** na agenda, filtra pelo horário comercial e
+   oferece no máximo três — um por dia.
+3. O paciente responde ("10:40 tá ótimo", "a segunda", "quinta de manhã").
+4. Antes de gravar, o horário é **revalidado**. Se a recepção ocupou nesse
+   meio-tempo, o sistema não marca em cima: encerra a oferta e faz outra.
+5. A consulta é criada no Dental Office e espelhada aqui.
+
+**Três travas antes de qualquer escrita**, todas desligadas por padrão:
+`dental_office_writeback`, `auto_scheduling` e o kill switch
+`kill_escritas_do`. Qualquer uma delas barrando, o desfecho é uma tarefa
+humana — nunca silêncio.
+
+**O que ainda falta para isso rodar em produção:** a credencial de **escrita**
+do Dental Office, que é diferente da de leitura, e rodar o
+`08-crc-agendamento.sql`. Sem eles o sistema continua encaminhando para um
+humano remarcar, que é o comportamento de hoje.
+
+### O que continua faltando
+
+*Teste de navegador (Playwright), segment engine componível do item 146, estado
+na URL do item 148, multisseleção de tipo no funil, e o campo de feriados
+citado acima. Todos detalhados no FINAL-ACCEPTANCE.*
 
 ---
 

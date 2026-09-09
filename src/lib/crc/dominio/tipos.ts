@@ -460,14 +460,31 @@ export type EventoCrc = {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Item 96 + 43 (níveis de Autopilot), reduzidos a três estados operacionais.
+ * Item 96 + 43 (níveis de Autopilot).
  *
  * SHADOW    calcula tudo, registra "teria feito X", não faz nada.
  * RECOMENDAR executa só ações internas (tarefa, oportunidade). Não fala com o
  *            paciente.
  * EXECUTAR   manda mensagem de verdade.
  *
- * Toda automação nasce em SHADOW — o item 95 exige.
+ * OS CINCO NÍVEIS PEDIDOS SÃO ESTES TRÊS MAIS DUAS FLAGS, e não cinco valores
+ * neste tipo. A diferença importa: modo é propriedade DA AUTOMAÇÃO (esta
+ * jornada está em teste, aquela já roda), enquanto conversar e agendar são
+ * permissões DA ORGANIZAÇÃO — quem as concede é a direção, uma vez, e não o
+ * gestor por jornada. Fundir os dois eixos num enum só permitiria ligar
+ * agendamento automático numa jornada e não em outra, o que é uma decisão que
+ * ninguém deveria conseguir tomar sem perceber.
+ *
+ *   1. recomendar       RECOMENDAR
+ *   2. criar tarefa     RECOMENDAR (as ações internas incluem tarefa)
+ *   3. enviar mensagem  EXECUTAR
+ *   4. conversar        EXECUTAR + flag `ai_autopilot`
+ *   5. agendar          EXECUTAR + `ai_autopilot` + `auto_scheduling`
+ *                       + `dental_office_writeback`
+ *
+ * Toda automação nasce em SHADOW — o item 95 exige. E toda flag nasce
+ * desligada, então nenhuma clínica chega no nível 5 sem alguém decidir três
+ * vezes.
  */
 export type ModoAutomacao = "SHADOW" | "RECOMENDAR" | "EXECUTAR";
 export const MODOS_AUTOMACAO: readonly ModoAutomacao[] = [
