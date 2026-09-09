@@ -1642,7 +1642,7 @@ export const sincronizarAgora = createServerFn({ method: "POST" }).handler(
   async (): Promise<Resposta<{ pacientes: ResumoSyncDto; agenda: ResumoSyncDto }>> =>
     comContexto("gerenciar_integracoes", async (ctx) => {
       const { criarClienteDentalOffice } = await import("./integracoes/dental-office/cliente");
-      const { sincronizarAgendamentos, sincronizarPacientes } =
+      const { sincronizarAgendamentos, sincronizarDentistas, sincronizarPacientes } =
         await import("./aplicacao/sincronizacao");
       const { selecionarUm } = await import("./servidor/banco");
 
@@ -1685,6 +1685,9 @@ export const sincronizarAgora = createServerFn({ method: "POST" }).handler(
       // para ligar `patient_id`. Na ordem inversa, a primeira sincronização
       // gravaria a agenda inteira sem dono.
       const pacientes = await sincronizarPacientes(contexto);
+      // Dentistas ANTES da agenda, pelo mesmo motivo do cron: sem eles, não há
+      // por quem perguntar horário livre.
+      await sincronizarDentistas(contexto);
       const agenda = await sincronizarAgendamentos(contexto);
 
       const paraDto = (r: Awaited<ReturnType<typeof sincronizarPacientes>>): ResumoSyncDto => ({

@@ -71,7 +71,7 @@ async function sincronizar(
   const cliente = criarClienteDentalOffice({ organizationId });
   if (!cliente.ok) return { pulada: true, motivo: cliente.motivo, faltando: cliente.faltando };
 
-  const { sincronizarAgendamentos, sincronizarPacientes } =
+  const { sincronizarAgendamentos, sincronizarDentistas, sincronizarPacientes } =
     await import("@/lib/crc/aplicacao/sincronizacao");
 
   const contexto = {
@@ -83,6 +83,9 @@ async function sincronizar(
 
   try {
     const pacientes = await sincronizarPacientes(contexto);
+    // Dentistas ANTES da agenda: é por eles que se pergunta o horário livre,
+    // e uma oferta de agendamento com a lista vazia devolve "SEM_DENTISTA".
+    await sincronizarDentistas(contexto);
     const agenda = await sincronizarAgendamentos(contexto);
     return { pacientes, agenda };
   } catch (erro) {

@@ -86,7 +86,9 @@ export type Tabela =
   | "crc_saved_views"
   | "crc_ad_spend"
   | "crc_campaigns"
-  | "crc_campaign_targets";
+  | "crc_campaign_targets"
+  | "crc_dentists"
+  | "crc_scheduling_offers";
 
 export type Linha = Record<string, unknown>;
 

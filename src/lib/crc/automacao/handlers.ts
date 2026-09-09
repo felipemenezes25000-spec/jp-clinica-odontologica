@@ -17,6 +17,7 @@
  * paciente foi esquecido".
  */
 import { CONFIGURACAO_PADRAO, type ConfiguracaoCrc } from "../dominio/configuracao";
+import type { ContextoAgendamento } from "../aplicacao/agendamento";
 import { avaliarRecall, fazAniversarioHoje, temConsultaFutura } from "../dominio/regras";
 import { partesLocais } from "../dominio/configuracao";
 import type { EventoCrc, TipoOportunidade } from "../dominio/tipos";
@@ -394,6 +395,238 @@ export async function aoResponderSobreCobranca(evento: EventoCrc): Promise<void>
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Leitura da resposta e agendamento                                          */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O paciente respondeu — entender e, quando couber, marcar.
+ *
+ * ESTE HANDLER É O ELO QUE FALTAVA. A classificação de conversa estava escrita
+ * e testada, e nada a chamava; a camada de agendamento existia no adapter, e
+ * nada a chamava. O sistema entendia intenção nenhuma e marcava consulta
+ * nenhuma — apenas criava tarefa para um humano fazer as duas coisas na mão.
+ *
+ * A ORDEM DAS DECISÕES É A PRÓPRIA POLÍTICA DE SEGURANÇA:
+ *
+ *   1. CLASSIFICAR SEMPRE. Mesmo quando nada mais vai acontecer, o resumo e a
+ *      temperatura alimentam a Inbox, e o escalonamento obrigatório (dor,
+ *      reclamação, dúvida clínica) precisa rodar antes de qualquer automação.
+ *
+ *   2. AUTONOMIA "HUMANO" ENCERRA AQUI. A tarefa já foi criada lá dentro. Ir
+ *      adiante seria a máquina agir exatamente onde ela mesma disse que não
+ *      deveria.
+ *
+ *   3. OFERTA ABERTA VENCE INTENÇÃO NOVA. Se acabamos de oferecer horários, a
+ *      resposta é quase certamente a escolha — e tratá-la como pedido novo
+ *      geraria uma segunda oferta por cima da primeira.
+ *
+ *   4. SÓ ENTÃO, AGENDAR. E ainda assim atrás de duas flags desligadas por
+ *      padrão.
+ *
+ * NADA AQUI LANÇA. Um erro na leitura automática não pode impedir a mensagem de
+ * aparecer na Inbox — o evento já foi gravado, e a conversa é o que importa.
+ */
+export async function aoReceberMensagem(evento: EventoCrc): Promise<void> {
+  const conversationId = evento.payload["conversationId"];
+  const texto = evento.payload["texto"];
+  if (typeof conversationId !== "string" || typeof texto !== "string") return;
+
+  const { lerConfiguracao, lerFlags, lerKillSwitches } = await import("../servidor/configuracao");
+  const [cfg, flags, interruptores] = await Promise.all([
+    lerConfiguracao(evento.organizationId),
+    lerFlags(evento.organizationId),
+    lerKillSwitches(evento.organizationId),
+  ]);
+
+  // --- 1. Classificar ---
+  const { criarProvedorIa } = await import("../integracoes/ia/provedor");
+  const provedor = criarProvedorIa(evento.organizationId);
+  const { classificarConversa } = await import("../aplicacao/ia");
+
+  const leitura = await classificarConversa(
+    evento.organizationId,
+    conversationId,
+    provedor.configurado ? provedor.porta : null,
+    cfg,
+  );
+
+  // `ok: false` já criou a tarefa humana lá dentro. A conversa segue na Inbox.
+  if (!leitura.ok) return;
+
+  // --- 2. Autonomia ---
+  if (leitura.autonomia === "HUMANO") return;
+  if (interruptores["kill_ia_auto"] === true || interruptores["kill_automacoes"] === true) return;
+
+  const contexto = await contextoDeAgendamento(evento, cfg, flags, interruptores);
+  if (contexto === null) return;
+
+  const { aceitarHorario, oferecerHorarios } = await import("../aplicacao/agendamento");
+
+  // --- 3. Oferta aberta: a resposta provavelmente é a escolha ---
+  const aceite = await aceitarHorario(contexto, { conversationId, texto });
+  if (aceite.ok) {
+    await responderNaConversa(evento, contexto, conversationId, "agendamento_confirmado", {
+      quando: aceite.opcao.rotulo,
+    });
+    return;
+  }
+
+  // Escolha ambígua ou horário que sumiu: os dois pedem outra oferta, e não
+  // silêncio. "SEM_OFERTA" é o caso normal de quem não estava escolhendo nada.
+  const precisaReoferecer = aceite.codigo === "SLOT_SUMIU" || aceite.codigo === "ESCOLHA_AMBIGUA";
+  const querAgendar =
+    leitura.classificacao.intencao === "AGENDAR" || leitura.classificacao.intencao === "REMARCAR";
+
+  if (!precisaReoferecer && !querAgendar) return;
+
+  // --- 4. Agendar ---
+  if (flags["auto_scheduling"] !== true) return;
+
+  const patientId = evento.payload["patientId"];
+  if (typeof patientId !== "string" || patientId.length === 0) return;
+
+  const oferta = await oferecerHorarios(contexto, { conversationId, patientId });
+
+  if (oferta.ok) {
+    await responderNaConversa(evento, contexto, conversationId, "agendamento_oferta", {
+      opcoes: oferta.opcoes.map((o) => o.rotulo).join(", "),
+    });
+    return;
+  }
+
+  // "JA_TEM_CONSULTA" e "OFERTA_ABERTA" não são problema: são o sistema
+  // funcionando. Só a ausência real de horário merece aviso ao paciente.
+  if (oferta.codigo === "SEM_SLOT" || oferta.codigo === "SEM_DENTISTA") {
+    await responderNaConversa(evento, contexto, conversationId, "agendamento_sem_horario", {});
+    const { criarTarefa } = await import("../aplicacao/tarefas");
+    await criarTarefa({
+      organizationId: evento.organizationId,
+      clinicId: contexto.clinicId,
+      patientId,
+      titulo: "Achar horário para paciente que pediu agendamento",
+      tipo: "LIGAR",
+      prazoHoras: 4,
+      prioridade: 15,
+      motivo: oferta.motivo,
+      chaveDedupe: `sem_horario:${conversationId}`,
+      ator: "ia",
+    });
+  }
+}
+
+/**
+ * Monta o contexto de agendamento, ou devolve `null` quando não dá.
+ *
+ * Devolve `null` em silêncio de propósito: sem credencial do Dental Office não
+ * existe agenda para consultar, e isso é o estado NORMAL antes da integração
+ * ser ligada. Logar erro a cada mensagem recebida encheria o diário de um fato
+ * que já está visível no painel de integrações.
+ */
+async function contextoDeAgendamento(
+  evento: EventoCrc,
+  cfg: ConfiguracaoCrc,
+  flags: Readonly<Record<string, boolean>>,
+  interruptores: Readonly<Record<string, boolean>>,
+): Promise<ContextoAgendamento | null> {
+  const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
+  const cliente = criarClienteDentalOffice({ organizationId: evento.organizationId });
+  if (!cliente.ok) return null;
+
+  const clinica = await selecionarUm("crc_clinics", {
+    colunas: "id,external_id",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: evento.organizationId },
+      { coluna: "ativa", op: "eq", valor: true },
+    ],
+  });
+  if (clinica === null) return null;
+
+  return {
+    organizationId: evento.organizationId,
+    clinicId: String(clinica["id"] ?? ""),
+    clinicaExternaId: String(clinica["external_id"] ?? ""),
+    cliente: cliente.cliente,
+    configuracao: cfg,
+    flags,
+    interruptores,
+    agora: new Date(),
+  };
+}
+
+/**
+ * Responde dentro da conversa.
+ *
+ * `proativo: false` porque o paciente ACABOU de escrever. Aplicar horário
+ * comercial aqui deixaria alguém falando sozinho às 19h05 — e a política existe
+ * para não incomodar quem está em silêncio, não para calar quem perguntou.
+ */
+async function responderNaConversa(
+  evento: EventoCrc,
+  contexto: ContextoAgendamento,
+  conversationId: string,
+  template: string,
+  variaveis: Record<string, string>,
+): Promise<void> {
+  const conversa = await selecionarUm("crc_conversations", {
+    colunas: "telefone,patient_id",
+    filtros: [
+      { coluna: "id", op: "eq", valor: conversationId },
+      { coluna: "organization_id", op: "eq", valor: evento.organizationId },
+    ],
+  });
+  const telefone = typeof conversa?.["telefone"] === "string" ? conversa["telefone"] : "";
+  if (telefone.length === 0) return;
+
+  const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
+  const provedor = criarProvedorMensageria(evento.organizationId);
+  if (!provedor.configurado) return;
+
+  const patientId = typeof conversa?.["patient_id"] === "string" ? conversa["patient_id"] : null;
+  const nome = await primeiroNomeDoPaciente(evento.organizationId, patientId);
+
+  const { renderizarTemplate } = await import("./templates");
+  const texto = await renderizarTemplate(evento.organizationId, template, {
+    primeiroNome: nome,
+    clinica: "JP Clínica Integrada Odontológica",
+    ...variaveis,
+  });
+
+  const { enviarMensagem } = await import("../aplicacao/mensagens");
+  await enviarMensagem({
+    organizationId: evento.organizationId,
+    clinicId: contexto.clinicId,
+    patientId,
+    conversationId,
+    telefone,
+    texto,
+    // A chave inclui o id do evento: duas mensagens do paciente merecem duas
+    // respostas, mas o reprocessamento do MESMO evento não pode gerar a
+    // segunda.
+    chaveDedupe: `ia_resposta:${evento.id}:${template}`,
+    remetente: "ia",
+    proativo: false,
+    porta: provedor.porta,
+    configuracao: contexto.configuracao,
+  });
+}
+
+async function primeiroNomeDoPaciente(
+  organizationId: string,
+  patientId: string | null,
+): Promise<string> {
+  if (patientId === null) return "";
+  const linha = await selecionarUm("crc_patients", {
+    colunas: "nome",
+    filtros: [
+      { coluna: "id", op: "eq", valor: patientId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+  });
+  const nome = typeof linha?.["nome"] === "string" ? linha["nome"] : "";
+  return nome.trim().split(/\s+/u)[0] ?? "";
+}
+
 /**
  * Registra todos os handlers.
  *
@@ -414,6 +647,7 @@ export function instalarHandlers(): void {
   registrarHandler("appointment.created", aoCriarAgendamento);
   registrarHandler("patient.updated", aoMudarSituacao);
   registrarHandler("message.received", aoResponderSobreCobranca);
+  registrarHandler("message.received", aoReceberMensagem);
   registrarHandler("lead.created", aoCriarLead);
 }
 

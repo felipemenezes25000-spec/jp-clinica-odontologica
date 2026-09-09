@@ -177,6 +177,26 @@ export const TEMPLATES_PADRAO: Readonly<Record<string, string>> = {
 
   lead_primeiro_contato:
     "Olá, {{primeiroNome}}! Aqui é da {{clinica}}, recebemos seu contato. Como podemos ajudar? Se quiser agendar uma avaliação, me diga qual período é melhor para você.",
+
+  /*
+   * AGENDAMENTO — as duas únicas mensagens do sistema que citam horário.
+   *
+   * `{{opcoes}}` NÃO é texto livre: ele é montado a partir do que a agenda do
+   * Dental Office devolveu, e nunca do que o modelo achou provável. Um horário
+   * inventado numa mensagem produz um paciente na recepção sem consulta —
+   * o pior desfecho que esta automação pode ter.
+   *
+   * A oferta termina em PERGUNTA, e não em "escolha uma opção": o paciente
+   * pode responder "nenhum desses", e a recusa precisa parecer bem-vinda.
+   */
+  agendamento_oferta:
+    "{{primeiroNome}}, consegui estes horários na agenda da {{clinica}}: {{opcoes}}. Algum deles funciona para você?",
+
+  agendamento_confirmado:
+    "Marcado, {{primeiroNome}}! Sua consulta na {{clinica}} ficou para {{quando}}. Vou te lembrar um dia antes. Se precisar mudar, é só me avisar por aqui.",
+
+  agendamento_sem_horario:
+    "{{primeiroNome}}, não encontrei horário livre na agenda agora. Vou pedir para alguém da recepção falar com você para achar a melhor data, tudo bem?",
 };
 
 /**

@@ -301,7 +301,7 @@ describe("templates", () => {
     // A regra vale para quem começa a conversa. Template de RESPOSTA dentro de
     // uma conversa já aberta não reapresenta a clínica: o paciente acabou de
     // escrever para ela, e repetir "aqui é da JP" soa robótico.
-    const respostas = new Set(["cobranca_ja_pago"]);
+    const respostas = new Set(["cobranca_ja_pago", "agendamento_sem_horario"]);
 
     for (const [chave, modelo] of Object.entries(TEMPLATES_PADRAO)) {
       if (respostas.has(chave)) continue;

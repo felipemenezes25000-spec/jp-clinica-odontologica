@@ -146,6 +146,13 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // Uma mensagem por pessoa por campanha, garantida por constraint — e não
   // pelo cuidado de quem chama.
   crc_campaign_targets: [{ colunas: ["campaign_id", "patient_id"] }],
+  crc_dentists: [{ colunas: ["organization_id", "external_source", "external_id"] }],
+  // O índice do 08. Duas ofertas abertas na mesma conversa fazem "pode ser as
+  // 10:40" virar loteria entre dois conjuntos de opções — e o banco recusa a
+  // segunda antes de qualquer código ter chance de errar.
+  crc_scheduling_offers: [
+    { colunas: ["conversation_id"], onde: (l) => l["status"] === "ABERTA" },
+  ],
 };
 
 /**
@@ -171,6 +178,7 @@ const PADRAO_DE_COLUNA: Readonly<Record<string, Readonly<Record<string, boolean>
   crc_integration_logs: { sucesso: true },
   crc_saved_views: { compartilhada: false },
   crc_charges: { negociacao_humana: false },
+  crc_dentists: { ativo: true },
 };
 
 export class ErroBancoFake extends Error {

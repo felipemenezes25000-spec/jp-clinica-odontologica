@@ -307,6 +307,126 @@ async function gravarPaciente(ctx: ContextoSync, externo: PacienteExterno): Prom
 }
 
 /* -------------------------------------------------------------------------- */
+/* Dentistas                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Traz a lista de dentistas da clínica.
+ *
+ * POR QUE ISSO PRECISA EXISTIR SEPARADO DA AGENDA
+ * Porque a agenda do Dental Office é consultada POR DENTISTA: para perguntar
+ * "que horários estão livres", é preciso já saber de quem. Até aqui o nome do
+ * dentista existia só desnormalizado dentro de `crc_appointments` — bom para
+ * mostrar na ficha, inútil para varrer disponibilidade, porque só conhece quem
+ * já atendeu alguém.
+ *
+ * NÃO PAGINA, e é deliberado: uma clínica tem dezenas de dentistas, não
+ * milhares. Paginar aqui seria maquinário para um caso que não acontece, e
+ * `listarDentistas` da porta já devolve a lista inteira.
+ *
+ * NÃO EMITE EVENTO. Dentista entrando ou saindo não é fato sobre paciente, e
+ * não abre oportunidade. A mudança aparece na próxima oferta de horário.
+ */
+export async function sincronizarDentistas(ctx: ContextoSync): Promise<ResumoSync> {
+  const comecou = Date.now();
+  const recurso = "dentists";
+  const syncJobId = await abrirSyncJob(ctx, recurso, "FULL", null);
+
+  let processados = 0;
+  let criados = 0;
+  let atualizados = 0;
+  let falhados = 0;
+  let erro: string | null = null;
+
+  try {
+    const externos = await ctx.cliente.listarDentistas(ctx.clinicaExternaId);
+    const vistos = new Set<string>();
+
+    for (const externo of externos) {
+      processados += 1;
+      vistos.add(externo.externalId);
+
+      try {
+        const existente = await selecionarUm("crc_dentists", {
+          colunas: "id",
+          filtros: [
+            { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+            { coluna: "external_source", op: "eq", valor: "dental_office" },
+            { coluna: "external_id", op: "eq", valor: externo.externalId },
+          ],
+        });
+
+        await gravar(
+          "crc_dentists",
+          {
+            organization_id: ctx.organizationId,
+            clinic_id: ctx.clinicId,
+            external_source: "dental_office",
+            external_id: externo.externalId,
+            nome: externo.nome,
+            ativo: externo.ativo,
+            sincronizado_em: new Date().toISOString(),
+            atualizado_em: new Date().toISOString(),
+          },
+          "organization_id,external_source,external_id",
+        );
+
+        if (existente === null) criados += 1;
+        else atualizados += 1;
+      } catch (e) {
+        falhados += 1;
+        await registrarFalhaIndividual(syncJobId, externo.externalId, descreverErro(e));
+      }
+    }
+
+    // Quem sumiu da lista é DESATIVADO, nunca apagado: as consultas passadas
+    // apontam para ele, e apagar deixaria histórico órfão. Desativar tira a
+    // agenda dele das ofertas e preserva o que já aconteceu.
+    if (vistos.size > 0) {
+      const nossos = await selecionar("crc_dentists", {
+        colunas: "id,external_id,ativo",
+        filtros: [
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+          { coluna: "clinic_id", op: "eq", valor: ctx.clinicId },
+          { coluna: "ativo", op: "eq", valor: true },
+        ],
+        limite: 500,
+      });
+      for (const linha of nossos) {
+        const id = String(linha["external_id"] ?? "");
+        if (vistos.has(id)) continue;
+        await atualizar(
+          "crc_dentists",
+          [{ coluna: "id", op: "eq", valor: String(linha["id"] ?? "") }],
+          { ativo: false, atualizado_em: new Date().toISOString() },
+        );
+        atualizados += 1;
+      }
+    }
+  } catch (e) {
+    erro = descreverErro(e);
+    registrar("erro", "Sincronização de dentistas falhou.", {
+      organizationId: ctx.organizationId,
+      detalhe: erro,
+    });
+  }
+
+  const resumo = {
+    recurso,
+    paginas: 1,
+    processados,
+    criados,
+    atualizados,
+    falhados,
+    eventosEmitidos: 0,
+    duracaoMs: Date.now() - comecou,
+    erro,
+  };
+  await fecharSyncJob(syncJobId, resumo);
+  return { syncJobId, ...resumo };
+}
+
+/* -------------------------------------------------------------------------- */
 /* Agendamentos                                                               */
 /* -------------------------------------------------------------------------- */
 
