@@ -33,6 +33,7 @@ import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 import type { StatusAgendamento } from "@/lib/crc/dominio/tipos";
 
 import { Aviso, Botao, Etiqueta, Kpi, ListaEsqueleto, Vazio, type TomEtiqueta } from "./base";
+import "./crc-screens.css";
 
 /**
  * O tom de cada status.
