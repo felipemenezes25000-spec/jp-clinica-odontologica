@@ -17,15 +17,20 @@
 
     { "id": "automacoes", "nome": "As rotinas do dia", "segundos": 9, "capitulo": "automacao" },
     { "id": "baseAntiga", "nome": "Pacientes antigos", "segundos": 9, "capitulo": "automacao" },
+    { "id": "orcamentos", "nome": "Orcamentos parados", "segundos": 12, "capitulo": "automacao" },
     { "id": "reativacao", "nome": "Contato aos poucos", "segundos": 8, "capitulo": "automacao" },
     { "id": "campanhas", "nome": "Campanhas e aniversariantes", "segundos": 11, "capitulo": "automacao" },
+    { "id": "montarCampanha", "nome": "Montar uma campanha", "segundos": 12, "capitulo": "automacao" },
+
+    { "id": "leadPago", "nome": "O lead do anuncio", "segundos": 11, "capitulo": "midia" },
+    { "id": "midia", "nome": "Quanto custa cada paciente", "segundos": 12, "capitulo": "midia" },
 
     { "id": "whatsapp", "nome": "WhatsApp", "segundos": 9, "capitulo": "conversa" },
     { "id": "ia", "nome": "A leitura da resposta", "segundos": 8, "capitulo": "conversa" },
     { "id": "intencoes", "nome": "Outras respostas", "segundos": 8, "capitulo": "conversa" },
     { "id": "agendamento", "nome": "Marcando a consulta", "segundos": 11, "capitulo": "conversa" },
     { "id": "lembretes", "nome": "Lembrete e confirmacao", "segundos": 10, "capitulo": "conversa" },
-    { "id": "cobranca", "nome": "Cobranca de parcela", "segundos": 11, "capitulo": "conversa" },
+    { "id": "cobranca", "nome": "Cobranca de parcela", "segundos": 15, "capitulo": "conversa" },
     { "id": "humano", "nome": "Quando a equipe entra", "segundos": 7, "capitulo": "conversa" },
 
     { "id": "home", "nome": "A tela do dia", "segundos": 9, "capitulo": "operacao" },

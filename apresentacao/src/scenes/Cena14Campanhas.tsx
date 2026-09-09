@@ -10,7 +10,7 @@ import { Contador, Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 13 — Campanhas e aniversariantes.
+ * CENA 14 — Campanhas e aniversariantes.
  *
  * "Campanha" costuma soar a disparo em massa, e é justamente o que esta cena
  * precisa desmentir. Por isso os quatro cartões dizem QUEM entra e QUANTOS são,
@@ -30,7 +30,7 @@ const ESPACO = 28;
 
 const FONE = { x: 1290, y: 156 };
 
-export function Cena13Campanhas() {
+export function Cena14Campanhas() {
   const frame = useFrame();
 
   return (
@@ -210,7 +210,7 @@ export function Cena13Campanhas() {
         </Crescer>
       </Em>
 
-      <NotaDeCena em={196} x={FONE.x - 40} largura={520} y={848}>
+      <NotaDeCena em={196} x={FONE.x - 40} largura={520} y={812}>
         {CAMPANHAS.aniversario.nota}
       </NotaDeCena>
     </Palco>

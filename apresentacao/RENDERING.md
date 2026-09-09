@@ -24,7 +24,7 @@ Na primeira vez o Remotion baixa o Chrome Headless Shell (~113 MB) para
 | `JPCRCVertical`  | 1080×1920   | Reenquadramento para Reels/Stories       |
 | `JPCRCThumbnail` | 1920×1080   | Still de capa                            |
 
-`JPCRCVertical` **reenquadra** o mesmo filme; não o reescreve. As 28 cenas são
+`JPCRCVertical` **reenquadra** o mesmo filme; não o reescreve. As 35 cenas são
 compostas para 16:9, e recompor cada uma para 9:16 seria um segundo filme, com um
 segundo conjunto de defeitos, divergindo do primeiro na alteração seguinte. O que
 o vertical ganha em troca: a marca no topo e a legenda grande embaixo — que no

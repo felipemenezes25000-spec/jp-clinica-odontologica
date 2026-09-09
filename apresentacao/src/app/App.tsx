@@ -18,6 +18,7 @@ import { ModoExplorar } from "@/interactive/ModoExplorar";
 import { TelaInicial } from "@/interactive/TelaInicial";
 import { Visor } from "@/interactive/Visor";
 import { asset } from "@/utils/asset";
+import { pontoDePartida } from "@/utils/pontoDePartida";
 
 /**
  * O tour interativo.
@@ -44,6 +45,25 @@ export function App() {
   const [som, setSom] = useState(true);
   const [legendas, setLegendas] = useState(true);
   const [explorando, setExplorando] = useState(false);
+
+  /* -------------------------------------------------------------------- */
+  /* Link direto para um trecho                                           */
+  /* -------------------------------------------------------------------- */
+
+  // `?cena=cobranca`, `?frame=5990` ou `?t=3:08` pulam a tela inicial e param no
+  // quadro pedido. Roda uma vez só: depois disso a barra é de quem assiste, e
+  // reaplicar a URL a cada render puxaria o filme de volta a cada arrasto.
+  const partidaAplicada = useRef(false);
+  useEffect(() => {
+    if (partidaAplicada.current) return;
+    partidaAplicada.current = true;
+
+    const alvo = pontoDePartida(window.location.search);
+    if (alvo === null) return;
+
+    setComecou(true);
+    relogio.irPara(alvo);
+  }, [relogio]);
 
   /* -------------------------------------------------------------------- */
   /* Áudio                                                                */

@@ -1,4 +1,4 @@
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { RODAPE, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
 import { PAINEL_AUTOMACOES } from "@/data/conteudo";
 import { AUTOMACOES, BASE, ILUSTRATIVO } from "@/data/metricas";
 import { Em, Ilustrativo, Metrica, Palco, Ponto } from "@/design-system/primitivas";
@@ -176,7 +176,7 @@ pessoas nesta fila
       })}
 
       {ILUSTRATIVO && (
-        <Em x={GRADE_X} y={866} zIndex={9}>
+        <Em x={GRADE_X} y={RODAPE} zIndex={9}>
           <div style={{ opacity: progresso(frame, 176, 24), display: "flex", gap: 16, alignItems: "center" }}>
             <Ilustrativo />
             <span

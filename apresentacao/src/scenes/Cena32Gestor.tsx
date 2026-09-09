@@ -10,7 +10,7 @@ import { Contador, Crescer } from "@/motion/primitivas";
 import { easeOutQuint, formatarMoeda, progresso } from "@/motion/timing";
 
 /**
- * CENA 28 — O painel do gestor.
+ * CENA 32 — O painel do gestor.
  *
  * A última tela de produto, e a mais delicada em termos do que pode ser
  * afirmado. Ela mostra "valor potencial na fila", não "receita atribuída": sem
@@ -38,7 +38,7 @@ const METRICAS = [
   },
 ] as const;
 
-export function Cena28Gestor() {
+export function Cena32Gestor() {
   const frame = useFrame();
 
   return (

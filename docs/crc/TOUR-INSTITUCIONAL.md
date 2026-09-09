@@ -1,6 +1,6 @@
 # Tour institucional do JP CRC
 
-Uma apresentação audiovisual de 4:33 sobre o que o JP CRC faz, com narração em
+Uma apresentação audiovisual de 5:24 sobre o que o JP CRC faz, com narração em
 português e legenda sincronizada. Existe em dois formatos, gerados do **mesmo
 código**:
 
@@ -37,7 +37,7 @@ Está dentro de `apresentacao/`:
 | Arquivo             | Assunto                                             |
 | ------------------- | --------------------------------------------------- |
 | `README.md`         | Visão geral, comandos, tarefas comuns               |
-| `STORYBOARD.md`     | As 31 cenas, uma a uma                              |
+| `STORYBOARD.md`     | As 35 cenas, uma a uma                              |
 | `CONTENT.md`        | Editar textos, números, narração e voz              |
 | `MOTION-SYSTEM.md`  | Como a animação funciona (e o que ela proíbe)       |
 | `RENDERING.md`      | Gerar o MP4                                         |
@@ -47,9 +47,20 @@ Está dentro de `apresentacao/`:
 ## O que a peça cobre
 
 Dental Office → integração → JP CRC → quem precisa de contato → o que roda
-sozinho (**faltas, retorno, pacientes antigos, campanhas, aniversariantes,
-lembretes de consulta, cobrança de parcela em atraso**) → WhatsApp e IA →
-agendamento → quando a equipe entra → as telas do produto → resultados.
+sozinho (**faltas, retorno, pacientes antigos, orçamentos parados, campanhas,
+aniversariantes, montar uma campanha do zero, lembretes de consulta, cobrança de
+parcela em atraso com Pix, boleto ou cartão**) → **anúncio pago: o lead que
+chega, o tempo de resposta e o custo por paciente que apareceu** → WhatsApp e IA
+→ agendamento → quando a equipe entra → as telas do produto → resultados.
+
+Em oito cenas o rodapé mostra a linha **"Por que"** — o critério que o sistema
+usou para decidir aquilo. É como a peça demonstra inteligência em vez de afirmar
+que ela existe.
+
+## Abrir num trecho específico
+
+A URL aceita `?cena=cobranca`, `?frame=5990` ou `?t=3:08`. Serve para mandar a
+alguém o pedaço exato que precisa de revisão, sem pedir para arrastar a barra.
 
 ## O que ela não afirma
 

@@ -1,7 +1,7 @@
 /**
  * O tour institucional do JP CRC — `/crc-institucional`.
  *
- * A peça inteira (31 cenas, narração, legenda, modo explorar) vive em
+ * A peça inteira (35 cenas, narração, legenda, modo explorar) vive em
  * `apresentacao/`, um sub-projeto com o próprio `package.json`, e é construída
  * para `public/crc-tour/`. Esta rota só a coloca em tela.
  *
@@ -35,7 +35,7 @@ import { CLINICA, SITE_URL } from "@/lib/jp";
 
 const TITULO = `JP CRC — como a clínica transforma dados em atendimento | ${CLINICA.nome}`;
 const DESCRICAO =
-  "Tour de quatro minutos, com narração e legenda, sobre o sistema que recupera faltas, " +
+  "Tour de cinco minutos, com narração e legenda, sobre o sistema que recupera faltas, " +
   "reativa pacientes antigos, dispara campanhas e lembretes e cuida da cobrança pelo WhatsApp.";
 
 /**

@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { SeloDeCena } from "@/components/CenaBase";
+import { RODAPE, SeloDeCena } from "@/components/CenaBase";
 import { Janela } from "@/components/Janela";
 import { INBOX } from "@/data/conteudo";
 import { FILA } from "@/data/metricas";
@@ -10,7 +10,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 22 — O inbox.
+ * CENA 26 — O inbox.
  *
  * Três colunas: a fila, a conversa e o contexto. A da direita é a que justifica
  * a cena — sem ela, o atendente abre uma conversa sem saber quem é a pessoa, e
@@ -27,14 +27,14 @@ const CONVERSAS = [
   { nome: "Carlos Antunes", trecho: "Vou acertar essa semana", quando: "ontem", nao_lida: false },
 ] as const;
 
-export function Cena22Inbox() {
+export function Cena26Inbox() {
   const frame = useFrame();
 
   return (
     <Palco fundo="#EEF1EA">
       <SeloDeCena />
 
-      <Em x={140} y={118} zIndex={8}>
+      <Em x={140} y={96} zIndex={8}>
         <Crescer em={2} dur={36} deEscala={0.968}>
           <Janela ativo="Conversas">
             <div style={{ display: "flex", height: "100%" }}>
@@ -347,7 +347,10 @@ Conversas do dia
         </Crescer>
       </Em>
 
-      <Em x={140} y={906} largura={1640} zIndex={9}>
+      {/* A frase da cena vem embaixo, porque em cima quem manda é a tela do
+          produto. y=872 e não 906: a legenda ocupa de 915 para baixo e é
+          desenhada por cima, então a 906 esta linha existia sem ser lida. */}
+      <Em x={140} y={RODAPE} largura={1640} zIndex={9}>
         <div
           style={{
             opacity: progresso(frame, 132, 26),

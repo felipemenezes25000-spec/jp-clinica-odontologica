@@ -1,6 +1,6 @@
 import { Bot, UserRound } from "lucide-react";
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
-import { DIVISAO } from "@/data/conteudo";
+import { Raciocinio, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { DIVISAO, RACIOCINIO } from "@/data/conteudo";
 import { Em, Palco } from "@/design-system/primitivas";
 import { cor, fonte, raio, tamanho } from "@/design-system/tokens";
 import { useFrame } from "@/motion/frame";
@@ -191,6 +191,7 @@ export function Cena09Divisao() {
         em={52}
         legenda="Casos que pedem julgamento"
       />
+      <Raciocinio em={170}>{RACIOCINIO.divisao}</Raciocinio>
     </Palco>
   );
 }

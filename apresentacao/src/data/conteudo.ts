@@ -25,6 +25,37 @@ export const MARCA = {
 } as const;
 
 /* -------------------------------------------------------------------------- */
+/* O raciocínio do sistema — o fio que atravessa o filme                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O "por quê" de cada decisão, para o rodapé das cenas em que o sistema decide
+ * alguma coisa (componente `Raciocinio`).
+ *
+ * Existe porque inteligência não se afirma, se demonstra. Um filme que repete
+ * "o sistema é inteligente" convence menos que um que, seis vezes ao longo da
+ * peça, mostra o critério usado. Cada linha aqui responde a mesma pergunta —
+ * *por que ele fez isso, e não outra coisa* — na altura da cena em que a dúvida
+ * nasce.
+ *
+ * Todas em linguagem de recepção, não de tecnologia, e todas curtas: o rodapé
+ * tem uma linha e meia antes de encostar na área da legenda.
+ */
+export const RACIOCINIO = {
+  eventos:
+    "Ninguém digitou nada disso. O sistema leu a agenda e o histórico e percebeu sozinho.",
+  divisao:
+    "O critério é o risco de errar. O que dá para errar sozinho fica com uma pessoa.",
+  reativacao:
+    "Ele espalha os contatos ao longo do mês. Falar com todo mundo no mesmo dia queima a base.",
+  ia: "Ela lê a frase inteira, não uma palavra. “Sim” de quem quer marcar é diferente de “sim, mas mês que vem”.",
+  intencoes:
+    "Toda leitura vem com uma ação junto. Entender sem saber o que fazer depois não resolve nada.",
+  lembretes:
+    "Quem não responde o lembrete recebe mais um — uma vez só, e mais perto do horário.",
+} as const;
+
+/* -------------------------------------------------------------------------- */
 /* 01 — Abertura                                                              */
 /* -------------------------------------------------------------------------- */
 
@@ -236,6 +267,173 @@ export const REATIVACAO = {
 } as const;
 
 /* -------------------------------------------------------------------------- */
+/* 14 — Tráfego pago: o lead chega                                            */
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* Orçamentos parados                                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O dinheiro que já está dentro de casa.
+ *
+ * De tudo que o sistema encontra, esta é a fila mais cara: o orçamento foi
+ * apresentado, a dentista já gastou a hora da avaliação, o paciente não disse
+ * não — apenas não voltou. Diferente de um paciente novo, aqui não há nada a
+ * conquistar; há uma conversa a retomar.
+ *
+ * O tom do texto é deliberadamente o oposto de cobrança. "Ficou alguma dúvida"
+ * é uma pergunta; "e aí, fechou?" é uma abordagem de vendedor — e vira bloqueio
+ * no WhatsApp.
+ */
+export const ORCAMENTOS = {
+  titulo: "E tem muito orçamento parado esperando resposta.",
+  subtitulo: "Já foi apresentado, e a pessoa não disse não.",
+  origem: "Tudo isso já está no Dental Office",
+  total: {
+    valor: "R$ 312.400",
+    rotulo: "em orçamentos apresentados e sem resposta",
+  },
+  pilha: [
+    {
+      paciente: "Carlos Antunes",
+      tratamento: "Prótese sobre implante",
+      valor: "R$ 12.300",
+      parado: "há 21 dias",
+    },
+    {
+      paciente: "Ana Costa",
+      tratamento: "Implante unitário",
+      valor: "R$ 4.800",
+      parado: "há 34 dias",
+    },
+    {
+      paciente: "João Lima",
+      tratamento: "Clareamento e limpeza",
+      valor: "R$ 1.150",
+      parado: "há 12 dias",
+    },
+  ],
+  comoTrata: {
+    titulo: "O que o sistema faz com essa fila",
+    itens: [
+      "Junta todos num lugar só, do mais alto para o mais baixo",
+      "Pergunta se ficou alguma dúvida — não pergunta se vai fechar",
+      "Oferece conversar com a equipe ou remarcar a avaliação",
+      "Quem responde chega para a equipe com o orçamento já na tela",
+      "Quem diz que não quer sai da fila e não é procurado de novo",
+    ],
+  },
+  raciocinio:
+    "Orçamento parado quase nunca é “não”. É “depois” — e ninguém voltou para perguntar.",
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* Montar uma campanha                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A cena que responde "sim, mas quem faz isso?".
+ *
+ * A cena anterior mostra campanhas prontas rodando, e a reação natural de quem
+ * assiste é imaginar que alguém de fora precisa configurar. Esta mostra os três
+ * passos, com o vocabulário da recepção — "quem vai receber", e não "segmento";
+ * "o que vai chegar", e não "template".
+ *
+ * O número da prévia é o coração da tela: ver quantas pessoas entram no filtro
+ * ANTES de enviar é o que separa uma campanha de um disparo às cegas.
+ */
+export const MONTAR_CAMPANHA = {
+  titulo: "Montar uma campanha são três passos.",
+  subtitulo: "Feito pela própria clínica, sem planilha nenhuma.",
+  passos: [
+    {
+      numero: "1",
+      titulo: "Quem vai receber",
+      detalhe: "Escolhe o filtro na tela: tempo sem voltar, tipo de tratamento, convênio.",
+      exemplo: ["Sem voltar há mais de 12 meses", "Já fez limpeza", "Sem consulta marcada"],
+    },
+    {
+      numero: "2",
+      titulo: "O que vai chegar",
+      detalhe: "Escreve a mensagem uma vez. O sistema põe o nome certo em cada uma.",
+      exemplo: ["“Oi, Ana! Faz um tempo que a gente não te vê por aqui…”"],
+    },
+    {
+      numero: "3",
+      titulo: "Quando sai",
+      detalhe: "Escolhe o dia, o horário e quantas pessoas por dia — para não sair tudo junto.",
+      exemplo: ["A partir de segunda", "Das 9h às 18h", "120 por dia"],
+    },
+  ],
+  previa: {
+    rotulo: "pessoas entram nesse filtro",
+    valor: 964,
+    nota: "O número aparece antes de enviar. Mexeu no filtro, ele muda na hora.",
+  },
+  botao: "Revisar e agendar",
+  raciocinio:
+    "Nada sai sem alguém da clínica revisar. O sistema monta a fila; quem aperta o botão é gente.",
+} as const;
+
+export const LEAD_PAGO = {
+  titulo: "O anúncio traz o contato. O sistema faz o resto.",
+  subtitulo: "Quem clica hoje e é respondido amanhã já contratou em outro lugar.",
+  cadeia: ["Anúncio", "Clique", "Formulário ou WhatsApp", "JP CRC"],
+  /** O que o sistema guarda sobre a origem — é isso que depois vira relatório. */
+  origem: [
+    { campo: "Campanha", valor: "Implantes · Zona Norte" },
+    { campo: "Anúncio", valor: "Vídeo de 15s — antes e depois" },
+    { campo: "O que a pessoa buscou", valor: "“implante dentário preço”" },
+    { campo: "Chegou", valor: "hoje, 14:32 · pelo celular" },
+  ],
+  lead: { nome: "João Lima", pedido: "Quero saber sobre implante" },
+  resposta: {
+    autor: "Automação",
+    texto:
+      "Oi, João! Aqui é da JP Clínica Odontológica. Vi que você tem interesse em implante. Posso te explicar como funciona a avaliação?",
+    hora: "14:32",
+  },
+  tempo: { valor: 47, rotulo: "segundos até a primeira resposta" },
+  nota: "O primeiro a responder costuma ficar com o paciente. Por isso essa resposta não espera alguém abrir o computador.",
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* 15 — Tráfego pago: medir e controlar                                       */
+/* -------------------------------------------------------------------------- */
+
+export const MIDIA = {
+  titulo: "Dá para saber qual anúncio virou paciente na cadeira.",
+  subtitulo: "Não “quantos cliques”. Quantas pessoas apareceram.",
+  /** O funil do dinheiro: cada etapa com o custo acumulado por pessoa. */
+  funil: [
+    { etapa: "Investido no mês", valor: "R$ 3.900", detalhe: "duas campanhas" },
+    { etapa: "Cliques", valor: "312", detalhe: "R$ 12,50 cada" },
+    { etapa: "Viraram contato", valor: "128", detalhe: "R$ 30,47 por contato" },
+    { etapa: "Responderam", valor: "74", detalhe: "58% de quem foi chamado" },
+    { etapa: "Marcaram avaliação", valor: "41", detalhe: "R$ 95,12 por consulta" },
+    { etapa: "Compareceram na clínica", valor: "33", detalhe: "R$ 118,18 por paciente" },
+  ],
+  comparacao: {
+    titulo: "E qual campanha vale a pena",
+    linhas: [
+      { nome: "Implantes · Zona Norte", pacientes: 24, custo: "R$ 96", boa: true },
+      { nome: "Clareamento · Geral", pacientes: 9, custo: "R$ 211", boa: false },
+    ],
+  },
+  controles: {
+    titulo: "O que a clínica controla",
+    itens: [
+      "Quem fala primeiro: a automação ou uma pessoa",
+      "Se a automação pode marcar sozinha ou só qualificar",
+      "Em que horário o sistema responde",
+      "Quantas vezes um contato pode ser procurado",
+      "Pausar a campanha que traz clique e não traz paciente",
+    ],
+  },
+} as const;
+
+/* -------------------------------------------------------------------------- */
 /* 13 — Campanhas e aniversariantes                                           */
 /* -------------------------------------------------------------------------- */
 
@@ -298,21 +496,28 @@ export const COBRANCA = {
         "Oi, Carlos! Tudo bem? Vi aqui que a parcela de março ficou em aberto. Quer que eu te mande o link para acertar?",
       hora: "10:04",
     },
-    { de: "paciente" as const, texto: "Pode mandar. Vou acertar na sexta", hora: "10:21" },
+    { de: "paciente" as const, texto: "Pode mandar", hora: "10:21" },
     {
       de: "clinica" as const,
       autor: "Sistema",
-      texto: "Combinado! Te lembro na sexta, sem falta.",
+      texto: "Prontinho. Escolha como prefere pagar — o link vale por 3 dias.",
       hora: "10:21",
     },
   ],
+  /** O que o próprio sistema consegue emitir e mandar na conversa. */
+  formas: [
+    { nome: "Pix", detalhe: "código copia e cola, cai na hora" },
+    { nome: "Boleto", detalhe: "gerado e enviado no WhatsApp" },
+    { nome: "Cartão", detalhe: "link seguro, parcelável" },
+  ],
+  baixa: "Pagou? O sistema dá baixa sozinho e para de cobrar — ninguém recebe lembrete de dívida que já quitou.",
   regras: [
     { rotulo: "Só depois de três dias", detalhe: "Ninguém é cobrado no dia seguinte ao vencimento." },
     { rotulo: "Uma vez, não toda semana", detalhe: "Se não responder, vira tarefa da equipe — não outra mensagem." },
     { rotulo: "Nunca em cima de quem já pagou", detalhe: "O sistema confere o pagamento antes de escrever." },
     { rotulo: "Renegociar é com gente", detalhe: "Pedido de desconto ou de parcelamento vai direto para a equipe." },
   ],
-  resultado: "47 parcelas resolvidas depois do lembrete · R$ 86.400 ainda na fila",
+  resultado: "47 parcelas resolvidas · R$ 86.400 ainda na fila",
 } as const;
 
 /* -------------------------------------------------------------------------- */
@@ -528,7 +733,7 @@ export const FINAL = {
 export const CAPA = {
   chamada: "Conheça o JP CRC",
   subtitulo:
-    "Sua base de pacientes não deveria ficar parada. Em quatro minutos, com narração, você entende como os dados da clínica viram conversa, agenda e resultado.",
+    "Sua base de pacientes não deveria ficar parada. Em cinco minutos, com narração, você entende como os dados da clínica viram conversa, agenda e resultado.",
   assistir: "Assistir com narração",
   semSom: "Assistir sem som",
   explorar: "Explorar",

@@ -17,7 +17,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, mola, progresso } from "@/motion/timing";
 
 /**
- * CENA 17 — Agendamento automático.
+ * CENA 21 — Agendamento automático.
  *
  * A cena mais longa da peça, e a única que se dá ao trabalho de mostrar um
  * passo chato: a revalidação. Ela existe porque é ela que separa "o robô marca
@@ -37,7 +37,7 @@ const REVALIDA = 150;
 const CONFIRMA = 210;
 const CRIADO = 246;
 
-export function Cena17Agendamento() {
+export function Cena21Agendamento() {
   const frame = useFrame();
 
   const revalidando =

@@ -8,7 +8,7 @@ import { DURACAO_TOTAL } from "@/data/linhaDoTempo";
  * Ele avança pelo TEMPO REAL decorrido (`performance.now()`), e não somando um
  * frame por quadro do navegador. Numa tela de 120 Hz o segundo caminho faria o
  * filme rodar em dobro; numa aba em segundo plano, pararia e depois pularia.
- * Com relógio de parede, 4 minutos de vídeo levam 4 minutos em qualquer tela.
+ * Com relógio de parede, 5 minutos de vídeo levam 5 minutos em qualquer tela.
  *
  * O `frame` que sai daqui é o mesmo número que o Remotion passa para o filme —
  * é essa igualdade que faz o tour e o MP4 serem a mesma peça.

@@ -17,6 +17,28 @@ import { Entrar } from "@/motion/primitivas";
  */
 export const MARGEM = 120;
 
+/**
+ * A linha onde a legenda começa a desenhar por cima.
+ *
+ * A legenda é ancorada no rodapé do quadro e CRESCE PARA CIMA conforme o texto:
+ * uma fala de uma linha começa em y≈954, uma de duas linhas em y≈895. Como o
+ * texto da fala vem da narração e pode mudar a qualquer revisão, o número que
+ * vale é o da pior legenda — daí 890, com uma folga pequena.
+ *
+ * Nenhum conteúdo de cena pode cruzar esta linha. Não é questão de estética: a
+ * legenda é opaca e é desenhada depois, então o que cruzar some da tela sem
+ * deixar rastro — o elemento continua no DOM, o build passa, e ninguém percebe
+ * até assistir. Foi assim que a frase de duas cenas e a assinatura final ficaram
+ * invisíveis por um tempo.
+ */
+export const TETO_DA_LEGENDA = 890;
+
+/**
+ * Onde um rodapé de uma linha começa para terminar acima do teto.
+ * Uma linha de texto de apoio tem ~24 px: 858 + 24 = 882, com folga de 8.
+ */
+export const RODAPE = 858;
+
 export function TituloDeCena({
   kicker,
   titulo,
@@ -87,15 +109,14 @@ export function TituloDeCena({
  * ilustrativo", "a tela de celular é ilustração"). Discreta de propósito:
  * informa sem virar aviso legal no meio da composição.
  *
- * y=862 e não 966: dali para baixo é a ÁREA SEGURA DA LEGENDA. A legenda ocupa
- * de y≈915 até o rodapé do quadro, e é o único elemento que pode morar lá.
- * Nenhuma cena põe conteúdo abaixo de 915 — foi assim que a legenda deixou de
- * cobrir texto.
+ * Começa em `RODAPE` porque abaixo de `TETO_DA_LEGENDA` a legenda desenha por
+ * cima. Uma nota de duas linhas cruza esse teto — se precisar de duas linhas,
+ * encurte o texto ou suba o `y`.
  */
 export function NotaDeCena({
   children,
   em = 40,
-  y = 862,
+  y = RODAPE,
   x = MARGEM,
   largura = 1000,
   style,
@@ -120,6 +141,77 @@ export function NotaDeCena({
           }}
         >
           {children}
+        </div>
+      </Entrar>
+    </Em>
+  );
+}
+
+/**
+ * O raciocínio do sistema — por que ele fez o que acabou de fazer.
+ *
+ * É o fio que atravessa o filme. Uma tela que só mostra o RESULTADO parece
+ * mágica, e mágica não se compra: quem assiste precisa entender que existe um
+ * critério por trás, senão a impressão que sobra é "mandou mensagem para todo
+ * mundo". Então, nas cenas em que o sistema decide alguma coisa, aparece embaixo
+ * uma linha explicando a decisão — sempre no mesmo lugar, sempre com o mesmo
+ * rótulo, para o olho aprender que aquela faixa é a voz do sistema pensando.
+ *
+ * Mora na mesma faixa da `NotaDeCena` — o único rodapé livre do quadro, logo
+ * acima de `TETO_DA_LEGENDA`. Por isso as duas nunca aparecem na mesma cena.
+ */
+export function Raciocinio({
+  children,
+  em = 40,
+  y = RODAPE,
+  x = MARGEM,
+  largura = 1100,
+}: {
+  children: ReactNode;
+  em?: number;
+  y?: number;
+  x?: number;
+  largura?: number;
+}) {
+  return (
+    <Em x={x} y={y} largura={largura} zIndex={20}>
+      <Entrar em={em} dur={24} de="baixo" distancia={10}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+          <span
+            style={{
+              fontFamily: fonte.texto,
+              fontSize: tamanho.micro,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              color: cor.verdeEscuro,
+              flex: "none",
+              // `translateY` e não `alignItems: center`: alinhado pela linha de
+              // base, o rótulo em caixa alta sobe demais ao lado do texto.
+              transform: "translateY(-1px)",
+            }}
+          >
+            Por que
+          </span>
+          <span
+            style={{
+              width: 1,
+              height: 13,
+              background: cor.bordaForte,
+              flex: "none",
+              transform: "translateY(2px)",
+            }}
+          />
+          <span
+            style={{
+              fontFamily: fonte.texto,
+              fontSize: tamanho.legenda,
+              color: cor.tintaSuave,
+              lineHeight: 1.5,
+            }}
+          >
+            {children}
+          </span>
         </div>
       </Entrar>
     </Em>

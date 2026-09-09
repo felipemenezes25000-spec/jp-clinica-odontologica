@@ -7,14 +7,14 @@ import { useFrame } from "@/motion/frame";
 import { progresso } from "@/motion/timing";
 
 /**
- * CENA 25 — O funil.
+ * CENA 29 — O funil.
  *
  * Seis etapas, cada uma com o número e o percentual sobre o topo. O percentual é
  * o que transforma a figura de decorativa em útil: sem ele o funil é só uma
  * escada bonita; com ele dá para perguntar "por que caiu tanto entre contatado e
  * respondeu?" — que é a pergunta que faz alguém mexer na operação.
  */
-export function Cena25Funil() {
+export function Cena29Funil() {
   const frame = useFrame();
 
   return (

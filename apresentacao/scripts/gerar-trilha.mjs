@@ -104,12 +104,22 @@ function vozPad(t, frequencia) {
   return Math.sin(w) + 0.26 * Math.sin(2 * w) + 0.1 * Math.sin(3 * w);
 }
 
-/** Envelope do acorde: entra devagar, sai devagar, e os acordes se emendam. */
+/**
+ * Envelope do acorde: entra devagar, sai devagar, e os acordes se emendam.
+ *
+ * O `Math.max(0, …)` na entrada não é zelo: na virada do acorde, `t` menos o
+ * início do acorde dava −1,4e−14 por erro de ponto flutuante, e
+ * `Math.pow(negativo, 1.6)` é NaN. Como o passa-baixa lá embaixo tem estado, um
+ * único NaN envenenava TODO o resto da trilha — a música sumia aos 2:00 e não
+ * voltava mais. É a pior classe de defeito que existe aqui, porque silêncio
+ * parece decisão de projeto.
+ */
 function envelopeAcorde(tNoAcorde) {
   const ataque = 1.4;
   const solta = 1.8;
-  if (tNoAcorde < ataque) return Math.pow(tNoAcorde / ataque, 1.6);
-  const restante = DURACAO_ACORDE - tNoAcorde;
+  const tempo = Math.max(0, tNoAcorde);
+  if (tempo < ataque) return Math.pow(tempo / ataque, 1.6);
+  const restante = DURACAO_ACORDE - tempo;
   if (restante < solta) return Math.pow(Math.max(0, restante) / solta, 1.2);
   return 1;
 }
@@ -177,7 +187,7 @@ for (let n = 0; n < amostras; n++) {
   /* Acorde atual e o seguinte, para o cruzamento -------------------------- */
   const indiceAcorde = Math.floor(t / DURACAO_ACORDE);
   const acorde = PROGRESSAO[indiceAcorde % PROGRESSAO.length];
-  const tNoAcorde = t - indiceAcorde * DURACAO_ACORDE;
+  const tNoAcorde = Math.max(0, t - indiceAcorde * DURACAO_ACORDE);
   const env = envelopeAcorde(tNoAcorde);
 
   let esquerda = 0;
@@ -253,8 +263,28 @@ let pico = 0;
 for (let n = 0; n < amostras; n++) {
   const a = Math.abs(canalEsq[n]);
   const b = Math.abs(canalDir[n]);
+  // Um NaN aqui vira zero na conversão para 16 bits, ou seja: silêncio que
+  // ninguém nota até assistir o vídeo inteiro. Melhor quebrar o script.
+  if (!Number.isFinite(a) || !Number.isFinite(b)) {
+    throw new Error(
+      `Amostra inválida em ${(n / TAXA).toFixed(3)}s. A trilha sairia muda daí em diante.`,
+    );
+  }
   if (a > pico) pico = a;
   if (b > pico) pico = b;
+}
+
+// Segunda rede: um trecho longo perto de zero também é sintoma, e passaria pela
+// checagem acima sem reclamar.
+{
+  const bloco = TAXA * 10;
+  for (let inicio = 0; inicio + bloco < amostras - TAXA * 8; inicio += bloco) {
+    let maior = 0;
+    for (let n = inicio; n < inicio + bloco; n++) maior = Math.max(maior, Math.abs(canalEsq[n]));
+    if (maior < 0.002) {
+      throw new Error(`Dez segundos de silêncio a partir de ${(inicio / TAXA).toFixed(0)}s.`);
+    }
+  }
 }
 const fator = pico > 0 ? 0.71 / pico : 1;
 

@@ -9,7 +9,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 20 — O caso humano.
+ * CENA 24 — O caso humano.
  *
  * O espelho da cena 14: mesma tela, mesmo canal, resultado oposto. Ali a
  * automação seguiu; aqui ela para, e a etiqueta do balão muda de "Automação"
@@ -28,7 +28,7 @@ const VEREDICTO = 74;
 const PARADA = 118;
 const REPASSE = 148;
 
-export function Cena20Humano() {
+export function Cena24Humano() {
   const frame = useFrame();
 
   return (

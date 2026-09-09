@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { SeloDeCena } from "@/components/CenaBase";
+import { RODAPE, SeloDeCena } from "@/components/CenaBase";
 import { Janela } from "@/components/Janela";
 import { PACIENTE_360 } from "@/data/conteudo";
 import { Em, Palco, Selo } from "@/design-system/primitivas";
@@ -9,7 +9,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 23 — Paciente 360.
+ * CENA 27 — Paciente 360.
  *
  * A última tela de produto. A timeline mistura, na mesma coluna, o que veio do
  * Dental Office, o que a automação fez e o que o paciente respondeu — e essa
@@ -25,14 +25,14 @@ const ORIGEM_COR: Readonly<Record<string, string>> = {
   "Dental Office": cor.dentalOffice,
 };
 
-export function Cena23Paciente360() {
+export function Cena27Paciente360() {
   const frame = useFrame();
 
   return (
     <Palco fundo="#EEF1EA">
       <SeloDeCena />
 
-      <Em x={140} y={118} zIndex={8}>
+      <Em x={140} y={96} zIndex={8}>
         <Crescer em={2} dur={36} deEscala={0.968}>
           <Janela ativo="Pacientes">
             <div style={{ padding: "30px 36px", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -324,7 +324,9 @@ Histórico
         </Crescer>
       </Em>
 
-      <Em x={140} y={906} largura={1640} zIndex={9}>
+      {/* Mesma regra da cena da caixa de entrada: a frase fica em 872, acima
+          dos 915 onde a legenda começa a cobrir. */}
+      <Em x={140} y={RODAPE} largura={1640} zIndex={9}>
         <div
           style={{
             opacity: progresso(frame, 150, 26),

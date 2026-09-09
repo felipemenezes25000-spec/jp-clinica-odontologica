@@ -9,7 +9,7 @@ import { Contador, Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 21 — A home operacional.
+ * CENA 25 — A home operacional.
  *
  * Aqui a peça sai do diagrama e mostra o produto. A primeira frase da tela é a
  * tese inteira do sistema em duas linhas: um número que exige a pessoa, e outro
@@ -19,7 +19,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  * atenção é o que a tela grita.
  */
 
-export function Cena21Home() {
+export function Cena25Home() {
   const frame = useFrame();
 
   return (

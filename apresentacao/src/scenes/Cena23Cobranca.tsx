@@ -1,6 +1,13 @@
 import { HandCoins, Shield } from "lucide-react";
 import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
-import { Balao, CabecalhoConversa, Conversa, Fone } from "@/components/Fone";
+import {
+  Balao,
+  CabecalhoConversa,
+  CartaoNaConversa,
+  Conversa,
+  Fone,
+  Horario,
+} from "@/components/Fone";
 import { COBRANCA } from "@/data/conteudo";
 import { ILUSTRATIVO } from "@/data/metricas";
 import { Em, Ilustrativo, Palco } from "@/design-system/primitivas";
@@ -10,7 +17,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 19 — Cobrança de parcela em atraso.
+ * CENA 23 — Cobrança de parcela em atraso.
  *
  * A mensagem mais delicada que o sistema manda, e a que mais estraga
  * relacionamento quando sai errada. Por isso a cena inverte a ordem habitual:
@@ -24,9 +31,9 @@ import { easeOutQuint, progresso } from "@/motion/timing";
 const FONE = { x: 190, y: 128 };
 const COLUNA = { x: 740, largura: 1010 };
 
-const MENSAGENS_EM = [26, 108, 150];
+const MENSAGENS_EM = [26, 118, 168];
 
-export function Cena19Cobranca() {
+export function Cena23Cobranca() {
   const frame = useFrame();
 
   return (
@@ -57,11 +64,21 @@ export function Cena19Cobranca() {
                   hora={mensagem.hora}
                   {...("autor" in mensagem ? { autor: mensagem.autor } : {})}
                   entregue={mensagem.de === "clinica"}
-                  lida={mensagem.de === "clinica" && frame > 108}
+                  lida={mensagem.de === "clinica" && frame > 118}
                 >
                   {mensagem.texto}
                 </Balao>
               ))}
+
+              {/* O sistema não só cobra: ele resolve. Pix, boleto e cartão saem
+                  na mesma conversa, sem mandar ninguém para outro lugar. */}
+              <CartaoNaConversa titulo="Como prefere pagar?" em={192}>
+                <div style={{ display: "flex", gap: 9 }}>
+                  {COBRANCA.formas.map((forma) => (
+                    <Horario key={forma.nome} hora={forma.nome} />
+                  ))}
+                </div>
+              </CartaoNaConversa>
             </Conversa>
           </Fone>
         </Crescer>
@@ -156,11 +173,11 @@ export function Cena19Cobranca() {
       })}
 
       {/* O resultado ------------------------------------------------------ */}
-      <Em x={COLUNA.x} y={690} largura={COLUNA.largura} zIndex={9}>
+      <Em x={COLUNA.x} y={696} largura={COLUNA.largura} zIndex={9}>
         <div
           style={{
-            opacity: progresso(frame, 168, 28),
-            transform: `translate3d(0, ${(1 - progresso(frame, 168, 32, easeOutQuint)) * 16}px, 0)`,
+            opacity: progresso(frame, 236, 28),
+            transform: `translate3d(0, ${(1 - progresso(frame, 236, 32, easeOutQuint)) * 16}px, 0)`,
             background: cor.profundo,
             borderRadius: raio.enorme,
             padding: "26px 30px",
@@ -190,15 +207,15 @@ export function Cena19Cobranca() {
                 marginTop: 8,
               }}
             >
-              Dinheiro que já era da clínica e estava só esperando alguém lembrar.
+              {COBRANCA.baixa}
             </div>
           </div>
         </div>
       </Em>
 
       {ILUSTRATIVO && (
-        <Em x={COLUNA.x} y={822} zIndex={9}>
-          <div style={{ opacity: progresso(frame, 196, 26) }}>
+        <Em x={COLUNA.x} y={862} zIndex={9}>
+          <div style={{ opacity: progresso(frame, 268, 26) }}>
             <Ilustrativo />
           </div>
         </Em>

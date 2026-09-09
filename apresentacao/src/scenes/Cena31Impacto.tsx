@@ -7,7 +7,7 @@ import { useFrame } from "@/motion/frame";
 import { progresso } from "@/motion/timing";
 
 /**
- * CENA 27 — Impacto financeiro.
+ * CENA 31 — Impacto financeiro.
  *
  * A cena que o briefing pede e que mais precisa de contenção. A escada cresce,
  * mas o eixo NÃO tem número — porque não existe número honesto para colocar ali.
@@ -17,7 +17,7 @@ import { progresso } from "@/motion/timing";
  * O item 55 é explícito: nada de "aumenta a receita em X%". A frase de rodapé
  * está em tela, não só na documentação.
  */
-export function Cena27Impacto() {
+export function Cena31Impacto() {
   const frame = useFrame();
 
   return (
@@ -55,7 +55,7 @@ export function Cena27Impacto() {
         </div>
       </Em>
 
-      <NotaDeCena em={172} x={360} largura={1200} y={866} style={{ textAlign: "center" }}>
+      <NotaDeCena em={172} x={360} largura={1200} style={{ textAlign: "center" }}>
         {IMPACTO.aviso}
       </NotaDeCena>
     </Palco>

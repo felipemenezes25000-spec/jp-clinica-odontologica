@@ -1,8 +1,8 @@
 import { Layers, MessageSquare, ShieldCheck, SlidersHorizontal } from "lucide-react";
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { Raciocinio, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
 import { CamadaDeConexoes, Conexao } from "@/components/Conexao";
 import { No } from "@/components/No";
-import { REATIVACAO } from "@/data/conteudo";
+import { RACIOCINIO, REATIVACAO } from "@/data/conteudo";
 import { Em, Palco, Painel } from "@/design-system/primitivas";
 import { cor, fonte, raio, tamanho } from "@/design-system/tokens";
 import { useFrame } from "@/motion/frame";
@@ -11,7 +11,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
 import { curvaH } from "@/utils/caminho";
 
 /**
- * CENA 12 — Reativação em escala.
+ * CENA 13 — Reativação em escala.
  *
  * Escala assusta com razão: 4.281 mensagens num dia seria spam, e spam queima a
  * base que a clínica levou anos para construir. Por isso a cena mostra o lote
@@ -26,7 +26,7 @@ const CADEIA_Y = 296;
 const CADEIA_LARGURA = 470;
 const CADEIA_X = [170, 725, 1280];
 
-export function Cena12Reativacao() {
+export function Cena13Reativacao() {
   const frame = useFrame();
 
   return (
@@ -229,6 +229,7 @@ export function Cena12Reativacao() {
           </span>
         </div>
       </Em>
+      <Raciocinio em={160}>{RACIOCINIO.reativacao}</Raciocinio>
     </Palco>
   );
 }

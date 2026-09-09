@@ -16,8 +16,10 @@
     "video:render:vertical": "remotion render src/remotion/index.ts JPCRCVertical out/jp-crc-vertical.mp4",
     "video:thumbnail": "remotion still src/remotion/index.ts JPCRCThumbnail out/jp-crc-capa.png",
     "video:frame": "remotion still src/remotion/index.ts JPCRCMain out/frame.png --frame=0",
+    "cenas:ordenar": "node scripts/ordenar-cenas.mjs",
     "narracao": "node scripts/gerar-narracao.mjs",
-    "trilha": "node scripts/gerar-trilha.mjs"
+    "trilha": "node scripts/gerar-trilha.mjs",
+    "audio:conferir": "node scripts/conferir-audio.mjs"
   },
   "dependencies": {
     "@remotion/player": "4.0.522",

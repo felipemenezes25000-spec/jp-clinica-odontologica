@@ -140,7 +140,7 @@ export function Cena11BaseAntiga() {
       })}
 
       {/* O fecho ---------------------------------------------------------- */}
-      <Em x={170} y={834} largura={1580} zIndex={12}>
+      <Em x={170} y={800} largura={1580} zIndex={12}>
         <div
           style={{
             opacity: progresso(frame, 208, 26),

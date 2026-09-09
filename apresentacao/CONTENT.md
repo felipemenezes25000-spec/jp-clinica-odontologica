@@ -9,6 +9,7 @@ Nenhum texto, número ou tempo mora dentro de componente. Tudo está em
 | `narracao.json`         | A fala e a legenda (é o mesmo texto)                | JSON    |
 | `narracao.duracoes.json`| **Gerado.** Duração medida de cada fala             | JSON    |
 | `conteudo.ts`           | Títulos, listas, frases de cada cena                | TS      |
+| `conteudo.ts` → `RACIOCINIO` | As linhas "Por que" do rodapé                  | TS      |
 | `metricas.ts`           | Todos os números                                    | TS      |
 | `explorar.ts`           | Textos do modo explorar                             | TS      |
 | `marcas.ts`             | Registro de logos                                   | TS      |
@@ -58,6 +59,27 @@ cabem duas frases.
 silêncio das pontas já cortado, e gravada em `narracao.duracoes.json`. É por isso
 que a legenda entra quando a voz começa e sai quando ela termina — por
 construção, não por tentativa e erro.
+
+4. Rode `npm run trilha` **depois**. A música se abaixa nos trechos falados, e
+   para isso lê as durações que o passo anterior acabou de medir. Na ordem
+   invertida, ela fica alta por cima da voz.
+5. Rode `npm run audio:conferir`. Ele decodifica os dois arquivos e mede bloco a
+   bloco; se algum trecho ficou mudo, ele falha dizendo em que minuto.
+
+O passo 5 não é zelo excessivo: a trilha já saiu uma vez com três minutos de
+silêncio no meio — um `NaN` de arredondamento entrou num filtro com estado e
+zerou tudo dali para a frente. O arquivo tinha o tamanho certo e o build passou
+limpo. Quem descobriu foi o cliente assistindo.
+
+## A linha "Por que"
+
+Em oito cenas aparece um rodapé com o critério que o sistema usou para decidir o
+que acabou de fazer. Os textos ficam em `RACIOCINIO`, em `conteudo.ts`, e o
+componente é o `Raciocinio` de `components/CenaBase.tsx`.
+
+Duas regras ao editar: **uma linha só** (duas encostam na legenda) e **responder
+por que, não o quê** — "junta todos e começa pelo maior" descreve; "orçamento
+parado quase nunca é não, é depois" explica.
 
 ## A voz
 

@@ -1,5 +1,5 @@
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
-import { EVENTOS } from "@/data/conteudo";
+import { Raciocinio, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { EVENTOS, RACIOCINIO } from "@/data/conteudo";
 import { Em, Palco, Selo } from "@/design-system/primitivas";
 import { cor, fonte, raio, tamanho } from "@/design-system/tokens";
 import { useFrame } from "@/motion/frame";
@@ -161,6 +161,7 @@ export function Cena06Eventos() {
           </span>
         </div>
       </Em>
+      <Raciocinio em={200}>{RACIOCINIO.eventos}</Raciocinio>
     </Palco>
   );
 }

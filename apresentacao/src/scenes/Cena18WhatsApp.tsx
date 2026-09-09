@@ -9,7 +9,7 @@ import { Crescer, Entrar } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 14 — WhatsApp.
+ * CENA 18 — WhatsApp.
  *
  * O momento em que o sistema deixa de ser diagrama e vira conversa. Depois de
  * doze cenas de arquitetura, ver uma frase escrita para uma pessoa recoloca a
@@ -23,7 +23,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
 
 const FONE = { x: 1210, y: 130 };
 
-export function Cena14WhatsApp() {
+export function Cena18WhatsApp() {
   const frame = useFrame();
 
   return (
@@ -141,8 +141,13 @@ export function Cena14WhatsApp() {
         </Crescer>
       </Em>
 
-      {/* O realce que leva para a cena 15 -------------------------------- */}
-      <Em x={FONE.x - 150} y={FONE.y + 560} zIndex={14}>
+      {/* O realce que leva para a próxima cena ---------------------------- */}
+      {/* Fica À ESQUERDA do aparelho, não sobre ele: a seta aponta para a
+          resposta do paciente, e uma etiqueta em cima do balão esconde
+          justamente a frase que ela está mandando ler. Cabe na faixa entre o
+          texto da esquerda (que termina em 896) e o aparelho (que começa em
+          1210) — foi por isso que a frase encurtou. */}
+      <Em x={920} y={FONE.y + 560} zIndex={14}>
         <div
           style={{
             opacity: progresso(frame, 208, 20) * (1 - progresso(frame, 258, 12)),
@@ -165,7 +170,7 @@ export function Cena14WhatsApp() {
               letterSpacing: "0.04em",
             }}
           >
-            É esta resposta que o sistema lê →
+            O sistema lê esta resposta →
           </span>
         </div>
       </Em>

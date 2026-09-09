@@ -8,7 +8,7 @@ import { Barra, Contador } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 24 — Resultados acumulados.
+ * CENA 28 — Resultados acumulados.
  *
  * Quatro números grandes, com a barra embaixo mostrando a queda de um para o
  * outro. A barra existe para impedir a leitura errada: 287 agendamentos ao lado
@@ -23,7 +23,7 @@ const COLUNA_LARGURA = 380;
 const ESPACO = 40;
 const X0 = (1920 - (4 * COLUNA_LARGURA + 3 * ESPACO)) / 2;
 
-export function Cena24Resultados() {
+export function Cena28Resultados() {
   const frame = useFrame();
   const topo = RESULTADOS[0]!.valor;
 

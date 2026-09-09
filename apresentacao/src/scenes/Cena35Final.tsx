@@ -8,7 +8,7 @@ import { easeIn, easeOutQuint, progresso } from "@/motion/timing";
 import { asset } from "@/utils/asset";
 
 /**
- * CENA 31 — Final.
+ * CENA 35 — Final.
  *
  * A fachada da clínica entra no fundo com 12% de opacidade sob um véu claro. É
  * o único momento em que a peça mostra o lugar físico — e ele fecha o arco:
@@ -17,7 +17,7 @@ import { asset } from "@/utils/asset";
  * A foto é a do próprio site (`src/assets/fachada-letreiro.webp`), copiada para
  * `public/fotos/`. Nada é buscado de fora: o render precisa funcionar sem rede.
  */
-export function Cena31Final() {
+export function Cena35Final() {
   const frame = useFrame();
   const saida = progresso(frame, 226, 44, easeIn);
 
@@ -50,14 +50,14 @@ export function Cena31Final() {
 
       <div style={{ position: "absolute", inset: 0, opacity: 1 - saida }}>
         {/* Marca -------------------------------------------------------- */}
-        <Em x={960} y={300} ancora="centro" zIndex={10}>
+        <Em x={960} y={244} ancora="centro" zIndex={10}>
           <Crescer em={6} dur={38} deEscala={0.95}>
             <Marca chave="jpSimbolo" altura={112} />
           </Crescer>
         </Em>
 
         {/* Nome do produto ---------------------------------------------- */}
-        <Em x={960} y={396} ancora="topo-centro" largura={1200} zIndex={10}>
+        <Em x={960} y={336} ancora="topo-centro" largura={1200} zIndex={10}>
           <div style={{ textAlign: "center" }}>
             <Entrar em={30} dur={32} de="baixo" distancia={18}>
               <div
@@ -77,7 +77,7 @@ export function Cena31Final() {
         </Em>
 
         {/* As quatro promessas ------------------------------------------ */}
-        <Em x={960} y={558} ancora="topo-centro" largura={1200} zIndex={10}>
+        <Em x={960} y={494} ancora="topo-centro" largura={1200} zIndex={10}>
           <div style={{ textAlign: "center" }}>
             {FINAL.subtitulo.map((linha, i) => {
               const t = progresso(frame, 62 + i * 18, 26, easeOutQuint);
@@ -103,7 +103,12 @@ export function Cena31Final() {
         </Em>
 
         {/* Assinatura --------------------------------------------------- */}
-        <Em x={960} y={846} ancora="topo-centro" zIndex={10}>
+        {/* A cena inteira está 60 px mais alta do que o instinto pediria, e é
+            por causa daqui: o bloco tem filete, logo e frase, quase 130 px de
+            altura. Assentado onde ficava, terminava em 976 — atrás da legenda,
+            que é desenhada por cima. A assinatura da clínica é a última imagem
+            do filme; não pode ser a única coberta. */}
+        <Em x={960} y={754} ancora="topo-centro" zIndex={10}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 22 }}>
             <div
               style={{

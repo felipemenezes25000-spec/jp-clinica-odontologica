@@ -1,13 +1,13 @@
 import { ArrowRight } from "lucide-react";
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
-import { INTENCOES } from "@/data/conteudo";
+import { Raciocinio, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { INTENCOES, RACIOCINIO } from "@/data/conteudo";
 import { Em, Palco } from "@/design-system/primitivas";
 import { cor, fonte, raio, tamanho } from "@/design-system/tokens";
 import { useFrame } from "@/motion/frame";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 16 — Outras intenções.
+ * CENA 20 — Outras intenções.
  *
  * A cena que impede a peça de vender uma IA que só sabe lidar com o caso feliz.
  * Cinco respostas reais, e o que o sistema faz com cada uma — inclusive as duas
@@ -22,7 +22,7 @@ const LINHA = { x: 200, largura: 1520, altura: 82, espaco: 12, y0: 274 };
 const COL_FALA = 660;
 const COL_SAIDA = 380;
 
-export function Cena16Intencoes() {
+export function Cena20Intencoes() {
   const frame = useFrame();
 
   return (
@@ -196,6 +196,7 @@ Vai para a equipe
           </span>
         </div>
       </Em>
+      <Raciocinio em={170}>{RACIOCINIO.intencoes}</Raciocinio>
     </Palco>
   );
 }

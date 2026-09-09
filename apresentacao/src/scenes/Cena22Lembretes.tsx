@@ -1,5 +1,5 @@
 import { BellRing, CalendarClock, RefreshCcw } from "lucide-react";
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { Raciocinio, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
 import {
   Balao,
   CabecalhoConversa,
@@ -8,7 +8,7 @@ import {
   Fone,
   Horario,
 } from "@/components/Fone";
-import { LEMBRETES } from "@/data/conteudo";
+import { LEMBRETES, RACIOCINIO } from "@/data/conteudo";
 import { Em, Palco } from "@/design-system/primitivas";
 import { cor, fonte, raio, sombra, tamanho } from "@/design-system/tokens";
 import { useFrame } from "@/motion/frame";
@@ -16,7 +16,7 @@ import { Crescer } from "@/motion/primitivas";
 import { easeOutQuint, progresso } from "@/motion/timing";
 
 /**
- * CENA 18 — Lembrete e confirmação.
+ * CENA 22 — Lembrete e confirmação.
  *
  * A consulta marcada não é o fim da história: entre marcar e comparecer existe
  * a maior fonte de perda da clínica, que é a falta. Esta cena mostra os três
@@ -37,7 +37,7 @@ const OPCOES = 60;
 const CONFIRMA = 132;
 const FECHA = 186;
 
-export function Cena18Lembretes() {
+export function Cena22Lembretes() {
   const frame = useFrame();
 
   return (
@@ -262,6 +262,7 @@ export function Cena18Lembretes() {
           </div>
         </div>
       </Em>
+      <Raciocinio em={210}>{RACIOCINIO.lembretes}</Raciocinio>
     </Palco>
   );
 }

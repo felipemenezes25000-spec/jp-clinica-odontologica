@@ -1,7 +1,7 @@
 import { Sparkles } from "lucide-react";
-import { SeloDeCena, TituloDeCena } from "@/components/CenaBase";
+import { Raciocinio, SeloDeCena, TituloDeCena } from "@/components/CenaBase";
 import { CamadaDeConexoes, Conexao } from "@/components/Conexao";
-import { IA } from "@/data/conteudo";
+import { IA, RACIOCINIO } from "@/data/conteudo";
 import { Em, Halo, Palco } from "@/design-system/primitivas";
 import { cor, fonte, raio, sombra, tamanho } from "@/design-system/tokens";
 import { useFrame } from "@/motion/frame";
@@ -10,7 +10,7 @@ import { aleatorio, easeOutQuint, progresso } from "@/motion/timing";
 import { curvaH } from "@/utils/caminho";
 
 /**
- * CENA 15 — A IA.
+ * CENA 19 — A IA.
  *
  * A frase do paciente entra de um lado e sai do outro como quatro campos. É a
  * imagem que desfaz a ideia de "IA que conversa": o que ela produz aqui é dado
@@ -23,7 +23,7 @@ import { curvaH } from "@/utils/caminho";
 
 const NUCLEO = { x: 830, y: 470 };
 
-export function Cena15Ia() {
+export function Cena19Ia() {
   const frame = useFrame();
   const processando = progresso(frame, 54, 40);
   const resultado = 88;
@@ -250,6 +250,7 @@ export function Cena15Ia() {
           })}
         </div>
       </Em>
+      <Raciocinio em={170}>{RACIOCINIO.ia}</Raciocinio>
     </Palco>
   );
 }

@@ -4,7 +4,8 @@ Uma peça, dois destinos: um **tour interativo** publicado em
 `/crc-institucional` no site da clínica e um **vídeo MP4** renderizável. Os dois
 desenham exatamente o mesmo filme — o que muda é só quem conta o tempo.
 
-**31 cenas · 4:33 · narração falada em português e legenda sincronizada.**
+**35 cenas · 5:24 · narração falada em português, legenda sincronizada e trilha
+original.**
 
 ```bash
 npm install
@@ -12,10 +13,17 @@ npm install
 npm run dev              # tour           → http://localhost:5180/crc-tour/
 npm run build            # publica em     ../public/crc-tour/
 npm run narracao         # regera a voz e os tempos das legendas
+npm run trilha           # regera a música — SEMPRE depois da narração
+npm run audio:conferir   # confere que os dois áudios têm som do início ao fim
+npm run cenas:ordenar    # renumera os arquivos de cena pela ordem do filme
 npm run video:preview    # Remotion Studio
 npm run video:render     # gera out/jp-crc-1080p.mp4
 npm run check            # tipos + build
 ```
+
+> A ordem `narracao` → `trilha` não é preferência: a música se abaixa nos
+> trechos em que a voz entra, e para isso precisa da duração medida de cada
+> fala. Invertida, a música fica alta em cima da narração.
 
 > **Sub-projeto isolado**, com o próprio `package.json`. Ele não é importado pelo
 > bundle do site e não altera o build dele — decisão tomada por causa do
@@ -51,11 +59,18 @@ Teclado: `espaço` pausa · `←` `→` movem 3 s (com `shift`, 10 s) · `F` tel
 
 ## O que o filme conta
 
-Do dado ao resultado, em sete capítulos: de onde vêm os dados (Dental Office),
+Do dado ao resultado, em oito capítulos: de onde vêm os dados (Dental Office),
 quem precisa de contato, o que roda sozinho — **faltas, retorno, pacientes
-antigos, campanhas, aniversariantes** —, a conversa no WhatsApp com **IA,
-agendamento, lembrete de consulta e cobrança de parcela em atraso**, o dia da
-equipe e os resultados. Cena a cena em [STORYBOARD.md](STORYBOARD.md).
+antigos, orçamentos parados, campanhas e aniversariantes, e como a clínica monta
+uma campanha do zero** —, o que acontece com **quem clica no anúncio pago e
+quanto custou cada paciente que apareceu**, a conversa no WhatsApp com **IA,
+agendamento, lembrete de consulta e cobrança de parcela em atraso com Pix, boleto
+ou cartão**, o dia da equipe e os resultados. Cena a cena em
+[STORYBOARD.md](STORYBOARD.md).
+
+Oito vezes ao longo do filme aparece no rodapé a linha **"Por que"**: o critério
+que o sistema usou para tomar aquela decisão. É assim que a peça mostra
+inteligência em vez de afirmar que ela existe.
 
 ## Como está organizado
 
@@ -65,7 +80,7 @@ src/
   design-system/ cores, tipografia, blocos visuais
   motion/        a matemática do movimento (sem React, sem Remotion)
   components/    nós, conexões, celular, gráficos, janela do produto
-  scenes/        as 31 cenas, na ordem do filme
+  scenes/        as 35 cenas, na ordem do filme (numeradas por cenas:ordenar)
   film/          o filme: dado um frame, desenha o quadro
   interactive/   player, controles, legenda, modo explorar
   remotion/      as composições de vídeo
@@ -86,9 +101,11 @@ o que garante que o MP4 seja idêntico ao que se vê no navegador.
 | Trocar a narração/legenda     | `src/data/narracao.json`, depois `npm run narracao`                |
 | Trocar a voz                  | `npm run narracao -- --voz pt-BR-AntonioNeural`                    |
 | Trocar os números             | `src/data/metricas.ts`                                            |
-| Alongar ou encurtar uma cena  | `src/data/cenas.json`, depois `npm run narracao`                   |
+| Alongar ou encurtar uma cena  | `src/data/cenas.json`, depois `narracao` e `trilha`                |
+| Acrescentar uma cena no meio  | criar o `.tsx`, somar em `cenas.json` e no `index.ts`, e rodar `npm run cenas:ordenar` |
+| Abrir o tour num trecho       | `?cena=cobranca`, `?frame=5990` ou `?t=3:08` na URL                |
 | Colocar um logo real          | `src/data/marcas.ts` + a pasta em `public/brands/`                 |
-| Colocar música                | `public/audio/` + `src/data/audio.ts`                              |
+| Mexer na música               | `scripts/gerar-trilha.mjs` — ela é sintetizada, não é arquivo baixado |
 | Regravar a locução com pessoa | `out/roteiro-narracao.txt` traz o texto com as marcações de tempo   |
 | Publicar a versão nova        | `npm run build` (cai em `../public/crc-tour/`)                     |
 

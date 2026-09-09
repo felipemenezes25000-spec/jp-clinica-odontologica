@@ -22,6 +22,7 @@ export type ChaveCapitulo =
   | "dados"
   | "oportunidades"
   | "automacao"
+  | "midia"
   | "conversa"
   | "operacao"
   | "resultados";
@@ -38,8 +39,12 @@ export type IdCena =
   | "divisao"
   | "automacoes"
   | "baseAntiga"
+  | "orcamentos"
   | "reativacao"
   | "campanhas"
+  | "montarCampanha"
+  | "leadPago"
+  | "midia"
   | "whatsapp"
   | "ia"
   | "intencoes"
@@ -123,6 +128,7 @@ export const NOMES_CAPITULO: Readonly<Record<ChaveCapitulo, string>> = {
   dados: "De onde vêm os dados",
   oportunidades: "Quem precisa de contato",
   automacao: "O que roda sozinho",
+  midia: "Anúncios e leads",
   conversa: "A conversa",
   operacao: "O dia da equipe",
   resultados: "Resultados",

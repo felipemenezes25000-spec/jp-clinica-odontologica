@@ -8,7 +8,7 @@ import { Camera, Entrar } from "@/motion/primitivas";
 import { progresso } from "@/motion/timing";
 
 /**
- * CENA 29 — O ecossistema completo.
+ * CENA 33 — O ecossistema completo.
  *
  * A câmera se afasta. Literalmente: o palco entra em 1,14 e volta para 1 ao
  * longo de dois segundos, então o mapa parece revelado por afastamento, e não
@@ -17,7 +17,7 @@ import { progresso } from "@/motion/timing";
  * Aqui a peça paga a dívida das cenas anteriores — tudo que foi visto de perto
  * aparece junto, na mesma escala, e o espectador confere que era um sistema só.
  */
-export function Cena29Ecossistema() {
+export function Cena33Ecossistema() {
   const frame = useFrame();
 
   return (
