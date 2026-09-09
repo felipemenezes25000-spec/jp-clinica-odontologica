@@ -1,0 +1,951 @@
+/*
+ * Segundo passe visual do JP CRC — tela por tela.
+ *
+ * Esta camada não muda regra de negócio. Ela trabalha composição, densidade,
+ * hierarquia, estados e affordances dos fluxos que já existem.
+ */
+
+/* ========================================================================== */
+/* Ritmo global de tela                                                       */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo {
+  padding-top: 22px;
+}
+
+.crc-app .crc-cabecalho-premium {
+  position: relative;
+  overflow: hidden;
+  padding: 22px 24px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  border-radius: 22px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.98), rgba(248, 252, 247, 0.96)),
+    var(--crc-superficie);
+  box-shadow: 0 18px 48px -42px rgba(7, 92, 34, 0.5);
+}
+
+.crc-app .crc-cabecalho-premium::after {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -110px;
+  top: -150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(86, 168, 5, 0.12), transparent 68%);
+  pointer-events: none;
+}
+
+.crc-app .crc-cabecalho-icone {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: linear-gradient(145deg, #075c22, #0c7a30);
+  color: #fff;
+  box-shadow: 0 12px 28px -18px rgba(7, 92, 34, 0.75);
+}
+
+.crc-app .crc-cabecalho-icone svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2;
+}
+
+.crc-app .crc-cabecalho-copy {
+  max-width: 760px;
+}
+
+.crc-app .crc-cabecalho-copy .crc-corpo {
+  margin-top: 7px;
+  max-width: 70ch;
+  line-height: 1.62;
+}
+
+.crc-app .crc-sobretitulo {
+  margin-bottom: 4px;
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.115em;
+  text-transform: uppercase;
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-legenda {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: flex-end;
+  max-width: 370px;
+}
+
+.crc-app .crc-legenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--crc-texto-2);
+  font-size: 0.76rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.crc-app .crc-legenda-ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--crc-borda-forte);
+  box-shadow: 0 0 0 3px rgba(104, 122, 109, 0.08);
+}
+
+.crc-app .crc-legenda-item[data-tom="positiva"] .crc-legenda-ponto {
+  background: var(--crc-primaria);
+  box-shadow: 0 0 0 3px var(--crc-primaria-suave);
+}
+.crc-app .crc-legenda-item[data-tom="alerta"] .crc-legenda-ponto {
+  background: var(--crc-alerta);
+  box-shadow: 0 0 0 3px var(--crc-alerta-suave);
+}
+.crc-app .crc-legenda-item[data-tom="perigo"] .crc-legenda-ponto {
+  background: var(--crc-perigo);
+  box-shadow: 0 0 0 3px var(--crc-perigo-suave);
+}
+.crc-app .crc-legenda-item[data-tom="info"] .crc-legenda-ponto {
+  background: var(--crc-info);
+  box-shadow: 0 0 0 3px var(--crc-info-suave);
+}
+
+/* Cartões de seção mais claros: título e ação ficam visualmente separados do conteúdo. */
+.crc-app .crc-cartao > header:first-child {
+  min-height: 38px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(7, 92, 34, 0.08);
+}
+
+.crc-app .crc-cartao > header:first-child + * {
+  margin-top: 1px;
+}
+
+/* Listas operacionais dentro de cartões deixam de parecer texto solto. */
+.crc-app .crc-cartao > ul:not(.crc-porque-lista),
+.crc-app .crc-cartao > div > ul:not(.crc-porque-lista) {
+  margin-top: 2px !important;
+}
+
+.crc-app .crc-cartao > ul:not(.crc-porque-lista) > li,
+.crc-app .crc-cartao > div > ul:not(.crc-porque-lista) > li {
+  position: relative;
+}
+
+.crc-app .crc-cartao > ul:not(.crc-porque-lista) > li > .crc-linha,
+.crc-app .crc-cartao > div > ul:not(.crc-porque-lista) > li > .crc-linha {
+  min-height: 62px;
+  padding: 11px 12px;
+  margin-inline: -4px;
+  border-radius: 12px;
+  transition: background var(--crc-transicao), transform var(--crc-transicao);
+}
+
+.crc-app .crc-cartao > ul:not(.crc-porque-lista) > li > .crc-linha:hover,
+.crc-app .crc-cartao > div > ul:not(.crc-porque-lista) > li > .crc-linha:hover {
+  background: rgba(7, 92, 34, 0.035);
+}
+
+/* ========================================================================== */
+/* HOME — uma central operacional, não um dashboard genérico                 */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo:has(.crc-painel-duplo) > header:first-of-type {
+  position: relative;
+  padding: 27px 28px 26px;
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 15%, rgba(86, 168, 5, 0.14), transparent 16rem),
+    linear-gradient(125deg, #ffffff 0%, #f8fcf6 100%);
+  overflow: hidden;
+  box-shadow: 0 24px 56px -46px rgba(7, 92, 34, 0.6);
+}
+
+.crc-app .crc-conteudo:has(.crc-painel-duplo) > header:first-of-type .crc-titulo-pagina {
+  font-size: clamp(2rem, 1.45rem + 1.45vw, 2.85rem);
+  font-weight: 650;
+  letter-spacing: -0.045em;
+}
+
+.crc-app .crc-painel-duplo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.72fr);
+  gap: 18px;
+}
+
+.crc-app .crc-painel-duplo > .crc-grade {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: stretch;
+}
+
+.crc-app .crc-painel-duplo .crc-kpi {
+  min-height: 158px;
+  justify-content: flex-end;
+  padding: 20px;
+}
+
+.crc-app .crc-painel-duplo .crc-kpi-valor {
+  font-size: clamp(2.1rem, 1.55rem + 1.15vw, 3rem);
+}
+
+.crc-app .crc-painel-duplo > .crc-cartao {
+  border-color: rgba(7, 92, 34, 0.13);
+  background:
+    linear-gradient(155deg, rgba(7, 92, 34, 0.035), transparent 52%),
+    #fff;
+}
+
+.crc-app .crc-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crc-app .crc-fila-item {
+  border: 1px solid var(--crc-borda);
+  border-left-width: 4px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 26px -26px rgba(16, 34, 25, 0.5);
+  transition:
+    transform var(--crc-transicao),
+    box-shadow var(--crc-transicao),
+    border-color var(--crc-transicao);
+}
+
+.crc-app .crc-fila-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px -28px rgba(7, 92, 34, 0.5);
+}
+
+.crc-app .crc-fila-nota {
+  box-shadow: inset 0 0 0 1px rgba(7, 92, 34, 0.08);
+}
+
+.crc-app .crc-fila-nome {
+  font-size: 0.99rem;
+  font-weight: 720;
+  letter-spacing: -0.012em;
+}
+
+.crc-app .crc-fila-motivo {
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+.crc-app .crc-porque {
+  margin-top: 14px;
+  padding: 14px 15px;
+  border-radius: 13px;
+  background: #f8faf6;
+  border: 1px solid rgba(7, 92, 34, 0.08);
+}
+
+/* ========================================================================== */
+/* MEU TRABALHO — fila pessoal escaneável                                    */
+/* ========================================================================== */
+
+/* A tela não tem wrapper próprio; a composição é protegida por cartões e listas. */
+.crc-app .crc-cartao li .crc-etiqueta-perigo {
+  box-shadow: 0 0 0 2px rgba(168, 32, 15, 0.06);
+}
+
+.crc-app .crc-cartao li .crc-botao-primario {
+  min-width: 86px;
+}
+
+.crc-app .crc-cartao li .crc-botao-discreto {
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-cartao li .crc-separador {
+  margin: 4px 0;
+  opacity: 0.62;
+}
+
+/* ========================================================================== */
+/* CONVERSAS — foco total no atendimento                                     */
+/* ========================================================================== */
+
+.crc-app .crc-inbox {
+  grid-template-columns: minmax(280px, 330px) minmax(430px, 1fr) minmax(260px, 310px);
+  gap: 12px;
+  height: calc(100dvh - 238px);
+  min-height: 530px;
+}
+
+.crc-app .crc-inbox .crc-painel {
+  border-radius: 18px;
+  border-color: rgba(7, 92, 34, 0.11);
+  box-shadow: 0 18px 38px -34px rgba(7, 92, 34, 0.34);
+}
+
+.crc-app .crc-inbox .crc-painel:nth-child(2) {
+  border-color: rgba(7, 92, 34, 0.18);
+  box-shadow: 0 22px 44px -34px rgba(7, 92, 34, 0.42);
+}
+
+.crc-app .crc-inbox .crc-painel-topo {
+  min-height: 60px;
+  padding: 13px 16px;
+  background: linear-gradient(180deg, #fff, #fbfcfa);
+}
+
+.crc-app .crc-conversa-item {
+  position: relative;
+  min-height: 72px;
+  padding: 13px 15px;
+  transition: background var(--crc-transicao), box-shadow var(--crc-transicao);
+}
+
+.crc-app .crc-conversa-item[aria-selected="true"] {
+  background: linear-gradient(90deg, var(--crc-primaria-suave), #f7fbf5);
+  box-shadow: inset 3px 0 0 var(--crc-primaria);
+}
+
+.crc-app .crc-conversa-item:hover:not([aria-selected="true"]) {
+  background: #f7faf6;
+}
+
+.crc-app .crc-mensagens {
+  gap: 10px;
+  padding: 20px 18px 26px;
+  background:
+    radial-gradient(circle at 15% 8%, rgba(7, 92, 34, 0.025), transparent 18rem),
+    #fcfdfb;
+}
+
+.crc-app .crc-balao {
+  max-width: min(72%, 640px);
+  padding: 10px 13px;
+  border-radius: 15px;
+  line-height: 1.52;
+  box-shadow: 0 5px 16px -14px rgba(16, 34, 25, 0.55);
+}
+
+.crc-app .crc-balao-entrada {
+  border: 1px solid #e4eae1;
+  background: #fff;
+}
+
+.crc-app .crc-balao-saida {
+  background: linear-gradient(145deg, #075c22, #0a6d28);
+}
+
+.crc-app .crc-balao-nota {
+  max-width: 78%;
+  background: #fff8eb;
+  border-width: 1px;
+  border-style: dashed;
+}
+
+.crc-app .crc-inbox .crc-painel-rodape {
+  padding: 13px 14px;
+  background: #fff;
+}
+
+.crc-app .crc-inbox .crc-painel-rodape .crc-area {
+  min-height: 82px !important;
+  border-radius: 13px;
+  background: #fbfcfa;
+}
+
+.crc-app .crc-inbox .crc-painel:nth-child(3) .crc-painel-corpo > .crc-pilha > div {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(7, 92, 34, 0.07);
+}
+
+.crc-app .crc-inbox .crc-painel:nth-child(3) .crc-painel-corpo > .crc-pilha > div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+/* ========================================================================== */
+/* FUNIL — leitura lateral rápida e cartões com ação clara                    */
+/* ========================================================================== */
+
+.crc-app .crc-filtros-funil {
+  gap: 9px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 10px 30px -30px rgba(7, 92, 34, 0.4);
+}
+
+.crc-app .crc-filtros-funil .crc-selecao {
+  min-width: 185px;
+  background: #fff;
+}
+
+.crc-app .crc-visoes {
+  margin: 0 0 13px;
+  padding: 0 3px 12px;
+}
+
+.crc-app .crc-funil {
+  gap: 12px;
+  padding: 2px 2px 14px;
+  scroll-snap-type: x proximity;
+}
+
+.crc-app .crc-coluna {
+  flex-basis: 292px;
+  scroll-snap-align: start;
+  max-height: calc(100dvh - 310px);
+  border-color: rgba(7, 92, 34, 0.105);
+  border-radius: 17px;
+  background: #f8faf7;
+  box-shadow: 0 14px 34px -34px rgba(7, 92, 34, 0.4);
+}
+
+.crc-app .crc-coluna-topo {
+  min-height: 52px;
+  padding: 12px 13px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 17px 17px 0 0;
+}
+
+.crc-app .crc-coluna-corpo {
+  gap: 9px;
+  padding: 9px;
+}
+
+.crc-app .crc-cartao-funil {
+  gap: 5px;
+  padding: 13px;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 8px 18px -18px rgba(16, 34, 25, 0.4);
+}
+
+.crc-app .crc-cartao-funil:hover {
+  transform: translateY(-1px);
+  border-color: rgba(7, 92, 34, 0.25);
+  box-shadow: 0 16px 28px -24px rgba(7, 92, 34, 0.45);
+}
+
+.crc-app .crc-cartao-funil .crc-selecao {
+  height: 34px;
+  font-size: 0.82rem;
+  background: #fbfcfa;
+}
+
+/* ========================================================================== */
+/* AGENDA — dias como blocos, horários como eixo visual                       */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) > .crc-grade:first-of-type {
+  grid-template-columns: repeat(3, minmax(190px, 1fr));
+  margin-bottom: 4px;
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) > .crc-linha {
+  width: fit-content;
+  padding: 4px;
+  border-radius: 12px;
+  background: #eaf0e7;
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) > .crc-linha .crc-botao {
+  border-radius: 9px;
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao {
+  padding: 0;
+  overflow: hidden;
+  border-color: rgba(7, 92, 34, 0.11);
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao > header {
+  margin: 0 !important;
+  padding: 14px 17px !important;
+  min-height: 54px;
+  align-items: center !important;
+  background: linear-gradient(90deg, #f3f8f0, #fbfdf9);
+  border-bottom: 1px solid rgba(7, 92, 34, 0.09);
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao > header h2 {
+  font-family: var(--crc-fonte-display);
+  font-size: 1.08rem !important;
+  font-weight: 650;
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao .crc-conversa-item {
+  min-height: 66px;
+  padding: 10px 17px;
+  border-bottom-color: #edf1ea;
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao .crc-conversa-item:hover {
+  background: #f7faf5;
+}
+
+.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao .crc-conversa-item > .crc-numero {
+  min-width: 4rem !important;
+  color: var(--crc-primaria);
+  font-family: var(--crc-fonte-dado);
+  font-size: 0.91rem;
+}
+
+/* ========================================================================== */
+/* PACIENTES — busca quase instantânea e ficha como workspace                 */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo:has(#crc-busca-paciente) > div:first-child {
+  max-width: none !important;
+  margin-bottom: 18px !important;
+  padding: 17px;
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  border-radius: 18px;
+  background:
+    linear-gradient(120deg, rgba(7, 92, 34, 0.035), transparent 55%),
+    #fff;
+}
+
+.crc-app #crc-busca-paciente {
+  height: 48px;
+  padding-inline: 16px;
+  border-radius: 13px;
+  font-size: 1rem;
+  box-shadow: inset 0 1px 1px rgba(16, 34, 25, 0.02);
+}
+
+.crc-app .crc-conteudo:has(#crc-busca-paciente) .crc-tabela-caixa {
+  box-shadow: 0 18px 44px -38px rgba(7, 92, 34, 0.42);
+}
+
+.crc-app .crc-conteudo:has(#crc-busca-paciente) .crc-tabela td:first-child strong {
+  font-size: 0.95rem;
+}
+
+.crc-app .crc-conteudo:has(#aba-resumo) > .crc-botao:first-child {
+  margin-bottom: 2px;
+  color: var(--crc-primaria);
+  background: transparent;
+  border-color: transparent;
+}
+
+.crc-app .crc-conteudo:has(#aba-resumo) > header {
+  margin: 10px 0 16px !important;
+  padding: 20px 22px;
+  border: 1px solid rgba(7, 92, 34, 0.11);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(86, 168, 5, 0.1), transparent 15rem),
+    #fff;
+}
+
+.crc-app .crc-conteudo:has(#aba-resumo) > header .crc-titulo-pagina {
+  font-size: clamp(1.75rem, 1.4rem + 1vw, 2.35rem);
+}
+
+.crc-app .crc-conteudo:has(#aba-resumo) .crc-abas {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  padding: 0 7px;
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.93);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 28px -30px rgba(7, 92, 34, 0.45);
+}
+
+.crc-app .crc-conteudo:has(#aba-resumo) .crc-aba {
+  min-height: 45px;
+}
+
+.crc-app .crc-conteudo:has(#aba-resumo) [role="tabpanel"] > .crc-cartao {
+  border-color: rgba(7, 92, 34, 0.1);
+}
+
+/* ========================================================================== */
+/* GESTÃO — leitura executiva e gráficos com presença                        */
+/* ========================================================================== */
+
+.crc-app .crc-cartao:has([role="img"]) {
+  padding: 21px;
+  border-color: rgba(7, 92, 34, 0.11);
+  background:
+    linear-gradient(150deg, rgba(7, 92, 34, 0.025), transparent 48%),
+    #fff;
+}
+
+.crc-app .crc-cartao:has([role="img"]) [role="img"] {
+  position: relative;
+}
+
+.crc-app .crc-cartao:has([role="img"]) [role="img"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(7, 92, 34, 0.12), transparent);
+  pointer-events: none;
+}
+
+.crc-app .crc-conteudo .crc-grade + .crc-pilha > .crc-cartao {
+  scroll-margin-top: 18px;
+}
+
+/* ========================================================================== */
+/* IMPORTAÇÃO — fluxo em etapas                                              */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo:has(#crc-importar-arquivo) > .crc-pilha > .crc-cartao:first-child {
+  position: relative;
+  overflow: hidden;
+  padding: 22px;
+  background:
+    radial-gradient(circle at 96% 0%, rgba(86, 168, 5, 0.12), transparent 17rem),
+    #fff;
+}
+
+.crc-app .crc-conteudo:has(#crc-importar-arquivo) > .crc-pilha > .crc-cartao:first-child::before {
+  content: "1  ESCOLHA E LEIA";
+  display: inline-flex;
+  margin-bottom: 14px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+}
+
+.crc-app #crc-importar-arquivo {
+  height: auto;
+  min-height: 50px;
+  padding: 9px 10px;
+  border-style: dashed;
+  border-width: 1.5px;
+  background: #f9fbf8;
+}
+
+.crc-app #crc-importar-arquivo::file-selector-button {
+  margin-right: 11px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--crc-primaria);
+  color: #fff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.crc-app .crc-conteudo:has(#crc-importar-arquivo) .crc-grade .crc-kpi {
+  min-height: 112px;
+}
+
+.crc-app .crc-conteudo:has(#crc-importar-arquivo) .crc-cartao:has(.crc-grade) {
+  border-color: rgba(26, 91, 138, 0.18);
+}
+
+.crc-app .crc-conteudo:has(#crc-importar-arquivo) .crc-cartao-compacto {
+  padding: 11px 13px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 11px;
+  background: #fbfcfa;
+}
+
+/* ========================================================================== */
+/* AUTOMAÇÕES — cada jornada como produto controlável                        */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo:has(input[type="radio"][name^="modo-"]) > .crc-pilha > .crc-cartao {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border-color: rgba(7, 92, 34, 0.11);
+}
+
+.crc-app .crc-conteudo:has(input[type="radio"][name^="modo-"]) > .crc-pilha > .crc-cartao::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--crc-primaria), #56a805);
+  opacity: 0.7;
+}
+
+.crc-app .crc-conteudo:has(input[type="radio"][name^="modo-"]) fieldset {
+  padding: 13px !important;
+  border-radius: 13px !important;
+  background: #f8faf7;
+}
+
+.crc-app .crc-conteudo:has(input[type="radio"][name^="modo-"]) fieldset label {
+  min-height: 50px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+.crc-app .crc-conteudo:has(input[type="radio"][name^="modo-"]) fieldset label:has(input:checked) {
+  border-color: var(--crc-primaria-borda);
+  background: var(--crc-primaria-suave);
+}
+
+.crc-app .crc-conteudo:has(input[type="radio"][name^="modo-"]) input[type="radio"] {
+  accent-color: var(--crc-primaria);
+}
+
+/* ========================================================================== */
+/* CAMPANHAS + EQUIPE — cards de entidades, não listas secas                 */
+/* ========================================================================== */
+
+.crc-app .crc-cartao-compacto {
+  list-style: none;
+  border: 1px solid var(--crc-borda);
+  border-radius: 13px;
+  background: #fbfcfa;
+  transition:
+    border-color var(--crc-transicao),
+    background var(--crc-transicao),
+    box-shadow var(--crc-transicao);
+}
+
+.crc-app li.crc-cartao-compacto:hover {
+  background: #fff;
+  border-color: var(--crc-borda-forte);
+  box-shadow: 0 12px 24px -24px rgba(7, 92, 34, 0.35);
+}
+
+/* ========================================================================== */
+/* INTEGRAÇÕES + CONFIG — painel técnico que continua legível                 */
+/* ========================================================================== */
+
+.crc-app .crc-conteudo:has([role="switch"]) .crc-cartao {
+  border-color: rgba(7, 92, 34, 0.1);
+}
+
+.crc-app .crc-conteudo:has([role="switch"]) .crc-cartao .crc-linha:has(> [role="switch"]),
+.crc-app .crc-conteudo:has([role="switch"]) .crc-cartao .crc-linha:has([role="switch"]) {
+  min-height: 62px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  background: #fafcf9;
+  border: 1px solid rgba(7, 92, 34, 0.065);
+}
+
+.crc-app .crc-conteudo:has([role="switch"]) [role="switch"] {
+  flex-shrink: 0;
+}
+
+.crc-app .crc-conteudo:has([role="switch"]) .crc-grade .crc-campo {
+  padding: 12px;
+  border: 1px solid rgba(7, 92, 34, 0.075);
+  border-radius: 12px;
+  background: #fbfcfa;
+}
+
+.crc-app .crc-conteudo:has([role="switch"]) .crc-tabela-caixa {
+  box-shadow: 0 14px 34px -34px rgba(7, 92, 34, 0.45);
+}
+
+/* ========================================================================== */
+/* Tabelas em geral — leitura de sistema operacional                         */
+/* ========================================================================== */
+
+.crc-app .crc-tabela-caixa {
+  border-color: rgba(7, 92, 34, 0.1);
+  box-shadow: 0 8px 22px -24px rgba(7, 92, 34, 0.35);
+}
+
+.crc-app .crc-tabela th {
+  height: 45px;
+  background: #f5f8f3;
+  color: #53655a;
+  font-size: 0.75rem;
+  letter-spacing: 0.015em;
+}
+
+.crc-app .crc-tabela td {
+  height: 54px;
+}
+
+.crc-app .crc-tabela tbody tr {
+  transition: background var(--crc-transicao);
+}
+
+.crc-app .crc-tabela tbody tr:hover td {
+  background: #f8faf7;
+}
+
+/* ========================================================================== */
+/* Estados vazios — mais acolhedores e instrutivos                           */
+/* ========================================================================== */
+
+.crc-app .crc-vazio {
+  min-height: 180px;
+  justify-content: center;
+  padding: 34px 24px;
+  border: 1px dashed rgba(7, 92, 34, 0.16);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(86, 168, 5, 0.06), transparent 10rem),
+    #fafcf9;
+}
+
+.crc-app .crc-vazio::before {
+  content: "";
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle, var(--crc-primaria) 0 3px, transparent 4px),
+    var(--crc-primaria-suave);
+  box-shadow: inset 0 0 0 1px var(--crc-primaria-borda);
+}
+
+.crc-app .crc-vazio strong {
+  font-family: var(--crc-fonte-display);
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+}
+
+/* ========================================================================== */
+/* Mobile / notebook                                                         */
+/* ========================================================================== */
+
+@media (max-width: 1450px) {
+  .crc-app .crc-inbox {
+    grid-template-columns: minmax(270px, 310px) minmax(420px, 1fr);
+  }
+
+  .crc-app .crc-inbox > :nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 1180px) {
+  .crc-app .crc-painel-duplo {
+    grid-template-columns: 1fr;
+  }
+
+  .crc-app .crc-painel-duplo > .crc-grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .crc-app .crc-legenda {
+    width: 100%;
+    max-width: none;
+    margin-left: 64px;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 860px) {
+  .crc-app .crc-cabecalho-premium {
+    padding: 17px;
+    border-radius: 17px;
+    align-items: flex-start;
+  }
+
+  .crc-app .crc-cabecalho-icone {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+
+  .crc-app .crc-legenda {
+    margin-left: 0;
+  }
+
+  .crc-app .crc-painel-duplo > .crc-grade,
+  .crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) > .crc-grade:first-of-type {
+    grid-template-columns: 1fr;
+  }
+
+  .crc-app .crc-painel-duplo .crc-kpi {
+    min-height: 118px;
+  }
+
+  .crc-app .crc-inbox {
+    height: auto;
+  }
+
+  .crc-app .crc-inbox .crc-painel {
+    max-height: 72dvh;
+  }
+
+  .crc-app .crc-coluna {
+    flex-basis: min(86vw, 294px);
+    max-height: 66dvh;
+  }
+
+  .crc-app .crc-conteudo:has(#aba-resumo) > header {
+    padding: 16px;
+  }
+
+  .crc-app .crc-conteudo:has(#aba-resumo) .crc-abas {
+    top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .crc-app .crc-conteudo {
+    padding-inline: 12px;
+  }
+
+  .crc-app .crc-cabecalho-premium {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .crc-app .crc-legenda {
+    grid-column: 1 / -1;
+  }
+
+  .crc-app .crc-legenda-item {
+    min-height: 28px;
+    padding-inline: 8px;
+    font-size: 0.71rem;
+  }
+
+  .crc-app .crc-conteudo:has(.crc-painel-duplo) > header:first-of-type {
+    padding: 20px 18px;
+  }
+
+  .crc-app .crc-balao {
+    max-width: 90%;
+  }
+
+  .crc-app .crc-conteudo:has(#crc-busca-paciente) > div:first-child {
+    padding: 12px;
+  }
+
+  .crc-app .crc-cartao > ul:not(.crc-porque-lista) > li > .crc-linha,
+  .crc-app .crc-cartao > div > ul:not(.crc-porque-lista) > li > .crc-linha {
+    align-items: stretch !important;
+  }
+
+  .crc-app .crc-cartao > ul:not(.crc-porque-lista) > li > .crc-linha > .crc-linha,
+  .crc-app .crc-cartao > div > ul:not(.crc-porque-lista) > li > .crc-linha > .crc-linha {
+    width: 100%;
+  }
+}
