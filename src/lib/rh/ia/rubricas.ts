@@ -167,11 +167,11 @@ const DEGRAUS: Record<AreaVaga, DegrausDaArea> = {
     permanencia: permanenciaPadrao(),
     aderencia: faixasPorMeses(
       [
-        "24 meses ou mais de aderência, contando 1 mês para cada mês em clínica odontológica e 1 mês para cada 2 meses em outra área da saúde",
-        "12 a 23 meses de aderência na mesma conta",
+        "24 meses ou mais de aderência, contando 1 mês para cada mês em clínica odontológica, 1 mês para cada 2 meses em outra área da saúde, e 1 mês para cada 3 meses de atendimento ao público fora da saúde (recepção, balcão, secretaria) até o limite de 23",
+        "12 a 23 meses de aderência na mesma conta — é onde chega quem tem recepção longa e consistente fora da saúde",
         "6 a 11 meses de aderência na mesma conta",
         "1 a 5 meses de aderência na mesma conta",
-        "0 mês em odontologia e 0 mês em outra área da saúde",
+        "nunca atendeu público em lugar nenhum: 0 mês em odontologia, 0 em saúde e 0 em recepção ou balcão",
       ],
       [24, 12, 6, 1],
     ),
@@ -499,14 +499,22 @@ export const RUBRICAS: Record<AreaVaga, Rubrica> = {
     oQueImporta: `A recepção da JP atende paciente na cadeira e no telefone, confirma agenda,
 responde WhatsApp, cobra retorno, fecha caixa e segura a sala de espera cheia sem perder a paciência.
 Quem já fez isso em clínica odontológica chega pronta. Quem fez em clínica médica, laboratório ou
-consultório chega perto. Varejo e telemarketing ensinam atendimento ao público, mas não ensinam a
-rotina clínica: prontuário, convênio, confirmação de véspera, remarcação de falta e a conversa
-delicada de cobrar um tratamento em aberto olhando na cara da pessoa.
+consultório chega perto.
+
+NÃO PRECISA TER SIDO EM CLÍNICA. Recepção é recepção: agenda, telefone, fila de espera, sistema e a
+paciência de atender bem quem chega irritado se aprende no balcão de qualquer lugar. Anos de recepção,
+secretaria ou balcão fora da saúde, com consistência e tempo, valem crédito de verdade neste critério
+e NÃO podem ser tratados como zero. O que a clínica ensina depois é o vocabulário — prontuário,
+convênio, confirmação de véspera, remarcação de falta — e isso é semana, não ano.
+
+O que continua valendo é a ordem: quem vem da saúde chega na frente de quem vem de fora dela, e quem
+só fez telemarketing de script, sem balcão e sem sistema, não tem a mesma coisa que quem ficou anos
+recebendo gente cara a cara. A diferença custa posições, nunca a nota inteira.
 Tempo de casa vale mais aqui do que em qualquer outra vaga da clínica. Paciente de bairro volta e
 quer ser reconhecido pelo nome; recepção que troca todo ano quebra exatamente isso.`,
     sinaisExtras: [
       "Currículo que fala em atendimento mas não cita nenhum sistema, agenda ou planilha.",
-      "Experiência só em telemarketing de script, sem contato presencial com o público.",
+      "Experiência só em telemarketing de script, sem contato presencial com o público — o que falta aqui é o balcão, não a clínica.",
       "Menção a caixa, cobrança ou fechamento — é o que separa recepção de recepcionista de balcão.",
       "Disponibilidade de horário incompatível com clínica que abre cedo e fecha à noite.",
     ],
@@ -723,17 +731,54 @@ export function rubricaPara(area: AreaVaga, guia?: GuiaEntrevista | null): Rubri
 const AREAS_SEM_REGRA_DE_ROTATIVIDADE: AreaVaga[] = ["estagio", "dentista"];
 
 /**
- * Meses que contam como aderência: mês em odontologia vale 1, mês em outra área
- * da saúde vale meio.
+ * Teto do que a recepção FORA da saúde consegue somar sozinha.
+ *
+ * 23 é o último mês da segunda faixa (12 a 23). Ou seja: recepção geral, por
+ * mais longa que seja, chega a 7-8 e não a 9-10. O topo continua significando
+ * rotina clínica de verdade — prontuário, convênio, confirmação de véspera —,
+ * e quem tem isso soma por cima e alcança a faixa cheia.
+ */
+const TETO_DA_RECEPCAO_GERAL = 23;
+
+/**
+ * Meses que contam como aderência.
+ *
+ * Mês em odontologia vale 1, mês em outra área da saúde vale meio. E, NA VAGA
+ * DE RECEPÇÃO, mês de atendimento ao público fora da saúde vale um terço.
+ *
+ * ESSA TERCEIRA PARCELA É CORREÇÃO DE UM ERRO, e o erro era grave: sem ela,
+ * quem nunca pisou numa clínica recebia aderência ZERO por definição, e zero
+ * num critério de 15% derruba a nota em treze pontos de uma vez. Medindo o
+ * acervo real: ÂNGELA, com 9 anos de atendimento ao público, tirou 1 em
+ * aderência; Karina, com 4 anos, tirou 1; Isabela, com 4 anos e meio, tirou 1.
+ * Todas com 10 em atendimento — o painel reconhecia a experiência num critério
+ * e a ignorava no outro.
+ *
+ * Recepção é recepção: agenda, telefone, fila de espera, sistema e a paciência
+ * de atender bem quem chega irritado se aprende no balcão de qualquer lugar. O
+ * que a clínica ensina depois é o vocabulário — e isso é semana, não ano.
+ *
+ * Um terço, e não metade: quem vem de clínica médica continua na frente de quem
+ * vem de balcão de loja, que é o que a clínica quis dizer ao dar 15% para este
+ * critério. O que muda é que agora "não é da saúde" custa posições, não a nota
+ * inteira.
  *
  * `mesesEmSaude` inclui os vínculos odontológicos (uma clínica de odontologia é
  * saúde), então subtrair antes de dividir evita contar o mesmo emprego duas
  * vezes — e o piso em zero protege do currículo em que o marcador de saúde veio
  * mais restrito que o de odontologia.
  */
-function mesesAderentes(m: MetricasPermanencia): number {
+function mesesAderentes(m: MetricasPermanencia, area: AreaVaga): number {
   const saudeNaoOdonto = Math.max(0, m.mesesEmSaude - m.mesesEmOdontologia);
-  return m.mesesEmOdontologia + Math.floor(saudeNaoOdonto / 2);
+  const daSaude = m.mesesEmOdontologia + Math.floor(saudeNaoOdonto / 2);
+  if (area !== "recepcao") return daSaude;
+
+  /* Só o atendimento que NÃO é da saúde entra aqui: os meses de clínica já
+     foram contados acima, e somá-los de novo daria peso duplo a quem menos
+     precisa de ajuda. */
+  const publicoForaDaSaude = Math.max(0, m.mesesAtendimentoPublico - m.mesesEmSaude);
+  const daRecepcaoGeral = Math.min(TETO_DA_RECEPCAO_GERAL, Math.floor(publicoForaDaSaude / 3));
+  return daSaude + daRecepcaoGeral;
 }
 
 /**
@@ -748,10 +793,14 @@ function somasSaoConfiaveis(m: MetricasPermanencia): boolean {
 }
 
 /** A métrica que ancora cada critério. `null` = critério de julgamento. */
-function valorDeAncora(chave: ChaveCriterio, m: MetricasPermanencia): number | null {
+function valorDeAncora(
+  chave: ChaveCriterio,
+  m: MetricasPermanencia,
+  area: AreaVaga,
+): number | null {
   if (chave === "permanencia") return m.mesesUltimoEmprego;
   if (!somasSaoConfiaveis(m)) return null;
-  if (chave === "aderencia") return mesesAderentes(m);
+  if (chave === "aderencia") return mesesAderentes(m, area);
   if (chave === "atendimento") return m.mesesAtendimentoPublico;
   if (chave === "administrativo") return m.mesesAdministrativo;
   return null;
@@ -803,7 +852,7 @@ export function faixaSugerida(
     }
   }
 
-  const valor = valorDeAncora(chave, metricas);
+  const valor = valorDeAncora(chave, metricas, rubrica.area);
   if (valor === null) return null;
 
   // Degraus vêm do topo para a base, então a primeira que o valor alcança é a dela.
@@ -812,13 +861,13 @@ export function faixaSugerida(
 }
 
 /** Os números deste currículo que sustentam a faixa, escritos por extenso. */
-function numeroQueAncora(chave: ChaveCriterio, m: MetricasPermanencia): string {
+function numeroQueAncora(chave: ChaveCriterio, m: MetricasPermanencia, area: AreaVaga): string {
   if (chave === "permanencia") {
     const curtos = `${m.empregosCurtos} emprego${m.empregosCurtos === 1 ? "" : "s"} com menos de 12 meses`;
     return `último emprego ${emAnosMeses(m.mesesUltimoEmprego)}, e ${curtos}`;
   }
   if (chave === "aderencia") {
-    return `${emAnosMeses(m.mesesEmOdontologia)} em odontologia e ${emAnosMeses(m.mesesEmSaude)} em saúde, o que dá ${emAnosMeses(mesesAderentes(m))} de aderência contada`;
+    return `${emAnosMeses(m.mesesEmOdontologia)} em odontologia e ${emAnosMeses(m.mesesEmSaude)} em saúde, o que dá ${emAnosMeses(mesesAderentes(m, area))} de aderência contada`;
   }
   if (chave === "atendimento")
     return `${emAnosMeses(m.mesesAtendimentoPublico)} de atendimento ao público`;
@@ -855,7 +904,7 @@ export function textoDasAncoras(rubrica: Rubrica, metricas: MetricasPermanencia)
 
     const sugerida = faixaSugerida(chave, metricas, rubrica);
     if (sugerida !== null) {
-      const numeros = numeroQueAncora(chave, metricas);
+      const numeros = numeroQueAncora(chave, metricas, rubrica.area);
       L.push(
         `   >> pelos numeros deste curriculo (${numeros}), a faixa indicada e ${rotuloFaixa(sugerida)}.`,
       );
