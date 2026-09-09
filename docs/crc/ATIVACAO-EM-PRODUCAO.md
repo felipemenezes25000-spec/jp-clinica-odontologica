@@ -357,14 +357,14 @@ aceita **template aprovado**. Vale para os dois provedores — a Twilio
 intermedia, mas quem aprova é a Meta.
 
 Os textos que precisam ser submetidos estão em
-`src/lib/crc/automacao/templates.ts`. São treze:
+`src/lib/crc/automacao/templates.ts`. São quatorze:
 
 ```
 falta_primeiro_contato   falta_segundo_contato    cancelamento_reagendar
 confirmacao_consulta     recall_seis_meses        reativacao_inativo
 abandono_tratamento      aniversario              orcamento_parado
 cobranca_lembrete        cobranca_recente         cobranca_atrasada
-cobranca_ja_pago
+cobranca_ja_pago         lead_primeiro_contato
 ```
 
 Submeta na categoria **Utility** (não Marketing): a categoria muda o preço e a
