@@ -952,127 +952,89 @@
 
 
 /* ==========================================================================
-   O guia da tela — "o que dá para fazer aqui"
+   O guia da tela — o esqueleto
    ==========================================================================
 
-   ELE É MATERIAL DE CONSULTA, E NÃO CONTEÚDO. Por isso é o único bloco grande
-   do CRC SEM sombra: os cartões de trabalho flutuam sobre o fundo, este fica
-   assentado nele. É o que faz o olho passar por cima dele quando está com
-   pressa, e voltar a ele quando está com dúvida — sem que ninguém precise
-   fechar nada.
+   A APARÊNCIA DO GUIA MORA NO `crc-premium.css`, junto com o resto do
+   redesenho: cor, borda, raio, gradiente, o tamanho dos cartões e a grade de
+   duas colunas. Este arquivo não repete NADA disso.
 
-   A LISTA É UMA GRADE DE DUAS COLUNAS: o que se clica à esquerda, o que
-   acontece à direita. Ler a coluna da esquerda de cima a baixo é como se acha
-   a linha certa, e é por isso que ela tem largura fixa — coluna que muda de
-   largura a cada linha não se lê na vertical.
+   O que sobra aqui é o que o navegador não dá de graça e o desenho pressupõe:
+   `display` onde o desenho conta com flex ou grid, o reset dos elementos que
+   nascem com estilo próprio (um `<button>` vem com fundo cinza, um `<dd>` com
+   40px de recuo, um `<ul>` com marcador) e o alinhamento dos ícones.
+
+   POR QUE ESTÁ SEPARADO EM VEZ DE JUNTO: duas mãos mexeram neste componente
+   em paralelo, e as duas versões brigavam por carregar uma depois da outra —
+   o botão chegou a sair com fundo verde de uma e sombra da outra. Com a pele
+   num arquivo e o esqueleto no outro, cada propriedade tem UM dono, e mudar a
+   cor do guia não exige saber que existe um segundo arquivo.
+
+   Regra ao editar: se a propriedade tem valor visível (cor, raio, sombra,
+   tamanho), ela é de lá. Se ela existe para o elemento se comportar, é daqui.
    ========================================================================== */
 
-.crc-app .crc-guia {
-  margin-bottom: var(--crc-e6);
-  padding: var(--crc-e5);
-  border: 1px solid var(--crc-borda);
-  border-radius: var(--crc-r-cartao);
-  background: var(--crc-superficie-2);
-  display: flex;
-  flex-direction: column;
-  gap: var(--crc-e4);
-}
-
-.crc-app .crc-guia-topo {
-  display: flex;
-  align-items: baseline;
+.crc-app .crc-barra-acoes {
+  display: inline-flex;
+  align-items: center;
   flex-wrap: wrap;
-  gap: var(--crc-e3);
+  justify-content: flex-end;
 }
 
+.crc-app .crc-guia-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  /* Sem isto o <button> cai na fonte do sistema operacional, e fica em outra
+     família que o `.crc-atalho-dica` colado nele. */
+  font: inherit;
+  cursor: pointer;
+}
+
+.crc-app .crc-guia-botao svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* O selo tem `min-height` no desenho, e `min-height` não vale em elemento
+   inline — sem isto a pílula fica achatada e o ícone desalinhado do texto. */
 .crc-app .crc-guia-selo {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-shrink: 0;
-  padding: 4px 10px;
-  border: 1px solid var(--crc-primaria-borda);
-  border-radius: var(--crc-r-pilula);
-  background: var(--crc-primaria-suave);
-  color: var(--crc-primaria);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  /* O selo alinha pela linha de base do texto ao lado, não pelo topo da
-     caixa — senão ele "sobe" e a linha inteira parece torta. */
-  transform: translateY(1px);
+  white-space: nowrap;
 }
 
 .crc-app .crc-guia-selo svg {
   width: 13px;
   height: 13px;
+  flex-shrink: 0;
 }
 
+/* `<p>` e `<dl>` chegam com margem própria do navegador; a margem entre os
+   blocos é decidida pelo desenho, não pelo user-agent. */
 .crc-app .crc-guia-resumo {
-  flex: 1 1 22rem;
-  min-width: 0;
   margin: 0;
-  color: var(--crc-texto-2);
-  font-size: 0.875rem;
-  line-height: 1.55;
-  /* Perto de 65 caracteres é onde o olho encontra a próxima linha sem
-     esforço; sem isto, num monitor de 27" a frase vira uma faixa. */
-  max-width: 68ch;
 }
-
-/* ---- ação -> efeito ------------------------------------------------------ */
 
 .crc-app .crc-guia-lista {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.crc-app .crc-guia-par {
-  display: grid;
-  grid-template-columns: minmax(0, 15.5rem) minmax(0, 1fr);
-  gap: var(--crc-e2) var(--crc-e5);
-  padding: var(--crc-e3) 0;
-  border-top: 1px solid var(--crc-borda);
-}
-
-.crc-app .crc-guia-par:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.crc-app .crc-guia-par:last-child {
-  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 .crc-app .crc-guia-faca {
   margin: 0;
-  color: var(--crc-texto);
-  font-weight: 650;
-  font-size: 0.875rem;
-  line-height: 1.45;
-  /* Nome de botão longo quebra dentro da coluna em vez de empurrar a grade. */
-  overflow-wrap: anywhere;
 }
 
+/* Um `<dd>` nasce com 40px de recuo à esquerda. Dentro de um cartão de 12px de
+   padding, isso empurraria toda a explicação para fora do lugar. */
 .crc-app .crc-guia-efeito {
-  margin: 0;
-  color: var(--crc-texto-2);
-  font-size: 0.875rem;
-  line-height: 1.55;
-  max-width: 72ch;
+  margin-left: 0;
 }
 
 /* ---- o mapa do CRC (só na Home) ------------------------------------------ */
 
-.crc-app .crc-guia-mapa {
-  padding-top: var(--crc-e4);
-  border-top: 1px solid var(--crc-borda);
-}
-
 .crc-app .crc-guia-mapa-titulo {
-  margin-bottom: var(--crc-e3);
   color: var(--crc-texto-3);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -1081,141 +1043,51 @@
 }
 
 .crc-app .crc-guia-mapa-lista {
-  margin: 0;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
-  gap: var(--crc-e2) var(--crc-e5);
 }
 
+/*
+ * Duas linhas dentro do cartão: o ícone e o nome em cima, o "para que serve"
+ * embaixo, alinhado com o nome. Pôr os três lado a lado espremeria a
+ * explicação em uma coluna de poucos caracteres.
+ */
 .crc-app .crc-guia-mapa-lista li {
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr);
-  align-items: baseline;
-  gap: 7px;
-  min-width: 0;
-  font-size: 0.8125rem;
-  line-height: 1.5;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: center;
+  gap: 2px 8px;
 }
 
-.crc-app .crc-guia-mapa-lista svg {
+.crc-app .crc-guia-mapa-lista li svg {
+  grid-row: 1;
   width: 14px;
   height: 14px;
-  color: var(--crc-primaria);
-  /* Ícone alinhado pela base do texto fica alto demais; um empurrão o senta
-     na linha. */
-  transform: translateY(2px);
+  flex-shrink: 0;
 }
 
-.crc-app .crc-guia-mapa-lista strong {
-  color: var(--crc-texto);
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.crc-app .crc-guia-mapa-lista span {
-  color: var(--crc-texto-3);
+.crc-app .crc-guia-mapa-lista li strong {
+  grid-row: 1;
   min-width: 0;
 }
 
-/* ---- desligar ------------------------------------------------------------ */
+.crc-app .crc-guia-mapa-lista li span {
+  grid-column: 2;
+  min-width: 0;
+}
 
+/* Um `<button>` sem reset vira caixa cinza do sistema operacional. */
 .crc-app .crc-guia-desligar {
-  align-self: flex-start;
-  padding: 6px 0;
+  display: inline-block;
+  padding: 0;
   border: 0;
   background: none;
-  color: var(--crc-texto-3);
-  font: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
+  /* Só a família: o tamanho e a cor deste botão são decisão do desenho, e
+     `font: inherit` apagaria os dois. O sublinhado fica porque sem ele o
+     controle deixa de parecer clicável — é affordance, não enfeite. */
+  font-family: inherit;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
-}
-
-.crc-app .crc-guia-desligar:hover {
-  color: var(--crc-texto-2);
-}
-
-/* ---- o botão na barra de contexto ---------------------------------------- */
-
-.crc-app .crc-barra-acoes {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--crc-e2);
-  justify-content: flex-end;
-}
-
-.crc-app .crc-guia-botao {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 32px;
-  padding: 7px 11px;
-  border: 1px solid var(--crc-primaria-borda);
-  border-radius: 10px;
-  background: var(--crc-primaria-suave);
-  color: var(--crc-primaria);
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.crc-app .crc-guia-botao svg {
-  width: 15px;
-  height: 15px;
-}
-
-.crc-app .crc-guia-botao:hover {
-  border-color: var(--crc-primaria);
-}
-
-/* ---- telas estreitas ----------------------------------------------------- */
-
-/*
- * ABAIXO DE 860px A BARRA DE CONTEXTO INTEIRA É ESCONDIDA (crc-premium.css):
- * trilha e atalho de teclado não servem a quem está no celular. O botão do
- * guia servia — e ia junto, o que deixava quem desligasse o guia no celular
- * sem NENHUMA forma de trazê-lo de volta.
- *
- * A barra volta, com uma única coisa dentro. Ela deixa de ser "contexto" e
- * passa a ser a linha do guia, alinhada à direita como estava.
- */
-@media (max-width: 860px) {
-  .crc-app .crc-barra-contexto:has(.crc-guia-botao) {
-    display: flex;
-    justify-content: flex-end;
-    min-height: 0;
-    margin-bottom: var(--crc-e3);
-  }
-  .crc-app .crc-barra-contexto .crc-barra-trilha,
-  .crc-app .crc-barra-contexto .crc-atalho-dica {
-    display: none;
-  }
-}
-
-@media (max-width: 760px) {
-  .crc-app .crc-guia {
-    padding: var(--crc-e4);
-  }
-  /* Duas colunas em 360px dariam 90px para o nome do botão. Empilhado, o par
-     continua legível: o que se clica, e logo abaixo o que acontece. */
-  .crc-app .crc-guia-par {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
-  }
-  .crc-app .crc-guia-mapa-lista li {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-  /* Sem o ícone a linha do mapa cabe; o nome e a explicação são o conteúdo. */
-  .crc-app .crc-guia-mapa-lista svg {
-    display: none;
-  }
-  .crc-app .crc-guia-mapa-lista strong {
-    white-space: normal;
-  }
 }
