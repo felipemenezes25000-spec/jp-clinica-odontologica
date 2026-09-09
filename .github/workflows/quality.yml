@@ -8,7 +8,7 @@ on:
 
 concurrency:
   group: quality-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   check:
@@ -30,7 +30,7 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Lint
-        run: npm run lint
+        run: npx eslint src vite.config.ts eslint.config.js
 
       - name: Typecheck
         run: npm run typecheck

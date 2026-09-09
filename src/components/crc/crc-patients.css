@@ -1,0 +1,777 @@
+/* JP CRC — busca e workspace do paciente */
+
+.crc-app .crc-pacientes-busca-v2,
+.crc-app .crc-paciente-workspace-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crc-app .crc-pacientes-busca-hero-v2 {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(320px,.72fr);
+  gap: 22px;
+  align-items: center;
+  padding: 23px;
+  overflow: hidden;
+  border: 1px solid rgba(8,115,59,.12);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(86,168,5,.1), transparent 220px),
+    rgba(255,255,255,.88);
+}
+
+.crc-app .crc-pacientes-busca-copy-v2 {
+  display: grid;
+  grid-template-columns: 48px minmax(0,1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.crc-app .crc-pacientes-busca-icone-v2 {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 15px;
+  background: var(--crc-primaria);
+  color: #fff;
+}
+
+.crc-app .crc-pacientes-busca-icone-v2 svg {
+  width: 22px;
+  height: 22px;
+}
+
+.crc-app .crc-pacientes-busca-copy-v2 h2 {
+  margin: 0;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: clamp(1.45rem,1.2rem + .8vw,2rem);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -.035em;
+}
+
+.crc-app .crc-pacientes-busca-copy-v2 p {
+  max-width: 65ch;
+  margin: 7px 0 0;
+  color: var(--crc-texto-2);
+  font-size: .8rem;
+  line-height: 1.55;
+}
+
+.crc-app .crc-pacientes-busca-campo-v2 {
+  display: grid;
+  grid-template-columns: 18px minmax(0,1fr) auto;
+  gap: 9px;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 15px;
+  background: var(--crc-superficie);
+  box-shadow: 0 8px 24px -20px rgba(8,51,31,.5);
+  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+}
+
+.crc-app .crc-pacientes-busca-campo-v2:focus-within {
+  border-color: var(--crc-primaria-borda);
+  box-shadow: 0 0 0 4px rgba(8,115,59,.08);
+}
+
+.crc-app .crc-pacientes-busca-campo-v2 > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-pacientes-busca-campo-v2 input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--crc-texto);
+  font: inherit;
+  font-size: .88rem;
+}
+
+.crc-app .crc-pacientes-buscando-v2 {
+  color: var(--crc-texto-3);
+  font-size: .68rem;
+}
+
+.crc-app .crc-pacientes-inicio-v2 {
+  display: grid;
+  min-height: 280px;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  border: 1px dashed var(--crc-borda-forte);
+  border-radius: 22px;
+  background: rgba(255,255,255,.58);
+}
+
+.crc-app .crc-pacientes-inicio-icone-v2 {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 17px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-pacientes-inicio-icone-v2 svg {
+  width: 22px;
+  height: 22px;
+}
+
+.crc-app .crc-pacientes-resultados-v2 {
+  overflow: hidden;
+  border: 1px solid var(--crc-borda);
+  border-radius: 21px;
+  background: rgba(255,255,255,.88);
+}
+
+.crc-app .crc-pacientes-resultados-topo-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--crc-borda);
+}
+
+.crc-app .crc-pacientes-resultados-topo-v2 > span {
+  display: grid;
+  min-width: 30px;
+  height: 30px;
+  place-items: center;
+  padding-inline: 7px;
+  border-radius: 999px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.crc-app .crc-pacientes-lista-v2 {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crc-app .crc-paciente-resultado-v2 {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 42px minmax(0,1fr) 18px;
+  gap: 12px;
+  align-items: center;
+  min-height: 76px;
+  padding: 13px 16px;
+  border: 0;
+  border-top: 1px solid var(--crc-borda);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--crc-transicao);
+}
+
+.crc-app .crc-pacientes-lista-v2 li:first-child .crc-paciente-resultado-v2 {
+  border-top: 0;
+}
+
+.crc-app .crc-paciente-resultado-v2:hover {
+  background: var(--crc-superficie-2);
+}
+
+.crc-app .crc-paciente-avatar-v2,
+.crc-app .crc-paciente-identidade-avatar-v2 {
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+  font-size: .74rem;
+  font-weight: 850;
+}
+
+.crc-app .crc-paciente-avatar-v2 {
+  width: 42px;
+  height: 42px;
+}
+
+.crc-app .crc-paciente-resultado-copy-v2 {
+  min-width: 0;
+}
+
+.crc-app .crc-paciente-resultado-nome-v2 {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.crc-app .crc-paciente-resultado-nome-v2 > strong {
+  overflow: hidden;
+  color: var(--crc-texto);
+  font-size: .84rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-paciente-resultado-nome-v2 > div {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.crc-app .crc-paciente-resultado-dados-v2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 6px;
+}
+
+.crc-app .crc-paciente-resultado-dados-v2 span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--crc-texto-3);
+  font-size: .68rem;
+}
+
+.crc-app .crc-paciente-resultado-dados-v2 svg {
+  width: 12px;
+  height: 12px;
+}
+
+.crc-app .crc-paciente-resultado-seta-v2 {
+  width: 16px;
+  height: 16px;
+  color: var(--crc-texto-3);
+  opacity: .55;
+}
+
+.crc-app .crc-paciente-voltar-v2 {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--crc-texto-2);
+  font: inherit;
+  font-size: .73rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.crc-app .crc-paciente-voltar-v2 svg {
+  width: 15px;
+  height: 15px;
+}
+
+.crc-app .crc-paciente-identidade-v2 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(8,115,59,.13);
+  border-radius: 25px;
+  background:
+    radial-gradient(circle at 95% 10%, rgba(86,168,5,.1), transparent 220px),
+    rgba(255,255,255,.9);
+}
+
+.crc-app .crc-paciente-identidade-principal-v2 {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 64px minmax(0,1fr);
+  gap: 15px;
+  align-items: center;
+}
+
+.crc-app .crc-paciente-identidade-avatar-v2 {
+  width: 64px;
+  height: 64px;
+  font-family: var(--crc-fonte-display);
+  font-size: 1.12rem;
+}
+
+.crc-app .crc-paciente-identidade-copy-v2 {
+  min-width: 0;
+}
+
+.crc-app .crc-paciente-identidade-tags-v2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 7px;
+}
+
+.crc-app .crc-paciente-identidade-copy-v2 h1 {
+  margin: 0;
+  overflow: hidden;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: clamp(1.8rem,1.45rem + 1vw,2.5rem);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-paciente-identidade-copy-v2 p {
+  margin: 7px 0 0;
+  color: var(--crc-texto-3);
+  font-size: .76rem;
+}
+
+.crc-app .crc-paciente-automacao-v2 {
+  display: grid;
+  min-width: 230px;
+  grid-template-columns: 38px minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(39,106,145,.14);
+  border-radius: 15px;
+  background: var(--crc-info-suave);
+}
+
+.crc-app .crc-paciente-automacao-v2 > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--crc-superficie);
+  color: var(--crc-info);
+}
+
+.crc-app .crc-paciente-automacao-v2 svg {
+  width: 17px;
+  height: 17px;
+}
+
+.crc-app .crc-paciente-automacao-v2 small,
+.crc-app .crc-paciente-automacao-v2 strong,
+.crc-app .crc-paciente-automacao-v2 em {
+  display: block;
+}
+
+.crc-app .crc-paciente-automacao-v2 small {
+  color: var(--crc-info);
+  font-size: .63rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.crc-app .crc-paciente-automacao-v2 strong {
+  margin-top: 2px;
+  color: var(--crc-texto);
+  font-size: .74rem;
+}
+
+.crc-app .crc-paciente-automacao-v2 em {
+  margin-top: 2px;
+  color: var(--crc-texto-3);
+  font-size: .64rem;
+  font-style: normal;
+}
+
+.crc-app .crc-paciente-dados-v2 {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 10px;
+}
+
+.crc-app .crc-paciente-dado-v2 {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 36px minmax(0,1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 11px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 14px;
+  background: rgba(255,255,255,.82);
+}
+
+.crc-app .crc-paciente-dado-v2 > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-paciente-dado-v2 svg {
+  width: 16px;
+  height: 16px;
+}
+
+.crc-app .crc-paciente-dado-v2 small,
+.crc-app .crc-paciente-dado-v2 strong {
+  display: block;
+}
+
+.crc-app .crc-paciente-dado-v2 small {
+  color: var(--crc-texto-3);
+  font-size: .64rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-paciente-dado-v2 strong {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--crc-texto-2);
+  font-size: .71rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-paciente-abas-v2 {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 4px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 15px;
+  background: rgba(255,255,255,.72);
+}
+
+.crc-app .crc-paciente-abas-v2 button {
+  display: inline-flex;
+  min-height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 10px;
+  padding: 7px 10px;
+  background: transparent;
+  color: var(--crc-texto-3);
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.crc-app .crc-paciente-abas-v2 button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.crc-app .crc-paciente-abas-v2 button[aria-selected="true"] {
+  background: var(--crc-superficie);
+  color: var(--crc-primaria);
+  box-shadow: var(--crc-sombra);
+}
+
+.crc-app .crc-paciente-abas-v2 button > strong {
+  display: grid;
+  min-width: 20px;
+  height: 20px;
+  place-items: center;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  font-size: .61rem;
+}
+
+.crc-app .crc-paciente-conteudo-v2 {
+  min-width: 0;
+}
+
+.crc-app .crc-paciente-resumo-grid-v2 {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+}
+
+.crc-app .crc-paciente-painel-v2 {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--crc-borda);
+  border-radius: 19px;
+  background: rgba(255,255,255,.88);
+}
+
+.crc-app .crc-paciente-painel-v2 > header {
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) auto;
+  gap: 9px;
+  align-items: center;
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--crc-borda);
+  background: rgba(249,251,248,.82);
+}
+
+.crc-app .crc-paciente-painel-v2 > header > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-paciente-painel-v2 > header svg {
+  width: 16px;
+  height: 16px;
+}
+
+.crc-app .crc-paciente-painel-v2 > header small,
+.crc-app .crc-paciente-painel-v2 > header h2 {
+  display: block;
+}
+
+.crc-app .crc-paciente-painel-v2 > header small {
+  color: var(--crc-texto-3);
+  font-size: .61rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-paciente-painel-v2 > header h2 {
+  margin: 1px 0 0;
+  color: var(--crc-texto);
+  font-size: .8rem;
+  font-weight: 800;
+}
+
+.crc-app .crc-paciente-painel-v2 > header > strong {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  padding-inline: 6px;
+  border-radius: 9px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  font-size: .68rem;
+}
+
+.crc-app .crc-paciente-painel-corpo-v2 {
+  padding: 10px;
+}
+
+.crc-app .crc-paciente-lista-interna-v2,
+.crc-app .crc-paciente-trechos-v2,
+.crc-app .crc-paciente-timeline-v2 {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crc-app .crc-paciente-oportunidade-v2,
+.crc-app .crc-paciente-tarefa-v2,
+.crc-app .crc-paciente-trechos-v2 > li {
+  padding: 11px;
+  border-top: 1px solid var(--crc-borda);
+}
+
+.crc-app .crc-paciente-lista-interna-v2 > li:first-child,
+.crc-app .crc-paciente-trechos-v2 > li:first-child {
+  border-top: 0;
+}
+
+.crc-app .crc-paciente-oportunidade-topo-v2,
+.crc-app .crc-paciente-tarefa-topo-v2,
+.crc-app .crc-paciente-trechos-v2 > li > div,
+.crc-app .crc-paciente-timeline-topo-v2 {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+}
+
+.crc-app .crc-paciente-oportunidade-topo-v2 > div,
+.crc-app .crc-paciente-tarefa-v2 > div {
+  min-width: 0;
+}
+
+.crc-app .crc-paciente-oportunidade-topo-v2 strong,
+.crc-app .crc-paciente-tarefa-topo-v2 strong,
+.crc-app .crc-paciente-trechos-v2 strong,
+.crc-app .crc-paciente-timeline-topo-v2 strong {
+  color: var(--crc-texto);
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.crc-app .crc-paciente-oportunidade-topo-v2 > div > span,
+.crc-app .crc-paciente-tarefa-meta-v2,
+.crc-app .crc-paciente-trechos-v2 span,
+.crc-app .crc-paciente-timeline-topo-v2 span {
+  color: var(--crc-texto-3);
+  font-size: .65rem;
+}
+
+.crc-app .crc-paciente-oportunidade-meta-v2,
+.crc-app .crc-paciente-tarefa-meta-v2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-top: 6px;
+}
+
+.crc-app .crc-paciente-oportunidade-meta-v2 span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--crc-texto-2);
+  font-size: .66rem;
+}
+
+.crc-app .crc-paciente-oportunidade-meta-v2 svg {
+  width: 12px;
+  height: 12px;
+}
+
+.crc-app .crc-paciente-tarefa-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.crc-app .crc-paciente-trechos-v2 p,
+.crc-app .crc-paciente-timeline-v2 p {
+  margin: 5px 0 0;
+  color: var(--crc-texto-2);
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+.crc-app .crc-paciente-timeline-v2 > li {
+  display: grid;
+  grid-template-columns: 14px minmax(0,1fr);
+  gap: 10px;
+  padding: 5px 4px 0;
+}
+
+.crc-app .crc-paciente-timeline-trilho-v2 {
+  display: grid;
+  grid-template-rows: 12px minmax(20px,1fr);
+  justify-items: center;
+}
+
+.crc-app .crc-paciente-timeline-trilho-v2 > span {
+  width: 8px;
+  height: 8px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: var(--crc-primaria);
+  box-shadow: 0 0 0 3px var(--crc-primaria-suave);
+}
+
+.crc-app .crc-paciente-timeline-trilho-v2 > i {
+  width: 1px;
+  min-height: 28px;
+  background: var(--crc-borda);
+}
+
+@media (max-width: 1080px) {
+  .crc-app .crc-pacientes-busca-hero-v2 {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .crc-app .crc-paciente-dados-v2 {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 800px) {
+  .crc-app .crc-paciente-identidade-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app .crc-paciente-automacao-v2 {
+    min-width: 0;
+  }
+
+  .crc-app .crc-paciente-resumo-grid-v2 {
+    grid-template-columns: minmax(0,1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .crc-app .crc-pacientes-busca-hero-v2 {
+    padding: 18px;
+  }
+
+  .crc-app .crc-pacientes-busca-copy-v2 {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .crc-app .crc-pacientes-busca-icone-v2 {
+    width: 42px;
+    height: 42px;
+  }
+
+  .crc-app .crc-paciente-resultado-v2 {
+    grid-template-columns: 38px minmax(0,1fr);
+    padding: 12px;
+  }
+
+  .crc-app .crc-paciente-avatar-v2 {
+    width: 38px;
+    height: 38px;
+  }
+
+  .crc-app .crc-paciente-resultado-seta-v2 {
+    display: none;
+  }
+
+  .crc-app .crc-paciente-resultado-nome-v2 {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .crc-app .crc-paciente-identidade-principal-v2 {
+    grid-template-columns: 52px minmax(0,1fr);
+  }
+
+  .crc-app .crc-paciente-identidade-avatar-v2 {
+    width: 52px;
+    height: 52px;
+  }
+
+  .crc-app .crc-paciente-identidade-copy-v2 h1 {
+    white-space: normal;
+  }
+
+  .crc-app .crc-paciente-dados-v2 {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .crc-app .crc-paciente-tarefa-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app .crc-paciente-tarefa-v2 .crc-botao {
+    justify-content: center;
+  }
+}

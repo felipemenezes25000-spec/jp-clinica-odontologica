@@ -1,0 +1,85 @@
+/*
+ * JP CRC — harmonia do shell com as telas v2.
+ * As telas novas já carregam sua própria abertura contextual; o antigo hero
+ * genérico do shell vira duplicação. A topbar/breadcrumb continua visível.
+ */
+
+@media (min-width: 1025px) {
+  .crc-app.crc-app .crc-shell {
+    grid-template-columns: 252px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-lateral {
+    padding-inline: 12px;
+  }
+
+  .crc-app.crc-app .crc-nav-item {
+    min-height: 41px;
+  }
+}
+
+.crc-app.crc-app .crc-conteudo:has(.crc-trabalho-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-inbox-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-funil-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-agenda-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-pacientes-busca-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-gestao-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-import-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-auto-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-camp-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-int-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-team-v2) > .crc-cabecalho-premium,
+.crc-app.crc-app .crc-conteudo:has(.crc-settings-v2) > .crc-cabecalho-premium {
+  display: none !important;
+}
+
+/* O guia, quando ligado, vira ajuda contextual e não outro hero. */
+.crc-app.crc-app .crc-conteudo:has(.crc-trabalho-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-inbox-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-funil-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-agenda-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-pacientes-busca-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-gestao-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-import-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-auto-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-camp-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-int-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-team-v2) > .crc-guia,
+.crc-app.crc-app .crc-conteudo:has(.crc-settings-v2) > .crc-guia {
+  margin-bottom: 16px;
+}
+
+.crc-app.crc-app .crc-lateral {
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+
+.crc-app.crc-app .crc-nav-grupo + .crc-nav-grupo {
+  padding-top: 2px;
+  border-top: 1px solid rgba(255,255,255,.055);
+}
+
+.crc-app.crc-app .crc-nav-item[aria-current="page"] {
+  transform: none;
+}
+
+.crc-app.crc-app .crc-nav-item[aria-current="page"]::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #9fe490;
+  box-shadow: 0 0 0 4px rgba(159,228,144,.09);
+}
+
+@media (max-width: 1024px) {
+  .crc-app.crc-app .crc-lateral {
+    background: linear-gradient(90deg, var(--crc-nav), var(--crc-nav-2));
+  }
+
+  .crc-app.crc-app .crc-nav-grupo + .crc-nav-grupo {
+    padding-top: 0;
+    border-top: 0;
+  }
+}

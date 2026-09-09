@@ -1,0 +1,479 @@
+/* JP CRC — pipeline de oportunidades */
+
+.crc-app .crc-funil-v2 {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crc-app .crc-funil-resumo-v2 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.crc-app .crc-funil-resumo-card-v2 {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 17px;
+  background: rgba(255,255,255,.86);
+}
+
+.crc-app .crc-funil-resumo-card-v2 > span {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-funil-resumo-card-v2[data-tom="perigo"] > span {
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+}
+
+.crc-app .crc-funil-resumo-card-v2[data-tom="positivo"] > span {
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-funil-resumo-card-v2[data-tom="info"] > span {
+  background: var(--crc-info-suave);
+  color: var(--crc-info);
+}
+
+.crc-app .crc-funil-resumo-card-v2 svg {
+  width: 18px;
+  height: 18px;
+}
+
+.crc-app .crc-funil-resumo-card-v2 small,
+.crc-app .crc-funil-resumo-card-v2 strong,
+.crc-app .crc-funil-resumo-card-v2 em {
+  display: block;
+}
+
+.crc-app .crc-funil-resumo-card-v2 small {
+  color: var(--crc-texto-3);
+  font-size: .69rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-funil-resumo-card-v2 strong {
+  margin-top: 2px;
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: 1.6rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.crc-app .crc-funil-resumo-card-v2 em {
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--crc-texto-3);
+  font-size: .66rem;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-funil-controles-v2 {
+  padding: 15px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 19px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 14px 40px -38px rgba(8,51,31,.45);
+}
+
+.crc-app .crc-funil-controles-titulo {
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.crc-app .crc-funil-controles-titulo > span {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-funil-controles-titulo svg {
+  width: 17px;
+  height: 17px;
+}
+
+.crc-app .crc-funil-controles-titulo strong {
+  display: block;
+  color: var(--crc-texto);
+  font-size: .82rem;
+}
+
+.crc-app .crc-funil-controles-titulo em {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: var(--crc-info-suave);
+  color: var(--crc-info);
+  font-size: .68rem;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.crc-app .crc-funil-filtros-v2 {
+  display: grid;
+  grid-template-columns: minmax(180px,.75fr) minmax(180px,.75fr) minmax(220px,1fr);
+  gap: 10px;
+  align-items: end;
+}
+
+.crc-app .crc-funil-campo-filtro label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--crc-texto-3);
+  font-size: .68rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-funil-campo-filtro .crc-selecao {
+  width: 100%;
+}
+
+.crc-app .crc-funil-minhas-v2 {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 11px;
+  background: var(--crc-superficie-2);
+  color: var(--crc-texto-2);
+  font-size: .75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.crc-app .crc-funil-minhas-v2 input {
+  accent-color: var(--crc-primaria);
+}
+
+.crc-app .crc-funil-vazio-v2 {
+  min-height: 260px;
+  display: grid;
+  align-content: center;
+  border: 1px dashed var(--crc-borda-forte);
+  border-radius: 20px;
+  background: rgba(255,255,255,.62);
+}
+
+.crc-app .crc-funil-quadro-v2 {
+  display: grid;
+  grid-auto-columns: minmax(280px, 320px);
+  grid-auto-flow: column;
+  gap: 12px;
+  align-items: start;
+  overflow-x: auto;
+  padding: 2px 2px 12px;
+  scroll-snap-type: x proximity;
+}
+
+.crc-app .crc-funil-coluna-v2 {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--crc-borda);
+  border-radius: 19px;
+  background: rgba(248,250,247,.9);
+  scroll-snap-align: start;
+}
+
+.crc-app .crc-funil-coluna-topo-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 13px 11px;
+  border-bottom: 1px solid var(--crc-borda);
+  background: rgba(255,255,255,.74);
+}
+
+.crc-app .crc-funil-coluna-topo-v2 h2 {
+  margin: 0;
+  color: var(--crc-texto);
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.crc-app .crc-funil-coluna-topo-v2 > div:first-child > span {
+  display: block;
+  margin-top: 2px;
+  color: var(--crc-texto-3);
+  font-size: .65rem;
+}
+
+.crc-app .crc-funil-coluna-contadores {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.crc-app .crc-funil-coluna-contadores span {
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: .63rem;
+  font-weight: 800;
+}
+
+.crc-app .crc-funil-coluna-contadores span[data-tom="perigo"] {
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+}
+
+.crc-app .crc-funil-coluna-contadores strong {
+  display: grid;
+  min-width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  font-size: .68rem;
+}
+
+.crc-app .crc-funil-coluna-corpo-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 180px;
+  max-height: calc(100dvh - 360px);
+  overflow-y: auto;
+  padding: 9px;
+}
+
+.crc-app .crc-funil-etapa-vazia {
+  display: grid;
+  min-height: 118px;
+  place-items: center;
+  border: 1px dashed var(--crc-borda);
+  border-radius: 13px;
+  color: var(--crc-texto-3);
+  font-size: .71rem;
+  text-align: center;
+}
+
+.crc-app .crc-funil-card-v2 {
+  position: relative;
+  margin: 0;
+  padding: 13px;
+  overflow: hidden;
+  border: 1px solid var(--crc-borda);
+  border-radius: 15px;
+  background: var(--crc-superficie);
+  box-shadow: 0 9px 24px -23px rgba(8,51,31,.52);
+  transition: transform var(--crc-transicao), box-shadow var(--crc-transicao), border-color var(--crc-transicao);
+}
+
+.crc-app .crc-funil-card-v2:hover {
+  transform: translateY(-2px);
+  border-color: var(--crc-borda-forte);
+  box-shadow: var(--crc-sombra-erguida);
+}
+
+.crc-app .crc-funil-card-v2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--crc-borda-forte);
+}
+
+.crc-app .crc-funil-card-v2[data-faixa="ALTA"]::before {
+  background: var(--crc-perigo);
+}
+
+.crc-app .crc-funil-card-v2[data-faixa="MEDIA"]::before {
+  background: var(--crc-alerta);
+}
+
+.crc-app .crc-funil-card-topo-v2 {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.crc-app .crc-funil-card-topo-v2 > div {
+  min-width: 0;
+}
+
+.crc-app .crc-funil-card-topo-v2 strong,
+.crc-app .crc-funil-card-topo-v2 span {
+  display: block;
+}
+
+.crc-app .crc-funil-card-topo-v2 strong {
+  overflow: hidden;
+  color: var(--crc-texto);
+  font-size: .82rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-funil-card-topo-v2 > div > span {
+  margin-top: 2px;
+  color: var(--crc-texto-3);
+  font-size: .66rem;
+}
+
+.crc-app .crc-funil-card-motivo-v2 {
+  margin: 10px 0 0;
+  color: var(--crc-texto-2);
+  font-size: .72rem;
+  line-height: 1.5;
+}
+
+.crc-app .crc-funil-card-dados-v2 {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.crc-app .crc-funil-card-dados-v2 > span {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 10px;
+  background: var(--crc-superficie-2);
+}
+
+.crc-app .crc-funil-card-dados-v2 small,
+.crc-app .crc-funil-card-dados-v2 strong {
+  display: block;
+}
+
+.crc-app .crc-funil-card-dados-v2 small {
+  color: var(--crc-texto-3);
+  font-size: .61rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-funil-card-dados-v2 strong {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--crc-texto-2);
+  font-size: .69rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-funil-automacao-v2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  background: var(--crc-info-suave);
+  color: var(--crc-info);
+  font-size: .65rem;
+  font-weight: 750;
+}
+
+.crc-app .crc-funil-automacao-v2 svg {
+  width: 13px;
+  height: 13px;
+}
+
+.crc-app .crc-funil-card-acoes-v2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--crc-borda);
+}
+
+.crc-app .crc-funil-mover-v2 {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+}
+
+.crc-app .crc-funil-mover-v2 > svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-funil-mover-v2 .crc-selecao {
+  height: 32px;
+  min-width: 0;
+  flex: 1;
+  padding-block: 3px;
+  font-size: .68rem;
+}
+
+@media (max-width: 1100px) {
+  .crc-app .crc-funil-resumo-v2 {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .crc-app .crc-funil-filtros-v2 {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .crc-app .crc-funil-minhas-v2 {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .crc-app .crc-funil-resumo-v2,
+  .crc-app .crc-funil-filtros-v2 {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .crc-app .crc-funil-controles-titulo {
+    grid-template-columns: 36px minmax(0,1fr);
+  }
+
+  .crc-app .crc-funil-controles-titulo em {
+    grid-column: 2;
+    width: fit-content;
+  }
+
+  .crc-app .crc-funil-quadro-v2 {
+    grid-auto-columns: minmax(275px, 88vw);
+  }
+
+  .crc-app .crc-funil-coluna-corpo-v2 {
+    max-height: none;
+  }
+
+  .crc-app .crc-funil-card-acoes-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,54 @@
+/* JP CRC — gestão e analytics */
+
+.crc-app .crc-gestao-v2 { display:flex; flex-direction:column; gap:16px; }
+.crc-app .crc-gestao-command-v2 { display:flex; align-items:center; justify-content:space-between; gap:22px; padding:22px 24px; border:1px solid rgba(8,115,59,.12); border-radius:23px; background:radial-gradient(circle at 90% 10%,rgba(86,168,5,.09),transparent 220px),rgba(255,255,255,.88); }
+.crc-app .crc-gestao-command-v2 > div:first-child { min-width:0; }
+.crc-app .crc-gestao-kicker-v2 { display:inline-flex; align-items:center; gap:6px; margin-bottom:7px; color:var(--crc-primaria); font-size:.69rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+.crc-app .crc-gestao-command-v2 h2 { margin:0; color:var(--crc-texto); font-family:var(--crc-fonte-display); font-size:clamp(1.55rem,1.3rem + .9vw,2.15rem); font-weight:650; line-height:1.05; letter-spacing:-.04em; }
+.crc-app .crc-gestao-command-v2 p { max-width:68ch; margin:8px 0 0; color:var(--crc-texto-2); font-size:.8rem; line-height:1.55; }
+.crc-app .crc-gestao-exportar-v2 { display:flex; flex:0 0 auto; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.crc-app .crc-gestao-exportar-v2 > span { display:inline-flex; align-items:center; gap:5px; color:var(--crc-texto-3); font-size:.68rem; font-weight:750; }
+.crc-app .crc-gestao-exportar-v2 svg { width:14px; height:14px; }
+
+.crc-app .crc-gestao-kpis-v2 { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:11px; }
+.crc-app .crc-gestao-kpi-v2 { display:grid; min-width:0; grid-template-columns:42px minmax(0,1fr); gap:11px; align-items:center; padding:15px; border:1px solid var(--crc-borda); border-radius:18px; background:rgba(255,255,255,.86); }
+.crc-app .crc-gestao-kpi-destaque-v2 { border-color:rgba(8,115,59,.18); background:linear-gradient(145deg,#fbfffb,#eef8ef); }
+.crc-app .crc-gestao-kpi-v2 > span { display:grid; width:42px; height:42px; place-items:center; border-radius:13px; background:var(--crc-superficie-3); color:var(--crc-primaria); }
+.crc-app .crc-gestao-kpi-v2 svg { width:19px; height:19px; }
+.crc-app .crc-gestao-kpi-v2 small,.crc-app .crc-gestao-kpi-v2 strong,.crc-app .crc-gestao-kpi-v2 em { display:block; }
+.crc-app .crc-gestao-kpi-v2 small { color:var(--crc-texto-3); font-size:.66rem; font-weight:750; }
+.crc-app .crc-gestao-kpi-v2 strong { margin-top:2px; color:var(--crc-texto); font-family:var(--crc-fonte-display); font-size:1.55rem; font-weight:650; line-height:1; letter-spacing:-.045em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.crc-app .crc-gestao-kpi-v2 em { margin-top:4px; color:var(--crc-texto-3); font-size:.64rem; font-style:normal; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.crc-app .crc-gestao-grid-v2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; align-items:stretch; }
+.crc-app .crc-gestao-painel-v2 { min-width:0; overflow:hidden; border:1px solid var(--crc-borda); border-radius:20px; background:rgba(255,255,255,.88); box-shadow:0 16px 44px -42px rgba(8,51,31,.48); }
+.crc-app .crc-gestao-painel-v2 > header { display:grid; grid-template-columns:38px minmax(0,1fr); gap:10px; align-items:center; padding:13px 14px; border-bottom:1px solid var(--crc-borda); background:rgba(249,251,248,.86); }
+.crc-app .crc-gestao-painel-v2 > header > span { display:grid; width:38px; height:38px; place-items:center; border-radius:12px; background:var(--crc-primaria-suave); color:var(--crc-primaria); }
+.crc-app .crc-gestao-painel-v2 > header svg { width:17px; height:17px; }
+.crc-app .crc-gestao-painel-v2 > header small { display:block; color:var(--crc-texto-3); font-size:.62rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.crc-app .crc-gestao-painel-v2 > header h2 { margin:1px 0 0; color:var(--crc-texto); font-size:.82rem; font-weight:800; }
+.crc-app .crc-gestao-painel-corpo-v2 { min-width:0; padding:16px; }
+
+.crc-app .crc-gestao-serie-v2 { display:grid; gap:8px; align-items:end; min-height:230px; }
+.crc-app .crc-gestao-serie-coluna-v2 { display:grid; grid-template-rows:24px 170px 20px; min-width:0; gap:5px; align-items:end; }
+.crc-app .crc-gestao-serie-coluna-v2 > span { color:var(--crc-texto-2); font-size:.64rem; font-weight:750; text-align:center; overflow:hidden; text-overflow:ellipsis; }
+.crc-app .crc-gestao-serie-trilho-v2 { position:relative; height:170px; border-radius:10px; overflow:hidden; background:linear-gradient(180deg,var(--crc-superficie-2),var(--crc-superficie-3)); }
+.crc-app .crc-gestao-serie-trilho-v2 > i { position:absolute; left:18%; right:18%; bottom:0; min-height:3px; border-radius:8px 8px 3px 3px; background:linear-gradient(180deg,#0c8b49,var(--crc-primaria)); box-shadow:0 8px 18px -10px rgba(8,115,59,.72); }
+.crc-app .crc-gestao-serie-coluna-v2 > small { color:var(--crc-texto-3); font-size:.61rem; text-align:center; }
+
+.crc-app .crc-gestao-funil-v2 { display:flex; flex-direction:column; gap:14px; }
+.crc-app .crc-gestao-funil-topo-v2 { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px; align-items:baseline; }
+.crc-app .crc-gestao-funil-topo-v2 span { color:var(--crc-texto-2); font-size:.75rem; font-weight:700; }
+.crc-app .crc-gestao-funil-topo-v2 strong { color:var(--crc-texto); font-size:.75rem; }
+.crc-app .crc-gestao-funil-topo-v2 em { color:var(--crc-texto-3); font-size:.62rem; font-style:normal; }
+.crc-app .crc-gestao-funil-trilho-v2 { height:9px; overflow:hidden; border-radius:999px; background:var(--crc-superficie-3); }
+.crc-app .crc-gestao-funil-trilho-v2 > i { display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--crc-primaria),#5eae43); }
+
+.crc-app .crc-gestao-painel-v2 .crc-tabela-caixa { border:0; border-radius:0; box-shadow:none; }
+.crc-app .crc-gestao-painel-v2 .crc-tabela { font-size:.73rem; }
+.crc-app .crc-gestao-positivo-v2 { color:var(--crc-primaria); font-weight:800; }
+.crc-app .crc-gestao-nota-v2 { margin:0 0 12px; color:var(--crc-texto-3); font-size:.7rem; line-height:1.5; }
+
+@media (max-width:1120px) { .crc-app .crc-gestao-kpis-v2 { grid-template-columns:repeat(2,minmax(0,1fr)); } .crc-app .crc-gestao-command-v2 { align-items:flex-start; flex-direction:column; } .crc-app .crc-gestao-exportar-v2 { justify-content:flex-start; } }
+@media (max-width:820px) { .crc-app .crc-gestao-grid-v2 { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:620px) { .crc-app .crc-gestao-kpis-v2 { grid-template-columns:minmax(0,1fr); } .crc-app .crc-gestao-command-v2 { padding:18px; } .crc-app .crc-gestao-serie-coluna-v2 { grid-template-rows:20px 130px 18px; } .crc-app .crc-gestao-serie-trilho-v2 { height:130px; } .crc-app .crc-gestao-funil-topo-v2 { grid-template-columns:minmax(0,1fr) auto; } .crc-app .crc-gestao-funil-topo-v2 em { grid-column:1 / -1; } }

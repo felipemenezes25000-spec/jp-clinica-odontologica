@@ -1,35 +1,16 @@
-/**
- * A Home operacional — item 15 do Mega Prompt, itens 106 e 181 do contrato.
- *
- * "Não quero dashboard cheio de cards inúteis. Quero uma Home operacional."
- *
- * O QUE MUDOU NESTA REVISÃO, E POR QUÊ
- *
- * Antes esta tela abria com CINCO CARTÕES IGUAIS. É o gesto mais comum de
- * painel e um dos piores: "pacientes esperando por você" ganhava exatamente o
- * mesmo peso de "consultas recuperadas no mês" — e um é trabalho a fazer
- * enquanto o outro é placar do passado. Cinco pesos iguais não são hierarquia;
- * são a ausência dela.
- *
- * Agora a tela é uma FRASE, e a frase tem duas metades:
- *
- *   À ESQUERDA, O TRABALHO. Um número grande, na cor de atenção, e logo abaixo
- *   dele a fila — porque a resposta para "quantos precisam de mim" é inútil
- *   sem o "quem".
- *
- *   À DIREITA, O SOSSEGO. Quantos a máquina está cuidando sozinha, com o pulso
- *   provando que ela roda agora, e a fita do dia mostrando onde estamos na
- *   janela de atendimento. É o que responde "e o resto?" antes de perguntarem.
- *
- * O PORQUÊ DEIXOU DE SER UM CLIQUE. A explicação da nota estava escondida atrás
- * de um botão "Por que 92/100?". Escondida, ela não é usada; e uma fila que
- * ninguém entende é uma fila em que ninguém confia. O primeiro item da lista
- * traz a decomposição aberta, sempre — é o que ensina a ler todos os outros.
- *
- * Doze itens no máximo. O item 15 é literal: "não mostrar 300 coisas de uma
- * vez". A fila completa mora no Funil.
- */
 import { useEffect, useState } from "react";
+import {
+  Activity,
+  ArrowUpRight,
+  Bot,
+  CalendarCheck2,
+  CircleDollarSign,
+  Clock3,
+  MessageSquareText,
+  ShieldCheck,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
 
 import { carregarHome, type ItemPrioridade, type ResumoHome } from "@/lib/crc/api";
 import {
@@ -41,7 +22,8 @@ import {
 } from "@/lib/crc/dominio/formatar";
 
 import { FitaDoDia, Porque, Pulso, type RazaoDaNota } from "./assinatura";
-import { Aviso, Cartao, Esqueleto, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
+import { Aviso, Botao, Cartao, Esqueleto, Etiqueta, ListaEsqueleto, Vazio } from "./base";
+import "./crc-experience.css";
 
 export function Home({
   nomeUsuario,
@@ -62,9 +44,7 @@ export function Home({
         if (r.ok) setResumo(r.resumo);
         else setErro(r.message);
       } catch {
-        if (vivo) {
-          setErro("Não conseguimos carregar sua fila agora. Tente atualizar a página.");
-        }
+        if (vivo) setErro("Não conseguimos carregar sua fila agora. Tente atualizar a página.");
       }
     })();
     return () => {
@@ -72,192 +52,241 @@ export function Home({
     };
   }, []);
 
-  if (erro !== null) {
-    return <Aviso tom="perigo">{erro}</Aviso>;
-  }
+  if (erro !== null) return <Aviso tom="perigo">{erro}</Aviso>;
 
   if (resumo === null) {
     return (
-      <>
-        <div style={{ marginBottom: "var(--crc-e6)" }}>
-          <Esqueleto altura={38} largura="52%" />
-          <div style={{ height: "var(--crc-e3)" }} />
-          <Esqueleto altura={16} largura="70%" />
+      <div className="crc-home-v2">
+        <div className="crc-home-hero crc-home-hero-loading">
+          <Esqueleto altura={18} largura="24%" />
+          <Esqueleto altura={52} largura="56%" />
+          <Esqueleto altura={16} largura="68%" />
         </div>
-        <div className="crc-grade" style={{ marginBottom: "var(--crc-e6)" }}>
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="crc-kpi">
-              <Esqueleto altura={12} largura="60%" />
-              <div style={{ height: "var(--crc-e2)" }} />
-              <Esqueleto altura={30} largura="45%" />
+        <div className="crc-home-metricas">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="crc-home-metrica">
+              <Esqueleto altura={13} largura="58%" />
+              <Esqueleto altura={34} largura="34%" />
             </div>
           ))}
         </div>
         <ListaEsqueleto linhas={5} />
-      </>
+      </div>
     );
   }
 
   const primeiroNome = nomeUsuario.trim().split(/\s+/u)[0] ?? "";
   const temTrabalho = resumo.precisamDeAtencao > 0;
+  const valorEhReceita = Number.parseFloat(resumo.receitaConfirmada) > 0;
+  const valorRecuperado = valorEhReceita
+    ? resumo.receitaConfirmada
+    : resumo.valorPotencialRecuperado;
+  const prioridadeAlta = resumo.prioridades.filter((p) => p.faixa === "ALTA").length;
 
   return (
-    <>
-      <header style={{ marginBottom: "var(--crc-e6)" }}>
-        <h1 className="crc-titulo-pagina">
-          {resumo.saudacao}
-          {primeiroNome.length > 0 ? `, ${primeiroNome}` : ""}.
-        </h1>
-
-        {/* A frase que resume o dia. É ela que faz o funcionário sentir que o
-            sistema está trabalhando por ele (item 50 do Mega Prompt). */}
-        <p
-          className="crc-corpo"
-          style={{ marginTop: "var(--crc-e2)", fontSize: "1.0625rem", maxWidth: "62ch" }}
-        >
-          {temTrabalho ? (
-            <>
-              <strong style={{ color: "var(--crc-texto)" }}>
-                {plural(resumo.precisamDeAtencao, "paciente precisa", "pacientes precisam")}
-              </strong>{" "}
-              da sua atenção agora.{" "}
-            </>
-          ) : (
-            <>Nenhum paciente está esperando você agora. </>
-          )}
-          {resumo.emAutomacao > 0 && (
-            <>
-              Outros {resumo.emAutomacao.toLocaleString("pt-BR")} estão sendo trabalhados
-              automaticamente.
-            </>
-          )}
-        </p>
-
-        <div className="crc-linha" style={{ marginTop: "var(--crc-e3)", gap: "var(--crc-e4)" }}>
-          <Pulso
-            ativo={resumo.dentroDoHorario}
-            texto={
-              resumo.dentroDoHorario
-                ? "Automação ativa — dentro do horário de atendimento"
-                : "Fora do horário: o que estiver na fila sai na abertura"
-            }
-          />
-          {/* Item 136: quando os dados são velhos, a tela avisa. Um CRC
-              operando sobre uma sincronização de ontem decide errado em
-              silêncio. */}
-          {resumo.frescorDados !== null && (
-            <span className="crc-meta">{frescor(resumo.frescorDados)}</span>
-          )}
-        </div>
-      </header>
-
-      {/*
-        DUAS COLUNAS, E ELAS NÃO SÃO IGUAIS.
-        A da esquerda é o trabalho e ocupa o dobro; a da direita é contexto. Um
-        layout meio a meio diria que as duas pedem a mesma atenção, e não pedem.
-      */}
-      <div className="crc-painel-duplo" style={{ marginBottom: "var(--crc-e8)" }}>
-        <div className="crc-grade">
-          <Kpi
-            rotulo="Precisam de você"
-            valor={resumo.precisamDeAtencao.toLocaleString("pt-BR")}
-            nota="Sem automação cuidando"
-            destaque={temTrabalho ? "foco" : "calmo"}
-          />
-          <Kpi
-            rotulo="Suas tarefas"
-            valor={resumo.tarefasHoje.toLocaleString("pt-BR")}
-            nota="Abertas e em andamento"
-          />
-          <Kpi
-            rotulo="Conversas esperando"
-            valor={resumo.conversasEsperando.toLocaleString("pt-BR")}
-            nota="Com mensagem não lida"
-          />
-        </div>
-
-        <Cartao>
-          <h2 className="crc-titulo-cartao" style={{ marginBottom: "var(--crc-e3)" }}>
-            O dia da clínica
-          </h2>
-          <FitaDoDia inicio={resumo.janelaDeHoje.inicio} fim={resumo.janelaDeHoje.fim} />
-
-          <hr className="crc-separador" />
-
-          <div className="crc-grade" style={{ gap: "var(--crc-e3)" }}>
-            <div>
-              <div className="crc-kpi-rotulo">Recuperadas</div>
-              <div className="crc-kpi-valor" style={{ fontSize: "1.5rem" }}>
-                {resumo.consultasRecuperadas.toLocaleString("pt-BR")}
-              </div>
-              <div className="crc-kpi-nota">consultas neste mês</div>
-            </div>
-            <div>
-              {/*
-                Item 63: potencial e confirmado NUNCA no mesmo número. Sem
-                integração financeira este número é POTENCIAL — e o rótulo diz
-                isso, em vez de chamar de "receita" e o painel mentir.
-              */}
-              <div className="crc-kpi-rotulo">
-                {Number.parseFloat(resumo.receitaConfirmada) > 0 ? "Receita" : "Potencial"}
-              </div>
-              <div className="crc-kpi-valor" style={{ fontSize: "1.5rem" }}>
-                {dinheiroCurto(
-                  Number.parseFloat(resumo.receitaConfirmada) > 0
-                    ? resumo.receitaConfirmada
-                    : resumo.valorPotencialRecuperado,
-                )}
-              </div>
-              <div className="crc-kpi-nota">
-                {Number.parseFloat(resumo.receitaConfirmada) > 0
-                  ? "confirmada neste mês"
-                  : "ainda sem confirmação"}
-              </div>
-            </div>
+    <div className="crc-home-v2">
+      <section className="crc-home-hero">
+        <div className="crc-home-hero-copy">
+          <div className="crc-home-kicker">
+            <Sparkles size={14} aria-hidden="true" />
+            Central operacional
           </div>
-        </Cartao>
-      </div>
+          <h1 className="crc-home-titulo">
+            {resumo.saudacao}
+            {primeiroNome.length > 0 ? `, ${primeiroNome}` : ""}.
+          </h1>
+          <p className="crc-home-resumo">
+            {temTrabalho ? (
+              <>
+                <strong>
+                  {plural(resumo.precisamDeAtencao, "paciente precisa", "pacientes precisam")}
+                </strong>{" "}
+                da sua atenção agora.
+              </>
+            ) : (
+              <>Sua fila humana está limpa agora.</>
+            )}{" "}
+            {resumo.emAutomacao > 0 && (
+              <>
+                A automação está trabalhando outros {resumo.emAutomacao.toLocaleString("pt-BR")}{" "}
+                casos.
+              </>
+            )}
+          </p>
 
-      <div
-        className="crc-linha"
-        style={{ marginBottom: "var(--crc-e3)", justifyContent: "space-between" }}
-      >
-        <h2 className="crc-titulo-secao">Prioridades de hoje</h2>
-        {resumo.prioridades.length > 0 && (
-          <span className="crc-meta">
-            {plural(resumo.prioridades.length, "item na fila", "itens na fila")}
-          </span>
-        )}
-      </div>
-
-      {resumo.prioridades.length === 0 ? (
-        <Cartao>
-          <Vazio
-            titulo="Nenhuma oportunidade esperando você agora."
-            explicacao="As automações continuam monitorando a base. Quando um paciente precisar de contato humano, ele aparece aqui."
-          />
-        </Cartao>
-      ) : (
-        <div className="crc-fila">
-          {resumo.prioridades.map((item, indice) => (
-            <LinhaPrioridade
-              key={item.opportunityId}
-              item={item}
-              /* O PRIMEIRO ABRE EXPLICADO. Ele é o que ensina a ler a fila
-                 inteira: quem entende por que ela está no topo passa a
-                 entender a ordem toda. Abrir todos seria uma parede de
-                 barras — a explicação viraria ruído em vez de leitura. */
-              explicadoDeSaida={indice === 0}
-              aoAbrir={aoAbrirPaciente}
+          <div className="crc-home-status-linha">
+            <Pulso
+              ativo={resumo.dentroDoHorario}
+              texto={
+                resumo.dentroDoHorario
+                  ? "Automação ativa dentro do horário"
+                  : "Fora do horário — a fila espera a abertura"
+              }
             />
-          ))}
+            {resumo.frescorDados !== null && (
+              <span className="crc-meta">{frescor(resumo.frescorDados)}</span>
+            )}
+          </div>
         </div>
-      )}
-    </>
+
+        <div className={`crc-home-foco${temTrabalho ? " crc-home-foco-ativo" : ""}`}>
+          <div className="crc-home-foco-topo">
+            <span className="crc-home-foco-icone">
+              {temTrabalho ? <Activity aria-hidden="true" /> : <ShieldCheck aria-hidden="true" />}
+            </span>
+            <span className="crc-home-foco-label">Agora</span>
+          </div>
+          <strong className="crc-home-foco-numero">
+            {resumo.precisamDeAtencao.toLocaleString("pt-BR")}
+          </strong>
+          <span className="crc-home-foco-texto">
+            {temTrabalho ? "precisam de ação humana" : "pendências humanas"}
+          </span>
+          {prioridadeAlta > 0 && (
+            <span className="crc-home-foco-alerta">{prioridadeAlta} de prioridade alta</span>
+          )}
+        </div>
+      </section>
+
+      <section className="crc-home-metricas" aria-label="Resumo operacional">
+        <Metrica
+          icone={UsersRound}
+          rotulo="Fila humana"
+          valor={resumo.precisamDeAtencao.toLocaleString("pt-BR")}
+          nota="Sem automação cuidando"
+          tom={temTrabalho ? "alerta" : "positivo"}
+        />
+        <Metrica
+          icone={Clock3}
+          rotulo="Suas tarefas"
+          valor={resumo.tarefasHoje.toLocaleString("pt-BR")}
+          nota="Abertas e em andamento"
+        />
+        <Metrica
+          icone={MessageSquareText}
+          rotulo="Conversas esperando"
+          valor={resumo.conversasEsperando.toLocaleString("pt-BR")}
+          nota="Com mensagem não lida"
+        />
+        <Metrica
+          icone={Bot}
+          rotulo="Em automação"
+          valor={resumo.emAutomacao.toLocaleString("pt-BR")}
+          nota={resumo.dentroDoHorario ? "Motor trabalhando agora" : "Aguardando janela útil"}
+          tom="info"
+        />
+      </section>
+
+      <div className="crc-home-grid-principal">
+        <section className="crc-home-prioridades">
+          <div className="crc-home-secao-topo">
+            <div>
+              <div className="crc-sobretitulo">Fila priorizada</div>
+              <h2 className="crc-titulo-secao">Quem merece sua atenção primeiro</h2>
+            </div>
+            {resumo.prioridades.length > 0 && (
+              <span className="crc-home-contagem">
+                {plural(resumo.prioridades.length, "item", "itens")}
+              </span>
+            )}
+          </div>
+
+          {resumo.prioridades.length === 0 ? (
+            <Cartao>
+              <Vazio
+                titulo="Nenhuma oportunidade esperando você agora."
+                explicacao="As automações continuam monitorando a base. Quando um paciente precisar de contato humano, ele aparece aqui."
+              />
+            </Cartao>
+          ) : (
+            <div className="crc-fila crc-home-fila">
+              {resumo.prioridades.map((item, indice) => (
+                <LinhaPrioridade
+                  key={item.opportunityId}
+                  item={item}
+                  explicadoDeSaida={indice === 0}
+                  aoAbrir={aoAbrirPaciente}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <aside className="crc-home-lateral">
+          <Cartao>
+            <div className="crc-home-card-titulo">
+              <span className="crc-home-card-icone">
+                <CalendarCheck2 aria-hidden="true" />
+              </span>
+              <div>
+                <div className="crc-sobretitulo">Ritmo do dia</div>
+                <h2 className="crc-titulo-cartao">Janela de atendimento</h2>
+              </div>
+            </div>
+            <FitaDoDia inicio={resumo.janelaDeHoje.inicio} fim={resumo.janelaDeHoje.fim} />
+          </Cartao>
+
+          <Cartao>
+            <div className="crc-home-card-titulo">
+              <span className="crc-home-card-icone">
+                <CircleDollarSign aria-hidden="true" />
+              </span>
+              <div>
+                <div className="crc-sobretitulo">Resultado do mês</div>
+                <h2 className="crc-titulo-cartao">Recuperação</h2>
+              </div>
+            </div>
+
+            <div className="crc-home-resultado-grid">
+              <div>
+                <span className="crc-home-resultado-label">Consultas recuperadas</span>
+                <strong>{resumo.consultasRecuperadas.toLocaleString("pt-BR")}</strong>
+              </div>
+              <div>
+                <span className="crc-home-resultado-label">
+                  {valorEhReceita ? "Receita confirmada" : "Valor potencial"}
+                </span>
+                <strong>{dinheiroCurto(valorRecuperado)}</strong>
+              </div>
+            </div>
+            {!valorEhReceita && (
+              <p className="crc-meta crc-home-resultado-nota">
+                Ainda sem confirmação financeira; o valor acima é potencial.
+              </p>
+            )}
+          </Cartao>
+        </aside>
+      </div>
+    </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
+function Metrica({
+  icone: Icone,
+  rotulo,
+  valor,
+  nota,
+  tom = "neutro",
+}: {
+  icone: typeof Activity;
+  rotulo: string;
+  valor: string;
+  nota: string;
+  tom?: "neutro" | "alerta" | "positivo" | "info";
+}) {
+  return (
+    <article className="crc-home-metrica" data-tom={tom}>
+      <span className="crc-home-metrica-icone">
+        <Icone aria-hidden="true" />
+      </span>
+      <div className="crc-home-metrica-copy">
+        <span className="crc-home-metrica-label">{rotulo}</span>
+        <strong className="crc-home-metrica-valor">{valor}</strong>
+        <span className="crc-home-metrica-nota">{nota}</span>
+      </div>
+    </article>
+  );
+}
 
 const ROTULO_FAIXA: Readonly<Record<ItemPrioridade["faixa"], string>> = {
   ALTA: "Prioridade alta",
@@ -271,7 +300,6 @@ const TOM_FAIXA: Readonly<Record<ItemPrioridade["faixa"], "perigo" | "alerta" | 
   BAIXA: "neutra",
 };
 
-/** Os fatores vêm do servidor no formato do domínio; a barra fala outro. */
 function paraRazoes(fatores: ItemPrioridade["fatores"]): RazaoDaNota[] {
   return fatores.map((f) => ({ rotulo: f.rotulo, peso: f.pontos }));
 }
@@ -290,11 +318,6 @@ function LinhaPrioridade({
   return (
     <div className="crc-entra" data-urgencia={item.faixa}>
       <div className="crc-fila-item" data-urgencia={item.faixa} style={{ cursor: "default" }}>
-        {/*
-          A NOTA EM DISCO, e não em texto solto: é por ela que a fila está
-          ordenada, e ela precisa ser lida de longe. A largura é fixa para que
-          "7" e "92" não desalinhem os nomes ao lado.
-        */}
         <span
           className="crc-fila-nota"
           title={`Nota de prioridade: ${String(item.score)} de 100`}
@@ -306,8 +329,6 @@ function LinhaPrioridade({
         <div className="crc-fila-corpo">
           <div className="crc-linha" style={{ gap: "var(--crc-e2)" }}>
             <span className="crc-fila-nome">{item.nome}</span>
-            {/* A etiqueta repete a informação da faixa colorida de propósito —
-                item 65: nenhuma ação pode depender só de cor. */}
             <Etiqueta tom={TOM_FAIXA[item.faixa]}>{ROTULO_FAIXA[item.faixa]}</Etiqueta>
             <Etiqueta>{item.tipoRotulo}</Etiqueta>
             {item.temJornadaAtiva && <Etiqueta tom="info">Automação cuidando</Etiqueta>}
@@ -317,62 +338,51 @@ function LinhaPrioridade({
             {item.motivo}
           </p>
 
-          <div className="crc-linha" style={{ marginTop: "var(--crc-e2)", gap: "var(--crc-e4)" }}>
+          <div className="crc-home-fila-meta">
             {item.valorPotencial !== null && (
-              <span className="crc-meta">
-                Valor potencial:{" "}
-                <strong style={{ color: "var(--crc-texto-2)" }}>
-                  {dinheiro(item.valorPotencial)}
-                </strong>
+              <span>
+                Potencial <strong>{dinheiro(item.valorPotencial)}</strong>
               </span>
             )}
             {item.proximaAcao !== null && (
-              <span className="crc-meta">Ação sugerida: {item.proximaAcao}</span>
+              <span>
+                Próximo passo <strong>{item.proximaAcao}</strong>
+              </span>
             )}
             {item.ultimoContatoEm !== null && (
-              <span className="crc-meta">Último contato {tempoRelativo(item.ultimoContatoEm)}</span>
+              <span>Último contato {tempoRelativo(item.ultimoContatoEm)}</span>
             )}
           </div>
 
-          {/*
-            ITEM 173 — "Por que prioridade alta?".
-            Os fatores exibidos são os MESMOS que ordenaram a fila; eles vêm
-            gravados junto do score, e não são recalculados aqui. Se fossem, a
-            explicação poderia divergir da ordem, que é pior do que não
-            explicar nada.
-          */}
           {item.fatores.length > 0 && explicando && (
-            <div style={{ marginTop: "var(--crc-e3)" }}>
+            <div className="crc-home-porque">
               <Porque total={item.score} razoes={paraRazoes(item.fatores)} />
             </div>
           )}
         </div>
 
-        <div className="crc-linha" style={{ gap: "var(--crc-e2)", flexShrink: 0 }}>
+        <div className="crc-home-fila-acoes">
           {item.fatores.length > 0 && (
-            <button
-              type="button"
-              className="crc-botao crc-botao-discreto crc-botao-pequeno"
+            <Botao
+              pequeno
+              variante="discreto"
               aria-expanded={explicando}
-              onClick={() => {
-                setExplicando((v) => !v);
-              }}
+              onClick={() => setExplicando((v) => !v)}
             >
-              {explicando ? "Ocultar" : "Por quê?"}
-            </button>
+              {explicando ? "Ocultar motivo" : "Entender prioridade"}
+            </Botao>
           )}
 
-          {/* Item 4: o botão faz coisa de verdade — abre a central do paciente. */}
           {item.patientId !== null && (
-            <button
-              type="button"
-              className="crc-botao crc-botao-secundario crc-botao-pequeno"
+            <Botao
+              pequeno
+              variante="secundario"
               onClick={() => {
                 if (item.patientId !== null) aoAbrir(item.patientId);
               }}
             >
-              Abrir
-            </button>
+              Abrir paciente <ArrowUpRight size={15} aria-hidden="true" />
+            </Botao>
           )}
         </div>
       </div>

@@ -1,27 +1,5 @@
-/**
- * A tela de equipe.
- *
- * O QUE ELA RESOLVE: até existir, a clínica inteira entrava com o mesmo login,
- * e a auditoria do item 74 registrava "alguém" em cada ação. Dar um login por
- * pessoa não é organização — é o que faz o histórico significar alguma coisa.
- *
- * TRÊS ESCOLHAS DE INTERFACE QUE VALEM SER DITAS:
- *
- *   O PAPEL VEM COM A EXPLICAÇÃO DO QUE ELE FAZ, e não só com o nome. Quem
- *   está cadastrando a recepcionista tem uma pergunta concreta na cabeça —
- *   "ela vai ver valor de orçamento?" — e um `<select>` com seis substantivos
- *   não responde. A frase abaixo do campo responde.
- *
- *   A SENHA É ESCOLHIDA POR QUEM CADASTRA, e entregue pessoalmente. Não há
- *   e-mail de convite porque não há remetente configurado, e um convite que não
- *   chega é pior do que não existir. O campo diz isso na dica, para ninguém
- *   ficar esperando um e-mail.
- *
- *   DESATIVAR NÃO APAGA. O histórico da pessoa continua ligado ao nome dela —
- *   apagar o usuário deixaria meses de tarefas e mensagens órfãs, que é
- *   exatamente o que a auditoria não pode ter.
- */
 import { useCallback, useEffect, useState } from "react";
+import { KeyRound, Plus, ShieldCheck, UserRoundCheck, UserRoundX, UsersRound } from "lucide-react";
 
 import {
   carregarEquipe,
@@ -32,20 +10,20 @@ import {
   type MembroDto,
 } from "@/lib/crc/api";
 import { EXPLICACAO_PAPEL, ROTULO_PAPEL } from "@/lib/crc/dominio/rotulos";
-import { PAPEIS } from "@/lib/crc/dominio/tipos";
+import { PAPEIS, type Papel } from "@/lib/crc/dominio/tipos";
 
 import {
   Aviso,
   BarraDeRecado,
   Botao,
   Campo,
-  Cartao,
   Entrada,
   Etiqueta,
   ListaEsqueleto,
   Modal,
   useAcao,
 } from "./base";
+import "./crc-team.css";
 
 const MIN_SENHA = 10;
 
@@ -64,16 +42,13 @@ function quando(iso: string | null): string {
 export function Equipe() {
   const [membros, setMembros] = useState<MembroDto[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-
   const [convidando, setConvidando] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [papel, setPapel] = useState<string>("recepcao");
-
+  const [papel, setPapel] = useState<Papel>("recepcao");
   const [trocandoSenhaDe, setTrocandoSenhaDe] = useState<MembroDto | null>(null);
   const [novaSenha, setNovaSenha] = useState("");
-
   const acao = useAcao();
 
   const recarregar = useCallback(async (): Promise<void> => {
@@ -82,9 +57,7 @@ export function Equipe() {
       if (r.ok) {
         setMembros(r.membros);
         setErro(null);
-      } else {
-        setErro(r.message);
-      }
+      } else setErro(r.message);
     } catch {
       setErro("Não conseguimos carregar a equipe. Tente atualizar a página.");
     }
@@ -114,13 +87,11 @@ export function Equipe() {
   }, [acao, email, limparFormulario, nome, papel, recarregar, senha]);
 
   const trocarPapel = useCallback(
-    async (m: MembroDto, novo: string): Promise<void> => {
+    async (m: MembroDto, novo: Papel): Promise<void> => {
       await acao.executar(
         () => mudarPapelDoMembro({ data: { userId: m.id, papel: novo } }),
-        () => {
-          void recarregar();
-        },
-        `${m.nome} agora é ${ROTULO_PAPEL[novo as keyof typeof ROTULO_PAPEL] ?? novo}.`,
+        () => void recarregar(),
+        `${m.nome} agora é ${ROTULO_PAPEL[novo]}.`,
       );
     },
     [acao, recarregar],
@@ -130,9 +101,7 @@ export function Equipe() {
     async (m: MembroDto): Promise<void> => {
       await acao.executar(
         () => mudarAtivacaoDoMembro({ data: { userId: m.id, ativo: !m.ativo } }),
-        () => {
-          void recarregar();
-        },
+        () => void recarregar(),
         m.ativo ? `${m.nome} não entra mais.` : `${m.nome} voltou a ter acesso.`,
       );
     },
@@ -157,34 +126,69 @@ export function Equipe() {
 
   const ativos = membros.filter((m) => m.ativo);
   const inativos = membros.filter((m) => !m.ativo);
+  const papeisUsados = new Set(ativos.map((m) => m.papel)).size;
 
   return (
-    <>
+    <div className="crc-team-v2">
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
 
-      <Cartao
-        titulo="Quem tem acesso"
-        acao={
-          <Botao
-            variante="primario"
-            onClick={() => {
-              setConvidando(true);
-            }}
-          >
-            Cadastrar pessoa
-          </Botao>
-        }
-      >
-        {membros.length === 1 && (
-          <Aviso tom="alerta">
-            Só existe um acesso no sistema. Enquanto a equipe compartilhar este login, o histórico
-            de cada tarefa e cada mensagem vai dizer apenas que "alguém" fez — e não quem.
-          </Aviso>
-        )}
+      <section className="crc-team-command-v2">
+        <div>
+          <div className="crc-team-kicker-v2">
+            <ShieldCheck size={14} aria-hidden="true" /> Acesso e responsabilidade
+          </div>
+          <h2>Um login por pessoa. Um histórico que diz quem fez o quê.</h2>
+          <p>
+            Papel define alcance; desativar corta acesso sem apagar o passado. Senha continua sendo
+            entregue pessoalmente porque não existe fluxo de convite por e-mail.
+          </p>
+        </div>
+        <Botao variante="primario" onClick={() => setConvidando(true)}>
+          <Plus size={16} aria-hidden="true" /> Cadastrar pessoa
+        </Botao>
+      </section>
 
-        <ul className="crc-pilha">
+      <section className="crc-team-resumo-v2">
+        <ResumoTeam
+          icone={UserRoundCheck}
+          rotulo="Com acesso"
+          valor={ativos.length}
+          nota="Usuários ativos"
+          tom="positivo"
+        />
+        <ResumoTeam
+          icone={UserRoundX}
+          rotulo="Sem acesso"
+          valor={inativos.length}
+          nota="Histórico preservado"
+        />
+        <ResumoTeam
+          icone={UsersRound}
+          rotulo="Papéis em uso"
+          valor={papeisUsados}
+          nota="Perfis diferentes na operação"
+          tom="info"
+        />
+      </section>
+
+      {membros.length === 1 && (
+        <Aviso tom="alerta">
+          Só existe um acesso no sistema. Enquanto a equipe compartilhar este login, o histórico não
+          consegue dizer quem fez cada tarefa ou mensagem.
+        </Aviso>
+      )}
+
+      <section className="crc-team-secao-v2">
+        <header>
+          <div>
+            <div className="crc-sobretitulo">Equipe ativa</div>
+            <h2 className="crc-titulo-secao">Quem entra no CRC</h2>
+          </div>
+          <span>{ativos.length}</span>
+        </header>
+        <div className="crc-team-grid-v2">
           {ativos.map((m) => (
-            <LinhaMembro
+            <MembroCard
               key={m.id}
               membro={m}
               ocupado={acao.rodando}
@@ -193,18 +197,25 @@ export function Equipe() {
               aoTrocarSenha={setTrocandoSenhaDe}
             />
           ))}
-        </ul>
-      </Cartao>
+        </div>
+      </section>
 
       {inativos.length > 0 && (
-        <Cartao titulo="Sem acesso">
-          <p className="crc-meta" style={{ marginBottom: "var(--crc-e3)" }}>
-            Continuam no histórico: as tarefas e mensagens que estas pessoas fizeram seguem
-            assinadas com o nome delas. Reativar devolve o acesso na hora.
-          </p>
-          <ul className="crc-pilha">
+        <section className="crc-team-secao-v2 crc-team-inativos-v2">
+          <header>
+            <div>
+              <div className="crc-sobretitulo">Histórico preservado</div>
+              <h2 className="crc-titulo-secao">Sem acesso</h2>
+              <p>
+                Essas pessoas não entram mais, mas tarefas e mensagens antigas continuam assinadas
+                com o nome delas.
+              </p>
+            </div>
+            <span>{inativos.length}</span>
+          </header>
+          <div className="crc-team-grid-v2">
             {inativos.map((m) => (
-              <LinhaMembro
+              <MembroCard
                 key={m.id}
                 membro={m}
                 ocupado={acao.rodando}
@@ -213,107 +224,84 @@ export function Equipe() {
                 aoTrocarSenha={setTrocandoSenhaDe}
               />
             ))}
-          </ul>
-        </Cartao>
+          </div>
+        </section>
       )}
-
-      {/* ---- Cadastro ---- */}
 
       <Modal
         titulo="Cadastrar pessoa"
         aberto={convidando}
-        aoFechar={() => {
-          setConvidando(false);
-        }}
+        aoFechar={() => setConvidando(false)}
         rodape={
           <>
-            <Botao
-              onClick={() => {
-                setConvidando(false);
-              }}
-            >
-              Cancelar
-            </Botao>
+            <Botao onClick={() => setConvidando(false)}>Cancelar</Botao>
             <Botao
               variante="primario"
               carregando={acao.rodando}
               disabled={nome.trim().length < 2 || senha.length < MIN_SENHA}
-              onClick={() => {
-                void convidar();
-              }}
+              onClick={() => void convidar()}
             >
               Cadastrar
             </Botao>
           </>
         }
       >
-        <Campo rotulo="Nome">
-          {(id) => (
-            <Entrada
-              id={id}
-              value={nome}
-              maxLength={120}
-              autoComplete="off"
-              onChange={(e) => {
-                setNome(e.target.value);
-              }}
-            />
-          )}
-        </Campo>
-
-        <Campo rotulo="E-mail" dica="É com ele que a pessoa entra.">
-          {(id) => (
-            <Entrada
-              id={id}
-              type="email"
-              value={email}
-              maxLength={200}
-              autoComplete="off"
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-            />
-          )}
-        </Campo>
-
-        <Campo
-          rotulo="Senha"
-          dica={`Pelo menos ${String(MIN_SENHA)} caracteres. Não existe e-mail de convite: entregue a senha pessoalmente e peça para a pessoa trocá-la com você depois.`}
-        >
-          {(id) => (
-            <Entrada
-              id={id}
-              type="password"
-              value={senha}
-              autoComplete="new-password"
-              onChange={(e) => {
-                setSenha(e.target.value);
-              }}
-            />
-          )}
-        </Campo>
-
-        <Campo rotulo="Papel" dica={EXPLICACAO_PAPEL[papel as keyof typeof EXPLICACAO_PAPEL]}>
-          {(id) => (
-            <select
-              id={id}
-              className="crc-selecao"
-              value={papel}
-              onChange={(e) => {
-                setPapel(e.target.value);
-              }}
-            >
-              {PAPEIS.map((p) => (
-                <option key={p} value={p}>
-                  {ROTULO_PAPEL[p]}
-                </option>
-              ))}
-            </select>
-          )}
-        </Campo>
+        <div className="crc-team-form-v2">
+          <Campo rotulo="Nome">
+            {(id) => (
+              <Entrada
+                id={id}
+                value={nome}
+                maxLength={120}
+                autoComplete="off"
+                onChange={(e) => setNome(e.target.value)}
+              />
+            )}
+          </Campo>
+          <Campo rotulo="E-mail" dica="É com ele que a pessoa entra.">
+            {(id) => (
+              <Entrada
+                id={id}
+                type="email"
+                value={email}
+                maxLength={200}
+                autoComplete="off"
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            )}
+          </Campo>
+          <Campo
+            rotulo="Senha"
+            dica={`Pelo menos ${String(MIN_SENHA)} caracteres. Entregue pessoalmente.`}
+          >
+            {(id) => (
+              <Entrada
+                id={id}
+                type="password"
+                value={senha}
+                autoComplete="new-password"
+                onChange={(e) => setSenha(e.target.value)}
+              />
+            )}
+          </Campo>
+          <Campo rotulo="Papel" dica={EXPLICACAO_PAPEL[papel]}>
+            {(id) => (
+              <select
+                id={id}
+                className="crc-selecao"
+                value={papel}
+                onChange={(e) => setPapel(e.target.value as Papel)}
+              >
+                {PAPEIS.map((p) => (
+                  <option key={p} value={p}>
+                    {ROTULO_PAPEL[p]}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Campo>
+        </div>
       </Modal>
-
-      {/* ---- Troca de senha ---- */}
 
       <Modal
         titulo={`Nova senha para ${trocandoSenhaDe?.nome ?? ""}`}
@@ -324,49 +312,73 @@ export function Equipe() {
         }}
         rodape={
           <>
-            <Botao
-              onClick={() => {
-                setTrocandoSenhaDe(null);
-              }}
-            >
-              Cancelar
-            </Botao>
+            <Botao onClick={() => setTrocandoSenhaDe(null)}>Cancelar</Botao>
             <Botao
               variante="primario"
               carregando={acao.rodando}
               disabled={novaSenha.length < MIN_SENHA}
-              onClick={() => {
-                void confirmarNovaSenha();
-              }}
+              onClick={() => void confirmarNovaSenha()}
             >
               Trocar senha
             </Botao>
           </>
         }
       >
-        <Campo rotulo="Nova senha" dica={`Pelo menos ${String(MIN_SENHA)} caracteres.`}>
-          {(id) => (
-            <Entrada
-              id={id}
-              type="password"
-              value={novaSenha}
-              autoComplete="new-password"
-              onChange={(e) => {
-                setNovaSenha(e.target.value);
-              }}
-            />
-          )}
-        </Campo>
-        <Aviso tom="info">
-          Trocar a senha <strong>não</strong> derruba quem já está com a sessão aberta. Se a pessoa
-          saiu da clínica, o botão certo é <strong>Tirar acesso</strong>.
-        </Aviso>
+        <div className="crc-team-senha-v2">
+          <span>
+            <KeyRound aria-hidden="true" />
+          </span>
+          <div>
+            <Campo rotulo="Nova senha" dica={`Pelo menos ${String(MIN_SENHA)} caracteres.`}>
+              {(id) => (
+                <Entrada
+                  id={id}
+                  type="password"
+                  value={novaSenha}
+                  autoComplete="new-password"
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                />
+              )}
+            </Campo>
+            <p>
+              Trocar a senha não derruba uma sessão já aberta. Se a pessoa saiu da clínica, use{" "}
+              <strong>Tirar acesso</strong>.
+            </p>
+          </div>
+        </div>
       </Modal>
-    </>
+    </div>
   );
 }
 
-function LinhaMembro({
+function ResumoTeam({
+  icone: Icone,
+  rotulo,
+  valor,
+  nota,
+  tom = "neutro",
+}: {
+  icone: typeof UsersRound;
+  rotulo: string;
+  valor: number;
+  nota: string;
+  tom?: "neutro" | "positivo" | "info";
+}) {
+  return (
+    <article className="crc-team-resumo-card-v2" data-tom={tom}>
+      <span>
+        <Icone aria-hidden="true" />
+      </span>
+      <div>
+        <small>{rotulo}</small>
+        <strong>{valor}</strong>
+        <em>{nota}</em>
+      </div>
+    </article>
+  );
+}
+
+function MembroCard({
   membro,
   ocupado,
   aoTrocarPapel,
@@ -375,73 +387,72 @@ function LinhaMembro({
 }: {
   membro: MembroDto;
   ocupado: boolean;
-  aoTrocarPapel: (m: MembroDto, papel: string) => Promise<void>;
+  aoTrocarPapel: (m: MembroDto, papel: Papel) => Promise<void>;
   aoAlternar: (m: MembroDto) => Promise<void>;
   aoTrocarSenha: (m: MembroDto) => void;
 }) {
+  const iniciais =
+    membro.nome
+      .trim()
+      .split(/\s+/u)
+      .slice(0, 2)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join("") || "JP";
+  const papelMembro = membro.papel as Papel;
   return (
-    <li className="crc-cartao-compacto">
-      <div className="crc-linha">
-        <div style={{ minWidth: 0, flex: "1 1 14rem" }}>
-          <strong style={{ display: "block" }}>{membro.nome}</strong>
-          <span className="crc-meta" style={{ display: "block", wordBreak: "break-word" }}>
-            {membro.email} · último acesso: {quando(membro.ultimoAcesso)}
-          </span>
+    <article className="crc-team-card-v2" data-ativo={membro.ativo ? "sim" : "nao"}>
+      <header>
+        <span className="crc-team-avatar-v2">{iniciais}</span>
+        <div>
+          <div className="crc-team-nome-v2">
+            <strong>{membro.nome}</strong>
+            {membro.souEu && <Etiqueta tom="info">Você</Etiqueta>}
+          </div>
+          <p>{membro.email}</p>
         </div>
-
-        {membro.souEu && <Etiqueta tom="info">Você</Etiqueta>}
-
-        <div className="crc-linha crc-empurra">
-          <label className="crc-so-leitor" htmlFor={`papel-${membro.id}`}>
-            Papel de {membro.nome}
-          </label>
-          <select
-            id={`papel-${membro.id}`}
-            className="crc-selecao"
-            style={{ width: "auto", minWidth: 148 }}
-            value={membro.papel}
-            disabled={ocupado}
-            onChange={(e) => {
-              void aoTrocarPapel(membro, e.target.value);
-            }}
-          >
-            {PAPEIS.map((p) => (
-              <option key={p} value={p}>
-                {ROTULO_PAPEL[p]}
-              </option>
-            ))}
-          </select>
-
+      </header>
+      <div className="crc-team-card-info-v2">
+        <span>
+          <small>Papel</small>
+          <strong>{ROTULO_PAPEL[papelMembro]}</strong>
+        </span>
+        <span>
+          <small>Último acesso</small>
+          <strong>{quando(membro.ultimoAcesso)}</strong>
+        </span>
+      </div>
+      <p className="crc-team-explicacao-v2">{EXPLICACAO_PAPEL[papelMembro]}</p>
+      <div className="crc-team-papel-v2">
+        <label htmlFor={`papel-${membro.id}`}>Permissão principal</label>
+        <select
+          id={`papel-${membro.id}`}
+          className="crc-selecao"
+          value={membro.papel}
+          disabled={ocupado}
+          onChange={(e) => void aoTrocarPapel(membro, e.target.value as Papel)}
+        >
+          {PAPEIS.map((p) => (
+            <option key={p} value={p}>
+              {ROTULO_PAPEL[p]}
+            </option>
+          ))}
+        </select>
+      </div>
+      <footer>
+        <Botao pequeno disabled={ocupado} onClick={() => aoTrocarSenha(membro)}>
+          <KeyRound size={14} aria-hidden="true" /> Senha
+        </Botao>
+        {!membro.souEu && (
           <Botao
             pequeno
+            variante={membro.ativo ? "perigo" : "secundario"}
             disabled={ocupado}
-            onClick={() => {
-              aoTrocarSenha(membro);
-            }}
+            onClick={() => void aoAlternar(membro)}
           >
-            Trocar senha
+            {membro.ativo ? "Tirar acesso" : "Devolver acesso"}
           </Botao>
-
-          {/* A própria conta não mostra o botão de tirar acesso: o servidor
-              recusaria, e um botão que sempre falha é pior que botão nenhum. */}
-          {!membro.souEu && (
-            <Botao
-              pequeno
-              variante={membro.ativo ? "perigo" : "secundario"}
-              disabled={ocupado}
-              onClick={() => {
-                void aoAlternar(membro);
-              }}
-            >
-              {membro.ativo ? "Tirar acesso" : "Devolver acesso"}
-            </Botao>
-          )}
-        </div>
-      </div>
-
-      <p className="crc-meta" style={{ marginTop: "var(--crc-e2)" }}>
-        {EXPLICACAO_PAPEL[membro.papel as keyof typeof EXPLICACAO_PAPEL]}
-      </p>
-    </li>
+        )}
+      </footer>
+    </article>
   );
 }
