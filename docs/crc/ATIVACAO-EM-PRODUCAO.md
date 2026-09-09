@@ -23,20 +23,23 @@ curl -sL https://www.jpclinicaodontologica.com.br/api/crc/saude
 ```
 
 ```json
-{"status":"degradado","app":"ok","banco":"indisponivel"}
+{"status":"ok","app":"ok","banco":"ok"}
 ```
 
-`app: ok` é a aplicação de pé. `banco: indisponivel` é o schema que ainda não foi
-aplicado no Supabase. **É a Parte A.1 deste documento, e ela é a primeira coisa
-a fazer.**
+**Atualizado:** o schema 02 a 04 foi aplicado, as variáveis foram cadastradas e
+a instalação rodou — `/api/crc/saude` responde `{"status":"ok"}`. O que falta do
+banco são os arquivos **05** e **06**, que chegaram depois: sem eles as telas de
+Campanhas e de custo por paciente abrem com erro.
 
 | | Estado |
 |---|---|
 | Site `/` e portal `/rh` | ✅ no ar, intactos |
 | Código do CRC publicado | ✅ |
-| Schema no Supabase (A.1) | ❌ **pendente — bloqueia tudo** |
-| Variáveis de ambiente (A.2) | ⚠️ faltam 4 — as duas do Supabase já estão lá |
-| Instalação inicial (A.3) | ❌ pendente |
+| Schema 02, 03 e 04 no Supabase | ✅ aplicados |
+| **Schema 05 e 06** (investimento e campanhas) | ❌ **pendentes** — as telas abrem com erro até rodar |
+| Variáveis de ambiente (A.2) | ✅ cadastradas |
+| Instalação inicial (A.3) | ✅ executada |
+| Equipe (B) | ⚠️ só o administrador |
 | Credenciais Dental Office (C.1) | ❌ aguardando terceiro |
 | Provedor de WhatsApp (C.2) | ❌ aguardando contratação |
 | Cron a cada 10 min (F) | ⚠️ hoje é diário — ver a Parte F |
@@ -63,8 +66,8 @@ O projeto já está linkado (`.vercel/project.json`); não precisa de mais nada.
 | **E.** Três lacunas de código | Nós | Ver a lista | Nenhuma impede operar. |
 | **F.** Cron a cada 10 min | Você | ~5 min | O plano Hobby só dá cron diário; sem um pinger externo o faltante só recebe mensagem no dia seguinte. |
 
-**A próxima ação é a A.1** — rodar os três SQL. Sem ela nada mais funciona, nem
-para testar.
+**A próxima ação é rodar o 05 e o 06** — os dois SQL que chegaram depois da
+primeira instalação.
 
 **Depois disso, o caminho crítico é o C**, e ele não depende de nós nem de você:
 sem as credenciais do Dental Office e de um provedor de WhatsApp, o sistema
@@ -76,19 +79,21 @@ vale muito.
 
 ## Parte A — Os 40 minutos que só dependem de você
 
-### A.1 Aplicar os três SQL
+### A.1 Aplicar os SQL
 
-SQL Editor do Supabase, **nesta ordem**, um de cada vez:
+SQL Editor do Supabase, **nesta ordem**, um de cada vez. Os cinco são aditivos
+e idempotentes — o 03 ao 06 podem ser aplicados com o sistema no ar:
 
 | Arquivo | O que cria |
 |---|---|
 | `supabase/02-crc-schema.sql` | As 36 tabelas, os índices, o RLS e as três funções de reserva atômica. |
 | `supabase/03-crc-cobranca.sql` | `crc_charges` e `crc_payment_agreements` (cobrança de inadimplência). |
 | `supabase/04-crc-visoes.sql` | O índice único das visões salvas. |
+| `supabase/05-crc-investimento.sql` | `crc_ad_spend` — o investimento em anúncios, para o custo por paciente. |
+| `supabase/06-crc-campanhas.sql` | `crc_campaigns` e `crc_campaign_targets` — as campanhas. |
 
-Os três são **aditivos e idempotentes**: rodar de novo não apaga nada. É o único
-passo manual da instalação, e ele existe porque a API REST do Supabase não
-executa DDL.
+Rodar de novo não apaga nada. É o único passo manual da instalação, e ele existe
+porque a API REST do Supabase não executa DDL.
 
 **Como saber que deu certo:** rode no SQL Editor
 
@@ -97,7 +102,7 @@ select count(*) from information_schema.tables
 where table_schema = 'public' and table_name like 'crc_%';
 ```
 
-Tem que responder **38** — 36 do 02 mais as duas de cobrança do 03. Se
+Tem que responder **41** — 36 do 02, duas do 03, uma do 05 e duas do 06. Se
 responder menos, algum arquivo não terminou: role a saída do editor procurando
 o erro.
 
@@ -577,7 +582,7 @@ Nada aqui é opinião: cada passo depende do anterior ter dado certo.
 
 ### Dia 1 — tirar o CRC do "degradado"
 
-O código já está publicado; falta o banco. Parte A inteira (os três SQL, as
+O código já está publicado; falta o banco. Parte A inteira (os SQL, as
 quatro variáveis que faltam, a instalação), mais a Parte F, que é rápida e evita
 uma surpresa desagradável lá na frente.
 

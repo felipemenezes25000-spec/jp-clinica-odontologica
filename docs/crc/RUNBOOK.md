@@ -21,8 +21,8 @@ Abra o SQL Editor do Supabase e rode, **nesta ordem**:
 | `supabase/03-crc-cobranca.sql` | Cobrança de inadimplência: `crc_charges` e `crc_payment_agreements`. |
 | `supabase/04-crc-visoes.sql` | O índice único das visões salvas. |
 
-Os três são **aditivos e idempotentes** — rodar de novo não apaga nada, e o
-03 e o 04 podem ser aplicados com o sistema no ar. Este é o **único passo
+Todos são **aditivos e idempotentes** — rodar de novo não apaga nada, e do 03
+em diante podem ser aplicados com o sistema no ar. Este é o **único passo
 manual** do processo, e ele existe porque a API REST do Supabase não executa
 DDL.
 
