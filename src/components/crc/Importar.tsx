@@ -87,7 +87,23 @@ export function Importar() {
 
       setOcupado(true);
       try {
-        const texto = await arquivo.text();
+        // Planilha do Excel vira CSV aqui mesmo. Do preview em diante os dois
+        // formatos são o mesmo caminho — mesma validação, mesma deduplicação.
+        const ehPlanilha = /\.xlsx$/iu.test(arquivo.name);
+        let texto: string;
+
+        if (ehPlanilha) {
+          const { xlsxParaCsv } = await import("@/lib/crc/dominio/xlsx");
+          const lido = await xlsxParaCsv(await arquivo.arrayBuffer());
+          if (!lido.ok) {
+            setErro(lido.motivo);
+            return;
+          }
+          texto = lido.csv;
+        } else {
+          texto = await arquivo.text();
+        }
+
         setConteudo(texto);
         setNomeArquivo(arquivo.name);
 
@@ -95,7 +111,7 @@ export function Importar() {
         if (r.ok) setPreview(r.preview);
         else setErro(r.message);
       } catch {
-        setErro("Não conseguimos ler o arquivo. Confira se é um CSV.");
+        setErro("Não conseguimos ler o arquivo. Confira se é um CSV ou uma planilha .xlsx.");
       } finally {
         setOcupado(false);
       }
@@ -152,14 +168,14 @@ export function Importar() {
 
         <div className="crc-linha" style={{ marginTop: "var(--crc-e4)" }}>
           <label className="crc-rotulo" htmlFor="crc-importar-arquivo">
-            Arquivo CSV
+            Arquivo CSV ou planilha
           </label>
           <input
             id="crc-importar-arquivo"
             ref={entrada}
             className="crc-entrada"
             type="file"
-            accept=".csv,text/csv"
+            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             disabled={ocupado}
             onChange={(e) => {
               void escolher(e.target.files?.[0]);
@@ -172,6 +188,12 @@ export function Importar() {
             {nomeArquivo}
           </p>
         )}
+
+        <p className="crc-meta" style={{ marginTop: "var(--crc-e2)" }}>
+          Aceita .csv e .xlsx. De uma planilha, é lida a primeira aba — exportação de sistema tem
+          uma só, e adivinhar entre várias importaria dado errado sem ninguém perceber. Planilha com
+          senha precisa ser aberta antes.
+        </p>
       </Cartao>
 
       {erro !== null && <Aviso tom="perigo">{erro}</Aviso>}
