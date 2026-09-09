@@ -132,9 +132,9 @@ export function Investimento() {
       >
         {!dados.temInvestimento ? (
           <Aviso tom="info">
-            Nenhum investimento lançado para {mesPorExtenso(`${dados.periodo}-01`)}. Lance quanto
-            foi gasto em anúncios e esta tela passa a mostrar o custo por paciente — sem isso, não
-            dá para dizer se uma campanha saiu cara ou barata.
+            Nenhum investimento lançado para {mesPorExtenso(dados.periodo)}. Lance quanto foi gasto
+            em anúncios e esta tela passa a mostrar o custo por paciente — sem isso, não dá para
+            dizer se uma campanha saiu cara ou barata.
           </Aviso>
         ) : (
           <>
@@ -142,7 +142,7 @@ export function Investimento() {
               <div className="crc-kpi">
                 <span className="crc-kpi-rotulo">Investido no mês</span>
                 <span className="crc-kpi-valor">{dinheiro(dados.investido)}</span>
-                <span className="crc-kpi-nota">{mesPorExtenso(`${dados.periodo}-01`)}</span>
+                <span className="crc-kpi-nota">{mesPorExtenso(dados.periodo)}</span>
               </div>
               <div className="crc-kpi">
                 <span className="crc-kpi-rotulo">Custo por paciente na cadeira</span>

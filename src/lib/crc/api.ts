@@ -1963,9 +1963,15 @@ export const carregarInvestimento = createServerFn({ method: "GET" })
         listarLancamentos(ctx.organizationId),
       ]);
 
+      // O MÊS EM ISO, e não `periodo.rotulo`. O rótulo é "set. de 26" — texto
+      // para humano. Mandar ele como se fosse data fez a tela escrever
+      // "set. de 26-01", que é o tipo de erro que sobrevive a uma revisão
+      // inteira porque ninguém lê o rótulo com atenção.
+      const mesIso = primeiroDiaDoMes(periodo.de) ?? periodo.de.slice(0, 10);
+
       return {
         ok: true as const,
-        investimento: { periodo: periodo.rotulo, ...panorama, lancamentos },
+        investimento: { periodo: mesIso, ...panorama, lancamentos },
       };
     }),
   );
