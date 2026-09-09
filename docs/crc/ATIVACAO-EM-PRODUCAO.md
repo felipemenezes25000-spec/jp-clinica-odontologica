@@ -316,10 +316,39 @@ de milissegundos.
 exclusão — e nada de "atualizado desde". Toda varredura de pacientes é
 completa.
 
-**2. O teto é de 5.000 requisições por período.**
-Somado ao item anterior, isso decide a estratégia: **pacientes uma vez ao dia,
-agenda com frequência**. A agenda pode ser frequente porque ela, sim, filtra
-por `start`/`end` — cada volta do motor lê só a janela que interessa.
+**2. O teto é de 5.000 requisições — e o PERÍODO NÃO É DOCUMENTADO.**
+
+A especificação diz literalmente "por período" e nunca define qual. Não existe
+`RateLimit-Reset` publicado: só `RateLimit-Limit` e `RateLimit-Remaining`. E a
+diferença decide a arquitetura:
+
+| Se a janela for | Precisamos de | Situação |
+|---|---|---|
+| por hora | ~129 | folga enorme |
+| **por dia** | ~3.100 | **cabe, com 38% de sobra** |
+| por mês | ~93.000 | impossível |
+
+*(base: motor a cada 1 minuto = 1.440 voltas/dia, 2 requisições por volta, mais
+200 de varredura completa de pacientes)*
+
+**O sistema mede isso sozinho.** O adapter lê `RateLimit-Remaining` em toda
+resposta e registra no diário quando o número SOBE — o instante da virada é a
+janela, e o log traz `minutosDesdeAUltimaLeitura`. Também avisa quando o
+consumo passa de 80%, o que dá tempo de reagir antes do 429.
+
+Então, no primeiro dia de integração, procure no diário:
+
+```
+A cota da API do Dental Office virou — a janela recomeçou.
+```
+
+**Confirme com eles mesmo assim** (`api@dentaloffice.com.br`): medir dá a
+resposta prática, mas só eles dão a garantia.
+
+Enquanto a janela for desconhecida, a estratégia segura é a mesma:
+**pacientes uma vez ao dia, agenda com frequência**. A agenda pode ser
+frequente porque ela, sim, filtra por `start`/`end` — cada volta do motor lê
+só a janela que interessa.
 
 **3. Não há webhooks.**
 O Dental Office não avisa quando algo muda. É por isso que o CRC é construído

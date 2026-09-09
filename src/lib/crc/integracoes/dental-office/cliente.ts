@@ -17,7 +17,7 @@
  * subir sem credencial e a tela de integrações mostra o motivo.
  */
 import { ErroHttp, caminhoParaLog, pedir, type EventoHttp } from "../../servidor/http";
-import { registrarIntegracao } from "../../servidor/registro";
+import { registrar, registrarIntegracao } from "../../servidor/registro";
 import type { SlotDisponivel, StatusAgendamento } from "../../dominio/tipos";
 import { codigoDeStatusAgendamento } from "../../dominio/status";
 
@@ -123,6 +123,70 @@ export type PortaDentalOffice = {
 };
 
 /* -------------------------------------------------------------------------- */
+/* Cota da API                                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O último valor de `RateLimit-Remaining` que vimos, por organização.
+ *
+ * Vive em memória do processo de propósito: isto é diagnóstico, não estado de
+ * negócio. Perder na reinicialização não custa nada — a próxima resposta traz
+ * o número de novo.
+ */
+const cotaVista = new Map<string, { restantes: number; em: number }>();
+
+/**
+ * Registra a cota e avisa quando ela vira.
+ *
+ * POR QUE ISTO EXISTE: a especificação do Dental Office diz "limite de 5.000
+ * requisições por período" e NUNCA diz qual é o período. Não há
+ * `RateLimit-Reset` documentado. A diferença decide a arquitetura — 5.000 por
+ * hora é folga enorme, por dia cabe apertado, por mês torna impossível um
+ * motor de minuto em minuto.
+ *
+ * Perguntar ao suporte é o caminho certo e leva dias. Enquanto isso, o número
+ * já chega em toda resposta: quando `Remaining` SOBE em vez de descer, a
+ * janela virou — e o intervalo entre duas subidas é a resposta.
+ *
+ * Dois avisos, e os dois são acionáveis:
+ *   a virada da janela, que ensina o período;
+ *   o consumo acima de 80%, que dá tempo de reagir antes do 429.
+ */
+function anotarCota(cabecalhos: Headers, operacao: string, organizationId: string | null): void {
+  const restantesBruto = cabecalhos.get("ratelimit-remaining");
+  if (restantesBruto === null) return;
+
+  const restantes = Number.parseInt(restantesBruto, 10);
+  if (!Number.isFinite(restantes)) return;
+
+  const limite = Number.parseInt(cabecalhos.get("ratelimit-limit") ?? "", 10);
+  const chave = organizationId ?? "sem-organizacao";
+  const anterior = cotaVista.get(chave);
+  const agora = Date.now();
+
+  if (anterior !== undefined && restantes > anterior.restantes) {
+    registrar("info", "A cota da API do Dental Office virou — a janela recomeçou.", {
+      ...(organizationId !== null ? { organizationId } : {}),
+      restantesAntes: anterior.restantes,
+      restantesAgora: restantes,
+      // É este número que responde "o período é de quanto tempo?".
+      minutosDesdeAUltimaLeitura: Math.round((agora - anterior.em) / 60_000),
+    });
+  }
+
+  cotaVista.set(chave, { restantes, em: agora });
+
+  if (Number.isFinite(limite) && limite > 0 && restantes <= limite * 0.2) {
+    registrar("aviso", "A cota da API do Dental Office está acabando.", {
+      ...(organizationId !== null ? { organizationId } : {}),
+      operacao,
+      restantes,
+      limite,
+    });
+  }
+}
+
+/* -------------------------------------------------------------------------- */
 /* Adapter real                                                               */
 /* -------------------------------------------------------------------------- */
 
@@ -224,6 +288,8 @@ class ClienteDentalOffice implements PortaDentalOffice {
       invalidarToken();
       resposta = await executar(await obterToken(this.credenciais, this.ctx.requestId));
     }
+
+    anotarCota(resposta.cabecalhos, opcoes.operacao, this.ctx.organizationId);
 
     if (resposta.status === 404) return null;
 
