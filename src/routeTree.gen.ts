@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CrcRouteImport } from './routes/crc'
 import { Route as CrcInstitucionalRouteImport } from './routes/crc-institucional'
+import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
@@ -38,6 +39,11 @@ const CrcRoute = CrcRouteImport.update({
 const CrcInstitucionalRoute = CrcInstitucionalRouteImport.update({
   id: '/crc-institucional',
   path: '/crc-institucional',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
+  id: '/politica-de-privacidade',
+  path: '/politica-de-privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/crc'
     | '/crc-institucional'
+    | '/politica-de-privacidade'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/crc'
     | '/crc-institucional'
+    | '/politica-de-privacidade'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/crc'
     | '/crc-institucional'
+    | '/politica-de-privacidade'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CrcRoute: typeof CrcRoute
   CrcInstitucionalRoute: typeof CrcInstitucionalRoute
+  PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
   RhRoute: typeof RhRoute
   TrabalheConoscoRoute: typeof TrabalheConoscoRoute
   CarreirasSlugRoute: typeof CarreirasSlugRoute
@@ -246,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/crc-institucional'
       fullPath: '/crc-institucional'
       preLoaderRoute: typeof CrcInstitucionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politica-de-privacidade': {
+      id: '/politica-de-privacidade'
+      path: '/politica-de-privacidade'
+      fullPath: '/politica-de-privacidade'
+      preLoaderRoute: typeof PoliticaDePrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -339,6 +359,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CrcRoute: CrcRoute,
   CrcInstitucionalRoute: CrcInstitucionalRoute,
+  PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
   RhRoute: RhRoute,
   TrabalheConoscoRoute: TrabalheConoscoRoute,
   CarreirasSlugRoute: CarreirasSlugRoute,
