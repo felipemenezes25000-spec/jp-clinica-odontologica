@@ -26,24 +26,38 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { buscarPacientes } from "@/lib/crc/api";
-import type { Paciente } from "@/lib/crc/dominio/tipos";
-import { ROTULO_SITUACAO } from "@/lib/crc/dominio/rotulos";
-import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
+import { buscarEmTodoLugar } from "@/lib/crc/api";
+import type { ResultadoBusca, TipoResultado } from "@/lib/crc/aplicacao/busca";
 
 export type AcaoPaleta = { id: string; rotulo: string; dica: string; executar: () => void };
+
+/**
+ * O rótulo de cada tipo, para a linha dizer o que ela é.
+ *
+ * Sem isso, "Maria Souza" aparecendo duas vezes — uma como paciente e outra
+ * como conversa — parece um bug de duplicata em vez de dois caminhos.
+ */
+const ROTULO_TIPO: Readonly<Record<TipoResultado, string>> = {
+  paciente: "Paciente",
+  conversa: "Conversa",
+  oportunidade: "Oportunidade",
+  lead: "Lead",
+};
 
 export function Paleta({
   acoes,
   aoAbrirPaciente,
+  aoAbrirConversa,
 }: {
   /** Navegação e comandos, montados por quem conhece as permissões. */
   acoes: readonly AcaoPaleta[];
   aoAbrirPaciente: (patientId: string) => void;
+  /** Uma conversa sem paciente ligado só pode ser aberta na Inbox. */
+  aoAbrirConversa: (conversationId: string) => void;
 }) {
   const [aberta, setAberta] = useState(false);
   const [termo, setTermo] = useState("");
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [resultados, setResultados] = useState<ResultadoBusca[]>([]);
   const [buscando, setBuscando] = useState(false);
   const [destaque, setDestaque] = useState(0);
 
@@ -86,7 +100,7 @@ export function Paleta({
     // recomeça do topo da página a cada vez que abre e fecha a paleta.
     focoAnterior.current?.focus();
     setTermo("");
-    setPacientes([]);
+    setResultados([]);
     setDestaque(0);
   }, [aberta]);
 
@@ -97,7 +111,7 @@ export function Paleta({
 
     const limpo = termo.trim();
     if (limpo.length < 2) {
-      setPacientes([]);
+      setResultados([]);
       setBuscando(false);
       return;
     }
@@ -106,12 +120,14 @@ export function Paleta({
     relogio.current = setTimeout(() => {
       void (async () => {
         try {
-          const r = await buscarPacientes({ data: { termo: limpo } });
-          if (r.ok) setPacientes(r.itens.slice(0, 6));
+          const r = await buscarEmTodoLugar({ data: { termo: limpo } });
+          // Oito é o teto do que cabe sem rolar: a paleta é para achar rápido,
+          // e quem precisa de lista longa tem a aba Pacientes.
+          if (r.ok) setResultados(r.panorama.resultados.slice(0, 8));
         } catch {
           // Busca que falha na paleta não merece tela de erro: a lista fica
           // vazia e a pessoa tenta de novo ou usa a aba Pacientes.
-          setPacientes([]);
+          setResultados([]);
         } finally {
           setBuscando(false);
         }
@@ -135,16 +151,21 @@ export function Paleta({
 
   type Item =
     | { tipo: "acao"; chave: string; acao: AcaoPaleta }
-    | { tipo: "paciente"; chave: string; paciente: Paciente };
+    | { tipo: "resultado"; chave: string; resultado: ResultadoBusca };
 
   const itens = useMemo<Item[]>(
     () => [
-      // Pacientes primeiro quando há busca: é a operação mais frequente, e
-      // deixar os comandos na frente faria a pessoa passar por eles toda vez.
-      ...pacientes.map((p): Item => ({ tipo: "paciente", chave: `p-${p.id}`, paciente: p })),
+      // Resultados primeiro quando há busca: achar alguém é a operação mais
+      // frequente, e deixar os comandos na frente faria a pessoa passar por
+      // eles toda vez.
+      ...resultados.map((r): Item => ({
+        tipo: "resultado",
+        chave: `r-${r.tipo}-${r.id}`,
+        resultado: r,
+      })),
       ...acoesFiltradas.map((a): Item => ({ tipo: "acao", chave: `a-${a.id}`, acao: a })),
     ],
-    [pacientes, acoesFiltradas],
+    [resultados, acoesFiltradas],
   );
 
   useEffect(() => {
@@ -155,10 +176,24 @@ export function Paleta({
     (item: Item | undefined) => {
       if (item === undefined) return;
       setAberta(false);
-      if (item.tipo === "paciente") aoAbrirPaciente(item.paciente.id);
-      else item.acao.executar();
+
+      if (item.tipo === "acao") {
+        item.acao.executar();
+        return;
+      }
+
+      // A FICHA VENCE QUANDO EXISTE. Oportunidade, lead e conversa de alguém já
+      // cadastrado são todas melhor lidas na ficha, que mostra as quatro coisas
+      // juntas. Só cai na Inbox quem ainda não é paciente — e aí a conversa é
+      // literalmente tudo que se sabe da pessoa.
+      const { resultado } = item;
+      if (resultado.patientId !== null) {
+        aoAbrirPaciente(resultado.patientId);
+        return;
+      }
+      if (resultado.tipo === "conversa") aoAbrirConversa(resultado.id);
     },
-    [aoAbrirPaciente],
+    [aoAbrirPaciente, aoAbrirConversa],
   );
 
   if (!aberta) return null;
@@ -194,14 +229,14 @@ export function Paleta({
         }}
       >
         <label className="crc-so-leitor" htmlFor="crc-paleta">
-          Buscar paciente ou comando
+          Buscar paciente, telefone, oportunidade, conversa ou comando
         </label>
         <input
           id="crc-paleta"
           ref={entrada}
           className="crc-entrada"
           style={{ border: 0, borderRadius: 0, height: 52, fontSize: "1rem" }}
-          placeholder="Buscar paciente ou comando…"
+          placeholder="Buscar paciente, telefone, conversa ou comando…"
           value={termo}
           autoComplete="off"
           role="combobox"
@@ -245,7 +280,7 @@ export function Paleta({
               {buscando
                 ? "Buscando…"
                 : termo.trim().length < 2
-                  ? "Digite para buscar um paciente, ou escolha um comando."
+                  ? "Digite um nome, um telefone ou um assunto — ou escolha um comando."
                   : "Nada encontrado."}
             </p>
           ) : (
@@ -267,13 +302,23 @@ export function Paleta({
                   escolher(item);
                 }}
               >
-                {item.tipo === "paciente" ? (
+                {item.tipo === "resultado" ? (
                   <>
-                    <strong style={{ fontSize: "0.9375rem" }}>{item.paciente.nome}</strong>
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: "var(--crc-e2)",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <strong style={{ fontSize: "0.9375rem" }}>{item.resultado.titulo}</strong>
+                      <span className="crc-meta" style={{ flexShrink: 0 }}>
+                        {ROTULO_TIPO[item.resultado.tipo]}
+                      </span>
+                    </span>
                     <span className="crc-meta" style={{ display: "block" }}>
-                      {ROTULO_SITUACAO[item.paciente.situacao]}
-                      {item.paciente.telefone !== null &&
-                        ` · ${telefoneParaTela(item.paciente.telefone)}`}
+                      {item.resultado.detalhe}
                     </span>
                   </>
                 ) : (

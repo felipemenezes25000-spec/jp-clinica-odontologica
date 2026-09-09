@@ -90,11 +90,7 @@ export type ResultadoOferta =
   | { ok: false; codigo: MotivoSemOferta; motivo: string };
 
 export type MotivoSemOferta =
-  | "SEM_DENTISTA"
-  | "SEM_SLOT"
-  | "JA_TEM_CONSULTA"
-  | "OFERTA_ABERTA"
-  | "FALHA_INTEGRACAO";
+  "SEM_DENTISTA" | "SEM_SLOT" | "JA_TEM_CONSULTA" | "OFERTA_ABERTA" | "FALHA_INTEGRACAO";
 
 /**
  * Formata um slot para leitura humana no fuso da clínica.
@@ -163,9 +159,7 @@ export async function oferecerHorarios(
   }
 
   const de = ctx.agora.toISOString();
-  const ate = new Date(
-    ctx.agora.getTime() + (pedido.janelaDias ?? 14) * 86_400_000,
-  ).toISOString();
+  const ate = new Date(ctx.agora.getTime() + (pedido.janelaDias ?? 14) * 86_400_000).toISOString();
 
   const encontrados: SlotDisponivel[] = [];
   for (const dentistaExternoId of dentistas) {
@@ -430,11 +424,9 @@ async function reservar(
   // `proxima_consulta_em` é o que sustenta o peso −20 da fila. Sem atualizar
   // aqui, o paciente que acabou de marcar continuaria sendo oferecido.
   if (dados.patientId !== null) {
-    await atualizar(
-      "crc_patients",
-      [{ coluna: "id", op: "eq", valor: dados.patientId }],
-      { proxima_consulta_em: opcao.inicioEm },
-    );
+    await atualizar("crc_patients", [{ coluna: "id", op: "eq", valor: dados.patientId }], {
+      proxima_consulta_em: opcao.inicioEm,
+    });
   }
 
   await emitir({
@@ -537,11 +529,10 @@ export async function cancelarConsulta(
   );
   if (!resposta.ok) return { ok: false, motivo: resposta.detalhe };
 
-  await atualizar(
-    "crc_appointments",
-    [{ coluna: "id", op: "eq", valor: appointmentId }],
-    { status: "CANCELLED", atualizado_em: ctx.agora.toISOString() },
-  );
+  await atualizar("crc_appointments", [{ coluna: "id", op: "eq", valor: appointmentId }], {
+    status: "CANCELLED",
+    atualizado_em: ctx.agora.toISOString(),
+  });
 
   await auditar({
     organizationId: ctx.organizationId,
@@ -591,16 +582,12 @@ async function fecharOferta(
   aceitoEm: string | null,
 ): Promise<void> {
   if (offerId.length === 0) return;
-  await atualizar(
-    "crc_scheduling_offers",
-    [{ coluna: "id", op: "eq", valor: offerId }],
-    {
-      status,
-      appointment_id: appointmentId,
-      aceito_em: aceitoEm,
-      atualizado_em: ctx.agora.toISOString(),
-    },
-  );
+  await atualizar("crc_scheduling_offers", [{ coluna: "id", op: "eq", valor: offerId }], {
+    status,
+    appointment_id: appointmentId,
+    aceito_em: aceitoEm,
+    atualizado_em: ctx.agora.toISOString(),
+  });
 }
 
 async function tarefaParaMarcarNaMao(
@@ -648,9 +635,7 @@ async function dentistasDaClinica(ctx: ContextoAgendamento): Promise<string[]> {
     ],
     limite: 25,
   });
-  return linhas
-    .map((l) => String(l["external_id"] ?? ""))
-    .filter((id) => id.length > 0);
+  return linhas.map((l) => String(l["external_id"] ?? "")).filter((id) => id.length > 0);
 }
 
 async function nomesDosDentistas(ctx: ContextoAgendamento): Promise<Map<string, string>> {

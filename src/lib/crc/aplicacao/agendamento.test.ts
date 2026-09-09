@@ -25,11 +25,7 @@ import { CONFIGURACAO_PADRAO, FLAGS, KILL_SWITCHES } from "../dominio/configurac
 import { criarSandbox } from "../integracoes/dental-office/sandbox";
 import { conteudo, definirRelogio, limparBanco, semear } from "../testes/banco-memoria";
 
-import {
-  aceitarHorario,
-  oferecerHorarios,
-  type ContextoAgendamento,
-} from "./agendamento";
+import { aceitarHorario, oferecerHorarios, type ContextoAgendamento } from "./agendamento";
 
 const ORG = "org-1";
 const CLINICA = "clinica-1";
@@ -351,10 +347,13 @@ describe("aceitar", () => {
 
     // Três dias depois: o horário oferecido já não vale nada.
     const depois = new Date(AGORA.getTime() + 3 * 86_400_000);
-    const r = await aceitarHorario({ ...ctx, agora: depois }, {
-      conversationId: CONVERSA,
-      texto: "pode ser o primeiro",
-    });
+    const r = await aceitarHorario(
+      { ...ctx, agora: depois },
+      {
+        conversationId: CONVERSA,
+        texto: "pode ser o primeiro",
+      },
+    );
 
     expect(r.ok).toBe(false);
     if (r.ok) return;

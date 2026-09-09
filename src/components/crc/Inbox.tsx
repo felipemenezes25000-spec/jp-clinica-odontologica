@@ -29,7 +29,16 @@ import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 
 import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
 
-export function Inbox({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string) => void }) {
+export function Inbox({
+  aoAbrirPaciente,
+  conversaInicial = null,
+  aoConsumirInicial,
+}: {
+  aoAbrirPaciente: (patientId: string) => void;
+  /** Uma conversa escolhida na busca global, para abrir já selecionada. */
+  conversaInicial?: string | null;
+  aoConsumirInicial?: () => void;
+}) {
   const [conversas, setConversas] = useState<Conversa[] | null>(null);
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const [erro, setErro] = useState<string | null>(null);
@@ -94,6 +103,24 @@ export function Inbox({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string
       setErro("Não conseguimos abrir esta conversa.");
     }
   }, []);
+
+  /**
+   * A conversa que a busca global pediu.
+   *
+   * Espera a lista chegar porque `selecionar` precisa da conversa inteira, e
+   * não só do id — é ela que preenche o cabeçalho do painel. Se o id não
+   * estiver na lista (uma conversa resolvida, com o filtro de não lidas
+   * ligado), o pedido é consumido do mesmo jeito: insistir faria a Inbox tentar
+   * de novo a cada recarga, para sempre.
+   */
+  useEffect(() => {
+    if (conversaInicial === null || conversas === null) return;
+
+    const alvo = conversas.find((c) => c.id === conversaInicial);
+    if (alvo !== undefined && selecionada?.id !== alvo.id) void selecionar(alvo);
+
+    aoConsumirInicial?.();
+  }, [conversaInicial, conversas, selecionada, selecionar, aoConsumirInicial]);
 
   const enviar = useCallback(async (): Promise<void> => {
     if (selecionada === null || texto.trim().length === 0) return;

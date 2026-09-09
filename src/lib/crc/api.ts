@@ -23,6 +23,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 
+import type { PanoramaDeBusca } from "./aplicacao/busca";
 import type { Permissao } from "./dominio/rbac";
 import type {
   Conversa,
@@ -422,6 +423,38 @@ export const buscarPacientes = createServerFn({ method: "GET" })
       // Item 71: o filtro de clínica também vale para a busca. Sem ele, a
       // busca global vazaria paciente de outra unidade.
       return { ok: true as const, itens: itens.filter((p) => ctx.alcanca(p.clinicId)) };
+    }),
+  );
+
+/**
+ * Busca global — a caixa única do topo.
+ *
+ * A PERMISSÃO EXIGIDA É `ver_paciente`, a mais básica de quem opera. Pedir uma
+ * permissão por tipo de resultado transformaria a busca num quebra-cabeça:
+ * quem não pode ver oportunidade simplesmente não recebe as oportunidades, e o
+ * filtro por clínica corta o resto. Recusar a busca inteira porque um dos
+ * quatro grupos é restrito seria pior para todo mundo.
+ */
+export const buscarEmTodoLugar = createServerFn({ method: "GET" })
+  .validator((e: { termo: string }) => ({ termo: String(e.termo ?? "").slice(0, 120) }))
+  .handler(async ({ data }): Promise<Resposta<{ panorama: PanoramaDeBusca }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { buscarEmTudo } = await import("./aplicacao/busca");
+      const panorama = await buscarEmTudo(ctx.organizationId, data.termo);
+
+      // Item 71 outra vez, e aqui vale dobrado: numa lista misturada ninguém
+      // confere de qual unidade veio cada linha.
+      const podeVerOportunidade = ctx.pode("ver_oportunidade");
+      const podeVerConversa = ctx.pode("ver_conversa");
+
+      const resultados = panorama.resultados.filter((r) => {
+        if (r.clinicId !== null && !ctx.alcanca(r.clinicId)) return false;
+        if (r.tipo === "oportunidade" && !podeVerOportunidade) return false;
+        if (r.tipo === "conversa" && !podeVerConversa) return false;
+        return true;
+      });
+
+      return { ok: true as const, panorama: { ...panorama, resultados } };
     }),
   );
 

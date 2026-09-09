@@ -41,11 +41,7 @@ export type Escolha =
 
 /** Tira acento e caixa. O paciente escreve "às 10h" e "as 10 h" com a mesma intenção. */
 function normalizar(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .toLowerCase()
-    .trim();
+  return texto.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().trim();
 }
 
 /**
@@ -145,10 +141,7 @@ const ORDINAIS: ReadonlyArray<readonly [RegExp, number]> = [
  *      e a hora é mais específica que "a segunda" — que depende de o paciente
  *      e a clínica contarem a lista igual.
  */
-export function interpretarEscolha(
-  bruto: string,
-  opcoes: readonly OpcaoOferecida[],
-): Escolha {
+export function interpretarEscolha(bruto: string, opcoes: readonly OpcaoOferecida[]): Escolha {
   const texto = normalizar(bruto);
   if (texto.length === 0 || opcoes.length === 0) return { tipo: "nenhuma" };
 
@@ -181,7 +174,10 @@ export function interpretarEscolha(
 
   // --- Aceite genérico com uma única opção na mesa ---
   // "pode ser", "fechado", "ok" só é suficiente quando não há o que confundir.
-  if (opcoes.length === 1 && /\b(pode ser|fechado|ok|isso|perfeito|confirmo|topo|beleza|sim)\b/u.test(texto)) {
+  if (
+    opcoes.length === 1 &&
+    /\b(pode ser|fechado|ok|isso|perfeito|confirmo|topo|beleza|sim)\b/u.test(texto)
+  ) {
     return { tipo: "opcao", indice: 0 };
   }
 

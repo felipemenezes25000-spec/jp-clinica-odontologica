@@ -86,6 +86,9 @@ const NAVEGACAO: readonly ItemNav[] = [
 function PortalCrc() {
   const [sessao, setSessao] = useState<EstadoSessao | null>(null);
   const [aba, setAba] = useState<Aba>("home");
+  // A conversa que a busca pediu para abrir. Vive aqui, e não na Inbox, porque
+  // quem escolhe está na paleta — que é irmã da Inbox, não filha dela.
+  const [conversaAberta, setConversaAberta] = useState<string | null>(null);
   const [pacienteAberto, setPacienteAberto] = useState<string | null>(null);
 
   const carregarSessao = useCallback(async (): Promise<void> => {
@@ -173,7 +176,15 @@ function PortalCrc() {
         que a pessoa já pode fazer — nunca um caminho paralelo que contorna a
         navegação (e, com ela, o RBAC).
       */}
-      <Paleta acoes={acoesDaPaleta} aoAbrirPaciente={abrirPaciente} />
+      <Paleta
+        acoes={acoesDaPaleta}
+        aoAbrirPaciente={abrirPaciente}
+        aoAbrirConversa={(conversationId) => {
+          setConversaAberta(conversationId);
+          setAba("inbox");
+          setPacienteAberto(null);
+        }}
+      />
 
       <div className="crc-shell">
         <nav className="crc-lateral" aria-label="Seções do CRC">
@@ -244,7 +255,17 @@ function PortalCrc() {
             <MeuTrabalho usuarioId={usuario.id} aoAbrirPaciente={abrirPaciente} />
           )}
 
-          {abaAtual === "inbox" && <Inbox aoAbrirPaciente={abrirPaciente} />}
+          {abaAtual === "inbox" && (
+            <Inbox
+              aoAbrirPaciente={abrirPaciente}
+              conversaInicial={conversaAberta}
+              aoConsumirInicial={() => {
+                // Consumida uma vez: voltar para a Inbox depois de olhar outra
+                // aba não pode reabrir à força a conversa de meia hora atrás.
+                setConversaAberta(null);
+              }}
+            />
+          )}
 
           {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
 
