@@ -310,8 +310,28 @@ export function mapearAgendamento(
         primeiroCampo(bruto, "schedule_end", "end", "end_at", "endAt", "fim"),
         fusoOffset,
       ),
+      /*
+       * `notes` ANTES de `description`, e o motivo não é estético.
+       *
+       * No Dental Office, `description` é o RÓTULO que eles montam para o
+       * calendário — vem preenchido com o nome do paciente. A anotação que o
+       * CRC escreve ao criar a consulta cai em `notes`.
+       *
+       * Lendo `description` primeiro, a marca "Agendado pelo JP CRC" nunca
+       * apareceria, e a etiqueta "marcado pelo CRC" da tela de Agenda ficaria
+       * morta para sempre — sem erro, sem log, só um recurso que nunca liga.
+       */
       descricao: textoOpcional(
-        primeiroCampo(bruto, "description", "descricao", "observation", "observacao"),
+        primeiroCampo(
+          bruto,
+          "notes",
+          "obs",
+          "note",
+          "description",
+          "descricao",
+          "observation",
+          "observacao",
+        ),
       ),
       status,
       statusExterno: codigoStatus === undefined ? null : String(codigoStatus),

@@ -246,6 +246,51 @@ describe("paginação", () => {
 /* Horários disponíveis (item 19)                                             */
 /* ========================================================================== */
 
+describe("a anotação do agendamento", () => {
+  it("`notes` vence `description`, porque `description` é o nome do paciente", () => {
+    // Descoberto cruzando a especificação com o exemplo de resposta: o Dental
+    // Office preenche `description` com o nome do paciente, para o calendário
+    // deles. A anotação que o CRC escreve volta em `notes`.
+    const r = mapearAgendamento(
+      {
+        id: 5,
+        clinic_id: 7,
+        customer_id: 42,
+        dentist_id: 3,
+        schedule_start: "2026-09-10T13:40:00.000Z",
+        schedule_end: "2026-09-10T14:10:00.000Z",
+        description: "Maria Souza Lima",
+        notes: "Agendado pelo JP CRC",
+        schedule_situation: { id: 1, name: "Confirmar", label: "to_confirm" },
+      },
+      "-03:00",
+    );
+
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.valor.descricao).toBe("Agendado pelo JP CRC");
+  });
+
+  it("sem anotação nossa, cai no rótulo deles em vez de ficar vazio", () => {
+    const r = mapearAgendamento(
+      {
+        id: 6,
+        clinic_id: 7,
+        schedule_start: "2026-09-10T13:40:00.000Z",
+        description: "Maria Souza Lima",
+        notes: null,
+        schedule_situation: { id: 4, name: "Faltou", label: "absence" },
+      },
+      "-03:00",
+    );
+
+    if (!r.ok) throw new Error(r.erro);
+    expect(r.valor.descricao).toBe("Maria Souza Lima");
+    // E o status veio do rótulo, não do número.
+    expect(r.valor.status).toBe("MISSED");
+  });
+});
+
 describe("horários disponíveis", () => {
   const ctx = { clinicId: "c1", dentistaExternoId: "d1" };
 

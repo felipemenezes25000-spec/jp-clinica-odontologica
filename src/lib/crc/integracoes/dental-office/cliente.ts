@@ -441,7 +441,20 @@ class ClienteDentalOffice implements PortaDentalOffice {
               end: new Date(
                 Date.parse(dados.inicioEm) + dados.duracaoMinutos * 60000,
               ).toISOString(),
+              /*
+               * A MARCA VAI NOS DOIS CAMPOS DE ANOTAÇÃO.
+               *
+               * A API aceita `obs` e `note`; a resposta devolve `notes`. Qual
+               * dos dois alimenta `notes` não está escrito na especificação, e
+               * a marca é o que permite a tela de Agenda distinguir "o CRC
+               * marcou" de "a recepção marcou". Escrever nos dois custa alguns
+               * bytes e remove o palpite.
+               *
+               * `description` NÃO é usado: lá o Dental Office põe o nome do
+               * paciente, para o calendário deles.
+               */
               obs: dados.descricao ?? "Agendado pelo JP CRC",
+              note: dados.descricao ?? "Agendado pelo JP CRC",
             },
           },
         },

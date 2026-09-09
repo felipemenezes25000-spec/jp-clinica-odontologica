@@ -225,6 +225,27 @@ describe("a escrita segue o formato deles", () => {
     expect(c.schedule).not.toHaveProperty("schedule_situation_id");
   });
 
+  it("a marca do CRC vai em `note`/`obs`, e nunca em `description`", async () => {
+    // `description` é o rótulo do calendário DELES: vem com o nome do
+    // paciente. Escrever a marca lá a apagaria da tela do Dental Office e
+    // ainda assim não voltaria em `notes` — a etiqueta "marcado pelo CRC"
+    // ficaria morta para sempre.
+    interceptar({ id: 99 });
+    await clienteDeTeste().criarAgendamento({
+      clinicaExternaId: "7",
+      pacienteExternoId: "42",
+      dentistaExternoId: "3",
+      cadeiraExternaId: "1",
+      inicioEm: "2026-09-10T13:40:00.000Z",
+      duracaoMinutos: 30,
+    });
+
+    const c = ultimaDeNegocio().corpo as { schedule?: Record<string, unknown> };
+    expect(c.schedule?.["obs"]).toContain("JP CRC");
+    expect(c.schedule?.["note"]).toContain("JP CRC");
+    expect(c.schedule).not.toHaveProperty("description");
+  });
+
   it("mudar a situação usa PATCH, e não PUT", async () => {
     interceptar({ id: 99 });
     await clienteDeTeste().atualizarStatusAgendamento("7", "99", "CANCELLED");
