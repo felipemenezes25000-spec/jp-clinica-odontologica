@@ -1,0 +1,550 @@
+/*
+ * Terceiro passe do JP CRC — polimento cirúrgico.
+ *
+ * Esta camada assume que crc.css + crc-premium.css + crc-screens.css já foram
+ * carregados. Ela não troca regras nem semântica: só melhora clareza,
+ * microinteração, leitura em alta densidade e consistência entre módulos.
+ */
+
+/* ========================================================================== */
+/* Microinteração comum                                                       */
+/* ========================================================================== */
+
+.crc-app .crc-cartao,
+.crc-app .crc-kpi,
+.crc-app .crc-painel,
+.crc-app .crc-coluna,
+.crc-app .crc-tabela-caixa {
+  transition:
+    border-color var(--crc-transicao),
+    box-shadow var(--crc-transicao),
+    transform var(--crc-transicao),
+    background var(--crc-transicao);
+}
+
+.crc-app .crc-cartao:hover,
+.crc-app .crc-kpi:hover {
+  border-color: rgba(7, 92, 34, 0.16);
+}
+
+.crc-app .crc-botao {
+  position: relative;
+  overflow: hidden;
+}
+
+.crc-app .crc-botao::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.16), transparent 78%);
+  transform: translateX(-45%);
+  transition: opacity var(--crc-transicao), transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.crc-app .crc-botao:hover::after {
+  opacity: 1;
+  transform: translateX(45%);
+}
+
+.crc-app .crc-botao-discreto::after,
+.crc-app .crc-botao-secundario::after,
+.crc-app .crc-botao-perigo::after {
+  display: none;
+}
+
+/* ========================================================================== */
+/* Home — leitura em Z                                                       */
+/* ========================================================================== */
+
+.crc-app .crc-painel-duplo {
+  align-items: stretch;
+}
+
+.crc-app .crc-painel-duplo > .crc-grade {
+  align-content: stretch;
+}
+
+.crc-app .crc-painel-duplo > .crc-cartao {
+  position: relative;
+  overflow: hidden;
+}
+
+.crc-app .crc-painel-duplo > .crc-cartao::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--crc-primaria), #56a805 55%, transparent);
+  opacity: 0.72;
+}
+
+.crc-app .crc-fila-item {
+  border-radius: 16px;
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 28px -28px rgba(7, 92, 34, 0.45);
+}
+
+.crc-app .crc-fila-item:hover {
+  border-color: rgba(7, 92, 34, 0.2);
+  box-shadow: 0 16px 36px -30px rgba(7, 92, 34, 0.5);
+}
+
+.crc-app .crc-fila-nota {
+  box-shadow: inset 0 0 0 1px rgba(7, 92, 34, 0.08);
+}
+
+/* ========================================================================== */
+/* Meu trabalho — transformar lista em fila acionável                        */
+/* ========================================================================== */
+
+.crc-app .crc-pilha > .crc-cartao:has(> header + ul) > ul > li {
+  border-radius: 14px;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(> header + ul) > ul > li > .crc-linha {
+  padding: 12px 10px;
+  border-radius: 12px;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(> header + ul) > ul > li > .crc-linha:hover {
+  background: rgba(7, 92, 34, 0.035);
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(> header + ul) > ul > li:has(.crc-etiqueta-perigo) > .crc-linha {
+  background: linear-gradient(90deg, rgba(168, 32, 15, 0.05), transparent 55%);
+}
+
+/* ========================================================================== */
+/* Inbox — prioridade total para a conversa                                  */
+/* ========================================================================== */
+
+.crc-app .crc-inbox {
+  gap: 12px;
+}
+
+.crc-app .crc-inbox > .crc-painel:nth-child(2) {
+  box-shadow: 0 22px 50px -38px rgba(7, 92, 34, 0.44);
+  border-color: rgba(7, 92, 34, 0.14);
+}
+
+.crc-app .crc-inbox > .crc-painel:nth-child(1),
+.crc-app .crc-inbox > .crc-painel:nth-child(3) {
+  background: rgba(251, 252, 250, 0.94);
+}
+
+.crc-app .crc-conversa-item {
+  position: relative;
+}
+
+.crc-app .crc-conversa-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 99px 99px 0;
+  background: transparent;
+}
+
+.crc-app .crc-conversa-item[aria-selected="true"]::before {
+  background: var(--crc-primaria);
+}
+
+.crc-app .crc-conversa-item[aria-selected="true"] {
+  background: linear-gradient(90deg, rgba(7, 92, 34, 0.085), rgba(7, 92, 34, 0.02));
+}
+
+.crc-app .crc-mensagens {
+  padding: 22px;
+  gap: 14px;
+  background:
+    linear-gradient(rgba(7, 92, 34, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(7, 92, 34, 0.018) 1px, transparent 1px),
+    #fbfcfa;
+  background-size: 26px 26px;
+}
+
+.crc-app .crc-balao {
+  padding: 10px 13px;
+  box-shadow: 0 7px 18px -16px rgba(16, 34, 25, 0.4);
+}
+
+.crc-app .crc-balao-saida {
+  box-shadow: 0 8px 22px -16px rgba(7, 92, 34, 0.58);
+}
+
+.crc-app .crc-painel-rodape {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+}
+
+.crc-app .crc-painel-rodape .crc-area {
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(16, 34, 25, 0.025);
+}
+
+/* ========================================================================== */
+/* Funil — cartões com leitura vertical                                      */
+/* ========================================================================== */
+
+.crc-app .crc-coluna {
+  border-radius: 17px;
+  background: rgba(248, 251, 247, 0.96);
+}
+
+.crc-app .crc-coluna-topo {
+  min-height: 52px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 251, 247, 0.9));
+}
+
+.crc-app .crc-cartao-funil {
+  border-radius: 13px;
+  padding: 13px;
+  box-shadow: 0 8px 22px -24px rgba(16, 34, 25, 0.4);
+}
+
+.crc-app .crc-cartao-funil:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px -24px rgba(7, 92, 34, 0.38);
+}
+
+.crc-app .crc-filtros-funil {
+  padding: 10px 12px;
+  border: 1px solid rgba(7, 92, 34, 0.09);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+/* ========================================================================== */
+/* Agenda — eixo temporal                                                    */
+/* ========================================================================== */
+
+.crc-app .crc-pilha > section.crc-cartao > ul > li {
+  position: relative;
+}
+
+.crc-app .crc-pilha > section.crc-cartao > ul > li + li::before {
+  content: "";
+  position: absolute;
+  left: 64px;
+  right: 12px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--crc-borda), transparent);
+}
+
+.crc-app .crc-pilha > section.crc-cartao > ul .crc-numero {
+  color: var(--crc-primaria);
+  font-weight: 700 !important;
+}
+
+.crc-app .crc-pilha > section.crc-cartao > ul .crc-conversa-item:hover {
+  background: linear-gradient(90deg, rgba(7, 92, 34, 0.045), transparent);
+}
+
+/* ========================================================================== */
+/* Paciente — prontuário operacional                                         */
+/* ========================================================================== */
+
+.crc-app .crc-abas {
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: color-mix(in srgb, var(--crc-fundo) 88%, white 12%);
+  backdrop-filter: blur(14px);
+  border-radius: 12px 12px 0 0;
+  padding-top: 3px;
+}
+
+.crc-app .crc-aba {
+  min-height: 42px;
+}
+
+.crc-app .crc-aba-ativa {
+  background: linear-gradient(180deg, transparent, rgba(7, 92, 34, 0.045));
+}
+
+.crc-app .crc-tabela-caixa tbody tr:has(.crc-etiqueta-perigo) {
+  background: linear-gradient(90deg, rgba(168, 32, 15, 0.035), transparent 34%);
+}
+
+/* ========================================================================== */
+/* Gestão — cara de painel executivo                                         */
+/* ========================================================================== */
+
+.crc-app .crc-grade > .crc-kpi {
+  min-height: 112px;
+  justify-content: center;
+}
+
+.crc-app .crc-grade > .crc-kpi .crc-kpi-valor {
+  margin-top: 2px;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has([role="img"]) {
+  overflow: hidden;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has([role="img"])::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 48%;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(7, 92, 34, 0.018));
+}
+
+/* ========================================================================== */
+/* Importação — sensação de fluxo guiado                                     */
+/* ========================================================================== */
+
+.crc-app input[type="file"].crc-entrada {
+  min-height: 54px;
+  padding: 7px 9px;
+  background: linear-gradient(180deg, #fff, #fbfcfa);
+}
+
+.crc-app input[type="file"].crc-entrada::file-selector-button {
+  height: 38px;
+  margin-right: 12px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--crc-primaria);
+  color: white;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crc-app .crc-cartao:has(input[type="file"]) {
+  border-style: dashed;
+  border-width: 1.5px;
+}
+
+/* ========================================================================== */
+/* Automações — cada card vira uma máquina legível                           */
+/* ========================================================================== */
+
+.crc-app .crc-pilha > .crc-cartao:has(input[type="radio"]) {
+  position: relative;
+  overflow: hidden;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(input[type="radio"])::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--crc-primaria), #56a805);
+  opacity: 0.55;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(input[type="radio"]:checked) {
+  border-color: rgba(7, 92, 34, 0.18);
+}
+
+.crc-app fieldset label:has(input[type="radio"]) {
+  padding: 9px 10px;
+  border-radius: 11px;
+  border: 1px solid transparent;
+}
+
+.crc-app fieldset label:has(input[type="radio"]:checked) {
+  border-color: rgba(7, 92, 34, 0.14);
+  background: rgba(7, 92, 34, 0.045);
+}
+
+/* ========================================================================== */
+/* Campanhas — cards com placar                                              */
+/* ========================================================================== */
+
+.crc-app .crc-cartao > ul.crc-pilha > li.crc-cartao-compacto {
+  border: 1px solid rgba(7, 92, 34, 0.1);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, #fbfcfa);
+  box-shadow: 0 7px 20px -22px rgba(7, 92, 34, 0.42);
+}
+
+.crc-app .crc-cartao > ul.crc-pilha > li.crc-cartao-compacto:hover {
+  border-color: rgba(7, 92, 34, 0.18);
+}
+
+.crc-app .crc-cartao > ul.crc-pilha > li.crc-cartao-compacto > .crc-linha:last-child > .crc-meta {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--crc-superficie-3);
+}
+
+/* ========================================================================== */
+/* Integrações — estado do conector como primeira leitura                    */
+/* ========================================================================== */
+
+.crc-app .crc-pilha > .crc-cartao:has(.crc-etiqueta-positiva),
+.crc-app .crc-pilha > .crc-cartao:has(.crc-etiqueta-alerta) {
+  position: relative;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(.crc-etiqueta-positiva)::after,
+.crc-app .crc-pilha > .crc-cartao:has(.crc-etiqueta-alerta)::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(.crc-etiqueta-positiva)::after {
+  background: var(--crc-primaria);
+  box-shadow: 0 0 0 5px rgba(7, 92, 34, 0.08);
+}
+
+.crc-app .crc-pilha > .crc-cartao:has(.crc-etiqueta-alerta)::after {
+  background: var(--crc-alerta);
+  box-shadow: 0 0 0 5px rgba(138, 83, 0, 0.08);
+}
+
+/* ========================================================================== */
+/* Equipe — acesso parece acesso, não contato                                */
+/* ========================================================================== */
+
+.crc-app .crc-cartao > ul.crc-pilha > li:has(select.crc-selecao) {
+  padding: 13px 12px;
+  border-radius: 13px;
+  border: 1px solid rgba(7, 92, 34, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.crc-app .crc-cartao > ul.crc-pilha > li:has(select.crc-selecao):hover {
+  border-color: rgba(7, 92, 34, 0.16);
+  background: #fff;
+}
+
+/* ========================================================================== */
+/* Configurações — reduzir fadiga de formulário                              */
+/* ========================================================================== */
+
+.crc-app .crc-cartao .crc-grade .crc-campo {
+  padding: 12px;
+  border: 1px solid rgba(7, 92, 34, 0.07);
+  border-radius: 13px;
+  background: rgba(251, 252, 250, 0.8);
+}
+
+.crc-app .crc-cartao .crc-grade .crc-campo:focus-within {
+  border-color: rgba(7, 92, 34, 0.2);
+  background: #fff;
+  box-shadow: 0 10px 24px -24px rgba(7, 92, 34, 0.45);
+}
+
+.crc-app .crc-cartao .crc-grade .crc-campo .crc-meta {
+  line-height: 1.45;
+}
+
+/* ========================================================================== */
+/* Tabelas — leitura horizontal assistida                                    */
+/* ========================================================================== */
+
+.crc-app .crc-tabela tbody tr {
+  transition: background var(--crc-transicao);
+}
+
+.crc-app .crc-tabela tbody tr:hover td {
+  background: rgba(7, 92, 34, 0.032);
+}
+
+.crc-app .crc-tabela td:first-child,
+.crc-app .crc-tabela th:first-child {
+  padding-left: 18px;
+}
+
+.crc-app .crc-tabela td:last-child,
+.crc-app .crc-tabela th:last-child {
+  padding-right: 18px;
+}
+
+/* ========================================================================== */
+/* Mobile — menos competição, mais fluxo                                     */
+/* ========================================================================== */
+
+@media (max-width: 860px) {
+  .crc-app .crc-cabecalho-premium {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .crc-app .crc-legenda {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 3px;
+  }
+
+  .crc-app .crc-inbox > .crc-painel:nth-child(2) {
+    box-shadow: none;
+  }
+
+  .crc-app .crc-mensagens {
+    padding: 16px 12px;
+  }
+
+  .crc-app .crc-balao {
+    max-width: 90%;
+  }
+
+  .crc-app .crc-grade > .crc-kpi {
+    min-height: 100px;
+  }
+
+  .crc-app .crc-pilha > section.crc-cartao > ul > li + li::before {
+    left: 56px;
+  }
+
+  .crc-app .crc-painel-rodape .crc-linha {
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 560px) {
+  .crc-app .crc-cabecalho-icone {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+
+  .crc-app .crc-cartao,
+  .crc-app .crc-kpi {
+    border-radius: 15px;
+  }
+
+  .crc-app .crc-filtros-funil {
+    padding: 9px;
+  }
+
+  .crc-app .crc-painel-topo,
+  .crc-app .crc-painel-rodape {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .crc-app .crc-cartao > ul.crc-pilha > li.crc-cartao-compacto > .crc-linha:last-child {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crc-app .crc-botao::after {
+    display: none;
+  }
+}
