@@ -1,30 +1,13 @@
-/**
- * A Agenda — a agenda vista pelo lado do relacionamento.
- *
- * POR QUE ESTA TELA EXISTE, se o Dental Office já tem uma agenda: porque a
- * pergunta é outra. Lá, a agenda responde "quem vem". Aqui ela responde "o que
- * a agenda está pedindo de nós": quem não confirmou, quem o CRC marcou sozinho,
- * quem tem horário e mesmo assim continua na fila de alguém.
- *
- * TRÊS DECISÕES QUE MUDAM O USO DIÁRIO:
- *
- *   O NÚMERO DO TOPO É "A CONFIRMAR", e não "total de consultas". O total é
- *   informação; o que não foi confirmado é trabalho — e é o único número aqui
- *   sobre o qual alguém age antes do almoço.
- *
- *   HOJE E AMANHÃ TÊM NOME. "hoje", "amanhã" e depois a data: quem olha a
- *   agenda às 8h não deveria precisar conferir o calendário para saber se a
- *   primeira coluna é o dia de hoje.
- *
- *   DIA SEM CONSULTA NÃO APARECE. Uma grade com sábados vazios e feriados em
- *   branco gasta metade da tela dizendo que não há nada — e empurra para baixo
- *   justamente o que importa.
- *
- * A TELA É DE LEITURA. Marcar e desmarcar acontece na conversa (onde o paciente
- * está) ou no Dental Office (onde a recepção já trabalha). Uma terceira porta
- * para editar agenda seria uma terceira chance de as duas discordarem.
- */
 import { useCallback, useEffect, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowUpRight,
+  Bot,
+  CalendarCheck2,
+  CalendarClock,
+  CalendarDays,
+  Clock3,
+} from "lucide-react";
 
 import { carregarAgenda, type DiaDaAgenda, type ItemDaAgenda } from "@/lib/crc/api";
 import { hora } from "@/lib/crc/dominio/formatar";
@@ -32,19 +15,12 @@ import { ROTULO_STATUS_AGENDA } from "@/lib/crc/dominio/rotulos";
 import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 import type { StatusAgendamento } from "@/lib/crc/dominio/tipos";
 
-import { Aviso, Botao, Etiqueta, Kpi, ListaEsqueleto, Vazio, type TomEtiqueta } from "./base";
+import { Aviso, Botao, Etiqueta, ListaEsqueleto, Vazio, type TomEtiqueta } from "./base";
 import "./crc-screens.css";
 import "./crc-polish.css";
 import "./crc-qa.css";
+import "./crc-agenda.css";
 
-/**
- * O tom de cada status.
- *
- * `TO_CONFIRM` é ALERTA e não neutro: ele é a única linha da agenda que pede
- * ação de alguém. `MISSED` é perigo porque falta é dinheiro que já saiu da
- * cadeira. O resto é neutro de propósito — a tela não pode gritar em cinco
- * cores ao mesmo tempo, senão nenhuma delas é vista.
- */
 const TOM: Readonly<Record<StatusAgendamento, TomEtiqueta>> = {
   TO_CONFIRM: "alerta",
   CONFIRMED: "positiva",
@@ -54,13 +30,12 @@ const TOM: Readonly<Record<StatusAgendamento, TomEtiqueta>> = {
   CANCELLED: "neutra",
 };
 
-/** "AAAA-MM-DD" → "hoje" / "amanhã" / "qui, 11 set". */
 function nomeDoDia(dia: string, hoje: string, amanha: string): string {
-  if (dia === hoje) return "hoje";
-  if (dia === amanha) return "amanhã";
-
+  if (dia === hoje) return "Hoje";
+  if (dia === amanha) return "Amanhã";
   const d = new Date(`${dia}T12:00:00`);
-  return d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
+  const texto = d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 function diaIso(deslocamento: number): string {
@@ -77,9 +52,7 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
 
   const recarregar = useCallback(async (): Promise<void> => {
     try {
-      const r = await carregarAgenda({
-        data: { de: diaIso(0), ate: diaIso(janelaDias) },
-      });
+      const r = await carregarAgenda({ data: { de: diaIso(0), ate: diaIso(janelaDias) } });
       if (r.ok) {
         setDias(r.panorama.dias);
         setAConfirmar(r.panorama.aConfirmar);
@@ -96,73 +69,136 @@ export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: strin
     void recarregar();
   }, [recarregar]);
 
-  if (erro !== null && dias === null) {
-    return <Aviso tom="perigo">{erro}</Aviso>;
-  }
+  if (erro !== null && dias === null) return <Aviso tom="perigo">{erro}</Aviso>;
 
   const hoje = diaIso(0);
   const amanha = diaIso(1);
   const total = dias?.reduce((n, d) => n + d.itens.length, 0) ?? 0;
+  const confirmadas = dias?.reduce(
+    (n, d) => n + d.itens.filter((item) => item.status === "CONFIRMED").length,
+    0,
+  ) ?? 0;
+  const peloCrc = dias?.reduce((n, d) => n + d.itens.filter((item) => item.peloCrc).length, 0) ?? 0;
 
   return (
-    <div className="crc-pilha">
-      <div className="crc-grade">
-        <Kpi rotulo="A confirmar" valor={String(aConfirmar)} nota="pacientes que ainda não responderam" />
-        <Kpi rotulo="Consultas na janela" valor={String(total)} nota={`próximos ${String(janelaDias)} dias`} />
-        <Kpi rotulo="Dias com atendimento" valor={String(dias?.length ?? 0)} nota="dias vazios não são listados" />
-      </div>
+    <div className="crc-agenda-v2">
+      <section className="crc-agenda-resumo-v2">
+        <ResumoAgenda
+          icone={AlertTriangle}
+          rotulo="A confirmar"
+          valor={aConfirmar}
+          nota="Pacientes aguardando confirmação"
+          tom={aConfirmar > 0 ? "alerta" : "positivo"}
+          destaque
+        />
+        <ResumoAgenda
+          icone={CalendarDays}
+          rotulo="Consultas"
+          valor={total}
+          nota={`Próximos ${String(janelaDias)} dias`}
+        />
+        <ResumoAgenda
+          icone={CalendarCheck2}
+          rotulo="Confirmadas"
+          valor={confirmadas}
+          nota="Já responderam"
+          tom="positivo"
+        />
+        <ResumoAgenda
+          icone={Bot}
+          rotulo="Marcadas pelo CRC"
+          valor={peloCrc}
+          nota="Originadas pelo relacionamento"
+          tom="info"
+        />
+      </section>
 
-      <div className="crc-linha">
-        {[7, 14, 30].map((n) => (
-          <Botao
-            key={n}
-            pequeno
-            variante={janelaDias === n ? "primario" : "discreto"}
-            onClick={() => setJanelaDias(n)}
-          >
-            {n} dias
-          </Botao>
-        ))}
-      </div>
+      <section className="crc-agenda-toolbar-v2">
+        <div className="crc-agenda-toolbar-copy">
+          <span><CalendarClock aria-hidden="true" /></span>
+          <div>
+            <div className="crc-sobretitulo">Janela de leitura</div>
+            <strong>Mostrando somente dias com consulta</strong>
+          </div>
+        </div>
+        <div className="crc-agenda-periodos-v2" role="group" aria-label="Período da agenda">
+          {[7, 14, 30].map((n) => (
+            <button
+              key={n}
+              type="button"
+              aria-pressed={janelaDias === n}
+              onClick={() => setJanelaDias(n)}
+            >
+              {n} dias
+            </button>
+          ))}
+        </div>
+      </section>
 
       {dias === null ? (
         <ListaEsqueleto linhas={5} />
       ) : dias.length === 0 ? (
-        <Vazio
-          titulo="Nenhuma consulta na janela"
-          explicacao={
-            "Ou a agenda está mesmo vazia, ou o Dental Office ainda não foi sincronizado. " +
-            "A tela de Integrações diz qual dos dois."
-          }
-        />
+        <div className="crc-agenda-vazio-v2">
+          <Vazio
+            titulo="Nenhuma consulta na janela"
+            explicacao="Ou a agenda está mesmo vazia, ou o Dental Office ainda não foi sincronizado. A tela de Integrações diz qual dos dois."
+          />
+        </div>
       ) : (
-        dias.map((d) => (
-          <section key={d.dia} className="crc-cartao">
-            <header
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                marginBottom: "var(--crc-e3)",
-              }}
-            >
-              <h2 style={{ fontSize: "1rem", margin: 0, textTransform: "capitalize" }}>
-                {nomeDoDia(d.dia, hoje, amanha)}
-              </h2>
-              <span className="crc-meta">
-                {d.itens.length} {d.itens.length === 1 ? "consulta" : "consultas"}
-              </span>
-            </header>
+        <div className="crc-agenda-dias-v2">
+          {dias.map((d) => {
+            const pendentes = d.itens.filter((item) => item.status === "TO_CONFIRM").length;
+            return (
+              <section key={d.dia} className="crc-agenda-dia-v2" data-hoje={d.dia === hoje ? "sim" : "nao"}>
+                <header className="crc-agenda-dia-topo-v2">
+                  <div>
+                    <span className="crc-agenda-dia-data-v2">{nomeDoDia(d.dia, hoje, amanha)}</span>
+                    <small>{d.itens.length} {d.itens.length === 1 ? "consulta" : "consultas"}</small>
+                  </div>
+                  <div className="crc-agenda-dia-status-v2">
+                    {pendentes > 0 && <span>{pendentes} a confirmar</span>}
+                    {d.dia === hoje && <strong>Hoje</strong>}
+                  </div>
+                </header>
 
-            <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-              {d.itens.map((item) => (
-                <LinhaDaAgenda key={item.id} item={item} aoAbrirPaciente={aoAbrirPaciente} />
-              ))}
-            </ul>
-          </section>
-        ))
+                <ul className="crc-agenda-lista-v2">
+                  {d.itens.map((item) => (
+                    <LinhaDaAgenda key={item.id} item={item} aoAbrirPaciente={aoAbrirPaciente} />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
+        </div>
       )}
     </div>
+  );
+}
+
+function ResumoAgenda({
+  icone: Icone,
+  rotulo,
+  valor,
+  nota,
+  tom = "neutro",
+  destaque = false,
+}: {
+  icone: typeof CalendarDays;
+  rotulo: string;
+  valor: number;
+  nota: string;
+  tom?: "neutro" | "alerta" | "positivo" | "info";
+  destaque?: boolean;
+}) {
+  return (
+    <article className={`crc-agenda-resumo-card-v2${destaque ? " crc-agenda-resumo-destaque-v2" : ""}`} data-tom={tom}>
+      <span><Icone aria-hidden="true" /></span>
+      <div>
+        <small>{rotulo}</small>
+        <strong>{valor}</strong>
+        <em>{nota}</em>
+      </div>
+    </article>
   );
 }
 
@@ -173,51 +209,40 @@ function LinhaDaAgenda({
   item: ItemDaAgenda;
   aoAbrirPaciente: (patientId: string) => void;
 }) {
-  const conteudo = (
+  const corpo = (
     <>
-      <span className="crc-numero" style={{ minWidth: "3.5rem", fontWeight: 600 }}>
-        {hora(item.inicioEm)}
-      </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <strong style={{ fontSize: "0.9375rem" }}>{item.pacienteNome}</strong>
-        <span className="crc-meta" style={{ display: "block" }}>
-          {[
-            item.dentistaNome,
-            item.pacienteTelefone === null ? null : telefoneParaTela(item.pacienteTelefone),
-            item.peloCrc ? "marcado pelo CRC" : null,
-          ]
+      <div className="crc-agenda-hora-v2">
+        <Clock3 aria-hidden="true" />
+        <strong>{hora(item.inicioEm)}</strong>
+      </div>
+
+      <div className="crc-agenda-paciente-v2">
+        <strong>{item.pacienteNome}</strong>
+        <span>
+          {[item.dentistaNome, item.pacienteTelefone === null ? null : telefoneParaTela(item.pacienteTelefone)]
             .filter((v) => v !== null)
             .join(" · ")}
         </span>
-      </span>
-      <Etiqueta tom={TOM[item.status]}>{ROTULO_STATUS_AGENDA[item.status]}</Etiqueta>
+        {item.peloCrc && <small><Bot aria-hidden="true" /> Marcado pelo CRC</small>}
+      </div>
+
+      <div className="crc-agenda-status-v2">
+        <Etiqueta tom={TOM[item.status]}>{ROTULO_STATUS_AGENDA[item.status]}</Etiqueta>
+        {item.patientId !== null && <ArrowUpRight aria-hidden="true" />}
+      </div>
     </>
   );
 
-  if (item.patientId === null) {
-    return (
-      <li
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--crc-e3)",
-          padding: "var(--crc-e2) var(--crc-e3)",
-        }}
-      >
-        {conteudo}
-      </li>
-    );
-  }
+  if (item.patientId === null) return <li className="crc-agenda-item-v2">{corpo}</li>;
 
   return (
     <li>
       <button
         type="button"
-        className="crc-conversa-item"
-        style={{ display: "flex", alignItems: "center", gap: "var(--crc-e3)", width: "100%" }}
+        className="crc-agenda-item-v2 crc-agenda-item-botao-v2"
         onClick={() => aoAbrirPaciente(item.patientId as string)}
       >
-        {conteudo}
+        {corpo}
       </button>
     </li>
   );
