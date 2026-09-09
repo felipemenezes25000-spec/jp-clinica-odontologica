@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -153,7 +153,9 @@ export function MeuTrabalho({
             Seu turno, organizado
           </div>
           <h2 className="crc-trabalho-command-titulo">
-            {minhas.length === 0 ? "Sua fila está limpa." : `Você tem ${String(minhas.length)} ${minhas.length === 1 ? "tarefa" : "tarefas"} na mão.`}
+            {minhas.length === 0
+              ? "Sua fila está limpa."
+              : `Você tem ${String(minhas.length)} ${minhas.length === 1 ? "tarefa" : "tarefas"} na mão.`}
           </h2>
           <p>
             Comece pelas atrasadas. O restante já está ordenado por prazo — sem precisar caçar trabalho em outras telas.
@@ -287,7 +289,7 @@ function FiltroBotao({
 }: {
   ativo: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <button type="button" className="crc-trabalho-filtro" aria-pressed={ativo} onClick={onClick}>
