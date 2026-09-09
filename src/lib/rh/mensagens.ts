@@ -441,8 +441,29 @@ function daVaga(item: Candidatura): string {
   return nome === "" ? "" : ` de ${nome}`;
 }
 
+/**
+ * O primeiro nome com a caixa arrumada, para caber numa saudação.
+ *
+ * `primeiroNome` devolve o que está gravado, e o que está gravado vem de
+ * formulário e de leitura de currículo: no acervo real existem "RAISSA DOS
+ * SANTOS SILVA" e "ariany neves pereira". Gritar "Olá, RAISSA!" ou sussurrar
+ * "Olá, ariany!" no WhatsApp de alguém é o tipo de descuido que faz a mensagem
+ * parecer disparo automático — que é exatamente o que ela não é.
+ *
+ * Só mexe quando o nome está TODO em maiúscula ou TODO em minúscula. Nome com
+ * caixa mista foi escrito por alguém que sabia o que estava fazendo, e
+ * "McNamara" ou "d'Ávila" não são erro para consertar.
+ */
+function nomeParaSaudacao(nome: string): string {
+  const primeiro = primeiroNome(nome);
+  if (primeiro === "") return "";
+  const mexer = primeiro === primeiro.toUpperCase() || primeiro === primeiro.toLowerCase();
+  if (!mexer) return primeiro;
+  return primeiro.charAt(0).toUpperCase() + primeiro.slice(1).toLowerCase();
+}
+
 function saudacao(item: Candidatura, ctx: ContextoMensagem): string {
-  const nome = primeiroNome(item.nome);
+  const nome = nomeParaSaudacao(item.nome);
   const quem = ctx.remetente.trim();
   const abre = nome === "" ? "Olá!" : `Oi, ${nome}!`;
   // Sem remetente configurado a frase ainda precisa fechar: "aqui é da JP…"
@@ -681,11 +702,17 @@ function textoNaoSeguiu(ctx: ContextoMensagem): string[] {
  * agradecer por uma conversa que não aconteceu é pior do que não escrever.
  */
 function textoNaoSeguiuEntrevista(ctx: ContextoMensagem): string[] {
-  const { item } = ctx;
+  const nome = nomeParaSaudacao(ctx.item.nome);
 
   return [
-    saudacao(item, ctx),
-    "Passando para agradecer muito pelo seu tempo e dedicação em participar da nossa entrevista. Foi muito bom conhecer um pouco mais sobre você. 😊",
+    /* ABERTURA PRÓPRIA, e não a `saudacao` compartilhada: este texto é o que a
+       clínica escreveu, palavra por palavra, e ele abre com "Olá! Tudo bem?" em
+       vez de se apresentar. Faz sentido no canal — a mensagem sai do número da
+       clínica, que a pessoa acabou de usar para combinar a entrevista — e no
+       e-mail a identificação vem na assinatura do rodapé, que `montarMensagem`
+       acrescenta sozinha. */
+    nome === "" ? "Olá! Tudo bem? 😊" : `Olá, ${nome}! Tudo bem? 😊`,
+    "Passando para agradecer muito pelo seu tempo e dedicação em participar da nossa entrevista. Foi muito bom conhecer um pouco mais sobre você.",
     "Queremos informar que, desta vez, decidimos seguir com outro perfil para a vaga. Sabemos que processos exigem energia, por isso fazemos questão de dar esse retorno de forma transparente.",
     "Desejamos muito sucesso e sorte em toda a sua jornada profissional 💚",
   ];
