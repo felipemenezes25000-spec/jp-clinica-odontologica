@@ -137,11 +137,11 @@ export const GESTOR = {
   /**
    * Retrato de uma pessoa que existe. Não trocar por imagem de gerador.
    *
-   * Foto enviada pela clínica em 09/09/2026, feita na própria clínica: 1200x1600,
-   * já em 3:4. Substituiu o recorte que vinha da peça de divulgação dele — aquele
-   * era corpo inteiro, sentado, e obrigava a desviar do texto da peça.
+   * Foto enviada pela clínica em 09/09/2026, feita na própria clínica, ele de
+   * terno: 1792x2400. Substituiu o recorte que vinha da peça de divulgação dele
+   * — aquele era corpo inteiro, sentado, e obrigava a desviar do texto da peça.
    *
-   * Recorte de (250,261) a (881,928) do original, reamostrado para 318x336.
+   * Recorte de (338,383) a (1372,1476) do original, reamostrado para 318x336.
    * As duas medidas do enquadramento saíram do retrato da Dra. Juliana, para os
    * dois cards do bloco ficarem na mesma escala: cabeça ocupando 70% da altura
    * do quadro e 8% de ar acima dela.
@@ -151,7 +151,7 @@ export const GESTOR = {
    * "de verdade" (0,75) teria a base comida pelo quadro e o enquadramento
    * medido aqui não seria o que aparece na tela.
    *
-   * O fundo foi achatado na cor da parede atrás dele, (159,164,158), medida na
+   * O fundo foi achatado na cor da parede atrás dele, (160,162,157), medida na
    * própria foto. Sem isso entravam no quadro um quadro de certificado no alto
    * à direita e um pictograma verde embaixo à esquerda — sujeira que o card da
    * Dra. Juliana, de fundo liso, não tem. Manter o tom da parede dele, e não um
