@@ -490,6 +490,7 @@ const BASE_CONTATO: ContextoContato = {
   horasDesdeUltimoContato: null,
   temJornadaAtivaConcorrente: false,
   conversaAtribuidaAHumano: false,
+  enviosNaUltimaHora: 0,
 };
 
 // Terça-feira, 11h no horário de São Paulo (14h UTC).
@@ -586,6 +587,50 @@ describe("política global de contato", () => {
 /* ========================================================================== */
 /* Horário comercial e fuso (itens 97, 98, 219)                               */
 /* ========================================================================== */
+
+describe("teto de envio por hora da clínica", () => {
+  it("deixa passar abaixo do teto", () => {
+    const v = podeContatar(
+      { ...BASE_CONTATO, enviosNaUltimaHora: CONFIGURACAO_PADRAO.envioPorHora - 1 },
+      HORARIO_COMERCIAL,
+      CONFIGURACAO_PADRAO,
+      HORARIO,
+    );
+    expect(v.pode).toBe(true);
+  });
+
+  it("bloqueia no teto, e ADIA em vez de cancelar", () => {
+    // Adiável, e não definitivo: a pessoa não fez nada errado — a clínica é que
+    // falou demais nesta hora. Cancelar a jornada dela seria punir o paciente
+    // pelo movimento do dia.
+    const v = podeContatar(
+      { ...BASE_CONTATO, enviosNaUltimaHora: CONFIGURACAO_PADRAO.envioPorHora },
+      HORARIO_COMERCIAL,
+      CONFIGURACAO_PADRAO,
+      HORARIO,
+    );
+    expect(v.pode).toBe(false);
+    if (!v.pode) {
+      expect(v.codigo).toBe("TETO_POR_HORA");
+      expect(v.reagendarPara).toBeInstanceOf(Date);
+    }
+  });
+
+  it("o opt-out vence o teto: o motivo não muda com o movimento do dia", () => {
+    const v = podeContatar(
+      {
+        ...BASE_CONTATO,
+        optOutEm: "2026-01-01T00:00:00.000Z",
+        enviosNaUltimaHora: CONFIGURACAO_PADRAO.envioPorHora + 500,
+      },
+      HORARIO_COMERCIAL,
+      CONFIGURACAO_PADRAO,
+      HORARIO,
+    );
+    expect(v.pode).toBe(false);
+    if (!v.pode) expect(v.codigo).toBe("OPT_OUT");
+  });
+});
 
 describe("horário comercial", () => {
   it("lê a hora no fuso da clínica, não no do servidor", () => {

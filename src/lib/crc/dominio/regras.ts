@@ -178,6 +178,16 @@ export type ContextoContato = {
   temJornadaAtivaConcorrente: boolean;
   /** Item 41: se um humano assumiu a conversa, a automação cala a boca. */
   conversaAtribuidaAHumano: boolean;
+  /**
+   * Quantas mensagens automáticas a CLÍNICA INTEIRA já mandou na última hora.
+   *
+   * É o único campo daqui que não é sobre este paciente, e o motivo é outro: os
+   * demais limites protegem uma pessoa de ser incomodada demais; este protege
+   * o NÚMERO da clínica. Uma varredura que encontra 800 inativos e dispara 800
+   * mensagens em minutos é exatamente o padrão que faz a Meta derrubar a
+   * qualidade do remetente — e aí nenhuma mensagem chega, nem as boas.
+   */
+  enviosNaUltimaHora: number;
 };
 
 export type VeredictoContato =
@@ -190,7 +200,8 @@ export type MotivoBloqueio =
   | "LIMITE_DIARIO"
   | "COOLDOWN"
   | "OUTRA_JORNADA"
-  | "ATENDIMENTO_HUMANO";
+  | "ATENDIMENTO_HUMANO"
+  | "TETO_POR_HORA";
 
 /**
  * Pode mandar mensagem proativa para este paciente agora?
@@ -245,6 +256,20 @@ export function podeContatar(
       codigo: "COOLDOWN",
       motivo: "Este paciente foi contatado há pouco.",
       reagendarPara: new Date(agora.getTime() + faltam * 60 * 60 * 1000),
+    };
+  }
+  // O teto da clínica vem por ÚLTIMO entre os adiáveis, e isso é deliberado: se
+  // esta pessoa já estava bloqueada por opt-out ou por cooldown, o veredicto
+  // dela não deve depender do quanto a clínica falou com OUTRAS pessoas. Trocar
+  // a ordem faria o motivo exibido na tela mudar conforme o movimento do dia.
+  if (ctx.enviosNaUltimaHora >= cfg.envioPorHora) {
+    return {
+      pode: false,
+      codigo: "TETO_POR_HORA",
+      motivo: "A clínica já atingiu o teto de mensagens automáticas desta hora.",
+      // Meia hora, e não uma hora cheia: a janela é deslizante, então parte do
+      // teto já vence antes disso e a fila volta a andar mais cedo.
+      reagendarPara: new Date(agora.getTime() + 30 * 60 * 1000),
     };
   }
   if (!dentroDoHorario(agora, horario)) {

@@ -373,13 +373,26 @@ export type ResultadoEnvioMensagem =
 export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvioMensagem> {
   const cfg = pedido.configuracao ?? CONFIGURACAO_PADRAO;
 
-  if (pedido.proativo && pedido.patientId !== null) {
-    const veredicto = await avaliarPoliticaDeContato(
-      pedido.organizationId,
-      pedido.patientId,
-      cfg,
-      pedido.agora ?? new Date(),
-    );
+  if (pedido.proativo) {
+    // ATENÇÃO À CONDIÇÃO. Antes ela era `patientId !== null`, e o efeito era um
+    // buraco: qualquer envio proativo sem paciente — um lead que acabou de
+    // preencher o formulário, por exemplo — passava por FORA da política
+    // inteira. Sem opt-out, sem horário comercial, sem teto. Quem não tem ficha
+    // de paciente é justamente quem menos consentiu em receber mensagem.
+    const veredicto =
+      pedido.patientId !== null
+        ? await avaliarPoliticaDeContato(
+            pedido.organizationId,
+            pedido.patientId,
+            cfg,
+            pedido.agora ?? new Date(),
+          )
+        : await avaliarPoliticaPorTelefone(
+            pedido.organizationId,
+            pedido.telefone,
+            cfg,
+            pedido.agora ?? new Date(),
+          );
     if (!veredicto.pode) {
       return {
         ok: false,
@@ -511,6 +524,101 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
  * carrega o que ela precisa saber. Essa separação é o que permite os testes do
  * item 79 cobrirem a política inteira sem subir Postgres.
  */
+/**
+ * A mesma política, para quem ainda não é paciente.
+ *
+ * O caso que existe hoje é o lead: alguém preencheu o formulário e deu o
+ * telefone, mas não tem ficha no Dental Office. A tentação seria mandar a
+ * primeira resposta direto, "porque ele pediu contato". Duas coisas impedem:
+ *
+ *   O TELEFONE PODE SER DE UM PACIENTE QUE PEDIU PARA PARAR. Um opt-out vale
+ *   para o número, não para o cadastro — e ignorar isso porque o formulário
+ *   chegou por outro caminho seria contornar o pedido dele por tecnicalidade.
+ *
+ *   ÀS 2H DA MANHÃ CONTINUA SENDO 2H DA MANHÃ. Formulário preenchido de
+ *   madrugada não autoriza WhatsApp de madrugada.
+ *
+ * Por isso ela monta o MESMO `ContextoContato` e chama a MESMA `podeContatar`.
+ * Uma política, duas portas de entrada — duas implementações divergiriam no
+ * primeiro ajuste que alguém fizesse só de um lado.
+ */
+export async function avaliarPoliticaPorTelefone(
+  organizationId: string,
+  telefoneBruto: string,
+  cfg: ConfiguracaoCrc,
+  agora = new Date(),
+): Promise<ReturnType<typeof podeContatar>> {
+  const telefone = normalizarTelefone(telefoneBruto);
+  if (telefone === null) {
+    return { pode: false, codigo: "SEM_TELEFONE", motivo: "Telefone inválido." };
+  }
+
+  // Qualquer paciente com este número, em qualquer variação do nono dígito.
+  const candidatos = await buscarPacientesPorTelefone(
+    organizationId,
+    variacoesDeTelefone(telefone),
+  );
+  const comOptOut = candidatos.find((p) => p.optOutEm !== null);
+  if (comOptOut !== undefined) {
+    return {
+      pode: false,
+      codigo: "OPT_OUT",
+      motivo: "Este número pediu para não receber mensagens.",
+    };
+  }
+
+  const conversa = await selecionarUm("crc_conversations", {
+    colunas: "id,assigned_to",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "contato_externo", op: "in", valor: variacoesDeTelefone(telefone) },
+    ],
+    ordenar: [{ coluna: "ultima_mensagem_em", ascendente: false }],
+  });
+
+  const conversaId = typeof conversa?.["id"] === "string" ? conversa["id"] : null;
+
+  const inicioDoDia = new Date(agora);
+  inicioDoDia.setHours(0, 0, 0, 0);
+
+  const contatosHoje =
+    conversaId === null
+      ? 0
+      : await contar("crc_messages", [
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+          { coluna: "conversation_id", op: "eq", valor: conversaId },
+          { coluna: "direcao", op: "eq", valor: "SAIDA" },
+          { coluna: "remetente", op: "in", valor: ["automacao", "ia"] },
+          { coluna: "criado_em", op: "gte", valor: inicioDoDia.toISOString() },
+        ]);
+
+  const umaHoraAtras = new Date(agora.getTime() - 3_600_000).toISOString();
+  const enviosNaUltimaHora = await contar("crc_messages", [
+    { coluna: "organization_id", op: "eq", valor: organizationId },
+    { coluna: "direcao", op: "eq", valor: "SAIDA" },
+    { coluna: "remetente", op: "in", valor: ["automacao", "ia"] },
+    { coluna: "criado_em", op: "gte", valor: umaHoraAtras },
+  ]);
+
+  return podeContatar(
+    {
+      optOutEm: null,
+      telefone,
+      contatosHoje,
+      // Sem histórico de contato próprio: o cooldown por pessoa não se aplica a
+      // quem está sendo respondido pela primeira vez.
+      horasDesdeUltimoContato: null,
+      temJornadaAtivaConcorrente: false,
+      conversaAtribuidaAHumano:
+        typeof conversa?.["assigned_to"] === "string" && conversa["assigned_to"].length > 0,
+      enviosNaUltimaHora,
+    },
+    agora,
+    cfg,
+    cfg.horarioComercial,
+  );
+}
+
 export async function avaliarPoliticaDeContato(
   organizationId: string,
   patientId: string,
@@ -573,10 +681,22 @@ export async function avaliarPoliticaDeContato(
     { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
   ]);
 
+  // O único contador que NÃO filtra por paciente. Janela deslizante de uma hora
+  // sobre a organização inteira: é o teto que impede uma varredura de 800
+  // inativos virar 800 mensagens em minutos.
+  const umaHoraAtras = new Date(agora.getTime() - 3_600_000).toISOString();
+  const enviosNaUltimaHora = await contar("crc_messages", [
+    { coluna: "organization_id", op: "eq", valor: organizationId },
+    { coluna: "direcao", op: "eq", valor: "SAIDA" },
+    { coluna: "remetente", op: "in", valor: ["automacao", "ia"] },
+    { coluna: "criado_em", op: "gte", valor: umaHoraAtras },
+  ]);
+
   const ctx: ContextoContato = {
     optOutEm: typeof paciente["opt_out_em"] === "string" ? paciente["opt_out_em"] : null,
     telefone: typeof paciente["telefone"] === "string" ? paciente["telefone"] : null,
     contatosHoje,
+    enviosNaUltimaHora,
     horasDesdeUltimoContato,
     // > 1 porque a jornada que está PERGUNTANDO também conta a si mesma.
     temJornadaAtivaConcorrente: jornadasAtivas > 1,

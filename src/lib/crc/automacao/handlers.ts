@@ -247,6 +247,93 @@ export async function aoCriarAgendamento(evento: EventoCrc): Promise<void> {
 }
 
 /** Situação virou ABANDONO no Dental Office. */
+/**
+ * Lead novo — a promessa de responder em segundos, e não no dia seguinte.
+ *
+ * POR QUE ISTO NÃO É UMA JORNADA COMO AS OUTRAS
+ * Porque jornada é do PACIENTE: `inscrever` carrega a ficha e avalia as
+ * condições sobre ela. Um lead que preencheu o formulário não tem ficha — ele
+ * existe em `crc_leads` e ainda não é ninguém no Dental Office.
+ *
+ * A saída óbvia seria criar um paciente local para ele. Foi recusada: isso
+ * bifurca a identidade com o Dental Office, e no dia em que a pessoa virar
+ * paciente de verdade a clínica teria dois cadastros — exatamente o que a
+ * sincronização passa o tempo todo evitando.
+ *
+ * Então o primeiro contato sai daqui, direto, e a SEQUÊNCIA fica com o humano:
+ * a oportunidade já nasceu atribuída a alguém em `registrarLead`. É o que o
+ * negócio precisa — quem responde primeiro fica com o paciente — sem inventar
+ * um cadastro que ninguém pediu.
+ *
+ * O ENVIO PASSA PELA POLÍTICA, pelo telefone. Formulário preenchido de
+ * madrugada não autoriza WhatsApp de madrugada, e um número que já pediu para
+ * parar continua valendo mesmo tendo chegado por outro caminho.
+ */
+export async function aoCriarLead(evento: EventoCrc): Promise<void> {
+  const leadId = String(evento.payload["leadId"] ?? "");
+  if (leadId.length === 0) return;
+
+  const linha = await selecionarUm("crc_leads", {
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: evento.organizationId },
+      { coluna: "id", op: "eq", valor: leadId },
+    ],
+  });
+  if (linha === null) return;
+
+  const telefone = typeof linha["telefone"] === "string" ? linha["telefone"] : "";
+  // Sem telefone não há primeira resposta automática. A oportunidade continua
+  // na fila de quem foi designado — e-mail e ligação são com a pessoa.
+  if (telefone.length === 0) return;
+
+  const clinicId = typeof linha["clinic_id"] === "string" ? linha["clinic_id"] : null;
+  if (clinicId === null) return;
+
+  const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
+  const provedor = criarProvedorMensageria(evento.organizationId);
+  if (!provedor.configurado) return;
+
+  const { lerConfiguracao, lerKillSwitches } = await import("../servidor/configuracao");
+  const [cfg, switches] = await Promise.all([
+    lerConfiguracao(evento.organizationId),
+    lerKillSwitches(evento.organizationId),
+  ]);
+  if (switches["kill_envios"] === true || switches["kill_automacoes"] === true) return;
+
+  const { renderizarTemplate } = await import("./templates");
+  const texto = await renderizarTemplate(evento.organizationId, "lead_primeiro_contato", {
+    primeiroNome:
+      String(linha["nome"] ?? "")
+        .trim()
+        .split(/\s+/u)[0] ?? "",
+    clinica: "JP Clínica Integrada Odontológica",
+  });
+
+  const { enviarMensagem } = await import("../aplicacao/mensagens");
+  const envio = await enviarMensagem({
+    organizationId: evento.organizationId,
+    clinicId,
+    patientId: null,
+    telefone,
+    texto,
+    // Uma resposta automática por lead, para sempre: se o evento for
+    // reprocessado, o índice único recusa a segunda.
+    chaveDedupe: `lead:${leadId}:primeiro_contato`,
+    remetente: "automacao",
+    proativo: true,
+    porta: provedor.porta,
+    configuracao: cfg,
+  });
+
+  if (!envio.ok) {
+    registrar("info", "Primeira resposta ao lead não saiu.", {
+      organizationId: evento.organizationId,
+      leadId,
+      codigo: envio.codigo,
+    });
+  }
+}
+
 export async function aoMudarSituacao(evento: EventoCrc): Promise<void> {
   if (evento.payload["para"] !== "ABANDONO") return;
 
@@ -327,6 +414,7 @@ export function instalarHandlers(): void {
   registrarHandler("appointment.created", aoCriarAgendamento);
   registrarHandler("patient.updated", aoMudarSituacao);
   registrarHandler("message.received", aoResponderSobreCobranca);
+  registrarHandler("lead.created", aoCriarLead);
 }
 
 /** Só para teste. */
