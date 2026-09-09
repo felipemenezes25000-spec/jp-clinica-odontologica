@@ -1,25 +1,16 @@
-/**
- * Configurações → Integrações — itens 77, 132 a 136, e o Milestone 16.
- *
- * ESTA TELA É A QUE NÃO PODE MENTIR.
- *
- * Ela mostra três estados diferentes, e a diferença entre eles importa:
- *   NÃO CONFIGURADA  — falta credencial. A tela DIZ QUAL variável falta.
- *   SANDBOX          — está funcionando com dados de exemplo. Fica em amarelo,
- *                      porque confundir isso com produção faria a equipe achar
- *                      que mensagens estão saindo.
- *   CONECTADA        — credencial real, chamada real.
- *
- * O item 248 do contrato pede exatamente isso: implementar toda a infraestrutura
- * possível e marcar claramente o que depende de terceiro, sem fingir que está
- * funcionando. É mais honesto — e mais útil — do que um card verde genérico.
- *
- * OS KILL SWITCHES (Milestone 16) ficam aqui porque é onde alguém procura às
- * três da manhã. Eles são separados das feature flags de propósito: flag é
- * decisão de produto, interruptor é decisão de incidente, e misturar os dois
- * faz alguém desligar a coisa errada com pressa.
- */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import {
+  Activity,
+  BrainCircuit,
+  CheckCircle2,
+  CircleDashed,
+  Database,
+  FlaskConical,
+  MessageCircle,
+  PauseCircle,
+  RefreshCw,
+  ShieldAlert,
+} from "lucide-react";
 
 import {
   acionarInterruptor,
@@ -31,44 +22,16 @@ import {
 import { KILL_SWITCHES } from "@/lib/crc/dominio/configuracao";
 import { frescor } from "@/lib/crc/dominio/formatar";
 
-import {
-  Aviso,
-  BarraDeRecado,
-  Botao,
-  Cartao,
-  Etiqueta,
-  Interruptor,
-  ListaEsqueleto,
-  Modal,
-  useAcao,
-} from "./base";
+import { Aviso, BarraDeRecado, Botao, Etiqueta, Interruptor, ListaEsqueleto, Modal, useAcao } from "./base";
+import "./crc-integrations.css";
 
 type Cartao3 = EstadoIntegracoes["dentalOffice"];
 
 const INTERRUPTORES: { chave: string; rotulo: string; explicacao: string }[] = [
-  {
-    chave: KILL_SWITCHES.todasAutomacoes,
-    rotulo: "Pausar todas as automações",
-    explicacao:
-      "Nenhuma jornada avança. As que já começaram ficam onde estão e continuam quando você religar.",
-  },
-  {
-    chave: KILL_SWITCHES.enviosWhatsapp,
-    rotulo: "Pausar envios de WhatsApp",
-    explicacao:
-      "As automações continuam calculando e registrando, mas nenhuma mensagem sai — nem automática, nem manual.",
-  },
-  {
-    chave: KILL_SWITCHES.escritasDentalOffice,
-    rotulo: "Pausar escritas no Dental Office",
-    explicacao: "O CRC continua lendo a agenda, mas para de criar e alterar agendamentos lá.",
-  },
-  {
-    chave: KILL_SWITCHES.acoesAutomaticasIa,
-    rotulo: "Pausar ações automáticas da IA",
-    explicacao:
-      "A leitura das conversas continua; o que ela sugerir passa a exigir um atendente para acontecer.",
-  },
+  { chave: KILL_SWITCHES.todasAutomacoes, rotulo: "Pausar todas as automações", explicacao: "Nenhuma jornada avança. As que já começaram ficam onde estão e continuam quando você religar." },
+  { chave: KILL_SWITCHES.enviosWhatsapp, rotulo: "Pausar envios de WhatsApp", explicacao: "As automações continuam calculando e registrando, mas nenhuma mensagem sai — nem automática, nem manual." },
+  { chave: KILL_SWITCHES.escritasDentalOffice, rotulo: "Pausar escritas no Dental Office", explicacao: "O CRC continua lendo a agenda, mas para de criar e alterar agendamentos lá." },
+  { chave: KILL_SWITCHES.acoesAutomaticasIa, rotulo: "Pausar ações automáticas da IA", explicacao: "A leitura das conversas continua; o que ela sugerir passa a exigir um atendente para acontecer." },
 ];
 
 export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
@@ -76,7 +39,6 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
   const [erro, setErro] = useState<string | null>(null);
   const [confirmandoInterruptor, setConfirmandoInterruptor] = useState<string | null>(null);
   const [sincronizando, setSincronizando] = useState(false);
-
   const acao = useAcao();
 
   const recarregar = useCallback(async (): Promise<void> => {
@@ -85,52 +47,27 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
       if (r.ok) {
         setEstado(r.estado);
         setErro(null);
-      } else {
-        setErro(r.message);
-      }
+      } else setErro(r.message);
     } catch {
       setErro("Não conseguimos carregar o estado das integrações.");
     }
   }, []);
 
-  useEffect(() => {
-    void recarregar();
-  }, [recarregar]);
+  useEffect(() => { void recarregar(); }, [recarregar]);
 
   const testar = useCallback(async (): Promise<void> => {
-    await acao.executar(
-      () => testarConexaoDentalOffice(),
-      undefined,
-      "Conexão com o Dental Office funcionando.",
-    );
+    await acao.executar(() => testarConexaoDentalOffice(), undefined, "Conexão com o Dental Office funcionando.");
   }, [acao]);
 
-  /**
-   * Item 140: para ação longa, estado PERSISTENTE, e não um toast de três
-   * segundos. A sincronização pode levar minutos; o botão fica ocupado e o
-   * aviso permanece até a resposta chegar.
-   */
   const sincronizar = useCallback(async (): Promise<void> => {
     setSincronizando(true);
     await acao.executar(
       () => sincronizarAgora(),
       (r) => {
-        const p = r.pacientes;
-        const a = r.agenda;
+        void r.pacientes;
+        void r.agenda;
         acao.limpar();
-        setEstado((atual) =>
-          atual === null
-            ? null
-            : {
-                ...atual,
-                sincronizacao: atual.sincronizacao.map((s) => ({
-                  ...s,
-                  ultimaComSucessoEm: new Date().toISOString(),
-                })),
-              },
-        );
-        void p;
-        void a;
+        setEstado((atual) => atual === null ? null : { ...atual, sincronizacao: atual.sincronizacao.map((s) => ({ ...s, ultimaComSucessoEm: new Date().toISOString() })) });
       },
       "Sincronização concluída.",
     );
@@ -138,277 +75,129 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
     await recarregar();
   }, [acao, recarregar]);
 
-  const acionar = useCallback(
-    async (chave: string, ligado: boolean): Promise<void> => {
-      await acao.executar(
-        () => acionarInterruptor({ data: { chave, ligado } }),
-        () => {
-          setEstado((atual) =>
-            atual === null
-              ? null
-              : { ...atual, killSwitches: { ...atual.killSwitches, [chave]: ligado } },
-          );
-          setConfirmandoInterruptor(null);
-        },
-        ligado ? "Pausado." : "Liberado.",
-      );
-    },
-    [acao],
-  );
+  const acionar = useCallback(async (chave: string, ligado: boolean): Promise<void> => {
+    await acao.executar(
+      () => acionarInterruptor({ data: { chave, ligado } }),
+      () => {
+        setEstado((atual) => atual === null ? null : { ...atual, killSwitches: { ...atual.killSwitches, [chave]: ligado } });
+        setConfirmandoInterruptor(null);
+      },
+      ligado ? "Pausado." : "Liberado.",
+    );
+  }, [acao]);
 
   if (erro !== null && estado === null) return <Aviso tom="perigo">{erro}</Aviso>;
-  if (estado === null) return <ListaEsqueleto linhas={3} />;
+  if (estado === null) return <ListaEsqueleto linhas={4} />;
 
   const algumPausado = Object.values(estado.killSwitches).some((v) => v);
+  const pausados = Object.values(estado.killSwitches).filter(Boolean).length;
+  const conectadas = [estado.dentalOffice, estado.whatsapp, estado.ia].filter((x) => x.conectado && x.adapter !== "sandbox").length;
+  const sandboxes = [estado.dentalOffice, estado.whatsapp, estado.ia].filter((x) => x.conectado && x.adapter === "sandbox").length;
   const interruptorConfirmado = INTERRUPTORES.find((i) => i.chave === confirmandoInterruptor);
 
   return (
-    <>
+    <div className="crc-int-v2">
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
 
-      {/* Um sistema com algo pausado precisa gritar isso no topo. */}
-      {algumPausado && (
-        <div style={{ marginBottom: "var(--crc-e5)" }}>
-          <Aviso tom="alerta">
-            Há interruptores de emergência acionados. Parte do sistema está pausada de propósito —
-            confira a seção abaixo antes de investigar "por que nada está sendo enviado".
-          </Aviso>
+      <section className="crc-int-command-v2">
+        <div>
+          <div className="crc-int-kicker-v2"><Activity size={14} aria-hidden="true" /> Saúde do sistema</div>
+          <h2>O que está conectado, o que está degradado e o que foi pausado.</h2>
+          <p>Esta é a tela de diagnóstico operacional. Ela diferencia produção, sandbox e ausência de credencial — e concentra os interruptores de emergência.</p>
         </div>
-      )}
+        <div className="crc-int-command-status-v2" data-alerta={algumPausado ? "sim" : "nao"}>
+          {algumPausado ? <ShieldAlert aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+          <span><strong>{algumPausado ? `${pausados} proteção acionada${pausados > 1 ? "s" : ""}` : "Operação liberada"}</strong><small>{conectadas} integrações reais · {sandboxes} sandbox</small></span>
+        </div>
+      </section>
 
-      <div className="crc-pilha">
-        <CartaoIntegracao
+      {algumPausado && <Aviso tom="alerta">Há interruptores de emergência acionados. Parte do sistema está pausada de propósito.</Aviso>}
+
+      <section className="crc-int-grid-v2">
+        <IntegracaoCard
+          icone={Database}
           titulo="Dental Office"
           descricao="Pacientes, agenda, disponibilidade e criação de consultas."
           dados={estado.dentalOffice}
-          acoes={
-            podeGerenciar && estado.dentalOffice.conectado ? (
-              <>
-                <Botao
-                  pequeno
-                  carregando={acao.rodando && !sincronizando}
-                  onClick={() => void testar()}
-                >
-                  Testar conexão
-                </Botao>
-                <Botao
-                  pequeno
-                  variante="primario"
-                  carregando={sincronizando}
-                  onClick={() => void sincronizar()}
-                >
-                  Sincronizar agora
-                </Botao>
-              </>
-            ) : null
-          }
+          acoes={podeGerenciar && estado.dentalOffice.conectado ? <><Botao pequeno carregando={acao.rodando && !sincronizando} onClick={() => void testar()}>Testar</Botao><Botao pequeno variante="primario" carregando={sincronizando} onClick={() => void sincronizar()}><RefreshCw size={14} aria-hidden="true" /> Sincronizar</Botao></> : null}
         />
-
-        <CartaoIntegracao
-          titulo={
-            estado.whatsapp.adapter === "twilio"
-              ? "WhatsApp (Twilio)"
-              : estado.whatsapp.adapter === "meta_cloud"
-                ? "WhatsApp (Meta Cloud)"
-                : "WhatsApp"
-          }
+        <IntegracaoCard
+          icone={MessageCircle}
+          titulo={estado.whatsapp.adapter === "twilio" ? "WhatsApp · Twilio" : estado.whatsapp.adapter === "meta_cloud" ? "WhatsApp · Meta Cloud" : "WhatsApp"}
           descricao="Envio e recebimento de mensagens pelo canal oficial."
           dados={estado.whatsapp}
         />
-
-        <CartaoIntegracao
-          titulo="Leitura automática (IA)"
-          descricao="Classifica a intenção da conversa e sugere a próxima ação."
+        <IntegracaoCard
+          icone={BrainCircuit}
+          titulo="Leitura automática · IA"
+          descricao="Classifica intenção, temperatura e próxima ação sugerida."
           dados={estado.ia}
         />
+      </section>
 
-        {/* ---- Sincronização (itens 135, 136) --------------------------- */}
-        <Cartao titulo="Sincronização">
+      <section className="crc-int-painel-v2">
+        <header><span><RefreshCw aria-hidden="true" /></span><div><small>Espelho de dados</small><h2>Sincronização</h2></div></header>
+        <div className="crc-int-painel-corpo-v2">
           {estado.sincronizacao.length === 0 ? (
-            <p className="crc-corpo">
-              Nada foi sincronizado ainda. Assim que as credenciais do Dental Office forem
-              cadastradas, a primeira sincronização traz a base de pacientes e a agenda.
-            </p>
+            <div className="crc-int-vazio-v2"><CircleDashed aria-hidden="true" /><p>Nada foi sincronizado ainda. Assim que o Dental Office estiver configurado, pacientes e agenda começam a aparecer aqui.</p></div>
           ) : (
-            <div className="crc-tabela-caixa">
-              <table className="crc-tabela">
-                <thead>
-                  <tr>
-                    <th scope="col">Recurso</th>
-                    <th scope="col">Situação</th>
-                    <th scope="col">Última tentativa</th>
-                    <th scope="col">Último sucesso</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {estado.sincronizacao.map((s) => (
-                    <tr key={s.recurso}>
-                      <td>{s.recurso === "customers" ? "Pacientes" : "Agenda"}</td>
-                      <td>
-                        <Etiqueta tom={s.status === "OK" ? "positiva" : "perigo"}>
-                          {s.status === "OK" ? "Em dia" : "Falhou"}
-                        </Etiqueta>
-                      </td>
-                      <td className="crc-meta">{frescor(s.ultimaEm)}</td>
-                      <td className="crc-meta">{frescor(s.ultimaComSucessoEm)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="crc-int-sync-grid-v2">
+              {estado.sincronizacao.map((s) => (
+                <article key={s.recurso} data-status={s.status}>
+                  <span className="crc-int-sync-icone-v2">{s.status === "OK" ? <CheckCircle2 aria-hidden="true" /> : <ShieldAlert aria-hidden="true" />}</span>
+                  <div><small>{s.recurso === "customers" ? "Pacientes" : "Agenda"}</small><strong>{s.status === "OK" ? "Em dia" : "Falhou"}</strong><em>Última tentativa {frescor(s.ultimaEm)} · sucesso {frescor(s.ultimaComSucessoEm)}</em></div>
+                </article>
+              ))}
             </div>
           )}
-        </Cartao>
+        </div>
+      </section>
 
-        {/* ---- Kill switches -------------------------------------------- */}
-        {podeGerenciar && (
-          <Cartao titulo="Interruptores de emergência">
-            <p className="crc-corpo" style={{ marginBottom: "var(--crc-e4)" }}>
-              Use quando algo estiver errado e você precisar parar o sistema sem derrubá-lo. Nada é
-              perdido: o que estava em andamento continua de onde parou quando você liberar.
-            </p>
-
-            <div className="crc-pilha" style={{ gap: "var(--crc-e4)" }}>
+      {podeGerenciar && (
+        <section className="crc-int-painel-v2 crc-int-emergencia-v2">
+          <header><span><PauseCircle aria-hidden="true" /></span><div><small>Controle de incidente</small><h2>Interruptores de emergência</h2></div>{pausados > 0 && <strong>{pausados} pausados</strong>}</header>
+          <div className="crc-int-painel-corpo-v2">
+            <p className="crc-int-emergencia-copy-v2">Use quando algo estiver errado e você precisar parar uma parte do sistema sem derrubá-lo. Nada é apagado; ao liberar, as filas continuam.</p>
+            <div className="crc-int-switches-v2">
               {INTERRUPTORES.map((i) => {
                 const pausado = estado.killSwitches[i.chave] === true;
                 return (
-                  <div
-                    key={i.chave}
-                    className="crc-linha"
-                    style={{ gap: "var(--crc-e4)", alignItems: "flex-start", flexWrap: "nowrap" }}
-                  >
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div className="crc-linha" style={{ gap: "var(--crc-e2)" }}>
-                        <strong style={{ fontSize: "0.9375rem" }}>{i.rotulo}</strong>
-                        {pausado && <Etiqueta tom="perigo">Pausado</Etiqueta>}
-                      </div>
-                      <p className="crc-meta">{i.explicacao}</p>
-                    </div>
-
-                    <Interruptor
-                      ligado={pausado}
-                      rotulo={i.rotulo}
-                      desabilitado={acao.rodando}
-                      aoMudar={(novo) => {
-                        // Item 142: PAUSAR pede confirmação; liberar não. O
-                        // dano de pausar por engano é maior — o sistema para
-                        // de contatar pacientes e ninguém percebe na hora.
-                        if (novo) setConfirmandoInterruptor(i.chave);
-                        else void acionar(i.chave, false);
-                      }}
-                    />
-                  </div>
+                  <article key={i.chave} data-pausado={pausado ? "sim" : "nao"}>
+                    <div><strong>{i.rotulo}</strong><p>{i.explicacao}</p></div>
+                    <div className="crc-int-switch-acao-v2">{pausado && <Etiqueta tom="perigo">Pausado</Etiqueta>}<Interruptor ligado={pausado} rotulo={i.rotulo} desabilitado={acao.rodando} aoMudar={(novo) => { if (novo) setConfirmandoInterruptor(i.chave); else void acionar(i.chave, false); }} /></div>
+                  </article>
                 );
               })}
             </div>
-          </Cartao>
-        )}
-      </div>
+          </div>
+        </section>
+      )}
 
       <Modal
         titulo={interruptorConfirmado?.rotulo ?? "Confirmar"}
         aberto={confirmandoInterruptor !== null}
-        aoFechar={() => {
-          setConfirmandoInterruptor(null);
-        }}
-        rodape={
-          <>
-            <Botao
-              onClick={() => {
-                setConfirmandoInterruptor(null);
-              }}
-            >
-              Cancelar
-            </Botao>
-            <Botao
-              variante="perigo"
-              carregando={acao.rodando}
-              onClick={() => {
-                if (confirmandoInterruptor !== null) void acionar(confirmandoInterruptor, true);
-              }}
-            >
-              Pausar agora
-            </Botao>
-          </>
-        }
+        aoFechar={() => setConfirmandoInterruptor(null)}
+        rodape={<><Botao onClick={() => setConfirmandoInterruptor(null)}>Cancelar</Botao><Botao variante="perigo" carregando={acao.rodando} onClick={() => { if (confirmandoInterruptor !== null) void acionar(confirmandoInterruptor, true); }}>Pausar agora</Botao></>}
       >
         <p className="crc-corpo">{interruptorConfirmado?.explicacao}</p>
-        <p className="crc-corpo" style={{ marginTop: "var(--crc-e3)" }}>
-          Enquanto estiver pausado, a equipe precisa acompanhar os pacientes manualmente. A ação
-          fica registrada na auditoria com seu nome.
-        </p>
+        <p className="crc-corpo" style={{ marginTop: "var(--crc-e3)" }}>Enquanto estiver pausado, a equipe precisa acompanhar os pacientes manualmente. A ação fica registrada na auditoria.</p>
       </Modal>
-    </>
+    </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
-
-function CartaoIntegracao({
-  titulo,
-  descricao,
-  dados,
-  acoes,
-}: {
-  titulo: string;
-  descricao: string;
-  dados: Cartao3;
-  acoes?: React.ReactNode;
-}) {
+function IntegracaoCard({ icone: Icone, titulo, descricao, dados, acoes }: { icone: typeof Database; titulo: string; descricao: string; dados: Cartao3; acoes?: ReactNode }) {
   const sandbox = dados.adapter === "sandbox";
-
+  const status = !dados.conectado ? "off" : sandbox ? "sandbox" : "ok";
   return (
-    <Cartao>
-      <div className="crc-linha" style={{ gap: "var(--crc-e3)", alignItems: "flex-start" }}>
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div className="crc-linha" style={{ gap: "var(--crc-e2)" }}>
-            <h3 className="crc-titulo-cartao">{titulo}</h3>
-
-            {/*
-              Os três estados. Sandbox é AMARELO, e não verde: ele funciona,
-              mas não é produção — e tratar os dois igual é como uma equipe
-              descobre tarde que nada estava sendo enviado.
-            */}
-            {!dados.conectado ? (
-              <Etiqueta tom="neutra">Não configurada</Etiqueta>
-            ) : sandbox ? (
-              <Etiqueta tom="alerta">Dados de exemplo</Etiqueta>
-            ) : (
-              <Etiqueta tom="positiva">Conectada</Etiqueta>
-            )}
-          </div>
-
-          <p className="crc-corpo" style={{ marginTop: "var(--crc-e1)" }}>
-            {descricao}
-          </p>
-          <p className="crc-meta" style={{ marginTop: "var(--crc-e1)" }}>
-            {dados.detalhe}
-          </p>
-
-          {/*
-            ITEM 248: quando falta credencial, a tela diz EXATAMENTE qual. Um
-            "não configurado" genérico transforma cinco minutos de trabalho
-            numa investigação.
-          */}
-          {dados.faltando.length > 0 && (
-            <div style={{ marginTop: "var(--crc-e3)" }}>
-              <Aviso tom="info">
-                Falta cadastrar no servidor:{" "}
-                <strong style={{ fontFamily: "ui-monospace, monospace" }}>
-                  {dados.faltando.join(", ")}
-                </strong>
-                . Enquanto isso, tudo que depende desta integração fica indisponível — e o resto do
-                CRC continua funcionando.
-              </Aviso>
-            </div>
-          )}
-        </div>
-
-        {acoes !== undefined && acoes !== null && (
-          <div className="crc-linha" style={{ gap: "var(--crc-e2)", flexShrink: 0 }}>
-            {acoes}
-          </div>
-        )}
+    <article className="crc-int-card-v2" data-status={status}>
+      <header><span><Icone aria-hidden="true" /></span><div><h3>{titulo}</h3><p>{descricao}</p></div>{status === "ok" ? <Etiqueta tom="positiva">Conectada</Etiqueta> : status === "sandbox" ? <Etiqueta tom="alerta">Sandbox</Etiqueta> : <Etiqueta>Não configurada</Etiqueta>}</header>
+      <div className="crc-int-card-corpo-v2">
+        <p>{dados.detalhe}</p>
+        <div className="crc-int-adapter-v2"><small>Adapter</small><strong>{dados.adapter ?? "—"}</strong></div>
+        {dados.faltando.length > 0 && <div className="crc-int-faltando-v2"><FlaskConical aria-hidden="true" /><div><small>Falta no servidor</small><strong>{dados.faltando.join(", ")}</strong></div></div>}
       </div>
-    </Cartao>
+      {acoes !== undefined && acoes !== null && <footer>{acoes}</footer>}
+    </article>
   );
 }
