@@ -1806,7 +1806,19 @@
 }
 
 @media (max-width: 640px) {
+  /*
+   * NO CELULAR A LINHA DA FILA VIRA DUAS.
+   *
+   * Em 390px, "nota + conteúdo + dois botões" numa linha só espreme o nome
+   * até sobrar uma inicial e reticências. O nome é a informação que a pessoa
+   * está procurando — ele não pode ser o que cede.
+   *
+   * Os botões descem para uma segunda linha, recuados na mesma coluna do
+   * conteúdo (56px = 38 da nota + 18 do respiro), para continuarem alinhados
+   * ao item a que pertencem em vez de flutuarem na margem.
+   */
   .crc-app .crc-fila-item {
+    flex-wrap: wrap;
     padding: var(--crc-e3) var(--crc-e4);
     gap: var(--crc-e3);
   }
@@ -1815,9 +1827,45 @@
     height: 38px;
     font-size: 0.9375rem;
   }
+  .crc-app .crc-fila-item > .crc-linha:last-child {
+    width: 100%;
+    margin-left: 56px;
+    justify-content: flex-start;
+  }
   .crc-app .crc-kpi-foco .crc-kpi-valor {
     font-size: 2.125rem;
   }
+  .crc-app .crc-conteudo {
+    padding: var(--crc-e4) var(--crc-e3) var(--crc-e10);
+  }
+  /* Etiqueta que não cabe na linha do nome desce em vez de empurrar. */
+  .crc-app .crc-fila-corpo .crc-linha {
+    flex-wrap: wrap;
+  }
+}
+
+/*
+ * A REDE DE SEGURANÇA CONTRA ROLAGEM HORIZONTAL.
+ *
+ * Vale em toda largura, e não só no celular. Um único elemento largo demais
+ * — uma tabela, um nome sem espaço, uma URL colada num campo — faz a PÁGINA
+ * INTEIRA rolar de lado, e aí a navegação sai da tela junto. O sintoma é
+ * sempre o mesmo e a causa é sempre um filho só; esta regra impede que o
+ * filho arraste o resto.
+ *
+ * O `min-width: 0` nos filhos do grid é o par obrigatório disto: sem ele, um
+ * item de grid se recusa a encolher abaixo do próprio conteúdo e o `hidden`
+ * acima apenas esconde o estouro em vez de evitá-lo.
+ */
+.crc-app {
+  overflow-x: hidden;
+}
+
+.crc-app .crc-shell > *,
+.crc-app .crc-conteudo > *,
+.crc-app .crc-painel-duplo > *,
+.crc-app .crc-grade > * {
+  min-width: 0;
 }
 
 /* ==========================================================================
