@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Activity,
   ArrowLeft,
   ArrowUpRight,
-  Bot,
   CalendarClock,
   CalendarDays,
   CheckCircle2,
@@ -13,7 +12,6 @@ import {
   MessageSquareText,
   Phone,
   Search,
-  ShieldAlert,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -46,10 +44,6 @@ import {
 } from "./base";
 import "./crc-patients.css";
 
-/* -------------------------------------------------------------------------- */
-/* Busca                                                                      */
-/* -------------------------------------------------------------------------- */
-
 export function BuscaPacientes({
   aoAbrirPaciente,
 }: {
@@ -63,7 +57,6 @@ export function BuscaPacientes({
 
   useEffect(() => {
     if (relogio.current !== null) clearTimeout(relogio.current);
-
     const limpo = termo.trim();
     if (limpo.length < 2) {
       setResultados(null);
@@ -184,10 +177,6 @@ export function BuscaPacientes({
     </div>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Central do paciente                                                        */
-/* -------------------------------------------------------------------------- */
 
 type AbaFicha = "resumo" | "aberto" | "tarefas" | "conversas" | "agenda" | "historico";
 
@@ -372,7 +361,7 @@ function PainelPaciente({
   titulo: string;
   icone: typeof Activity;
   contador: number;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="crc-paciente-painel-v2">
