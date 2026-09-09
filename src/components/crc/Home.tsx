@@ -23,6 +23,7 @@ import {
 
 import { FitaDoDia, Porque, Pulso, type RazaoDaNota } from "./assinatura";
 import { Aviso, Botao, Cartao, Esqueleto, Etiqueta, ListaEsqueleto, Vazio } from "./base";
+import "./crc-experience.css";
 
 export function Home({
   nomeUsuario,
