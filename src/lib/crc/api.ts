@@ -2136,6 +2136,7 @@ export type CampanhaDto = {
   puladas: number;
   pendentes: number;
   diasSemVoltar: number | null;
+  diasSemVoltarAte: number | null;
   semConsultaFutura: boolean;
   especialidade: string | null;
   convenio: string | null;
@@ -2167,6 +2168,7 @@ export const carregarCampanhas = createServerFn({ method: "GET" }).handler(
           puladas: c.puladas,
           pendentes: c.pendentes,
           diasSemVoltar: c.filtros.diasSemVoltar,
+          diasSemVoltarAte: c.filtros.diasSemVoltarAte,
           semConsultaFutura: c.filtros.semConsultaFutura,
           especialidade: c.filtros.especialidade,
           convenio: c.filtros.convenio,

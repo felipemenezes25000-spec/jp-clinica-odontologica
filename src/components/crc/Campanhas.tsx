@@ -45,6 +45,7 @@ import {
 
 type Filtros = {
   diasSemVoltar: number | null;
+  diasSemVoltarAte: number | null;
   semConsultaFutura: boolean;
   especialidade: string | null;
   convenio: string | null;
@@ -53,6 +54,7 @@ type Filtros = {
 
 const FILTROS_INICIAIS: Filtros = {
   diasSemVoltar: 365,
+  diasSemVoltarAte: null,
   semConsultaFutura: true,
   especialidade: null,
   convenio: null,
@@ -321,6 +323,42 @@ export function Campanhas() {
           pediu para parar já fica de fora, sempre.
         </p>
 
+        {/*
+          OS ATALHOS VÊM ANTES DOS CAMPOS, e não depois, porque quase toda
+          campanha de reativação é uma destas três. Digitar "365" e "730" à mão
+          é onde o erro entra — e um erro aqui manda a mesma mensagem para quem
+          sumiu há sete meses e para quem sumiu há sete anos.
+        */}
+        <div className="crc-linha" style={{ marginBottom: "var(--crc-e3)" }}>
+          <span className="crc-meta">Faixas comuns:</span>
+          {(
+            [
+              { nome: "6 a 12 meses", de: 180, ate: 365 },
+              { nome: "12 a 24 meses", de: 365, ate: 730 },
+              { nome: "mais de 24 meses", de: 730, ate: null },
+            ] as const
+          ).map((faixa) => {
+            const ativa =
+              filtros.diasSemVoltar === faixa.de && filtros.diasSemVoltarAte === faixa.ate;
+            return (
+              <Botao
+                key={faixa.nome}
+                pequeno
+                variante={ativa ? "primario" : "discreto"}
+                onClick={() => {
+                  setFiltros((f) => ({
+                    ...f,
+                    diasSemVoltar: faixa.de,
+                    diasSemVoltarAte: faixa.ate,
+                  }));
+                }}
+              >
+                {faixa.nome}
+              </Botao>
+            );
+          })}
+        </div>
+
         <Campo rotulo="Sem voltar há pelo menos (dias)" dica="Em branco, não filtra por tempo.">
           {(id) => (
             <Entrada
@@ -332,6 +370,26 @@ export function Campanhas() {
                 setFiltros((f) => ({
                   ...f,
                   diasSemVoltar: Number.isFinite(n) && n > 0 ? n : null,
+                }));
+              }}
+            />
+          )}
+        </Campo>
+
+        <Campo
+          rotulo="E no máximo (dias)"
+          dica="Em branco, não há teto: entra todo mundo daquele tempo para cima."
+        >
+          {(id) => (
+            <Entrada
+              id={id}
+              inputMode="numeric"
+              value={filtros.diasSemVoltarAte === null ? "" : String(filtros.diasSemVoltarAte)}
+              onChange={(e) => {
+                const n = Number.parseInt(e.target.value, 10);
+                setFiltros((f) => ({
+                  ...f,
+                  diasSemVoltarAte: Number.isFinite(n) && n > 0 ? n : null,
                 }));
               }}
             />

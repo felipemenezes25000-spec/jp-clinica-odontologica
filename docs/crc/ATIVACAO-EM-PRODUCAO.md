@@ -549,6 +549,31 @@ citado acima. Todos detalhados no FINAL-ACCEPTANCE.*
 
 ## Parte F — O motor precisa bater mais de uma vez por dia
 
+> **A regra que governa o sistema inteiro:**
+> **nada automático acontece entre uma batida do motor e a seguinte.**
+> A frequência do motor **é** o tempo de resposta do CRC. Não existe outro
+> gatilho — nem fila, nem worker, nem processamento no recebimento.
+
+Vale a pena entender por quê, porque é contraintuitivo: quando o paciente
+manda uma mensagem, o webhook do WhatsApp **grava** a mensagem e emite um
+evento com status `PENDENTE`. Ele não responde, não chama a IA, não faz nada
+além de guardar. Quem lê os eventos pendentes é `processarEventos`, e ela é
+chamada **num lugar só** — a rota `/api/crc/motor`.
+
+### O que isso significa na prática
+
+| Acontece | Quando o paciente percebe |
+|---|---|
+| Mensagem chega | **Na hora.** Ela aparece na Inbox imediatamente, e qualquer atendente responde 24h por dia. |
+| Leitura pela IA, resumo, temperatura | Na batida seguinte do motor |
+| Resposta automática | Na batida seguinte do motor |
+| Oferta de horário e agendamento | Na batida seguinte do motor |
+| Mensagem de jornada (falta, retorno, cobrança) | Na batida seguinte do motor |
+
+**Com o cron diário de hoje, "a batida seguinte" pode ser daqui a 23 horas.**
+Uma pessoa que escreve às 14h só recebe resposta automática às 9h do dia
+seguinte — e todas as mensagens do dia saem empilhadas no mesmo minuto.
+
 **A conta da Vercel é Hobby, e o plano Hobby só aceita cron diário.** O deploy
 foi recusado com `*/10 * * * *` e `vercel.json` foi ajustado para `0 9 * * *`
 (6h em São Paulo) — senão nada subia.
@@ -559,6 +584,21 @@ orçamento, cobrança) continuam certas, porque elas são diárias por natureza.
 oportunidade, a jornada espera duas horas — e aí espera até a próxima batida do
 motor, no dia seguinte. Uma mensagem que deveria sair às 11h sai às 6h do outro
 dia, quando o paciente já remarcou em outro lugar.
+
+### O horário comercial NÃO atrapalha a resposta
+
+Uma dúvida que aparece sempre: "se alguém escrever às 23h, o sistema vai
+esperar até as 8h para responder?" **Não.**
+
+Responder a quem acabou de escrever é envio `proativo: false`, e envio não
+proativo **não passa pela política de horário**. A regra existe para não
+incomodar quem está em silêncio — não para calar quem perguntou. Com o motor
+batendo de minuto em minuto, uma mensagem da meia-noite é respondida à
+meia-noite e um minuto.
+
+Quem respeita o horário comercial são as mensagens **proativas** (falta,
+retorno, aniversário, cobrança). E mesmo elas são **adiadas, nunca canceladas**:
+a jornada é reagendada para a abertura seguinte e o paciente recebe às 8h.
 
 **Duas saídas, e as duas funcionam:**
 
@@ -615,6 +655,95 @@ pontualmente que o GitHub. Os dois resolvem.
 **O cron diário de `vercel.json` não atrapalha o pinger**: os dois chamam a
 mesma rota, e a reserva atômica (`FOR UPDATE SKIP LOCKED`) garante que duas
 chamadas sobrepostas nunca peguem a mesma linha. Deixe os dois.
+
+### Quer resposta em 1 minuto?
+
+| Caminho | Custo | Frequência possível |
+|---|---|---|
+| **cron-job.org** | Grátis | Até **1 minuto** |
+| **GitHub Actions** | Grátis | Mínimo **5 minutos** (limite do agendador do GitHub, e ele ainda atrasa em horário de pico) |
+| **Vercel Pro** | US$ 20/mês | 1 minuto, trocando `0 9 * * *` por `* * * * *` |
+
+Para conversa em tempo real, **1 minuto é o alvo** — é a diferença entre o
+paciente sentir que falou com a clínica e sentir que caiu num robô lento.
+O caminho gratuito (cron-job.org) chega lá; o Pro é conveniência, não
+necessidade.
+
+> **Não troque o cron do `vercel.json` antes de assinar o Pro.** Frequência
+> maior que diária no Hobby não é um aviso: **o deploy inteiro é recusado**, e o
+> site sai do ar até alguém reverter.
+
+### Dois riscos que só aparecem quando a base real entrar
+
+Nenhum dos dois se manifesta hoje, com o banco vazio. Os dois aparecem na
+primeira sincronização de verdade, e é melhor conhecê-los antes.
+
+**1. O tempo máximo da função não está configurado.**
+`.vercel/output/functions/__server.func/.vc-config.json` não traz
+`maxDuration`, então vale o padrão do plano — poucos segundos. E o motor faz
+tudo numa invocação só: sincroniza pacientes, dentistas e agenda, processa até
+40 eventos, roda as varreduras, avança as jornadas e despacha as campanhas.
+
+**2. O cursor de sincronização só avança no fim.**
+Em `sincronizacao.ts`, o cursor (`crc_sync_state`) é gravado apenas quando o
+recurso termina **com sucesso**. Se a função for morta por timeout no meio, o
+cursor não avança e a execução seguinte **recomeça da página 1**.
+
+Os dois juntos têm uma consequência concreta: numa base grande, a primeira
+sincronização pode nunca concluir — ela reprocessa as mesmas páginas para
+sempre, gravando pacientes (os `upsert` acontecem) mas sem nunca marcar o
+ponto de parada.
+
+**Como perceber:** na tela de Integrações, o histórico de sincronização mostra
+execuções repetidas do recurso `patients` com o mesmo número de processados e
+sem nunca concluir. Ou, no banco:
+
+```sql
+select recurso, status, processados, ultimo_erro, terminado_em
+from crc_sync_jobs
+order by id desc
+limit 10;
+```
+
+Se aparecer `A sincronização parou no teto de 200 páginas`, é este caso.
+
+**Como resolver, se acontecer:** as duas correções são pequenas — fixar
+`maxDuration` na função e fatiar o sync em pedaços que caibam nele. Elas não
+foram feitas ainda porque só fazem sentido depois de conhecer o tamanho real da
+base do Dental Office: fatiar em pedaços pequenos demais desperdiça execução, e
+grandes demais não resolve.
+
+---
+
+## Parte F.1 — O que o CRC escreve de volta no Dental Office
+
+Uma expectativa comum, e que **não** corresponde ao que existe: o CRC não
+espelha a conversa nem as anotações no Dental Office.
+
+**O que ele escreve — as duas únicas escritas que existem:**
+
+| Ação | Método | Quando |
+|---|---|---|
+| Criar consulta | `POST` | Quando o paciente aceita um horário oferecido |
+| Mudar status / cancelar | `PUT` | Quando a consulta é cancelada pelo CRC |
+
+**O que ele NÃO escreve:**
+
+- O histórico de WhatsApp. As conversas vivem no CRC, e só nele.
+- Anotação, observação ou resumo da IA no prontuário.
+- Cadastro do paciente. O Dental Office continua sendo a fonte da verdade dos
+  dados cadastrais; o CRC lê e nunca corrige.
+- Orçamento, pagamento ou qualquer dado financeiro.
+
+Isso é desenho, e não pendência. O Dental Office é o sistema clínico da
+clínica; escrever nele mais do que o necessário transforma um erro do CRC num
+erro no prontuário. A única escrita que compensa esse risco é a que a operação
+não consegue fazer sozinha em tempo real: ocupar um horário.
+
+E mesmo ela passa por **três travas desligadas por padrão** — a flag
+`dental_office_writeback`, a flag `auto_scheduling` e o kill switch
+`kill_escritas_do`. Qualquer uma delas barrando, o aceite do paciente vira
+**tarefa para a recepção digitar**, nunca silêncio.
 
 ---
 

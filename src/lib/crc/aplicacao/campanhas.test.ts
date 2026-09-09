@@ -139,6 +139,35 @@ describe("o recorte", () => {
     expect(sem.convenios).toEqual([]);
   });
 
+  it("a FAIXA separa quem sumiu há um ano de quem sumiu há cinco", async () => {
+    // O caso que a especificação pede: 6–12, 12–24 e 24+ meses são conversas
+    // diferentes, e sem teto a primeira campanha levaria as três juntas.
+    paciente("p-1", { ultima_consulta_em: "2026-03-08T10:00:00.000Z" }); // ~6 meses
+    paciente("p-2", { ultima_consulta_em: "2025-03-08T10:00:00.000Z" }); // ~18 meses
+    paciente("p-3", { ultima_consulta_em: "2021-09-08T10:00:00.000Z" }); // ~5 anos
+
+    const semTeto = lerFiltroPublico({ diasSemVoltar: 365 });
+    // Só com piso: leva o de 18 meses E o de 5 anos.
+    expect(await contarPublico(ORG, semTeto, HORARIO_UTIL)).toBe(2);
+
+    const faixa = lerFiltroPublico({ diasSemVoltar: 365, diasSemVoltarAte: 730 });
+    // Com a faixa 12–24 meses: só o de 18 meses.
+    expect(await contarPublico(ORG, faixa, HORARIO_UTIL)).toBe(1);
+
+    const antigos = lerFiltroPublico({ diasSemVoltar: 730 });
+    expect(await contarPublico(ORG, antigos, HORARIO_UTIL)).toBe(1);
+  });
+
+  it("teto abaixo do piso é descartado, e não vira faixa vazia", async () => {
+    paciente("p-1", { ultima_consulta_em: "2025-03-08T10:00:00.000Z" });
+
+    // Uma faixa impossível não pode devolver uma tela que parece quebrada:
+    // o teto inválido cai fora e o filtro volta a ser "de N dias para cima".
+    const f = lerFiltroPublico({ diasSemVoltar: 730, diasSemVoltarAte: 365 });
+    expect(f.diasSemVoltarAte).toBeNull();
+    expect(await contarPublico(ORG, f, HORARIO_UTIL)).toBe(0);
+  });
+
   it("filtro desconhecido não vira consulta", async () => {
     paciente("p-1");
     const f = lerFiltroPublico({ limite: 99999, deleteTudo: true, situacao: "INVENTADA" });

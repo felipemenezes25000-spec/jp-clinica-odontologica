@@ -47,8 +47,17 @@ import { auditar, descreverErro, registrar } from "../servidor/registro";
  * combinação que alguém montasse.
  */
 export type FiltroPublico = {
-  /** Sem consulta concluída há pelo menos N dias. */
+  /** Sem consulta concluída há pelo menos N dias — o piso da faixa. */
   diasSemVoltar: number | null;
+  /**
+   * E há no MÁXIMO N dias — o teto da faixa.
+   *
+   * É o que transforma "sumiu há mais de um ano" em "sumiu entre um e dois
+   * anos". Sem ele, a primeira campanha de reativação consome a base inativa
+   * inteira com a mesma mensagem para quem sumiu há sete meses e para quem
+   * sumiu há sete anos — que são conversas diferentes.
+   */
+  diasSemVoltarAte: number | null;
   /** Só quem não tem consulta futura marcada. */
   semConsultaFutura: boolean;
   especialidade: string | null;
@@ -59,6 +68,7 @@ export type FiltroPublico = {
 
 export const FILTRO_PUBLICO_VAZIO: FiltroPublico = {
   diasSemVoltar: null,
+  diasSemVoltarAte: null,
   semConsultaFutura: true,
   especialidade: null,
   convenio: null,
@@ -75,12 +85,21 @@ export function lerFiltroPublico(bruto: unknown): FiltroPublico {
   const o = bruto as Record<string, unknown>;
 
   const dias = Number(o["diasSemVoltar"]);
+  const diasAte = Number(o["diasSemVoltarAte"]);
   const situacao = String(o["situacao"] ?? "");
   const especialidade = String(o["especialidade"] ?? "").trim();
   const convenio = String(o["convenio"] ?? "").trim();
 
+  const piso = Number.isFinite(dias) && dias > 0 ? Math.min(3650, Math.floor(dias)) : null;
+  const teto = Number.isFinite(diasAte) && diasAte > 0 ? Math.min(3650, Math.floor(diasAte)) : null;
+
   return {
-    diasSemVoltar: Number.isFinite(dias) && dias > 0 ? Math.min(3650, Math.floor(dias)) : null,
+    diasSemVoltar: piso,
+    // Teto abaixo do piso é faixa vazia, e faixa vazia numa campanha não
+    // devolve "zero pacientes" — devolve uma tela que parece quebrada. Descartar
+    // o teto inválido faz o filtro voltar a ser "de N dias para cima", que é o
+    // comportamento anterior e é previsível.
+    diasSemVoltarAte: teto !== null && piso !== null && teto <= piso ? null : teto,
     // O padrão é `true` e não `false`: falar com quem já tem consulta marcada é
     // o erro mais caro de uma campanha, e o padrão precisa ser o seguro.
     semConsultaFutura: o["semConsultaFutura"] !== false,
@@ -114,6 +133,12 @@ function filtrosDoPublico(organizationId: string, f: FiltroPublico, agora: Date)
   if (f.diasSemVoltar !== null) {
     const limite = new Date(agora.getTime() - f.diasSemVoltar * 86400_000).toISOString();
     filtros.push({ coluna: "ultima_consulta_em", op: "lt", valor: limite });
+  }
+  if (f.diasSemVoltarAte !== null) {
+    // O teto é o lado ANTIGO da faixa: "no máximo 24 meses sem voltar" quer
+    // dizer que a última consulta é MAIS RECENTE que 24 meses atrás.
+    const limite = new Date(agora.getTime() - f.diasSemVoltarAte * 86400_000).toISOString();
+    filtros.push({ coluna: "ultima_consulta_em", op: "gte", valor: limite });
   }
   if (f.especialidade !== null) {
     filtros.push({ coluna: "especialidade", op: "eq", valor: f.especialidade });
