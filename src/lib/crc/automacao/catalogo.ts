@@ -283,7 +283,7 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
     chave: "cobranca_parcelas",
     nome: "Cobrança de parcelas em aberto",
     descricao:
-      "Lembra da parcela a vencer e pergunta sobre a que ficou em aberto. Para em tres contatos e passa para a equipe — o art. 42 do CDC nao permite insistir.",
+      "Lembra da parcela a vencer e pergunta sobre a que ficou em aberto. Para em três contatos e passa para a equipe — o art. 42 do CDC não permite insistir.",
     definicao: {
       gatilho: { tipo: "VARREDURA", seletor: "ABANDONO" },
       condicoes: CONDICOES_CONTATAVEL,
@@ -306,8 +306,8 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
           motivo: "paciente_respondeu",
           rotulo: "Parar se respondeu",
         },
-        // A automacao PARA aqui. Nao existe terceiro envio: o teto do art. 42
-        // e o motivo de a conversa virar telefone, e nao mais uma mensagem.
+        // A automação PARA aqui. Não existe terceiro envio: o teto do art. 42
+        // é o motivo de a conversa virar telefone, e não mais uma mensagem.
         {
           tipo: "CRIAR_TAREFA",
           titulo: "Falar por telefone sobre a parcela em aberto",
@@ -316,8 +316,8 @@ export const AUTOMACOES_PADRAO: readonly AutomacaoPadrao[] = [
           rotulo: "Passar para a equipe",
         },
       ],
-      // Sem saida por consulta futura: ter consulta marcada nao quita parcela.
-      // A saida real e o paciente responder, e ela ja esta nos passos.
+      // Sem saída por consulta futura: ter consulta marcada não quita parcela.
+      // A saída real é o paciente responder, e ela já está nos passos.
       saidas: [],
     },
   },
