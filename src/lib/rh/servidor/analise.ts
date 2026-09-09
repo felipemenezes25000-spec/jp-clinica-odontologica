@@ -389,6 +389,46 @@ function analiseComErro(
   return { ...analiseVazia(), modelo, analisadoEm: agoraIso, extracao, metricas, sinais, erro };
 }
 
+/* Mesma régua de `pareceCargo` em `mensagens.ts`, e de propósito duplicada:
+   aquele arquivo é o que a candidata lê e não pode importar módulo de servidor.
+   A régua e a justificativa de cada limite estão documentadas lá; se mudar,
+   muda nos dois. */
+const ABERTURAS_DE_OBJETIVO =
+  /^(busco|buscando|procuro|procurando|pretendo|pretendendo|desejo|desejando|quero|querendo|tenho|sou|atuar|atuando|trabalhar|trabalhando|contribuir|contribuindo|podendo|poder|visando|viso|almejo|gostaria|dispon[íi]vel|profissional|experi[êe]ncia|oportunidade|colaborar|colaborando|aprender|aprendendo|crescer|desenvolver|exercer|aplicar|ingressar|obter|conquistar|somar|coloco|em busca)\b/i;
+
+function limparCargo(bruto: string): string {
+  return bruto.trim().replace(/\.$/, "").trim();
+}
+
+function pareceCargo(bruto: string): boolean {
+  const t = limparCargo(bruto);
+  if (t === "" || t.length > 60) return false;
+  const palavras = t.split(/\s+/).length;
+  if (palavras > 8) return false;
+  // Pontuação de frase NO MEIO (o ponto final já saiu em `limparCargo`).
+  if (/[.;!?]/.test(t)) return false;
+  if (t.includes(",") && palavras > 5) return false;
+  return !ABERTURAS_DE_OBJETIVO.test(t);
+}
+
+/** O objetivo quando ele é um cargo, sem o ponto final; "" quando é parágrafo. */
+function objetivoComoCargo(objetivo: string): string {
+  return pareceCargo(objetivo) ? limparCargo(objetivo) : "";
+}
+
+/**
+ * O objetivo quando ele é PARÁGRAFO — aí ele é carta de apresentação.
+ *
+ * Não entra quando o cadastro já tinha cargo digitado: nesse caso o
+ * `resumoObjetivo` que a IA devolveu foi montado a partir do que a própria
+ * pessoa escreveu no formulário (ver a chamada de `extracaoDoFormulario`), e
+ * copiá-lo de volta duplicaria o texto dela na ficha.
+ */
+function objetivoComoCarta(objetivo: string, cargoDoCadastro: string): string {
+  if (cargoDoCadastro.trim() !== "") return "";
+  return pareceCargo(objetivo) ? "" : objetivo.trim();
+}
+
 /**
  * Preenche na ficha o que só a leitura do documento sabia.
  *
@@ -533,11 +573,17 @@ async function preencherComExtracao(
     especialidades: atual.especialidades.length > 0 ? atual.especialidades : e.especialidades,
 
     pretensao: atual.pretensao || e.pretensaoDeclarada,
-    /* O "objetivo" que a pessoa escreveu no topo do currículo vira o cargo
-       desejado quando o cadastro não tem nenhum — é literalmente a resposta à
-       pergunta "que vaga você quer", escrita por ela. Cortado em 80 para não
-       transformar um parágrafo de objetivo em título de cargo. */
-    cargoDesejado: atual.cargoDesejado || e.resumoObjetivo.trim().slice(0, 80),
+    /* O "objetivo" do topo do currículo só vira CARGO quando é um cargo.
+       Cortar em 80 caracteres, como estava antes, não resolvia nada: um pedaço
+       de 80 caracteres de um parágrafo continua sendo um parágrafo, e foi assim
+       que "Podendo desenvolver com máxima responsabilidade as atividades
+       propostas pela mes" chegou a uma mensagem de WhatsApp como se fosse o
+       nome da vaga. Quando o texto é parágrafo, ele vai para a carta de
+       apresentação, que é onde parágrafo mora — e o cargo fica vazio, que é a
+       resposta honesta para "que vaga ela quer". */
+    cargoDesejado: atual.cargoDesejado || objetivoComoCargo(e.resumoObjetivo),
+    cartaApresentacao:
+      atual.cartaApresentacao || objetivoComoCarta(e.resumoObjetivo, atual.cargoDesejado),
   }));
 }
 

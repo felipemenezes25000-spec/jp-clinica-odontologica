@@ -25,6 +25,7 @@
  */
 import type { Candidatura } from "./tipos";
 import { apenasDigitos, primeiroNome } from "./formatar";
+import { AREAS } from "./opcoes";
 
 /* -------------------------------------------------------------------------- */
 /* Modelos                                                                    */
@@ -353,12 +354,91 @@ export function empregosSemPeriodo(item: Candidatura): string[] {
     .filter((t) => t !== "");
 }
 
-/** O que a mensagem chama de "a vaga". Nunca sai vazio. */
+/**
+ * Isso parece MESMO um nome de cargo?
+ *
+ * A pergunta existe porque `cargoDesejado` é abastecido de dois lugares muito
+ * diferentes: o que a pessoa digitou no formulário ("Recepcionista") e, quando
+ * o formulário veio vazio, o "objetivo" que a IA leu no topo do currículo. O
+ * segundo é um parágrafo, e virou esta frase no WhatsApp de uma candidata real:
+ *
+ *   "para a vaga de Podendo desenvolver com máxima responsabilidade as
+ *    atividades propostas pela mes"
+ *
+ * Cortado no meio da palavra, porque a origem cortava em 80 caracteres.
+ *
+ * A RÉGUA FOI CALIBRADA nos 50 cargos preenchidos do acervo real, não chutada,
+ * e cada limite tem um caso que o justifica:
+ *
+ *  - ponto final sozinho NÃO desqualifica: "Recepcionista para clínica
+ *    odontológica." é a resposta de 25 fichas, e é um cargo com ponto;
+ *  - 60 caracteres, e não 45: "Assistente Comercial / Assistente
+ *    Administrativo" tem 48 e é cargo;
+ *  - vírgula com mais de cinco palavras é frase: "Profissional dedicada, com
+ *    experiência em…";
+ *  - verbo de intenção na abertura ("busco", "atuar", "podendo") é objetivo de
+ *    currículo, nunca nome de cargo.
+ *
+ * Resultado da calibração: 28 aceitos, todos lendo bem depois de "a vaga de";
+ * 22 recusados, todos parágrafo de objetivo.
+ */
+const ABERTURAS_DE_OBJETIVO =
+  /^(busco|buscando|procuro|procurando|pretendo|pretendendo|desejo|desejando|quero|querendo|tenho|sou|atuar|atuando|trabalhar|trabalhando|contribuir|contribuindo|podendo|poder|visando|viso|almejo|gostaria|dispon[íi]vel|profissional|experi[êe]ncia|oportunidade|colaborar|colaborando|aprender|aprendendo|crescer|desenvolver|exercer|aplicar|ingressar|obter|conquistar|somar|coloco|em busca)\b/i;
+
+function limparCargo(bruto: string): string {
+  return bruto.trim().replace(/\.$/, "").trim();
+}
+
+function pareceCargo(bruto: string): boolean {
+  const t = limparCargo(bruto);
+  if (t === "" || t.length > 60) return false;
+  const palavras = t.split(/\s+/).length;
+  if (palavras > 8) return false;
+  // Pontuação de frase NO MEIO (o ponto final já saiu em `limparCargo`).
+  if (/[.;!?]/.test(t)) return false;
+  if (t.includes(",") && palavras > 5) return false;
+  return !ABERTURAS_DE_OBJETIVO.test(t);
+}
+
+/**
+ * O que a mensagem chama de "a vaga". Nunca sai vazio.
+ *
+ * A ordem é a da confiança: o título da vaga do processo é o que a clínica
+ * escreveu e publicou; o cargo digitado pela pessoa vem depois, e só quando
+ * parece cargo; e a ÁREA fecha a conta, porque ela é escolhida numa lista e não
+ * tem como sair torta. "para a vaga de recepção e atendimento" é menos preciso
+ * que um título, e é verdade — que é o que importa numa mensagem que a pessoa
+ * vai ler.
+ */
 function vagaDe(item: Candidatura): string {
   const titulo = item.vagaTitulo.trim();
   if (titulo !== "") return titulo;
-  const cargo = item.cargoDesejado.trim();
-  return cargo !== "" ? cargo : "uma vaga na clínica";
+
+  const cargo = item.cargoDesejado;
+  // Devolve SEM o ponto final: com ele, a frase virava "a vaga de
+  // Recepcionista para clínica odontológica. e o tempo que você dedicou".
+  if (pareceCargo(cargo)) return limparCargo(cargo);
+
+  const area = AREAS.find((a) => a.valor === item.area);
+  // "Outra área" não vira "a vaga de outra área": não diz nada e soa desleixado.
+  if (area !== undefined && area.valor !== "outro") return area.rotulo.toLowerCase();
+
+  return "";
+}
+
+/**
+ * O complemento que NOMEIA a vaga, já com a preposição — ou nada.
+ *
+ * Existe porque o "de" estava colado dentro de nove frases, e o texto
+ * alternativo tinha de caber ali de qualquer maneira. Não cabia: saía
+ * "no nosso processo para a vaga de uma vaga na clínica" numa mensagem de
+ * verdade. Com o complemento inteiro saindo junto, a frase fecha nas duas
+ * situações — "para a vaga de recepção e atendimento" quando se sabe, e
+ * "para a vaga" quando não se sabe, que continua sendo português.
+ */
+function daVaga(item: Candidatura): string {
+  const nome = vagaDe(item);
+  return nome === "" ? "" : ` de ${nome}`;
 }
 
 function saudacao(item: Candidatura, ctx: ContextoMensagem): string {
@@ -423,14 +503,13 @@ function quandoPorExtenso(marcada: EntrevistaMarcada, agora: Date): string {
 
 function textoConviteEntrevista(ctx: ContextoMensagem): string[] {
   const { item, clinica } = ctx;
-  const vaga = vagaDe(item);
   const marcada = entrevistaMarcada(item);
   const onde = clinica.endereco.trim() === "" ? "aqui na clínica" : `na ${clinica.endereco.trim()}`;
 
   if (marcada !== null) {
     return [
       saudacao(item, ctx),
-      `Queremos conversar com você sobre a vaga de ${vaga}. Ficou marcado para ${quandoPorExtenso(marcada, ctx.agora)}, ${onde}.`,
+      `Queremos conversar com você sobre a vaga${daVaga(item)}. Ficou marcado para ${quandoPorExtenso(marcada, ctx.agora)}, ${onde}.`,
       "A conversa leva cerca de 40 minutos. Traga um documento com foto e, se puder, uma cópia impressa do currículo.",
       "Consegue confirmar que estará lá? Se precisar remarcar, é só me avisar.",
     ];
@@ -440,7 +519,7 @@ function textoConviteEntrevista(ctx: ContextoMensagem): string[] {
     clinica.horario.trim() === "" ? "" : ` Atendemos ${clinica.horario.trim().toLowerCase()}.`;
   return [
     saudacao(item, ctx),
-    `Gostamos do seu currículo e queremos conversar com você sobre a vaga de ${vaga}.`,
+    `Gostamos do seu currículo e queremos conversar com você sobre a vaga${daVaga(item)}.`,
     `Consigo te receber de manhã ou à tarde — qual dos dois períodos fica melhor para você? Assim que me disser, fecho o dia e o horário.${expediente}`,
     `A conversa é ${onde} e leva cerca de 40 minutos.`,
   ];
@@ -473,7 +552,6 @@ function textoConfirmarVespera(ctx: ContextoMensagem): string[] {
 function textoPedirDatas(ctx: ContextoMensagem): string[] {
   const { item } = ctx;
   const faltando = empregosSemPeriodo(item);
-  const vaga = vagaDe(item);
 
   const lista = faltando.length > 0 ? faltando.map((e) => `• ${e}`).join("\n") : "";
   const pergunta =
@@ -483,7 +561,7 @@ function textoPedirDatas(ctx: ContextoMensagem): string[] {
 
   return [
     saudacao(item, ctx),
-    `Estou organizando o seu currículo para a vaga de ${vaga} e ficou faltando o período de ${faltando.length === 1 ? "um dos empregos" : "alguns empregos"}:`,
+    `Estou organizando o seu currículo para a vaga${daVaga(item)} e ficou faltando o período de ${faltando.length === 1 ? "um dos empregos" : "alguns empregos"}:`,
     lista,
     `${pergunta} Pode responder por aqui mesmo, é rapidinho — sem isso a sua experiência acaba ficando de fora da nossa conta.`,
   ];
@@ -513,7 +591,6 @@ function faltantes(item: Candidatura): string[] {
 
 function textoPedirDocumento(ctx: ContextoMensagem): string[] {
   const { item } = ctx;
-  const vaga = vagaDe(item);
   const falta = faltantes(item);
 
   // Sem nada faltando o modelo nem deveria ter sido oferecido (ver
@@ -522,7 +599,7 @@ function textoPedirDocumento(ctx: ContextoMensagem): string[] {
   if (falta.length === 0) {
     return [
       saudacao(item, ctx),
-      `Estou finalizando a sua candidatura para a vaga de ${vaga}.`,
+      `Estou finalizando a sua candidatura para a vaga${daVaga(item)}.`,
       "Consegue me enviar o seu currículo atualizado em PDF? Assim garanto que estou olhando a versão mais recente.",
     ];
   }
@@ -530,7 +607,7 @@ function textoPedirDocumento(ctx: ContextoMensagem): string[] {
   const lista = falta.map((f) => `• ${f}`).join("\n");
   return [
     saudacao(item, ctx),
-    `Para seguir com a sua candidatura para a vaga de ${vaga}, falta ${falta.length === 1 ? "uma coisinha" : "um pouco de informação"}:`,
+    `Para seguir com a sua candidatura para a vaga${daVaga(item)}, falta ${falta.length === 1 ? "uma coisinha" : "um pouco de informação"}:`,
     lista,
     "Pode me mandar por aqui mesmo. Assim que chegar, sigo com a sua análise.",
   ];
@@ -538,7 +615,6 @@ function textoPedirDocumento(ctx: ContextoMensagem): string[] {
 
 function textoProposta(ctx: ContextoMensagem): string[] {
   const { item, clinica } = ctx;
-  const vaga = vagaDe(item);
   const expediente =
     clinica.horario.trim() === ""
       ? ""
@@ -546,7 +622,7 @@ function textoProposta(ctx: ContextoMensagem): string[] {
 
   return [
     saudacao(item, ctx),
-    `Tenho uma boa notícia: queremos você com a gente na vaga de ${vaga}.`,
+    `Tenho uma boa notícia: queremos você com a gente na vaga${daVaga(item)}.`,
     // Nenhum valor, nenhuma data de início, nenhuma promessa de benefício: isso
     // se combina com uma pessoa falando com outra. Uma condição escrita aqui
     // vira compromisso antes de alguém ter conferido se ela se sustenta.
@@ -573,13 +649,12 @@ function textoProposta(ctx: ContextoMensagem): string[] {
  */
 function textoNaoSeguiu(ctx: ContextoMensagem): string[] {
   const { item } = ctx;
-  const vaga = vagaDe(item);
 
   return [
     saudacao(item, ctx),
     // "Agradecemos", e não "obrigado/obrigada": quem assina muda, e o texto não
     // pode sair no gênero errado de quem está escrevendo.
-    `Agradecemos a sua participação no nosso processo para a vaga de ${vaga} e o tempo que você dedicou à gente.`,
+    `Agradecemos a sua participação no nosso processo para a vaga${daVaga(item)} e o tempo que você dedicou à gente.`,
     // Sem "você foi muito bem, mas…" e sem "entraremos em contato em breve": os
     // dois são falsos e a pessoa fica esperando por um telefonema que não vem.
     "Dessa vez seguimos com outra pessoa para essa vaga.",
@@ -618,11 +693,10 @@ function textoNaoSeguiuEntrevista(ctx: ContextoMensagem): string[] {
 
 function textoBancoDeTalentos(ctx: ContextoMensagem): string[] {
   const { item } = ctx;
-  const vaga = vagaDe(item);
 
   return [
     saudacao(item, ctx),
-    `No momento não temos uma vaga aberta para o perfil de ${vaga}, mas o seu currículo ficou guardado no nosso banco de talentos.`,
+    `No momento não temos uma vaga aberta para o seu perfil, mas o seu currículo ficou guardado no nosso banco de talentos.`,
     "Quando abrir uma oportunidade assim, você é uma das primeiras pessoas que a gente chama.",
     "Se mudar o seu telefone ou o seu e-mail, me avisa por aqui para eu atualizar o cadastro.",
   ];
@@ -630,11 +704,10 @@ function textoBancoDeTalentos(ctx: ContextoMensagem): string[] {
 
 function textoPrimeiroContato(ctx: ContextoMensagem): string[] {
   const { item } = ctx;
-  const vaga = vagaDe(item);
 
   return [
     saudacao(item, ctx),
-    `Recebemos o seu currículo para a vaga de ${vaga} e ficamos contentes com o seu interesse.`,
+    `Recebemos o seu currículo para a vaga${daVaga(item)} e ficamos contentes com o seu interesse.`,
     "Você ainda tem interesse na vaga? Se sim, me responde por aqui que eu te explico como funciona o processo e já combino a nossa conversa.",
   ];
 }
@@ -674,7 +747,10 @@ export function montarAssunto(chave: ChaveModelo, ctx: ContextoMensagem): string
   const vaga = vagaDe(ctx.item);
   // A vaga entra no assunto porque a candidata costuma estar em processo em
   // mais de um lugar: "Convite para entrevista" sozinho não diz de quem é.
-  return `${base} — ${vaga} · ${ctx.clinica.nome}`;
+  /* Sem nome de vaga o travessão sobraria: "Retorno —  · JP Clínica". */
+  const nome = vagaDe(ctx.item);
+  const meio = nome === "" ? "" : ` — ${nome}`;
+  return `${base}${meio} · ${ctx.clinica.nome}`;
 }
 
 /* -------------------------------------------------------------------------- */
