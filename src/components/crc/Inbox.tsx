@@ -1,26 +1,16 @@
-/**
- * A Inbox — item 17 do Mega Prompt, itens 40 e 41 do contrato.
- *
- * Três painéis: lista de conversas | conversa | contexto do paciente.
- *
- * DECISÕES QUE VALE EXPLICAR:
- *
- *   O painel de contexto some antes da lista quando a tela encolhe (ver
- *   `crc.css`). Ele é apoio; a conversa é o trabalho. Em telas estreitas a
- *   lista some quando há conversa aberta — empilhar as duas obrigaria a rolar
- *   a lista inteira para chegar no que se está lendo. Por isso o cabeçalho da
- *   conversa oferece uma saída explícita de volta à lista no mobile.
- *
- *   A nota interna é visualmente OUTRA COISA (item 163). Se ela parecesse
- *   mensagem, alguém escreveria uma achando que o paciente não veria. O
- *   componente também não usa o mesmo caminho de envio — a distinção é de
- *   arquitetura, não de estilo.
- *
- *   O aviso de "Fulano está atendendo" (item 41) aparece ANTES da caixa de
- *   texto, e não como toast depois do envio. Descobrir que outra pessoa já
- *   respondeu depois de escrever é a pior hora possível.
- */
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Bot,
+  MessageSquareText,
+  NotebookPen,
+  Phone,
+  Search,
+  Send,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 
 import { abrirConversa, carregarInbox, responderConversa, type Falha } from "@/lib/crc/api";
 import type { Conversa, Mensagem } from "@/lib/crc/dominio/tipos";
@@ -29,6 +19,7 @@ import { ROTULO_INTENCAO, ROTULO_TEMPERATURA } from "@/lib/crc/dominio/rotulos";
 import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 
 import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
+import "./crc-operational.css";
 
 export function Inbox({
   aoAbrirPaciente,
@@ -36,7 +27,6 @@ export function Inbox({
   aoConsumirInicial,
 }: {
   aoAbrirPaciente: (patientId: string) => void;
-  /** Uma conversa escolhida na busca global, para abrir já selecionada. */
   conversaInicial?: string | null;
   aoConsumirInicial?: () => void;
 }) {
@@ -50,6 +40,7 @@ export function Inbox({
   const [notaInterna, setNotaInterna] = useState(false);
   const [apenasNaoLidas, setApenasNaoLidas] = useState(false);
   const [carregandoConversa, setCarregandoConversa] = useState(false);
+  const [busca, setBusca] = useState("");
 
   const acao = useAcao();
   const fimDaLista = useRef<HTMLDivElement>(null);
@@ -73,9 +64,6 @@ export function Inbox({
     void recarregar();
   }, [recarregar]);
 
-  // Rola para a mensagem mais recente ao abrir a conversa. Sem isso, abrir uma
-  // conversa longa mostra o começo dela — que é justamente o que ninguém
-  // precisa ler.
   useEffect(() => {
     if (!carregandoConversa) fimDaLista.current?.scrollIntoView({ block: "end" });
   }, [mensagens, carregandoConversa]);
@@ -94,9 +82,6 @@ export function Inbox({
     setMensagens([]);
     setTexto("");
     setNotaInterna(false);
-    // Limpa o lock da conversa anterior imediatamente. Sem isso, durante a
-    // troca rápida entre pacientes o rodapé podia mostrar por alguns ms que
-    // "outro atendente está cuidando" com um dado pertencente à conversa velha.
     setBloqueadaPor(null);
     setCarregandoConversa(true);
 
@@ -105,8 +90,6 @@ export function Inbox({
       if (r.ok) {
         setMensagens(r.mensagens);
         setBloqueadaPor(r.bloqueadaPor);
-        // A conversa foi marcada como lida no servidor; refletir aqui evita
-        // o contador ficar teimando até o próximo carregamento.
         setConversas((atuais) =>
           atuais === null
             ? null
@@ -122,21 +105,10 @@ export function Inbox({
     }
   }, []);
 
-  /**
-   * A conversa que a busca global pediu.
-   *
-   * Espera a lista chegar porque `selecionar` precisa da conversa inteira, e
-   * não só do id — é ela que preenche o cabeçalho do painel. Se o id não
-   * estiver na lista (uma conversa resolvida, com o filtro de não lidas
-   * ligado), o pedido é consumido do mesmo jeito: insistir faria a Inbox tentar
-   * de novo a cada recarga, para sempre.
-   */
   useEffect(() => {
     if (conversaInicial === null || conversas === null) return;
-
     const alvo = conversas.find((c) => c.id === conversaInicial);
     if (alvo !== undefined && selecionada?.id !== alvo.id) void selecionar(alvo);
-
     aoConsumirInicial?.();
   }, [conversaInicial, conversas, selecionada, selecionar, aoConsumirInicial]);
 
@@ -158,64 +130,107 @@ export function Inbox({
     );
   }, [acao, carregandoConversa, notaInterna, selecionada, texto]);
 
-  if (erro !== null && conversas === null) {
-    return <Aviso tom="perigo">{erro}</Aviso>;
-  }
+  const conversasFiltradas = useMemo(() => {
+    if (conversas === null) return null;
+    const termo = busca.trim().toLocaleLowerCase("pt-BR");
+    if (termo.length === 0) return conversas;
+
+    return conversas.filter((c) => {
+      const nome = c.patientId === null ? "" : (nomes[c.patientId] ?? "");
+      const telefone = telefoneParaTela(c.contatoExterno);
+      const trecho = c.ultimaMensagemTrecho ?? "";
+      return `${nome} ${telefone} ${trecho}`.toLocaleLowerCase("pt-BR").includes(termo);
+    });
+  }, [busca, conversas, nomes]);
+
+  const totalNaoLidas = (conversas ?? []).reduce((soma, c) => soma + c.naoLidas, 0);
+  const totalRevisao = (conversas ?? []).filter((c) => c.revisaoPendente).length;
+
+  if (erro !== null && conversas === null) return <Aviso tom="perigo">{erro}</Aviso>;
 
   return (
-    <>
+    <div className="crc-inbox-v2">
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
 
-      <div className="crc-inbox" data-conversa-aberta={selecionada === null ? "nao" : "sim"}>
-        {/* ---- Painel 1: lista ------------------------------------------- */}
-        <section className="crc-painel" aria-label="Conversas">
-          <div className="crc-painel-topo">
-            <h2 className="crc-titulo-cartao">Conversas</h2>
-            <Botao
-              pequeno
-              variante="discreto"
-              aria-pressed={apenasNaoLidas}
-              onClick={() => {
-                setApenasNaoLidas((v) => !v);
-              }}
-            >
-              {apenasNaoLidas ? "Ver todas" : "Só não lidas"}
-            </Botao>
+      <section className="crc-inbox-resumo" aria-label="Estado das conversas">
+        <div className="crc-inbox-resumo-copy">
+          <div className="crc-inbox-resumo-icone"><MessageSquareText aria-hidden="true" /></div>
+          <div>
+            <strong>{totalNaoLidas === 0 ? "Nenhuma mensagem esperando." : `${String(totalNaoLidas)} ${totalNaoLidas === 1 ? "mensagem nova" : "mensagens novas"}.`}</strong>
+            <span>{totalRevisao > 0 ? `${String(totalRevisao)} ${totalRevisao === 1 ? "conversa precisa" : "conversas precisam"} de revisão.` : "Nenhum conflito de identificação pendente."}</span>
+          </div>
+        </div>
+        <div className="crc-inbox-resumo-status"><span /> Atendimento conectado ao contexto do paciente</div>
+      </section>
+
+      <div className="crc-inbox crc-inbox-layout-v2" data-conversa-aberta={selecionada === null ? "nao" : "sim"}>
+        <section className="crc-painel crc-inbox-lista" aria-label="Conversas">
+          <div className="crc-inbox-lista-topo">
+            <div>
+              <div className="crc-sobretitulo">Fila de atendimento</div>
+              <h2 className="crc-titulo-cartao">Conversas</h2>
+            </div>
+            {totalNaoLidas > 0 && <span className="crc-inbox-nao-lidas">{totalNaoLidas}</span>}
           </div>
 
-          <div className="crc-painel-corpo">
-            {conversas === null ? (
-              <div style={{ padding: "var(--crc-e4)" }}>
-                <ListaEsqueleto linhas={5} />
-              </div>
-            ) : conversas.length === 0 ? (
+          <div className="crc-inbox-busca-wrap">
+            <Search aria-hidden="true" />
+            <label className="crc-so-leitor" htmlFor="crc-inbox-busca">Buscar conversa</label>
+            <input
+              id="crc-inbox-busca"
+              className="crc-inbox-busca"
+              type="search"
+              placeholder="Paciente, telefone ou mensagem…"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
+
+          <div className="crc-inbox-filtro-linha">
+            <button
+              type="button"
+              className="crc-inbox-filtro"
+              aria-pressed={!apenasNaoLidas}
+              onClick={() => setApenasNaoLidas(false)}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              className="crc-inbox-filtro"
+              aria-pressed={apenasNaoLidas}
+              onClick={() => setApenasNaoLidas(true)}
+            >
+              Não lidas
+            </button>
+          </div>
+
+          <div className="crc-painel-corpo crc-inbox-lista-corpo">
+            {conversasFiltradas === null ? (
+              <div className="crc-inbox-loading"><ListaEsqueleto linhas={5} /></div>
+            ) : conversasFiltradas.length === 0 ? (
               <Vazio
-                titulo={
-                  apenasNaoLidas ? "Nenhuma conversa esperando você." : "Nenhuma conversa ainda."
-                }
+                titulo={busca.trim().length > 0 ? "Nada encontrado." : apenasNaoLidas ? "Nenhuma conversa esperando você." : "Nenhuma conversa ainda."}
                 explicacao={
-                  apenasNaoLidas
-                    ? "Você chegou ao fim da fila. Quando um paciente responder, a conversa aparece aqui."
-                    : "As conversas aparecem aqui quando um paciente escreve pelo WhatsApp ou quando uma automação inicia o contato."
+                  busca.trim().length > 0
+                    ? "Tente outro nome, telefone ou trecho da mensagem."
+                    : apenasNaoLidas
+                      ? "Você chegou ao fim da fila. Quando um paciente responder, a conversa aparece aqui."
+                      : "As conversas aparecem quando um paciente escreve pelo WhatsApp ou quando uma automação inicia o contato."
                 }
               />
             ) : (
-              <ul style={{ listStyle: "none", margin: 0, padding: 0 }} role="listbox">
-                {conversas.map((c) => (
+              <ul className="crc-inbox-lista-itens" role="listbox">
+                {conversasFiltradas.map((c) => (
                   <li key={c.id}>
                     <button
                       type="button"
                       role="option"
                       aria-selected={selecionada?.id === c.id}
-                      className="crc-conversa-item"
-                      onClick={() => {
-                        void selecionar(c);
-                      }}
+                      className="crc-conversa-item crc-conversa-item-v2"
+                      onClick={() => void selecionar(c)}
                     >
-                      <ItemConversa
-                        conversa={c}
-                        nome={c.patientId === null ? null : (nomes[c.patientId] ?? null)}
-                      />
+                      <ItemConversa conversa={c} nome={c.patientId === null ? null : (nomes[c.patientId] ?? null)} />
                     </button>
                   </li>
                 ))}
@@ -224,71 +239,54 @@ export function Inbox({
           </div>
         </section>
 
-        {/* ---- Painel 2: conversa ---------------------------------------- */}
-        <section className="crc-painel" aria-label="Mensagens" aria-busy={carregandoConversa}>
+        <section className="crc-painel crc-inbox-conversa" aria-label="Mensagens" aria-busy={carregandoConversa}>
           {selecionada === null ? (
-            <Vazio
-              titulo="Escolha uma conversa"
-              explicacao="Selecione alguém na lista ao lado para ler o histórico e responder."
-            />
+            <div className="crc-inbox-sem-selecao">
+              <div className="crc-inbox-sem-selecao-icone"><MessageSquareText aria-hidden="true" /></div>
+              <Vazio titulo="Escolha uma conversa" explicacao="A conversa abre aqui sem tirar você da fila. O contexto do paciente aparece ao lado." />
+            </div>
           ) : (
             <>
-              <div className="crc-painel-topo">
-                <Botao
-                  pequeno
-                  variante="discreto"
-                  className="crc-inbox-voltar"
-                  aria-label="Voltar para a lista de conversas"
-                  onClick={voltarParaLista}
-                >
-                  ← Conversas
+              <header className="crc-inbox-conversa-topo">
+                <Botao pequeno variante="discreto" className="crc-inbox-voltar" aria-label="Voltar para a lista de conversas" onClick={voltarParaLista}>
+                  <ArrowLeft size={16} aria-hidden="true" /> Conversas
                 </Botao>
 
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <h2 className="crc-titulo-cartao crc-truncar">
-                    {selecionada.patientId === null
-                      ? telefoneParaTela(selecionada.contatoExterno)
-                      : (nomes[selecionada.patientId] ?? "Paciente")}
-                  </h2>
-                  <p className="crc-meta">{telefoneParaTela(selecionada.contatoExterno)}</p>
+                <div className="crc-inbox-pessoa">
+                  <span className="crc-inbox-avatar" aria-hidden="true">
+                    {iniciais(
+                      selecionada.patientId === null
+                        ? telefoneParaTela(selecionada.contatoExterno)
+                        : (nomes[selecionada.patientId] ?? "Paciente"),
+                    )}
+                  </span>
+                  <div>
+                    <h2 className="crc-titulo-cartao crc-truncar">
+                      {selecionada.patientId === null
+                        ? telefoneParaTela(selecionada.contatoExterno)
+                        : (nomes[selecionada.patientId] ?? "Paciente")}
+                    </h2>
+                    <p className="crc-meta">{telefoneParaTela(selecionada.contatoExterno)}</p>
+                  </div>
                 </div>
 
                 {selecionada.patientId !== null && (
-                  <Botao
-                    pequeno
-                    onClick={() => {
-                      if (selecionada.patientId !== null) aoAbrirPaciente(selecionada.patientId);
-                    }}
-                  >
-                    Ver ficha
+                  <Botao pequeno onClick={() => selecionada.patientId !== null && aoAbrirPaciente(selecionada.patientId)}>
+                    Ficha <ArrowUpRight size={14} aria-hidden="true" />
                   </Botao>
                 )}
-              </div>
+              </header>
 
-              <div className="crc-painel-corpo">
-                {/*
-                  Item 167: telefone que casou com mais de um paciente. O
-                  sistema NÃO escolheu, e a tela precisa dizer isso — senão o
-                  atendente assume que a conversa é de quem o nome sugere.
-                */}
+              <div className="crc-painel-corpo crc-inbox-conversa-corpo">
                 {selecionada.revisaoPendente && (
-                  <div style={{ padding: "var(--crc-e4) var(--crc-e4) 0" }}>
-                    <Aviso tom="alerta">
-                      Este telefone está cadastrado para mais de um paciente. Confirme de quem é
-                      esta conversa antes de registrar qualquer coisa na ficha.
-                    </Aviso>
-                  </div>
+                  <div className="crc-inbox-aviso"><Aviso tom="alerta">Este telefone está cadastrado para mais de um paciente. Confirme de quem é esta conversa antes de registrar qualquer coisa na ficha.</Aviso></div>
                 )}
 
-                <div className="crc-mensagens">
+                <div className="crc-mensagens crc-mensagens-v2">
                   {carregandoConversa ? (
-                    <p className="crc-meta" role="status" style={{ textAlign: "center" }}>
-                      Carregando conversa…
-                    </p>
+                    <p className="crc-meta" role="status" style={{ textAlign: "center" }}>Carregando conversa…</p>
                   ) : mensagens.length === 0 ? (
-                    <p className="crc-meta" style={{ textAlign: "center" }}>
-                      Nenhuma mensagem nesta conversa ainda.
-                    </p>
+                    <p className="crc-meta" style={{ textAlign: "center" }}>Nenhuma mensagem nesta conversa ainda.</p>
                   ) : (
                     mensagens.map((m) => <Balao key={m.id} mensagem={m} />)
                   )}
@@ -296,43 +294,29 @@ export function Inbox({
                 </div>
               </div>
 
-              <div className="crc-painel-rodape">
-                {/*
-                  Item 41: o aviso vem ANTES da caixa de texto. Descobrir que
-                  outra pessoa já respondeu depois de escrever é a pior hora.
-                */}
+              <footer className={`crc-inbox-composer${notaInterna ? " crc-inbox-composer-nota" : ""}`}>
                 {bloqueadaPor !== null && (
-                  <div style={{ marginBottom: "var(--crc-e2)" }}>
-                    <Aviso tom="alerta">
-                      Outro atendente está cuidando desta conversa agora. Combine antes de
-                      responder.
-                    </Aviso>
-                  </div>
+                  <div className="crc-inbox-bloqueio"><Aviso tom="alerta">Outro atendente está cuidando desta conversa agora. Combine antes de responder.</Aviso></div>
                 )}
 
-                <label className="crc-so-leitor" htmlFor="crc-resposta">
-                  {notaInterna ? "Nota interna" : "Resposta ao paciente"}
-                </label>
+                <div className="crc-inbox-modo" role="group" aria-label="Tipo de mensagem">
+                  <button type="button" aria-pressed={!notaInterna} onClick={() => setNotaInterna(false)}>
+                    <MessageSquareText aria-hidden="true" /> Resposta ao paciente
+                  </button>
+                  <button type="button" aria-pressed={notaInterna} onClick={() => setNotaInterna(true)}>
+                    <NotebookPen aria-hidden="true" /> Nota interna
+                  </button>
+                </div>
+
+                <label className="crc-so-leitor" htmlFor="crc-resposta">{notaInterna ? "Nota interna" : "Resposta ao paciente"}</label>
                 <textarea
                   id="crc-resposta"
-                  className="crc-area"
-                  style={{ minHeight: 72 }}
-                  placeholder={
-                    carregandoConversa
-                      ? "Carregando histórico…"
-                      : notaInterna
-                        ? "Nota interna — o paciente NÃO vê este texto."
-                        : "Escreva sua resposta…"
-                  }
+                  className="crc-area crc-inbox-textarea"
+                  placeholder={carregandoConversa ? "Carregando histórico…" : notaInterna ? "Escreva uma nota para a equipe. O paciente não vê." : "Escreva sua resposta para o paciente…"}
                   value={texto}
                   disabled={carregandoConversa}
-                  onChange={(e) => {
-                    setTexto(e.target.value);
-                  }}
+                  onChange={(e) => setTexto(e.target.value)}
                   onKeyDown={(e) => {
-                    // Ctrl/Cmd+Enter envia. Enter sozinho quebra linha — numa
-                    // caixa de conversa longa, enviar no Enter manda mensagem
-                    // pela metade o tempo todo.
                     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
                       e.preventDefault();
                       void enviar();
@@ -340,159 +324,84 @@ export function Inbox({
                   }}
                 />
 
-                <div className="crc-linha" style={{ marginTop: "var(--crc-e2)" }}>
-                  <label className="crc-linha crc-meta" style={{ gap: "var(--crc-e2)" }}>
-                    <input
-                      type="checkbox"
-                      checked={notaInterna}
-                      disabled={carregandoConversa}
-                      onChange={(e) => {
-                        setNotaInterna(e.target.checked);
-                      }}
-                    />
-                    Nota interna (o paciente não vê)
-                  </label>
-
-                  <div className="crc-empurra">
-                    <Botao
-                      variante="primario"
-                      carregando={acao.rodando}
-                      disabled={carregandoConversa || texto.trim().length === 0}
-                      onClick={() => {
-                        void enviar();
-                      }}
-                    >
-                      {notaInterna ? "Salvar nota" : "Enviar"}
-                    </Botao>
-                  </div>
+                <div className="crc-inbox-composer-rodape">
+                  <span className="crc-meta">Ctrl/⌘ + Enter envia</span>
+                  <Botao variante="primario" carregando={acao.rodando} disabled={carregandoConversa || texto.trim().length === 0} onClick={() => void enviar()}>
+                    {notaInterna ? <NotebookPen size={16} aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
+                    {notaInterna ? "Salvar nota" : "Enviar"}
+                  </Botao>
                 </div>
-              </div>
+              </footer>
             </>
           )}
         </section>
 
-        {/* ---- Painel 3: contexto ---------------------------------------- */}
-        <section className="crc-painel" aria-label="Contexto do paciente">
-          <div className="crc-painel-topo">
+        <aside className="crc-painel crc-inbox-contexto" aria-label="Contexto do paciente">
+          <div className="crc-inbox-contexto-topo">
+            <div className="crc-sobretitulo">Antes de responder</div>
             <h2 className="crc-titulo-cartao">Contexto</h2>
           </div>
-          <div className="crc-painel-corpo" style={{ padding: "var(--crc-e4)" }}>
+          <div className="crc-painel-corpo crc-inbox-contexto-corpo">
             {selecionada === null ? (
-              <p className="crc-meta">Abra uma conversa para ver o contexto do paciente.</p>
+              <div className="crc-inbox-contexto-vazio">
+                <UserRound aria-hidden="true" />
+                <p>Abra uma conversa para ver o que já sabemos sobre o paciente.</p>
+              </div>
             ) : (
-              <div className="crc-pilha">
-                {/*
-                  O resumo da IA aparece PRIMEIRO, e identificado como leitura
-                  automática. Sem a atribuição, o atendente pode tomá-lo como
-                  fato registrado por um colega.
-                */}
+              <div className="crc-inbox-contexto-stack">
                 {selecionada.resumoIa !== null && (
-                  <div>
-                    <span className="crc-kpi-rotulo">Resumo automático</span>
-                    <p className="crc-corpo" style={{ marginTop: "var(--crc-e1)" }}>
-                      {selecionada.resumoIa}
-                    </p>
-                    {selecionada.resumoIaEm !== null && (
-                      <p className="crc-meta" style={{ marginTop: "var(--crc-e1)" }}>
-                        Lido {tempoRelativo(selecionada.resumoIaEm)}
-                      </p>
-                    )}
-                  </div>
+                  <section className="crc-inbox-ia">
+                    <div className="crc-inbox-ia-topo"><Sparkles aria-hidden="true" /><span>Leitura automática</span></div>
+                    <p>{selecionada.resumoIa}</p>
+                    {selecionada.resumoIaEm !== null && <small>Lido {tempoRelativo(selecionada.resumoIaEm)}</small>}
+                  </section>
                 )}
 
-                <div className="crc-linha">
-                  {selecionada.intencao !== null && (
-                    <Etiqueta tom="info">{ROTULO_INTENCAO[selecionada.intencao]}</Etiqueta>
-                  )}
+                <div className="crc-inbox-tags">
+                  {selecionada.intencao !== null && <Etiqueta tom="info">{ROTULO_INTENCAO[selecionada.intencao]}</Etiqueta>}
                   {selecionada.temperatura !== null && (
-                    <Etiqueta
-                      tom={
-                        selecionada.temperatura === "HOT"
-                          ? "perigo"
-                          : selecionada.temperatura === "WARM"
-                            ? "alerta"
-                            : "neutra"
-                      }
-                    >
+                    <Etiqueta tom={selecionada.temperatura === "HOT" ? "perigo" : selecionada.temperatura === "WARM" ? "alerta" : "neutra"}>
                       {ROTULO_TEMPERATURA[selecionada.temperatura]}
                     </Etiqueta>
                   )}
                 </div>
 
-                <hr className="crc-separador" />
-
-                <div>
-                  <span className="crc-kpi-rotulo">Telefone</span>
-                  <p className="crc-corpo">{telefoneParaTela(selecionada.contatoExterno)}</p>
-                </div>
-
-                {selecionada.ultimaMensagemEm !== null && (
-                  <div>
-                    <span className="crc-kpi-rotulo">Última mensagem</span>
-                    <p className="crc-corpo">{tempoRelativo(selecionada.ultimaMensagemEm)}</p>
-                  </div>
-                )}
+                <ContextoDado icone={Phone} rotulo="Telefone" valor={telefoneParaTela(selecionada.contatoExterno)} />
+                {selecionada.ultimaMensagemEm !== null && <ContextoDado icone={MessageSquareText} rotulo="Última mensagem" valor={tempoRelativo(selecionada.ultimaMensagemEm)} />}
+                <ContextoDado icone={Bot} rotulo="Origem do contexto" valor={selecionada.resumoIa !== null ? "IA + histórico da conversa" : "Histórico da conversa"} />
               </div>
             )}
           </div>
-        </section>
+        </aside>
       </div>
-    </>
+    </div>
   );
 }
 
-/* -------------------------------------------------------------------------- */
+function ContextoDado({ icone: Icone, rotulo, valor }: { icone: typeof Phone; rotulo: string; valor: string }) {
+  return (
+    <div className="crc-inbox-contexto-dado">
+      <span><Icone aria-hidden="true" /></span>
+      <div><small>{rotulo}</small><strong>{valor}</strong></div>
+    </div>
+  );
+}
 
 function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | null }) {
   const titulo = nome ?? telefoneParaTela(conversa.contatoExterno);
 
   return (
-    <div className="crc-linha" style={{ gap: "var(--crc-e3)", alignItems: "flex-start" }}>
-      <span
-        aria-hidden="true"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: 34,
-          height: 34,
-          borderRadius: "50%",
-          background: "var(--crc-superficie-3)",
-          color: "var(--crc-texto-2)",
-          fontSize: "0.75rem",
-          fontWeight: 700,
-          flexShrink: 0,
-        }}
-      >
-        {iniciais(titulo)}
-      </span>
-
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div className="crc-linha" style={{ gap: "var(--crc-e2)", flexWrap: "nowrap" }}>
-          <strong className="crc-truncar" style={{ fontSize: "0.9375rem" }}>
-            {titulo}
-          </strong>
-          {conversa.ultimaMensagemEm !== null && (
-            <span className="crc-meta crc-empurra" style={{ flexShrink: 0 }}>
-              {tempoRelativo(conversa.ultimaMensagemEm)}
-            </span>
-          )}
+    <div className="crc-inbox-item-grid">
+      <span className="crc-inbox-item-avatar" aria-hidden="true">{iniciais(titulo)}</span>
+      <div className="crc-inbox-item-copy">
+        <div className="crc-inbox-item-titulo">
+          <strong className="crc-truncar">{titulo}</strong>
+          {conversa.ultimaMensagemEm !== null && <span>{tempoRelativo(conversa.ultimaMensagemEm)}</span>}
         </div>
-
-        <p className="crc-meta crc-truncar" style={{ marginTop: 2 }}>
-          {conversa.ultimaMensagemTrecho === null
-            ? "Sem mensagens"
-            : truncar(conversa.ultimaMensagemTrecho, 64)}
-        </p>
-
-        <div className="crc-linha" style={{ marginTop: "var(--crc-e1)", gap: "var(--crc-e1)" }}>
-          {/* O contador de não lidas é texto, e não só um ponto colorido. */}
-          {conversa.naoLidas > 0 && (
-            <Etiqueta tom="positiva">
-              {conversa.naoLidas} {conversa.naoLidas === 1 ? "nova" : "novas"}
-            </Etiqueta>
-          )}
-          {conversa.revisaoPendente && <Etiqueta tom="alerta">Precisa de revisão</Etiqueta>}
+        <p className="crc-truncar">{conversa.ultimaMensagemTrecho === null ? "Sem mensagens" : truncar(conversa.ultimaMensagemTrecho, 72)}</p>
+        <div className="crc-inbox-item-tags">
+          {conversa.naoLidas > 0 && <Etiqueta tom="positiva">{conversa.naoLidas} {conversa.naoLidas === 1 ? "nova" : "novas"}</Etiqueta>}
+          {conversa.revisaoPendente && <Etiqueta tom="alerta">Revisar paciente</Etiqueta>}
         </div>
       </div>
     </div>
@@ -501,27 +410,16 @@ function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | n
 
 function Balao({ mensagem }: { mensagem: Mensagem }) {
   const classe = mensagem.notaInterna
-    ? "crc-balao crc-balao-nota"
+    ? "crc-balao crc-balao-nota crc-balao-v2"
     : mensagem.direcao === "ENTRADA"
-      ? "crc-balao crc-balao-entrada"
-      : "crc-balao crc-balao-saida";
+      ? "crc-balao crc-balao-entrada crc-balao-v2"
+      : "crc-balao crc-balao-saida crc-balao-v2";
 
   return (
     <div className={classe}>
-      {mensagem.notaInterna && (
-        <div style={{ fontSize: "0.6875rem", fontWeight: 700, marginBottom: 2 }}>
-          NOTA INTERNA — o paciente não vê
-        </div>
-      )}
+      {mensagem.notaInterna && <div className="crc-balao-nota-label"><NotebookPen aria-hidden="true" /> Nota interna — paciente não vê</div>}
       <div>{mensagem.conteudo}</div>
-      <div
-        style={{
-          fontSize: "0.6875rem",
-          opacity: 0.75,
-          marginTop: 4,
-          textAlign: mensagem.direcao === "ENTRADA" ? "left" : "right",
-        }}
-      >
+      <div className="crc-balao-hora">
         {hora(mensagem.criadoEm)}
         {mensagem.remetente === "automacao" && " · automação"}
         {mensagem.statusEntrega === "FAILED" && " · falhou"}
