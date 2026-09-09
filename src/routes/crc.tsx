@@ -258,7 +258,10 @@ function PortalCrc() {
             ))}
 
           {abaAtual === "gestao" && (
-            <Gestao podeExportar={usuario.permissoes.includes("exportar_dados")} />
+            <Gestao
+              podeExportar={usuario.permissoes.includes("exportar_dados")}
+              podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
+            />
           )}
 
           {abaAtual === "importar" && <Importar />}

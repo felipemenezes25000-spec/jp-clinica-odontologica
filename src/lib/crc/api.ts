@@ -1753,6 +1753,114 @@ export const carregarPanorama = createServerFn({ method: "GET" }).handler(
 );
 
 /* -------------------------------------------------------------------------- */
+/* Investimento em anúncios e custo por paciente                              */
+/* -------------------------------------------------------------------------- */
+
+export type LancamentoDto = {
+  id: string;
+  mes: string;
+  campanha: string;
+  canal: string;
+  valor: string;
+  observacao: string | null;
+};
+
+export type InvestimentoDto = {
+  periodo: string;
+  investido: string;
+  temInvestimento: boolean;
+  etapas: { chave: string; rotulo: string; quantidade: number; custoUnitario: string | null }[];
+  campanhas: {
+    campanha: string;
+    investido: string;
+    leads: number;
+    compareceram: number;
+    custoPorPaciente: string | null;
+  }[];
+  lancamentos: LancamentoDto[];
+};
+
+/**
+ * O gasto é dado FINANCEIRO, e a permissão é a do item 229.
+ *
+ * `ver_analytics_gerencial` não basta: marketing enxerga campanha e funil sem
+ * enxergar valor de orçamento, e faria pouco sentido esconder o valor do
+ * tratamento e mostrar o quanto a clínica gasta por mês.
+ */
+export const carregarInvestimento = createServerFn({ method: "GET" })
+  .validator((e: { mes?: string }) => ({ mes: String(e.mes ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ investimento: InvestimentoDto }>> =>
+    comContexto("ver_financeiro", async (ctx) => {
+      const { panoramaDeInvestimento, listarLancamentos, primeiroDiaDoMes } =
+        await import("./aplicacao/investimento");
+      const { ultimosMeses } = await import("./aplicacao/analytics");
+
+      const meses = ultimosMeses(1);
+      const corrente = meses[0];
+      if (corrente === undefined) {
+        return { ok: false as const, code: "ERRO_INTERNO", message: "Período inválido." };
+      }
+
+      // O mês pedido pela tela, ou o corrente. `primeiroDiaDoMes` recusa
+      // qualquer coisa que não seja AAAA-MM, então texto solto não vira filtro.
+      const escolhido = data.mes.length > 0 ? primeiroDiaDoMes(data.mes) : null;
+      const periodo =
+        escolhido === null
+          ? corrente
+          : {
+              de: `${escolhido}T00:00:00.000Z`,
+              ate: new Date(
+                Date.UTC(
+                  Number.parseInt(escolhido.slice(0, 4), 10),
+                  Number.parseInt(escolhido.slice(5, 7), 10),
+                  1,
+                ),
+              ).toISOString(),
+              rotulo: escolhido.slice(0, 7),
+            };
+
+      const [panorama, lancamentos] = await Promise.all([
+        panoramaDeInvestimento(ctx.organizationId, periodo),
+        listarLancamentos(ctx.organizationId),
+      ]);
+
+      return {
+        ok: true as const,
+        investimento: { periodo: periodo.rotulo, ...panorama, lancamentos },
+      };
+    }),
+  );
+
+export const lancarInvestimentoDoMes = createServerFn({ method: "POST" })
+  .validator(
+    (e: { mes: string; campanha: string; canal: string; valor: number; observacao?: string }) => ({
+      mes: String(e.mes ?? ""),
+      campanha: String(e.campanha ?? ""),
+      canal: String(e.canal ?? "OUTRO"),
+      valor: Number.isFinite(e.valor) ? e.valor : Number.NaN,
+      observacao: String(e.observacao ?? ""),
+    }),
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    // Lançar gasto é escrita gerencial: exige o mesmo nível de quem configura a
+    // operação, e não só de quem lê os números.
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { lancarInvestimento } = await import("./aplicacao/investimento");
+      const r = await lancarInvestimento({
+        organizationId: ctx.organizationId,
+        mes: data.mes,
+        campanha: data.campanha,
+        canal: data.canal,
+        valor: data.valor,
+        observacao: data.observacao,
+        autorId: ctx.usuario.id,
+      });
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
 /* Exportação (item 129)                                                      */
 /* -------------------------------------------------------------------------- */
 

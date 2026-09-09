@@ -83,7 +83,8 @@ export type Tabela =
   | "crc_integration_logs"
   | "crc_dead_letters"
   | "crc_webhook_inbox"
-  | "crc_saved_views";
+  | "crc_saved_views"
+  | "crc_ad_spend";
 
 export type Linha = Record<string, unknown>;
 

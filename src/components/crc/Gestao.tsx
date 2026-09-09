@@ -25,8 +25,15 @@ import { dinheiro, dinheiroCurto, porcentagem } from "@/lib/crc/dominio/formatar
 import { MOTIVOS_PERDA } from "@/lib/crc/dominio/rotulos";
 
 import { Aviso, BarraDeRecado, Botao, Cartao, Esqueleto, Kpi, Vazio, useAcao } from "./base";
+import { Investimento } from "./Investimento";
 
-export function Gestao({ podeExportar }: { podeExportar: boolean }) {
+export function Gestao({
+  podeExportar,
+  podeVerFinanceiro,
+}: {
+  podeExportar: boolean;
+  podeVerFinanceiro: boolean;
+}) {
   const [panorama, setPanorama] = useState<PanoramaDto | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const acao = useAcao();
@@ -220,6 +227,11 @@ export function Gestao({ podeExportar }: { podeExportar: boolean }) {
             <TabelaAtendentes atendentes={p.atendentes} />
           )}
         </Cartao>
+
+        {/* O custo por paciente fecha o painel de propósito: ele só faz sentido
+            depois de a pessoa ter visto o funil e o desempenho acima. Fora do
+            contexto, "R$ 118 por paciente" não diz se é bom ou ruim. */}
+        {podeVerFinanceiro && <Investimento />}
       </div>
     </>
   );
