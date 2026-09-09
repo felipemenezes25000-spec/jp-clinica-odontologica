@@ -17,7 +17,7 @@ import {
   type MembroDto,
 } from "@/lib/crc/api";
 import { EXPLICACAO_PAPEL, ROTULO_PAPEL } from "@/lib/crc/dominio/rotulos";
-import { PAPEIS } from "@/lib/crc/dominio/tipos";
+import { PAPEIS, type Papel } from "@/lib/crc/dominio/tipos";
 
 import { Aviso, BarraDeRecado, Botao, Campo, Entrada, Etiqueta, ListaEsqueleto, Modal, useAcao } from "./base";
 import "./crc-team.css";
@@ -38,7 +38,7 @@ export function Equipe() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [papel, setPapel] = useState<string>("recepcao");
+  const [papel, setPapel] = useState<Papel>("recepcao");
   const [trocandoSenhaDe, setTrocandoSenhaDe] = useState<MembroDto | null>(null);
   const [novaSenha, setNovaSenha] = useState("");
   const acao = useAcao();
@@ -69,11 +69,11 @@ export function Equipe() {
     );
   }, [acao, email, limparFormulario, nome, papel, recarregar, senha]);
 
-  const trocarPapel = useCallback(async (m: MembroDto, novo: string): Promise<void> => {
+  const trocarPapel = useCallback(async (m: MembroDto, novo: Papel): Promise<void> => {
     await acao.executar(
       () => mudarPapelDoMembro({ data: { userId: m.id, papel: novo } }),
       () => void recarregar(),
-      `${m.nome} agora é ${ROTULO_PAPEL[novo as keyof typeof ROTULO_PAPEL] ?? novo}.`,
+      `${m.nome} agora é ${ROTULO_PAPEL[novo]}.`,
     );
   }, [acao, recarregar]);
 
@@ -149,7 +149,7 @@ export function Equipe() {
           <Campo rotulo="Nome">{(id) => <Entrada id={id} value={nome} maxLength={120} autoComplete="off" onChange={(e) => setNome(e.target.value)} />}</Campo>
           <Campo rotulo="E-mail" dica="É com ele que a pessoa entra.">{(id) => <Entrada id={id} type="email" value={email} maxLength={200} autoComplete="off" onChange={(e) => setEmail(e.target.value)} />}</Campo>
           <Campo rotulo="Senha" dica={`Pelo menos ${String(MIN_SENHA)} caracteres. Entregue pessoalmente.`}>{(id) => <Entrada id={id} type="password" value={senha} autoComplete="new-password" onChange={(e) => setSenha(e.target.value)} />}</Campo>
-          <Campo rotulo="Papel" dica={EXPLICACAO_PAPEL[papel as keyof typeof EXPLICACAO_PAPEL]}>{(id) => <select id={id} className="crc-selecao" value={papel} onChange={(e) => setPapel(e.target.value)}>{PAPEIS.map((p) => <option key={p} value={p}>{ROTULO_PAPEL[p]}</option>)}</select>}</Campo>
+          <Campo rotulo="Papel" dica={EXPLICACAO_PAPEL[papel]}>{(id) => <select id={id} className="crc-selecao" value={papel} onChange={(e) => setPapel(e.target.value as Papel)}>{PAPEIS.map((p) => <option key={p} value={p}>{ROTULO_PAPEL[p]}</option>)}</select>}</Campo>
         </div>
       </Modal>
 
@@ -169,14 +169,15 @@ function ResumoTeam({ icone: Icone, rotulo, valor, nota, tom="neutro" }: { icone
   return <article className="crc-team-resumo-card-v2" data-tom={tom}><span><Icone aria-hidden="true" /></span><div><small>{rotulo}</small><strong>{valor}</strong><em>{nota}</em></div></article>;
 }
 
-function MembroCard({ membro, ocupado, aoTrocarPapel, aoAlternar, aoTrocarSenha }: { membro:MembroDto; ocupado:boolean; aoTrocarPapel:(m:MembroDto,papel:string)=>Promise<void>; aoAlternar:(m:MembroDto)=>Promise<void>; aoTrocarSenha:(m:MembroDto)=>void }) {
+function MembroCard({ membro, ocupado, aoTrocarPapel, aoAlternar, aoTrocarSenha }: { membro:MembroDto; ocupado:boolean; aoTrocarPapel:(m:MembroDto,papel:Papel)=>Promise<void>; aoAlternar:(m:MembroDto)=>Promise<void>; aoTrocarSenha:(m:MembroDto)=>void }) {
   const iniciais = membro.nome.trim().split(/\s+/u).slice(0,2).map((p)=>p.charAt(0).toUpperCase()).join("") || "JP";
+  const papelMembro = membro.papel as Papel;
   return (
     <article className="crc-team-card-v2" data-ativo={membro.ativo?"sim":"nao"}>
       <header><span className="crc-team-avatar-v2">{iniciais}</span><div><div className="crc-team-nome-v2"><strong>{membro.nome}</strong>{membro.souEu && <Etiqueta tom="info">Você</Etiqueta>}</div><p>{membro.email}</p></div></header>
-      <div className="crc-team-card-info-v2"><span><small>Papel</small><strong>{ROTULO_PAPEL[membro.papel]}</strong></span><span><small>Último acesso</small><strong>{quando(membro.ultimoAcesso)}</strong></span></div>
-      <p className="crc-team-explicacao-v2">{EXPLICACAO_PAPEL[membro.papel as keyof typeof EXPLICACAO_PAPEL]}</p>
-      <div className="crc-team-papel-v2"><label htmlFor={`papel-${membro.id}`}>Permissão principal</label><select id={`papel-${membro.id}`} className="crc-selecao" value={membro.papel} disabled={ocupado} onChange={(e)=>void aoTrocarPapel(membro,e.target.value)}>{PAPEIS.map((p)=><option key={p} value={p}>{ROTULO_PAPEL[p]}</option>)}</select></div>
+      <div className="crc-team-card-info-v2"><span><small>Papel</small><strong>{ROTULO_PAPEL[papelMembro]}</strong></span><span><small>Último acesso</small><strong>{quando(membro.ultimoAcesso)}</strong></span></div>
+      <p className="crc-team-explicacao-v2">{EXPLICACAO_PAPEL[papelMembro]}</p>
+      <div className="crc-team-papel-v2"><label htmlFor={`papel-${membro.id}`}>Permissão principal</label><select id={`papel-${membro.id}`} className="crc-selecao" value={membro.papel} disabled={ocupado} onChange={(e)=>void aoTrocarPapel(membro,e.target.value as Papel)}>{PAPEIS.map((p)=><option key={p} value={p}>{ROTULO_PAPEL[p]}</option>)}</select></div>
       <footer><Botao pequeno disabled={ocupado} onClick={()=>aoTrocarSenha(membro)}><KeyRound size={14} aria-hidden="true" /> Senha</Botao>{!membro.souEu && <Botao pequeno variante={membro.ativo?"perigo":"secundario"} disabled={ocupado} onClick={()=>void aoAlternar(membro)}>{membro.ativo?"Tirar acesso":"Devolver acesso"}</Botao>}</footer>
     </article>
   );
