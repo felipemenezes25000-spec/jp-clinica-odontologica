@@ -339,13 +339,28 @@
   overflow-y: auto;
 }
 
+/*
+ * ANCORADO À ESQUERDA, e não centralizado.
+ *
+ * Aqui havia `margin-inline: auto` com teto de 1600px. Numa tela de 2560 isso
+ * deixava 364px de vazio de CADA lado: o conteúdo descolava da navegação e
+ * ficava boiando no meio, com um buraco entre a barra lateral e o primeiro
+ * cartão. Centralizar funciona em página de leitura, onde o texto é a única
+ * coisa na tela; numa ferramenta com navegação fixa à esquerda, o conteúdo
+ * precisa ENCOSTAR nela — a barra é o ponto de partida da leitura, e o olho
+ * espera continuidade a partir dela.
+ *
+ * O teto continua existindo, e mais folgado — 1920px: sem nenhum teto, três
+ * cartões de KPI num monitor ultralargo esticariam para meio metro cada um,
+ * com um número de 2rem perdido no meio de espaço vazio. Em 1920 o monitor
+ * comum usa a largura inteira e só o ultralargo sobra — e o que sobra cai todo
+ * à direita, onde lê como respiro em vez de buraco.
+ */
 .crc-app .crc-conteudo {
   padding: var(--crc-e6) var(--crc-e8) var(--crc-e12);
-  /* O teto impede a linha de texto ficar longa demais em 2560px, e o `auto`
-     nas margens centraliza o que sobra. Item 25. */
-  max-width: 1600px;
+  max-width: 1920px;
   width: 100%;
-  margin-inline: auto;
+  margin-inline: 0;
   min-width: 0;
 }
 
