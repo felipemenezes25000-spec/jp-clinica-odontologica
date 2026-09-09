@@ -8,7 +8,8 @@
  *   O painel de contexto some antes da lista quando a tela encolhe (ver
  *   `crc.css`). Ele é apoio; a conversa é o trabalho. Em telas estreitas a
  *   lista some quando há conversa aberta — empilhar as duas obrigaria a rolar
- *   a lista inteira para chegar no que se está lendo.
+ *   a lista inteira para chegar no que se está lendo. Por isso o cabeçalho da
+ *   conversa oferece uma saída explícita de volta à lista no mobile.
  *
  *   A nota interna é visualmente OUTRA COISA (item 163). Se ela parecesse
  *   mensagem, alguém escreveria uma achando que o paciente não veria. O
@@ -48,6 +49,7 @@ export function Inbox({
   const [texto, setTexto] = useState("");
   const [notaInterna, setNotaInterna] = useState(false);
   const [apenasNaoLidas, setApenasNaoLidas] = useState(false);
+  const [carregandoConversa, setCarregandoConversa] = useState(false);
 
   const acao = useAcao();
   const fimDaLista = useRef<HTMLDivElement>(null);
@@ -75,14 +77,28 @@ export function Inbox({
   // conversa longa mostra o começo dela — que é justamente o que ninguém
   // precisa ler.
   useEffect(() => {
-    fimDaLista.current?.scrollIntoView({ block: "end" });
-  }, [mensagens]);
+    if (!carregandoConversa) fimDaLista.current?.scrollIntoView({ block: "end" });
+  }, [mensagens, carregandoConversa]);
+
+  const voltarParaLista = useCallback((): void => {
+    setSelecionada(null);
+    setMensagens([]);
+    setTexto("");
+    setNotaInterna(false);
+    setBloqueadaPor(null);
+    setCarregandoConversa(false);
+  }, []);
 
   const selecionar = useCallback(async (conversa: Conversa): Promise<void> => {
     setSelecionada(conversa);
     setMensagens([]);
     setTexto("");
     setNotaInterna(false);
+    // Limpa o lock da conversa anterior imediatamente. Sem isso, durante a
+    // troca rápida entre pacientes o rodapé podia mostrar por alguns ms que
+    // "outro atendente está cuidando" com um dado pertencente à conversa velha.
+    setBloqueadaPor(null);
+    setCarregandoConversa(true);
 
     try {
       const r = await abrirConversa({ data: { conversationId: conversa.id } });
@@ -101,6 +117,8 @@ export function Inbox({
       }
     } catch {
       setErro("Não conseguimos abrir esta conversa.");
+    } finally {
+      setCarregandoConversa(false);
     }
   }, []);
 
@@ -123,7 +141,7 @@ export function Inbox({
   }, [conversaInicial, conversas, selecionada, selecionar, aoConsumirInicial]);
 
   const enviar = useCallback(async (): Promise<void> => {
-    if (selecionada === null || texto.trim().length === 0) return;
+    if (selecionada === null || texto.trim().length === 0 || carregandoConversa) return;
     const conteudo = texto.trim();
     const interna = notaInterna;
 
@@ -138,7 +156,7 @@ export function Inbox({
         if (r.mensagem !== null) setMensagens((atuais) => [...atuais, r.mensagem as Mensagem]);
       },
     );
-  }, [acao, notaInterna, selecionada, texto]);
+  }, [acao, carregandoConversa, notaInterna, selecionada, texto]);
 
   if (erro !== null && conversas === null) {
     return <Aviso tom="perigo">{erro}</Aviso>;
@@ -207,7 +225,7 @@ export function Inbox({
         </section>
 
         {/* ---- Painel 2: conversa ---------------------------------------- */}
-        <section className="crc-painel" aria-label="Mensagens">
+        <section className="crc-painel" aria-label="Mensagens" aria-busy={carregandoConversa}>
           {selecionada === null ? (
             <Vazio
               titulo="Escolha uma conversa"
@@ -216,7 +234,17 @@ export function Inbox({
           ) : (
             <>
               <div className="crc-painel-topo">
-                <div style={{ minWidth: 0 }}>
+                <Botao
+                  pequeno
+                  variante="discreto"
+                  className="crc-inbox-voltar"
+                  aria-label="Voltar para a lista de conversas"
+                  onClick={voltarParaLista}
+                >
+                  ← Conversas
+                </Botao>
+
+                <div style={{ minWidth: 0, flex: 1 }}>
                   <h2 className="crc-titulo-cartao crc-truncar">
                     {selecionada.patientId === null
                       ? telefoneParaTela(selecionada.contatoExterno)
@@ -253,7 +281,11 @@ export function Inbox({
                 )}
 
                 <div className="crc-mensagens">
-                  {mensagens.length === 0 ? (
+                  {carregandoConversa ? (
+                    <p className="crc-meta" role="status" style={{ textAlign: "center" }}>
+                      Carregando conversa…
+                    </p>
+                  ) : mensagens.length === 0 ? (
                     <p className="crc-meta" style={{ textAlign: "center" }}>
                       Nenhuma mensagem nesta conversa ainda.
                     </p>
@@ -286,11 +318,14 @@ export function Inbox({
                   className="crc-area"
                   style={{ minHeight: 72 }}
                   placeholder={
-                    notaInterna
-                      ? "Nota interna — o paciente NÃO vê este texto."
-                      : "Escreva sua resposta…"
+                    carregandoConversa
+                      ? "Carregando histórico…"
+                      : notaInterna
+                        ? "Nota interna — o paciente NÃO vê este texto."
+                        : "Escreva sua resposta…"
                   }
                   value={texto}
+                  disabled={carregandoConversa}
                   onChange={(e) => {
                     setTexto(e.target.value);
                   }}
@@ -310,6 +345,7 @@ export function Inbox({
                     <input
                       type="checkbox"
                       checked={notaInterna}
+                      disabled={carregandoConversa}
                       onChange={(e) => {
                         setNotaInterna(e.target.checked);
                       }}
@@ -321,7 +357,7 @@ export function Inbox({
                     <Botao
                       variante="primario"
                       carregando={acao.rodando}
-                      disabled={texto.trim().length === 0}
+                      disabled={carregandoConversa || texto.trim().length === 0}
                       onClick={() => {
                         void enviar();
                       }}
