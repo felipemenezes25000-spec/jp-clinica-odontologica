@@ -16,15 +16,7 @@ import type { Tarefa } from "@/lib/crc/dominio/tipos";
 import { tempoRelativo } from "@/lib/crc/dominio/formatar";
 import { ROTULO_TIPO_TAREFA } from "@/lib/crc/dominio/rotulos";
 
-import {
-  Aviso,
-  BarraDeRecado,
-  Botao,
-  Etiqueta,
-  ListaEsqueleto,
-  Vazio,
-  useAcao,
-} from "./base";
+import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
 import { NovaTarefa } from "./NovaTarefa";
 
 type Filtro = "todas" | "atrasadas" | "sem-prazo";
@@ -158,7 +150,8 @@ export function MeuTrabalho({
               : `Você tem ${String(minhas.length)} ${minhas.length === 1 ? "tarefa" : "tarefas"} na mão.`}
           </h2>
           <p>
-            Comece pelas atrasadas. O restante já está ordenado por prazo — sem precisar caçar trabalho em outras telas.
+            Comece pelas atrasadas. O restante já está ordenado por prazo — sem precisar caçar
+            trabalho em outras telas.
           </p>
         </div>
         <Botao variante="primario" onClick={() => setCriando(true)}>
@@ -203,9 +196,15 @@ export function MeuTrabalho({
             <h2 className="crc-titulo-secao">O que você precisa resolver</h2>
           </div>
           <div className="crc-trabalho-filtros" role="group" aria-label="Filtrar tarefas">
-            <FiltroBotao ativo={filtro === "todas"} onClick={() => setFiltro("todas")}>Todas {minhas.length}</FiltroBotao>
-            <FiltroBotao ativo={filtro === "atrasadas"} onClick={() => setFiltro("atrasadas")}>Atrasadas {atrasadas.length}</FiltroBotao>
-            <FiltroBotao ativo={filtro === "sem-prazo"} onClick={() => setFiltro("sem-prazo")}>Sem prazo {semPrazo.length}</FiltroBotao>
+            <FiltroBotao ativo={filtro === "todas"} onClick={() => setFiltro("todas")}>
+              Todas {minhas.length}
+            </FiltroBotao>
+            <FiltroBotao ativo={filtro === "atrasadas"} onClick={() => setFiltro("atrasadas")}>
+              Atrasadas {atrasadas.length}
+            </FiltroBotao>
+            <FiltroBotao ativo={filtro === "sem-prazo"} onClick={() => setFiltro("sem-prazo")}>
+              Sem prazo {semPrazo.length}
+            </FiltroBotao>
           </div>
         </header>
 
@@ -237,7 +236,10 @@ export function MeuTrabalho({
             <div>
               <div className="crc-sobretitulo">Fila compartilhada</div>
               <h2 className="crc-titulo-secao">Ninguém assumiu ainda</h2>
-              <p className="crc-corpo">São tarefas reais sem dono. Assumir tira o caso da fila dos outros e coloca a responsabilidade no seu nome.</p>
+              <p className="crc-corpo">
+                São tarefas reais sem dono. Assumir tira o caso da fila dos outros e coloca a
+                responsabilidade no seu nome.
+              </p>
             </div>
             <span className="crc-trabalho-badge-alerta">{semDono.length} disponíveis</span>
           </header>
@@ -272,7 +274,9 @@ function ResumoCard({
 }) {
   return (
     <article className="crc-trabalho-resumo-card" data-tom={tom}>
-      <span className="crc-trabalho-resumo-icone"><Icone aria-hidden="true" /></span>
+      <span className="crc-trabalho-resumo-icone">
+        <Icone aria-hidden="true" />
+      </span>
       <div>
         <span className="crc-trabalho-resumo-label">{rotulo}</span>
         <strong>{valor}</strong>
@@ -338,7 +342,11 @@ function ListaTarefas({
 
               <div className="crc-trabalho-item-meta">
                 {t.patientId !== null && <span>{nomes[t.patientId] ?? "Paciente"}</span>}
-                {t.dueAt !== null ? <span>Prazo {tempoRelativo(t.dueAt)}</span> : <span>Sem prazo definido</span>}
+                {t.dueAt !== null ? (
+                  <span>Prazo {tempoRelativo(t.dueAt)}</span>
+                ) : (
+                  <span>Sem prazo definido</span>
+                )}
               </div>
               {t.motivo !== null && <p>{t.motivo}</p>}
             </div>
@@ -362,7 +370,12 @@ function ListaTarefas({
                 </Botao>
               )}
 
-              <Botao pequeno variante="primario" carregando={rodando} onClick={() => void aoConcluir(t.id)}>
+              <Botao
+                pequeno
+                variante="primario"
+                carregando={rodando}
+                onClick={() => void aoConcluir(t.id)}
+              >
                 <CheckCircle2 size={15} aria-hidden="true" /> Concluir
               </Botao>
             </div>

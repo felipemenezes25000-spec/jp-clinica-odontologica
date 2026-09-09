@@ -78,7 +78,9 @@ export function Home({
   const primeiroNome = nomeUsuario.trim().split(/\s+/u)[0] ?? "";
   const temTrabalho = resumo.precisamDeAtencao > 0;
   const valorEhReceita = Number.parseFloat(resumo.receitaConfirmada) > 0;
-  const valorRecuperado = valorEhReceita ? resumo.receitaConfirmada : resumo.valorPotencialRecuperado;
+  const valorRecuperado = valorEhReceita
+    ? resumo.receitaConfirmada
+    : resumo.valorPotencialRecuperado;
   const prioridadeAlta = resumo.prioridades.filter((p) => p.faixa === "ALTA").length;
 
   return (
@@ -96,14 +98,19 @@ export function Home({
           <p className="crc-home-resumo">
             {temTrabalho ? (
               <>
-                <strong>{plural(resumo.precisamDeAtencao, "paciente precisa", "pacientes precisam")}</strong>{" "}
+                <strong>
+                  {plural(resumo.precisamDeAtencao, "paciente precisa", "pacientes precisam")}
+                </strong>{" "}
                 da sua atenção agora.
               </>
             ) : (
               <>Sua fila humana está limpa agora.</>
             )}{" "}
             {resumo.emAutomacao > 0 && (
-              <>A automação está trabalhando outros {resumo.emAutomacao.toLocaleString("pt-BR")} casos.</>
+              <>
+                A automação está trabalhando outros {resumo.emAutomacao.toLocaleString("pt-BR")}{" "}
+                casos.
+              </>
             )}
           </p>
 
@@ -116,7 +123,9 @@ export function Home({
                   : "Fora do horário — a fila espera a abertura"
               }
             />
-            {resumo.frescorDados !== null && <span className="crc-meta">{frescor(resumo.frescorDados)}</span>}
+            {resumo.frescorDados !== null && (
+              <span className="crc-meta">{frescor(resumo.frescorDados)}</span>
+            )}
           </div>
         </div>
 
@@ -127,7 +136,9 @@ export function Home({
             </span>
             <span className="crc-home-foco-label">Agora</span>
           </div>
-          <strong className="crc-home-foco-numero">{resumo.precisamDeAtencao.toLocaleString("pt-BR")}</strong>
+          <strong className="crc-home-foco-numero">
+            {resumo.precisamDeAtencao.toLocaleString("pt-BR")}
+          </strong>
           <span className="crc-home-foco-texto">
             {temTrabalho ? "precisam de ação humana" : "pendências humanas"}
           </span>
@@ -204,7 +215,9 @@ export function Home({
         <aside className="crc-home-lateral">
           <Cartao>
             <div className="crc-home-card-titulo">
-              <span className="crc-home-card-icone"><CalendarCheck2 aria-hidden="true" /></span>
+              <span className="crc-home-card-icone">
+                <CalendarCheck2 aria-hidden="true" />
+              </span>
               <div>
                 <div className="crc-sobretitulo">Ritmo do dia</div>
                 <h2 className="crc-titulo-cartao">Janela de atendimento</h2>
@@ -215,7 +228,9 @@ export function Home({
 
           <Cartao>
             <div className="crc-home-card-titulo">
-              <span className="crc-home-card-icone"><CircleDollarSign aria-hidden="true" /></span>
+              <span className="crc-home-card-icone">
+                <CircleDollarSign aria-hidden="true" />
+              </span>
               <div>
                 <div className="crc-sobretitulo">Resultado do mês</div>
                 <h2 className="crc-titulo-cartao">Recuperação</h2>
@@ -228,12 +243,16 @@ export function Home({
                 <strong>{resumo.consultasRecuperadas.toLocaleString("pt-BR")}</strong>
               </div>
               <div>
-                <span className="crc-home-resultado-label">{valorEhReceita ? "Receita confirmada" : "Valor potencial"}</span>
+                <span className="crc-home-resultado-label">
+                  {valorEhReceita ? "Receita confirmada" : "Valor potencial"}
+                </span>
                 <strong>{dinheiroCurto(valorRecuperado)}</strong>
               </div>
             </div>
             {!valorEhReceita && (
-              <p className="crc-meta crc-home-resultado-nota">Ainda sem confirmação financeira; o valor acima é potencial.</p>
+              <p className="crc-meta crc-home-resultado-nota">
+                Ainda sem confirmação financeira; o valor acima é potencial.
+              </p>
             )}
           </Cartao>
         </aside>
@@ -257,7 +276,9 @@ function Metrica({
 }) {
   return (
     <article className="crc-home-metrica" data-tom={tom}>
-      <span className="crc-home-metrica-icone"><Icone aria-hidden="true" /></span>
+      <span className="crc-home-metrica-icone">
+        <Icone aria-hidden="true" />
+      </span>
       <div className="crc-home-metrica-copy">
         <span className="crc-home-metrica-label">{rotulo}</span>
         <strong className="crc-home-metrica-valor">{valor}</strong>
@@ -297,7 +318,11 @@ function LinhaPrioridade({
   return (
     <div className="crc-entra" data-urgencia={item.faixa}>
       <div className="crc-fila-item" data-urgencia={item.faixa} style={{ cursor: "default" }}>
-        <span className="crc-fila-nota" title={`Nota de prioridade: ${String(item.score)} de 100`} aria-hidden="true">
+        <span
+          className="crc-fila-nota"
+          title={`Nota de prioridade: ${String(item.score)} de 100`}
+          aria-hidden="true"
+        >
           {item.score}
         </span>
 
@@ -309,18 +334,30 @@ function LinhaPrioridade({
             {item.temJornadaAtiva && <Etiqueta tom="info">Automação cuidando</Etiqueta>}
           </div>
 
-          <p className="crc-fila-motivo" title={item.motivo}>{item.motivo}</p>
+          <p className="crc-fila-motivo" title={item.motivo}>
+            {item.motivo}
+          </p>
 
           <div className="crc-home-fila-meta">
             {item.valorPotencial !== null && (
-              <span>Potencial <strong>{dinheiro(item.valorPotencial)}</strong></span>
+              <span>
+                Potencial <strong>{dinheiro(item.valorPotencial)}</strong>
+              </span>
             )}
-            {item.proximaAcao !== null && <span>Próximo passo <strong>{item.proximaAcao}</strong></span>}
-            {item.ultimoContatoEm !== null && <span>Último contato {tempoRelativo(item.ultimoContatoEm)}</span>}
+            {item.proximaAcao !== null && (
+              <span>
+                Próximo passo <strong>{item.proximaAcao}</strong>
+              </span>
+            )}
+            {item.ultimoContatoEm !== null && (
+              <span>Último contato {tempoRelativo(item.ultimoContatoEm)}</span>
+            )}
           </div>
 
           {item.fatores.length > 0 && explicando && (
-            <div className="crc-home-porque"><Porque total={item.score} razoes={paraRazoes(item.fatores)} /></div>
+            <div className="crc-home-porque">
+              <Porque total={item.score} razoes={paraRazoes(item.fatores)} />
+            </div>
           )}
         </div>
 

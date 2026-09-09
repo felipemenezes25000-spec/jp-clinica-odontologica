@@ -154,16 +154,31 @@ export function Inbox({
 
       <section className="crc-inbox-resumo" aria-label="Estado das conversas">
         <div className="crc-inbox-resumo-copy">
-          <div className="crc-inbox-resumo-icone"><MessageSquareText aria-hidden="true" /></div>
+          <div className="crc-inbox-resumo-icone">
+            <MessageSquareText aria-hidden="true" />
+          </div>
           <div>
-            <strong>{totalNaoLidas === 0 ? "Nenhuma mensagem esperando." : `${String(totalNaoLidas)} ${totalNaoLidas === 1 ? "mensagem nova" : "mensagens novas"}.`}</strong>
-            <span>{totalRevisao > 0 ? `${String(totalRevisao)} ${totalRevisao === 1 ? "conversa precisa" : "conversas precisam"} de revisão.` : "Nenhum conflito de identificação pendente."}</span>
+            <strong>
+              {totalNaoLidas === 0
+                ? "Nenhuma mensagem esperando."
+                : `${String(totalNaoLidas)} ${totalNaoLidas === 1 ? "mensagem nova" : "mensagens novas"}.`}
+            </strong>
+            <span>
+              {totalRevisao > 0
+                ? `${String(totalRevisao)} ${totalRevisao === 1 ? "conversa precisa" : "conversas precisam"} de revisão.`
+                : "Nenhum conflito de identificação pendente."}
+            </span>
           </div>
         </div>
-        <div className="crc-inbox-resumo-status"><span /> Atendimento conectado ao contexto do paciente</div>
+        <div className="crc-inbox-resumo-status">
+          <span /> Atendimento conectado ao contexto do paciente
+        </div>
       </section>
 
-      <div className="crc-inbox crc-inbox-layout-v2" data-conversa-aberta={selecionada === null ? "nao" : "sim"}>
+      <div
+        className="crc-inbox crc-inbox-layout-v2"
+        data-conversa-aberta={selecionada === null ? "nao" : "sim"}
+      >
         <section className="crc-painel crc-inbox-lista" aria-label="Conversas">
           <div className="crc-inbox-lista-topo">
             <div>
@@ -175,7 +190,9 @@ export function Inbox({
 
           <div className="crc-inbox-busca-wrap">
             <Search aria-hidden="true" />
-            <label className="crc-so-leitor" htmlFor="crc-inbox-busca">Buscar conversa</label>
+            <label className="crc-so-leitor" htmlFor="crc-inbox-busca">
+              Buscar conversa
+            </label>
             <input
               id="crc-inbox-busca"
               className="crc-inbox-busca"
@@ -207,10 +224,18 @@ export function Inbox({
 
           <div className="crc-painel-corpo crc-inbox-lista-corpo">
             {conversasFiltradas === null ? (
-              <div className="crc-inbox-loading"><ListaEsqueleto linhas={5} /></div>
+              <div className="crc-inbox-loading">
+                <ListaEsqueleto linhas={5} />
+              </div>
             ) : conversasFiltradas.length === 0 ? (
               <Vazio
-                titulo={busca.trim().length > 0 ? "Nada encontrado." : apenasNaoLidas ? "Nenhuma conversa esperando você." : "Nenhuma conversa ainda."}
+                titulo={
+                  busca.trim().length > 0
+                    ? "Nada encontrado."
+                    : apenasNaoLidas
+                      ? "Nenhuma conversa esperando você."
+                      : "Nenhuma conversa ainda."
+                }
                 explicacao={
                   busca.trim().length > 0
                     ? "Tente outro nome, telefone ou trecho da mensagem."
@@ -230,7 +255,10 @@ export function Inbox({
                       className="crc-conversa-item crc-conversa-item-v2"
                       onClick={() => void selecionar(c)}
                     >
-                      <ItemConversa conversa={c} nome={c.patientId === null ? null : (nomes[c.patientId] ?? null)} />
+                      <ItemConversa
+                        conversa={c}
+                        nome={c.patientId === null ? null : (nomes[c.patientId] ?? null)}
+                      />
                     </button>
                   </li>
                 ))}
@@ -239,16 +267,31 @@ export function Inbox({
           </div>
         </section>
 
-        <section className="crc-painel crc-inbox-conversa" aria-label="Mensagens" aria-busy={carregandoConversa}>
+        <section
+          className="crc-painel crc-inbox-conversa"
+          aria-label="Mensagens"
+          aria-busy={carregandoConversa}
+        >
           {selecionada === null ? (
             <div className="crc-inbox-sem-selecao">
-              <div className="crc-inbox-sem-selecao-icone"><MessageSquareText aria-hidden="true" /></div>
-              <Vazio titulo="Escolha uma conversa" explicacao="A conversa abre aqui sem tirar você da fila. O contexto do paciente aparece ao lado." />
+              <div className="crc-inbox-sem-selecao-icone">
+                <MessageSquareText aria-hidden="true" />
+              </div>
+              <Vazio
+                titulo="Escolha uma conversa"
+                explicacao="A conversa abre aqui sem tirar você da fila. O contexto do paciente aparece ao lado."
+              />
             </div>
           ) : (
             <>
               <header className="crc-inbox-conversa-topo">
-                <Botao pequeno variante="discreto" className="crc-inbox-voltar" aria-label="Voltar para a lista de conversas" onClick={voltarParaLista}>
+                <Botao
+                  pequeno
+                  variante="discreto"
+                  className="crc-inbox-voltar"
+                  aria-label="Voltar para a lista de conversas"
+                  onClick={voltarParaLista}
+                >
                   <ArrowLeft size={16} aria-hidden="true" /> Conversas
                 </Botao>
 
@@ -271,7 +314,12 @@ export function Inbox({
                 </div>
 
                 {selecionada.patientId !== null && (
-                  <Botao pequeno onClick={() => selecionada.patientId !== null && aoAbrirPaciente(selecionada.patientId)}>
+                  <Botao
+                    pequeno
+                    onClick={() =>
+                      selecionada.patientId !== null && aoAbrirPaciente(selecionada.patientId)
+                    }
+                  >
                     Ficha <ArrowUpRight size={14} aria-hidden="true" />
                   </Botao>
                 )}
@@ -279,14 +327,23 @@ export function Inbox({
 
               <div className="crc-painel-corpo crc-inbox-conversa-corpo">
                 {selecionada.revisaoPendente && (
-                  <div className="crc-inbox-aviso"><Aviso tom="alerta">Este telefone está cadastrado para mais de um paciente. Confirme de quem é esta conversa antes de registrar qualquer coisa na ficha.</Aviso></div>
+                  <div className="crc-inbox-aviso">
+                    <Aviso tom="alerta">
+                      Este telefone está cadastrado para mais de um paciente. Confirme de quem é
+                      esta conversa antes de registrar qualquer coisa na ficha.
+                    </Aviso>
+                  </div>
                 )}
 
                 <div className="crc-mensagens crc-mensagens-v2">
                   {carregandoConversa ? (
-                    <p className="crc-meta" role="status" style={{ textAlign: "center" }}>Carregando conversa…</p>
+                    <p className="crc-meta" role="status" style={{ textAlign: "center" }}>
+                      Carregando conversa…
+                    </p>
                   ) : mensagens.length === 0 ? (
-                    <p className="crc-meta" style={{ textAlign: "center" }}>Nenhuma mensagem nesta conversa ainda.</p>
+                    <p className="crc-meta" style={{ textAlign: "center" }}>
+                      Nenhuma mensagem nesta conversa ainda.
+                    </p>
                   ) : (
                     mensagens.map((m) => <Balao key={m.id} mensagem={m} />)
                   )}
@@ -294,25 +351,48 @@ export function Inbox({
                 </div>
               </div>
 
-              <footer className={`crc-inbox-composer${notaInterna ? " crc-inbox-composer-nota" : ""}`}>
+              <footer
+                className={`crc-inbox-composer${notaInterna ? " crc-inbox-composer-nota" : ""}`}
+              >
                 {bloqueadaPor !== null && (
-                  <div className="crc-inbox-bloqueio"><Aviso tom="alerta">Outro atendente está cuidando desta conversa agora. Combine antes de responder.</Aviso></div>
+                  <div className="crc-inbox-bloqueio">
+                    <Aviso tom="alerta">
+                      Outro atendente está cuidando desta conversa agora. Combine antes de
+                      responder.
+                    </Aviso>
+                  </div>
                 )}
 
                 <div className="crc-inbox-modo" role="group" aria-label="Tipo de mensagem">
-                  <button type="button" aria-pressed={!notaInterna} onClick={() => setNotaInterna(false)}>
+                  <button
+                    type="button"
+                    aria-pressed={!notaInterna}
+                    onClick={() => setNotaInterna(false)}
+                  >
                     <MessageSquareText aria-hidden="true" /> Resposta ao paciente
                   </button>
-                  <button type="button" aria-pressed={notaInterna} onClick={() => setNotaInterna(true)}>
+                  <button
+                    type="button"
+                    aria-pressed={notaInterna}
+                    onClick={() => setNotaInterna(true)}
+                  >
                     <NotebookPen aria-hidden="true" /> Nota interna
                   </button>
                 </div>
 
-                <label className="crc-so-leitor" htmlFor="crc-resposta">{notaInterna ? "Nota interna" : "Resposta ao paciente"}</label>
+                <label className="crc-so-leitor" htmlFor="crc-resposta">
+                  {notaInterna ? "Nota interna" : "Resposta ao paciente"}
+                </label>
                 <textarea
                   id="crc-resposta"
                   className="crc-area crc-inbox-textarea"
-                  placeholder={carregandoConversa ? "Carregando histórico…" : notaInterna ? "Escreva uma nota para a equipe. O paciente não vê." : "Escreva sua resposta para o paciente…"}
+                  placeholder={
+                    carregandoConversa
+                      ? "Carregando histórico…"
+                      : notaInterna
+                        ? "Escreva uma nota para a equipe. O paciente não vê."
+                        : "Escreva sua resposta para o paciente…"
+                  }
                   value={texto}
                   disabled={carregandoConversa}
                   onChange={(e) => setTexto(e.target.value)}
@@ -326,8 +406,17 @@ export function Inbox({
 
                 <div className="crc-inbox-composer-rodape">
                   <span className="crc-meta">Ctrl/⌘ + Enter envia</span>
-                  <Botao variante="primario" carregando={acao.rodando} disabled={carregandoConversa || texto.trim().length === 0} onClick={() => void enviar()}>
-                    {notaInterna ? <NotebookPen size={16} aria-hidden="true" /> : <Send size={16} aria-hidden="true" />}
+                  <Botao
+                    variante="primario"
+                    carregando={acao.rodando}
+                    disabled={carregandoConversa || texto.trim().length === 0}
+                    onClick={() => void enviar()}
+                  >
+                    {notaInterna ? (
+                      <NotebookPen size={16} aria-hidden="true" />
+                    ) : (
+                      <Send size={16} aria-hidden="true" />
+                    )}
                     {notaInterna ? "Salvar nota" : "Enviar"}
                   </Botao>
                 </div>
@@ -351,24 +440,57 @@ export function Inbox({
               <div className="crc-inbox-contexto-stack">
                 {selecionada.resumoIa !== null && (
                   <section className="crc-inbox-ia">
-                    <div className="crc-inbox-ia-topo"><Sparkles aria-hidden="true" /><span>Leitura automática</span></div>
+                    <div className="crc-inbox-ia-topo">
+                      <Sparkles aria-hidden="true" />
+                      <span>Leitura automática</span>
+                    </div>
                     <p>{selecionada.resumoIa}</p>
-                    {selecionada.resumoIaEm !== null && <small>Lido {tempoRelativo(selecionada.resumoIaEm)}</small>}
+                    {selecionada.resumoIaEm !== null && (
+                      <small>Lido {tempoRelativo(selecionada.resumoIaEm)}</small>
+                    )}
                   </section>
                 )}
 
                 <div className="crc-inbox-tags">
-                  {selecionada.intencao !== null && <Etiqueta tom="info">{ROTULO_INTENCAO[selecionada.intencao]}</Etiqueta>}
+                  {selecionada.intencao !== null && (
+                    <Etiqueta tom="info">{ROTULO_INTENCAO[selecionada.intencao]}</Etiqueta>
+                  )}
                   {selecionada.temperatura !== null && (
-                    <Etiqueta tom={selecionada.temperatura === "HOT" ? "perigo" : selecionada.temperatura === "WARM" ? "alerta" : "neutra"}>
+                    <Etiqueta
+                      tom={
+                        selecionada.temperatura === "HOT"
+                          ? "perigo"
+                          : selecionada.temperatura === "WARM"
+                            ? "alerta"
+                            : "neutra"
+                      }
+                    >
                       {ROTULO_TEMPERATURA[selecionada.temperatura]}
                     </Etiqueta>
                   )}
                 </div>
 
-                <ContextoDado icone={Phone} rotulo="Telefone" valor={telefoneParaTela(selecionada.contatoExterno)} />
-                {selecionada.ultimaMensagemEm !== null && <ContextoDado icone={MessageSquareText} rotulo="Última mensagem" valor={tempoRelativo(selecionada.ultimaMensagemEm)} />}
-                <ContextoDado icone={Bot} rotulo="Origem do contexto" valor={selecionada.resumoIa !== null ? "IA + histórico da conversa" : "Histórico da conversa"} />
+                <ContextoDado
+                  icone={Phone}
+                  rotulo="Telefone"
+                  valor={telefoneParaTela(selecionada.contatoExterno)}
+                />
+                {selecionada.ultimaMensagemEm !== null && (
+                  <ContextoDado
+                    icone={MessageSquareText}
+                    rotulo="Última mensagem"
+                    valor={tempoRelativo(selecionada.ultimaMensagemEm)}
+                  />
+                )}
+                <ContextoDado
+                  icone={Bot}
+                  rotulo="Origem do contexto"
+                  valor={
+                    selecionada.resumoIa !== null
+                      ? "IA + histórico da conversa"
+                      : "Histórico da conversa"
+                  }
+                />
               </div>
             )}
           </div>
@@ -378,11 +500,24 @@ export function Inbox({
   );
 }
 
-function ContextoDado({ icone: Icone, rotulo, valor }: { icone: typeof Phone; rotulo: string; valor: string }) {
+function ContextoDado({
+  icone: Icone,
+  rotulo,
+  valor,
+}: {
+  icone: typeof Phone;
+  rotulo: string;
+  valor: string;
+}) {
   return (
     <div className="crc-inbox-contexto-dado">
-      <span><Icone aria-hidden="true" /></span>
-      <div><small>{rotulo}</small><strong>{valor}</strong></div>
+      <span>
+        <Icone aria-hidden="true" />
+      </span>
+      <div>
+        <small>{rotulo}</small>
+        <strong>{valor}</strong>
+      </div>
     </div>
   );
 }
@@ -392,15 +527,27 @@ function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | n
 
   return (
     <div className="crc-inbox-item-grid">
-      <span className="crc-inbox-item-avatar" aria-hidden="true">{iniciais(titulo)}</span>
+      <span className="crc-inbox-item-avatar" aria-hidden="true">
+        {iniciais(titulo)}
+      </span>
       <div className="crc-inbox-item-copy">
         <div className="crc-inbox-item-titulo">
           <strong className="crc-truncar">{titulo}</strong>
-          {conversa.ultimaMensagemEm !== null && <span>{tempoRelativo(conversa.ultimaMensagemEm)}</span>}
+          {conversa.ultimaMensagemEm !== null && (
+            <span>{tempoRelativo(conversa.ultimaMensagemEm)}</span>
+          )}
         </div>
-        <p className="crc-truncar">{conversa.ultimaMensagemTrecho === null ? "Sem mensagens" : truncar(conversa.ultimaMensagemTrecho, 72)}</p>
+        <p className="crc-truncar">
+          {conversa.ultimaMensagemTrecho === null
+            ? "Sem mensagens"
+            : truncar(conversa.ultimaMensagemTrecho, 72)}
+        </p>
         <div className="crc-inbox-item-tags">
-          {conversa.naoLidas > 0 && <Etiqueta tom="positiva">{conversa.naoLidas} {conversa.naoLidas === 1 ? "nova" : "novas"}</Etiqueta>}
+          {conversa.naoLidas > 0 && (
+            <Etiqueta tom="positiva">
+              {conversa.naoLidas} {conversa.naoLidas === 1 ? "nova" : "novas"}
+            </Etiqueta>
+          )}
           {conversa.revisaoPendente && <Etiqueta tom="alerta">Revisar paciente</Etiqueta>}
         </div>
       </div>
@@ -417,7 +564,11 @@ function Balao({ mensagem }: { mensagem: Mensagem }) {
 
   return (
     <div className={classe}>
-      {mensagem.notaInterna && <div className="crc-balao-nota-label"><NotebookPen aria-hidden="true" /> Nota interna — paciente não vê</div>}
+      {mensagem.notaInterna && (
+        <div className="crc-balao-nota-label">
+          <NotebookPen aria-hidden="true" /> Nota interna — paciente não vê
+        </div>
+      )}
       <div>{mensagem.conteudo}</div>
       <div className="crc-balao-hora">
         {hora(mensagem.criadoEm)}

@@ -33,15 +33,7 @@ import {
 } from "@/lib/crc/dominio/rotulos";
 import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 
-import {
-  Aviso,
-  BarraDeRecado,
-  Botao,
-  Etiqueta,
-  ListaEsqueleto,
-  Vazio,
-  useAcao,
-} from "./base";
+import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
 import "./crc-patients.css";
 
 export function BuscaPacientes({
@@ -92,17 +84,24 @@ export function BuscaPacientes({
     <div className="crc-pacientes-busca-v2">
       <section className="crc-pacientes-busca-hero-v2">
         <div className="crc-pacientes-busca-copy-v2">
-          <div className="crc-pacientes-busca-icone-v2"><UserRound aria-hidden="true" /></div>
+          <div className="crc-pacientes-busca-icone-v2">
+            <UserRound aria-hidden="true" />
+          </div>
           <div>
             <div className="crc-sobretitulo">Central de pacientes</div>
             <h2>Encontre qualquer paciente em segundos.</h2>
-            <p>Nome ou telefone já bastam. A ficha abre com agenda, conversas, tarefas e histórico no mesmo workspace.</p>
+            <p>
+              Nome ou telefone já bastam. A ficha abre com agenda, conversas, tarefas e histórico no
+              mesmo workspace.
+            </p>
           </div>
         </div>
 
         <div className="crc-pacientes-busca-campo-v2">
           <Search aria-hidden="true" />
-          <label className="crc-so-leitor" htmlFor="crc-busca-paciente">Buscar paciente por nome ou telefone</label>
+          <label className="crc-so-leitor" htmlFor="crc-busca-paciente">
+            Buscar paciente por nome ou telefone
+          </label>
           <input
             id="crc-busca-paciente"
             type="search"
@@ -120,7 +119,9 @@ export function BuscaPacientes({
 
       {termo.trim().length < 2 ? (
         <div className="crc-pacientes-inicio-v2">
-          <div className="crc-pacientes-inicio-icone-v2"><Search aria-hidden="true" /></div>
+          <div className="crc-pacientes-inicio-icone-v2">
+            <Search aria-hidden="true" />
+          </div>
           <Vazio
             titulo="Comece pelo nome ou telefone"
             explicacao="Digite pelo menos duas letras do nome, ou o telefone com DDD. A busca considera as duas formas de escrever o celular, com e sem o nono dígito."
@@ -148,8 +149,14 @@ export function BuscaPacientes({
           <ul className="crc-pacientes-lista-v2">
             {(resultados ?? []).map((p) => (
               <li key={p.id}>
-                <button type="button" className="crc-paciente-resultado-v2" onClick={() => aoAbrirPaciente(p.id)}>
-                  <span className="crc-paciente-avatar-v2" aria-hidden="true">{iniciais(p.nome)}</span>
+                <button
+                  type="button"
+                  className="crc-paciente-resultado-v2"
+                  onClick={() => aoAbrirPaciente(p.id)}
+                >
+                  <span className="crc-paciente-avatar-v2" aria-hidden="true">
+                    {iniciais(p.nome)}
+                  </span>
                   <div className="crc-paciente-resultado-copy-v2">
                     <div className="crc-paciente-resultado-nome-v2">
                       <strong>{p.nome}</strong>
@@ -161,10 +168,20 @@ export function BuscaPacientes({
                       </div>
                     </div>
                     <div className="crc-paciente-resultado-dados-v2">
-                      <span><Phone aria-hidden="true" /> {p.telefone === null ? "Sem telefone" : telefoneParaTela(p.telefone)}</span>
-                      <span><Activity aria-hidden="true" /> {ROTULO_SITUACAO[p.situacao]}</span>
-                      <span><CalendarDays aria-hidden="true" /> Última: {data(p.ultimaConsultaEm)}</span>
-                      <span><CalendarClock aria-hidden="true" /> Próxima: {p.proximaConsultaEm === null ? "nenhuma" : data(p.proximaConsultaEm)}</span>
+                      <span>
+                        <Phone aria-hidden="true" />{" "}
+                        {p.telefone === null ? "Sem telefone" : telefoneParaTela(p.telefone)}
+                      </span>
+                      <span>
+                        <Activity aria-hidden="true" /> {ROTULO_SITUACAO[p.situacao]}
+                      </span>
+                      <span>
+                        <CalendarDays aria-hidden="true" /> Última: {data(p.ultimaConsultaEm)}
+                      </span>
+                      <span>
+                        <CalendarClock aria-hidden="true" /> Próxima:{" "}
+                        {p.proximaConsultaEm === null ? "nenhuma" : data(p.proximaConsultaEm)}
+                      </span>
                     </div>
                   </div>
                   <ArrowUpRight className="crc-paciente-resultado-seta-v2" aria-hidden="true" />
@@ -224,7 +241,9 @@ export function CentralDoPaciente({
   if (erro !== null) {
     return (
       <div className="crc-paciente-workspace-v2">
-        <Botao onClick={aoVoltar}><ArrowLeft size={16} aria-hidden="true" /> Voltar</Botao>
+        <Botao onClick={aoVoltar}>
+          <ArrowLeft size={16} aria-hidden="true" /> Voltar
+        </Botao>
         <Aviso tom="perigo">{erro}</Aviso>
       </div>
     );
@@ -233,17 +252,34 @@ export function CentralDoPaciente({
   if (ficha === null) return <ListaEsqueleto linhas={5} />;
 
   const p = ficha.paciente;
-  const tarefasAbertas = ficha.tarefas.filter((t) => t.status !== "COMPLETED" && t.status !== "CANCELLED");
+  const tarefasAbertas = ficha.tarefas.filter(
+    (t) => t.status !== "COMPLETED" && t.status !== "CANCELLED",
+  );
   const oportunidadesAbertas = ficha.oportunidades.filter((o) => o.fechadaEm === null);
   const jornadaAtiva = ficha.jornadas.find((j) => j.status === "ACTIVE" || j.status === "WAITING");
   const consultas = ficha.timeline.filter((i) => i.tipo === "consulta");
   const mensagens = ficha.timeline.filter((i) => i.tipo === "mensagem");
 
-  const abas: { chave: AbaFicha; rotulo: string; contador: number | null; icone: typeof Activity }[] = [
+  const abas: {
+    chave: AbaFicha;
+    rotulo: string;
+    contador: number | null;
+    icone: typeof Activity;
+  }[] = [
     { chave: "resumo", rotulo: "Resumo", contador: null, icone: Activity },
-    { chave: "aberto", rotulo: "Em aberto", contador: oportunidadesAbertas.length, icone: CircleDollarSign },
+    {
+      chave: "aberto",
+      rotulo: "Em aberto",
+      contador: oportunidadesAbertas.length,
+      icone: CircleDollarSign,
+    },
     { chave: "tarefas", rotulo: "Tarefas", contador: tarefasAbertas.length, icone: ListTodo },
-    { chave: "conversas", rotulo: "Conversas", contador: mensagens.length, icone: MessageSquareText },
+    {
+      chave: "conversas",
+      rotulo: "Conversas",
+      contador: mensagens.length,
+      icone: MessageSquareText,
+    },
     { chave: "agenda", rotulo: "Agenda", contador: consultas.length, icone: CalendarDays },
     { chave: "historico", rotulo: "Histórico", contador: null, icone: History },
   ];
@@ -258,7 +294,9 @@ export function CentralDoPaciente({
 
       <section className="crc-paciente-identidade-v2">
         <div className="crc-paciente-identidade-principal-v2">
-          <span className="crc-paciente-identidade-avatar-v2" aria-hidden="true">{iniciais(p.nome)}</span>
+          <span className="crc-paciente-identidade-avatar-v2" aria-hidden="true">
+            {iniciais(p.nome)}
+          </span>
           <div className="crc-paciente-identidade-copy-v2">
             <div className="crc-paciente-identidade-tags-v2">
               <Etiqueta tom={p.ativo && !p.arquivado ? "positiva" : "neutra"}>
@@ -274,11 +312,15 @@ export function CentralDoPaciente({
 
         {jornadaAtiva !== undefined && (
           <div className="crc-paciente-automacao-v2">
-            <span><Sparkles aria-hidden="true" /></span>
+            <span>
+              <Sparkles aria-hidden="true" />
+            </span>
             <div>
               <small>Automação ativa</small>
               <strong>{ROTULO_STATUS_JORNADA[jornadaAtiva.status]}</strong>
-              {jornadaAtiva.resumeAt !== null && <em>Próximo passo {tempoRelativo(jornadaAtiva.resumeAt)}</em>}
+              {jornadaAtiva.resumeAt !== null && (
+                <em>Próximo passo {tempoRelativo(jornadaAtiva.resumeAt)}</em>
+              )}
             </div>
           </div>
         )}
@@ -287,16 +329,29 @@ export function CentralDoPaciente({
       {p.optOutEm !== null && (
         <div className="crc-paciente-optout-v2">
           <Aviso tom="perigo">
-            <strong>Contato promocional bloqueado.</strong> Este paciente pediu para não receber mensagens em {data(p.optOutEm)}. Nenhuma automação fala com ele.
+            <strong>Contato promocional bloqueado.</strong> Este paciente pediu para não receber
+            mensagens em {data(p.optOutEm)}. Nenhuma automação fala com ele.
           </Aviso>
         </div>
       )}
 
       <section className="crc-paciente-dados-v2" aria-label="Dados principais">
-        <Dado icone={Phone} rotulo="Telefone" valor={p.telefone === null ? "—" : telefoneParaTela(p.telefone)} />
+        <Dado
+          icone={Phone}
+          rotulo="Telefone"
+          valor={p.telefone === null ? "—" : telefoneParaTela(p.telefone)}
+        />
         <Dado icone={CalendarDays} rotulo="Última consulta" valor={data(p.ultimaConsultaEm)} />
-        <Dado icone={CalendarClock} rotulo="Próxima consulta" valor={p.proximaConsultaEm === null ? "Nenhuma marcada" : dataHora(p.proximaConsultaEm)} />
-        <Dado icone={UserRound} rotulo="Nascimento" valor={p.nascimento === null ? "—" : data(p.nascimento)} />
+        <Dado
+          icone={CalendarClock}
+          rotulo="Próxima consulta"
+          valor={p.proximaConsultaEm === null ? "Nenhuma marcada" : dataHora(p.proximaConsultaEm)}
+        />
+        <Dado
+          icone={UserRound}
+          rotulo="Nascimento"
+          valor={p.nascimento === null ? "—" : data(p.nascimento)}
+        />
       </section>
 
       <nav role="tablist" aria-label="Seções da ficha" className="crc-paciente-abas-v2">
@@ -320,10 +375,19 @@ export function CentralDoPaciente({
         })}
       </nav>
 
-      <div className="crc-paciente-conteudo-v2" role="tabpanel" id={`painel-${aba}`} aria-labelledby={`aba-${aba}`}>
+      <div
+        className="crc-paciente-conteudo-v2"
+        role="tabpanel"
+        id={`painel-${aba}`}
+        aria-labelledby={`aba-${aba}`}
+      >
         {aba === "resumo" && (
           <div className="crc-paciente-resumo-grid-v2">
-            <PainelPaciente titulo="Oportunidades abertas" icone={CircleDollarSign} contador={oportunidadesAbertas.length}>
+            <PainelPaciente
+              titulo="Oportunidades abertas"
+              icone={CircleDollarSign}
+              contador={oportunidadesAbertas.length}
+            >
               <ListaOportunidades oportunidades={oportunidadesAbertas} />
             </PainelPaciente>
             <PainelPaciente titulo="Tarefas" icone={ListTodo} contador={tarefasAbertas.length}>
@@ -333,7 +397,11 @@ export function CentralDoPaciente({
         )}
 
         {aba === "aberto" && (
-          <PainelPaciente titulo="Oportunidades abertas" icone={CircleDollarSign} contador={oportunidadesAbertas.length}>
+          <PainelPaciente
+            titulo="Oportunidades abertas"
+            icone={CircleDollarSign}
+            contador={oportunidadesAbertas.length}
+          >
             <ListaOportunidades oportunidades={oportunidadesAbertas} />
           </PainelPaciente>
         )}
@@ -344,8 +412,22 @@ export function CentralDoPaciente({
           </PainelPaciente>
         )}
 
-        {aba === "conversas" && <Trechos itens={mensagens} vazio="Nenhuma mensagem trocada com este paciente ainda." titulo="Conversas" icone={MessageSquareText} />}
-        {aba === "agenda" && <Trechos itens={consultas} vazio="Nenhuma consulta registrada para este paciente." titulo="Agenda" icone={CalendarDays} />}
+        {aba === "conversas" && (
+          <Trechos
+            itens={mensagens}
+            vazio="Nenhuma mensagem trocada com este paciente ainda."
+            titulo="Conversas"
+            icone={MessageSquareText}
+          />
+        )}
+        {aba === "agenda" && (
+          <Trechos
+            itens={consultas}
+            vazio="Nenhuma consulta registrada para este paciente."
+            titulo="Agenda"
+            icone={CalendarDays}
+          />
+        )}
         {aba === "historico" && <Timeline itens={ficha.timeline} />}
       </div>
     </div>
@@ -366,8 +448,13 @@ function PainelPaciente({
   return (
     <section className="crc-paciente-painel-v2">
       <header>
-        <span><Icone aria-hidden="true" /></span>
-        <div><small>Paciente</small><h2>{titulo}</h2></div>
+        <span>
+          <Icone aria-hidden="true" />
+        </span>
+        <div>
+          <small>Paciente</small>
+          <h2>{titulo}</h2>
+        </div>
         <strong>{contador}</strong>
       </header>
       <div className="crc-paciente-painel-corpo-v2">{children}</div>
@@ -377,7 +464,12 @@ function PainelPaciente({
 
 function ListaOportunidades({ oportunidades }: { oportunidades: FichaPaciente["oportunidades"] }) {
   if (oportunidades.length === 0) {
-    return <Vazio titulo="Nenhuma oportunidade aberta." explicacao="Este paciente não está pendente de nenhuma oportunidade comercial ou de relacionamento agora." />;
+    return (
+      <Vazio
+        titulo="Nenhuma oportunidade aberta."
+        explicacao="Este paciente não está pendente de nenhuma oportunidade comercial ou de relacionamento agora."
+      />
+    );
   }
 
   return (
@@ -389,11 +481,21 @@ function ListaOportunidades({ oportunidades }: { oportunidades: FichaPaciente["o
               <strong>{ROTULO_TIPO_OPORTUNIDADE[o.tipo]}</strong>
               {o.motivo !== null && <span>{o.motivo}</span>}
             </div>
-            <Etiqueta tom={o.priorityScore >= 65 ? "perigo" : "neutra"}>{o.priorityScore}/100</Etiqueta>
+            <Etiqueta tom={o.priorityScore >= 65 ? "perigo" : "neutra"}>
+              {o.priorityScore}/100
+            </Etiqueta>
           </div>
           <div className="crc-paciente-oportunidade-meta-v2">
-            {o.potentialValue !== null && <span><CircleDollarSign aria-hidden="true" /> {dinheiro(o.potentialValue)}</span>}
-            {o.nextAction !== null && <span><ArrowUpRight aria-hidden="true" /> {o.nextAction}</span>}
+            {o.potentialValue !== null && (
+              <span>
+                <CircleDollarSign aria-hidden="true" /> {dinheiro(o.potentialValue)}
+              </span>
+            )}
+            {o.nextAction !== null && (
+              <span>
+                <ArrowUpRight aria-hidden="true" /> {o.nextAction}
+              </span>
+            )}
           </div>
         </li>
       ))}
@@ -411,7 +513,12 @@ function ListaTarefas({
   aoConcluir: (taskId: string) => Promise<void>;
 }) {
   if (tarefas.length === 0) {
-    return <Vazio titulo="Nenhuma tarefa aberta." explicacao="A equipe não tem nenhuma ação manual pendente para este paciente." />;
+    return (
+      <Vazio
+        titulo="Nenhuma tarefa aberta."
+        explicacao="A equipe não tem nenhuma ação manual pendente para este paciente."
+      />
+    );
   }
 
   return (
@@ -473,7 +580,10 @@ function Timeline({ itens }: { itens: ItemTimeline[] }) {
   return (
     <PainelPaciente titulo="Linha do tempo" icone={History} contador={itens.length}>
       {itens.length === 0 ? (
-        <Vazio titulo="Ainda não há histórico." explicacao="Consultas, mensagens, tarefas, oportunidades e automações aparecem aqui em ordem cronológica." />
+        <Vazio
+          titulo="Ainda não há histórico."
+          explicacao="Consultas, mensagens, tarefas, oportunidades e automações aparecem aqui em ordem cronológica."
+        />
       ) : (
         <ol className="crc-paciente-timeline-v2">
           {itens.slice(0, 40).map((item, i) => (
@@ -497,11 +607,24 @@ function Timeline({ itens }: { itens: ItemTimeline[] }) {
   );
 }
 
-function Dado({ icone: Icone, rotulo, valor }: { icone: typeof Phone; rotulo: string; valor: string }) {
+function Dado({
+  icone: Icone,
+  rotulo,
+  valor,
+}: {
+  icone: typeof Phone;
+  rotulo: string;
+  valor: string;
+}) {
   return (
     <article className="crc-paciente-dado-v2">
-      <span><Icone aria-hidden="true" /></span>
-      <div><small>{rotulo}</small><strong>{valor}</strong></div>
+      <span>
+        <Icone aria-hidden="true" />
+      </span>
+      <div>
+        <small>{rotulo}</small>
+        <strong>{valor}</strong>
+      </div>
     </article>
   );
 }

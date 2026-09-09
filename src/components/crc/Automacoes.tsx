@@ -72,7 +72,9 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
       await acao.executar(
         () => mudarEstadoAutomacao({ data: { automationId: a.id, ...mudanca } }),
         () => {
-          setAutomacoes((atuais) => atuais === null ? null : atuais.map((x) => (x.id === a.id ? { ...x, ...mudanca } : x)));
+          setAutomacoes((atuais) =>
+            atuais === null ? null : atuais.map((x) => (x.id === a.id ? { ...x, ...mudanca } : x)),
+          );
           setConfirmando(null);
         },
         "Automação atualizada.",
@@ -83,7 +85,13 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
 
   if (erro !== null && automacoes === null) return <Aviso tom="perigo">{erro}</Aviso>;
   if (automacoes === null) return <ListaEsqueleto linhas={4} />;
-  if (automacoes.length === 0) return <Vazio titulo="Nenhuma automação instalada." explicacao="As automações iniciais são criadas junto com a organização, em modo de simulação. Se elas não aparecem aqui, a instalação inicial ainda não foi executada." />;
+  if (automacoes.length === 0)
+    return (
+      <Vazio
+        titulo="Nenhuma automação instalada."
+        explicacao="As automações iniciais são criadas junto com a organização, em modo de simulação. Se elas não aparecem aqui, a instalação inicial ainda não foi executada."
+      />
+    );
 
   const ativas = automacoes.filter((a) => a.status === "ATIVA").length;
   const executando = automacoes.filter((a) => a.status === "ATIVA" && a.modo === "EXECUTAR").length;
@@ -96,45 +104,116 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
 
       <section className="crc-auto-command-v2">
         <div>
-          <div className="crc-auto-kicker-v2"><Sparkles size={14} aria-hidden="true" /> Motor de relacionamento</div>
+          <div className="crc-auto-kicker-v2">
+            <Sparkles size={14} aria-hidden="true" /> Motor de relacionamento
+          </div>
           <h2>Automação com autonomia visível — nunca caixa-preta.</h2>
-          <p>Cada jornada deixa claro se está simulando, recomendando ou falando com pacientes de verdade. Resultado é medido por agendamento, não por volume de mensagem.</p>
+          <p>
+            Cada jornada deixa claro se está simulando, recomendando ou falando com pacientes de
+            verdade. Resultado é medido por agendamento, não por volume de mensagem.
+          </p>
         </div>
-        <span className={`crc-auto-geral-status-v2${executando > 0 ? " crc-auto-geral-ativo-v2" : ""}`}>
+        <span
+          className={`crc-auto-geral-status-v2${executando > 0 ? " crc-auto-geral-ativo-v2" : ""}`}
+        >
           {executando > 0 ? <Play aria-hidden="true" /> : <CirclePause aria-hidden="true" />}
           {executando > 0 ? `${executando} enviando de verdade` : "Nenhuma enviando de verdade"}
         </span>
       </section>
 
       <section className="crc-auto-resumo-v2" aria-label="Resumo das automações">
-        <ResumoAuto icone={Bot} rotulo="Automações ativas" valor={ativas} nota={`${automacoes.length} instaladas`} tom="info" />
-        <ResumoAuto icone={UsersRound} rotulo="Em jornada agora" valor={emJornada} nota="Pacientes sendo conduzidos" />
-        <ResumoAuto icone={CheckCircle2} rotulo="Agendaram por elas" valor={convertidas} nota="Conversões atribuídas" tom="positivo" />
-        <ResumoAuto icone={ShieldCheck} rotulo="Envio real" valor={executando} nota={executando > 0 ? "Autonomia liberada" : "Operação protegida"} tom={executando > 0 ? "alerta" : "positivo"} />
+        <ResumoAuto
+          icone={Bot}
+          rotulo="Automações ativas"
+          valor={ativas}
+          nota={`${automacoes.length} instaladas`}
+          tom="info"
+        />
+        <ResumoAuto
+          icone={UsersRound}
+          rotulo="Em jornada agora"
+          valor={emJornada}
+          nota="Pacientes sendo conduzidos"
+        />
+        <ResumoAuto
+          icone={CheckCircle2}
+          rotulo="Agendaram por elas"
+          valor={convertidas}
+          nota="Conversões atribuídas"
+          tom="positivo"
+        />
+        <ResumoAuto
+          icone={ShieldCheck}
+          rotulo="Envio real"
+          valor={executando}
+          nota={executando > 0 ? "Autonomia liberada" : "Operação protegida"}
+          tom={executando > 0 ? "alerta" : "positivo"}
+        />
       </section>
 
       {executando === 0 && (
-        <Aviso tom="info">Nenhuma automação está enviando mensagens agora. As que estão em simulação ou recomendação continuam calculando e registrando o que fariam.</Aviso>
+        <Aviso tom="info">
+          Nenhuma automação está enviando mensagens agora. As que estão em simulação ou recomendação
+          continuam calculando e registrando o que fariam.
+        </Aviso>
       )}
 
       <section className="crc-auto-lista-v2">
         {automacoes.map((a) => (
-          <article key={a.id} className="crc-auto-card-v2" data-status={a.status} data-modo={a.modo}>
+          <article
+            key={a.id}
+            className="crc-auto-card-v2"
+            data-status={a.status}
+            data-modo={a.modo}
+          >
             <header className="crc-auto-card-topo-v2">
               <span className="crc-auto-card-icone-v2">
-                {a.modo === "SHADOW" ? <FlaskConical aria-hidden="true" /> : a.modo === "EXECUTAR" ? <Bot aria-hidden="true" /> : <Gauge aria-hidden="true" />}
+                {a.modo === "SHADOW" ? (
+                  <FlaskConical aria-hidden="true" />
+                ) : a.modo === "EXECUTAR" ? (
+                  <Bot aria-hidden="true" />
+                ) : (
+                  <Gauge aria-hidden="true" />
+                )}
               </span>
               <div className="crc-auto-card-copy-v2">
                 <div className="crc-auto-card-titulo-v2">
                   <h3>{a.nome}</h3>
-                  <Etiqueta tom={a.status === "ATIVA" ? "positiva" : "neutra"}>{a.status === "ATIVA" ? "Ativa" : a.status === "PAUSADA" ? "Pausada" : "Rascunho"}</Etiqueta>
-                  <Etiqueta tom={a.modo === "EXECUTAR" ? "alerta" : a.modo === "RECOMENDAR" ? "info" : "neutra"}>{ROTULO_MODO_AUTOMACAO[a.modo as ModoAutomacao] ?? a.modo}</Etiqueta>
+                  <Etiqueta tom={a.status === "ATIVA" ? "positiva" : "neutra"}>
+                    {a.status === "ATIVA"
+                      ? "Ativa"
+                      : a.status === "PAUSADA"
+                        ? "Pausada"
+                        : "Rascunho"}
+                  </Etiqueta>
+                  <Etiqueta
+                    tom={
+                      a.modo === "EXECUTAR" ? "alerta" : a.modo === "RECOMENDAR" ? "info" : "neutra"
+                    }
+                  >
+                    {ROTULO_MODO_AUTOMACAO[a.modo as ModoAutomacao] ?? a.modo}
+                  </Etiqueta>
                 </div>
                 {a.descricao !== null && <p>{a.descricao}</p>}
               </div>
               {podeGerenciar && (
-                <Botao pequeno variante={a.status === "ATIVA" ? "secundario" : "primario"} disabled={acao.rodando} onClick={() => void alterar(a, { status: a.status === "ATIVA" ? "PAUSADA" : "ATIVA" })}>
-                  {a.status === "ATIVA" ? <><CirclePause size={14} aria-hidden="true" /> Pausar</> : <><Play size={14} aria-hidden="true" /> Ativar</>}
+                <Botao
+                  pequeno
+                  variante={a.status === "ATIVA" ? "secundario" : "primario"}
+                  disabled={acao.rodando}
+                  onClick={() =>
+                    void alterar(a, { status: a.status === "ATIVA" ? "PAUSADA" : "ATIVA" })
+                  }
+                >
+                  {a.status === "ATIVA" ? (
+                    <>
+                      <CirclePause size={14} aria-hidden="true" /> Pausar
+                    </>
+                  ) : (
+                    <>
+                      <Play size={14} aria-hidden="true" /> Ativar
+                    </>
+                  )}
                 </Botao>
               )}
             </header>
@@ -146,7 +225,9 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
               <div className="crc-auto-custo-v2">
                 <small>Custo máximo por paciente</small>
                 <strong>{a.custo.mensagens > 0 ? reais(a.custo.atePorPaciente) : "R$ 0"}</strong>
-                <span>{a.custo.mensagens > 0 ? composicao(a.custo.porCategoria) : "sem mensagem"}</span>
+                <span>
+                  {a.custo.mensagens > 0 ? composicao(a.custo.porCategoria) : "sem mensagem"}
+                </span>
               </div>
             </div>
 
@@ -175,13 +256,24 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
             )}
 
             <footer className="crc-auto-card-rodape-v2">
-              <BotaoJornadas aberto={jornadasAbertas === a.id} aoAlternar={() => setJornadasAbertas((atual) => atual === a.id ? null : a.id)} />
-              <ChevronDown className={jornadasAbertas === a.id ? "crc-auto-chevron-aberto-v2" : ""} aria-hidden="true" />
+              <BotaoJornadas
+                aberto={jornadasAbertas === a.id}
+                aoAlternar={() => setJornadasAbertas((atual) => (atual === a.id ? null : a.id))}
+              />
+              <ChevronDown
+                className={jornadasAbertas === a.id ? "crc-auto-chevron-aberto-v2" : ""}
+                aria-hidden="true"
+              />
             </footer>
 
             {jornadasAbertas === a.id && (
               <div className="crc-auto-jornadas-v2">
-                {a.modo === "SHADOW" && <Aviso tom="info">Esta automação está em simulação. O conteúdo abaixo é o que ela <strong>teria</strong> enviado.</Aviso>}
+                {a.modo === "SHADOW" && (
+                  <Aviso tom="info">
+                    Esta automação está em simulação. O conteúdo abaixo é o que ela{" "}
+                    <strong>teria</strong> enviado.
+                  </Aviso>
+                )}
                 <JornadasDaAutomacao automationId={a.id} emSimulacao={a.modo === "SHADOW"} />
               </div>
             )}
@@ -196,17 +288,31 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
         rodape={
           <>
             <Botao onClick={() => setConfirmando(null)}>Cancelar</Botao>
-            <Botao variante="primario" carregando={acao.rodando} onClick={() => { if (confirmando !== null) void alterar(confirmando, { modo: "EXECUTAR" }); }}>
+            <Botao
+              variante="primario"
+              carregando={acao.rodando}
+              onClick={() => {
+                if (confirmando !== null) void alterar(confirmando, { modo: "EXECUTAR" });
+              }}
+            >
               Ligar envio
             </Botao>
           </>
         }
       >
         <div className="crc-auto-confirmacao-v2">
-          <span><MessageSquareText aria-hidden="true" /></span>
+          <span>
+            <MessageSquareText aria-hidden="true" />
+          </span>
           <div>
-            <p className="crc-corpo">A partir de agora, <strong>{confirmando?.nome}</strong> poderá enviar mensagens de WhatsApp para pacientes de verdade sem passar por aprovação humana.</p>
-            <p className="crc-corpo">Horário comercial, opt-out, cooldown e limite de contatos continuam valendo. Você pode voltar para recomendação ou simulação a qualquer momento.</p>
+            <p className="crc-corpo">
+              A partir de agora, <strong>{confirmando?.nome}</strong> poderá enviar mensagens de
+              WhatsApp para pacientes de verdade sem passar por aprovação humana.
+            </p>
+            <p className="crc-corpo">
+              Horário comercial, opt-out, cooldown e limite de contatos continuam valendo. Você pode
+              voltar para recomendação ou simulação a qualquer momento.
+            </p>
           </div>
         </div>
       </Modal>
@@ -214,10 +320,46 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
   );
 }
 
-function ResumoAuto({ icone: Icone, rotulo, valor, nota, tom = "neutro" }: { icone: typeof Bot; rotulo: string; valor: number; nota: string; tom?: "neutro" | "positivo" | "info" | "alerta" }) {
-  return <article className="crc-auto-resumo-card-v2" data-tom={tom}><span><Icone aria-hidden="true" /></span><div><small>{rotulo}</small><strong>{valor}</strong><em>{nota}</em></div></article>;
+function ResumoAuto({
+  icone: Icone,
+  rotulo,
+  valor,
+  nota,
+  tom = "neutro",
+}: {
+  icone: typeof Bot;
+  rotulo: string;
+  valor: number;
+  nota: string;
+  tom?: "neutro" | "positivo" | "info" | "alerta";
+}) {
+  return (
+    <article className="crc-auto-resumo-card-v2" data-tom={tom}>
+      <span>
+        <Icone aria-hidden="true" />
+      </span>
+      <div>
+        <small>{rotulo}</small>
+        <strong>{valor}</strong>
+        <em>{nota}</em>
+      </div>
+    </article>
+  );
 }
 
-function MetricaAuto({ rotulo, valor, destaque = false }: { rotulo: string; valor: number; destaque?: boolean }) {
-  return <div className={`crc-auto-metrica-v2${destaque ? " crc-auto-metrica-destaque-v2" : ""}`}><small>{rotulo}</small><strong>{valor.toLocaleString("pt-BR")}</strong></div>;
+function MetricaAuto({
+  rotulo,
+  valor,
+  destaque = false,
+}: {
+  rotulo: string;
+  valor: number;
+  destaque?: boolean;
+}) {
+  return (
+    <div className={`crc-auto-metrica-v2${destaque ? " crc-auto-metrica-destaque-v2" : ""}`}>
+      <small>{rotulo}</small>
+      <strong>{valor.toLocaleString("pt-BR")}</strong>
+    </div>
+  );
 }

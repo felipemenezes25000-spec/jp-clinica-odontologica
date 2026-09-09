@@ -200,8 +200,9 @@ export function ContactForm() {
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-text" aria-hidden="true" />
         <p className="text-[11px] leading-5 text-ink-soft">
           Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
-          quando houver parâmetros de campanha no endereço acessado, registrar a origem da solicitação.
-          Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja os detalhes na{" "}
+          quando houver parâmetros de campanha no endereço acessado, registrar a origem da
+          solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja
+          os detalhes na{" "}
           <a
             href="/politica-de-privacidade"
             className="font-bold text-brand-text underline decoration-brand-text/35 underline-offset-2 transition hover:text-forest-2"

@@ -168,7 +168,9 @@ export function Footer() {
               <span aria-hidden="true" className="hidden text-white/35 sm:inline">
                 •
               </span>
-              <span>© {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.</span>
+              <span>
+                © {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.
+              </span>
             </div>
           </div>
         </div>
