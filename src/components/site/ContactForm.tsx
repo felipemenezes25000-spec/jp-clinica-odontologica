@@ -196,6 +196,22 @@ export function ContactForm() {
         </label>
       </div>
 
+      <div className="mt-5 flex gap-3 rounded-2xl border border-forest/10 bg-[#F6F9F2] px-4 py-3.5">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-text" aria-hidden="true" />
+        <p className="text-[11px] leading-5 text-ink-soft">
+          Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
+          quando houver parâmetros de campanha no endereço acessado, registrar a origem da solicitação.
+          Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja os detalhes na{" "}
+          <a
+            href="/politica-de-privacidade"
+            className="font-bold text-brand-text underline decoration-brand-text/35 underline-offset-2 transition hover:text-forest-2"
+          >
+            Política de Privacidade
+          </a>
+          .
+        </p>
+      </div>
+
       <button type="submit" className="button-dark mt-6 w-full">
         <MessageCircle className="h-4.5 w-4.5" />
         Abrir conversa no WhatsApp
