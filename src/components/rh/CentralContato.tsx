@@ -35,6 +35,7 @@ import {
   Copy,
   Handshake,
   HeartHandshake,
+  Sprout,
   History,
   Mail,
   MessageCircle,
@@ -98,6 +99,7 @@ const ICONES: Record<string, LucideIcon> = {
   Paperclip,
   Handshake,
   HeartHandshake,
+  Sprout,
   BookmarkPlus,
 };
 

@@ -37,6 +37,7 @@ export type ChaveModelo =
   | "pedir-datas"
   | "proposta"
   | "nao-seguiu"
+  | "nao-seguiu-entrevista"
   | "banco-de-talentos"
   | "primeiro-contato";
 
@@ -139,6 +140,19 @@ export const MODELOS: ModeloMensagem[] = [
     canais: ["email", "whatsapp"],
     assunto: "Retorno sobre o nosso processo seletivo",
     quandoUsar: "Quando a vaga foi para outra pessoa e o processo acabou para ela.",
+  },
+  {
+    chave: "nao-seguiu-entrevista",
+    rotulo: "Retorno depois da entrevista",
+    descricao:
+      "Para quem já sentou e conversou: agradece o tempo dela, diz que a vaga foi para outro perfil e deseja boa jornada.",
+    icone: "Sprout",
+    // WhatsApp na frente, ao contrário do "não seguiu" genérico: quem veio até
+    // a clínica já trocou mensagem por aqui, e esperar o e-mail para dar a
+    // notícia é o que deixa a pessoa dias no vácuo.
+    canais: ["whatsapp", "email"],
+    assunto: "Retorno da nossa entrevista",
+    quandoUsar: "Depois da entrevista, quando a vaga ficou com outra pessoa.",
   },
   {
     chave: "banco-de-talentos",
@@ -574,6 +588,34 @@ function textoNaoSeguiu(ctx: ContextoMensagem): string[] {
   ];
 }
 
+/**
+ * O retorno de quem JÁ FOI ENTREVISTADA — texto escrito pela própria clínica.
+ *
+ * Vale a mesma regra do `textoNaoSeguiu`, e ela é a mais importante deste
+ * arquivo: NUNCA citar motivo vindo da análise da IA. O sistema sabe a nota e
+ * os sinais; nada disso chega ao celular de ninguém.
+ *
+ * Por que é um modelo SEPARADO do "não seguiu" genérico: aquele serve para quem
+ * foi cortado na triagem, e diz "o tempo que você dedicou à gente" — frase que
+ * cabe em quem só mandou currículo. Quem pegou condução, sentou na recepção e
+ * conversou meia hora com a equipe dedicou outra coisa, e ouvir o mesmo texto
+ * padrão depois disso é o que faz a pessoa sentir que ninguém percebeu que ela
+ * esteve lá.
+ *
+ * E é por isso que `relevancia` DEVOLVE NULL quando não há sinal de entrevista:
+ * agradecer por uma conversa que não aconteceu é pior do que não escrever.
+ */
+function textoNaoSeguiuEntrevista(ctx: ContextoMensagem): string[] {
+  const { item } = ctx;
+
+  return [
+    saudacao(item, ctx),
+    "Passando para agradecer muito pelo seu tempo e dedicação em participar da nossa entrevista. Foi muito bom conhecer um pouco mais sobre você. 😊",
+    "Queremos informar que, desta vez, decidimos seguir com outro perfil para a vaga. Sabemos que processos exigem energia, por isso fazemos questão de dar esse retorno de forma transparente.",
+    "Desejamos muito sucesso e sorte em toda a sua jornada profissional 💚",
+  ];
+}
+
 function textoBancoDeTalentos(ctx: ContextoMensagem): string[] {
   const { item } = ctx;
   const vaga = vagaDe(item);
@@ -611,6 +653,8 @@ function paragrafos(chave: ChaveModelo, ctx: ContextoMensagem): string[] {
       return textoProposta(ctx);
     case "nao-seguiu":
       return textoNaoSeguiu(ctx);
+    case "nao-seguiu-entrevista":
+      return textoNaoSeguiuEntrevista(ctx);
     case "banco-de-talentos":
       return textoBancoDeTalentos(ctx);
     case "primeiro-contato":
@@ -646,6 +690,36 @@ export function montarAssunto(chave: ChaveModelo, ctx: ContextoMensagem): string
  * entrevista marcada ou "pedir datas" sem o sinal correspondente produz
  * mensagem sobre coisa nenhuma.
  */
+/**
+ * Há sinal de que a entrevista ACONTECEU — e não apenas de que foi marcada.
+ *
+ * Data combinada, sozinha, não prova nada: a conversa pode ter sido desmarcada
+ * ou a pessoa pode não ter aparecido. O que prova é a ficha PREENCHIDA, porque
+ * quem responde triagem, pergunta, nota ou marca um sinal observado está com a
+ * candidata na frente. Passar de "entrevista" para teste ou proposta também
+ * prova: as duas etapas vêm depois da conversa.
+ *
+ * A data entra como último recurso, e de propósito: sem ela, quem entrevistou
+ * sem preencher nada — que acontece num dia corrido — ficaria sem o modelo
+ * certo para dar o retorno.
+ */
+function houveEntrevista(item: Candidatura): boolean {
+  if (item.status === "teste" || item.status === "proposta") return true;
+
+  const ficha = item.ficha;
+  if (ficha !== null) {
+    const preenchida =
+      ficha.respostasTriagem.length > 0 ||
+      ficha.respostasPerguntas.length > 0 ||
+      ficha.notas.length > 0 ||
+      ficha.sinaisObservados.length > 0 ||
+      ficha.entrevistadores.trim() !== "";
+    if (preenchida) return true;
+  }
+
+  return entrevistaMarcada(item) !== null;
+}
+
 function relevancia(chave: ChaveModelo, item: Candidatura): number | null {
   const marcada = entrevistaMarcada(item) !== null;
   const status = item.status;
@@ -674,7 +748,18 @@ function relevancia(chave: ChaveModelo, item: Candidatura): number | null {
 
     case "nao-seguiu":
       if (status === "contratado") return null;
-      return status === "reprovado" ? 96 : 15;
+      /* Cede a vez para o modelo de pós-entrevista quando a conversa
+         aconteceu: os dois cabem, mas o certo aparece primeiro. */
+      if (status === "reprovado") return houveEntrevista(item) ? 90 : 96;
+      return 15;
+
+    case "nao-seguiu-entrevista":
+      if (status === "contratado") return null;
+      // Sem sinal de entrevista o modelo não é oferecido: ele agradece por uma
+      // conversa, e oferecer isso para quem nunca foi chamada é convidar o RH
+      // a mandar uma mentira sem perceber.
+      if (!houveEntrevista(item)) return null;
+      return status === "reprovado" ? 97 : 20;
 
     case "banco-de-talentos":
       if (status === "contratado") return null;
