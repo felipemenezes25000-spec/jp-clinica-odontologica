@@ -501,10 +501,17 @@ comportamento de verdade:
 | `dental_office_writeback` | A reserva é gravada no Dental Office. Desligada, o aceite do paciente vira tarefa para a recepção digitar. |
 | `ai_autopilot` | A leitura automática pode agir, e não só classificar e sugerir. |
 
-`automatic_whatsapp` e `budget_integration` continuam sendo promessa de
-produto: a primeira é redundante com o kill switch de envio, a segunda espera a
-API de orçamentos. Estão na tela com a explicação do que fazem — ligar
-qualquer uma delas hoje não muda nada, e isso está dito.
+`ai_autopilot` é a linha que separa **a IA ler** de **a IA falar**. Desligada,
+a conversa continua sendo classificada — resumo, temperatura e escalonamento
+seguem alimentando a Inbox — e nenhuma mensagem sai, nem consulta é gravada,
+nem quando já existe oferta aberta esperando resposta.
+
+`automatic_whatsapp` e `budget_integration` **não gatilham nada**, e por isso
+aparecem na tela **desabilitadas**, dizendo isso. Esconder faria alguém
+encontrá-las depois no banco sem saber o que são; deixá-las clicáveis daria um
+interruptor que não faz nada — pior, porque quem o liga acredita ter ligado
+alguma coisa. Quem controla o envio hoje é o modo da automação e o interruptor
+de emergência.
 
 Só admin e gestor mexem em flag (`gerenciar_autopilot`). Toda uma nasce
 desligada.

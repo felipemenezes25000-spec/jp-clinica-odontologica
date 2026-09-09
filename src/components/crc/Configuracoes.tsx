@@ -193,13 +193,25 @@ const ROTULO_FLAG: Readonly<Record<string, { nome: string; explicacao: string }>
     explicacao:
       "A única permissão que altera dado de terceiro. Sem ela, o aceite do paciente vira tarefa para a recepção digitar.",
   },
+};
+
+/**
+ * As flags que existem no banco e ainda NÃO gatilham nada.
+ *
+ * Aparecem na tela, e aparecem DESABILITADAS. Esconder faria alguém encontrá-las
+ * depois no banco e não saber o que são; deixar clicáveis daria um interruptor
+ * que não faz nada — que é pior, porque quem o liga passa a acreditar que ligou
+ * alguma coisa.
+ */
+const FLAGS_INERTES: Readonly<Record<string, { nome: string; explicacao: string }>> = {
   automatic_whatsapp: {
     nome: "Envio automático de WhatsApp",
-    explicacao: "Interruptor-mestre. Desligado, nenhuma automação fala com paciente.",
+    explicacao:
+      "Ainda não faz nada: quem controla o envio hoje é o modo da automação e o interruptor de emergência, em Integrações.",
   },
   budget_integration: {
     nome: "Leitura de orçamentos",
-    explicacao: "Liga a automação de orçamento parado. Depende da API de orçamentos.",
+    explicacao: "Ainda não faz nada: espera a API de orçamentos do Dental Office.",
   },
 };
 
@@ -296,6 +308,25 @@ export function Configuracoes() {
                     // interruptor otimista que volta sozinho dá a impressão de
                     // que a tela está quebrada.
                     .then(() => recarregar());
+                }}
+              />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <strong style={{ fontSize: "0.9375rem" }}>{texto.nome}</strong>
+                <span className="crc-meta" style={{ display: "block" }}>
+                  {texto.explicacao}
+                </span>
+              </span>
+            </div>
+          ))}
+
+          {Object.entries(FLAGS_INERTES).map(([chave, texto]) => (
+            <div key={chave} className="crc-linha" style={{ gap: "var(--crc-e3)", opacity: 0.6 }}>
+              <Interruptor
+                rotulo={texto.nome}
+                ligado={false}
+                desabilitado
+                aoMudar={() => {
+                  // Sem efeito por construção: a flag não é lida por nada.
                 }}
               />
               <span style={{ flex: 1, minWidth: 0 }}>

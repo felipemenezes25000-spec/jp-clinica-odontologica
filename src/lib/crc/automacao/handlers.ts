@@ -458,6 +458,19 @@ export async function aoReceberMensagem(evento: EventoCrc): Promise<void> {
   if (leitura.autonomia === "HUMANO") return;
   if (interruptores["kill_ia_auto"] === true || interruptores["kill_automacoes"] === true) return;
 
+  // A LINHA QUE SEPARA "a IA lê" DE "a IA fala".
+  //
+  // Tudo acima já aconteceu e continua acontecendo com o autopilot desligado:
+  // a conversa foi classificada, o resumo e a temperatura estão na Inbox, e o
+  // escalonamento obrigatório já criou tarefa se era o caso. É o nível 1–2 do
+  // Autopilot — recomendar e criar tarefa.
+  //
+  // Daqui para baixo a máquina ESCREVE para o paciente e pode gravar consulta
+  // no Dental Office. A trava vem antes de aceitar horário, e não só antes de
+  // oferecer: aceitar é a ação mais forte do fluxo, e deixá-la passar seria
+  // trancar a porta da frente e esquecer a dos fundos.
+  if (flags["ai_autopilot"] !== true) return;
+
   const contexto = await contextoDeAgendamento(evento, cfg, flags, interruptores);
   if (contexto === null) return;
 
