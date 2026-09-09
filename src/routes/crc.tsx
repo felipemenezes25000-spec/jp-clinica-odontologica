@@ -5,7 +5,7 @@
  * negócio continuam nos módulos de `src/lib/crc` e nas telas específicas.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   BarChart3,
   CalendarDays,
@@ -328,14 +328,10 @@ function PortalCrc() {
   const IconeAtual = itemAtual.icone;
   const guiaAtual = abaAtual === "home" ? null : GUIA_ABAS[abaAtual];
 
-  const gruposPermitidos = useMemo(
-    () =>
-      GRUPOS_NAVEGACAO.map((grupo) => ({
-        ...grupo,
-        itens: grupo.itens.filter((n) => usuario.permissoes.includes(n.permissao)),
-      })).filter((grupo) => grupo.itens.length > 0),
-    [usuario.permissoes],
-  );
+  const gruposPermitidos = GRUPOS_NAVEGACAO.map((grupo) => ({
+    ...grupo,
+    itens: grupo.itens.filter((n) => usuario.permissoes.includes(n.permissao)),
+  })).filter((grupo) => grupo.itens.length > 0);
 
   const acoesDaPaleta: AcaoPaleta[] = permitidas.map((n) => ({
     id: n.aba,
