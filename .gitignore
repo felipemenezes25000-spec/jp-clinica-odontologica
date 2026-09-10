@@ -48,3 +48,11 @@ __pycache__/
 .senha-painel.txt
 .senha-painel.tmp
 .segredo-sessao.tmp
+
+# Skills de agente instalados por `npx skills`.
+# O conteudo real fica em .agents/ e e versionado, junto com skills-lock.json.
+# Ja .claude/skills/ e so um symlink de caminho ABSOLUTO que o instalador cria
+# nesta maquina: com core.symlinks=false o git o gravaria como arquivo de texto,
+# e o Claude Code acharia um arquivo onde espera uma pasta. Recriar com
+# `npx skills add` e mais barato que versionar um link quebrado.
+.claude/skills/
