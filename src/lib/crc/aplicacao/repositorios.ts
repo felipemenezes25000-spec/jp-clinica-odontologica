@@ -358,8 +358,26 @@ export function linhaParaUsuario(l: Linha, clinicas: string[] = []): Usuario {
     papel: umDe(l, "papel", PAPEIS_VALIDOS, "crc"),
     ativo: booleano(l, "ativo", true),
     clinicas,
+    fotoUrl: fotoValida(l["foto_url"]) ? String(l["foto_url"]) : null,
   };
 }
+
+/**
+ * A foto só sai do banco se ainda for uma imagem embutida e pequena.
+ *
+ * A checagem existe na LEITURA, e não só na escrita, porque a coluna é `text`
+ * e nada impede alguém de escrever nela por fora — pelo painel do Supabase,
+ * por um script antigo. Um `<img src>` com conteúdo arbitrário vindo do banco
+ * é o caminho curto para a foto de perfil virar um problema de segurança.
+ */
+export function fotoValida(valor: unknown): boolean {
+  if (typeof valor !== "string") return false;
+  if (!/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/u.test(valor)) return false;
+  return valor.length <= LIMITE_FOTO;
+}
+
+/** ~60 KB de base64. Uma imagem de 128px comprimida cabe com folga. */
+export const LIMITE_FOTO = 60_000;
 
 export function linhaParaEtapa(l: Linha): EtapaFunil {
   return {

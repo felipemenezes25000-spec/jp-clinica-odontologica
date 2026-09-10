@@ -1151,6 +1151,66 @@ export const mudarPapelDoMembro = createServerFn({ method: "POST" })
     }),
   );
 
+/**
+ * Troca a foto de perfil de QUEM ESTÁ PEDINDO. Sempre.
+ *
+ * Não recebe `userId` de propósito: se recebesse, viraria "trocar a foto de
+ * alguém" e precisaria de permissão, de auditoria de quem mexeu em quem, e de
+ * uma regra sobre o gestor poder editar o admin. Nada disso é necessário para
+ * o caso real — cada pessoa põe a própria foto — e cada uma dessas regras é
+ * uma chance de errar para o lado de expor.
+ *
+ * Por isso a permissão é `null`: qualquer pessoa autenticada mexe na sua, e em
+ * nenhuma outra. O filtro do UPDATE carrega o id da sessão, não o do corpo.
+ *
+ * `dataUrl: null` remove a foto e volta às iniciais.
+ */
+export const salvarMinhaFoto = createServerFn({ method: "POST" })
+  .validator((e: { dataUrl: string | null }) => ({
+    dataUrl: typeof e.dataUrl === "string" ? e.dataUrl : null,
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto(null, async (ctx) => {
+      const { atualizar, agoraIso } = await import("./servidor/banco");
+      const { fotoValida } = await import("./aplicacao/repositorios");
+      const { auditar } = await import("./servidor/registro");
+
+      // A tela já reduz a imagem antes de enviar. Esta checagem existe porque
+      // a tela pode ser contornada — é o mesmo raciocínio dos limites de
+      // Configurações, que a tela mostra e o servidor repete.
+      if (data.dataUrl !== null && !fotoValida(data.dataUrl)) {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message:
+            "A imagem precisa ser PNG, JPEG ou WebP e ter menos de 60 KB depois de reduzida.",
+        };
+      }
+
+      await atualizar(
+        "crc_users",
+        [
+          { coluna: "id", op: "eq", valor: ctx.usuario.id },
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+        ],
+        { foto_url: data.dataUrl, atualizado_em: agoraIso() },
+      );
+
+      // O conteúdo da imagem não vai para a auditoria: interessa QUE mudou e
+      // quem mudou, não 20 KB de base64 em cada linha do log.
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: data.dataUrl === null ? "foto_removida" : "foto_alterada",
+        entityType: "crc_users",
+        entityId: ctx.usuario.id,
+      });
+
+      return { ok: true as const };
+    }),
+  );
+
 export const mudarAtivacaoDoMembro = createServerFn({ method: "POST" })
   .validator((e: { userId: string; ativo: boolean }) => ({
     userId: String(e.userId ?? ""),

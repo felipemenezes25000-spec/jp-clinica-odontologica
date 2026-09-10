@@ -5,17 +5,19 @@
  * negócio continuam nos módulos de `src/lib/crc` e nas telas específicas.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   Compass,
   CalendarDays,
+  Camera,
   Cable,
   ChevronDown,
   ChevronRight,
   Columns3,
   FileUp,
   House,
+  ImageOff,
   ListTodo,
   LogOut,
   Megaphone,
@@ -49,7 +51,13 @@ import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
 import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
 import "@/components/crc/crc.css";
 import "@/components/crc/crc-premium.css";
-import { entrarNoCrc, estadoSessaoCrc, sairDoCrc, type EstadoSessao } from "@/lib/crc/api";
+import {
+  entrarNoCrc,
+  estadoSessaoCrc,
+  sairDoCrc,
+  salvarMinhaFoto,
+  type EstadoSessao,
+} from "@/lib/crc/api";
 import { ROTULO_PAPEL } from "@/lib/crc/dominio/rbac";
 import type { Permissao } from "@/lib/crc/dominio/rbac";
 
@@ -604,6 +612,64 @@ const CHAVE_GRUPOS = "crc:grupos-fechados";
 /** Quais seções de conteúdo estão recolhidas, por título. */
 const CHAVE_SECOES = "crc:secoes-fechadas";
 
+/** O lado do avatar depois de reduzido. 128px cobre a tela retina de 36px. */
+const LADO_FOTO = 128;
+
+/**
+ * Reduz a imagem escolhida a um quadrado de 128px antes de sair do navegador.
+ *
+ * POR QUE NO CLIENTE: a foto que sai de um celular tem 3 a 8 MB. Mandar isso
+ * para o servidor para ele reduzir gasta a banda da recepção, o tempo de quem
+ * está esperando e um limite de corpo de requisição — para no fim guardar
+ * 15 KB. Reduzir antes resolve os quatro de uma vez.
+ *
+ * O RECORTE É CENTRAL E QUADRADO. Um avatar redondo com imagem retangular
+ * esmagada é o defeito clássico; aqui a imagem é cortada no menor lado e o
+ * miolo é o que sobra, que é onde o rosto costuma estar.
+ */
+async function reduzirParaAvatar(arquivo: File): Promise<string> {
+  const url = URL.createObjectURL(arquivo);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, falhou) => {
+      const i = new Image();
+      i.onload = () => {
+        ok(i);
+      };
+      i.onerror = () => {
+        falhou(new Error("Não consegui ler essa imagem."));
+      };
+      i.src = url;
+    });
+
+    const lado = Math.min(img.naturalWidth, img.naturalHeight);
+    if (lado === 0) throw new Error("Imagem vazia.");
+
+    const tela = document.createElement("canvas");
+    tela.width = LADO_FOTO;
+    tela.height = LADO_FOTO;
+    const ctx = tela.getContext("2d");
+    if (ctx === null) throw new Error("Não consegui preparar a imagem.");
+
+    ctx.drawImage(
+      img,
+      (img.naturalWidth - lado) / 2,
+      (img.naturalHeight - lado) / 2,
+      lado,
+      lado,
+      0,
+      0,
+      LADO_FOTO,
+      LADO_FOTO,
+    );
+
+    // JPEG e não PNG: um retrato em PNG de 128px passa de 40 KB, em JPEG fica
+    // perto de 8 KB com a mesma aparência nesse tamanho.
+    return tela.toDataURL("image/jpeg", 0.82);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /**
  * Toda seção com cabeçalho passa a abrir e fechar — nas treze telas de uma vez.
  *
@@ -854,6 +920,7 @@ function PortalCrc() {
   }, []);
 
   useSecoesRecolhiveis(conteudoEl, aba);
+
   const [conversaAberta, setConversaAberta] = useState<string | null>(null);
   const [pacienteAberto, setPacienteAberto] = useState<string | null>(null);
 
@@ -869,6 +936,36 @@ function PortalCrc() {
       });
     }
   }, []);
+
+  const [erroFoto, setErroFoto] = useState<string | null>(null);
+  const campoFoto = useRef<HTMLInputElement>(null);
+
+  const removerFoto = useCallback(async (): Promise<void> => {
+    setErroFoto(null);
+    const r = await salvarMinhaFoto({ data: { dataUrl: null } });
+    if (r.ok) await carregarSessao();
+    else setErroFoto(r.message);
+  }, [carregarSessao]);
+
+  const trocarFoto = useCallback(
+    async (arquivo: File): Promise<void> => {
+      setErroFoto(null);
+      try {
+        const dataUrl = await reduzirParaAvatar(arquivo);
+        const r = await salvarMinhaFoto({ data: { dataUrl } });
+        if (r.ok) {
+          // Recarrega a sessão em vez de remendar o estado local: a foto
+          // aparece em qualquer lugar que leia `usuario`, e não só aqui.
+          await carregarSessao();
+        } else {
+          setErroFoto(r.message);
+        }
+      } catch (erro) {
+        setErroFoto(erro instanceof Error ? erro.message : "Não consegui usar essa imagem.");
+      }
+    },
+    [carregarSessao],
+  );
 
   useEffect(() => {
     void carregarSessao();
@@ -1036,8 +1133,59 @@ function PortalCrc() {
 
           <div className="crc-usuario-shell">
             <div className="crc-usuario">
-              <div className="crc-avatar" aria-hidden="true">
-                {iniciais || "JP"}
+              {/*
+                Um `div` com dois botões dentro, e NÃO um `label` envolvendo
+                tudo: com o label, o botão de remover abriria o seletor de
+                arquivo junto, porque clicar em qualquer lugar de um label
+                aciona o campo dele. O input fica fora e é acionado por
+                referência.
+              */}
+              <div className="crc-avatar crc-avatar-troca">
+                {usuario.fotoUrl === null ? (
+                  <span aria-hidden="true">{iniciais || "JP"}</span>
+                ) : (
+                  <img src={usuario.fotoUrl} alt="" />
+                )}
+
+                <span className="crc-avatar-acoes">
+                  <button
+                    type="button"
+                    aria-label={usuario.fotoUrl === null ? "Colocar sua foto" : "Trocar sua foto"}
+                    title={usuario.fotoUrl === null ? "Colocar foto" : "Trocar foto"}
+                    onClick={() => {
+                      campoFoto.current?.click();
+                    }}
+                  >
+                    <Camera aria-hidden="true" />
+                  </button>
+
+                  {usuario.fotoUrl !== null && (
+                    <button
+                      type="button"
+                      aria-label="Remover sua foto"
+                      title="Remover foto"
+                      onClick={() => {
+                        void removerFoto();
+                      }}
+                    >
+                      <ImageOff aria-hidden="true" />
+                    </button>
+                  )}
+                </span>
+
+                <input
+                  ref={campoFoto}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="crc-so-leitor"
+                  onChange={(e) => {
+                    const arquivo = e.target.files?.[0];
+                    // Limpa o campo para escolher o MESMO arquivo de novo
+                    // funcionar — sem isso, `change` não dispara na segunda vez.
+                    e.target.value = "";
+                    if (arquivo !== undefined) void trocarFoto(arquivo);
+                  }}
+                />
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="crc-usuario-nome">{usuario.nome}</div>
@@ -1058,6 +1206,15 @@ function PortalCrc() {
                 <LogOut size={17} aria-hidden="true" />
               </Botao>
             </div>
+
+            {/* Se a troca falhar, a pessoa fica olhando o avatar antigo sem
+                saber por quê. O aviso mora no próprio cartão, ao lado do que
+                ela acabou de tentar mudar. */}
+            {erroFoto !== null && (
+              <p className="crc-usuario-erro" role="alert">
+                {erroFoto}
+              </p>
+            )}
           </div>
         </nav>
 

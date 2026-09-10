@@ -1527,3 +1527,81 @@
     transition: none;
   }
 }
+
+
+/* ==========================================================================
+   Avatar com foto
+   ==========================================================================
+
+   A foto é guardada como data URL na própria linha do usuário, reduzida a
+   128px no navegador — ver `reduzirParaAvatar` em `routes/crc.tsx`. Aqui só o
+   enquadramento.
+   ========================================================================== */
+
+.crc-app .crc-avatar-troca {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* `cover` e não `fill`: a imagem já chega quadrada do recorte central, e o
+   `cover` é o que garante que ela continue sem esmagar se um dia chegar
+   retangular por outro caminho. */
+.crc-app .crc-avatar-troca img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A câmera só aparece no ponteiro ou no foco: um ícone permanente em cima do
+   rosto polui o cartão, e sem nenhum sinal ninguém descobre que dá para
+   trocar. */
+.crc-app .crc-avatar-acoes {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: rgba(4, 30, 17, 0.62);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.crc-app .crc-avatar-acoes button {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.crc-app .crc-avatar-acoes svg {
+  width: 13px;
+  height: 13px;
+}
+
+.crc-app .crc-avatar-troca:hover .crc-avatar-acoes,
+.crc-app .crc-avatar-troca:focus-within .crc-avatar-acoes {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crc-app .crc-avatar-acoes {
+    transition: none;
+  }
+}
+
+.crc-app .crc-usuario-erro {
+  margin: 8px 4px 0;
+  color: #ffc9c2;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}

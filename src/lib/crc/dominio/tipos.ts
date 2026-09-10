@@ -33,6 +33,18 @@ export type Usuario = {
   papel: Papel;
   ativo: boolean;
   clinicas: string[];
+  /**
+   * A foto de perfil, como data URL.
+   *
+   * GUARDADA NA PRÓPRIA LINHA, e não num bucket. A imagem é reduzida a 128px
+   * no navegador antes de subir, o que dá 10 a 20 KB — menos que o texto de
+   * uma conversa. Em troca disso não existe bucket para configurar, política
+   * de acesso para errar, nem URL assinada para expirar no meio do expediente.
+   *
+   * Se um dia a clínica quiser foto grande, aí sim vale o storage. Para um
+   * avatar de 36px, não valia.
+   */
+  fotoUrl: string | null;
 };
 
 export type Clinica = {
