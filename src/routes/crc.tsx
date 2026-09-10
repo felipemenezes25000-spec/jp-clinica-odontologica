@@ -601,6 +601,122 @@ const CHAVE_GUIA = "crc:guia-aberto";
  */
 const CHAVE_GRUPOS = "crc:grupos-fechados";
 
+/** Quais seções de conteúdo estão recolhidas, por título. */
+const CHAVE_SECOES = "crc:secoes-fechadas";
+
+/**
+ * Toda seção com cabeçalho passa a abrir e fechar — nas treze telas de uma vez.
+ *
+ * POR QUE POR DELEGAÇÃO, E NÃO COMPONENTE: as seções já existem em seis telas,
+ * cada uma com sua classe (`crc-settings-painel-v2`, `crc-gestao-painel-v2`…)
+ * e seu cabeçalho montado à mão. Trocar todas por um componente comum seria
+ * reescrever seis arquivos para chegar no mesmo lugar — e a próxima tela
+ * nasceria de fora do mecanismo. Um ouvinte no container pega as que existem
+ * hoje e as que forem escritas depois, sem elas precisarem saber disso.
+ *
+ * A CHAVE É O TÍTULO, e não a posição: reordenar as seções de Configurações
+ * não pode fazer alguém reabrir o bloco errado. Título muda com pouca
+ * frequência, e quando muda o pior caso é a seção voltar aberta.
+ *
+ * `data-recolhida` é escrito no DOM e o React não o apaga: ele não aparece no
+ * JSX, então não faz parte do que o React reconcilia.
+ */
+/* O prefixo `use` é exigência do React e do lint, mesmo num arquivo em
+   português: é assim que as duas ferramentas reconhecem um hook. */
+function useSecoesRecolhiveis(container: HTMLElement | null, aba: string): void {
+  useEffect(() => {
+    if (container === null) return;
+
+    const ler = (): string[] => {
+      try {
+        const cru = window.localStorage.getItem(CHAVE_SECOES);
+        const v: unknown = cru === null ? [] : JSON.parse(cru);
+        return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+      } catch {
+        return [];
+      }
+    };
+
+    const gravar = (ids: string[]): void => {
+      try {
+        window.localStorage.setItem(CHAVE_SECOES, JSON.stringify(ids));
+      } catch {
+        /* vale só nesta sessão */
+      }
+    };
+
+    const tituloDe = (sec: HTMLElement): string =>
+      (sec.querySelector("h2, h3")?.textContent ?? "").trim();
+
+    const aplicar = (): void => {
+      const fechadas = new Set(ler());
+      for (const sec of container.querySelectorAll<HTMLElement>("section > header")) {
+        const secao = sec.parentElement;
+        if (secao === null) continue;
+        const titulo = tituloDe(secao);
+        if (titulo.length === 0) continue;
+
+        secao.dataset["recolhivel"] = "sim";
+        secao.dataset["recolhida"] = fechadas.has(titulo) ? "sim" : "nao";
+
+        // O cabeçalho vira controle de verdade para quem usa teclado e leitor
+        // de tela — não só uma área clicável.
+        sec.setAttribute("role", "button");
+        sec.setAttribute("tabindex", "0");
+        sec.setAttribute("aria-expanded", fechadas.has(titulo) ? "false" : "true");
+      }
+    };
+
+    const alternar = (secao: HTMLElement): void => {
+      const titulo = tituloDe(secao);
+      if (titulo.length === 0) return;
+      const fechadas = ler();
+      const proximo = fechadas.includes(titulo)
+        ? fechadas.filter((x) => x !== titulo)
+        : [...fechadas, titulo];
+      gravar(proximo);
+      aplicar();
+    };
+
+    const alvo = (e: Event): HTMLElement | null => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement)) return null;
+      // Cabeçalho com botão dentro: o botão é o dono do clique.
+      if (el.closest("button, a, input, select, textarea, [role=switch]") !== null) return null;
+      const cab = el.closest("header");
+      const secao = cab?.parentElement ?? null;
+      return secao !== null && secao.tagName === "SECTION" ? secao : null;
+    };
+
+    const aoClicar = (e: MouseEvent): void => {
+      const secao = alvo(e);
+      if (secao !== null) alternar(secao);
+    };
+
+    const aoTeclar = (e: KeyboardEvent): void => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const secao = alvo(e);
+      if (secao === null) return;
+      e.preventDefault();
+      alternar(secao);
+    };
+
+    aplicar();
+    // As telas carregam dados depois do primeiro render; sem observar, só a
+    // primeira leva de seções ganharia o comportamento.
+    const observador = new MutationObserver(aplicar);
+    observador.observe(container, { childList: true, subtree: true });
+
+    container.addEventListener("click", aoClicar);
+    container.addEventListener("keydown", aoTeclar);
+    return () => {
+      observador.disconnect();
+      container.removeEventListener("click", aoClicar);
+      container.removeEventListener("keydown", aoTeclar);
+    };
+  }, [container, aba]);
+}
+
 function lerGruposFechados(): string[] {
   try {
     const cru = window.localStorage.getItem(CHAVE_GRUPOS);
@@ -722,6 +838,8 @@ function PortalCrc() {
     typeof window === "undefined" ? [] : lerGruposFechados(),
   );
 
+  const [conteudoEl, setConteudoEl] = useState<HTMLElement | null>(null);
+
   const alternarGrupo = useCallback((id: string) => {
     setGruposFechados((atuais) => {
       const proximo = atuais.includes(id) ? atuais.filter((x) => x !== id) : [...atuais, id];
@@ -734,6 +852,8 @@ function PortalCrc() {
     setGuiaAberto(ligado);
     gravarPreferenciaDoGuia(ligado);
   }, []);
+
+  useSecoesRecolhiveis(conteudoEl, aba);
   const [conversaAberta, setConversaAberta] = useState<string | null>(null);
   const [pacienteAberto, setPacienteAberto] = useState<string | null>(null);
 
@@ -934,7 +1054,7 @@ function PortalCrc() {
           </div>
         </nav>
 
-        <main className="crc-conteudo">
+        <main className="crc-conteudo" ref={setConteudoEl}>
           <div className="crc-barra-contexto" aria-label="Contexto da tela">
             <div className="crc-barra-trilha">
               <ShieldCheck aria-hidden="true" />

@@ -1474,3 +1474,64 @@
       color 180ms ease;
   }
 }
+
+
+/* ==========================================================================
+   Seções que abrem e fecham
+   ==========================================================================
+
+   Vale para toda `<section>` com `<header>` dentro do conteúdo, nas treze
+   telas — o comportamento é ligado por delegação no shell, então uma tela
+   nova entra no mecanismo sem fazer nada.
+
+   A SETA É `::after` NO CABEÇALHO, e não um ícone no JSX. Colocá-la na
+   marcação exigiria mexer nas seis telas que têm seção; em CSS, ela aparece
+   em todas de uma vez e some sozinha se a seção deixar de ser recolhível.
+   ========================================================================== */
+
+.crc-app .crc-conteudo section[data-recolhivel="sim"] > header {
+  position: relative;
+  /* Espaço para a seta não encostar no texto do cabeçalho. */
+  padding-right: 38px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.crc-app .crc-conteudo section[data-recolhivel="sim"] > header::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  opacity: 0.5;
+  transform: translateY(-70%) rotate(45deg);
+  transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.crc-app .crc-conteudo section[data-recolhida="sim"] > header::after {
+  transform: translateY(-30%) rotate(-45deg);
+}
+
+.crc-app .crc-conteudo section[data-recolhivel="sim"] > header:hover::after {
+  opacity: 0.9;
+}
+
+/* Recolhida: some tudo menos o cabeçalho. O `> *` direto é de propósito —
+   esconder por descendente apagaria seções aninhadas junto. */
+.crc-app .crc-conteudo section[data-recolhida="sim"] > *:not(header) {
+  display: none;
+}
+
+/* Sem a borda inferior, o cabeçalho fechado fica com um traço solto embaixo. */
+.crc-app .crc-conteudo section[data-recolhida="sim"] > header {
+  border-bottom-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crc-app .crc-conteudo section[data-recolhivel="sim"] > header::after {
+    transition: none;
+  }
+}
