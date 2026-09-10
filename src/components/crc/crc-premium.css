@@ -43,6 +43,15 @@
   --crc-texto-3: #2b3b31;
 
   --crc-primaria: #08733b;
+  /*
+   * O verde de TEXTO é mais escuro que o de preenchimento, de propósito.
+   * #08733b dá 5.96:1 sobre branco — passa, mas é o "verde claro" que o Felipe
+   * apontou. #095902 dá 8.6:1 e é o verde forte da marca no site.
+   *
+   * Só para letra: mudar --crc-primaria inteiro escureceria botão, ícone e
+   * borda junto, e nenhum deles tem problema de leitura.
+   */
+  --crc-primaria-texto: #095902;
   --crc-primaria-hover: #066330;
   --crc-sobre-primaria: #ffffff;
   --crc-primaria-suave: #e8f5ec;
@@ -454,12 +463,12 @@
 .crc-app .crc-cabecalho-copy .crc-corpo {
   max-width: 75ch;
   margin-top: 8px;
-  color: #526357;
+  color: var(--crc-texto-2);
   line-height: 1.62;
 }
 
 .crc-app .crc-sobretitulo {
-  color: var(--crc-primaria);
+  color: var(--crc-primaria-texto);
   font-size: 0.69rem;
   font-weight: 820;
   letter-spacing: 0.12em;
@@ -539,7 +548,7 @@
 
 .crc-app .crc-guia-resumo {
   max-width: 100ch;
-  color: #4c6052;
+  color: var(--crc-texto-2);
   line-height: 1.58;
 }
 
@@ -565,7 +574,7 @@
 
 .crc-app .crc-guia-efeito {
   margin-top: 3px;
-  color: #647269;
+  color: var(--crc-texto-3);
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -653,7 +662,7 @@
 }
 
 .crc-app .crc-kpi-rotulo {
-  color: #6d7e72;
+  color: var(--crc-texto-3);
   font-size: 0.7rem;
   font-weight: 720;
   letter-spacing: 0.045em;
@@ -931,7 +940,7 @@
 
 .crc-app .crc-fila-motivo {
   margin-top: 5px;
-  color: #617066;
+  color: var(--crc-texto-3);
 }
 
 /* ========================================================================== */
@@ -1114,7 +1123,7 @@
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 9px;
-  color: #637166;
+  color: var(--crc-texto-3);
   font-size: 0.77rem;
   font-weight: 650;
   white-space: nowrap;
@@ -1161,7 +1170,7 @@
   padding: 11px 13px;
   border-bottom: 1px solid #dde5da;
   background: #f4f7f2;
-  color: #68776c;
+  color: var(--crc-texto-3);
   font-size: 0.68rem;
   font-weight: 760;
   letter-spacing: 0.055em;

@@ -72,7 +72,10 @@
   font-weight: 800;
   letter-spacing: 0.115em;
   text-transform: uppercase;
-  color: var(--crc-primaria);
+  /* A cor sai daqui de propósito: ela tem dono no crc-premium.css, que usa o
+     verde de TEXTO (mais escuro que o de preenchimento). Repetir
+     `var(--crc-primaria)` aqui vencia por ordem de carga e devolvia o tom
+     claro — foi exatamente o que aconteceu. */
 }
 
 .crc-app .crc-legenda {
@@ -778,7 +781,7 @@
 .crc-app .crc-tabela th {
   height: 45px;
   background: #f5f8f3;
-  color: #53655a;
+  color: var(--crc-texto-3);
   font-size: 0.75rem;
   letter-spacing: 0.015em;
 }
@@ -808,17 +811,6 @@
   background:
     radial-gradient(circle at 50% 0%, rgba(86, 168, 5, 0.06), transparent 10rem),
     #fafcf9;
-}
-
-.crc-app .crc-vazio::before {
-  content: "";
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
-  background:
-    radial-gradient(circle, var(--crc-primaria) 0 3px, transparent 4px),
-    var(--crc-primaria-suave);
-  box-shadow: inset 0 0 0 1px var(--crc-primaria-borda);
 }
 
 .crc-app .crc-vazio strong {
