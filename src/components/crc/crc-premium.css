@@ -182,6 +182,26 @@
   max-width: 100%;
 }
 
+/*
+ * No menu a marca pousa direto no verde — sem cartão branco atrás.
+ * O seletor é `.crc-lateral .crc-marca` e não `.crc-marca` porque a MESMA
+ * classe monta a marca do cartão de login, que é branco de verdade e continua
+ * precisando do fundo claro.
+ */
+.crc-app .crc-lateral .crc-marca {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+/* O selo "CRC" acompanha: vidro claro sobre o verde, no lugar do verde sobre
+   branco que só fazia sentido dentro do adesivo. */
+.crc-app .crc-lateral .crc-modulo {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
 .crc-app .crc-modulo {
   color: #07572f;
   border: 1px solid #c9dfcf;

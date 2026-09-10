@@ -966,9 +966,16 @@ function PortalCrc() {
       <div className="crc-shell">
         <nav className="crc-lateral" aria-label="Seções do CRC">
           <div className="crc-marca">
+            {/*
+              `fundo` nomeia a SUPERFÍCIE, não a arte. O menu é verde escuro,
+              então a marca certa é a de fundo escuro — branca, com a folha em
+              #56A805. Enquanto pedia "claro", a única forma de ela aparecer era
+              o adesivo branco atrás, que é o que ficava estranho.
+              O login continua "claro": lá o cartão é branco de verdade.
+            */}
             <Logo
               variante="lockup"
-              fundo="claro"
+              fundo="escuro"
               altura={44}
               alt="JP Clínica Integrada Odontológica"
             />
