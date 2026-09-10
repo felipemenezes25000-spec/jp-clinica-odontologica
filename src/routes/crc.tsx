@@ -11,6 +11,7 @@ import {
   Compass,
   CalendarDays,
   Cable,
+  ChevronDown,
   ChevronRight,
   Columns3,
   FileUp,
@@ -591,6 +592,34 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
  */
 const CHAVE_GUIA = "crc:guia-aberto";
 
+/**
+ * Quais seções do menu estão recolhidas.
+ *
+ * GRAVAR OS FECHADOS, E NÃO OS ABERTOS, é o que faz um grupo novo nascer
+ * visível: quem já usava o sistema não descobre um item por acaso porque ele
+ * apareceu fechado numa lista que ele nunca mais abriu.
+ */
+const CHAVE_GRUPOS = "crc:grupos-fechados";
+
+function lerGruposFechados(): string[] {
+  try {
+    const cru = window.localStorage.getItem(CHAVE_GRUPOS);
+    if (cru === null) return [];
+    const v: unknown = JSON.parse(cru);
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function gravarGruposFechados(ids: string[]): void {
+  try {
+    window.localStorage.setItem(CHAVE_GRUPOS, JSON.stringify(ids));
+  } catch {
+    // Sem persistir, a escolha vale só nesta sessão.
+  }
+}
+
 function lerPreferenciaDoGuia(): boolean {
   try {
     return window.localStorage.getItem(CHAVE_GUIA) !== "0";
@@ -688,6 +717,18 @@ function PortalCrc() {
   const [guiaAberto, setGuiaAberto] = useState<boolean>(() =>
     typeof window === "undefined" ? true : lerPreferenciaDoGuia(),
   );
+
+  const [gruposFechados, setGruposFechados] = useState<readonly string[]>(() =>
+    typeof window === "undefined" ? [] : lerGruposFechados(),
+  );
+
+  const alternarGrupo = useCallback((id: string) => {
+    setGruposFechados((atuais) => {
+      const proximo = atuais.includes(id) ? atuais.filter((x) => x !== id) : [...atuais, id];
+      gravarGruposFechados([...proximo]);
+      return proximo;
+    });
+  }, []);
 
   const alternarGuia = useCallback((ligado: boolean) => {
     setGuiaAberto(ligado);
@@ -814,32 +855,57 @@ function PortalCrc() {
             <span className="crc-modulo">CRC</span>
           </div>
 
-          {gruposPermitidos.map((grupo) => (
-            <div key={grupo.id} className="crc-nav-grupo">
-              <div className="crc-nav-rotulo">{grupo.rotulo}</div>
-              {grupo.itens.map((n) => {
-                const Icone = n.icone;
-                return (
-                  <button
-                    key={n.aba}
-                    type="button"
-                    className="crc-nav-item"
-                    /* A mesma linha do mapa do CRC, para quem passa o mouse
+          {gruposPermitidos.map((grupo) => {
+            /*
+              A seção que contém a tela aberta nunca aparece fechada. Sem isso,
+              recolher "Operação" e depois chegar em Conversas pelo Ctrl+K
+              deixaria o menu inteiro sem nenhuma marca de onde a pessoa está.
+            */
+            const temAtual = grupo.itens.some((n) => n.aba === abaAtual);
+            const fechado = gruposFechados.includes(grupo.id) && !temAtual;
+            const idLista = `crc-grupo-${grupo.id}`;
+
+            return (
+              <div key={grupo.id} className="crc-nav-grupo" data-fechado={fechado ? "sim" : "nao"}>
+                <button
+                  type="button"
+                  className="crc-nav-rotulo"
+                  aria-expanded={!fechado}
+                  aria-controls={idLista}
+                  onClick={() => {
+                    alternarGrupo(grupo.id);
+                  }}
+                >
+                  <span>{grupo.rotulo}</span>
+                  <ChevronDown aria-hidden="true" />
+                </button>
+
+                <div id={idLista} className="crc-nav-lista" hidden={fechado}>
+                  {grupo.itens.map((n) => {
+                    const Icone = n.icone;
+                    return (
+                      <button
+                        key={n.aba}
+                        type="button"
+                        className="crc-nav-item"
+                        /* A mesma linha do mapa do CRC, para quem passa o mouse
                        antes de clicar em algo que nunca abriu. */
-                    title={`${n.rotulo} — ${GUIA_ABAS[n.aba].paraQue}`}
-                    aria-current={abaAtual === n.aba ? "page" : undefined}
-                    onClick={() => {
-                      setAba(n.aba);
-                      if (n.aba !== "pacientes") setPacienteAberto(null);
-                    }}
-                  >
-                    <Icone aria-hidden="true" />
-                    <span>{n.rotulo}</span>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+                        title={`${n.rotulo} — ${GUIA_ABAS[n.aba].paraQue}`}
+                        aria-current={abaAtual === n.aba ? "page" : undefined}
+                        onClick={() => {
+                          setAba(n.aba);
+                          if (n.aba !== "pacientes") setPacienteAberto(null);
+                        }}
+                      >
+                        <Icone aria-hidden="true" />
+                        <span>{n.rotulo}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
 
           <div className="crc-usuario-shell">
             <div className="crc-usuario">

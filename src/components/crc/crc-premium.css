@@ -28,8 +28,19 @@
   --crc-borda-forte: #c6d2c2;
 
   --crc-texto: #10251a;
-  --crc-texto-2: #4a5f52;
-  --crc-texto-3: #738176;
+  /* Preto, a pedido do Felipe: nada de cinza em texto sobre fundo claro.
+     14.5:1 sobre branco. */
+  --crc-texto-2: #16281d;
+  /*
+   * Terceiro nivel de texto. Comecou em #738176, que dava 3.83:1 sobre o fundo
+   * osso — abaixo dos 4.5:1 que texto pequeno exige — e agora e #2b3b31, a
+   * pedido do Felipe: onde o fundo e claro, a letra e preta, nao cinza.
+   *
+   * 11.1:1 sobre o osso. A hierarquia de tres niveis continua existindo, so
+   * que agora ela e de PESO e TAMANHO, e nao de o texto menor ser mais apagado
+   * — que era o que tornava rotulo de metrica e nota de KPI dificeis de ler.
+   */
+  --crc-texto-3: #2b3b31;
 
   --crc-primaria: #08733b;
   --crc-primaria-hover: #066330;
@@ -55,7 +66,10 @@
 
   --crc-nav: #073b28;
   --crc-nav-2: #052f22;
-  --crc-nav-texto: rgba(255, 255, 255, 0.74);
+  /* Branco puro, a pedido do Felipe. O item ativo continua se distinguindo
+     pela pílula de fundo, pelo ponto e pelo ícone verde-claro — a hierarquia
+     não dependia só da opacidade do texto. */
+  --crc-nav-texto: #ffffff;
   --crc-nav-texto-forte: #ffffff;
   --crc-nav-borda: rgba(255, 255, 255, 0.09);
   --crc-nav-hover: rgba(255, 255, 255, 0.075);
@@ -173,7 +187,9 @@
 
 .crc-app .crc-nav-rotulo {
   margin: 0 11px 7px;
-  color: rgba(255, 255, 255, 0.38);
+  /* 0.38 dava contraste 2.5:1 sobre o verde do menu — abaixo do mínimo
+     legível. Continua mais discreto que os itens, agora sem sumir. */
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.14em;

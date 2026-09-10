@@ -1212,3 +1212,265 @@
   min-height: 100dvh;
   padding: clamp(24px, 5vw, 64px);
 }
+
+
+/* ==========================================================================
+   Shell — o esqueleto
+   ==========================================================================
+
+   MESMA HISTÓRIA DO LOGIN, em seis componentes. A reescrita do
+   `crc-premium.css` trocou a pele da barra de contexto, da trilha, do atalho
+   de busca e do cartão do usuário — e não trouxe o `display` que cada um
+   pressupõe. Todos caíram para `display: block`, que empilha em coluna o que
+   foi desenhado como linha:
+
+     .crc-atalho-dica     49px de altura, a lupa em cima do texto
+     .crc-barra-trilha    85px, cada pedaço da trilha numa linha
+     .crc-barra-contexto  154px de faixa vazia no topo de toda tela
+     .crc-usuario         130px, o avatar acima do nome
+
+   Medido no navegador, não deduzido.
+
+   O `:where()` nos seletores de ícone é deliberado: ele zera a especificidade,
+   então qualquer tamanho que o desenho declare continua ganhando destes
+   padrões. É o que impede este arquivo de voltar a brigar com aquele.
+   ========================================================================== */
+
+.crc-app .crc-barra-contexto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.crc-app .crc-barra-trilha,
+.crc-app .crc-atalho-dica {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* A trilha já recebe `gap` do desenho; o atalho, não. */
+.crc-app .crc-atalho-dica {
+  gap: 8px;
+}
+
+/* Ícone sem medida assume o tamanho natural do arquivo — 24px, que numa barra
+   de 60px vira o elemento mais alto da linha. */
+.crc-app :where(.crc-barra-trilha, .crc-atalho-dica) svg {
+  width: 15px;
+  /* Altura derivada da largura, e não fixada: assim o ícone continua quadrado
+     mesmo quando o desenho troca só a largura de um deles — foi o que deixou o
+     escudo da trilha em 17x15. Repetir o 17px aqui seria criar um segundo dono
+     para o mesmo número. */
+  height: auto;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
+/* ---- o cartão do usuário, no rodapé do menu ------------------------------ */
+
+/*
+ * Três colunas: avatar, nome, sair. A primeira é `auto` e não um número, para
+ * acompanhar o tamanho que o desenho der ao avatar — hoje 36px, ontem 38px, e
+ * a grade não precisa saber disso.
+ */
+.crc-app .crc-usuario {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.crc-app .crc-usuario-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-avatar {
+  display: grid;
+  place-items: center;
+  /* O desenho novo dá cor, borda e sombra ao avatar e não dá raio: sem isto
+     ele fica um quadrado duro no meio de uma interface toda arredondada. */
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 0.8125rem;
+}
+
+
+/* ==========================================================================
+   Menu — seções que abrem e fecham
+   ==========================================================================
+
+   O rótulo do grupo deixou de ser enfeite e virou controle. Treze itens numa
+   coluna é uma lista longa demais para quem usa três telas por dia: recolher
+   "Performance" e "Administração" deixa o menu com o tamanho do trabalho real
+   da recepção.
+
+   A seção que contém a tela aberta é forçada a aparecer (`data-fechado` sai
+   como "nao" no React), então nunca acontece de a pessoa estar numa tela e o
+   menu não mostrar onde ela está.
+   ========================================================================== */
+
+.crc-app .crc-nav-rotulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  /* SÓ A FAMÍLIA. Tamanho, peso, espaçamento entre letras, caixa e cor são
+     decisão do desenho, e ficam no crc-premium.css — declarar `inherit` aqui
+     os apagava, porque este arquivo carrega depois. Um <button> só precisa
+     que a família não caia na fonte do sistema; o resto o desenho já diz. */
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.crc-app .crc-nav-rotulo:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+
+.crc-app .crc-nav-rotulo svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  opacity: 0.75;
+  transition: transform var(--crc-transicao, 160ms ease);
+}
+
+/* Fechado: a seta aponta para o lado, que é a convenção de "tem coisa aqui
+   dentro". Aberto ela desce. */
+.crc-app .crc-nav-grupo[data-fechado="sim"] .crc-nav-rotulo svg {
+  transform: rotate(-90deg);
+}
+
+.crc-app .crc-nav-lista {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crc-app .crc-nav-rotulo svg {
+    transition: none;
+  }
+}
+
+
+/* ==========================================================================
+   Resposta ao toque
+   ==========================================================================
+
+   O QUE FALTAVA NÃO ERA ANIMAÇÃO, ERA RESPOSTA. Havia seis keyframes de
+   entrada no produto e exatamente DOIS estados `:active` — ou seja, a tela
+   aparecia bonito e depois ficava inerte: clicar num botão não produzia
+   nenhum sinal de que o clique aconteceu, e numa recepção com tablet isso
+   vira clique duplicado.
+
+   A regra que orienta tudo aqui: movimento que confirma uma ação do usuário,
+   e nada que se mexa sozinho. Nenhum efeito abaixo dispara sem alguém tocar,
+   apontar ou dar foco em alguma coisa.
+
+   Duração curta de propósito — 120ms no toque, 180ms no ponteiro. Acima de
+   ~200ms a interface começa a parecer que está pensando.
+   ========================================================================== */
+
+/* O anel de foco NÃO entra aqui: o `crc.css` já tem um `:focus-visible` global
+   para todo o produto. Repetir seria criar um segundo dono para a mesma
+   decisão — exatamente o que este arquivo existe para evitar. O único ajuste
+   é a cor sobre o verde escuro do menu, onde o anel padrão não aparece. */
+.crc-app .crc-nav-item:focus-visible,
+.crc-app .crc-nav-rotulo:focus-visible {
+  outline-color: #a9e39e;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- o toque ---------------------------------------------------------- */
+
+  /*
+   * Afunda 1px e encolhe quase nada. O `:not()` protege o interruptor, que
+   * tem animação própria de pílula, e os itens de lista que são botões por
+   * acessibilidade mas não parecem botão.
+   */
+  .crc-app
+    :is(button, [role="button"]):not([role="switch"]):not(.crc-conversa-item):not(
+      .crc-nav-item
+    ):active:not([disabled]) {
+    transform: translateY(1px) scale(0.985);
+    transition: transform 120ms cubic-bezier(0.2, 0, 0.2, 1);
+  }
+
+  /* O item de menu desliza no lugar de afundar: ele é uma linha numa coluna,
+     e afundar linha faz a coluna inteira parecer tremida. */
+  .crc-app .crc-nav-item {
+    transition:
+      background 180ms ease,
+      color 180ms ease,
+      transform 180ms cubic-bezier(0.2, 0, 0.2, 1),
+      border-color 180ms ease;
+  }
+
+  .crc-app .crc-nav-item:hover:not([aria-current="page"]) {
+    transform: translateX(3px);
+  }
+
+  .crc-app .crc-nav-item:active {
+    transform: translateX(3px) scale(0.99);
+  }
+
+  /* ---- o ponteiro sobre o que é clicável -------------------------------- */
+
+  .crc-app :is(.crc-cartao, .crc-kpi, .crc-cartao-compacto) {
+    transition:
+      transform 180ms cubic-bezier(0.2, 0, 0.2, 1),
+      box-shadow 180ms ease,
+      border-color 180ms ease;
+  }
+
+  /*
+   * Só sobe o cartão que É clicável. Cartão de leitura que levanta ao passar
+   * o mouse promete uma ação que não existe — e ensina a equipe a clicar em
+   * coisa que não faz nada.
+   */
+  .crc-app :is(.crc-cartao, .crc-kpi):has(button, a, [role="button"]):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px -30px rgba(8, 51, 31, 0.55);
+  }
+
+  /* ---- os números ------------------------------------------------------- */
+
+  /*
+   * O valor grande sobe 4px ao aparecer. É o único movimento automático da
+   * lista, e existe porque o olho precisa ser levado ao número antes do
+   * rótulo — que é a ordem em que a frase "0 pendências humanas" se lê.
+   */
+  .crc-app :is(.crc-kpi-valor, .crc-home-metrica-valor, .crc-home-foco-valor) {
+    animation: crc-numero-sobe 320ms cubic-bezier(0.2, 0, 0.2, 1) both;
+  }
+
+  @keyframes crc-numero-sobe {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ---- o guia ----------------------------------------------------------- */
+
+  .crc-app .crc-guia-botao,
+  .crc-app .crc-guia-desligar {
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      color 180ms ease;
+  }
+}
