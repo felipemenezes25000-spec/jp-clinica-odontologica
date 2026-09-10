@@ -503,7 +503,7 @@ function Home() {
                 <span className="flex items-center gap-2">
                   <Star className="h-4 w-4 fill-primary text-primary" /> 4,6 no Google
                 </span>
-                <span>187 avaliações</span>
+                <span>191 avaliações</span>
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-4 w-4 text-primary" /> Seg–Sex • 08h–18h
                 </span>

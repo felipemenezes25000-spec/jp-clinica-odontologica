@@ -167,7 +167,7 @@ export function ReviewsSection() {
                             </span>
                           </span>
                         </div>
-                        <p className="text-sm text-ink-soft">187 avaliações no Google</p>
+                        <p className="text-sm text-ink-soft">191 avaliações no Google</p>
                       </div>
                     </div>
                   </div>
