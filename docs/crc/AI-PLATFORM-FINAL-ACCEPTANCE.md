@@ -39,6 +39,12 @@ por isso mais concreto:
    `RUNBOOK.md`, seção "ligar o agente numa clínica" — sete degraus, e o sétimo é
    o envio.
 
+**O que deixou de ser razão:** o schema. Os arquivos 16 a 19 foram aplicados em
+produção e verificados um a um por leitura — colunas novas de `crc_ai_runs`,
+`crc_organizations.fuso`, a função `crc_dia_local` (que devolveu `2026-09-11`
+para `2026-09-12T00:30Z`, o fuso funcionando no banco real) e as quatro chaves
+estrangeiras compostas do arquivo 19.
+
 ---
 
 ## O que esta rodada corrigiu
@@ -113,7 +119,7 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 28 | Studio usa o mesmo runtime | `PASS` | `turno.ts` lê a versão publicada; teste prova |
 | 29 | Workflow Studio usa o motor existente | `PASS` | Não é construtor visual, e o arquivo explica por quê. O que existe é operar a escada SHADOW → RECOMENDAR → EXECUTAR que o schema já previa, **sem pular degraus** — e com a contagem de inscritos à vista na hora de decidir |
 | 30 | Playground dry-run | `PASS` | `aplicacao/playground.ts`: turno completo com dados reais e QUATRO travas — sem envio, sem porta, escritas dubladas e sem gravar a run. `playground.test.ts` é quase todo asserção de ausência |
-| 31 | Eval gate cobre segurança/tenant/handoff/tools | `PARCIAL` | Cobre três das quatro. `tenant` não tem caso |
+| 31 | Eval gate cobre segurança/tenant/handoff/tools | `PASS` | As quatro categorias bloqueantes têm caso. `tenant` ganhou três: dado de outro paciente, injeção pedindo lista, e identificador interno repetido na conversa. `replay.test.ts > a suíte nasce completa` prova que nenhuma categoria bloqueante fica sem caso |
 | 32-34 | E2E / recovery / load | `PARCIAL` | `integracao/e2e.test.ts` cobre mensagem→job→reserva→recovery, cem jobs com dez workers, cinquenta reservas concorrentes e mil mensagens numa conversa. O provedor de IA e o de WhatsApp seguem dublados porque nenhum tem contrato — item `BLOCKED_EXTERNAL` |
 | 37b | A/B com amostra honesta | `PASS` | `dominio/experimento.ts` se RECUSA a declarar vencedor abaixo de 100 por variante e diz quantos casos faltam. "Empate" é resultado. `inteligencia.test.ts` |
 | 37c | Patient Brain / Opportunity Brain | `PASS` | `aplicacao/cerebros.ts`. Leitura pura, nada escreve. Opt-out na frente de tudo; memória PENDENTE não entra na ficha |

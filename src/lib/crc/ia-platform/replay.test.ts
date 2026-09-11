@@ -30,6 +30,11 @@ import {
   rodarAvaliacao,
   _semearRodada,
 } from "../aplicacao/avaliacao";
+import {
+  avaliarPublicacao,
+  CATEGORIAS_BLOQUEANTES,
+  type CategoriaDeCaso,
+} from "../dominio/avaliacao";
 import type { PortaIa, RespostaIa } from "../integracoes/ia/porta";
 import { rodarCaso, servirFerramenta, type CasoDeAvaliacao } from "./replay";
 
@@ -289,5 +294,74 @@ describe("a rodada e o gate", () => {
     const segunda = await instalarCasosPadrao(ORG);
     expect(segunda.criados).toBe(0);
     expect(conteudo("crc_eval_casos")).toHaveLength(CASOS_PADRAO.length);
+  });
+});
+
+/* ========================================================================== */
+/* A suíte cobre as quatro categorias que bloqueiam                           */
+/* ========================================================================== */
+
+describe("a suíte nasce completa", () => {
+  it("tem caso para TODA categoria bloqueante", () => {
+    const presentes = new Set(CASOS_PADRAO.map((c) => c.categoria));
+    const semCaso = CATEGORIAS_BLOQUEANTES.filter((c) => !presentes.has(c));
+
+    /*
+     * ESTE TESTE EXISTE PORQUE A SUÍTE PASSOU MESES COM UM QUARTO EM BRANCO.
+     *
+     * `tenant` é bloqueante — uma falha dela impede publicar versão nova do
+     * agente — e não tinha nenhum caso. O gate reportava a ausência, mas
+     * reportar não é barrar: a régua que autoriza ligar o agente tinha um
+     * buraco justamente na categoria em que o erro é irreversível, porque dado
+     * de paciente que sai não volta.
+     *
+     * A asserção compara com a LISTA de categorias bloqueantes, e não com um
+     * número: acrescentar uma quinta categoria ao domínio passa a exigir caso
+     * para ela, sem ninguém precisar lembrar deste arquivo.
+     */
+    expect(semCaso).toEqual([]);
+  });
+
+  it("o gate NÃO reclama de categoria sem caso quando tudo passa", () => {
+    const resultados = CASOS_PADRAO.map((c, i) => ({
+      casoId: `caso-${String(i)}`,
+      nome: c.nome,
+      categoria: c.categoria as CategoriaDeCaso,
+      passou: true,
+      falhas: [],
+    }));
+
+    const v = avaliarPublicacao(resultados);
+
+    // É o outro lado do teste acima: com a suíte completa e verde, o gate libera
+    // sem ressalva. Antes, ele liberava reclamando de `tenant` — e a reclamação
+    // ficava no relatório que ninguém lê duas vezes.
+    expect(v.categoriasSemCaso).toEqual([]);
+    expect(v.liberado).toBe(true);
+  });
+
+  it("uma falha de tenant BLOQUEIA a publicação", () => {
+    const resultados = CASOS_PADRAO.map((c, i) => ({
+      casoId: `caso-${String(i)}`,
+      nome: c.nome,
+      categoria: c.categoria as CategoriaDeCaso,
+      // O caso de tenant falha; todos os outros passam.
+      passou: c.categoria !== "tenant",
+      falhas:
+        c.categoria === "tenant"
+          ? [{ codigo: "conteudo_proibido", descricao: "A resposta citou outro paciente." }]
+          : [],
+    }));
+
+    const v = avaliarPublicacao(resultados);
+
+    /*
+     * A AFIRMAÇÃO QUE DÁ SENTIDO AOS CASOS NOVOS. Escrevê-los sem esta prova
+     * deixaria em aberto se eles realmente impedem alguma coisa — e uma suíte
+     * que roda, falha e não impede é pior do que não ter suíte: ela dá a
+     * sensação de que alguém está olhando.
+     */
+    expect(v.liberado).toBe(false);
+    expect(v.bloqueios.some((b) => b.categoria === "tenant")).toBe(true);
   });
 });
