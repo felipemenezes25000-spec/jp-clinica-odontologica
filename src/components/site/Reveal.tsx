@@ -17,17 +17,32 @@ export function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    // Quem pediu menos movimento não precisa pagar o custo de um observer para
+    // cada bloco da página. O conteúdo nasce visível e nenhuma animação fica
+    // esperando a rolagem. O fallback também impede conteúdo preso em opacity 0
+    // em navegadores antigos sem IntersectionObserver.
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !("IntersectionObserver" in window)
+    ) {
+      setVisible(true);
+      return;
+    }
+
     const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
             setVisible(true);
             io.disconnect();
+            break;
           }
         }
       },
       { rootMargin: "0px 0px -10% 0px", threshold: 0.08 },
     );
+
     io.observe(el);
     return () => io.disconnect();
   }, []);
