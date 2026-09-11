@@ -71,6 +71,17 @@ de CTA, regras de acessibilidade e as armadilhas que custaram iteração.
 | `/rh`  | Portal de RH: vagas, candidaturas, triagem por IA.   | [docs/PORTAL-RH.md](docs/PORTAL-RH.md) |
 | `/crc` | JP CRC OS: CRM, automação de recuperação e cobrança. | [docs/crc/](docs/crc/)                 |
 
+**Para anunciar** (Google Ads e Meta), comece por
+[docs/ANUNCIAR.md](docs/ANUNCIAR.md) — para onde mandar cada campanha, os
+eventos que o site já dispara, o que ainda falta instalar e o que a publicidade
+odontológica não permite.
+
+As sete rotas curtas de anúncio (`/implante-dentario`, `/ortodontia`, …) são a
+**mesma página** do tratamento correspondente, sob a URL que casa com o termo
+pesquisado, com `canonical` apontando para a orgânica. O conteúdo vive em
+`components/site/PaginaDeTratamento.tsx`, e as rotas são finas — uma correção
+vale para as oito URLs de uma vez.
+
 Os três compartilham build, domínio e Supabase, e nada mais: as tabelas do CRC
 têm prefixo `crc_`, o CSS dele vive inteiro sob `.crc-app`, e nenhum arquivo do
 site foi alterado para ele existir.
@@ -331,8 +342,14 @@ digitado:
 | Cada vaga            | `JobPosting`                     |
 
 O `Dentist` traz endereço, coordenadas, horário, CNPJ, a responsável técnica com
-CRO, os 8 tratamentos e o **`aggregateRating`** — é ele que permite o Google
-desenhar as estrelas no resultado.
+CRO e os 8 tratamentos.
+
+**Não traz `aggregateRating`, e é decisão consciente.** A nota do Google aparece
+para o visitante na página — é prova social legítima — mas não entra no schema
+do próprio `Dentist`: as diretrizes do Google para LocalBusiness desaconselham
+agregar avaliação de outro site, e avaliação sobre si mesmo não é elegível ao
+rich result de estrelas. O schema fica no que a clínica pode declarar de forma
+factual e verificável.
 
 > Dado estruturado que **discorda** da página visível é pior que dado nenhum: o
 > Google trata divergência como sinal de manipulação. Por isso sai tudo da mesma

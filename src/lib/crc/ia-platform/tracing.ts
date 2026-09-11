@@ -28,30 +28,53 @@ type Span = {
 };
 
 /**
- * O resultado da reserva do turno.
+ * O resultado da reserva do turno. TRÊS desfechos, e não dois.
  *
- * `dono: false` significa que outra execução já reivindicou este turno — não é
- * erro, é a dedupe funcionando. Quem chama encerra sem fazer nada.
+ * A versão anterior tinha `dono: true | false`, e o `false` juntava duas
+ * situações que exigem reações opostas:
+ *
+ *   "outra execução está cuidando disto"  → encerrar o job. Certo.
+ *   "não consegui provar que sou o dono"  → encerrar o job. ERRADO: ninguém
+ *                                            está cuidando, e o job saiu da
+ *                                            fila achando que sim.
+ *
+ * `indefinido` é o terceiro caso, e existe para quem chama poder FALHAR em vez
+ * de concluir. Falhar devolve o job para a fila; concluir o apaga do mundo.
  */
-export type ReservaDoTurno = { dono: true; runId: string } | { dono: false };
+export type ReservaDoTurno =
+  | { dono: true; runId: string; tentativa: number }
+  /** Outro worker está nela, ou ela já terminou. Encerrar sem agir é correto. */
+  | { dono: false; motivo: "ocupada" | "terminal" }
+  /** Não deu para saber. NÃO execute, e NÃO conclua o job: devolva-o à fila. */
+  | { dono: false; motivo: "indefinido"; detalhe: string };
 
 export type Trace = {
   /**
-   * Reivindica o turno ANTES de qualquer efeito — Fase B.
+   * Reivindica o turno ANTES de qualquer efeito — Fase B, corrigida.
    *
    * A run nascia no ENCERRAMENTO, e a dedupe funcionava tarde demais: quando a
    * linha era escrita, o modelo já tinha sido chamado e pago. Duas execuções do
    * mesmo evento pagavam duas vezes para depois uma delas descobrir que era
-   * duplicata.
+   * duplicata. A Fase B moveu a linha para o começo, com `resultado = 'RODANDO'`
+   * e o índice único `(organization_id, chave_dedupe)` decidindo quem executa.
    *
-   * Agora a linha nasce com `resultado = 'RODANDO'`, e o índice único
-   * `(organization_id, chave_dedupe)` decide quem executa. Quem perder a corrida
-   * recebe `dono: false` e para antes de gastar qualquer coisa.
+   * O QUE FALTAVA, e era o furo: a reserva era um `insert ... on conflict do
+   * nothing`, então "a linha já existe" virava "outro é o dono" — inclusive
+   * quando o outro era o EU DE ANTES, que morreu no meio. O job se recuperava
+   * pelo lease dele, tentava reservar a run, batia no conflito, e o turno
+   * devolvia `sem_acao`. O worker concluía o job, e o paciente ficava sem
+   * resposta para sempre.
+   *
+   * Agora quem decide é `crc_reivindicar_ai_run`, e existir não basta: a run
+   * também tem LEASE. Lease vivo é dono de verdade; lease vencido é um turno
+   * órfão, e este aqui o assume.
    */
   reservar: (dados: {
     chaveDedupe: string;
     conversationId: string;
     jobId: string | null;
+    /** Quem está executando. Vai para a coluna, e serve para investigar. */
+    quem?: string | null;
   }) => Promise<ReservaDoTurno>;
   /** Mede uma etapa assíncrona. Repassa a exceção depois de registrá-la. */
   medir: <T>(nome: string, tipo: TipoSpan, fn: () => Promise<T>) => Promise<T>;
@@ -154,46 +177,74 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
             };
     },
 
-    async reservar({ chaveDedupe, conversationId: conversa, jobId }) {
+    async reservar({ chaveDedupe, conversationId: conversa, jobId, quem }) {
       try {
-        const { inserirIgnorandoDuplicata } = await import("../servidor/banco");
+        const { rpc } = await import("../servidor/banco");
+        const { LEASE_SEGUNDOS } = await import("../aplicacao/agent-jobs");
 
-        const criada = await inserirIgnorandoDuplicata("crc_ai_runs", {
-          organization_id: organizationId,
-          conversation_id: conversa,
-          chave_dedupe: chaveDedupe,
-          // O estado de trabalho. Quem lê a tabela sabe que este turno está em
-          // curso, e há quanto tempo.
-          resultado: "RODANDO",
-          iniciado_em: new Date(inicio).toISOString(),
-          job_id: jobId,
-          prompt_versao: "agent_shadow_turn_v1",
+        const linhas = await rpc("crc_reivindicar_ai_run", {
+          p_organization_id: organizationId,
+          p_conversation_id: conversa,
+          p_chave_dedupe: chaveDedupe,
+          p_job_id: jobId,
+          // O MESMO PRAZO DO JOB, de propósito. Um lease de run mais curto que o
+          // do job deixaria a run ser roubada enquanto o dono ainda trabalha;
+          // mais longo deixaria o job voltar à fila só para bater numa run que
+          // ninguém pode assumir, e girar em falso até esgotar as tentativas.
+          p_lease_segundos: LEASE_SEGUNDOS,
+          p_quem: quem ?? null,
         });
 
-        const id = criada === null ? null : criada["id"];
-        if (typeof id !== "string") return { dono: false };
+        const linha = linhas[0];
+        const situacao = linha === undefined ? "" : String(linha["situacao"] ?? "");
+        const id = linha === undefined ? null : linha["run_id"];
 
-        idDaRun = id;
-        return { dono: true, runId: id };
+        if ((situacao === "nova" || situacao === "reclaim") && typeof id === "string") {
+          idDaRun = id;
+          const n = Number(linha?.["numero_tentativa"] ?? 1);
+          return { dono: true, runId: id, tentativa: Number.isFinite(n) ? n : 1 };
+        }
+
+        if (situacao === "ocupada") return { dono: false, motivo: "ocupada" };
+        if (situacao === "terminal") return { dono: false, motivo: "terminal" };
+
+        /*
+         * `indisponivel` da RPC, ou uma resposta que não se reconhece. Não dá
+         * para afirmar quem é o dono, e afirmar errado aqui custa um paciente
+         * sem resposta — então cai no mesmo tratamento do erro abaixo.
+         */
+        return {
+          dono: false,
+          motivo: "indefinido",
+          detalhe: `Resposta inesperada da reivindicação: "${situacao}".`,
+        };
       } catch (erro) {
         /*
-         * NÃO CONSEGUIU RESERVAR: O TURNO SEGUE.
+         * NÃO CONSEGUIU RESERVAR: O TURNO PARA. FALHA FECHADA.
          *
-         * A reserva protege contra execução dupla, que custa dinheiro. A
-         * indisponibilidade do banco nessa hora é outra coisa, e recusar o turno
-         * por causa dela significaria deixar de responder um paciente por um
-         * problema que talvez nem afete o resto do fluxo.
+         * A versão anterior seguia em frente devolvendo `dono: true` com um
+         * runId vazio. O raciocínio era: "a reserva protege contra execução
+         * dupla, que custa dinheiro; não responder um paciente é pior". Está
+         * errado, e por dois motivos que só aparecem quando se pensa no que vem
+         * depois:
          *
-         * Sem reserva, o `gravar` no fim cai no caminho antigo — insere a run
-         * então. A proteção contra duplicata volta a ser tardia nesse caso, e é
-         * o preço assumido.
+         *   O PIOR CASO NÃO É O CUSTO. Sem idempotência, duas execuções do mesmo
+         *   turno podem MANDAR DUAS MENSAGENS ao paciente, ou marcar duas
+         *   consultas. O gasto dobrado é o menor dos danos.
+         *
+         *   E O TURNO NÃO SE PERDIA — só parecia. Devolver `indefinido` faz o
+         *   worker FALHAR o job em vez de concluí-lo, e um job falho volta para
+         *   a fila com backoff. O paciente continua sendo respondido, alguns
+         *   segundos depois, quando o banco voltar. Trocar a garantia por
+         *   pressa era pagar caro por nada.
          */
+        const detalhe = descrever(erro);
         const { registrar: log } = await import("../servidor/registro");
-        log("aviso", "Não foi possível reservar a run do turno.", {
+        log("erro", "Não foi possível reservar a run do turno.", {
           organizationId,
-          detalhe: descrever(erro),
+          detalhe,
         });
-        return { dono: true, runId: "" };
+        return { dono: false, motivo: "indefinido", detalhe };
       }
     },
 

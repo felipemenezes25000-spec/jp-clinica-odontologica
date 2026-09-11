@@ -10,9 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClareamentoDentalRouteImport } from './routes/clareamento-dental'
 import { Route as CrcRouteImport } from './routes/crc'
 import { Route as CrcInstitucionalRouteImport } from './routes/crc-institucional'
+import { Route as ImplanteDentarioRouteImport } from './routes/implante-dentario'
+import { Route as LimpezaDentalRouteImport } from './routes/limpeza-dental'
+import { Route as OdontopediatriaRouteImport } from './routes/odontopediatria'
+import { Route as OrtodontiaRouteImport } from './routes/ortodontia'
 import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
+import { Route as ProteseDentariaRouteImport } from './routes/protese-dentaria'
+import { Route as RestauracaoDentariaRouteImport } from './routes/restauracao-dentaria'
 import { Route as RhRouteImport } from './routes/rh'
 import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
@@ -32,6 +39,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClareamentoDentalRoute = ClareamentoDentalRouteImport.update({
+  id: '/clareamento-dental',
+  path: '/clareamento-dental',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrcRoute = CrcRouteImport.update({
   id: '/crc',
   path: '/crc',
@@ -42,9 +54,39 @@ const CrcInstitucionalRoute = CrcInstitucionalRouteImport.update({
   path: '/crc-institucional',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ImplanteDentarioRoute = ImplanteDentarioRouteImport.update({
+  id: '/implante-dentario',
+  path: '/implante-dentario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LimpezaDentalRoute = LimpezaDentalRouteImport.update({
+  id: '/limpeza-dental',
+  path: '/limpeza-dental',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OdontopediatriaRoute = OdontopediatriaRouteImport.update({
+  id: '/odontopediatria',
+  path: '/odontopediatria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrtodontiaRoute = OrtodontiaRouteImport.update({
+  id: '/ortodontia',
+  path: '/ortodontia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
   id: '/politica-de-privacidade',
   path: '/politica-de-privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProteseDentariaRoute = ProteseDentariaRouteImport.update({
+  id: '/protese-dentaria',
+  path: '/protese-dentaria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauracaoDentariaRoute = RestauracaoDentariaRouteImport.update({
+  id: '/restauracao-dentaria',
+  path: '/restauracao-dentaria',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RhRoute = RhRouteImport.update({
@@ -115,9 +157,16 @@ const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/clareamento-dental': typeof ClareamentoDentalRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/implante-dentario': typeof ImplanteDentarioRoute
+  '/limpeza-dental': typeof LimpezaDentalRoute
+  '/odontopediatria': typeof OdontopediatriaRoute
+  '/ortodontia': typeof OrtodontiaRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/protese-dentaria': typeof ProteseDentariaRoute
+  '/restauracao-dentaria': typeof RestauracaoDentariaRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -134,9 +183,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/clareamento-dental': typeof ClareamentoDentalRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/implante-dentario': typeof ImplanteDentarioRoute
+  '/limpeza-dental': typeof LimpezaDentalRoute
+  '/odontopediatria': typeof OdontopediatriaRoute
+  '/ortodontia': typeof OrtodontiaRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/protese-dentaria': typeof ProteseDentariaRoute
+  '/restauracao-dentaria': typeof RestauracaoDentariaRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -154,9 +210,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/clareamento-dental': typeof ClareamentoDentalRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/implante-dentario': typeof ImplanteDentarioRoute
+  '/limpeza-dental': typeof LimpezaDentalRoute
+  '/odontopediatria': typeof OdontopediatriaRoute
+  '/ortodontia': typeof OrtodontiaRoute
   '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/protese-dentaria': typeof ProteseDentariaRoute
+  '/restauracao-dentaria': typeof RestauracaoDentariaRoute
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
@@ -175,9 +238,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/clareamento-dental'
     | '/crc'
     | '/crc-institucional'
+    | '/implante-dentario'
+    | '/limpeza-dental'
+    | '/odontopediatria'
+    | '/ortodontia'
     | '/politica-de-privacidade'
+    | '/protese-dentaria'
+    | '/restauracao-dentaria'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -194,9 +264,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/clareamento-dental'
     | '/crc'
     | '/crc-institucional'
+    | '/implante-dentario'
+    | '/limpeza-dental'
+    | '/odontopediatria'
+    | '/ortodontia'
     | '/politica-de-privacidade'
+    | '/protese-dentaria'
+    | '/restauracao-dentaria'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -213,9 +290,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/clareamento-dental'
     | '/crc'
     | '/crc-institucional'
+    | '/implante-dentario'
+    | '/limpeza-dental'
+    | '/odontopediatria'
+    | '/ortodontia'
     | '/politica-de-privacidade'
+    | '/protese-dentaria'
+    | '/restauracao-dentaria'
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
@@ -233,9 +317,16 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ClareamentoDentalRoute: typeof ClareamentoDentalRoute
   CrcRoute: typeof CrcRoute
   CrcInstitucionalRoute: typeof CrcInstitucionalRoute
+  ImplanteDentarioRoute: typeof ImplanteDentarioRoute
+  LimpezaDentalRoute: typeof LimpezaDentalRoute
+  OdontopediatriaRoute: typeof OdontopediatriaRoute
+  OrtodontiaRoute: typeof OrtodontiaRoute
   PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
+  ProteseDentariaRoute: typeof ProteseDentariaRoute
+  RestauracaoDentariaRoute: typeof RestauracaoDentariaRoute
   RhRoute: typeof RhRoute
   TrabalheConoscoRoute: typeof TrabalheConoscoRoute
   CarreirasSlugRoute: typeof CarreirasSlugRoute
@@ -260,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/clareamento-dental': {
+      id: '/clareamento-dental'
+      path: '/clareamento-dental'
+      fullPath: '/clareamento-dental'
+      preLoaderRoute: typeof ClareamentoDentalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crc': {
       id: '/crc'
       path: '/crc'
@@ -274,11 +372,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrcInstitucionalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/implante-dentario': {
+      id: '/implante-dentario'
+      path: '/implante-dentario'
+      fullPath: '/implante-dentario'
+      preLoaderRoute: typeof ImplanteDentarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/limpeza-dental': {
+      id: '/limpeza-dental'
+      path: '/limpeza-dental'
+      fullPath: '/limpeza-dental'
+      preLoaderRoute: typeof LimpezaDentalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/odontopediatria': {
+      id: '/odontopediatria'
+      path: '/odontopediatria'
+      fullPath: '/odontopediatria'
+      preLoaderRoute: typeof OdontopediatriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ortodontia': {
+      id: '/ortodontia'
+      path: '/ortodontia'
+      fullPath: '/ortodontia'
+      preLoaderRoute: typeof OrtodontiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/politica-de-privacidade': {
       id: '/politica-de-privacidade'
       path: '/politica-de-privacidade'
       fullPath: '/politica-de-privacidade'
       preLoaderRoute: typeof PoliticaDePrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/protese-dentaria': {
+      id: '/protese-dentaria'
+      path: '/protese-dentaria'
+      fullPath: '/protese-dentaria'
+      preLoaderRoute: typeof ProteseDentariaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restauracao-dentaria': {
+      id: '/restauracao-dentaria'
+      path: '/restauracao-dentaria'
+      fullPath: '/restauracao-dentaria'
+      preLoaderRoute: typeof RestauracaoDentariaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rh': {
@@ -377,9 +517,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ClareamentoDentalRoute: ClareamentoDentalRoute,
   CrcRoute: CrcRoute,
   CrcInstitucionalRoute: CrcInstitucionalRoute,
+  ImplanteDentarioRoute: ImplanteDentarioRoute,
+  LimpezaDentalRoute: LimpezaDentalRoute,
+  OdontopediatriaRoute: OdontopediatriaRoute,
+  OrtodontiaRoute: OrtodontiaRoute,
   PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
+  ProteseDentariaRoute: ProteseDentariaRoute,
+  RestauracaoDentariaRoute: RestauracaoDentariaRoute,
   RhRoute: RhRoute,
   TrabalheConoscoRoute: TrabalheConoscoRoute,
   CarreirasSlugRoute: CarreirasSlugRoute,

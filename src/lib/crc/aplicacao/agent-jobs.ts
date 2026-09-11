@@ -56,6 +56,21 @@ export type AgentJob = {
 export const MAX_TENTATIVAS = 5;
 
 /**
+ * Quanto tempo um worker segura o que reservou.
+ *
+ * O MESMO VALOR VALE PARA O JOB E PARA A RUN, e a igualdade é o ponto — não
+ * coincidência. Se a run tivesse lease mais curto, ela poderia ser assumida por
+ * outro worker enquanto o dono do job ainda estivesse trabalhando: duas
+ * execuções, duas chamadas de modelo, possivelmente duas mensagens ao paciente.
+ * Se tivesse lease mais longo, o job voltaria à fila só para bater numa run que
+ * ninguém pode assumir ainda, e giraria em falso até esgotar as tentativas.
+ *
+ * Três minutos é folga sobre o turno mais lento observado (algo entre 4 e 12
+ * segundos) sem prender o trabalho por muito tempo quando o processo morre.
+ */
+export const LEASE_SEGUNDOS = 180;
+
+/**
  * Quanto esperar antes da próxima tentativa, em segundos.
  *
  * CRESCENTE E COM TETO: 30s, 2min, 8min, 32min. O provedor que devolveu 429 não
@@ -72,20 +87,37 @@ export function esperaDoRetry(tentativas: number): number {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Põe um turno na fila. NUNCA LANÇA.
+ * O que aconteceu ao tentar enfileirar.
  *
- * O handler de evento chama isto e segue. Se enfileirar falhar, o evento não
- * pode falhar junto: a classificação e as jornadas do mesmo evento continuam
- * valendo, e elas não têm nada a ver com o agente.
+ * TRÊS CASOS, E NÃO UM BOOLEANO. A versão anterior devolvia `boolean`, e o
+ * `false` significava as duas coisas ao mesmo tempo:
  *
- * Devolve `false` quando o job já existia — que é o caso normal de
- * reprocessamento, e não é erro.
+ *   "o job já existia"  → normal, reprocessamento, ignorar
+ *   "o banco falhou"    → o paciente escreveu e ninguém vai responder
+ *
+ * Quem chamava tratava os dois como normal — e era obrigado a tratar, porque não
+ * tinha como distinguir. O segundo caso então sumia sem deixar vestígio: nenhum
+ * job, nenhum erro propagado, nenhuma linha na fila de falhas. Só o silêncio.
+ */
+export type ResultadoDoEnfileiramento =
+  | { tipo: "criado"; jobId: string | null }
+  | { tipo: "duplicado" }
+  | { tipo: "erro"; detalhe: string };
+
+/**
+ * Põe um turno na fila. NUNCA LANÇA — quem chama decide o que fazer com o erro.
+ *
+ * POR QUE CONTINUA SEM LANÇAR. O handler de evento também classifica a mensagem
+ * e dispara jornadas, e nada disso depende do agente. Lançar daqui derrubaria
+ * essas outras coisas junto. O que mudou é que agora o erro CHEGA a quem chama
+ * nomeado, e é lá — onde se sabe o que mais está em jogo — que se decide entre
+ * seguir e falhar o evento.
  */
 export async function enfileirarTurno(pedido: {
   organizationId: string;
   conversationId: string;
   eventId: string;
-}): Promise<boolean> {
+}): Promise<ResultadoDoEnfileiramento> {
   try {
     const criado = await inserirIgnorandoDuplicata("crc_agent_jobs", {
       organization_id: pedido.organizationId,
@@ -96,14 +128,23 @@ export async function enfileirarTurno(pedido: {
       // ao mesmo evento — e o que faz reprocessar não duplicar nenhum dos três.
       chave_dedupe: `turno:${pedido.eventId}`,
     });
-    return criado !== null;
+
+    if (criado === null) return { tipo: "duplicado" };
+
+    const id = criado["id"];
+    return { tipo: "criado", jobId: typeof id === "string" ? id : null };
   } catch (erro) {
+    const detalhe = erro instanceof Error ? erro.message : String(erro);
     const { registrar } = await import("../servidor/registro");
-    registrar("aviso", "Não foi possível enfileirar o turno do agente.", {
+    /*
+     * "ERRO", E NÃO MAIS "AVISO". A severidade também estava mentindo: um turno
+     * perdido é um paciente sem resposta, e isso não é um aviso.
+     */
+    registrar("erro", "Não foi possível enfileirar o turno do agente.", {
       organizationId: pedido.organizationId,
-      detalhe: erro instanceof Error ? erro.message : String(erro),
+      detalhe,
     });
-    return false;
+    return { tipo: "erro", detalhe };
   }
 }
 
@@ -124,7 +165,7 @@ export async function reservarJobs(opcoes: {
 }): Promise<AgentJob[]> {
   const linhas = await rpc("crc_reservar_agent_jobs", {
     limite: opcoes.limite ?? 5,
-    lock_segundos: opcoes.leaseSegundos ?? 180,
+    lock_segundos: opcoes.leaseSegundos ?? LEASE_SEGUNDOS,
     quem: opcoes.quem ?? null,
   });
   return linhas.map(deLinha);

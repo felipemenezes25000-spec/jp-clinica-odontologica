@@ -740,11 +740,39 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
    * É barato: uma linha, e o descarte é registrado com o motivo.
    */
   const { enfileirarTurno } = await import("../aplicacao/agent-jobs");
-  await enfileirarTurno({
+  const r = await enfileirarTurno({
     organizationId: evento.organizationId,
     conversationId,
     eventId: evento.id,
   });
+
+  /*
+   * FALHOU AO ENFILEIRAR: LANÇA, E O EVENTO VOLTA PARA A FILA.
+   *
+   * Este `throw` é o conserto de um turno que se perdia em silêncio. Antes, o
+   * retorno era ignorado — e ignorar era a única opção honesta, porque o
+   * retorno era um booleano em que "já existia" e "o banco caiu" tinham o mesmo
+   * valor. O evento era marcado PROCESSADO, o job nunca nascia, e do outro lado
+   * ficava um paciente que escreveu e nunca foi respondido. Nada na fila
+   * indicava isso, porque a fila achava que tinha terminado.
+   *
+   * `processarEventos` devolve o evento para PENDENTE e repete com backoff;
+   * esgotadas as tentativas, ele vai para a dead letter, onde uma pessoa vê.
+   * Perder um turno deixou de ser silencioso.
+   *
+   * O PREÇO, e ele é real: os handlers de `message.received` que já rodaram
+   * antes deste — a classificação, a cobrança, as jornadas — rodam de novo na
+   * repescagem. É o contrato de entrega ao-menos-uma-vez que o sistema inteiro
+   * assume, e é por isso que cada efeito desses handlers é idempotente por
+   * constraint de banco, e não por verificação prévia. A alternativa — engolir o
+   * erro para não repetir os outros — troca trabalho repetido e barato por um
+   * paciente sem resposta.
+   *
+   * `duplicado` NÃO lança: o job já existe, que é exatamente o que se queria.
+   */
+  if (r.tipo === "erro") {
+    throw new Error(`Não foi possível enfileirar o turno do agente: ${r.detalhe}`);
+  }
 }
 
 /** Só para teste. */

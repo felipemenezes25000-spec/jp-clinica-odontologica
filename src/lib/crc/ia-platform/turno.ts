@@ -68,6 +68,14 @@ export type PedidoTurno = {
    */
   jobId?: string | null;
   /**
+   * Quem está executando — o mesmo identificador que o worker usa ao reservar o
+   * job. Vai para a coluna `travado_por` da run.
+   *
+   * A PERGUNTA QUE ELE RESPONDE: quando um turno trava sempre, é o turno ou é o
+   * worker? Sem isso, as duas hipóteses parecem iguais no banco.
+   */
+  quem?: string | null;
+  /**
    * `ai_supervisor` ligada. Roda a segunda leitura DEPOIS do desfecho, e é ela
    * quem propõe memória.
    *
@@ -137,7 +145,7 @@ function traceDeMentira(): Trace {
   return {
     medir: async (_nome, _tipo, fn) => await fn(),
     medirSync: (_nome, _tipo, fn) => fn(),
-    reservar: () => Promise.resolve({ dono: true as const, runId: "" }),
+    reservar: () => Promise.resolve({ dono: true as const, runId: "", tentativa: 1 }),
     runId: () => null,
     uso: () => undefined,
     ferramentas: () => undefined,
@@ -243,12 +251,36 @@ async function decidirEEntregar(
       chaveDedupe,
       conversationId: pedido.conversationId,
       jobId: pedido.jobId ?? null,
+      quem: pedido.quem ?? null,
     });
 
     if (!reserva.dono) {
+      /*
+       * DOIS DESFECHOS, E ELES SÃO OPOSTOS. A distinção é o conserto de um
+       * turno que se perdia por falhar aberto.
+       *
+       * `indefinido` = não deu para PROVAR quem é o dono — o banco piscou na
+       * hora da reivindicação. Isto NÃO é "alguém já cuidou": é "não sei". Com
+       * `sem_acao`, o worker concluiria o job, ele sairia da fila, e ninguém
+       * responderia o paciente. Com `falha_segura`, o worker relança, o job
+       * volta com backoff, e o turno acontece alguns segundos depois.
+       *
+       * `ocupada` / `terminal` = outra execução está nela agora, ou já
+       * terminou. Aí encerrar é o certo, e é a dedupe fazendo o trabalho dela.
+       */
+      if (reserva.motivo === "indefinido") {
+        return {
+          tipo: "falha_segura",
+          motivo: `Não foi possível garantir a idempotência do turno: ${reserva.detalhe}`,
+        };
+      }
+
       return {
         tipo: "sem_acao",
-        motivo: "Outra execução já está cuidando deste turno.",
+        motivo:
+          reserva.motivo === "terminal"
+            ? "Este turno já foi executado."
+            : "Outra execução já está cuidando deste turno.",
       };
     }
 

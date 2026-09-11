@@ -245,6 +245,9 @@ export function limparBanco(): void {
   tabelas = {};
   sequencia = 0;
   relogio = null;
+  // Uma falha armada e não disparada vazaria para o teste seguinte, e quebraria
+  // um teste que não tem nada a ver com ela. Ver `falharProximaEscrita`.
+  falhasArmadas.clear();
 }
 
 export function conteudo(tabela: string): Linha[] {
@@ -416,6 +419,40 @@ export function bancoConfigurado(): { ok: boolean; motivo: string } {
   return { ok: true, motivo: "" };
 }
 
+/* -------------------------------------------------------------------------- */
+/* Injeção de falha                                                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Faz a PRÓXIMA operação numa tabela explodir.
+ *
+ * POR QUE ISTO PRECISA EXISTIR. Uma classe inteira de defeito só aparece quando
+ * o banco falha na hora exata: o turno que seguia sem reserva de idempotência, o
+ * evento que era marcado PROCESSADO sem job nenhum. Nenhum dos dois quebra
+ * nenhum teste com o banco de pé — os dois são caminhos de `catch`, e um `catch`
+ * que ninguém exercita é uma decisão que ninguém revisou.
+ *
+ * O CONTRATO É "UMA VEZ", de propósito. Um modo "falhe sempre" faria o teste
+ * passar por motivo errado: a chamada seguinte — a que verifica a recuperação —
+ * também falharia, e o teste confirmaria o erro em vez do conserto.
+ *
+ * `limparBanco` zera isto, então um teste que arma e não dispara não contamina o
+ * seguinte.
+ */
+const falhasArmadas = new Map<string, string>();
+
+export function falharProximaEscrita(tabela: string, mensagem = "banco indisponível"): void {
+  falhasArmadas.set(tabela, mensagem);
+}
+
+/** Dispara e DESARMA. Chamada no começo de toda escrita e de toda RPC. */
+function dispararFalhaArmada(tabela: string): void {
+  const mensagem = falhasArmadas.get(tabela);
+  if (mensagem === undefined) return;
+  falhasArmadas.delete(tabela);
+  throw new Error(mensagem);
+}
+
 export function agoraIso(): string {
   return new Date(agoraMs()).toISOString();
 }
@@ -437,6 +474,7 @@ export function contar(tabela: string, filtros: readonly Filtro[] = []): Promise
 }
 
 export function inserir<T = Linha>(tabela: string, linhas: Linha | Linha[]): Promise<T[]> {
+  dispararFalhaArmada(tabela);
   const lista = Array.isArray(linhas) ? linhas : [linhas];
   const alvo = (tabelas[tabela] ??= []);
   const criadas: Linha[] = [];
@@ -526,6 +564,9 @@ export function apagar(tabela: string, filtros: readonly Filtro[]): Promise<void
  * concorrência exercita — duas chamadas seguidas NÃO devolvem a mesma linha.
  */
 export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[]> {
+  // A RPC arma pelo NOME dela, e não pela tabela que toca: do lado de fora é a
+  // RPC que falha, e é ela que quem chama tem de saber tratar.
+  dispararFalhaArmada(nome);
   const agora = agoraMs();
   const limite = typeof argumentos["limite"] === "number" ? argumentos["limite"] : 10;
   const lockSegundos =
@@ -868,6 +909,114 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       }
 
       return Promise.resolve(alvo.map((l) => ({ ...l })) as T[]);
+    }
+
+    /*
+     * A reivindicação da run — o reclaim.
+     *
+     * Reproduz as QUATRO situações da RPC de verdade, porque são quatro decisões
+     * diferentes de quem chama e reduzi-las a "consegui / não consegui" foi
+     * exatamente o defeito que esta função conserta:
+     *
+     *   nova     não existia. Cria e executa.
+     *   reclaim  existia RODANDO com o lease VENCIDO — o dono morreu. Assume.
+     *   ocupada  existia RODANDO com o lease VIVO. Outro está nela agora.
+     *   terminal já tem desfecho. O trabalho aconteceu.
+     */
+    case "crc_reivindicar_ai_run": {
+      const org = argumentos["p_organization_id"];
+      const chave = argumentos["p_chave_dedupe"];
+      const leaseSeg =
+        typeof argumentos["p_lease_segundos"] === "number" ? argumentos["p_lease_segundos"] : 180;
+      const ateQuando = new Date(agora + leaseSeg * 1000).toISOString();
+
+      const runs = tabelas["crc_ai_runs"] ?? [];
+      const existente = runs.find(
+        (l) => l["organization_id"] === org && l["chave_dedupe"] === chave,
+      );
+
+      if (existente === undefined) {
+        const nova = comPadroes("crc_ai_runs", {
+          organization_id: org,
+          conversation_id: argumentos["p_conversation_id"],
+          chave_dedupe: chave,
+          resultado: "RODANDO",
+          iniciado_em: new Date(agora).toISOString(),
+          job_id: argumentos["p_job_id"] ?? null,
+          travado_ate: ateQuando,
+          travado_por: argumentos["p_quem"] ?? null,
+          tentativa: 1,
+          prompt_versao: "agent_shadow_turn_v1",
+        });
+        runs.push(nova);
+        tabelas["crc_ai_runs"] = runs;
+        return Promise.resolve([
+          { situacao: "nova", run_id: nova["id"], numero_tentativa: 1 },
+        ] as T[]);
+      }
+
+      if (existente["resultado"] !== "RODANDO") {
+        return Promise.resolve([
+          { situacao: "terminal", run_id: existente["id"], numero_tentativa: 0 },
+        ] as T[]);
+      }
+
+      // `livre` é o mesmo predicado do lease do job: sem `travado_ate`, ou com
+      // ele no passado. Uma run RODANDO sem lease é de antes desta migração —
+      // e tratá-la como assumível é o certo: ninguém pode estar nela.
+      if (!livre(existente)) {
+        return Promise.resolve([
+          { situacao: "ocupada", run_id: existente["id"], numero_tentativa: 0 },
+        ] as T[]);
+      }
+
+      const tentativa =
+        (typeof existente["tentativa"] === "number" ? existente["tentativa"] : 1) + 1;
+      existente["travado_ate"] = ateQuando;
+      existente["travado_por"] = argumentos["p_quem"] ?? null;
+      existente["tentativa"] = tentativa;
+      existente["iniciado_em"] = new Date(agora).toISOString();
+      if (argumentos["p_job_id"] != null) existente["job_id"] = argumentos["p_job_id"];
+
+      return Promise.resolve([
+        { situacao: "reclaim", run_id: existente["id"], numero_tentativa: tentativa },
+      ] as T[]);
+    }
+
+    /*
+     * Fecha as runs que começaram e cujo job já saiu da fila — ninguém vai
+     * retomá-las. Sem isto, o painel de saúde contaria "turnos abertos" para
+     * sempre, e o número pararia de significar alguma coisa.
+     */
+    case "crc_fechar_ai_runs_abandonadas": {
+      const minutos = typeof argumentos["p_minutos"] === "number" ? argumentos["p_minutos"] : 30;
+      const corte = agora - minutos * 60_000;
+      const jobs = tabelas["crc_agent_jobs"] ?? [];
+
+      const abandonadas = (tabelas["crc_ai_runs"] ?? []).filter((l) => {
+        if (l["resultado"] !== "RODANDO") return false;
+        const inicio = l["iniciado_em"];
+        if (typeof inicio !== "string" || Date.parse(inicio) >= corte) return false;
+
+        const jobId = l["job_id"];
+        if (jobId == null) return true;
+        const job = jobs.find((j) => j["id"] === jobId);
+        return (
+          job !== undefined &&
+          (job["status"] === "CONCLUIDO" ||
+            job["status"] === "FALHOU" ||
+            job["status"] === "DESCARTADO")
+        );
+      });
+
+      for (const l of abandonadas) {
+        l["resultado"] = "falha_segura";
+        l["motivo"] = l["motivo"] ?? "O turno começou e o processo não voltou.";
+      }
+
+      return Promise.resolve([
+        { crc_fechar_ai_runs_abandonadas: abandonadas.length },
+      ] as T[]);
     }
 
     /*

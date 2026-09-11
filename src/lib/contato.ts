@@ -85,8 +85,30 @@ export type Evento =
 declare global {
   interface Window {
     dataLayer?: unknown[];
+    /** O Pixel da Meta, quando e se alguém instalar. Ver `META_POR_EVENTO`. */
+    fbq?: (...args: unknown[]) => void;
   }
 }
+
+/**
+ * De evento nosso para evento padrão da Meta.
+ *
+ * A Meta só otimiza campanha em cima do vocabulário dela — um evento chamado
+ * `whatsapp_click` não entra em otimização de conversão; `Contact`, sim. Por
+ * isso a tradução, e não um segundo conjunto de chamadas espalhado pelo código.
+ *
+ * O que fica de fora fica de propósito: `map_click`, `review_click` e os de
+ * carreira são sinal de navegação, não de intenção comercial, e mandá-los como
+ * conversão ensinaria o algoritmo a buscar a pessoa errada.
+ */
+const META_POR_EVENTO: Partial<Record<Evento, string>> = {
+  whatsapp_click: "Contact",
+  schedule_click: "Lead",
+  phone_click: "Contact",
+  treatment_view: "ViewContent",
+  treatment_cta_click: "Lead",
+  form_submit: "Lead",
+};
 
 /**
  * Registra um evento de conversão.
@@ -103,8 +125,18 @@ declare global {
 export function rastrear(evento: Evento, dados: Record<string, string> = {}): void {
   try {
     if (typeof window === "undefined") return;
+
+    // GTM / GA4 / Google Ads — o dataLayer é o formato que os três leem.
     window.dataLayer ??= [];
     window.dataLayer.push({ event: evento, ...dados });
+
+    // Meta Ads. `fbq` só existe se o Pixel estiver instalado; sem ele, esta
+    // linha não faz nada — nenhum ID é inventado aqui, e a ausência do Pixel
+    // não pode impedir um clique de WhatsApp de acontecer.
+    const meta = META_POR_EVENTO[evento];
+    if (meta && typeof window.fbq === "function") {
+      window.fbq("track", meta, dados);
+    }
   } catch {
     // Analytics nunca pode derrubar um CTA. Se falhar, falha calado.
   }

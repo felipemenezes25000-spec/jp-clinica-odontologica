@@ -27,9 +27,21 @@ import type { AgentJob } from "../aplicacao/agent-jobs";
  *   ANTES da reserva da run       nada foi feito. O retry roda o turno inteiro.
  *
  *   DEPOIS da reserva, ANTES do
- *   modelo                        o retry encontra a run RODANDO. Ela é dele:
- *                                 o job é o mesmo, a chave é a mesma, e o turno
- *                                 continua de onde nunca saiu.
+ *   modelo                        o retry encontra a run RODANDO com o LEASE
+ *                                 VENCIDO, e a reivindica — `reclaim`. O turno
+ *                                 roda de novo, na mesma linha, com `tentativa`
+ *                                 somando.
+ *
+ *                                 ISTO NÃO FUNCIONAVA ATÉ A CORREÇÃO DO
+ *                                 RECLAIM. A reserva era `insert ... on conflict
+ *                                 do nothing`, então a run existente era lida
+ *                                 como "outro é o dono" — mesmo sendo o eu de
+ *                                 antes, que morreu. O turno devolvia
+ *                                 `sem_acao`, o worker CONCLUÍA o job, e o
+ *                                 paciente ficava sem resposta para sempre. O
+ *                                 job se recuperava e a run não, o que era pior
+ *                                 do que não recuperar nada: a fila saía
+ *                                 marcada como resolvida.
  *
  *   DEPOIS do modelo, ANTES do
  *   desfecho                      o retry paga o modelo DE NOVO. É o único custo
@@ -120,7 +132,7 @@ export async function processarTurnosDoAgente(
           conversationId: job.conversationId,
           jobId: job.id,
         },
-        () => executarJob(job),
+        () => executarJob(job, opcoes.quem ?? null),
       );
 
       if (r.tipo === "descartado") {
@@ -168,7 +180,7 @@ async function ferramentasDesligadas(organizationId: string): Promise<readonly s
  * estado do enfileiramento faria o sistema agir com uma decisão que já foi
  * revogada.
  */
-async function executarJob(job: AgentJob): Promise<DesfechoDoJob> {
+async function executarJob(job: AgentJob, quem: string | null): Promise<DesfechoDoJob> {
   const { lerFlags, lerKillSwitches, lerConfiguracao } = await import("../servidor/configuracao");
   const [flags, interruptores] = await Promise.all([
     lerFlags(job.organizationId),
@@ -223,6 +235,7 @@ async function executarJob(job: AgentJob): Promise<DesfechoDoJob> {
     // caso humano ao mesmo acontecimento.
     eventoId: job.eventId ?? job.id,
     jobId: job.id,
+    quem,
     agora: new Date(),
     porta: provedor.configurado ? provedor.porta : null,
     portaSupervisor: supervisorIa.configurado ? supervisorIa.porta : null,

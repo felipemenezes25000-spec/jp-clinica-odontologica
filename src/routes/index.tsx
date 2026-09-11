@@ -447,7 +447,14 @@ function Home() {
 
           <div className="jp-container relative grid gap-12 lg:grid-cols-[.92fr_1.08fr] lg:items-center lg:gap-14">
             <Reveal>
-              <span className="eyebrow text-primary-ink">Odontologia para toda a vida</span>
+              {/* O que a pessoa precisa saber antes de tudo: QUE tipo de lugar é
+                  e ONDE fica. "Odontologia para toda a vida" era bonito e não
+                  respondia nenhuma das duas — quem chega de anúncio decide em
+                  segundos se aquilo é perto dela. O "para toda a vida" não se
+                  perdeu: ele é a subheadline logo abaixo, onde cabe inteiro. */}
+              <span className="eyebrow text-primary-ink">
+                Clínica odontológica na {HISTORIA.regiaoAtual}
+              </span>
               <h1 className="mt-6 max-w-3xl font-display text-[clamp(4rem,9vw,7.7rem)] font-extrabold leading-[.83] tracking-[-.065em] text-forest-2">
                 Sorrir <span className="text-brand-text">muda</span> tudo.
               </h1>

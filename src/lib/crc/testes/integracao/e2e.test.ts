@@ -198,6 +198,178 @@ describe("o worker morre e o paciente continua sendo respondido", () => {
 });
 
 /* ========================================================================== */
+/* 2b. O crash inteiro: job E run voltam                                      */
+/* ========================================================================== */
+
+/**
+ * A SEQUÊNCIA COMPLETA, e ela é o teste que faltava:
+ *
+ *   reservar job → reservar run → 💥 → lease vence → retomar job → RETOMAR RUN
+ *   → terminar
+ *
+ * O penúltimo passo é o que não existia. O job voltava e a run não: a
+ * reivindicação era `insert ... on conflict do nothing`, então a run já criada
+ * significava "outro é o dono" — mesmo quando o outro era o processo morto. O
+ * turno devolvia `sem_acao`, o worker CONCLUÍA o job, e o paciente ficava sem
+ * resposta com a fila marcada como resolvida.
+ *
+ * Os testes acima cobriam as duas metades separadas — o job que volta, a run que
+ * não duplica. Nenhum percorria as duas juntas, que é onde estava o furo.
+ */
+describe("o crash recupera o job E a run", () => {
+  const CHAVE = "turno:crash-completo";
+
+  const reivindicar = (quem: string) =>
+    sql<{ situacao: string; run_id: string; numero_tentativa: number }>(`
+      select * from public.crc_reivindicar_ai_run(
+        '${ORG_A}', '${CONVERSA}', '${CHAVE}', null, 180, '${quem}')
+    `);
+
+  beforeEach(async () => {
+    await sql(`
+      insert into public.crc_agent_jobs (organization_id, conversation_id, status, chave_dedupe)
+      values ('${ORG_A}', '${CONVERSA}', 'PENDENTE', '${CHAVE}')
+    `);
+  });
+
+  it("percorre crash, lease vencido e retomada até o desfecho", async () => {
+    // --- 1. o primeiro worker pega o job e abre a run -----------------------
+    const job1 = await sql<{ id: string }>(
+      `select id from public.crc_reservar_agent_jobs(5, 1, 'worker-1')`,
+    );
+    expect(job1).toHaveLength(1);
+
+    const run1 = await reivindicar("worker-1");
+    expect(run1[0]?.situacao).toBe("nova");
+
+    // --- 2. 💥 o processo morre entre a reserva e a chamada de modelo -------
+    await sql(`
+      update public.crc_agent_jobs set travado_ate = now() - interval '1 second';
+      update public.crc_ai_runs     set travado_ate = now() - interval '1 second';
+    `);
+
+    // --- 3. outro worker retoma o job --------------------------------------
+    const job2 = await sql<{ id: string; tentativas: number }>(
+      `select id, tentativas from public.crc_reservar_agent_jobs(5, 180, 'worker-2')`,
+    );
+    expect(job2[0]?.id).toBe(job1[0]?.id);
+
+    // --- 4. E RETOMA A RUN. Era aqui que parava. ---------------------------
+    const run2 = await reivindicar("worker-2");
+
+    expect(run2[0]?.situacao).toBe("reclaim");
+    // MESMA linha: a idempotência continua valendo, e o histórico do turno não
+    // se parte em dois.
+    expect(run2[0]?.run_id).toBe(run1[0]?.run_id);
+    expect(Number(run2[0]?.numero_tentativa)).toBe(2);
+
+    // --- 5. o turno termina, e o desfecho fecha a run ----------------------
+    await sql(`
+      update public.crc_ai_runs set resultado = 'enviado', travado_ate = null
+       where chave_dedupe = '${CHAVE}';
+      update public.crc_agent_jobs set status = 'CONCLUIDO', travado_ate = null
+       where chave_dedupe = '${CHAVE}';
+    `);
+
+    // --- 6. e um retry tardio NÃO roda de novo ------------------------------
+    const tarde = await reivindicar("worker-3");
+    // `terminal`, e não `reclaim`: o trabalho aconteceu. Repetir gastaria modelo
+    // para produzir a mesma resposta — e poderia reenviá-la ao paciente.
+    expect(tarde[0]?.situacao).toBe("terminal");
+
+    const runs = await sql(`select id from public.crc_ai_runs where chave_dedupe = '${CHAVE}'`);
+    expect(runs).toHaveLength(1);
+  });
+
+  it("o lease VIVO da run impede o roubo, mesmo com dois workers juntos", async () => {
+    await reivindicar("worker-1");
+
+    /*
+     * SEM O PREDICADO DE LEASE no `do update`, este teste passaria devolvendo
+     * `reclaim` — e o remédio seria pior que a doença: duas execuções do mesmo
+     * turno ao mesmo tempo, duas chamadas de modelo, possivelmente duas
+     * mensagens ao paciente.
+     */
+    const [a, b] = await Promise.all([reivindicar("worker-2"), reivindicar("worker-3")]);
+
+    expect(a[0]?.situacao).toBe("ocupada");
+    expect(b[0]?.situacao).toBe("ocupada");
+  });
+
+  it("duas retomadas SIMULTÂNEAS do lease vencido: só uma assume", async () => {
+    await reivindicar("worker-1");
+    await sql(`update public.crc_ai_runs set travado_ate = now() - interval '1 second'`);
+
+    /*
+     * A CORRIDA QUE O FAKE EM MEMÓRIA NUNCA PODERIA PROVAR — JavaScript é uma
+     * thread só. Aqui são duas transações de verdade disputando a mesma linha.
+     *
+     * O `on conflict do update ... where` é o que fecha a corrida: a segunda
+     * transação espera a primeira soltar a linha e SÓ ENTÃO avalia o predicado —
+     * contra o `travado_ate` já renovado. Ler-decidir-escrever, que é a
+     * alternativa óbvia, deixaria as duas lerem "vencido" e as duas assumirem.
+     */
+    const [a, b] = await Promise.all([reivindicar("worker-2"), reivindicar("worker-3")]);
+    const situacoes = [a[0]?.situacao, b[0]?.situacao].sort();
+
+    expect(situacoes).toEqual(["ocupada", "reclaim"]);
+
+    const [run] = await sql<{ tentativa: number }>(
+      `select tentativa from public.crc_ai_runs where chave_dedupe = '${CHAVE}'`,
+    );
+    // Somou UMA vez, e não duas: só uma retomada aconteceu de verdade.
+    expect(Number(run?.tentativa)).toBe(2);
+  });
+
+  it("a run órfã de um job morto é FECHADA, e não fica aberta para sempre", async () => {
+    await reivindicar("worker-1");
+
+    /*
+     * O ESTADO QUE NINGUÉM LIMPAVA. O job esgotou as tentativas e virou FALHOU;
+     * ninguém mais vai retomá-lo, então ninguém mais vai retomar a run dele. Ela
+     * fica RODANDO para sempre, e o painel de saúde passa a contar um "turno
+     * aberto" que nunca vai fechar — que é como uma métrica deixa de significar
+     * alguma coisa.
+     */
+    await sql(`
+      update public.crc_agent_jobs set status = 'FALHOU';
+      update public.crc_ai_runs
+         set iniciado_em = now() - interval '2 hours',
+             job_id = (select id from public.crc_agent_jobs limit 1);
+    `);
+
+    const [n] = await sql<{ crc_fechar_ai_runs_abandonadas: number }>(
+      `select public.crc_fechar_ai_runs_abandonadas(30)`,
+    );
+    expect(Number(n?.crc_fechar_ai_runs_abandonadas)).toBe(1);
+
+    const [run] = await sql<{ resultado: string; motivo: string }>(
+      `select resultado, motivo from public.crc_ai_runs where chave_dedupe = '${CHAVE}'`,
+    );
+    expect(run?.resultado).toBe("falha_segura");
+    expect(run?.motivo).toContain("não voltou");
+  });
+
+  it("NÃO fecha a run cujo job ainda pode voltar", async () => {
+    await reivindicar("worker-1");
+
+    // Job PENDENTE: ele ainda será reservado, e vai retomar esta run. Fechá-la
+    // agora faria o worker encontrar `terminal` e desistir de um turno que
+    // ninguém executou.
+    await sql(`
+      update public.crc_ai_runs
+         set iniciado_em = now() - interval '2 hours',
+             job_id = (select id from public.crc_agent_jobs limit 1);
+    `);
+
+    const [n] = await sql<{ crc_fechar_ai_runs_abandonadas: number }>(
+      `select public.crc_fechar_ai_runs_abandonadas(30)`,
+    );
+    expect(Number(n?.crc_fechar_ai_runs_abandonadas)).toBe(0);
+  });
+});
+
+/* ========================================================================== */
 /* 3. Carga                                                                   */
 /* ========================================================================== */
 

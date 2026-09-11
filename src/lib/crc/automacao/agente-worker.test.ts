@@ -29,7 +29,13 @@ vi.mock("../servidor/registro", async () => {
   return { ...real, registrar: () => undefined, auditar: () => Promise.resolve() };
 });
 
-import { conteudo, definirRelogio, limparBanco, semear } from "../testes/banco-memoria";
+import {
+  conteudo,
+  definirRelogio,
+  falharProximaEscrita,
+  limparBanco,
+  semear,
+} from "../testes/banco-memoria";
 import {
   concluirJob,
   descartarJob,
@@ -63,7 +69,7 @@ beforeEach(() => {
 
 describe("enfileirar", () => {
   it("põe o turno na fila", async () => {
-    expect(await enfileirar()).toBe(true);
+    expect((await enfileirar()).tipo).toBe("criado");
     expect(conteudo("crc_agent_jobs")).toHaveLength(1);
     expect(conteudo("crc_agent_jobs")[0]?.["status"]).toBe("PENDENTE");
   });
@@ -72,8 +78,32 @@ describe("enfileirar", () => {
     // É o caso real: o motor de eventos reprocessa depois de um restart. Sem a
     // constraint, o mesmo turno entraria duas vezes — duas chamadas de modelo
     // pagas para produzir a mesma resposta.
-    expect(await enfileirar()).toBe(true);
-    expect(await enfileirar()).toBe(false);
+    expect((await enfileirar()).tipo).toBe("criado");
+    expect((await enfileirar()).tipo).toBe("duplicado");
+    expect(conteudo("crc_agent_jobs")).toHaveLength(1);
+  });
+
+  it("DUPLICADO e ERRO são desfechos DIFERENTES", async () => {
+    /*
+     * O TESTE QUE EXISTE POR CAUSA DE UM TURNO PERDIDO.
+     *
+     * O retorno era `boolean`, e o `false` queria dizer as duas coisas: "o job
+     * já existia" (normal) e "o banco caiu" (um paciente sem resposta). Quem
+     * chamava era obrigado a tratar as duas como normal, porque não tinha como
+     * separar — e o evento saía marcado como PROCESSADO sem job nenhum.
+     *
+     * Aqui o mesmo `enfileirar` é chamado duas vezes: uma com o banco de pé,
+     * outra com ele falhando. Se os dois desfechos voltarem a colidir num valor
+     * só, este teste quebra.
+     */
+    await enfileirar();
+    expect((await enfileirar()).tipo).toBe("duplicado");
+
+    falharProximaEscrita("crc_agent_jobs");
+    const r = await enfileirar("evt-novo");
+
+    expect(r.tipo).toBe("erro");
+    // E o job NÃO entrou: sobra o do primeiro evento, e mais nada.
     expect(conteudo("crc_agent_jobs")).toHaveLength(1);
   });
 
@@ -384,5 +414,94 @@ describe("crash não duplica efeito", () => {
 
     expect(enviadas).toHaveLength(1);
     expect(conteudo("crc_messages").filter((m) => m["direcao"] === "SAIDA")).toHaveLength(1);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe("o reclaim da run", () => {
+  const reservar = async (quem: string) => {
+    const { abrirTrace } = await import("../ia-platform/tracing");
+    return await abrirTrace(ORG, CONVERSA).reservar({
+      chaveDedupe: `turno:${EVENTO}`,
+      conversationId: CONVERSA,
+      jobId: null,
+      quem,
+    });
+  };
+
+  it("o lease VIVO impede outro de assumir", async () => {
+    const a = await reservar("worker-1");
+    const b = await reservar("worker-2");
+
+    expect(a.dono).toBe(true);
+    // "ocupada", e não "terminal": alguém está nela AGORA. A distinção existe
+    // porque só uma das duas justifica tentar de novo mais tarde.
+    expect(b).toEqual({ dono: false, motivo: "ocupada" });
+    expect(conteudo("crc_ai_runs")).toHaveLength(1);
+  });
+
+  it("o lease VENCIDO deixa a run ser retomada — e é o conserto do P0", async () => {
+    /*
+     * O DEFEITO QUE ESTE TESTE TRAVA.
+     *
+     * A reserva era `insert ... on conflict do nothing`: a linha existir
+     * significava "outro é o dono". Só que o "outro" podia ser o EU DE ANTES,
+     * morto no meio do turno. O job se recuperava pelo lease dele, tentava
+     * reservar a run, batia no conflito, e o turno devolvia `sem_acao` — que o
+     * worker lê como desfecho legítimo e usa para CONCLUIR o job.
+     *
+     * Resultado: o job saía da fila marcado como resolvido, e o paciente nunca
+     * era respondido. O job se recuperava e a run não.
+     */
+    const antes = await reservar("worker-que-morreu");
+    expect(antes.dono).toBe(true);
+
+    // 💥 o processo morre aqui. O relógio anda além do lease.
+    definirRelogio(new Date(AGORA.getTime() + 200_000));
+
+    const depois = await reservar("worker-2");
+
+    expect(depois.dono).toBe(true);
+    if (depois.dono) {
+      // MESMA linha, e não uma segunda: a idempotência continua valendo.
+      expect(depois.runId).toBe(antes.dono ? antes.runId : "");
+      // A tentativa soma. É o que separa "turno lento" de "turno que trava
+      // sempre" quando alguém for investigar.
+      expect(depois.tentativa).toBe(2);
+    }
+    expect(conteudo("crc_ai_runs")).toHaveLength(1);
+  });
+
+  it("run já TERMINADA não roda de novo", async () => {
+    await reservar("worker-1");
+    const linha = conteudo("crc_ai_runs")[0];
+    if (linha !== undefined) linha["resultado"] = "enviado";
+
+    // Mesmo com o lease vencido: o trabalho ACONTECEU. Repetir gastaria modelo
+    // de novo para produzir a mesma resposta — e, pior, poderia reenviá-la.
+    definirRelogio(new Date(AGORA.getTime() + 200_000));
+    expect(await reservar("worker-2")).toEqual({ dono: false, motivo: "terminal" });
+  });
+
+  it("a reserva que FALHA não devolve dono — falha FECHADA", async () => {
+    /*
+     * O TERCEIRO P0.
+     *
+     * A versão anterior devolvia `dono: true` com runId vazio quando o banco
+     * caía, e o comentário justificava: "não responder um paciente é pior que
+     * pagar duas vezes". O raciocínio ignora o que vem depois — sem
+     * idempotência, duas execuções do mesmo turno podem mandar DUAS MENSAGENS
+     * ao paciente, ou marcar duas consultas. O gasto dobrado é o menor dano.
+     *
+     * E o turno não se perdia: `indefinido` faz o worker FALHAR o job, e um job
+     * falho volta para a fila.
+     */
+    falharProximaEscrita("crc_reivindicar_ai_run");
+    const r = await reservar("worker-1");
+
+    expect(r.dono).toBe(false);
+    expect(r.dono === false ? r.motivo : "").toBe("indefinido");
+    expect(conteudo("crc_ai_runs")).toHaveLength(0);
   });
 });
