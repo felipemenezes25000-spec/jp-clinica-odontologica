@@ -619,6 +619,11 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
           "É o que o sistema aceita. O servidor recusa fora dele mesmo que a tela seja contornada.",
       },
       {
+        faca: "O quanto a IA pode fazer sozinha",
+        efeito:
+          "Três chaves em rampa. A 1 deixa a IA escrever sem mandar (você lê em Inteligência). A 2 deixa ela olhar a agenda. A 3 é a que faz o paciente receber. Ligue de cima para baixo, e só desça um degrau depois de ver o resultado do anterior.",
+      },
+      {
         faca: "Salvar a semana",
         efeito:
           "Grava o horário em que a automação pode falar. Fora dele ela não envia: espera e manda na abertura do dia seguinte.",

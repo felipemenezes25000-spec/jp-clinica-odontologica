@@ -59,6 +59,13 @@ export function FloatingCTA() {
             : "pointer-events-none invisible translate-y-8 opacity-0"
         }`}
         aria-hidden={!visivel}
+        /* `inert` junto do aria-hidden, e nao um ou outro: o Lighthouse
+           reprovou com "[aria-hidden] elements contain focusable descendents".
+           aria-hidden esconde do leitor de tela mas NAO tira do Tab -- quem
+           navega por teclado caia dentro de um convite invisivel e ficava sem
+           saber onde estava. `inert` tira do foco e da arvore de acessibilidade
+           de uma vez. */
+        inert={!visivel}
       >
         <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
@@ -141,6 +148,13 @@ export function FloatingCTA() {
           visivel ? "translate-y-0" : "invisible translate-y-full"
         }`}
         aria-hidden={!visivel}
+        /* `inert` junto do aria-hidden, e nao um ou outro: o Lighthouse
+           reprovou com "[aria-hidden] elements contain focusable descendents".
+           aria-hidden esconde do leitor de tela mas NAO tira do Tab -- quem
+           navega por teclado caia dentro de um convite invisivel e ficava sem
+           saber onde estava. `inert` tira do foco e da arvore de acessibilidade
+           de uma vez. */
+        inert={!visivel}
       >
         <div className="grid grid-cols-[.34fr_1fr_auto] gap-2">
           <a

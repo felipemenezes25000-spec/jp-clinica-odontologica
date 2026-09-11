@@ -1791,3 +1791,40 @@
     grid-column: 1 / -1;
   }
 }
+
+/* ==========================================================================
+   Configurações — a legenda da rampa de autonomia
+   ==========================================================================
+
+   Fundo diferente das chaves e SEM borda de cartão: é texto para ler antes de
+   agir, não mais um item da lista. Um cartão aqui competiria visualmente com
+   os interruptores e seria lido como se fosse mais uma opção.
+   ========================================================================== */
+
+.crc-app .crc-flags-legenda {
+  margin: 0 14px 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--crc-superficie-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e2);
+}
+
+.crc-app .crc-flags-legenda p {
+  margin: 0;
+  color: var(--crc-texto-2);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  max-width: 78ch;
+}
+
+.crc-app .crc-flags-legenda strong {
+  color: var(--crc-texto);
+}
+
+.crc-app .crc-flags-legenda em {
+  font-style: normal;
+  font-weight: 650;
+  color: var(--crc-primaria-texto, var(--crc-primaria));
+}

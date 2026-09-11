@@ -65,7 +65,7 @@ import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
 import { TeamSection } from "@/components/site/TeamSection";
-import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { DADOS_ESTRUTURADOS } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
@@ -200,7 +200,10 @@ export const Route = createFileRoute("/")({
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESCRIPTION },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    // Absoluto, e nao "/": canonical relativo o Google descarta -- o Lighthouse
+    // reprovou com "Document does not have a valid rel=canonical". As outras
+    // cinco rotas do site ja usavam SITE_URL; so a home tinha ficado para tras.
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
     scripts: [
       // Os dados estruturados vivem em @/lib/dadosEstruturados, montados a
       // partir de CLINICA, AVALIACOES, HISTORIA, TRATAMENTOS e FAQ.

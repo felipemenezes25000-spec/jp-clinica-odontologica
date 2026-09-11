@@ -135,7 +135,31 @@ const GRUPOS: readonly {
   },
 ];
 
+/*
+ * A ORDEM DESTE OBJETO É A ORDEM DE LIGAR, e não alfabética nem histórica.
+ *
+ * Cada linha abaixo dá um poder a mais para a máquina, e a de cima é sempre a
+ * mais barata de errar. Quem ler a tela de cima para baixo está lendo a rampa
+ * na sequência em que ela deve ser subida — e uma pessoa que liga a terceira
+ * sem ter olhado o resultado da primeira sabe que pulou etapa, porque a etapa
+ * estava ali.
+ */
 const ROTULO_FLAG: Readonly<Record<string, { nome: string; explicacao: string }>> = {
+  ai_agente_sombra: {
+    nome: "1. Deixar a IA treinar em silêncio",
+    explicacao:
+      "Ela lê as mensagens que chegam e escreve o que responderia — mas não manda para ninguém. Você lê as respostas dela na tela Inteligência. Serve para você ver como ela fala antes de qualquer paciente ver. Ligar isto não muda nada para quem está do outro lado.",
+  },
+  ai_agente_escrita: {
+    nome: "2. Deixar a IA olhar a agenda",
+    explicacao:
+      "Ela passa a poder consultar os horários livres de verdade e separar um para o paciente. Sem isto, ela não sabe o que está livre e é proibida de falar de horário. Marcar a consulta no Dental Office ainda depende das duas chaves mais abaixo.",
+  },
+  ai_agente_envio: {
+    nome: "3. Deixar a IA responder o paciente",
+    explicacao:
+      "É aqui que o paciente passa a receber. Até ligar isto, tudo que ela escreve fica só na tela. Mesmo ligada, ela nunca fala de remédio, sintoma ou diagnóstico, nunca promete que alguém vai ligar, e nunca cita horário que não tenha consultado — isso é regra do sistema, não do texto dela.",
+  },
   ai_autopilot: {
     nome: "IA pode agir sozinha",
     explicacao:
@@ -263,14 +287,35 @@ export function Configuracoes() {
           </span>
           <div>
             <small>Autonomia</small>
-            <h2>Recursos do sistema</h2>
+            <h2>O quanto a IA pode fazer sozinha</h2>
             <p>
               {cfg.podeMexerEmFlags
-                ? "Ligar uma flag muda o que o CRC pode fazer sozinho."
+                ? "São degraus, e a ordem importa: cada chave dá um poder a mais para a máquina. Ligue de cima para baixo, e só desça um degrau depois de ver o resultado do anterior na tela Inteligência."
                 : "Só administradores e gestores mudam estes recursos."}
             </p>
           </div>
         </header>
+
+        {/*
+          A LEGENDA DA SEÇÃO, e não de cada chave.
+          Quem chega aqui sem contexto precisa saber duas coisas antes de tocar
+          em qualquer interruptor: que a ordem é uma rampa, e que existe um
+          ponto a partir do qual o paciente passa a receber. A segunda é a que
+          não pode ser descoberta depois.
+        */}
+        <div className="crc-flags-legenda">
+          <p>
+            <strong>Nada aqui liga sozinho.</strong> Com tudo desligado, o CRC continua funcionando
+            como sempre: as automações mandam as mensagens de sempre, a leitura automática continua
+            classificando e a recepção continua respondendo à mão.
+          </p>
+          <p>
+            <strong>O paciente só passa a receber da IA no degrau 3.</strong> Até lá, tudo que ela
+            escreve fica guardado em <em>Inteligência</em> para você ler. Se em algum momento quiser
+            parar tudo na hora, o botão é <em>Pausar agora</em>, em Integrações.
+          </p>
+        </div>
+
         <div className="crc-settings-flags-v2">
           {Object.entries(ROTULO_FLAG).map(([chave, texto]) => (
             <article key={chave} data-ligado={cfg.flags[chave] === true ? "sim" : "nao"}>
