@@ -144,7 +144,7 @@ const GRUPOS: readonly {
  * sem ter olhado o resultado da primeira sabe que pulou etapa, porque a etapa
  * estava ali.
  */
-const ROTULO_FLAG: Readonly<Record<string, { nome: string; explicacao: string }>> = {
+const RAMPA_AGENTE: Readonly<Record<string, { nome: string; explicacao: string }>> = {
   ai_agente_sombra: {
     nome: "1. Deixar a IA treinar em silêncio",
     explicacao:
@@ -160,6 +160,13 @@ const ROTULO_FLAG: Readonly<Record<string, { nome: string; explicacao: string }>
     explicacao:
       "É aqui que o paciente passa a receber. Até ligar isto, tudo que ela escreve fica só na tela. Mesmo ligada, ela nunca fala de remédio, sintoma ou diagnóstico, nunca promete que alguém vai ligar, e nunca cita horário que não tenha consultado — isso é regra do sistema, não do texto dela.",
   },
+};
+
+/**
+ * As demais chaves. Não são sequência — cada uma é independente das outras, e
+ * por isso continuam na grade de duas colunas.
+ */
+const ROTULO_FLAG: Readonly<Record<string, { nome: string; explicacao: string }>> = {
   ai_autopilot: {
     nome: "IA pode agir sozinha",
     explicacao:
@@ -314,6 +321,37 @@ export function Configuracoes() {
             escreve fica guardado em <em>Inteligência</em> para você ler. Se em algum momento quiser
             parar tudo na hora, o botão é <em>Pausar agora</em>, em Integrações.
           </p>
+        </div>
+
+        {/*
+          A RAMPA EM COLUNA ÚNICA, e não na grade de duas.
+          Medido no navegador: a 1600px a grade põe o 1 e o 2 lado a lado e o 3
+          embaixo do 1 — e três passos numerados lidos como duas colunas deixam
+          de ser uma sequência. Aqui a ordem é o conteúdo.
+        */}
+        <div className="crc-flags-rampa">
+          {Object.entries(RAMPA_AGENTE).map(([chave, texto]) => (
+            <article key={chave} data-ligado={cfg.flags[chave] === true ? "sim" : "nao"}>
+              <div>
+                <strong>{texto.nome}</strong>
+                <p>{texto.explicacao}</p>
+              </div>
+              <Interruptor
+                rotulo={texto.nome}
+                ligado={cfg.flags[chave] === true}
+                desabilitado={!cfg.podeMexerEmFlags}
+                aoMudar={(ligada) => {
+                  void acao
+                    .executar(
+                      () => definirFeatureFlag({ data: { chave, ligada } }),
+                      undefined,
+                      ligada ? "Recurso ligado." : "Recurso desligado.",
+                    )
+                    .then(() => recarregar());
+                }}
+              />
+            </article>
+          ))}
         </div>
 
         <div className="crc-settings-flags-v2">

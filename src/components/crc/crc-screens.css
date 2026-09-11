@@ -1828,3 +1828,57 @@
   font-weight: 650;
   color: var(--crc-primaria-texto, var(--crc-primaria));
 }
+
+/* A rampa de autonomia: coluna única SEMPRE.
+   Três passos numerados lado a lado deixam de ser sequência — medido a 1600px,
+   a grade de duas colunas punha o 3 embaixo do 1. Aqui a ordem é o conteúdo. */
+.crc-app .crc-flags-rampa {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.crc-app .crc-flags-rampa > article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--crc-e4);
+  padding: 12px 14px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 13px;
+  background: var(--crc-superficie);
+}
+
+/* Ligada: a borda verde marca até onde a rampa foi subida, de relance. */
+.crc-app .crc-flags-rampa > article[data-ligado="sim"] {
+  border-color: var(--crc-primaria-borda);
+  background: var(--crc-primaria-suave);
+}
+
+.crc-app .crc-flags-rampa > article > div {
+  min-width: 0;
+}
+
+.crc-app .crc-flags-rampa strong {
+  display: block;
+  color: var(--crc-texto);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.crc-app .crc-flags-rampa p {
+  margin: 3px 0 0;
+  color: var(--crc-texto-2);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  max-width: 82ch;
+}
+
+@media (max-width: 640px) {
+  .crc-app .crc-flags-rampa > article {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--crc-e3);
+  }
+}
