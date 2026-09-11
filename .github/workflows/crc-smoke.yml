@@ -26,10 +26,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      # O lockfile legado ainda não passa `npm ci` (falta lru-cache@11.5.2).
-      # O smoke precisa validar o produto, não falhar antes por essa dívida.
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck
         run: npm run typecheck
