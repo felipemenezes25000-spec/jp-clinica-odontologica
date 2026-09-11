@@ -210,6 +210,52 @@ investigar.
 
 ---
 
+## Sintoma: "o paciente escreveu e o agente demorou horas"
+
+**Primeiro, entenda o desenho.** O CRC tem DUAS cadências, e elas são coisas
+diferentes:
+
+| | O quê | Quem chama | Com que frequência |
+|---|---|---|---|
+| **Pulso** | eventos, turnos do agente, jornadas vencidas | GitHub Actions + o webhook | ~5 min, e segundos quando a mensagem chega |
+| **Volta diária** | sincronização, campanhas, varreduras | cron da Vercel | 1×/dia, 9h UTC |
+
+> Até setembro/2026 **não existia pulso**: tudo rodava na volta diária. Uma
+> mensagem das 14h era respondida às 9h do dia seguinte. A fila sempre foi boa;
+> o consumidor é que era chamado como batch noturno.
+
+**O cron da Vercel não resolve isso.** Este projeto está no plano Hobby, onde
+cron é no máximo 1×/dia — tentar agendar mais denso derruba o deploy inteiro.
+Por isso o agendador do pulso mora no GitHub Actions.
+
+Na ordem, o que conferir:
+
+```bash
+gh run list --workflow=crc-pulso.yml --limit 5
+```
+
+1. **O workflow está rodando?** Se todas as execuções falham, quase sempre é o
+   secret: `gh secret set CRON_SECRET` com o mesmo valor da Vercel.
+2. **O toque do webhook está ligado?** Falta `CRC_URL_PUBLICA` no ambiente da
+   Vercel → o toque não acontece e tudo espera os 5 minutos do agendador. Não dá
+   erro em lugar nenhum, de propósito.
+3. **A fila está andando?**
+
+```bash
+curl -sS -X POST https://www.jpclinicaodontologica.com.br/api/crc/pulso \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Ele devolve quantos eventos, turnos e jornadas a volta pegou. Rodar à mão é
+seguro: a reserva é atômica e todo passo é idempotente.
+
+> O `schedule` do GitHub é **best-effort**: sob carga, 5 minutos viram 15. Isso é
+> aceitável para a rede de recuperação — quem dá a resposta rápida é o toque do
+> webhook. Se o toque parar, a latência sobe para a cadência do agendador sem
+> nada quebrar, e é exatamente por isso que os dois existem.
+
+---
+
 ## Procedimentos
 
 ### Aplicar o schema num banco novo

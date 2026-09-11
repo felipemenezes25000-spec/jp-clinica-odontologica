@@ -1,101 +1,41 @@
 /**
- * O coração batendo — `/api/crc/motor`.
+ * A volta diária — `/api/crc/motor`.
  *
- * É esta rota que faz o CRC funcionar sozinho. A Vercel a chama pelo cron
- * declarado em `vercel.json`, e cada chamada faz uma volta completa:
+ * ========================================================================
+ *  ESTA ROTA DEIXOU DE SER O CORAÇÃO DO CRC, e a mudança é o conserto de um
+ *  defeito que anulava boa parte do sistema.
  *
- *   1. sincroniza o Dental Office  → fatos novos viram eventos
- *   2. processa eventos pendentes  → oportunidades e jornadas nascem
- *   3. avança as jornadas vencidas → mensagens saem, tarefas são criadas
- *   4. envia a cota do dia das campanhas
- *   5. na madrugada, varre a base  → recall, confirmação, cobrança, orçamento
+ *  Ela fazia TUDO: sincronizar, processar eventos, rodar turnos do agente,
+ *  avançar jornadas, campanhas e varreduras. E era chamada pelo cron da
+ *  Vercel — que neste plano roda **uma vez por dia**. O resultado:
  *
- * POR QUE UMA ROTA, E NÃO UM WORKER RESIDENTE (item 268)
- * Porque o projeto roda em serverless. Não existe processo que fique de pé
- * entre requisições; um `while(true)` num handler seria morto pelo timeout da
- * função. O modelo correto aqui é "acorda, faz um lote, dorme" — e o estado que
- * sobrevive entre as voltas mora no banco.
+ *      14:03  paciente escreve "quero remarcar"
+ *      09:00  do dia seguinte, o agente responde
  *
- * POR QUE ELA NÃO FAZ TUDO O QUE PODERIA
- * Cada passo tem teto. Uma função da Vercel tem limite de tempo, e uma volta
- * que estoura no meio deixa metade do trabalho feito sem indicação de onde
- * parou. Com teto, ela converge em várias voltas — e o `FOR UPDATE SKIP LOCKED`
- * garante que duas voltas sobrepostas não briguem pela mesma linha.
+ *  Uma fila durável excelente, consumida em cadência de batch noturno.
  *
- * SEGURANÇA: `CRON_SECRET`, comparado em tempo constante. Sem a variável, a
- * rota responde 503 e não faz nada — falhar fechada é o único comportamento
- * aceitável numa rota que manda mensagem para paciente.
+ *  O trabalho quente mudou para `/api/crc/pulso`, chamado a cada poucos
+ *  minutos por um agendador externo e pelo próprio webhook do WhatsApp. O que
+ *  ficou aqui é o que pode esperar o dia seguinte — e que NÃO pode rodar a
+ *  cada cinco minutos, porque bateria 288 vezes por dia no Dental Office.
+ * ========================================================================
+ *
+ * ELA AINDA BATE O PULSO NO FIM. Não para dar velocidade — para ser
+ * autossuficiente: se o agendador externo parar, a volta diária continua
+ * drenando a fila uma vez por dia. Devagar é muito melhor que nunca, e um
+ * sistema que depende de UM agendador tem um ponto único de falha a mais.
+ *
+ * SEGURANÇA: `CRON_SECRET`, comparado em tempo constante. Sem a variável, 503 e
+ * nada acontece — falhar fechada é o único comportamento aceitável numa rota
+ * que manda mensagem para paciente.
  */
 import { createFileRoute } from "@tanstack/react-router";
-
-type Relatorio = {
-  sincronizacao: unknown;
-  eventos: unknown;
-  /** Os turnos do agente que este ciclo reservou e rodou — Fase B. */
-  turnos: unknown;
-  campanhas: unknown;
-  jornadas: unknown;
-  varreduras: unknown[];
-  duracaoMs: number;
-};
 
 function json(corpo: unknown, status: number): Response {
   return new Response(JSON.stringify(corpo, null, 2), {
     status,
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
-}
-
-/**
- * Traz o que mudou no Dental Office, ou explica por que não trouxe.
- *
- * TRÊS DECISÕES, e as três existem para a mesma coisa: a sincronização não pode
- * derrubar o resto do ciclo.
- *
- *   SEM CREDENCIAL NÃO É ERRO. Enquanto o Dental Office não liberar o acesso,
- *   isto devolve "não configurado" e o motor segue processando eventos e
- *   avançando jornadas. Tratar ausência de credencial como falha encheria o log
- *   de erro todo dia com algo que a gente já sabe.
- *
- *   PACIENTES ANTES DA AGENDA, sempre: um agendamento precisa do paciente para
- *   ter dono. Na ordem inversa, a primeira carga grava a agenda inteira órfã.
- *
- *   A FALHA É CAPTURADA AQUI. Se a API do Dental Office estiver fora, as
- *   jornadas que já estão em voo precisam continuar andando — elas não dependem
- *   dele. O cursor não avança e a próxima volta tenta de novo.
- */
-async function sincronizar(
-  organizationId: string,
-  clinica: Record<string, unknown>,
-): Promise<unknown> {
-  const { criarClienteDentalOffice } = await import("@/lib/crc/integracoes/dental-office/cliente");
-
-  const cliente = criarClienteDentalOffice({ organizationId });
-  if (!cliente.ok) return { pulada: true, motivo: cliente.motivo, faltando: cliente.faltando };
-
-  const { sincronizarAgendamentos, sincronizarDentistas, sincronizarPacientes } =
-    await import("@/lib/crc/aplicacao/sincronizacao");
-
-  const contexto = {
-    organizationId,
-    clinicId: String(clinica["id"] ?? ""),
-    clinicaExternaId: String(clinica["external_id"] ?? ""),
-    cliente: cliente.cliente,
-  };
-
-  try {
-    const pacientes = await sincronizarPacientes(contexto);
-    // Dentistas ANTES da agenda: é por eles que se pergunta o horário livre,
-    // e uma oferta de agendamento com a lista vazia devolve "SEM_DENTISTA".
-    await sincronizarDentistas(contexto);
-    const agenda = await sincronizarAgendamentos(contexto);
-    return { pacientes, agenda };
-  } catch (erro) {
-    const { descreverErro, registrar } = await import("@/lib/crc/servidor/registro");
-    const detalhe = descreverErro(erro);
-    registrar("erro", "Sincronização falhou no ciclo do motor.", { organizationId, detalhe });
-    return { falhou: true, detalhe };
-  }
 }
 
 export const Route = createFileRoute("/api/crc/motor")({
@@ -116,143 +56,49 @@ export const Route = createFileRoute("/api/crc/motor")({
         const { registrar, descreverErro } = await import("@/lib/crc/servidor/registro");
 
         try {
-          const { selecionarUm } = await import("@/lib/crc/servidor/banco");
-          const clinica = await selecionarUm("crc_clinics", {
-            colunas: "id,organization_id,external_id",
-            filtros: [{ coluna: "ativa", op: "eq", valor: true }],
-            ordenar: [{ coluna: "criado_em", ascendente: true }],
-          });
-
-          if (clinica === null) {
-            return json({ aviso: "Nenhuma clínica cadastrada; nada a fazer." }, 200);
-          }
-
-          const organizationId = String(clinica["organization_id"] ?? "");
-
-          // Os handlers precisam estar registrados ANTES de processar eventos.
-          // Numa instância fria da Vercel o módulo é carregado do zero a cada
-          // vez; a função é idempotente e não registra em dobro.
-          const { instalarHandlers, varrerAniversarios, varrerConfirmacoes, varrerRecall } =
-            await import("@/lib/crc/automacao/handlers");
+          // Os handlers precisam estar registrados antes de qualquer coisa que
+          // emita evento. Numa instância fria da Vercel o módulo carrega do
+          // zero; a função é idempotente e não registra em dobro.
+          const { instalarHandlers } = await import("@/lib/crc/automacao/handlers");
           instalarHandlers();
 
-          // A SINCRONIZAÇÃO VEM PRIMEIRO, e vem aqui.
-          //
-          // Antes disso ela só acontecia quando alguém clicava em "Sincronizar
-          // agora" na tela de Integrações. O efeito era silencioso e grave: as
-          // varreduras diárias liam o espelho da agenda, e um espelho que
-          // ninguém atualiza faz a confirmação de amanhã olhar para a agenda de
-          // semana passada. O sistema parecia vivo e estava trabalhando sobre
-          // dados velhos.
-          //
-          // Rodar a cada volta é barato porque a sincronização é INCREMENTAL:
-          // depois da primeira carga ela pede só o que mudou desde o cursor
-          // guardado em `crc_sync_state`.
-          const sincronizacao = await sincronizar(organizationId, clinica);
+          const url = new URL(request.url);
 
-          const { processarEventos } = await import("@/lib/crc/aplicacao/eventos");
-          const eventos = await processarEventos(40);
+          const { rodarVoltaPesada } = await import("@/lib/crc/automacao/volta-pesada");
+          const clinicas = await rodarVoltaPesada({
+            varrerAgora: url.searchParams.get("varrer") === "1",
+          });
 
           /*
-           * OS TURNOS DO AGENTE — Fase B.
+           * O PULSO POR ÚLTIMO, e é isso que torna a volta diária completa.
            *
-           * Depois dos eventos, porque é o processamento de evento que enfileira
-           * o turno: rodar antes faria a fila só pegar o que sobrou do ciclo
-           * anterior, e cada resposta ao paciente chegaria um ciclo atrasada.
-           *
-           * Antes das jornadas, porque o paciente que acabou de escrever espera
-           * uma resposta AGORA. Jornada é trabalho de recuperação, e pode ceder
-           * a vez.
+           * A sincronização acabou de trazer fatos novos do Dental Office, e
+           * cada fato novo virou evento. Bater o pulso agora consome esses
+           * eventos na mesma volta — na ordem inversa, tudo o que a
+           * sincronização trouxesse esperaria o próximo pulso.
            */
-          const { processarTurnosDoAgente } = await import("@/lib/crc/automacao/agente-worker");
-          const turnos = await processarTurnosDoAgente({
-            limite: 5,
-            quem: `cron:${new Date().toISOString()}`,
-          });
+          const { baterPulso } = await import("@/lib/crc/automacao/pulso");
+          const pulso = await baterPulso({ quem: `motor:${new Date().toISOString()}` });
 
-          const { rodarCiclo } = await import("@/lib/crc/automacao/motor");
-          const { lerConfiguracao, lerKillSwitches } =
-            await import("@/lib/crc/servidor/configuracao");
-          const { criarProvedorMensageria } =
-            await import("@/lib/crc/integracoes/whatsapp/provedores");
-
-          const configuracao = await lerConfiguracao(organizationId);
-          const switches = await lerKillSwitches(organizationId);
-          const provedor = criarProvedorMensageria(organizationId);
-
-          const jornadas = await rodarCiclo(
-            {
-              organizationId,
-              porta: provedor.configurado ? provedor.porta : null,
-              configuracao,
-              enviosPausados: switches["kill_envios"] === true,
-              automacoesPausadas: switches["kill_automacoes"] === true,
-            },
-            30,
-          );
-
-          // As campanhas saem DEPOIS das jornadas, e a ordem é deliberada: uma
-          // jornada é sobre um fato que aconteceu com aquela pessoa hoje; uma
-          // campanha é sobre um recorte da base. Quando o teto por hora aperta,
-          // quem tem motivo individual passa primeiro.
-          const { rodarCampanhas } = await import("@/lib/crc/aplicacao/campanhas");
-          const campanhas = await rodarCampanhas({
-            organizationId,
-            porta: provedor.configurado ? provedor.porta : null,
-            configuracao,
-            enviosPausados:
-              switches["kill_envios"] === true || switches["kill_automacoes"] === true,
-          });
-
-          // As varreduras diárias só rodam na janela da madrugada. Rodá-las a
-          // cada volta faria o mesmo trabalho vinte vezes por dia — e a
-          // deduplicação seguraria o efeito, mas não o custo.
-          const varreduras: unknown[] = [];
-          const url = new URL(request.url);
-          const forcar = url.searchParams.get("varrer") === "1";
-          const hora = new Date().getUTCHours();
-
-          if (forcar || hora === 9) {
-            // 9h UTC ≈ 6h em São Paulo: as jornadas nascem antes do expediente e
-            // esperam a abertura para falar com alguém.
-            varreduras.push(await varrerRecall(organizationId, configuracao));
-            varreduras.push(await varrerConfirmacoes(organizationId, configuracao));
-            varreduras.push(await varrerAniversarios(organizationId, configuracao));
-
-            const { varrerOrcamentosParados } = await import("@/lib/crc/aplicacao/orcamentos");
-            varreduras.push(await varrerOrcamentosParados(organizationId, configuracao));
-
-            const { varrerCobrancas } = await import("@/lib/crc/aplicacao/cobrancas");
-            varreduras.push(await varrerCobrancas(organizationId));
-
-            const { recalcularPrioridades } = await import("@/lib/crc/aplicacao/oportunidades");
-            const { detectarOportunidadesParadas } = await import("@/lib/crc/aplicacao/tarefas");
-            varreduras.push({
-              prioridadesRecalculadas: await recalcularPrioridades(organizationId),
-            });
-            varreduras.push({
-              oportunidadesParadas: await detectarOportunidadesParadas(organizationId),
-            });
-          }
-
-          const relatorio: Relatorio = {
-            sincronizacao,
-            eventos,
-            turnos,
-            campanhas,
-            jornadas,
-            varreduras,
+          const relatorio = {
+            clinicas,
+            pulso,
             duracaoMs: Date.now() - comecou,
           };
 
-          registrar("info", "Ciclo do motor concluído.", { organizationId, ...eventos });
+          registrar("info", "Volta diária concluída.", {
+            clinicas: clinicas.length,
+            falhas: clinicas.filter((c) => c.falhou !== undefined).length,
+            eventos: pulso.eventos.processados,
+          });
+
           return json(relatorio, 200);
         } catch (erro) {
           // 500 aqui é correto: o cron da Vercel registra a falha e o painel
-          // mostra. Diferente do webhook, repetir NÃO causa dano — todo passo
-          // é idempotente.
-          registrar("erro", "Ciclo do motor falhou.", { detalhe: descreverErro(erro) });
-          return json({ erro: "O ciclo falhou. O erro foi registrado." }, 500);
+          // mostra. Diferente do webhook, repetir NÃO causa dano — todo passo é
+          // idempotente.
+          registrar("erro", "A volta diária falhou.", { detalhe: descreverErro(erro) });
+          return json({ erro: "A volta falhou. O erro foi registrado." }, 500);
         }
       },
     },

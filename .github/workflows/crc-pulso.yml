@@ -1,0 +1,88 @@
+name: CRC Pulso
+
+# ============================================================================
+# O AGENDADOR DO PULSO — o que faz o CRC responder em minutos.
+#
+# POR QUE O AGENDADOR MORA AQUI, E NÃO NO `vercel.json`.
+#
+# O cron da Vercel neste projeto é o do plano Hobby: no máximo UMA VEZ POR DIA.
+# Não é uma escolha de configuração — é o teto do plano, e tentar agendar mais
+# denso faz o deploy inteiro falhar.
+#
+# Com cron diário, a fila durável do CRC — que é boa, com reserva atômica,
+# lease, retry e dead letter — era consumida como se fosse batch noturno:
+#
+#     14:03  paciente escreve "quero remarcar"
+#     09:00  do dia seguinte, o agente responde
+#
+# O GitHub Actions roda `schedule` de graça em repositório público, com
+# granularidade de cinco minutos. É o suficiente para o caminho quente, e o
+# `/api/crc/motor` continua diário para o trabalho pesado.
+#
+# ISTO É A REDE DE RECUPERAÇÃO, E NÃO O CAMINHO PRINCIPAL. Quem dá a resposta
+# rápida de verdade é o toque que o próprio webhook do WhatsApp dá no pulso
+# assim que a mensagem chega. Este workflow existe para o que o toque não pega:
+# jornada vencida, job que voltou por backoff, evento que falhou e foi
+# repescado — e para quando o toque em si falhar.
+#
+# O QUE ESPERAR DO `schedule` DO GITHUB: ele é BEST-EFFORT. Sob carga, a fila
+# de Actions atrasa, e cinco minutos viram quinze. Isso é aceitável para o papel
+# de rede de recuperação; não seria para o caminho principal — e é mais uma
+# razão para o toque do webhook existir.
+# ============================================================================
+
+on:
+  schedule:
+    # A cada cinco minutos. É a granularidade mínima que o GitHub aceita.
+    - cron: "*/5 * * * *"
+  # Para bater o pulso à mão quando se está investigando alguma coisa.
+  workflow_dispatch:
+
+# Duas voltas sobrepostas não causariam dano — a reserva é atômica e todo passo
+# é idempotente —, mas também não adiantam nada: a segunda encontraria a fila
+# já reservada pela primeira. Cancelar a anterior evita empilhar execução à toa
+# quando o GitHub atrasa e dispara várias de uma vez.
+concurrency:
+  group: crc-pulso
+  cancel-in-progress: true
+
+jobs:
+  pulso:
+    name: bate o pulso do CRC
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Chamar /api/crc/pulso
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          URL: ${{ vars.CRC_URL || 'https://www.jpclinicaodontologica.com.br' }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Falta o secret CRON_SECRET no repositório."
+            echo "Rode: gh secret set CRON_SECRET"
+            exit 1
+          fi
+
+          # `--fail-with-body` para o corpo do erro aparecer no log: um 401 sem
+          # corpo manda a gente adivinhar se é segredo errado ou rota errada.
+          # `-sS` cala a barra de progresso e mantém a mensagem de erro.
+          corpo=$(curl -sS --fail-with-body \
+            --max-time 120 \
+            --retry 2 --retry-delay 5 --retry-connrefused \
+            -X POST "$URL/api/crc/pulso" \
+            -H "Authorization: Bearer $CRON_SECRET") || {
+              echo "::error::O pulso falhou."
+              echo "$corpo"
+              exit 1
+            }
+
+          echo "$corpo"
+
+          # Resumo legível na página do run, para não precisar abrir o log.
+          {
+            echo "### Pulso"
+            echo '```json'
+            echo "$corpo"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

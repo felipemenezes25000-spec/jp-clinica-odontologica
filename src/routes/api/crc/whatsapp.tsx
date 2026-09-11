@@ -109,6 +109,23 @@ export const Route = createFileRoute("/api/crc/whatsapp")({
         try {
           const { processarWebhookWhatsapp } = await import("@/lib/crc/aplicacao/webhooks");
           const resultado = await processarWebhookWhatsapp(provedor.porta, payload);
+
+          /*
+           * O TOQUE NO PULSO — o que faz a resposta sair em segundos.
+           *
+           * Sem ele, a mensagem entrava na fila e ficava lá até a próxima volta
+           * do agendador. Com o cron diário que este projeto tinha, "até a
+           * próxima volta" queria dizer no dia seguinte.
+           *
+           * Só toca quando CHEGOU MENSAGEM. Um webhook de status de entrega
+           * ("lida", "entregue") não tem ninguém esperando resposta, e tocar
+           * nele multiplicaria as chamadas por três sem nada em troca.
+           */
+          if (resultado.mensagens > 0) {
+            const { tocarPulso } = await import("@/lib/crc/automacao/pulso");
+            await tocarPulso();
+          }
+
           return texto(
             `ok: ${String(resultado.mensagens)} mensagem(ns), ${String(resultado.entregas)} status.`,
             200,

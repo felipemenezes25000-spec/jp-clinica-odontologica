@@ -442,14 +442,31 @@ export function bancoConfigurado(): { ok: boolean; motivo: string } {
 const falhasArmadas = new Map<string, string>();
 
 export function falharProximaEscrita(tabela: string, mensagem = "banco indisponível"): void {
-  falhasArmadas.set(tabela, mensagem);
+  falhasArmadas.set(`escrita:${tabela}`, mensagem);
 }
 
-/** Dispara e DESARMA. Chamada no começo de toda escrita e de toda RPC. */
-function dispararFalhaArmada(tabela: string): void {
-  const mensagem = falhasArmadas.get(tabela);
+/**
+ * A irmã da de cima, para o caminho de LEITURA.
+ *
+ * PRECISOU EXISTIR DEPOIS DE UM TESTE QUE PASSOU PELO MOTIVO ERRADO. O teste do
+ * pulso — "uma organização que falha não derruba as outras" — armava falha de
+ * ESCRITA em `crc_settings`, e o caminho que ele queria derrubar é
+ * `lerConfiguracao`, que só LÊ. A falha nunca disparava, o `catch` nunca era
+ * exercitado, e o teste ficava verde mesmo com a rede de segurança removida.
+ *
+ * Escrita e leitura são armadas separadamente de propósito: quase todo caminho
+ * faz as duas, e uma armadilha que pega qualquer uma das duas explodiria no
+ * lugar errado — dando de novo um teste que passa por acidente.
+ */
+export function falharProximaLeitura(tabela: string, mensagem = "banco indisponível"): void {
+  falhasArmadas.set(`leitura:${tabela}`, mensagem);
+}
+
+/** Dispara e DESARMA. Chamada no começo de toda escrita, leitura e RPC. */
+function dispararFalhaArmada(chave: string): void {
+  const mensagem = falhasArmadas.get(chave);
   if (mensagem === undefined) return;
-  falhasArmadas.delete(tabela);
+  falhasArmadas.delete(chave);
   throw new Error(mensagem);
 }
 
@@ -458,6 +475,7 @@ export function agoraIso(): string {
 }
 
 export function selecionar<T = Linha>(tabela: string, opcoes: OpcoesSelecao = {}): Promise<T[]> {
+  dispararFalhaArmada(`leitura:${tabela}`);
   return Promise.resolve(aplicar(tabelas[tabela] ?? [], opcoes).map((l) => ({ ...l })) as T[]);
 }
 
@@ -474,7 +492,7 @@ export function contar(tabela: string, filtros: readonly Filtro[] = []): Promise
 }
 
 export function inserir<T = Linha>(tabela: string, linhas: Linha | Linha[]): Promise<T[]> {
-  dispararFalhaArmada(tabela);
+  dispararFalhaArmada(`escrita:${tabela}`);
   const lista = Array.isArray(linhas) ? linhas : [linhas];
   const alvo = (tabelas[tabela] ??= []);
   const criadas: Linha[] = [];
@@ -566,7 +584,7 @@ export function apagar(tabela: string, filtros: readonly Filtro[]): Promise<void
 export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[]> {
   // A RPC arma pelo NOME dela, e não pela tabela que toca: do lado de fora é a
   // RPC que falha, e é ela que quem chama tem de saber tratar.
-  dispararFalhaArmada(nome);
+  dispararFalhaArmada(`escrita:${nome}`);
   const agora = agoraMs();
   const limite = typeof argumentos["limite"] === "number" ? argumentos["limite"] : 10;
   const lockSegundos =
