@@ -62,7 +62,16 @@ export const Route = createFileRoute("/crc-institucional")({
       // tratamento na busca, mas os links dentro dela continuam valendo.
       { name: "robots", content: "noindex, follow" },
     ],
-    links: [{ rel: "canonical", href: `${SITE_URL}/crc-institucional` }],
+    links: [
+      // O Bricolage Grotesque e a fonte de display DESTE app, e so dele. Vinha
+      // no <head> global, custando 946ms de render bloqueado em toda pagina do
+      // site -- que nao o usa. Carrega aqui, onde serve.
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap",
+      },
+      { rel: "canonical", href: `${SITE_URL}/crc-institucional` },
+    ],
   }),
   component: PaginaCrcInstitucional,
 });

@@ -1,4 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap");
+/* As fontes NAO entram por @import aqui, e o motivo e medido.
+ *
+ * Um @import dentro do CSS so e descoberto depois que o navegador baixou e
+ * parseou este arquivo -- a fonte vira o TERCEIRO nivel de uma cadeia que ja
+ * comecava em HTML -> CSS. No Lighthouse mobile isso dava uma cadeia critica de
+ * quatro niveis e FCP de 4,4s.
+ *
+ * Agora ha um <link> unico no <head> de __root.tsx, que o navegador ve no
+ * primeiro byte do HTML e busca em paralelo com este arquivo. */
+@import "./assets/fontes/_faces.css";
 @import "tailwindcss" source(none);
 @source "../src";
 
