@@ -1,20 +1,16 @@
-# /carreiras é a página que PRECISA ser encontrada — é por ela que a clínica
-# recebe candidatura. As páginas de vaga (/carreiras/<slug>) também.
-# O resto do portal de RH fica fora: /rh é área interna, /api/ nunca serve
-# conteúdo de leitura e /trabalhe-conosco é formulário (competiria com a
-# própria vitrine de vagas no índice).
+# Áreas internas continuam fora do crawl. /trabalhe-conosco fica acessível ao
+# robô porque a própria rota envia `noindex`: bloquear aqui impediria o Google
+# de ler justamente a diretiva que pede para não indexá-la.
 
 User-agent: Googlebot
 Allow: /
 Disallow: /rh
 Disallow: /api/
-Disallow: /trabalhe-conosco
 
 User-agent: Bingbot
 Allow: /
 Disallow: /rh
 Disallow: /api/
-Disallow: /trabalhe-conosco
 
 User-agent: Twitterbot
 Allow: /
@@ -26,4 +22,5 @@ User-agent: *
 Allow: /
 Disallow: /rh
 Disallow: /api/
-Disallow: /trabalhe-conosco
+
+Sitemap: https://www.jpclinicaodontologica.com.br/sitemap.xml
