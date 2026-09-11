@@ -96,8 +96,7 @@ export function ReviewsSection() {
             </h2>
 
             <p className="mt-7 max-w-[590px] text-[16px] leading-7 text-ink-soft">
-              Cada avaliação reflete o cuidado, a atenção e o compromisso da nossa equipe em
-              oferecer uma experiência humana, clara e acolhedora em todas as fases do tratamento.
+              Abaixo estão relatos publicados por pacientes no Google, junto da nota atual da ficha da clínica.
             </p>
 
             <div className="mt-10 overflow-hidden rounded-[28px] border border-border-soft bg-white/75 shadow-[0_18px_60px_rgba(3,47,1,0.06)] backdrop-blur">
@@ -152,7 +151,7 @@ export function ReviewsSection() {
               <div>
                 <p className="text-sm font-semibold text-ink">Avaliações reais no Google</p>
                 <p className="text-xs leading-5 text-ink-soft">
-                  Transparência que fortalece nossa relação com você.
+                  Relatos públicos para você conhecer a experiência de quem já passou pela clínica.
                 </p>
               </div>
             </div>
@@ -214,10 +213,10 @@ export function ReviewsSection() {
             </span>
             <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
               <p className="font-display text-sm font-bold text-ink">
-                Veja por que tantas famílias escolhem a JP.
+                Quer conhecer melhor a JP antes de agendar?
               </p>
               <p className="text-sm text-ink-soft">
-                Aqui, confiança se transforma em sorrisos todos os dias.
+                Veja a clínica, a equipe e como organizamos o atendimento.
               </p>
             </div>
           </div>
