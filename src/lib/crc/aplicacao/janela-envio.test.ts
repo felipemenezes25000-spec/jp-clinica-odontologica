@@ -62,7 +62,7 @@ function portaOficial(): { porta: PortaMensageria; textos: string[]; templates: 
         return Promise.resolve(ok);
       },
       verificarAssinatura: () => true,
-      interpretarWebhook: () => ({ mensagens: [], entregas: [] }),
+      interpretarWebhook: () => ({ mensagens: [], entregas: [], destinatario: null }),
     },
   };
 }

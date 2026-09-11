@@ -242,25 +242,27 @@ export class ProvedorWaha implements PortaMensageria {
  * percebe. É a diferença mais importante em relação aos webhooks oficiais.
  */
 export function interpretarWebhookWaha(corpo: unknown): WebhookInterpretado {
-  if (!ehObjeto(corpo)) return { mensagens: [], entregas: [] };
+  if (!ehObjeto(corpo)) return { mensagens: [], entregas: [], destinatario: null };
 
+  // No WAHA quem identifica o canal é a SESSÃO pareada: uma sessão por número.
+  const destinatario = textoOpcional(campo(corpo, "session"));
   const evento = textoOpcional(campo(corpo, "event")) ?? "";
   const payload = campo(corpo, "payload");
 
   if (evento === "message" || evento === "message.any") {
-    if (campo(payload, "fromMe") === true) return { mensagens: [], entregas: [] };
+    if (campo(payload, "fromMe") === true) return { mensagens: [], entregas: [], destinatario };
 
     const de = textoOpcional(campo(payload, "from")) ?? "";
     // `5511999998888@c.us` → `5511999998888`. Grupo vem como `...@g.us` e é
     // descartado: o CRC fala com paciente, não com grupo.
-    if (!de.endsWith("@c.us")) return { mensagens: [], entregas: [] };
+    if (!de.endsWith("@c.us")) return { mensagens: [], entregas: [], destinatario };
 
     const telefone = normalizarTelefone(de.replace("@c.us", ""));
     const texto = textoOpcional(campo(payload, "body")) ?? "";
     const id = textoOpcional(campo(payload, "id"));
 
     if (telefone === null || id === null || texto.length === 0) {
-      return { mensagens: [], entregas: [] };
+      return { mensagens: [], entregas: [], destinatario };
     }
 
     const carimbo = campo(payload, "timestamp");
@@ -276,12 +278,12 @@ export function interpretarWebhookWaha(corpo: unknown): WebhookInterpretado {
       nomePerfil: textoOpcional(campo(payload, "_data.notifyName")),
     };
 
-    return { mensagens: [mensagem], entregas: [] };
+    return { mensagens: [mensagem], entregas: [], destinatario };
   }
 
   if (evento === "message.ack") {
     const id = textoOpcional(campo(payload, "id"));
-    if (id === null) return { mensagens: [], entregas: [] };
+    if (id === null) return { mensagens: [], entregas: [], destinatario };
 
     const entrega: AtualizacaoEntrega = {
       providerMessageId: id,
@@ -289,14 +291,14 @@ export function interpretarWebhookWaha(corpo: unknown): WebhookInterpretado {
       erro: null,
       em: new Date().toISOString(),
     };
-    return { mensagens: [], entregas: [entrega] };
+    return { mensagens: [], entregas: [entrega], destinatario };
   }
 
   // Evento desconhecido não é erro: o WAHA emite dezenas de tipos, e a lista
   // cresce entre versões. Ignorar o que não se entende é mais seguro do que
   // adivinhar.
   void lista;
-  return { mensagens: [], entregas: [] };
+  return { mensagens: [], entregas: [], destinatario };
 }
 
 /** O `ack` do WAHA é numérico: 1 enviado, 2 entregue, 3 lido. */

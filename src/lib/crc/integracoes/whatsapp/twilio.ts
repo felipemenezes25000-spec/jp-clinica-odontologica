@@ -277,8 +277,14 @@ export function interpretarWebhookTwilio(corpo: unknown): WebhookInterpretado {
   const mensagens: MensagemRecebida[] = [];
   const entregas: AtualizacaoEntrega[] = [];
 
+  /*
+   * `To` É QUEM RECEBEU, e é o que roteia. Chega como `whatsapp:+5511...`; o
+   * prefixo e o '+' saem para bater com o que o cadastro guarda.
+   */
+  const destinatario = normalizarTelefone((campos["To"] ?? "").replace(/^whatsapp:/u, "")) || null;
+
   const sid = campos["MessageSid"] ?? campos["SmsSid"] ?? campos["SmsMessageSid"];
-  if (sid === undefined || sid.length === 0) return { mensagens, entregas };
+  if (sid === undefined || sid.length === 0) return { mensagens, entregas, destinatario };
 
   const statusBruto = (campos["MessageStatus"] ?? campos["SmsStatus"] ?? "").toLowerCase();
 
@@ -305,14 +311,14 @@ export function interpretarWebhookTwilio(corpo: unknown): WebhookInterpretado {
         em: new Date().toISOString(),
       });
     }
-    return { mensagens, entregas };
+    return { mensagens, entregas, destinatario };
   }
 
   const de = campos["From"];
-  if (de === undefined) return { mensagens, entregas };
+  if (de === undefined) return { mensagens, entregas, destinatario };
 
   const telefone = deTwilio(de);
-  if (telefone === null) return { mensagens, entregas };
+  if (telefone === null) return { mensagens, entregas, destinatario };
 
   // Só texto por enquanto, como no adapter da Meta. Mídia chega com
   // `NumMedia > 0`; tratá-la sem o pipeline do item 197 criaria mensagem vazia
@@ -334,7 +340,7 @@ export function interpretarWebhookTwilio(corpo: unknown): WebhookInterpretado {
     nomePerfil: campos["ProfileName"] ?? null,
   });
 
-  return { mensagens, entregas };
+  return { mensagens, entregas, destinatario };
 }
 
 /**

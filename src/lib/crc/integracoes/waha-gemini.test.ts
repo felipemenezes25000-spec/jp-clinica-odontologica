@@ -179,8 +179,14 @@ describe("o webhook do WAHA", () => {
   it("evento desconhecido não é erro", () => {
     // WAHA emite dezenas de tipos e a lista cresce entre versões. Ignorar o que
     // não se entende é mais seguro do que adivinhar.
-    const r = interpretarWebhookWaha({ event: "session.status", payload: { status: "WORKING" } });
-    expect(r).toEqual({ mensagens: [], entregas: [] });
+    const r = interpretarWebhookWaha({
+      event: "session.status",
+      session: "clinica-a",
+      payload: { status: "WORKING" },
+    });
+    // Nada a aplicar — mas a SESSÃO sai mesmo assim: ela é o que identifica de
+    // qual clínica é o canal, e vale para qualquer evento.
+    expect(r).toEqual({ mensagens: [], entregas: [], destinatario: "clinica-a" });
   });
 
   it("webhook sem a chave certa é RECUSADO", () => {

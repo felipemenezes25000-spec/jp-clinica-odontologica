@@ -391,7 +391,7 @@ describe("crash não duplica efeito", () => {
       },
       enviarTemplate: () => Promise.resolve({ ok: true as const, providerMessageId: "p-2" }),
       verificarAssinatura: () => true,
-      interpretarWebhook: () => ({ mensagens: [], entregas: [] }),
+      interpretarWebhook: () => ({ mensagens: [], entregas: [], destinatario: null }),
     };
 
     const pedido = {

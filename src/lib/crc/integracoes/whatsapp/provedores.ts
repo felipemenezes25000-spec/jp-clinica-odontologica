@@ -102,10 +102,12 @@ class ProvedorSandbox implements PortaMensageria {
     }
 
     const telefone = normalizarTelefone(String(corpo["telefone"]));
-    if (telefone === null) return { mensagens: [], entregas: [] };
+    if (telefone === null) return { mensagens: [], entregas: [], destinatario: null };
 
     this.contador += 1;
     return {
+      // O sandbox tem um canal só; rotear nele não faz sentido.
+      destinatario: null,
       mensagens: [
         {
           providerMessageId: `sandbox-in-${String(this.contador)}`,

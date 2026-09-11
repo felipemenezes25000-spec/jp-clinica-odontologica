@@ -101,6 +101,28 @@ export type AtualizacaoEntrega = {
 export type WebhookInterpretado = {
   mensagens: MensagemRecebida[];
   entregas: AtualizacaoEntrega[];
+  /**
+   * QUEM RECEBEU a mensagem, na linguagem do provedor.
+   *
+   * ========================================================================
+   *  É O CAMPO QUE DECIDE DE QUAL CLÍNICA É A MENSAGEM.
+   *
+   *  Antes disto existir, `resolverEscopo()` pegava a PRIMEIRA clínica ativa do
+   *  banco e atribuía toda mensagem a ela. Com duas organizações, o paciente da
+   *  Clínica B entrava no histórico da Clínica A — dado de paciente
+   *  atravessando a fronteira de uma organização para outra.
+   *
+   *  A informação sempre esteve no payload; ninguém a estava lendo:
+   *
+   *    meta_cloud → `value.metadata.phone_number_id`
+   *    twilio     → o campo `To` (o número que recebeu)
+   *    waha       → `session`
+   * ========================================================================
+   *
+   * `null` quando o envelope não traz — acontece em webhook de mudança de
+   * configuração da conta, que não tem mensagem nenhuma para rotear.
+   */
+  destinatario: string | null;
 };
 
 /** O que a conferência de assinatura precisa saber sobre o pedido recebido. */

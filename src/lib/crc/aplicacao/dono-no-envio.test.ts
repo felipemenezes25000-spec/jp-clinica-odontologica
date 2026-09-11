@@ -73,7 +73,7 @@ function portaEspiã(): { porta: PortaMensageria; enviados: string[] } {
         return Promise.resolve(ok);
       },
       verificarAssinatura: () => true,
-      interpretarWebhook: () => ({ mensagens: [], entregas: [] }),
+      interpretarWebhook: () => ({ mensagens: [], entregas: [], destinatario: null }),
     },
   };
 }

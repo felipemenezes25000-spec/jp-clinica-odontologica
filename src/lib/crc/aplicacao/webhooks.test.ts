@@ -76,6 +76,7 @@ function portaFake(): PortaMensageria {
     enviarTemplate: () => Promise.resolve({ ok: true as const, providerMessageId: "p-2" }),
     verificarAssinatura: () => true,
     interpretarWebhook: () => ({
+      destinatario: null,
       mensagens: [
         {
           providerMessageId: "wamid.ABC",
@@ -304,5 +305,162 @@ describe("o backoff", () => {
      */
     const { esperaDoRetry } = await import("./agent-jobs");
     expect(esperaDoWebhook(1)).toBeLessThan(esperaDoRetry(1) * 1000);
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe("de quem é a mensagem", () => {
+  const ORG_B = "99999999-9999-4999-8999-999999999999";
+  const CLINICA_B = "88888888-8888-4888-8888-888888888888";
+
+  function duasClinicas(): void {
+    semear("crc_organizations", [{ id: ORG_B, slug: "vizinha", nome: "Vizinha" }]);
+    semear("crc_clinics", [
+      { id: CLINICA_B, organization_id: ORG_B, slug: "unidade-b", nome: "Unidade B", ativa: true },
+    ]);
+  }
+
+  function canal(identificador: string, organizationId: string, clinicId: string): void {
+    semear("crc_canais_whatsapp", [
+      {
+        organization_id: organizationId,
+        clinic_id: clinicId,
+        provedor: "meta_cloud",
+        identificador,
+        ativo: true,
+      },
+    ]);
+  }
+
+  /** Uma porta cujo webhook diz para QUAL número a mensagem foi. */
+  function portaPara(destinatario: string): PortaMensageria {
+    return {
+      ...portaFake(),
+      interpretarWebhook: () => ({
+        destinatario,
+        mensagens: [
+          {
+            providerMessageId: `wamid.${destinatario}`,
+            telefone: "5511977776666",
+            texto: "Oi, quero marcar",
+            recebidaEm: AGORA.toISOString(),
+            nomePerfil: "Paciente",
+          },
+        ],
+        entregas: [],
+      }),
+    };
+  }
+
+  it("a mensagem vai para a clínica DO NÚMERO que a recebeu", async () => {
+    /*
+     * ========================================================================
+     *  O DEFEITO MAIS SENSÍVEL DA AUDITORIA.
+     *
+     *  `resolverEscopo` fazia `selecionarUm("crc_clinics")` e mandava TODA
+     *  mensagem para a primeira clínica cadastrada. Com duas organizações, o
+     *  paciente da Clínica B entrava na conversa, no histórico e na base da
+     *  Clínica A.
+     *
+     *  Num sistema de saúde isso não é defeito funcional: é dado de paciente
+     *  atravessando a fronteira de uma organização.
+     * ========================================================================
+     */
+    duasClinicas();
+    // A clínica A é a mais antiga — a que a versão anterior escolheria sempre.
+    canal("num-da-A", ORG, CLINICA);
+    canal("num-da-B", ORG_B, CLINICA_B);
+
+    await processarWebhookWhatsapp(portaPara("num-da-B"), {});
+
+    const conversas = conteudo("crc_conversations");
+    expect(conversas).toHaveLength(1);
+    expect(conversas[0]?.["organization_id"]).toBe(ORG_B);
+    expect(conversas[0]?.["clinic_id"]).toBe(CLINICA_B);
+  });
+
+  it("canal DESATIVADO não recebe mensagem", async () => {
+    duasClinicas();
+    semear("crc_canais_whatsapp", [
+      {
+        organization_id: ORG_B,
+        clinic_id: CLINICA_B,
+        provedor: "meta_cloud",
+        identificador: "num-desligado",
+        ativo: false,
+      },
+    ]);
+
+    await processarWebhookWhatsapp(portaPara("num-desligado"), {});
+
+    // Com duas clínicas e nenhum canal ativo que case, não há como adivinhar —
+    // e adivinhar é exatamente o defeito. Nada é criado.
+    expect(conteudo("crc_conversations")).toHaveLength(0);
+  });
+
+  it("com DUAS clínicas e nenhum canal, RECUSA em vez de chutar", async () => {
+    duasClinicas();
+
+    await processarWebhookWhatsapp(portaPara("num-nao-cadastrado"), {});
+
+    expect(conteudo("crc_conversations")).toHaveLength(0);
+    const [inbox] = conteudo("crc_webhook_inbox");
+    expect(inbox?.["status"]).toBe("FALHOU");
+  });
+
+  it("com UMA clínica e nenhum canal, ainda funciona — é a migração", async () => {
+    /*
+     * O caminho de transição: a JP tem uma clínica e nenhum canal cadastrado.
+     * Exigir o cadastro agora derrubaria o recebimento até alguém abrir a tela.
+     *
+     * E ele se desliga sozinho quando a segunda clínica aparece — que é o teste
+     * acima. É a diferença entre um padrão de transição e uma bomba-relógio.
+     */
+    await processarWebhookWhatsapp(portaPara("num-qualquer"), {});
+
+    const conversas = conteudo("crc_conversations");
+    expect(conversas).toHaveLength(1);
+    expect(conversas[0]?.["organization_id"]).toBe(ORG);
+  });
+
+  it("a REPESCAGEM roteia para o mesmo tenant do original", async () => {
+    /*
+     * Um webhook repescado três dias depois precisa cair na MESMA clínica.
+     * Resolver de novo "pela primeira" faria a repescagem entregar a mensagem
+     * ao tenant errado — pior que não repescar, porque o dado atravessaria a
+     * fronteira sem ninguém perceber.
+     */
+    duasClinicas();
+    canal("num-da-B", ORG_B, CLINICA_B);
+
+    semear("crc_webhook_inbox", [
+      {
+        provedor: "meta_cloud",
+        external_id: "wamid.REPESCADA",
+        status: "FALHOU",
+        tentativas: 1,
+        disponivel_em: new Date(AGORA.getTime() - 1000).toISOString(),
+        payload: {
+          destinatario: "num-da-B",
+          mensagens: [
+            {
+              providerMessageId: "wamid.REPESCADA",
+              telefone: "5511955554444",
+              texto: "Oi",
+              recebidaEm: AGORA.toISOString(),
+              nomePerfil: null,
+            },
+          ],
+          entregas: [],
+        },
+      },
+    ]);
+
+    expect((await repescarWebhooks()).recuperados).toBe(1);
+
+    const conversas = conteudo("crc_conversations");
+    expect(conversas).toHaveLength(1);
+    expect(conversas[0]?.["organization_id"]).toBe(ORG_B);
   });
 });

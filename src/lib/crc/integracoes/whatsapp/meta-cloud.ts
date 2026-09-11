@@ -212,10 +212,21 @@ export class ProvedorMetaCloud implements PortaMensageria {
 export function interpretarWebhookMeta(corpo: unknown): WebhookInterpretado {
   const mensagens: MensagemRecebida[] = [];
   const entregas: AtualizacaoEntrega[] = [];
+  let destinatario: string | null = null;
 
   for (const entry of lista(campo(corpo, "entry"))) {
     for (const change of lista(campo(entry, "changes"))) {
       const valor = campo(change, "value");
+
+      /*
+       * `phone_number_id`, E NÃO `display_phone_number`.
+       *
+       * Os dois vêm no mesmo objeto, e o segundo é o mais legível — e o errado.
+       * O número formatado muda de forma entre ambientes (com e sem '+', com e
+       * sem espaços), e casar por ele exigiria normalizar dos dois lados. O id
+       * é opaco e estável, que é o que uma chave de roteamento precisa ser.
+       */
+      destinatario ??= textoOpcional(campo(valor, "metadata.phone_number_id"));
 
       // Nome do perfil vem numa lista paralela, indexada por wa_id.
       const nomes = new Map<string, string>();
@@ -288,5 +299,5 @@ export function interpretarWebhookMeta(corpo: unknown): WebhookInterpretado {
     }
   }
 
-  return { mensagens, entregas };
+  return { mensagens, entregas, destinatario };
 }

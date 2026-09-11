@@ -16,7 +16,13 @@
  *   MARCAR NO FIM: só o que realmente entrou vira PROCESSADO.
  */
 import type { PortaMensageria } from "../integracoes/whatsapp/porta";
-import { atualizar, inserirIgnorandoDuplicata, selecionarUm, type Linha } from "../servidor/banco";
+import {
+  atualizar,
+  inserirIgnorandoDuplicata,
+  selecionar,
+  selecionarUm,
+  type Linha,
+} from "../servidor/banco";
 import { descreverErro, mascarar, registrar } from "../servidor/registro";
 
 import { atualizarEntrega, receberMensagem } from "./mensagens";
@@ -91,10 +97,8 @@ export async function processarWebhookWhatsapp(
 
   const inboxId = String(inbox["id"] ?? "");
 
-  // A organização e a clínica: hoje o CRC atende uma organização, e o webhook
-  // não carrega esse dado. Quando houver multi-tenant de verdade, a resolução
-  // passa a ser pelo `phone_number_id` do provedor — que já vem no payload.
-  const escopo = await resolverEscopo();
+  // Quem recebeu decide de quem é a mensagem. Ver `resolverEscopo`.
+  const escopo = await resolverEscopo(porta.nome, interpretado.destinatario);
   if (escopo === null) {
     await marcar(inboxId, "FALHOU", "Nenhuma organização configurada.");
     registrar("erro", "Webhook recebido sem organização configurada.");
@@ -188,23 +192,93 @@ export function esperaDoWebhook(tentativas: number): number {
 }
 
 /**
- * A organização e a clínica ativa.
+ * De qual organização e clínica é esta mensagem.
  *
- * Uma consulta simples porque hoje há uma organização. Fica isolada numa função
- * de propósito: quando o produto virar multi-clínica de verdade (item 288), é
- * aqui que a resolução por `phone_number_id` entra, e nada mais muda.
+ * ========================================================================
+ *  O DEFEITO QUE ISTO CONSERTA ERA O MAIS SENSÍVEL DA AUDITORIA.
+ *
+ *  A versão anterior era literalmente:
+ *
+ *      selecionarUm("crc_clinics", { ativa = true }, por criado_em)
+ *
+ *  TODA mensagem recebida ia para a primeira clínica cadastrada,
+ *  independentemente do número para o qual foi enviada. Com uma organização,
+ *  certo por acidente. Com duas, o paciente da Clínica B entrava na conversa,
+ *  no histórico e na base da Clínica A.
+ *
+ *  Num sistema de saúde isso não é defeito funcional: é dado de paciente
+ *  atravessando a fronteira de uma organização. O banco já fazia a parte dele
+ *  — RLS e chaves compostas no `supabase/19` — e quem decidia errado era esta
+ *  função.
+ * ========================================================================
+ *
+ * A INFORMAÇÃO SEMPRE ESTEVE NO PAYLOAD: `phone_number_id` na Meta, o `To` no
+ * Twilio, a `session` no WAHA. Ninguém a estava lendo.
  */
-async function resolverEscopo(): Promise<{ organizationId: string; clinicId: string } | null> {
-  const clinica = await selecionarUm("crc_clinics", {
+async function resolverEscopo(
+  provedor: string,
+  destinatario: string | null,
+): Promise<{ organizationId: string; clinicId: string } | null> {
+  if (destinatario !== null && destinatario.length > 0) {
+    const canal = await selecionarUm("crc_canais_whatsapp", {
+      colunas: "organization_id,clinic_id",
+      filtros: [
+        { coluna: "provedor", op: "eq", valor: provedor },
+        { coluna: "identificador", op: "eq", valor: destinatario },
+        { coluna: "ativo", op: "eq", valor: true },
+      ],
+    });
+
+    if (canal !== null) {
+      return {
+        organizationId: String(canal["organization_id"] ?? ""),
+        clinicId: String(canal["clinic_id"] ?? ""),
+      };
+    }
+  }
+
+  /*
+   * NENHUM CANAL CADASTRADO: cai na clínica única, e RECLAMA.
+   *
+   * Este caminho existe por uma razão só — não quebrar a instalação que já
+   * funciona. A JP tem uma clínica e nenhum canal cadastrado; exigir o cadastro
+   * agora derrubaria o recebimento de mensagem até alguém abrir a tela.
+   *
+   * MAS ELE SÓ É SEGURO ENQUANTO HOUVER UMA CLÍNICA. Com duas, ele é
+   * exatamente o defeito de origem — então a checagem abaixo o desliga sozinha
+   * assim que a segunda aparece. É a diferença entre um padrão de transição e
+   * uma bomba-relógio.
+   */
+  const clinicas = await selecionar("crc_clinics", {
     colunas: "id,organization_id",
     filtros: [{ coluna: "ativa", op: "eq", valor: true }],
     ordenar: [{ coluna: "criado_em", ascendente: true }],
+    limite: 2,
   });
-  if (clinica === null) return null;
+
+  if (clinicas.length > 1) {
+    registrar("erro", "Webhook sem canal cadastrado, e há mais de uma clínica.", {
+      provedor,
+      destinatario,
+      detalhe:
+        "Não dá para adivinhar de quem é a mensagem. Cadastre o canal em crc_canais_whatsapp.",
+    });
+    return null;
+  }
+
+  const unica = clinicas[0];
+  if (unica === undefined) return null;
+
+  if (destinatario !== null && destinatario.length > 0) {
+    registrar("aviso", "Webhook recebido sem canal cadastrado; usando a clínica única.", {
+      provedor,
+      destinatario,
+    });
+  }
 
   return {
-    organizationId: String(clinica["organization_id"] ?? ""),
-    clinicId: String(clinica["id"] ?? ""),
+    organizationId: String(unica["organization_id"] ?? ""),
+    clinicId: String(unica["id"] ?? ""),
   };
 }
 
@@ -340,11 +414,25 @@ async function aplicarEnvelope(linha: Linha): Promise<boolean> {
 
   if (mensagens.length === 0 && entregas.length === 0) return false;
 
-  const escopo = await resolverEscopo();
+  /*
+   * O REPLAY ROTEIA PELO MESMO CAMINHO DO ORIGINAL, e isso não é detalhe.
+   *
+   * O `provedor` é coluna da linha e o `destinatario` viaja dentro do envelope
+   * normalizado — então um webhook repescado três dias depois cai na MESMA
+   * clínica em que teria caído na hora. Resolver de novo "pela primeira clínica"
+   * faria a repescagem entregar a mensagem para o tenant errado, e seria pior
+   * que não repescar: o dado atravessaria a fronteira sem ninguém perceber.
+   */
+  const escopo = await resolverEscopo(
+    String(linha["provedor"] ?? ""),
+    typeof (envelope as { destinatario?: unknown }).destinatario === "string"
+      ? String((envelope as { destinatario?: unknown }).destinatario)
+      : null,
+  );
   if (escopo === null) {
     // Lança de propósito: sem organização, isto é falha de configuração e o
     // envelope deve voltar à fila, não ser descartado.
-    throw new Error("Nenhuma organização configurada.");
+    throw new Error("Nenhuma organização configurada para este canal.");
   }
 
   for (const m of mensagens) {
@@ -379,7 +467,7 @@ async function aplicarEnvelope(linha: Linha): Promise<boolean> {
 async function mandarParaDeadLetter(linha: Linha, erro: string): Promise<void> {
   try {
     const { inserir } = await import("../servidor/banco");
-    const escopo = await resolverEscopo();
+    const escopo = await resolverEscopo(String(linha["provedor"] ?? ""), null);
 
     await inserir("crc_dead_letters", {
       organization_id: escopo?.organizationId ?? null,

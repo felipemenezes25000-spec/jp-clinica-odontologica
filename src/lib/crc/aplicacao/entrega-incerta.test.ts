@@ -56,7 +56,7 @@ function portaQueFalha(classe: ClasseDeFalha): PortaMensageria {
     enviarTexto: () => Promise.resolve(falha),
     enviarTemplate: () => Promise.resolve(falha),
     verificarAssinatura: () => true,
-    interpretarWebhook: () => ({ mensagens: [], entregas: [] }),
+    interpretarWebhook: () => ({ mensagens: [], entregas: [], destinatario: null }),
   };
 }
 
