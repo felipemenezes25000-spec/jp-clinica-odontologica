@@ -72,8 +72,8 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
 }
 
 /**
- * Prova social. O primeiro depoimento vai em destaque; os quatro seguintes
- * formam a grade. A nota exibida acompanha a ficha do Google.
+ * Prova social. O primeiro depoimento vai em destaque; os seguintes formam a
+ * grade. A nota exibida acompanha a ficha do Google.
  */
 export function ReviewsSection() {
   // DEPOIMENTOS_REAIS, e não a lista bruta: os marcados `ficticio` eram
@@ -102,7 +102,6 @@ export function ReviewsSection() {
 
       <div className="jp-container relative">
         <div className="grid gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
-          {/* COLUNA ESQUERDA */}
           <div>
             <div className="mb-7 flex items-center gap-2 text-brand-text">
               <span className="flex h-7 w-7 items-center justify-center rounded-full border border-brand-green/70">
@@ -121,7 +120,6 @@ export function ReviewsSection() {
               oferecer uma experiência humana, clara e acolhedora em todas as fases do tratamento.
             </p>
 
-            {/* CARD DA NOTA */}
             <div className="mt-10 overflow-hidden rounded-[28px] border border-border-soft bg-white/75 shadow-[0_18px_60px_rgba(3,47,1,0.06)] backdrop-blur">
               <div className="p-7 sm:p-9">
                 <div className="flex flex-col gap-7 sm:flex-row sm:items-center">
@@ -148,18 +146,18 @@ export function ReviewsSection() {
                 <div className="grid gap-6 sm:grid-cols-3">
                   <ItemNota
                     icon={<ShieldCheck size={23} />}
-                    title="Confiança local"
-                    description="Referência em atendimento odontológico na Freguesia do Ó."
+                    title="Presença local"
+                    description="Atendimento na Vila Bruna, região da Freguesia do Ó."
                   />
                   <ItemNota
                     icon={<UsersRound size={23} />}
-                    title="Experiência que acolhe"
+                    title="Experiência acolhedora"
                     description="Ambiente confortável e atendimento humanizado."
                   />
                   <ItemNota
                     icon={<Sparkles size={23} />}
-                    title="Resultados que duram"
-                    description="Planejamento e cuidado em cada detalhe."
+                    title="Planejamento individual"
+                    description="Avaliação e acompanhamento definidos conforme cada caso."
                   />
                 </div>
               </div>
@@ -181,7 +179,6 @@ export function ReviewsSection() {
             </div>
           </div>
 
-          {/* COLUNA DIREITA */}
           <div>
             {destaque && (
               <article className="relative overflow-hidden rounded-[32px] bg-brand-deep px-7 py-8 shadow-[0_28px_70px_rgba(3,47,1,0.17)] sm:px-10 sm:py-10">
@@ -233,7 +230,6 @@ export function ReviewsSection() {
           </div>
         </div>
 
-        {/* BARRA FINAL */}
         <div className="mt-12 flex flex-col gap-5 rounded-[24px] border border-border-soft bg-white/65 px-6 py-5 shadow-[0_15px_50px_rgba(3,47,1,0.05)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <span
