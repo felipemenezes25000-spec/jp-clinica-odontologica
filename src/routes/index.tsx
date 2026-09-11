@@ -66,6 +66,7 @@ import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
 import { TeamSection } from "@/components/site/TeamSection";
 import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { DADOS_ESTRUTURADOS } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
@@ -194,47 +195,14 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "/" }],
     scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Dentist",
-          name: CLINICA.nome,
-          legalName: CLINICA.razaoSocial,
-          slogan: CLINICA.assinatura,
-          telephone: CLINICA.telefoneHref.replace("tel:", ""),
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: CLINICA.local.logradouro,
-            addressLocality: CLINICA.local.cidade,
-            addressRegion: CLINICA.local.uf,
-            postalCode: CLINICA.local.cep,
-            addressCountry: CLINICA.local.pais,
-          },
-          areaServed: ["Vila Bruna", "Freguesia do Ó", "São Paulo"],
-          openingHoursSpecification: [
-            {
-              "@type": "OpeningHoursSpecification",
-              dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-              opens: "08:00",
-              closes: "18:00",
-            },
-          ],
-          sameAs: [CLINICA.instagram, CLINICA.facebook],
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: FAQ.map((item) => ({
-            "@type": "Question",
-            name: item.q,
-            acceptedAnswer: { "@type": "Answer", text: item.a },
-          })),
-        }),
-      },
+      // Os dados estruturados vivem em @/lib/dadosEstruturados, montados a
+      // partir de CLINICA, AVALIACOES, HISTORIA, TRATAMENTOS e FAQ.
+      //
+      // O que estava aqui tinha endereço, horário e as perguntas, mas faltava o
+      // que mais rende em busca local: `aggregateRating` -- é ele que permite o
+      // Google desenhar as estrelas no resultado -- além de `geo`, da data de
+      // fundação, da responsável técnica com o CRO e da lista de tratamentos.
+      { type: "application/ld+json", children: DADOS_ESTRUTURADOS },
     ],
   }),
   component: Home,

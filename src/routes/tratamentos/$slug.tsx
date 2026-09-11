@@ -47,6 +47,7 @@ import posterOrtodontia from "@/assets/video-ortodontia-poster.webp";
 import videoProtese from "@/assets/video-protese.mp4?url";
 import posterProtese from "@/assets/video-protese-poster.webp";
 import { CLINICA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
 
 export const Route = createFileRoute("/tratamentos/$slug")({
@@ -86,6 +87,15 @@ export const Route = createFileRoute("/tratamentos/$slug")({
         { name: "twitter:image", content: `${SITE_URL}${ogImage}` },
       ],
       links: [{ rel: "canonical", href: url }],
+      // Estas oito páginas não tinham dado estruturado nenhum -- e são elas, não
+      // a home, que respondem a "implante dentário na Freguesia do Ó". Sem isso
+      // o Google via oito URLs com texto parecido e nenhuma pista de que cada
+      // uma trata de um procedimento diferente.
+      //
+      // `provider` aponta por @id para o mesmo consultório declarado na home, em
+      // vez de repetir endereço e telefone aqui: o Google junta os dois sozinho,
+      // e não existe a cópia que envelhece.
+      scripts: [{ type: "application/ld+json", children: dadosEstruturadosDoTratamento(t) }],
     };
   },
 });
