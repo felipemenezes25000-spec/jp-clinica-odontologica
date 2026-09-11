@@ -3,7 +3,7 @@
 > **Este documento não declara o projeto pronto.** Ele diz, item por item, o que
 > está provado e o que não está. Linha sem evidência não recebe `PASS`.
 
-Gerado em 11/09/2026. Atualizado ao fim da FASE C.
+Gerado em 11/09/2026. Atualizado ao fim da FASE I — as nove fases do roadmap.
 
 ## Leitura rápida
 
@@ -17,14 +17,14 @@ Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 | **FASE F (adapters, disjuntor, saúde)** | concluída e provada |
 | **FASE G (registro, estúdios, playground)** | concluída e provada |
 | **FASE H (inteligência vertical)** | concluída e provada |
-| **FASE I** | não iniciada |
+| **FASE I (observabilidade, runbook)** | concluída e provada |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
 depois virou "não porque o runtime durável não existe". Agora é mais estreito, e
 por isso mais concreto:
 
-**Não, por três razões que continuam abertas.**
+**Não, por quatro razões que continuam abertas.**
 
 1. **Os dois provedores externos continuam sem contrato.** Sem WhatsApp e sem
    Dental Office, ligar a flag não muda nada no mundo — não há para onde a
@@ -34,6 +34,10 @@ por isso mais concreto:
    fazer em cada caso.
 3. **O gate de avaliação nunca rodou com caso de tenant.** Está no item 31, e
    enquanto ele for `PARCIAL` a régua que libera a flag está incompleta.
+4. **Nenhum turno foi avaliado por gente contra paciente real.** Todas as nove
+   fases estão provadas por teste; nenhuma foi provada por uso. O caminho está no
+   `RUNBOOK.md`, seção "ligar o agente numa clínica" — sete degraus, e o sétimo é
+   o envio.
 
 ---
 
@@ -120,7 +124,10 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 37h | Atribuição de receita | `PASS` | `dominio/atribuicao.ts`, posicional 40/20/40 e janela de 90 dias. O consolidado mostra quanto da receita ficou SEM origem — o número mais importante quando está alto |
 | 35 | CI completo verde | `PASS` | `quality.yml` (lint/types/787 testes/build) + `crc-integracao.yml` (schema do zero e 43 testes contra Postgres) |
 | 36 | Flags de produção seguras | `PASS` | Todas nascem desligadas; `ai_agente_envio` ainda travado pelo gate de avaliação |
-| 37 | Runbook atualizado | `FAIL` | `RUNBOOK.md` não existe |
+| 37 | Runbook atualizado | `PASS` | `docs/crc/RUNBOOK.md`. Organizado por SINTOMA — "o agente parou de responder" — e não por componente, porque quem abre não sabe qual componente é |
+| 37i | Observabilidade correlacionada | `PASS` | `servidor/correlacao.ts`. Um id atravessa log, span, run, job e auditoria. Uma correlação por JOB, e não por lote: um id por lote intercalaria cinco pacientes numa história só |
+| 37j | Analytics de IA | `PASS` | `aplicacao/analytics-ia.ts`. Runs abertas fora do denominador; taxa de handoff com DUAS pontas ruins; custo alto aponta para ferramenta, não para o modelo |
+| 37k | Branch protection | `PARCIAL` | `scripts/proteger-branch.mjs` descreve e aplica a configuração, com os dois CI obrigatórios. **Depende de alguém rodar** com permissão de admin — não dá para aplicar daqui |
 
 ---
 

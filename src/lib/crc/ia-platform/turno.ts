@@ -252,6 +252,18 @@ async function decidirEEntregar(
       };
     }
 
+    /*
+     * A RUN ENTRA NA CORRELAÇÃO ASSIM QUE NASCE — Fase I.
+     *
+     * Ela é criada no MEIO do turno, logo antes da primeira chamada de modelo.
+     * Sem esta linha, as linhas de log anteriores — montagem de contexto,
+     * leitura de flags, resolução de destino — ficariam sem `runId`, e a busca
+     * por run perderia justamente o começo do turno, que é onde a causa
+     * costuma estar.
+     */
+    const { anotarRun } = await import("../servidor/correlacao");
+    anotarRun(reserva.runId);
+
     // --- o laço: modelo decide, ferramenta roda, modelo decide de novo -----
     const porta = pedido.porta;
     const base = textoDoContexto(ctx);

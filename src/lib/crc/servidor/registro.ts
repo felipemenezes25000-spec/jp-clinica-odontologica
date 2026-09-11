@@ -17,6 +17,8 @@
  */
 import { telefoneMascarado } from "../dominio/telefone";
 
+import { camposDeCorrelacao } from "./correlacao";
+
 import { agoraIso, inserir } from "./banco";
 
 /* -------------------------------------------------------------------------- */
@@ -126,6 +128,20 @@ export function registrar(nivel: Nivel, mensagem: string, contexto: ContextoLog 
     nivel,
     escopo: "crc",
     msg: mensagem,
+    /*
+     * A CORRELAÇÃO ENTRA EM TODA LINHA — Fase I.
+     *
+     * Sem ela, investigar uma reclamação é achar a mensagem na Inbox, procurar a
+     * run daquela conversa naquele horário, e então garimpar no log da Vercel as
+     * linhas daquele minuto torcendo para nenhuma outra clínica ter tido
+     * atividade. Com duas clínicas ativas, o log vira intercalação de duas
+     * histórias e não dá para separar.
+     *
+     * Vem ANTES do contexto explícito de propósito: se quem chamou passou um
+     * `conversationId` diferente, é o dele que vale — ele sabe mais sobre a
+     * linha específica do que o pedido inteiro sabe.
+     */
+    ...camposDeCorrelacao(),
     ...(mascarar(contexto) as Record<string, unknown>),
   });
 

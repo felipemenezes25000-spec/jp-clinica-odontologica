@@ -97,10 +97,31 @@ export async function processarTurnosDoAgente(
   let descartados = 0;
   let falhados = 0;
 
+  const { comCorrelacao, novaCorrelacao } = await import("../servidor/correlacao");
+
   for (const job of jobs) {
     const comecou = Date.now();
     try {
-      const r = await executarJob(job);
+      /*
+       * UMA CORRELAÇÃO POR JOB — Fase I.
+       *
+       * Por JOB, e não por lote: o lote processa até cinco pacientes de clínicas
+       * possivelmente diferentes, e um id por lote intercalaria cinco histórias
+       * numa só — exatamente o problema que a correlação existe para resolver.
+       *
+       * `comCorrelacao` restaura a anterior no fim, então o job seguinte começa
+       * limpo sem ninguém precisar lembrar de limpar.
+       */
+      const r = await comCorrelacao(
+        {
+          id: novaCorrelacao(),
+          organizationId: job.organizationId,
+          origem: "turno",
+          conversationId: job.conversationId,
+          jobId: job.id,
+        },
+        () => executarJob(job),
+      );
 
       if (r.tipo === "descartado") {
         await descartarJob(job, r.motivo);
