@@ -42,26 +42,32 @@ O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliad
 depois virou "não porque o runtime durável não existe". Agora é mais estreito, e
 por isso mais concreto:
 
-**Não, por quatro razões que continuam abertas.**
+**Não, por duas razões — e nenhuma das duas é código.**
 
 1. **Os dois provedores externos continuam sem contrato.** Sem WhatsApp e sem
-   Dental Office, ligar a flag não muda nada no mundo — não há para onde a
-   mensagem sair. É `BLOCKED_EXTERNAL`, e é o motivo que independe de código.
-2. **As FASES G a I não foram feitas.** Sem observabilidade e runbook (I),
-   o painel de saúde da FASE F diz o que está errado mas ninguém escreveu o que
-   fazer em cada caso.
-3. **O gate de avaliação nunca rodou com caso de tenant.** Está no item 31, e
-   enquanto ele for `PARCIAL` a régua que libera a flag está incompleta.
-4. **Nenhum turno foi avaliado por gente contra paciente real.** Todas as nove
-   fases estão provadas por teste; nenhuma foi provada por uso. O caminho está no
-   `RUNBOOK.md`, seção "ligar o agente numa clínica" — sete degraus, e o sétimo é
-   o envio.
+   Dental Office, ligar a flag não muda nada no mundo: não há para onde a
+   mensagem sair. É `BLOCKED_EXTERNAL`.
+2. **Nenhum turno foi avaliado por gente contra paciente real.** As nove fases
+   estão provadas por teste; nenhuma foi provada por uso. O caminho está no
+   `RUNBOOK.md`, seção "ligar o agente numa clínica" — sete degraus, e o sétimo
+   é o envio. Nunca pular para ele: a régua que autoriza é o resultado dos
+   anteriores.
 
-**O que deixou de ser razão:** o schema. Os arquivos 16 a 19 foram aplicados em
-produção e verificados um a um por leitura — colunas novas de `crc_ai_runs`,
-`crc_organizations.fuso`, a função `crc_dia_local` (que devolveu `2026-09-11`
-para `2026-09-12T00:30Z`, o fuso funcionando no banco real) e as quatro chaves
-estrangeiras compostas do arquivo 19.
+**O QUE DEIXOU DE SER RAZÃO, e vale registrar porque este documento já disse o
+contrário:**
+
+*O schema.* Os arquivos 16 a 19 foram aplicados em produção e verificados um a
+um por leitura — colunas novas de `crc_ai_runs`, `crc_organizations.fuso`, a
+função `crc_dia_local` (que devolveu `2026-09-11` para `2026-09-12T00:30Z`, o
+fuso funcionando no banco real) e as quatro chaves estrangeiras compostas do
+arquivo 19.
+
+*As fases G a I.* Foram feitas, e a ponta visível delas também — quatro telas,
+nove funções de servidor e o endpoint MCP. Ver "A ponta visível", no topo.
+
+*O caso de tenant no gate.* O item 31 é `PASS`: as quatro categorias
+bloqueantes têm caso, e um teste compara com a LISTA de categorias em vez de um
+número, então uma quinta passa a exigir caso sozinha.
 
 ---
 
