@@ -420,10 +420,28 @@ describe("a conversa chega ao modelo com os papéis certos", () => {
 });
 
 /* ========================================================================== */
-/* A costura entre a trava de dono e a fila — Fase C                          */
+/* A IA pausada — o furo que a Fase C fechou                                  */
 /* ========================================================================== */
 
-describe("quando o atendente assume no meio do turno", () => {
+/**
+ * O DEFEITO, em uma frase: "abrir caso cala a IA" não estava sendo cumprido.
+ *
+ * `abrirCaso` chama `pausarIaNaConversa`, que grava `dono = "ninguem"`. E o
+ * portão de dono recusava apenas `dono = "humano"` — `"ninguem"` PASSAVA. Ou
+ * seja: toda conversa que o agente mandou para uma pessoa voltava a receber
+ * resposta automática no turno seguinte, desfazendo na prática a própria
+ * decisão de escalar. Ninguém tinha assumido ainda; a IA falava por cima da
+ * fila da recepção.
+ *
+ * Duas travas fecham isso, e as duas são testadas aqui:
+ *
+ *   O PORTÃO passou a ser lista de permissão — só `ia` passa. Um estado novo de
+ *   dono nasce barrado em vez de nascer liberado.
+ *
+ *   O CHOKEPOINT recusa o mesmo caso em `enviarMensagem`, para quem chegar lá
+ *   por outro caminho.
+ */
+describe("conversa com a IA pausada", () => {
   const comEnvio = (porta: PortaIa, espia: ReturnType<typeof mensageriaEspia>) => ({
     ...pedidoBase(porta),
     portaMensageria: espia.porta,
@@ -437,39 +455,61 @@ describe("quando o atendente assume no meio do turno", () => {
       precisaHumano: false,
     });
 
-  it("nada sai, mesmo com a resposta já pronta e os portões liberados", async () => {
+  it("não responde depois que um caso humano foi aberto", async () => {
     const espia = mensageriaEspia();
 
-    // O turno inteiro roda com a conversa da IA — é assim que o worker a
-    // entregou. A mudança acontece AGORA, enquanto o modelo responde.
-    const { assumirConversa } = await import("../aplicacao/casos");
-    await assumirConversa(ORG, CONVERSA, "66666666-6666-4666-8666-666666666666");
-
-    await rodarTurno(comEnvio(portaFake(respostaLimpa()), espia));
-
-    // A resposta estava pronta e limpa: os portões liberaram. O que barrou foi
-    // a releitura do dono, no último instante antes de gravar.
-    expect(espia.enviadas).toHaveLength(0);
-  });
-
-  it("o turno termina em `sem_acao`, e NÃO em `falha_segura`", async () => {
-    const espia = mensageriaEspia();
-    const { assumirConversa } = await import("../aplicacao/casos");
-    await assumirConversa(ORG, CONVERSA, "66666666-6666-4666-8666-666666666666");
+    // É EXATAMENTE O QUE `abrirCaso` faz. Não é um estado inventado para o
+    // teste: é o estado em que toda conversa escalada fica.
+    const { pausarIaNaConversa } = await import("../aplicacao/casos");
+    await pausarIaNaConversa(ORG, CONVERSA);
 
     const r = await rodarTurno(comEnvio(portaFake(respostaLimpa()), espia));
 
-    /*
-     * ESTA É A ASSERÇÃO QUE IMPORTA, e ela é sobre custo e sobre teimosia.
-     *
-     * `falha_segura` faz o worker relançar, e relançar é retry: mais cinco
-     * tentativas, mais cinco chamadas de modelo pagas, e uma dead letter no
-     * fim — tudo isso para uma conversa que uma pessoa assumiu de propósito.
-     *
-     * Sem esta distinção, a trava de dono — que existe para proteger — viraria
-     * ela mesma um gerador de retry e de conta. É o tipo de defeito que só
-     * aparece na fatura e na fila de falhas, semanas depois.
-     */
-    expect({ t: r.tipo, m: "motivo" in r ? r.motivo : null }).toEqual({ t: "PROBE", m: "x" });
+    expect(espia.enviadas).toHaveLength(0);
+    expect(r.tipo).toBe("sem_acao");
+    // Quem barrou fica no trace: sem isso, "a IA não respondeu" seria
+    // indistinguível de "a IA não teve o que dizer".
+    expect(conteudo("crc_ai_runs")[0]?.["portao_bloqueou"]).toBe("dono_da_conversa");
+    expect("motivo" in r ? r.motivo : "").toContain("pausada");
+  });
+
+  it("volta a responder quando a conversa é devolvida para a IA", async () => {
+    const espia = mensageriaEspia();
+    const { devolverParaIa, pausarIaNaConversa } = await import("../aplicacao/casos");
+    await pausarIaNaConversa(ORG, CONVERSA);
+    await devolverParaIa(ORG, CONVERSA);
+
+    const r = await rodarTurno(comEnvio(portaFake(respostaLimpa()), espia));
+
+    // A trava é reversível por ato explícito — senão ela viraria um jeito de
+    // desligar o agente sem querer e para sempre.
+    expect(r.tipo).toBe("enviado");
+    expect(espia.enviadas).toHaveLength(1);
+  });
+
+  it("o chokepoint recusa sozinho, sem depender do portão", async () => {
+    // Sem passar pelo turno: é o caminho de quem chamar `enviarMensagem`
+    // diretamente — a campanha, o reprocessamento, a tela nova.
+    const espia = mensageriaEspia();
+    const { pausarIaNaConversa } = await import("../aplicacao/casos");
+    await pausarIaNaConversa(ORG, CONVERSA);
+
+    const { enviarMensagem } = await import("../aplicacao/mensagens");
+    const r = await enviarMensagem({
+      organizationId: ORG,
+      clinicId: CLINICA,
+      patientId: PACIENTE,
+      conversationId: CONVERSA,
+      telefone: "5511999998888",
+      texto: "Oi!",
+      chaveDedupe: "fora-do-turno:1",
+      remetente: "ia",
+      proativo: false,
+      porta: espia.porta,
+      agora: AGORA,
+    });
+
+    expect(r).toMatchObject({ ok: false, codigo: "IA_PAUSADA", permanente: true });
+    expect(espia.enviadas).toHaveLength(0);
   });
 });

@@ -1,25 +1,40 @@
 /**
- * O dono da conversa, conferido no último instante — Fase C.
+ * O dono da conversa, conferido no chokepoint de saída — Fase C.
  *
- * A JANELA QUE ESTE ARQUIVO FECHA. O worker lê o dono ao começar o job e só
- * então chama o modelo. Entre uma coisa e outra passam segundos — às vezes
- * dezenas, quando o provedor está lento. É tempo de sobra para um atendente
- * abrir a Inbox, ver a conversa, clicar em "assumir" e começar a responder.
+ * PRIMEIRO, O QUE ESTE ARQUIVO **NÃO** É. Ele não é o único lugar que confere
+ * dono, e apresentá-lo assim seria vender proteção que já existia: o turno relê
+ * o dono ao avaliar os portões, depois da chamada de modelo. Um teste honesto
+ * precisa dizer o que ele acrescenta.
  *
- * Com a conferência só no começo, o que sai é a resposta da IA POR CIMA da
- * resposta da pessoa. Duas vozes no mesmo minuto, dizendo coisas diferentes, e
- * a clínica descobre pelo print que o paciente manda depois perguntando afinal
- * quem está falando com ele.
+ * O QUE ELE ACRESCENTA SÃO DUAS COISAS.
  *
- * O teste que provaria isso NÃO PODE ser "chamei enviarMensagem com um dono
- * errado": tem que ser "o dono mudou DEPOIS da decisão de enviar", que é a
- * única forma como o defeito aparece de verdade.
+ *   A JANELA QUE SOBRA entre a leitura dos portões e a gravação da mensagem —
+ *   busca de destino, política de contato, idas e voltas ao PostgREST. Estreita,
+ *   e numa Inbox movimentada uma janela estreita continua sendo uma janela.
+ *
+ *   O CHOKEPOINT. Todo envio passa por `enviarMensagem`. Uma regra escrita no
+ *   chamador protege aquele chamador; escrita aqui, protege o próximo também —
+ *   a campanha, o reprocessamento, a tela que ainda vai ser construída por
+ *   alguém que não vai lembrar de conferir dono.
+ *
+ * O CENÁRIO É SEMPRE O MESMO: a decisão de enviar já foi tomada, e o dono muda
+ * DEPOIS. Chamar `enviarMensagem` com um dono já errado não provaria nada sobre
+ * corrida — provaria só que a função lê uma coluna.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+/** Liga/desliga a leitura de `crc_conversations`, para simular banco fora. */
+const estado = vi.hoisted(() => ({ leituraQuebrada: false }));
+
 vi.mock("../servidor/banco", async () => {
   const fake = await import("../testes/banco-memoria");
-  return fake;
+  return {
+    ...fake,
+    selecionarUm: (tabela: string, opcoes: never) =>
+      estado.leituraQuebrada && tabela === "crc_conversations"
+        ? Promise.reject(new Error("PostgREST fora do ar"))
+        : fake.selecionarUm(tabela, opcoes),
+  };
 });
 
 vi.mock("../servidor/registro", async () => {

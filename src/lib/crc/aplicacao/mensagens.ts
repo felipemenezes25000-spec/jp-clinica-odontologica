@@ -479,13 +479,18 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
   /*
    * O DONO É RELIDO AQUI, no último instante antes de gravar — Fase C.
    *
-   * O worker já verifica o dono ao começar o job. Entre aquela leitura e esta há
-   * a chamada do modelo: dez, vinte segundos. É tempo de sobra para um atendente
-   * ver a conversa na Inbox, clicar em "assumir" e começar a digitar.
+   * NÃO É A PRIMEIRA CHECAGEM, e é importante ser exato sobre isso: o turno já
+   * relê o dono na hora de avaliar os portões, depois da chamada de modelo. O
+   * que esta aqui acrescenta são duas coisas diferentes.
    *
-   * Sem esta releitura, o que o paciente recebe é a resposta da IA por cima da
-   * resposta da pessoa — duas vozes no mesmo minuto, dizendo coisas diferentes,
-   * e a clínica descobre pelo print que o paciente manda depois.
+   * A PRIMEIRA é a janela que sobra entre aquela leitura e a gravação: a busca
+   * do destino, a política de contato, as idas e voltas ao PostgREST. É estreita
+   * — e uma janela estreita numa Inbox movimentada continua sendo uma janela.
+   *
+   * A SEGUNDA, que vale mais: aqui é o chokepoint. Todo envio do sistema passa
+   * por esta função. Uma regra escrita no chamador protege aquele chamador;
+   * escrita aqui, protege também o próximo — a campanha, o reprocessamento, a
+   * tela que alguém ainda vai construir e que não vai lembrar de conferir dono.
    *
    * SÓ VALE PARA `ia`. `atendente` é a pessoa que assumiu, e `automacao` é
    * jornada agendada, que roda por outra decisão e tem outros portões.

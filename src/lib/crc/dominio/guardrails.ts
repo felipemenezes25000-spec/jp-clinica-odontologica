@@ -83,22 +83,36 @@ export const portaoOptOut: Portao = {
 };
 
 /**
- * Conversa com dono humano não recebe mensagem da IA.
+ * A IA só fala na conversa que é DELA.
  *
  * É a regra que impede o pior desfecho da Inbox: duas respostas ao mesmo
  * paciente, uma da pessoa e outra da máquina, com segundos de diferença.
+ *
+ * A LISTA É DE QUEM PASSA, e não de quem barra — Fase C.
+ *
+ * Antes, o portão recusava apenas `humano`. O efeito era um buraco silencioso:
+ * `ninguem` — que é exatamente o estado em que `abrirCaso` deixa a conversa,
+ * porque abrir caso cala a IA — PASSAVA. Ou seja, toda conversa que o agente
+ * mandou para uma pessoa voltava a receber resposta automática no turno
+ * seguinte, desfazendo na prática a própria decisão de escalar.
+ *
+ * Escrito como lista de permissão, um estado novo de dono nasce barrado. Escrito
+ * como lista de bloqueio, nasce liberado — e ninguém descobre até acontecer.
  */
 export const portaoDono: Portao = {
   nome: "dono_da_conversa",
   avaliar: (ctx) =>
-    ctx.dono === "humano"
-      ? {
+    ctx.dono === "ia"
+      ? PASSA
+      : {
           passa: false,
-          codigo: "conversa_com_humano",
-          motivo: "Um atendente assumiu esta conversa.",
+          codigo: ctx.dono === "humano" ? "conversa_com_humano" : "ia_pausada",
+          motivo:
+            ctx.dono === "humano"
+              ? "Um atendente assumiu esta conversa."
+              : "A IA está pausada nesta conversa.",
           destino: "descartar",
-        }
-      : PASSA,
+        },
 };
 
 /**
