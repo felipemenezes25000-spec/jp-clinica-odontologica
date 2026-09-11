@@ -15,7 +15,7 @@ Sistema de vagas e triagem de currículos, embutido no site da clínica.
 | ------------------------------- | -------------------------------------------------------------------------- |
 | `/carreiras`                    | Vitrine das vagas abertas, com filtro por área, vínculo e turno            |
 | `/carreiras/<slug>`             | A página da vaga, com JSON-LD de `JobPosting` (aparece no Google for Jobs) |
-| `/trabalhe-conosco?vaga=<slug>` | Candidatura em 5 passos, com anexo de currículo                            |
+| `/trabalhe-conosco?vaga=<slug>` | Candidatura em passo único, com anexo de currículo                        |
 
 **Para a coordenação**, em `/rh` (senha única, `noindex`):
 
@@ -75,12 +75,19 @@ determinístico, e o RH pode discordar por escrito.
 ## O guia de entrevista é da clínica, não nosso
 
 `src/lib/rh/guia.ts` traz, transcrito com fidelidade, o método real da JP escrito
-pela Dra. Ana Beatriz e pelo Jefferson: 15 perguntas gerais, 10 critérios de 0 a
-5 (total 50), 10 sinais de observação, 5 regras de desempate e a nota ética.
+pela Dra. Ana Beatriz e pelo Jefferson: **10 critérios** de 0 a 5 (total 50) em
+`CRITERIOS_JP`, e **8 fichas** de área em `FICHAS_DA_CLINICA`, cada uma com as
+perguntas daquele cargo.
 
-Os guias das outras áreas (dentista, ASB, estágio, administrativo) foram
-**derivados** por nós a partir dele e vêm marcados com `derivado: true` — a tela
-avisa isso, porque o RH precisa saber o que revisar.
+O campo `derivado` existe e a tela sabe avisar quando um guia foi copiado de
+outro — mas **hoje nenhum está ligado**: todas as fichas são transcrição direta
+do método da clínica.
+
+> Este parágrafo dizia "15 perguntas gerais" e descrevia os guias de outras áreas
+> como já derivados. Conferido contra o código: as perguntas vivem dentro de cada
+> ficha de área, não numa lista geral, e nenhuma ficha carrega `derivado: true`.
+> A diferença importa: quem lesse o texto antigo procuraria revisar guias
+> derivados que não existem.
 
 Dos 10 critérios, cinco são `soNaEntrevista: true` e **a IA não opina neles**:
 comunicação e postura, organização, disponibilidade, compatibilidade com a equipe
