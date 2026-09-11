@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
-import { CLINICA, whatsappLink } from "@/lib/jp";
+import { CLINICA } from "@/lib/jp";
 import { contatoWhatsApp } from "@/lib/contato";
 
 const CHAVE_DISPENSA = "jp:cta-dispensado";
@@ -127,7 +127,7 @@ export function FloatingCTA() {
         <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
           <span
             aria-hidden="true"
-            className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite]"
+            className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite] motion-reduce:[animation:none]"
           />
           <MessageCircle className="h-5 w-5" />
         </span>
@@ -144,7 +144,7 @@ export function FloatingCTA() {
           da vista, mas deixa os dois links na ordem de tabulação e anunciados
           pelo leitor de tela — a pessoa navegava para botões fora da tela. */}
       <div
-        className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/96 p-2.5 backdrop-blur-xl transition-[translate,visibility] duration-500 sm:hidden ${
+        className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/98 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-[translate,visibility] duration-500 sm:hidden ${
           visivel ? "translate-y-0" : "invisible translate-y-full"
         }`}
         aria-hidden={!visivel}
