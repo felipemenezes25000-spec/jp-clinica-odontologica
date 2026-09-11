@@ -237,8 +237,12 @@ function TreatmentPage() {
                 {/* Tracking capped at -.04em: at this size -.085em pulled the second
                     glyph over narrow first letters (the "I" in IMPLANTES vanished). */}
                 <h1 className="mt-4 max-w-5xl font-display text-[clamp(2.6rem,5.4vw,4.5rem)] font-extrabold leading-[.82] tracking-[-.04em] [overflow-wrap:anywhere]">
-                  {treatment.short}
-                  <span className="block text-lime">com propósito.</span>
+                  {treatment.short}{" "}
+                  {/* O espaço acima não é enfeite: sem ele o leitor de tela
+                      anuncia "Implantespara voltar a mastigar tranquilo" numa
+                      palavra só. O `block` separa visualmente, mas a árvore de
+                      acessibilidade concatena texto adjacente sem espaço. */}
+                  <span className="block text-lime">{treatment.headline}</span>
                 </h1>
                 <p className="mt-7 max-w-2xl font-display text-2xl font-bold leading-[1.02] text-white/82 sm:text-3xl">
                   {treatment.kicker}
@@ -255,6 +259,23 @@ function TreatmentPage() {
                     Entender o tratamento <ChevronDown className="h-4 w-4" />
                   </a>
                 </div>
+
+                {/* A prova social sobe para logo abaixo do CTA.
+                    Ela existia na página, mas a 59% da rolagem — entre o
+                    processo e o FAQ. Quem chega de anúncio decide nos primeiros
+                    segundos, e a nota do Google é o que a clínica tem de mais
+                    verificável para oferecer nesse momento.
+                    Discreta de propósito: uma linha, sem caixa e sem disputar
+                    com o botão que está logo acima. */}
+                <a
+                  href={CLINICA.mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="alvo-toque mt-6 gap-2 text-white/70 transition-colors hover:text-lime"
+                >
+                  <GoogleRating variante="selo" />
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </a>
               </Reveal>
             </div>
 

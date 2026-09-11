@@ -45,15 +45,18 @@ export function Header() {
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
             <span className="text-micro font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-micro">
-              Vila Bruna
+              {/* Os {" "} não são enfeite: o JSX apaga a quebra de linha entre
+                  texto e elemento, e o bullet é aria-hidden. Sem eles o leitor
+                  de tela anuncia "Vila BrunaFreguesia do Ó" grudado. */}
+              Vila Bruna{" "}
               <span aria-hidden="true" className="mx-2 text-lime">
                 •
-              </span>
-              Freguesia do Ó
+              </span>{" "}
+              Freguesia do Ó{" "}
               <span className="hidden sm:inline">
                 <span aria-hidden="true" className="mx-2 text-lime">
                   •
-                </span>
+                </span>{" "}
                 São Paulo/SP
               </span>
             </span>
@@ -63,7 +66,7 @@ export function Header() {
             <span className="flex items-center gap-2">
               <Clock3 size={14} className="text-lime" aria-hidden="true" />
               <span className="text-micro font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-micro">
-                Segunda a sexta
+                Segunda a sexta{" "}
                 <span aria-hidden="true" className="mx-2 text-lime">
                   •
                 </span>

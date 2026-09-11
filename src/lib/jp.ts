@@ -540,6 +540,11 @@ export const NAV = [
   { label: "Equipe", href: "/#equipe" },
   { label: "Avaliações", href: "/#depoimentos" },
   { label: "Contato", href: "/#fale" },
+  /* Carreiras voltou ao topo a pedido da clínica, em 11/09/2026. É a única
+     entrada do menu que não é âncora da home: o portal de vagas é página
+     própria, com URL indexável. Seis itens ainda cabem folgados na barra --
+     medido: a faixa do menu ocupa 377px dos 865px disponíveis em 1440. */
+  { label: "Carreiras", href: "/carreiras" },
 ];
 
 /**
@@ -567,6 +572,20 @@ export type Tratamento = {
   slug: string;
   titulo: string;
   short: string;
+  /**
+   * A segunda linha do H1, que fecha a frase começada por `short`.
+   *
+   * Existe porque antes era literal no componente: as oito páginas abriam com
+   * "<nome> com propósito." — o mesmo substantivo abstrato colado em oito
+   * procedimentos diferentes. Isso não diz o que o paciente ganha, repete
+   * padrão em oito páginas que deveriam ser distintas, e é exatamente o tipo de
+   * frase que se escreve quando não se sabe o que dizer.
+   *
+   * Cada fecho sai do que aquele tratamento de fato é, e nada promete
+   * resultado. `short` continua na primeira linha porque é o termo que a
+   * pessoa busca.
+   */
+  headline: string;
   desc: string;
   icone: string;
   kicker: string;
@@ -583,6 +602,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "limpeza-profilaxia",
     titulo: "Limpeza e profilaxia",
     short: "Limpeza",
+    headline: "que evita o tratamento de depois.",
     desc: "Remoção de placa e tártaro, com orientação de higiene e acompanhamento preventivo individualizado.",
     icone: "sparkles",
     kicker: "Prevenção que começa no básico bem feito.",
@@ -636,6 +656,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "clareamento-dental",
     titulo: "Clareamento dental",
     short: "Clareamento",
+    headline: "no tom que combina com você.",
     desc: "Protocolos de clareamento indicados após avaliação, respeitando as características e a sensibilidade de cada paciente.",
     icone: "sun",
     kicker: "Estética com indicação, não com pressa.",
@@ -689,6 +710,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "restauracoes",
     titulo: "Restaurações",
     short: "Restaurações",
+    headline: "que devolvem o dente ao lugar.",
     desc: "Recuperação de dentes comprometidos por cárie ou perda de estrutura, buscando função, forma e integração estética.",
     icone: "shield",
     kicker: "Reconstruir sem chamar atenção para a reconstrução.",
@@ -742,6 +764,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "implantes-dentarios",
     titulo: "Implantes dentários",
     short: "Implantes",
+    headline: "para voltar a mastigar tranquilo.",
     desc: "Reabilitação de dentes ausentes com planejamento individual e acompanhamento profissional em cada etapa.",
     icone: "anchor",
     kicker: "Reabilitação é recuperar presença, função e confiança.",
@@ -795,6 +818,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "proteses-dentarias",
     titulo: "Próteses dentárias",
     short: "Próteses",
+    headline: "planejadas caso a caso.",
     desc: "Soluções protéticas fixas ou removíveis planejadas para apoiar mastigação, conforto e harmonia do sorriso.",
     icone: "layers",
     kicker: "Reabilitar é devolver possibilidades ao dia a dia.",
@@ -848,6 +872,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "ortodontia",
     titulo: "Aparelhos e ortodontia",
     short: "Ortodontia",
+    headline: "é alinhar também a mordida.",
     desc: "Alinhamento dos dentes e acompanhamento da mordida por meio de planejamento ortodôntico individualizado.",
     icone: "align",
     kicker: "Mover dentes exige direção.",
@@ -901,6 +926,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "odontopediatria",
     titulo: "Odontopediatria",
     short: "Odontopediatria",
+    headline: "no tempo de cada criança.",
     desc: "Cuidado odontológico para crianças com linguagem simples, acolhimento e construção gradual de confiança.",
     icone: "heart",
     kicker: "O primeiro vínculo com o dentista pode ser uma boa memória.",
@@ -954,6 +980,7 @@ export const TRATAMENTOS: Tratamento[] = [
     slug: "harmonizacao-orofacial",
     titulo: "Harmonização orofacial",
     short: "Harmonização",
+    headline: "na medida do seu rosto.",
     desc: "Botox, preenchimento e skinbooster quando indicados, sempre mediante avaliação profissional e planejamento individual.",
     icone: "wand",
     kicker: "Estética facial sem apagar quem você é.",

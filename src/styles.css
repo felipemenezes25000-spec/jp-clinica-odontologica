@@ -144,7 +144,13 @@
   }
   html {
     scroll-behavior: smooth;
-    scroll-padding-top: 5.75rem;
+    /* 8.5rem = 136px: os 127px que o cabeçalho grudado ocupa, mais 9px de
+       respiro. Eram 5.75rem (92px), e a conta não fechava — ao clicar em
+       "Tratamentos" ou "Equipe" a seção parava 35px atrás do próprio
+       cabeçalho, engolindo o começo do título.
+       O cabeçalho mede 127px em 390, 768 e 1440, e nos dois estados de
+       rolagem — medido —, por isso um valor só resolve. */
+    scroll-padding-top: 8.5rem;
     background: var(--background);
   }
   body {

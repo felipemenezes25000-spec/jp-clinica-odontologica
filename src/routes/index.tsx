@@ -905,7 +905,7 @@ function Home() {
                     <div>
                       <p className="text-micro font-extrabold text-primary-ink">{CLINICA.nome}</p>
                       <p className="mt-2 font-display text-base font-extrabold leading-snug text-forest-2">
-                        {CLINICA.local.logradouro} — {CLINICA.local.bairro}
+                        {CLINICA.local.logradouro} — {CLINICA.local.bairro}{" "}
                         <span className="block">
                           {CLINICA.local.cidade} - {CLINICA.local.uf}, {CLINICA.local.cep}
                         </span>
