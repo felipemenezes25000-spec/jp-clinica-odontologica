@@ -9,7 +9,8 @@
  * primeiro byte do HTML e busca em paralelo com este arquivo. */
 @import "./assets/fontes/_faces.css";
 @import "tailwindcss" source(none);
-@source "../src";
+@source "../src/routes";
+@source "../src/components";
 
 @custom-variant dark (&:is(.dark *));
 
