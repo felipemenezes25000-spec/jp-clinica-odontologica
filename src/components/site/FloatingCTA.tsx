@@ -70,7 +70,12 @@ export function FloatingCTA() {
                 Pronto para transformar seu sorriso?
               </p>
               <p className="mt-0.5 hidden truncate text-xs font-medium text-white lg:block">
-                Agende sua avaliação e descubra o melhor cuidado para você e sua família.
+                {/* Era "descubra o melhor cuidado": superlativo sobre o proprio
+                    serviço, que o CFO 118/2012 nao admite em publicidade
+                    odontologica e que, mesmo se admitisse, e a frase que toda
+                    clinica escreve. O que a JP de fato oferece e planejamento
+                    caso a caso — isso e verificavel, e diz mais. */}
+                Agende sua avaliação e veja o que faz sentido para você e sua família.
               </p>
             </div>
           </div>
