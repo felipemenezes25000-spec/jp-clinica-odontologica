@@ -167,6 +167,18 @@ const RAMPA_AGENTE: Readonly<Record<string, { nome: string; explicacao: string }
  * por isso continuam na grade de duas colunas.
  */
 const ROTULO_FLAG: Readonly<Record<string, { nome: string; explicacao: string }>> = {
+  /*
+   * FORA DA RAMPA DE PROPÓSITO. A rampa é uma sequência de PODERES, e cada
+   * degrau dela aumenta o que a máquina pode fazer com um paciente. Esta chave
+   * não aumenta poder nenhum: o supervisor não fala com ninguém, não marca
+   * nada, não desmarca nada. Ele lê o que já aconteceu. Colocá-lo no meio da
+   * rampa ensinaria a coisa errada — que ligá-lo é mais um passo de risco.
+   */
+  ai_supervisor: {
+    nome: "Deixar a IA revisar o próprio atendimento",
+    explicacao:
+      "Depois de cada conversa, ela relê o que aconteceu e anota: o paciente foi atendido? do que ele reclamou? a resposta foi boa, de 0 a 10? Também guarda o que a pessoa DISSE e que serve para a próxima vez — por exemplo, que ela só pode vir depois das 17h. Nunca guarda opinião sobre a pessoa: frases do tipo “não tem dinheiro” ou “é difícil de lidar” são recusadas pelo sistema, não pelo bom senso de quem escreveu. Você vê e apaga tudo isso na tela Inteligência. Custa uma consulta de IA a mais por conversa.",
+  },
   ai_autopilot: {
     nome: "IA pode agir sozinha",
     explicacao:

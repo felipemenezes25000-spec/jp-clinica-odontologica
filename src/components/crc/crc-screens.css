@@ -1792,6 +1792,31 @@
   }
 }
 
+/* A revisão que o sistema fez da própria resposta.
+
+   RECUADA E COM FILETE, pelo mesmo motivo da citação acima: ela fala SOBRE o
+   texto que está logo acima dela, e precisa ser lida como comentário de
+   margem — não como mais um dado do turno. Sem o recuo, a nota flutuaria ao
+   lado do custo e do modelo como se fosse outra métrica de execução. */
+.crc-app .crc-turno-ia-supervisao {
+  margin-top: var(--crc-e3);
+  padding: 8px 12px;
+  border-left: 2px dashed var(--crc-borda);
+  background: var(--crc-superficie-2);
+  border-radius: 0 8px 8px 0;
+}
+
+/* O selo diz DE QUEM é a leitura. Sem ele, a nota parece vir de uma pessoa —
+   e a diferença entre "a equipe achou ruim" e "a máquina se avaliou" muda
+   completamente o peso do número. */
+.crc-app .crc-turno-ia-selo {
+  font-family: var(--crc-fonte-dado);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--crc-texto-3);
+}
+
 /* ==========================================================================
    Configurações — a legenda da rampa de autonomia
    ==========================================================================

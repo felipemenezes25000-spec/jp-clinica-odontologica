@@ -114,6 +114,14 @@ export const FLAGS = {
    * completamente diferente de um que grava na agenda da clínica.
    */
   aiAgenteEscrita: "ai_agente_escrita",
+  /**
+   * A segunda leitura de cada turno, depois do fato: deu certo? qual foi a
+   * objeção? o agente violou regra? E é ela quem PROPÕE memória.
+   *
+   * Flag própria porque custa uma chamada de modelo por turno. O supervisor não
+   * fala com paciente e não executa nada — ligá-lo só produz leitura e memória.
+   */
+  aiSupervisor: "ai_supervisor",
   /** Permite a IA marcar consulta sem humano no meio. */
   autoScheduling: "auto_scheduling",
   /** Liga a leitura de orçamentos. */
@@ -131,6 +139,7 @@ export const FLAGS_PADRAO: Readonly<Record<ChaveFlag, boolean>> = {
   ai_agente_sombra: false,
   ai_agente_envio: false,
   ai_agente_escrita: false,
+  ai_supervisor: false,
   auto_scheduling: false,
   budget_integration: false,
   automatic_whatsapp: false,

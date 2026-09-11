@@ -149,6 +149,10 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
       onde: (l) => l["status"] === "ABERTO" || l["status"] === "ASSUMIDO",
     },
   ],
+  // Os índices do 11. O primeiro é o que faz repetir uma preferência RENOVAR a
+  // memória em vez de criar uma cópia dela; o segundo, um supervisor por turno.
+  crc_ai_memories: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  crc_ai_supervisoes: [{ colunas: ["run_id"] }],
   crc_users: [{ colunas: ["organization_id", "email"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.

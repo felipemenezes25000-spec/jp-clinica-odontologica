@@ -65,6 +65,15 @@ export type Trace = {
       portao?: string;
     },
   ) => Promise<void>;
+  /**
+   * O id da run gravada, ou `null`.
+   *
+   * `null` tem DOIS significados, e os dois levam à mesma decisão de quem
+   * chama: ou a gravação falhou, ou a chave de dedupe já existia — isto é, este
+   * turno já foi processado antes. Em nenhum dos casos existe uma run nova a que
+   * anexar supervisão, e é por isso que o supervisor não roda sem este id.
+   */
+  runId: () => string | null;
 };
 
 export function abrirTrace(organizationId: string, conversationId: string): Trace {
@@ -72,6 +81,7 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
   const inicio = Date.now();
   let consumo: UsoIa | null = null;
   let ordem = 0;
+  let idDaRun: string | null = null;
 
   const registrar = (
     nome: string,
@@ -119,6 +129,10 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
             };
     },
 
+    runId() {
+      return idDaRun;
+    },
+
     ferramentas(passos) {
       for (const p of passos) {
         ordem += 1;
@@ -163,6 +177,7 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
         // reprocessamento duplicaria o trace sem duplicar a run.
         const runId = criada === null ? null : criada["id"];
         if (typeof runId !== "string") return;
+        idDaRun = runId;
 
         if (spans.length > 0) {
           await inserir(

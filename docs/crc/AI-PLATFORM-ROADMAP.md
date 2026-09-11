@@ -18,7 +18,7 @@ Nenhuma mudança de comportamento de produção.
 
 ---
 
-## Fatia 1 — Inbound Agent Shadow Turn
+## Fatia 1 — Inbound Agent Shadow Turn *(concluída)*
 
 **O que prova:** que existe um runtime agentic durável, com contexto, chamada de
 modelo, trace e custo — **sem mandar nada para ninguém**.
@@ -42,7 +42,7 @@ Depende de: nada além do que já existe.
 
 ---
 
-## Fatia 2 — Guardrails e envio real protegido
+## Fatia 2 — Guardrails e envio real protegido *(concluída)*
 
 Cadeia de Gates portada do Deskcomm para `dominio/`, mais o envio real atrás de
 flag e de `EXECUTAR`.
@@ -53,14 +53,14 @@ proativo do agente — ver [CUSTO-DAS-MENSAGENS](CUSTO-DAS-MENSAGENS.md).
 
 ---
 
-## Fatia 3 — Tools de leitura sobre casos de uso existentes
+## Fatia 3 — Tools de leitura sobre casos de uso existentes *(concluída)*
 
 `patient.*`, `appointment.search_available`, `knowledge.search`. Nenhuma escrita.
 Executor aplica policy **depois** da escolha do modelo e **antes** do efeito.
 
 ---
 
-## Fatia 4 — Tools de escrita e agendamento pelo agente
+## Fatia 4 — Tools de escrita e agendamento pelo agente *(concluída)*
 
 `appointment.offer_slots` → `accept_offer` → `create`, chamando
 `aplicacao/agendamento.ts`. As três travas continuam valendo. Revalidação
@@ -68,17 +68,35 @@ imediatamente antes de gravar.
 
 ---
 
-## Fatia 5 — Human cases e Inbox 2.0
+## Fatia 5 — Human cases e Inbox 2.0 *(concluída)*
 
 `crc_human_cases`, estado de dono da conversa, botões de assumir/devolver/pausar,
 resumo automático no handoff.
 
 ---
 
-## Fatia 6 — Memória e supervisor
+## Fatia 6 — Memória e supervisor *(concluída)*
 
-Memória em níveis (turno, conversa, paciente, organização) com origem,
-confiança, validade e direito de correção. Supervisor estruturado pós-turno.
+Memória com origem, confiança, validade e direito de correção. Supervisor
+estruturado pós-turno, atrás da flag `ai_supervisor`.
+
+Entregue:
+
+- `dominio/memoria.ts` — a validação que recusa rótulo sobre pessoa, pura e
+  testada sem banco (ADR-13, ADR-14);
+- `aplicacao/memoria.ts` — repetir renova em vez de duplicar; invalidada não
+  ressuscita (ADR-15);
+- `ia-platform/supervisor.ts` — uma chamada por turno, produz a leitura
+  estruturada **e** as candidatas a memória, e não pode agir (ADR-16);
+- memória injetada em `ContextoTurno`, rotulada como "dito antes" e com proibição
+  explícita de ser recitada ao paciente;
+- Inteligência mostra os três estados da memória, com apagar e confirmar;
+- `supabase/11-crc-memoria-supervisor.sql`.
+
+**Dois níveis, e não quatro.** O contrato falava de turno, conversa, paciente e
+organização. Turno e conversa saíram: o que vale só dentro de uma conversa já
+está na conversa, e duplicá-lo criaria um segundo lugar para a mesma coisa
+envelhecer de forma diferente.
 
 ---
 

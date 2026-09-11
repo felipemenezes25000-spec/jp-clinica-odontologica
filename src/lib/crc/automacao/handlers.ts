@@ -754,6 +754,9 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
     porta: provedor.configurado ? provedor.porta : null,
     portaMensageria,
     podeEnviar,
+    // A segunda leitura do turno, e a única coisa que propõe memória. Custa uma
+    // chamada de modelo a mais por turno, então é flag separada.
+    supervisionar: flags["ai_supervisor"] === true,
   });
 }
 

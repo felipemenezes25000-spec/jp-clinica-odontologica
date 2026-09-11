@@ -42,11 +42,12 @@ export async function montarContextoDoTurno(
 
   const patientId = typeof conversa["patient_id"] === "string" ? conversa["patient_id"] : null;
 
-  const [paciente, mensagens, oportunidade, oferta] = await Promise.all([
+  const [paciente, mensagens, oportunidade, oferta, memorias] = await Promise.all([
     carregarPaciente(organizationId, patientId),
     carregarMensagens(organizationId, conversationId),
     carregarOportunidade(organizationId, patientId),
     carregarOferta(organizationId, conversationId),
+    carregarMemorias(organizationId, patientId, agora),
   ]);
 
   return {
@@ -58,6 +59,7 @@ export async function montarContextoDoTurno(
     oportunidade,
     oferta,
     mensagens,
+    memorias,
     resumo: texto(conversa["resumo_ia"]),
     intencao: texto(conversa["intencao"]),
     temperatura: texto(conversa["temperatura"]),
@@ -120,6 +122,29 @@ async function carregarMensagens(
     }))
     .filter((m) => m.texto.length > 0)
     .reverse() as MensagemDoTurno[];
+}
+
+/**
+ * As memórias vigentes desta pessoa e da clínica.
+ *
+ * NUNCA LANÇA, E É DE PROPÓSITO. A memória é um acréscimo ao contexto: o agente
+ * atendia bem antes de ela existir. Se a leitura falhar — tabela ainda não
+ * criada num ambiente, PostgREST fora do ar por um instante — o turno continua
+ * com o contexto que sempre teve, em vez de virar `falha_segura` por causa de
+ * um enfeite.
+ */
+async function carregarMemorias(
+  organizationId: string,
+  patientId: string | null,
+  agora: Date,
+): Promise<ContextoTurno["memorias"]> {
+  try {
+    const { memoriasDoContexto } = await import("../aplicacao/memoria");
+    const vigentes = await memoriasDoContexto(organizationId, patientId, agora);
+    return vigentes.map((m) => ({ escopo: m.escopo, conteudo: m.conteudo }));
+  } catch {
+    return [];
+  }
 }
 
 async function carregarOportunidade(
@@ -199,6 +224,31 @@ export function textoDoContexto(ctx: ContextoTurno): string {
     partes.push(`## Paciente\n${linhas.join("\n")}`);
   } else {
     partes.push("## Paciente\nAinda não identificado na base da clínica.");
+  }
+
+  /*
+   * A MEMÓRIA VEM ROTULADA COMO "dito antes", e não como verdade sobre a pessoa.
+   *
+   * A frase de fechamento do bloco existe para cobrir o pior uso possível de
+   * memória: o agente abrir a conversa com "vi aqui que você prefere depois das
+   * 17h". Isso soa a ficha, assusta, e a pessoa não se lembra de ter dito. A
+   * memória serve para ESCOLHER melhor o que oferecer — não para ser recitada.
+   */
+  const daPessoa = ctx.memorias.filter((m) => m.escopo === "paciente");
+  const daClinica = ctx.memorias.filter((m) => m.escopo === "organizacao");
+
+  if (daPessoa.length > 0) {
+    partes.push(
+      `## O que esta pessoa já disse em outras conversas\n${daPessoa
+        .map((m) => `- ${m.conteudo}`)
+        .join("\n")}\n\nUse para escolher o que oferecer. NÃO cite que você tem isso anotado.`,
+    );
+  }
+
+  // Bloco separado porque é outra coisa: isto vale para todo mundo, e pode ser
+  // dito em voz alta sem soar a ficha.
+  if (daClinica.length > 0) {
+    partes.push(`## Sobre a clínica\n${daClinica.map((m) => `- ${m.conteudo}`).join("\n")}`);
   }
 
   if (ctx.oportunidade !== null) {

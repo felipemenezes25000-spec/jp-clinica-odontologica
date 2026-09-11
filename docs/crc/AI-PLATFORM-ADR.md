@@ -142,3 +142,71 @@ Estourar o teto vira handoff humano, não erro.
 
 **Por quê.** Checar depois só serve para descobrir o prejuízo. O Deskcomm chegou
 à mesma conclusão — está escrito no `PORT-NOTES.md` deles.
+
+---
+
+## ADR-13 — Memória guarda o que foi dito, nunca o que foi concluído
+
+**Decisão.** Uma frase só vira memória se descrever algo que a pessoa **disse** e
+que muda o próximo atendimento. Conclusão sobre a pessoa — situação financeira,
+temperamento, estado emocional, dado clínico, atributo protegido — é recusada em
+código, em `dominio/memoria.ts`, antes de existir linha no banco. A recusa vale
+igual para extração de modelo e para frase digitada por uma pessoa da clínica.
+
+**Por quê.** A assimetria de custo. Escrever memória é uma linha; desfazer o
+efeito dela não é — a frase já influenciou respostas, já foi lida pela recepção,
+e já virou a forma como a clínica enxerga aquela pessoa. Um rótulo como "não tem
+dinheiro" não envelhece: fica.
+
+**Alternativa descartada.** Pedir no prompt que o modelo não infira. Descartada
+pelo mesmo motivo dos guardrails: prompt é sugestão, condição de código não é
+negociável. E, ao contrário do guardrail de envio, aqui o dano não aparece na
+hora — aparece meses depois, numa resposta que ninguém liga à memória.
+
+**Consequência aceita.** Radical largo produz falso positivo, e memória legítima
+vai ser recusada de vez em quando. É o lado certo do erro; há um grupo de teste
+dedicado a frases legítimas justamente para o aperto de um radical não passar a
+barrar o que deveria entrar.
+
+---
+
+## ADR-14 — Toda memória extraída tem prazo
+
+**Decisão.** Memória de origem `conversa` nasce com `expira_em`. Só memória
+escrita por uma pessoa pode ser permanente. Repetir a mesma frase **renova** o
+prazo em vez de criar uma segunda linha.
+
+**Por quê.** Memória sem validade é ficha. Uma preferência de horário de 2026 não
+tem por que reger uma conversa de 2029, e quem a disse não foi avisado de que
+estava preenchendo cadastro. O prazo é o que faz a memória ser memória.
+
+---
+
+## ADR-15 — Memória invalidada por uma pessoa não ressuscita
+
+**Decisão.** `INVALIDADA` é terminal para a extração automática: a próxima
+extração da mesma frase é recusada com código próprio, não regravada. A linha
+não é apagada — sai do modelo e continua no registro.
+
+**Por quê.** Sem isso, o botão de corrigir seria decorativo: apagaria a memória
+até a próxima mensagem do paciente. E apagar a linha destruiria a resposta para
+"por que o agente disse aquilo em março?", que é a pergunta que a memória mais
+provoca.
+
+---
+
+## ADR-16 — O supervisor lê, e não pode agir
+
+**Decisão.** O supervisor roda depois do desfecho do turno, produz leitura
+estruturada, e escreve em exatamente duas tabelas: `crc_ai_supervisoes` e
+`crc_ai_memories`. Não recebe porta de mensageria, não importa o executor de
+ferramentas, não muda dono de conversa, não cria tarefa.
+
+**Por quê.** A restrição é o que torna aceitável rodá-lo com modelo barato em
+todo turno. Um supervisor que pudesse agir seria um segundo agente com metade da
+supervisão do primeiro.
+
+**Detalhe que não é detalhe.** Ele não roda sem `runId`. Quando o id vem nulo, é
+porque o índice de dedupe recusou a run — isto é, o evento já foi processado. A
+mesma condição que impede a supervisão duplicada impede pagar o modelo duas vezes
+pelo mesmo evento.

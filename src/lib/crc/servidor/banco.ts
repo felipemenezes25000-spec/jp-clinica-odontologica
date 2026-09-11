@@ -91,7 +91,9 @@ export type Tabela =
   | "crc_scheduling_offers"
   | "crc_ai_runs"
   | "crc_ai_spans"
-  | "crc_human_cases";
+  | "crc_human_cases"
+  | "crc_ai_memories"
+  | "crc_ai_supervisoes";
 
 export type Linha = Record<string, unknown>;
 

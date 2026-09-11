@@ -74,6 +74,20 @@ export type MensagemDoTurno = {
 };
 
 /**
+ * Uma memória, reduzida ao que o modelo precisa ver.
+ *
+ * Sem id, sem confiança, sem data de extração. O modelo não deve ponderar
+ * memória por número de confiança — quem pondera é `memoriasParaContexto`, que
+ * já decidiu quais chegam até aqui. Mandar o número junto convidaria o modelo a
+ * usar uma memória de confiança 0,3 "com ressalva", e memória com ressalva não
+ * deveria ter entrado.
+ */
+export type MemoriaNoContexto = {
+  escopo: "paciente" | "organizacao";
+  conteudo: string;
+};
+
+/**
  * Tudo que o agente sabe quando decide. Nada mais existe para ele.
  *
  * `agora` entra por parâmetro, como no resto do domínio: um turno tem UM
@@ -89,6 +103,11 @@ export type ContextoTurno = {
   oportunidade: OportunidadeDoTurno | null;
   oferta: OfertaDoTurno | null;
   mensagens: readonly MensagemDoTurno[];
+  /**
+   * O que a clínica já sabe porque alguém DISSE — nunca porque o modelo
+   * concluiu. Ver `dominio/memoria.ts`, que é quem recusa a diferença.
+   */
+  memorias: readonly MemoriaNoContexto[];
   /** O resumo que o classificador já produziu, quando existe. */
   resumo: string | null;
   /** A última leitura do classificador, reaproveitada em vez de refeita. */

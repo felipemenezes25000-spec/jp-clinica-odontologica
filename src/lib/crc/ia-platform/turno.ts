@@ -87,6 +87,15 @@ export type PedidoTurno = {
   contextoAgendamento?: () => Promise<
     import("../aplicacao/agendamento").ContextoAgendamento | null
   >;
+  /**
+   * `ai_supervisor` ligada. Roda a segunda leitura DEPOIS do desfecho, e é ela
+   * quem propõe memória.
+   *
+   * Custa uma chamada de modelo por turno, então é flag própria e não um
+   * detalhe da flag do agente: alguém pode querer o agente sem a supervisão, e
+   * o inverso não faz sentido — supervisionar exige ter o que supervisionar.
+   */
+  supervisionar?: boolean;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -103,6 +112,36 @@ export type PedidoTurno = {
  */
 export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
   const trace = abrirTrace(pedido.organizationId, pedido.conversationId);
+
+  /*
+   * O QUE O TURNO VIU, para o supervisor poder olhar depois.
+   *
+   * O supervisor roda DEPOIS do desfecho — é a definição dele — e o desfecho
+   * sai por oito caminhos diferentes lá dentro. Fazer cada um desses caminhos
+   * carregar contexto e resposta de volta significaria mudar oito assinaturas
+   * para servir a um observador. Este objeto é o lugar onde o turno deixa o que
+   * viu, e ele é só de leitura para quem vem depois.
+   */
+  const visto: VistoNoTurno = { ctx: null, resposta: null };
+
+  const resultado = await decidirEEntregar(pedido, trace, visto);
+
+  // Fora do try/catch do turno de propósito: `supervisionar` já não lança, e
+  // envolvê-lo no tratamento de erro do turno daria a impressão de que uma
+  // falha dele poderia mudar o desfecho. Não pode — o desfecho já foi devolvido.
+  await supervisionar(pedido, trace, visto, resultado);
+
+  return resultado;
+}
+
+/** O que o turno deixa registrado para o supervisor. */
+type VistoNoTurno = { ctx: Ctx | null; resposta: string | null };
+
+async function decidirEEntregar(
+  pedido: PedidoTurno,
+  trace: Trace,
+  visto: VistoNoTurno,
+): Promise<ResultadoTurno> {
   const chaveDedupe = `turno:${pedido.eventoId}`;
 
   try {
@@ -117,6 +156,7 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
         motivo: "Conversa não encontrada.",
       });
     }
+    visto.ctx = ctx;
 
     // Quem pediu para sair não gasta um turno de modelo. A checagem é antes da
     // chamada, e não depois: o portão de opt-out também barraria o envio, mas
@@ -196,6 +236,7 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
       raciocinio: "",
       precisaHumano: resultado.precisaHumano,
     };
+    visto.resposta = candidata.texto;
 
     // --- portões ----------------------------------------------------------
     const janela = estadoDaJanela(ultimaEntradaEm(ctx), pedido.agora);
@@ -285,6 +326,54 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
 /* -------------------------------------------------------------------------- */
 
 type Ctx = NonNullable<Awaited<ReturnType<typeof montarContextoDoTurno>>>;
+
+/**
+ * A segunda leitura do turno — Fatia 6.
+ *
+ * TRÊS CONDIÇÕES, E CADA UMA DESLIGA POR UM MOTIVO DIFERENTE:
+ *
+ *   sem flag         alguém não quer pagar uma segunda chamada por turno.
+ *   sem contexto     o turno morreu antes de ter o que supervisionar.
+ *   sem `runId`      não há run nova a que anexar — e, quando o id vem nulo por
+ *                    dedupe, este evento já foi supervisionado numa passagem
+ *                    anterior. É o que impede um reprocessamento de pagar o
+ *                    supervisor de novo.
+ *
+ * NUNCA LANÇA: o desfecho do turno já foi decidido e devolvido. Uma leitura
+ * posterior que estoura não pode alterá-lo.
+ */
+async function supervisionar(
+  pedido: PedidoTurno,
+  trace: Trace,
+  visto: VistoNoTurno,
+  resultado: ResultadoTurno,
+): Promise<void> {
+  if (pedido.supervisionar !== true) return;
+  if (pedido.porta === null) return;
+
+  const ctx = visto.ctx;
+  if (ctx === null) return;
+
+  const runId = trace.runId();
+  if (runId === null) return;
+
+  try {
+    const { supervisionarTurno } = await import("./supervisor");
+    await supervisionarTurno({
+      organizationId: pedido.organizationId,
+      conversationId: pedido.conversationId,
+      patientId: ctx.paciente?.id ?? null,
+      runId,
+      agora: pedido.agora,
+      porta: pedido.porta,
+      resultado,
+      respostaDoAgente: visto.resposta,
+      mensagens: ctx.mensagens,
+    });
+  } catch {
+    // Ver o cabeçalho.
+  }
+}
 
 function ultimaEntradaEm(ctx: Ctx): string | null {
   for (let i = ctx.mensagens.length - 1; i >= 0; i -= 1) {

@@ -163,6 +163,7 @@ const executorFake = {
     oportunidade: null,
     oferta: null,
     mensagens: [],
+    memorias: [],
     resumo: null,
     intencao: null,
     temperatura: null,

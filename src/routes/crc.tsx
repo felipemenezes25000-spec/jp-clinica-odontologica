@@ -70,6 +70,15 @@ export const Route = createFileRoute("/crc")({
       { title: "JP CRC — Central de Relacionamento" },
       { name: "robots", content: "noindex, nofollow" },
     ],
+    // O Bricolage Grotesque e a fonte de display DESTE app, e so dele. Vinha no
+    // <head> global e bloqueava 946ms de render em toda pagina do site — que
+    // nao o usa. Carrega aqui, onde serve.
+    links: [
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap",
+      },
+    ],
   }),
 });
 
@@ -538,11 +547,32 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
         efeito:
           "Soma TODAS as voltas do laço, não só a última chamada. Um turno que usa três ferramentas faz quatro chamadas de modelo.",
       },
+      {
+        faca: '"revisão do sistema" embaixo da resposta',
+        efeito:
+          "Aparece quando a chave de revisão está ligada em Configurações. Traz a nota de 0 a 10, o que a pessoa queria, do que ela reclamou, e se a resposta quebrou alguma regra. Serve para achar as piores respostas sem reler conversa.",
+      },
+      {
+        faca: '"O que o agente anotou sobre as pessoas"',
+        efeito:
+          "Tudo que ficou guardado, com prazo para sumir sozinho. Só entra o que a pessoa DISSE — “só posso depois das 17h”. Opinião sobre a pessoa é recusada pelo sistema, inclusive se alguém digitar à mão.",
+      },
+      {
+        faca: "Apagar, numa anotação",
+        efeito:
+          "Tira a frase do agente para sempre: ela não volta nem se o paciente repetir a mesma coisa. A linha continua registrada, para dar para saber depois por que o agente respondeu o que respondeu.",
+      },
+      {
+        faca: '"Está certo, pode usar"',
+        efeito:
+          "Aparece nas anotações em que o sistema não teve certeza. Até você confirmar, elas NÃO influenciam nenhuma resposta.",
+      },
     ],
     legendas: [
       { rotulo: "Não enviou", tom: "neutra" },
       { rotulo: "Passou para a equipe", tom: "alerta" },
       { rotulo: "Falhou com segurança", tom: "perigo" },
+      { rotulo: "Anotação esperando você conferir", tom: "alerta" },
     ],
   },
   integracoes: {

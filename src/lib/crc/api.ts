@@ -1223,10 +1223,30 @@ export type SpanDto = {
   resumo: string | null;
 };
 
+/**
+ * A leitura que o supervisor fez deste turno, quando a flag está ligada.
+ *
+ * Vem junto do turno e não numa tela própria: a nota faz sentido ao lado da
+ * resposta que a recebeu. Separadas, seria uma lista de números sem o texto que
+ * os explica.
+ */
+export type SupervisaoDto = {
+  resolvido: boolean;
+  intencao: string | null;
+  objecao: string | null;
+  sentimento: string | null;
+  precisaFollowup: boolean;
+  notaQualidade: number | null;
+  violacoes: string[];
+  memoriasGravadas: number;
+  memoriasRecusadas: number;
+};
+
 export type TurnoDaIaDto = {
   id: string;
   conversationId: string;
   patientId: string | null;
+  supervisao: SupervisaoDto | null;
   resultado: string;
   motivo: string | null;
   respostaCandidata: string | null;
@@ -1285,6 +1305,35 @@ export const carregarPanoramaDaIa = createServerFn({ method: "GET" }).handler(
               limite: 500,
             });
 
+      // A supervisão dos mesmos turnos, em UMA consulta — pelo mesmo motivo dos
+      // spans: quarenta turnos na tela não podem virar quarenta idas ao banco.
+      const supervisoes =
+        ids.length === 0
+          ? []
+          : await selecionar("crc_ai_supervisoes", {
+              filtros: [
+                { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+                { coluna: "run_id", op: "in", valor: ids },
+              ],
+              limite: 100,
+            });
+
+      const porSupervisao = new Map<string, SupervisaoDto>();
+      for (const s of supervisoes) {
+        const nota = Number(s["nota_qualidade"]);
+        porSupervisao.set(String(s["run_id"] ?? ""), {
+          resolvido: s["resolvido"] === true,
+          intencao: typeof s["intencao"] === "string" ? s["intencao"] : null,
+          objecao: typeof s["objecao"] === "string" ? s["objecao"] : null,
+          sentimento: typeof s["sentimento"] === "string" ? s["sentimento"] : null,
+          precisaFollowup: s["precisa_followup"] === true,
+          notaQualidade: Number.isFinite(nota) ? nota : null,
+          violacoes: Array.isArray(s["violacoes"]) ? s["violacoes"].map((v) => String(v)) : [],
+          memoriasGravadas: Number(s["memorias_gravadas"] ?? 0),
+          memoriasRecusadas: Number(s["memorias_recusadas"] ?? 0),
+        });
+      }
+
       const porRun = new Map<string, SpanDto[]>();
       for (const s of spans) {
         const runId = String(s["run_id"] ?? "");
@@ -1309,6 +1358,7 @@ export const carregarPanoramaDaIa = createServerFn({ method: "GET" }).handler(
           id,
           conversationId: String(r["conversation_id"] ?? ""),
           patientId: txt(r["patient_id"]),
+          supervisao: porSupervisao.get(id) ?? null,
           resultado: String(r["resultado"] ?? ""),
           motivo: txt(r["motivo"]),
           respostaCandidata: txt(r["resposta_candidata"]),
@@ -1346,6 +1396,158 @@ export const carregarPanoramaDaIa = createServerFn({ method: "GET" }).handler(
       };
     }),
 );
+
+/* -------------------------------------------------------------------------- */
+/* Memória do agente (Fatia 6)                                                */
+/* -------------------------------------------------------------------------- */
+
+export type MemoriaDaIaDto = {
+  id: string;
+  escopo: string;
+  subjectId: string | null;
+  /** O nome de quem a memória descreve, para a tela não mostrar UUID. */
+  sujeito: string | null;
+  conteudo: string;
+  origem: string;
+  origemRef: string | null;
+  confianca: number;
+  status: string;
+  expiraEm: string | null;
+  criadoEm: string;
+};
+
+/**
+ * Tudo que o agente guardou — inclusive o que ainda não vale e o que foi negado.
+ *
+ * A TELA MOSTRA OS TRÊS ESTADOS de propósito. Uma tela que só mostrasse as
+ * memórias ativas esconderia justamente as duas coisas que alguém precisa ver
+ * para confiar no mecanismo: o que está esperando revisão, e o que já foi
+ * recusado por uma pessoa.
+ */
+export const carregarMemoriasDaIa = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ memorias: MemoriaDaIaDto[] }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { listarMemorias } = await import("./aplicacao/memoria");
+      const { selecionar } = await import("./servidor/banco");
+
+      const memorias = await listarMemorias(ctx.organizationId, { limite: 100 });
+
+      // Os nomes em UMA consulta. Um `select` por memória transformaria a tela
+      // em cem idas ao banco para escrever cem nomes.
+      const ids = [
+        ...new Set(memorias.map((m) => m.subjectId).filter((s): s is string => s !== null)),
+      ];
+      const nomes = new Map<string, string>();
+      if (ids.length > 0) {
+        const pacientes = await selecionar("crc_patients", {
+          colunas: "id,nome",
+          filtros: [
+            { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+            { coluna: "id", op: "in", valor: ids },
+          ],
+          limite: ids.length,
+        });
+        for (const p of pacientes) nomes.set(String(p["id"] ?? ""), String(p["nome"] ?? ""));
+      }
+
+      return {
+        ok: true as const,
+        memorias: memorias.map((m) => ({
+          id: m.id,
+          escopo: m.escopo,
+          subjectId: m.subjectId,
+          sujeito: m.subjectId === null ? null : (nomes.get(m.subjectId) ?? null),
+          conteudo: m.conteudo,
+          origem: m.origem,
+          origemRef: m.origemRef,
+          confianca: m.confianca,
+          status: m.status,
+          expiraEm: m.expiraEm,
+          criadoEm: m.criadoEm,
+        })),
+      };
+    }),
+);
+
+/**
+ * Uma pessoa diz que a memória está errada.
+ *
+ * Fica auditado com nome: invalidar uma memória muda o que o agente vai
+ * responder amanhã, e mudanças assim não podem ser anônimas.
+ */
+export const invalidarMemoriaDaIa = createServerFn({ method: "POST" })
+  .validator((e: { memoriaId: string }) => ({ memoriaId: String(e.memoriaId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { invalidarMemoria } = await import("./aplicacao/memoria");
+      const { auditar } = await import("./servidor/registro");
+
+      await invalidarMemoria(ctx.organizationId, data.memoriaId, ctx.usuario.id);
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "memoria_invalidada",
+        entityType: "crc_ai_memories",
+        entityId: data.memoriaId,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+export const confirmarMemoriaDaIa = createServerFn({ method: "POST" })
+  .validator((e: { memoriaId: string }) => ({ memoriaId: String(e.memoriaId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { confirmarMemoria } = await import("./aplicacao/memoria");
+      const { auditar } = await import("./servidor/registro");
+
+      await confirmarMemoria(ctx.organizationId, data.memoriaId);
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "memoria_confirmada",
+        entityType: "crc_ai_memories",
+        entityId: data.memoriaId,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+/**
+ * Uma pessoa escreve uma memória à mão.
+ *
+ * QUANDO A VALIDAÇÃO RECUSA, A RESPOSTA DEVOLVE O MOTIVO EM PORTUGUÊS. É o
+ * único lugar do sistema em que uma pessoa descobre a regra escrevendo algo que
+ * ela barra — e uma recusa muda ("inválido") ensinaria a tentar de novo com
+ * outras palavras em vez de ensinar por que a frase não deveria existir.
+ */
+export const criarMemoriaDaIa = createServerFn({ method: "POST" })
+  .validator((e: { escopo: string; subjectId: string | null; conteudo: string }) => ({
+    escopo: e.escopo === "organizacao" ? ("organizacao" as const) : ("paciente" as const),
+    subjectId: typeof e.subjectId === "string" && e.subjectId.length > 0 ? e.subjectId : null,
+    conteudo: String(e.conteudo ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { registrarMemoriaDeOperador } = await import("./aplicacao/memoria");
+
+      const r = await registrarMemoriaDeOperador({
+        organizationId: ctx.organizationId,
+        escopo: data.escopo,
+        subjectId: data.subjectId,
+        conteudo: data.conteudo,
+        userId: ctx.usuario.id,
+      });
+
+      const recusa = r.recusadas[0];
+      if (recusa !== undefined) {
+        return { ok: false as const, code: recusa.codigo, message: recusa.motivo };
+      }
+      return { ok: true as const };
+    }),
+  );
 
 /* -------------------------------------------------------------------------- */
 /* Inbox 2.0 — dono da conversa e casos humanos (Fatia 5)                     */
