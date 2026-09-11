@@ -1,0 +1,102 @@
+from pathlib import Path
+import re
+
+root = Path("src")
+
+# Filtro do funil: regra pura deixa de sair de arquivo React.
+p = root / "components/crc/Funil.tsx"
+s = p.read_text()
+old = 'import { BarraDeVisoes, FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./Visoes";'
+new = 'import { BarraDeVisoes } from "./Visoes";\nimport { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./filtroFunil";'
+if old not in s:
+    raise SystemExit("Funil: import antigo não encontrado")
+p.write_text(s.replace(old, new, 1))
+
+p = root / "components/crc/Visoes.tsx"
+s = p.read_text()
+old = '''// Compatibilidade temporária com Funil.tsx. O estado já mora em filtroFunil.ts;
+// este re-export evita uma alteração gigante no arquivo do funil só para trocar
+// um caminho de import. O próximo refactor pode remover esta ponte.
+export { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./filtroFunil";
+
+'''
+if old not in s:
+    raise SystemExit("Visoes: ponte temporária não encontrada")
+p.write_text(s.replace(old, "", 1))
+
+# Helper privado do painel.
+p = root / "components/rh/PainelDuvidas.tsx"
+s = p.read_text()
+if s.count("export function duvidasParaTexto(") != 1:
+    raise SystemExit("PainelDuvidas: helper inesperado")
+p.write_text(s.replace("export function duvidasParaTexto(", "function duvidasParaTexto(", 1))
+
+# Hook de sanfonas em módulo próprio.
+(root / "components/rh/useSanfonas.ts").write_text('''import { useCallback, useState } from "react";\n\n/** Mantém uma única seção aberta por vez. */\nexport function useSanfonas(iniciais: string[] = []): {\n  aberta: (chave: string) => boolean;\n  alternar: (chave: string) => void;\n} {\n  const [abertaAtual, setAbertaAtual] = useState<string | null>(iniciais[0] ?? null);\n  const aberta = useCallback((chave: string) => abertaAtual === chave, [abertaAtual]);\n  const alternar = useCallback((chave: string) => {\n    setAbertaAtual((atual) => (atual === chave ? null : chave));\n  }, []);\n  return { aberta, alternar };\n}\n''')
+
+p = root / "components/rh/Sanfona.tsx"
+s = p.read_text().replace('import { useCallback, useState } from "react";\n', "")
+marker = '/**\n * Estado das sanfonas com uma regra deliberada: UMA seção aberta por vez.'
+if marker not in s:
+    raise SystemExit("Sanfona: hook antigo não encontrado")
+p.write_text(s[:s.index(marker)].rstrip() + "\n")
+
+for file, before, after in [
+    (root / "components/rh/LeituraIa.tsx", 'import { Sanfona, useSanfonas } from "./Sanfona";', 'import { Sanfona } from "./Sanfona";\nimport { useSanfonas } from "./useSanfonas";'),
+    (root / "components/rh/GavetaCandidatura.tsx", 'import { Sanfona, useSanfonas } from "@/components/rh/Sanfona";', 'import { Sanfona } from "@/components/rh/Sanfona";\nimport { useSanfonas } from "@/components/rh/useSanfonas";'),
+]:
+    s = file.read_text()
+    if before not in s:
+        raise SystemExit(f"{file}: import useSanfonas não encontrado")
+    file.write_text(s.replace(before, after, 1))
+
+# Hook de ação em módulo próprio.
+(root / "components/crc/useAcao.ts").write_text('''import { useCallback, useState } from "react";\n\ntype Recado = { tom: "alerta" | "perigo" | "info"; texto: string } | null;\n\n/** Centraliza carregamento e feedback das ações remotas do CRC. */\nexport function useAcao(): {\n  rodando: boolean;\n  recado: Recado;\n  limpar: () => void;\n  avisar: (texto: string, tom?: "info" | "perigo") => void;\n  executar: <T extends { ok: boolean; message?: string }>(\n    acao: () => Promise<T>,\n    aoDarCerto?: (resultado: T & { ok: true }) => void,\n    mensagemSucesso?: string,\n  ) => Promise<void>;\n} {\n  const [rodando, setRodando] = useState(false);\n  const [recado, setRecado] = useState<Recado>(null);\n  const executar = useCallback(async <T extends { ok: boolean; message?: string }>(\n    acao: () => Promise<T>,\n    aoDarCerto?: (resultado: T & { ok: true }) => void,\n    mensagemSucesso?: string,\n  ): Promise<void> => {\n    setRodando(true);\n    setRecado(null);\n    try {\n      const resultado = await acao();\n      if (resultado.ok) {\n        aoDarCerto?.(resultado as T & { ok: true });\n        if (mensagemSucesso !== undefined) setRecado({ tom: "info", texto: mensagemSucesso });\n      } else {\n        setRecado({ tom: "perigo", texto: resultado.message ?? "Não foi possível concluir a ação." });\n      }\n    } catch {\n      setRecado({ tom: "perigo", texto: "Não conseguimos falar com o servidor. Seus dados continuam seguros; tente de novo." });\n    } finally {\n      setRodando(false);\n    }\n  }, []);\n  const avisar = useCallback((texto: string, tom: "info" | "perigo" = "info") => {\n    setRecado({ tom, texto });\n  }, []);\n  return { rodando, recado, limpar: () => setRecado(null), avisar, executar };\n}\n''')
+
+p = root / "components/crc/base.tsx"
+s = p.read_text()
+marker = '/* -------------------------------------------------------------------------- */\n/* Hook de ação'
+if marker not in s:
+    raise SystemExit("base: hook useAcao não encontrado")
+p.write_text(s[:s.index(marker)].rstrip() + "\n")
+
+files = list((root / "components/crc").glob("*.tsx")) + [root / "routes/crc.tsx"]
+pattern = re.compile(r'import\s*\{(?P<body>[^}]*)\}\s*from\s*"(?P<path>(?:@/components/crc/|\./)base)";', re.S)
+moved = 0
+for file in files:
+    if file.name == "base.tsx":
+        continue
+    s = file.read_text()
+    if "useAcao" not in s:
+        continue
+    m = pattern.search(s)
+    if not m or not re.search(r'\buseAcao\b', m.group("body")):
+        raise SystemExit(f"{file}: import useAcao não identificado")
+    items = [x.strip() for x in m.group("body").split(",") if x.strip() and x.strip() != "useAcao"]
+    if not items:
+        raise SystemExit(f"{file}: import base vazio")
+    base_import = "import { " + ", ".join(items) + ' } from "' + m.group("path") + '";'
+    hook_path = "@/components/crc/useAcao" if m.group("path").startswith("@/") else "./useAcao"
+    replacement = base_import + '\nimport { useAcao } from "' + hook_path + '";'
+    file.write_text(s[:m.start()] + replacement + s[m.end():])
+    moved += 1
+if moved < 5:
+    raise SystemExit(f"useAcao: só {moved} consumidores migrados")
+
+# Dados da capa em módulo não-React.
+(root / "components/site/capaVagaDados.ts").write_text('''import capaRecepcao1100 from "@/assets/capa-recepcao-1100.webp";\nimport capaRecepcao1536 from "@/assets/capa-recepcao-1536.webp";\nimport consultorioImg from "@/assets/consultorio-1.webp";\nimport consultorioJovemImg from "@/assets/consultorio-2.webp";\nimport consultorioWideImg from "@/assets/consultorio-wide.webp";\nimport escritorioImg from "@/assets/escritorio-completa.webp";\nimport esterilizacaoImg from "@/assets/esterilizacao.webp";\n\nexport type CapaVagaDados = { src: string; menor?: string; largura: number; altura: number };\nconst CAPAS: Record<string, CapaVagaDados> = {\n  dentista: { src: consultorioImg, largura: 1400, altura: 1045 },\n  "asb-tsb": { src: esterilizacaoImg, largura: 1200, altura: 967 },\n  recepcao: { src: capaRecepcao1536, menor: capaRecepcao1100, largura: 1536, altura: 1024 },\n  administrativo: { src: escritorioImg, largura: 1080, altura: 1080 },\n  estagio: { src: consultorioJovemImg, largura: 1200, altura: 896 },\n  outra: { src: consultorioWideImg, largura: 1500, altura: 800 },\n};\nexport function capaDaArea(area: string): CapaVagaDados | null {\n  return CAPAS[area] ?? null;\n}\n''')
+
+p = root / "components/site/CapaVaga.tsx"
+s = p.read_text()
+start = s.index('import capaRecepcao1100 from')
+marker = 'export function capaDaArea(area: string): Capa | null {\n  return CAPAS[area] ?? null;\n}\n'
+end = s.index(marker, start) + len(marker)
+p.write_text(s[:start] + 'import { capaDaArea } from "./capaVagaDados";\n' + s[end:])
+
+p = root / "routes/carreiras/$slug.tsx"
+s = p.read_text()
+old = 'import { CapaVaga, capaDaArea } from "@/components/site/CapaVaga";'
+new = 'import { CapaVaga } from "@/components/site/CapaVaga";\nimport { capaDaArea } from "@/components/site/capaVagaDados";'
+if old not in s:
+    raise SystemExit("vaga: import capaDaArea não encontrado")
+p.write_text(s.replace(old, new, 1))
