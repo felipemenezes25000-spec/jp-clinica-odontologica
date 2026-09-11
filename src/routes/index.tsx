@@ -66,12 +66,18 @@ import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
 import { TeamSection } from "@/components/site/TeamSection";
 import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { DADOS_ESTRUTURADOS } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
 
-const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
-const DESCRIPTION =
-  "JP Clínica Integrada Odontológica na Vila Bruna, região da Freguesia do Ó em São Paulo. Cuidado odontológico completo para crianças, adultos e idosos.";
+// 73 caracteres antes, e o Google corta perto de 60: o título terminava dentro
+// de "São Paulo". Agora "Dentista na Freguesia do Ó" -- que é a busca -- vem
+// na frente, e a marca fecha.
+const TITLE = tituloLocal("Dentista");
+const DESCRIPTION = descricaoLocal(
+  "Odontologia para crianças, adultos e idosos, com planejamento individual e atendimento humano.",
+  FECHO_LOCAL,
+);
 
 const TREATMENT_MEDIA = [
   limpezaPoster,

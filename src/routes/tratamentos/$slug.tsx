@@ -47,6 +47,7 @@ import posterOrtodontia from "@/assets/video-ortodontia-poster.webp";
 import videoProtese from "@/assets/video-protese.mp4?url";
 import posterProtese from "@/assets/video-protese-poster.webp";
 import { CLINICA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
 
@@ -68,8 +69,12 @@ export const Route = createFileRoute("/tratamentos/$slug")({
   head: ({ params }) => {
     const t = TRATAMENTOS.find((x) => x.slug === params.slug);
     if (!t) return {};
-    const title = `${t.titulo} | JP Clínica Integrada Odontológica — Freguesia do Ó`;
-    const description = `${t.desc} Atendimento na JP Clínica Integrada Odontológica, Vila Bruna, São Paulo.`;
+    // O título levava 65 a 75 caracteres e o Google corta perto de 60 -- o
+    // corte caía dentro do nome da clínica. `tituloLocal` põe o procedimento e
+    // o bairro na frente, que é o que a pessoa digita, e encolhe a marca até
+    // caber. `descricaoLocal` junta só as frases que cabem inteiras.
+    const title = tituloLocal(t.titulo);
+    const description = descricaoLocal(t.desc, FECHO_LOCAL);
     const url = `${SITE_URL}/tratamentos/${t.slug}`;
     return {
       meta: [
