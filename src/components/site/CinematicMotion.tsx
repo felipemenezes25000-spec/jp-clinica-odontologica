@@ -3,6 +3,8 @@ import { useEffect } from "react";
 export function CinematicMotion() {
   useEffect(() => {
     const root = document.documentElement;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finePointer = window.matchMedia("(pointer: fine)");
     let raf = 0;
     let latestX = window.innerWidth / 2;
     let latestY = window.innerHeight / 2;
@@ -18,7 +20,6 @@ export function CinematicMotion() {
     };
 
     const onPointer = (event: PointerEvent) => {
-      if (event.pointerType === "touch") return;
       latestX = event.clientX;
       latestY = event.clientY;
       if (!raf) raf = requestAnimationFrame(commitPointer);
@@ -31,15 +32,31 @@ export function CinematicMotion() {
       root.style.setProperty("--scroll-y", `${window.scrollY}px`);
     };
 
+    /*
+     * Movimento cinematográfico é decoração, não conteúdo. Se a pessoa pediu
+     * menos movimento, não basta esconder a animação no CSS: deixar listeners
+     * de scroll/pointer rodando continuaria gastando trabalho a cada frame sem
+     * desenhar nada. O mesmo vale para pointermove em celular/tablet: antes o
+     * callback acordava em cada gesto e só então descobria que era touch.
+     */
+    if (reducedMotion.matches) {
+      document.body.classList.remove("motion-ready");
+      return;
+    }
+
     onScroll();
-    window.addEventListener("pointermove", onPointer, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
+
+    if (finePointer.matches) {
+      window.addEventListener("pointermove", onPointer, { passive: true });
+    }
+
     document.body.classList.add("motion-ready");
 
     return () => {
       if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("pointermove", onPointer);
+      if (finePointer.matches) window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       document.body.classList.remove("motion-ready");
