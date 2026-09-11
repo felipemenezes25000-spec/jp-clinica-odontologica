@@ -3,19 +3,35 @@
 > **Este documento não declara o projeto pronto.** Ele diz, item por item, o que
 > está provado e o que não está. Linha sem evidência não recebe `PASS`.
 
-Gerado em 11/09/2026, sobre `b707949`.
+Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 
 ## Leitura rápida
 
 | | |
 |---|---|
 | **FASE A (P0 de schema)** | concluída e provada |
-| **FASES B a I** | não iniciadas |
+| **FASE B (job durável, idempotência precoce)** | concluída e provada |
+| **FASE C (handoff, ownership, chokepoints)** | concluída e provada |
+| **FASES D a I** | não iniciadas |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
-O motivo do "não" mudou de lugar. Antes desta rodada, a resposta era "não porque
-nunca foi avaliado". Agora é **"não porque o runtime durável não existe"**: um
-turno que morre no meio não tem retomada, e efeitos externos podem duplicar.
+O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
+depois virou "não porque o runtime durável não existe". Agora é mais estreito, e
+por isso mais concreto:
+
+**Não, por três razões que continuam abertas.**
+
+1. **Nada foi exercitado contra Postgres de verdade.** As garantias de B e C são
+   de banco — `FOR UPDATE SKIP LOCKED`, índice único, `not null`. O fake reproduz
+   os índices do `supabase/*.sql` e por isso vale muito mais do que valia; ainda
+   assim, o que prova constraint é o Postgres executando a constraint. É o item
+   20, e é a FASE E.
+2. **A FASE D não foi feita.** Orçamento, RAG e publicação ainda são
+   ler-decidir-escrever em passos separados. Duas chamadas simultâneas passam do
+   teto de gasto, e o "dia" da clínica ainda é UTC.
+3. **Os dois provedores externos continuam sem contrato.** Sem WhatsApp e sem
+   Dental Office, ligar a flag não muda nada no mundo — não há para onde a
+   mensagem sair.
 
 ---
 
@@ -67,14 +83,16 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 3 | Última entrada do paciente é encontrada | `PASS` | `janela-envio.test.ts` |
 | 4 | Janela WhatsApp funciona com dados reais | `PARCIAL` | Prova contra banco em memória com valores reais do schema. Contra Postgres de verdade, não |
 | 5 | Destino WhatsApp vem de camada canônica | `PASS` | `aplicacao/conversas.ts` |
-| 6 | Agent job é durável | `FAIL` | Hoje o agente roda inline no handler de `message.received`. Sem tabela de job, sem claim, sem lease |
-| 7 | Retry existe | `FAIL` | — |
-| 8 | Dead letter existe | `FAIL` | Existe para eventos (`crc_dead_letters`), não para turnos do agente |
-| 9 | Claim é atômico | `FAIL` | — |
-| 10 | Idempotência ANTES dos efeitos | `FAIL` | A dedupe da `crc_ai_runs` só acontece no fim do turno. Um crash depois da chamada de modelo repete a chamada |
-| 11-13 | Crash não duplica agenda / mensagem / tool | `FAIL` | Não testado, e sem o item 10 não há como garantir |
-| 14 | Handoff não falha em silêncio | `FAIL` | `abrirCasoHumano` tem `catch {}` em `ia-platform/turno.ts`. Falta a cascata para tarefa/dead-letter |
-| 15 | Ownership revalidado antes do envio | `PARCIAL` | O portão lê o dono, mas no snapshot do início do turno. Falta revalidar no chokepoint |
+| 6 | Agent job é durável | `PASS` | `supabase/17-crc-agent-jobs.sql` + `aplicacao/agent-jobs.ts` + `automacao/agente-worker.ts`. O handler só enfileira |
+| 7 | Retry existe | `PASS` | Backoff 30s/2min/8min/32min com teto de 5 tentativas; `agente-worker.test.ts` |
+| 8 | Dead letter existe | `PASS` | `falharJob` grava em `crc_dead_letters` ao esgotar as tentativas |
+| 9 | Claim é atômico | `PARCIAL` | `crc_reservar_agent_jobs` usa `FOR UPDATE SKIP LOCKED`, igual a `crc_reservar_eventos`. A atomicidade real é do Postgres e só o item 20 a prova |
+| 10 | Idempotência ANTES dos efeitos | `PASS` | `trace.reservar()` insere a run com `resultado='RODANDO'` antes da primeira chamada de modelo; quem perde a corrida devolve `sem_acao` |
+| 11-13 | Crash não duplica agenda / mensagem / tool | `PARCIAL` | Provado em `agente-worker.test.ts` com injeção de defeito. A proteção é índice único, e o fake reproduz os índices do SQL — contra Postgres real, item 20 |
+| 14 | Handoff não falha em silêncio | `PASS` | `aplicacao/handoff.ts`: caso → tarefa → dead letter → log `erro`. `handoff.test.ts` derruba cada degrau e confere onde pousou |
+| 15 | Ownership revalidado antes do envio | `PASS` | `enviarMensagem` relê o dono antes de gravar e recusa `remetente='ia'` fora de conversa da IA. `dono-no-envio.test.ts` |
+| 15b | Portão de dono é lista de permissão | `PASS` | **Furo encontrado durante a FASE C:** `portaoDono` recusava só `humano`, e `ninguem` — o estado em que `abrirCaso` deixa a conversa — passava. Toda conversa escalada voltava a receber resposta automática no turno seguinte. `turno.test.ts > conversa com a IA pausada` |
+| 15c | Kill switch de escrita relido no ato | `PASS` | **Mesma classe do item 15:** `ctx.interruptores` é retrato do início do turno. `agendamento.ts` relê antes de `criarAgendamento`. `agendamento.test.ts > kill switch acionado depois da oferta` |
 | 16 | RAG swap atômico | `FAIL` | `DELETE` + `INSERT` separados. Os embeddings são calculados antes (bom), mas a troca não é transacional |
 | 17 | Budget concorrente/atômico | `FAIL` | Lê → avalia → chama → soma. Duas chamadas simultâneas passam do teto |
 | 18 | Timezone da organização | `FAIL` | `toISOString().slice(0,10)` define "o dia" em `aplicacao/orcamento.ts` |
@@ -111,18 +129,21 @@ nenhuma configuração.** Isso não é um bug: é o estado declarado do projeto.
 
 ## Ordem sugerida do que falta
 
-A ordem do prompt (§52) continua válida. O que muda é o ponto de partida: FASE A
-está feita.
+A ordem do prompt (§52) continua válida. O que muda é o ponto de partida: as
+FASES A, B e C estão feitas.
 
-1. **FASE B — job durável + idempotência precoce.** É o maior risco aberto e o
-   que bloqueia os itens 6 a 13 de uma vez.
-2. **FASE C — handoff garantido, ownership no chokepoint.** Barato perto do que
-   protege.
-3. **FASE D — RAG/budget/publicação atômicos, timezone.** Quatro RPCs
-   transacionais.
-4. **FASE E — banco real no CI.** Depois de B–D, porque senão o CI passa a
-   reprovar coisas que já se sabe que faltam.
-5. **FASES F a I** — adapters, studios, inteligência vertical, observabilidade.
+1. ~~**FASE A — o alicerce.**~~ Feita. O fake de banco passou a conhecer o schema
+   do `supabase/*.sql`, e com isso os ~700 testes que já existiam viraram testes
+   de schema sem uma linha reescrita.
+2. ~~**FASE B — job durável + idempotência precoce.**~~ Feita. Itens 6 a 13.
+3. ~~**FASE C — handoff garantido, ownership no chokepoint.**~~ Feita. Itens 14 e
+   15, mais a releitura do kill switch de escrita no Dental Office.
+4. **FASE D — RAG/budget/publicação atômicos, timezone.** Itens 16 a 19. Quatro
+   RPCs transacionais.
+5. **FASE E — banco real no CI.** Itens 20 a 22 e 32 a 34. Depois de D, porque
+   senão o CI passa a reprovar coisas que já se sabe que faltam — e porque é ele
+   que transforma os `PARCIAL` dos itens 4, 9 e 11-13 em `PASS`.
+6. **FASES F a I** — adapters, studios, inteligência vertical, observabilidade.
 
 ## Como esta matriz deve ser usada
 

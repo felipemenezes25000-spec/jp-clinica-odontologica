@@ -97,6 +97,7 @@ const pedido = (porta: PortaMensageria, extra: Partial<PedidoEnvio> = {}): Pedid
 beforeEach(() => {
   limparBanco();
   definirRelogio(AGORA);
+  estado.leituraQuebrada = false;
 
   semear("crc_organizations", [{ id: ORG, slug: "jp" }]);
   semear("crc_clinics", [{ id: CLINICA, organization_id: ORG, nome: "JP Centro" }]);
@@ -196,6 +197,44 @@ describe("quem NÃO é afetado pela conferência", () => {
     // horário, cooldown. Barrá-la por dono aqui misturaria duas regras.
     const r = await enviarMensagem(
       pedido(porta, { remetente: "automacao", chaveDedupe: "jornada:1" }),
+    );
+
+    expect(r.ok).toBe(true);
+    expect(enviados).toHaveLength(1);
+  });
+});
+
+describe("quando nem dá para saber de quem é a conversa", () => {
+  it("recusa o envio em vez de arriscar", async () => {
+    const { porta, enviados } = portaEspiã();
+    estado.leituraQuebrada = true;
+
+    const r = await enviarMensagem(pedido(porta));
+
+    /*
+     * ESCOLHA DELIBERADA, e a direção dela importa.
+     *
+     * O caminho fácil aqui é `catch { /* segue o baile *\/ }`: a leitura falhou,
+     * a mensagem sai, e no dia a dia ninguém percebe. Até o dia em que o
+     * PostgREST oscila exatamente enquanto uma atendente está digitando — e a
+     * IA responde por cima dela.
+     *
+     * Entre calar indevidamente e falar por cima de uma pessoa, calar é o erro
+     * barato: o paciente espera alguns minutos, e o registro diz o porquê. Uma
+     * trava que se abre sozinha quando o banco oscila não é uma trava.
+     */
+    expect(r).toMatchObject({ ok: false, codigo: "DONO_INDISPONIVEL", permanente: true });
+    expect(enviados).toEqual([]);
+  });
+
+  it("a falha de leitura não barra atendente nem automação", async () => {
+    const { porta, enviados } = portaEspiã();
+    estado.leituraQuebrada = true;
+
+    // A conferência é só da IA. Derrubar o banco não pode virar um jeito de
+    // impedir a recepção de responder pela tela.
+    const r = await enviarMensagem(
+      pedido(porta, { remetente: "atendente", autorId: ATENDENTE, chaveDedupe: "mao:2" }),
     );
 
     expect(r.ok).toBe(true);
