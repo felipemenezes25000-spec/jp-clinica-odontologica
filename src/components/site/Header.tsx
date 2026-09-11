@@ -3,6 +3,7 @@ import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, NAV, whatsappLink } from "@/lib/jp";
+import { contatoWhatsApp } from "@/lib/contato";
 
 export function Header() {
   const [aberto, setAberto] = useState(false);
@@ -28,9 +29,7 @@ export function Header() {
     return () => document.removeEventListener("keydown", aoTeclar);
   }, [aberto]);
 
-  const wa = whatsappLink(
-    "Olá! Vim pelo site da JP Clínica Odontológica e gostaria de agendar uma avaliação.",
-  );
+  const wa = contatoWhatsApp("agendar");
 
   const fechar = () => setAberto(false);
 

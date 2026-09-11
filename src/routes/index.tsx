@@ -69,6 +69,7 @@ import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { DADOS_ESTRUTURADOS } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
+import { contatoWhatsApp } from "@/lib/contato";
 
 // 73 caracteres antes, e o Google corta perto de 60: o título terminava dentro
 // de "São Paulo". Agora "Dentista na Freguesia do Ó" -- que é a busca -- vem
@@ -410,9 +411,7 @@ function StructureGallery() {
 }
 
 function Home() {
-  const waGeral = whatsappLink(
-    "Olá! Vim pelo site da JP Clínica Integrada Odontológica e gostaria de agendar uma avaliação.",
-  );
+  const waGeral = contatoWhatsApp("agendar");
 
   return (
     <div className="min-h-dvh bg-cream">
@@ -764,7 +763,7 @@ function Home() {
                     <p className="mt-1 font-display text-lg font-extrabold">{CLINICA.telefone}</p>
                   </a>
                   <a
-                    href={CLINICA.whatsappHref}
+                    href={contatoWhatsApp("agendar")}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="jp-soft-card rounded-[1.35rem] p-5"

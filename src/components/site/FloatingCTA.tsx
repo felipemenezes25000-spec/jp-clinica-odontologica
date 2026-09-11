@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
 import { CLINICA, whatsappLink } from "@/lib/jp";
+import { contatoWhatsApp } from "@/lib/contato";
 
 const CHAVE_DISPENSA = "jp:cta-dispensado";
 
@@ -46,9 +47,7 @@ export function FloatingCTA() {
 
   const visivel = showBar && !dispensado;
 
-  const wa = whatsappLink(
-    "Olá! Vim pelo site da JP Clínica Integrada Odontológica e gostaria de agendar uma avaliação.",
-  );
+  const wa = contatoWhatsApp("agendar");
 
   return (
     <>

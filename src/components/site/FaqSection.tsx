@@ -3,6 +3,7 @@ import { ChevronRight, Heart, MessageCircleQuestion, Minus, Plus, ShieldCheck } 
 
 import { FAQ, whatsappLink } from "@/lib/jp";
 import { IconDente } from "@/components/site/TreatmentIcons";
+import { contatoWhatsApp } from "@/lib/contato";
 
 function Diferencial({ icon, title }: { icon: React.ReactNode; title: React.ReactNode }) {
   return (
@@ -38,9 +39,7 @@ export function FaqSection() {
   const [aberto, setAberto] = useState<number | null>(null);
   const idBase = useId();
 
-  const wa = whatsappLink(
-    "Olá! Vim pelo site da JP Clínica Integrada Odontológica e fiquei com uma dúvida.",
-  );
+  const wa = contatoWhatsApp("duvida");
 
   return (
     <section

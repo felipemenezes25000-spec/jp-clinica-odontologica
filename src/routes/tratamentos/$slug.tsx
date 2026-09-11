@@ -50,6 +50,7 @@ import { CLINICA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
+import { contatoWhatsApp } from "@/lib/contato";
 
 export const Route = createFileRoute("/tratamentos/$slug")({
   component: TreatmentPage,
@@ -199,9 +200,7 @@ function TreatmentPage() {
       ? consultorioImplantes1Img
       : VISUALS[Math.max(index, 0) % VISUALS.length];
   const video = treatment ? VIDEOS[treatment.slug] : undefined;
-  const wa = whatsappLink(
-    `Olá! Vi a página sobre ${treatment.titulo} e gostaria de agendar uma avaliação na JP Clínica Integrada Odontológica.`,
-  );
+  const wa = contatoWhatsApp("agendar", treatment.titulo);
   const others = TRATAMENTOS.filter((item) => item.slug !== treatment.slug).slice(0, 3);
 
   return (

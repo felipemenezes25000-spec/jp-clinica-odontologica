@@ -1,6 +1,7 @@
 import { ArrowUpRight, Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, HISTORIA, NAV_RODAPE, RESPONSAVEL_TECNICA, whatsappLink } from "@/lib/jp";
+import { contatoWhatsApp } from "@/lib/contato";
 
 export function Footer() {
   return (
@@ -36,9 +37,7 @@ export function Footer() {
             </p>
 
             <a
-              href={whatsappLink(
-                "Olá! Gostaria de agendar uma avaliação na JP Clínica Integrada Odontológica.",
-              )}
+              href={contatoWhatsApp("agendar")}
               target="_blank"
               rel="noopener noreferrer"
               className="button-primary mt-8"
@@ -98,7 +97,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href={CLINICA.whatsappHref}
+                  href={contatoWhatsApp("agendar")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="alvo-toque flex items-center gap-3 transition-colors hover:text-lime"
