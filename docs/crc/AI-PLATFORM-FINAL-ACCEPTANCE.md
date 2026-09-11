@@ -32,7 +32,7 @@ concordavam em nomes de coluna inventados.
 | `crc_opportunities.etapa` / `valor_potencial` / `status` não existem | Consulta dentro do `Promise.all` do contexto → todo turno de paciente com oportunidade aberta morria | `PASS` |
 | `direcao === "IN"` no contexto | Schema é `ENTRADA\|SAIDA`. Mensagem do paciente virava mensagem da clínica: papéis trocados no prompt, janela nunca abria, portão de repetição comparava contra a fala do paciente | `PASS` |
 | filtro `direcao = "IN"` na busca da última entrada | Janela de 24h sempre fechada → em provedor oficial, o agente nunca poderia responder | `PASS` |
-| `crc_users.foto_url` nunca criada | Botão de trocar foto sempre devolveu erro | `PASS` (exige `supabase/16`) |
+| `crc_users.foto_url` ausente dos arquivos SQL | **Correção de um erro meu de diagnóstico:** eu afirmei que o botão de trocar foto sempre falhou. Não falhou — a coluna EXISTE no banco de produção (conferido por consulta). Quem estava fora de sincronia era o `supabase/*.sql`, que não a declarava. O efeito real é outro e continua sério: uma instalação nova a partir dos arquivos nasceria sem a coluna | `PASS` — `supabase/16` traz o arquivo para a realidade do banco, e é `if not exists` |
 | `crc_opportunities.prioridade` na busca | Coluna é `priority_score` — tela de busca quebrada. Pré-existente | `PASS` |
 
 **Evidência:** `src/lib/crc/testes/schema.test.ts`, `dominio/direcao.test.ts`,
