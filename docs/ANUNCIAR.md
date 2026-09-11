@@ -22,10 +22,17 @@ diferentes. Usar a errada custa dinheiro.
 | Prótese                | `/protese-dentaria`      | `/tratamentos/proteses-dentarias`         |
 | Restauração            | `/restauracao-dentaria`  | `/tratamentos/restauracoes`               |
 | Limpeza                | `/limpeza-dental`        | `/tratamentos/limpeza-profilaxia`         |
-| Harmonização orofacial | — (sem LP)               | `/tratamentos/harmonizacao-orofacial`     |
+| Harmonização orofacial | `/harmonizacao-facial`   | `/tratamentos/harmonizacao-orofacial`     |
 
 **É a mesma página nas duas URLs.** A diferença é o endereço e o título, que na
 URL de anúncio repetem o termo pesquisado.
+
+Repare em duas escolhas de URL que não são descuido: `/odontopediatria` tem o
+título **"Dentista infantil na Freguesia do Ó"**, porque mãe procurando dentista
+para o filho não digita o nome técnico; e a harmonização é `/harmonizacao-facial`,
+sem o "oro", porque é assim que se busca. O título mantém "orofacial", que é o
+nome correto do procedimento — a URL fala a língua da busca, o título fala a
+língua da odontologia.
 
 > **Por que isso importa em dinheiro, não em estética.** O Google cobra mais
 > caro por clique quando a página de destino não conversa com o anúncio — é o
@@ -209,6 +216,14 @@ Tudo abaixo exige conta, credencial ou decisão comercial. **Nada exige código.
       "Adicionar website". É tráfego local, gratuito e qualificado sendo perdido,
       e é o de maior retorno desta lista inteira.
 - [ ] Definir orçamento diário por campanha
+- [ ] **Corrigir o texto da ficha do Google**, que diz "Há 25 anos" — a clínica
+      confirmou em 11/09/2026 que são **24**, fundada em 17/08/2002. O site já
+      diz 24. Anúncio e ficha contando idades diferentes é o tipo de detalhe que
+      derruba confiança de quem compara.
+- [ ] **Conferir "8 especialistas"** no mesmo texto: o site publica 6 pessoas —
+      cinco dentistas com CROSP e a recepção. Se são mesmo 8, faltam
+      profissionais no site (nome, especialidade e **CRO conferido** de cada um);
+      se são 6, o texto da ficha é que precisa mudar.
 
 ---
 

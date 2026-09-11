@@ -119,6 +119,12 @@ export const CLINICA = {
  * com a pessoa jurídica atual, não com o início da clínica. A data de abertura
  * de um CNPJ não mede a idade de um negócio.
  *
+ * NEM "CORRIJA" PARA 25 OLHANDO A FICHA DO GOOGLE. O texto de apresentação do
+ * Perfil da Empresa diz "Há 25 anos" — conferido em 11/09/2026, e a clínica
+ * confirmou no mesmo dia que o número certo é 24. Quem está desatualizado é o
+ * perfil, não este arquivo. Enquanto os dois não baterem, esta divergência vai
+ * reaparecer a cada pessoa que comparar site e Google.
+ *
  * `anos` é literal de propósito, como `anoCopyright`: calcular a partir de
  * `new Date()` faria servidor e navegador divergirem na virada do ano.
  * Custo: uma edição por ano, sempre em 17 de agosto.
