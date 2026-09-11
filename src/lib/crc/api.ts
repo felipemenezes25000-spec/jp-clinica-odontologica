@@ -1550,6 +1550,244 @@ export const criarMemoriaDaIa = createServerFn({ method: "POST" })
   );
 
 /* -------------------------------------------------------------------------- */
+/* Modelos, chaves e orçamento (Fatia 8)                                      */
+/* -------------------------------------------------------------------------- */
+
+export type ChaveDeIaDto = {
+  id: string;
+  provedor: string;
+  apelido: string;
+  dica: string;
+  status: string;
+  criadoEm: string;
+  ultimoUsoEm: string | null;
+};
+
+export type RotaDeModeloDto = {
+  finalidade: string;
+  rotulo: string;
+  provedor: string;
+  modelo: string;
+  credentialId: string | null;
+  padrao: boolean;
+};
+
+export type PainelDeModelosDto = {
+  chaves: ChaveDeIaDto[];
+  rotas: RotaDeModeloDto[];
+  /** `false` quando falta `CRC_SEGREDO_CHAVE`: sem ela nenhuma chave é guardada. */
+  cifraConfigurada: boolean;
+  motivoCifra: string;
+  orcamento: {
+    tetoDiaReais: number | null;
+    tetoMesReais: number | null;
+    abrirCaso: boolean;
+    gastoDiaReais: number;
+    gastoMesReais: number;
+    /** `bloqueado` quando o teto já foi atingido; `alerta` quando passou de 80%. */
+    situacao: "livre" | "alerta" | "bloqueado";
+    motivo: string;
+  };
+};
+
+/**
+ * O painel de modelos, chaves e orçamento.
+ *
+ * PERMISSÃO `gerenciar_integracoes`, e não `gerenciar_automacao`: aqui se cadastra
+ * credencial de provedor e se define quanto a clínica pode gastar. Quem liga e
+ * desliga automação não precisa disso, e o item 37 é explícito sobre cada um ver
+ * só o necessário.
+ */
+export const carregarModelosEOrcamento = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ painel: PainelDeModelosDto }>> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { listarCredenciais, listarRotas } = await import("./aplicacao/modelos");
+      const { panoramaDoOrcamento } = await import("./aplicacao/orcamento");
+      const { cifraConfigurada } = await import("./servidor/segredo");
+      const { emReais, ROTULO_FINALIDADE } = await import("./dominio/orcamento");
+
+      const agora = new Date();
+      const [chaves, rotas, orcamento] = await Promise.all([
+        listarCredenciais(ctx.organizationId),
+        listarRotas(ctx.organizationId),
+        panoramaDoOrcamento(ctx.organizationId, agora),
+      ]);
+
+      const cifra = cifraConfigurada();
+      const v = orcamento.veredicto;
+
+      return {
+        ok: true as const,
+        painel: {
+          chaves,
+          rotas: rotas.map((r) => ({
+            finalidade: r.finalidade,
+            rotulo: ROTULO_FINALIDADE[r.finalidade],
+            provedor: r.provedor,
+            modelo: r.modelo,
+            credentialId: r.credentialId,
+            padrao: r.padrao,
+          })),
+          cifraConfigurada: cifra.ok,
+          motivoCifra: cifra.motivo,
+          orcamento: {
+            tetoDiaReais:
+              orcamento.tetos.diaMicro === null ? null : emReais(orcamento.tetos.diaMicro),
+            tetoMesReais:
+              orcamento.tetos.mesMicro === null ? null : emReais(orcamento.tetos.mesMicro),
+            abrirCaso: orcamento.tetos.abrirCaso,
+            gastoDiaReais: emReais(orcamento.gasto.diaMicro),
+            gastoMesReais: emReais(orcamento.gasto.mesMicro),
+            situacao: !v.pode ? "bloqueado" : v.alerta ? "alerta" : "livre",
+            motivo: !v.pode
+              ? v.motivo
+              : v.alerta
+                ? `Já foram usados ${String(Math.round(v.usado * 100))}% do limite do ${v.periodo === "dia" ? "dia" : "mês"}.`
+                : "",
+          },
+        },
+      };
+    }),
+);
+
+/**
+ * Cadastra a chave da clínica.
+ *
+ * O SEGREDO ENTRA E NÃO VOLTA. A resposta traz só a dica (começo e fim), que é o
+ * que permite conferir visualmente que a chave certa foi colada. Nenhum endpoint
+ * deste arquivo devolve segredo.
+ */
+export const cadastrarChaveDeIa = createServerFn({ method: "POST" })
+  .validator((e: { provedor: string; apelido: string; segredo: string }) => ({
+    provedor: String(e.provedor ?? ""),
+    apelido: String(e.apelido ?? ""),
+    segredo: String(e.segredo ?? ""),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ dica: string }>> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { cadastrarCredencial, ehProvedor } = await import("./aplicacao/modelos");
+      if (!ehProvedor(data.provedor)) {
+        return { ok: false as const, code: "provedor", message: "Provedor desconhecido." };
+      }
+
+      const r = await cadastrarCredencial({
+        organizationId: ctx.organizationId,
+        provedor: data.provedor,
+        apelido: data.apelido,
+        segredo: data.segredo,
+        userId: ctx.usuario.id,
+      });
+      if (!r.ok) return { ok: false as const, code: r.codigo, message: r.motivo };
+
+      const { auditar } = await import("./servidor/registro");
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "chave_de_ia_cadastrada",
+        entityType: "crc_ai_credentials",
+        entityId: r.id,
+      });
+      return { ok: true as const, dica: r.dica };
+    }),
+  );
+
+export const revogarChaveDeIa = createServerFn({ method: "POST" })
+  .validator((e: { id: string }) => ({ id: String(e.id ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { revogarCredencial } = await import("./aplicacao/modelos");
+      const { auditar } = await import("./servidor/registro");
+
+      await revogarCredencial(ctx.organizationId, data.id);
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "chave_de_ia_revogada",
+        entityType: "crc_ai_credentials",
+        entityId: data.id,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+export const removerChaveDeIa = createServerFn({ method: "POST" })
+  .validator((e: { id: string }) => ({ id: String(e.id ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { removerCredencial } = await import("./aplicacao/modelos");
+      const r = await removerCredencial(ctx.organizationId, data.id);
+      if (!r.ok) return { ok: false as const, code: "em_uso", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const salvarRotaDeModelo = createServerFn({ method: "POST" })
+  .validator(
+    (e: { finalidade: string; provedor: string; modelo: string; credentialId: string | null }) => ({
+      finalidade: String(e.finalidade ?? ""),
+      provedor: String(e.provedor ?? ""),
+      modelo: String(e.modelo ?? ""),
+      credentialId:
+        typeof e.credentialId === "string" && e.credentialId.length > 0 ? e.credentialId : null,
+    }),
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { salvarRota } = await import("./aplicacao/modelos");
+      const r = await salvarRota({ organizationId: ctx.organizationId, ...data });
+      if (!r.ok) return { ok: false as const, code: "rota_invalida", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const limparRotaDeModelo = createServerFn({ method: "POST" })
+  .validator((e: { finalidade: string }) => ({ finalidade: String(e.finalidade ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { limparRota } = await import("./aplicacao/modelos");
+      await limparRota(ctx.organizationId, data.finalidade);
+      return { ok: true as const };
+    }),
+  );
+
+/**
+ * Define o teto de gasto.
+ *
+ * ACEITA ZERO, e zero significa bloqueado. É um jeito legítimo de parar a IA pelo
+ * orçamento, e o `null` continua reservado para "não configurei". Tratar zero
+ * como ausência tiraria da clínica esse controle.
+ */
+export const salvarOrcamentoDeIa = createServerFn({ method: "POST" })
+  .validator(
+    (e: { tetoDiaReais: number | null; tetoMesReais: number | null; abrirCaso: boolean }) => ({
+      tetoDiaReais:
+        typeof e.tetoDiaReais === "number" && e.tetoDiaReais >= 0 ? e.tetoDiaReais : null,
+      tetoMesReais:
+        typeof e.tetoMesReais === "number" && e.tetoMesReais >= 0 ? e.tetoMesReais : null,
+      abrirCaso: e.abrirCaso !== false,
+    }),
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { salvarOrcamento } = await import("./aplicacao/orcamento");
+      const { auditar } = await import("./servidor/registro");
+
+      await salvarOrcamento({ organizationId: ctx.organizationId, ...data });
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "orcamento_de_ia_alterado",
+        entityType: "crc_ai_orcamentos",
+        entityId: ctx.organizationId,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
 /* Conhecimento (Fatia 7)                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -1577,9 +1815,9 @@ export const carregarConhecimento = createServerFn({ method: "GET" }).handler(
   async (): Promise<Resposta<{ painel: PainelDeConhecimentoDto }>> =>
     comContexto("gerenciar_automacao", async (ctx) => {
       const { listarFontes } = await import("./aplicacao/conhecimento");
-      const { criarProvedorEmbeddings } = await import("./integracoes/ia/embeddings");
+      const { portaDeEmbeddingsDaOrganizacao } = await import("./integracoes/ia/gateway");
 
-      const estado = criarProvedorEmbeddings(ctx.organizationId);
+      const estado = await portaDeEmbeddingsDaOrganizacao(ctx.organizationId);
       return {
         ok: true as const,
         painel: {
@@ -1634,8 +1872,8 @@ export const indexarFonteDeConhecimento = createServerFn({ method: "POST" })
   .validator((e: { sourceId: string }) => ({ sourceId: String(e.sourceId ?? "") }))
   .handler(async ({ data }): Promise<Resposta<{ pedacos: number }>> =>
     comContexto("gerenciar_automacao", async (ctx) => {
-      const { criarProvedorEmbeddings } = await import("./integracoes/ia/embeddings");
-      const estado = criarProvedorEmbeddings(ctx.organizationId);
+      const { portaDeEmbeddingsDaOrganizacao } = await import("./integracoes/ia/gateway");
+      const estado = await portaDeEmbeddingsDaOrganizacao(ctx.organizationId);
       if (!estado.configurado) {
         return { ok: false as const, code: "sem_provedor", message: estado.motivo };
       }
@@ -1706,8 +1944,8 @@ export const testarBuscaNoConhecimento = createServerFn({ method: "POST" })
   .validator((e: { pergunta: string }) => ({ pergunta: String(e.pergunta ?? "") }))
   .handler(async ({ data }): Promise<Resposta<{ trechos: TrechoDeBuscaDto[] }>> =>
     comContexto("gerenciar_automacao", async (ctx) => {
-      const { criarProvedorEmbeddings } = await import("./integracoes/ia/embeddings");
-      const estado = criarProvedorEmbeddings(ctx.organizationId);
+      const { portaDeEmbeddingsDaOrganizacao } = await import("./integracoes/ia/gateway");
+      const estado = await portaDeEmbeddingsDaOrganizacao(ctx.organizationId);
       if (!estado.configurado) {
         return { ok: false as const, code: "sem_provedor", message: estado.motivo };
       }

@@ -445,8 +445,12 @@ export async function aoReceberMensagem(evento: EventoCrc): Promise<void> {
   ]);
 
   // --- 1. Classificar ---
-  const { criarProvedorIa } = await import("../integracoes/ia/provedor");
-  const provedor = criarProvedorIa(evento.organizationId);
+  //
+  // Pelo gateway, na finalidade `classificacao`: é a chamada de maior VOLUME do
+  // CRC — uma por mensagem recebida — e a que mais se beneficia de um modelo
+  // pequeno. Também é a que mais precisa do teto de gasto, pelo mesmo motivo.
+  const { portaParaFinalidade } = await import("../integracoes/ia/gateway");
+  const provedor = await portaParaFinalidade(evento.organizationId, "classificacao");
   const { classificarConversa } = await import("../aplicacao/ia");
 
   const leitura = await classificarConversa(
@@ -706,15 +710,27 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
   if (flags["ai_agente_sombra"] !== true) return;
   if (interruptores["kill_ia_auto"] === true || interruptores["kill_automacoes"] === true) return;
 
-  const { criarProvedorIa } = await import("../integracoes/ia/provedor");
-  const provedor = criarProvedorIa(evento.organizationId);
+  /*
+   * O GATEWAY, E NÃO A FÁBRICA DE AMBIENTE — Fatia 8.
+   *
+   * Três coisas vêm de graça na troca, e nenhuma delas aparece aqui como
+   * código: a rota por finalidade (conversa e supervisor podem ser modelos
+   * diferentes), a chave da própria clínica quando ela cadastrou uma, e o teto de
+   * gasto verificado ANTES de cada chamada. O teto é um decorador da porta
+   * justamente para não existir caminho de chamada que esqueça de checá-lo.
+   */
+  const { portaParaFinalidade, portaDeEmbeddingsDaOrganizacao } =
+    await import("../integracoes/ia/gateway");
+  const [provedor, supervisorIa] = await Promise.all([
+    portaParaFinalidade(evento.organizationId, "conversa"),
+    portaParaFinalidade(evento.organizationId, "supervisor"),
+  ]);
 
   // A busca no material escrito é capacidade SEPARADA (Fatia 7): sem ela o
   // agente continua atendendo horário, endereço e agenda, e a ferramenta de
   // conhecimento responde que o material não está disponível — o que faz o
   // modelo passar para a equipe em vez de responder de memória.
-  const { criarProvedorEmbeddings } = await import("../integracoes/ia/embeddings");
-  const busca = criarProvedorEmbeddings(evento.organizationId);
+  const busca = await portaDeEmbeddingsDaOrganizacao(evento.organizationId);
 
   // O envio exige a SEGUNDA flag. Sem ela o turno termina em `candidato`: a
   // resposta fica gravada em `crc_ai_runs` e ninguém a recebe.
@@ -759,6 +775,7 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
     eventoId: evento.id,
     agora: new Date(),
     porta: provedor.configurado ? provedor.porta : null,
+    portaSupervisor: supervisorIa.configurado ? supervisorIa.porta : null,
     portaEmbeddings: busca.configurado ? busca.porta : null,
     portaMensageria,
     podeEnviar,

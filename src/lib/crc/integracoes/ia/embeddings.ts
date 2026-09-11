@@ -295,3 +295,63 @@ export function criarProvedorEmbeddings(organizationId: string | null): EstadoEm
   const modelo = (process.env["OPENAI_EMBEDDING_MODEL_CRC"] ?? "text-embedding-3-small").trim();
   return { configurado: true, porta: new EmbeddingsOpenAi(chave, modelo, organizationId) };
 }
+
+/** Com chave e modelo escolhidos por quem chama — para o gateway (Fatia 8). */
+export function criarPortaEmbeddingsOpenAi(
+  chave: string,
+  modelo: string,
+  organizationId: string | null,
+): PortaEmbeddings {
+  return new EmbeddingsOpenAi(chave, modelo, organizationId);
+}
+
+export function criarPortaEmbeddingsSandbox(): PortaEmbeddings {
+  return new EmbeddingsSandbox();
+}
+
+/** Preço por milhão de tokens, para o gateway estimar antes da chamada. */
+export function precoEmbeddings(modelo: string): number | null {
+  return PRECOS_USD_POR_MILHAO[modelo] ?? null;
+}
+
+/**
+ * Orçamento na busca por significado — Fatia 8.
+ *
+ * PRECISA DE DECORADOR PRÓPRIO porque `PortaEmbeddings` é outro contrato: um
+ * método `gerar` que recebe muitos textos de uma vez. E a diferença não é só de
+ * assinatura — é de risco. Uma conversa faz uma chamada pequena; uma ingestão de
+ * documento faz uma chamada com sessenta pedaços, e é o caminho pelo qual uma
+ * clínica consegue gastar num clique o que a conversa gasta num dia.
+ *
+ * A ESTIMATIVA É POR CARACTERE, e não pelo `maxTokens` da outra porta: aqui o
+ * custo é conhecido antes, porque depende só do que se manda. Quatro caracteres
+ * por token é a regra de bolso da OpenAI para texto em português.
+ */
+export function comOrcamentoEmbeddings(
+  porta: PortaEmbeddings,
+  contexto: { organizationId: string; agora?: () => Date },
+): PortaEmbeddings {
+  return {
+    nome: porta.nome,
+    modelo: porta.modelo,
+    dimensoes: porta.dimensoes,
+
+    async gerar(textos: readonly string[]): Promise<RespostaEmbeddings> {
+      const agora = contexto.agora?.() ?? new Date();
+      const { verificarOrcamento, registrarGasto } = await import("../../aplicacao/orcamento");
+
+      const preco = PRECOS_USD_POR_MILHAO[porta.modelo];
+      const caracteres = textos.reduce((s, t) => s + t.length, 0);
+      const estimativa = preco === undefined ? 0 : (caracteres / 4 / 1_000_000) * preco * cambio();
+
+      const veredicto = await verificarOrcamento(contexto.organizationId, agora, estimativa);
+      if (!veredicto.pode) {
+        return { ok: false, motivo: "recusada", detalhe: veredicto.motivo };
+      }
+
+      const r = await porta.gerar(textos);
+      if (r.ok) await registrarGasto(contexto.organizationId, r.uso.custoEstimado, agora);
+      return r;
+    },
+  };
+}

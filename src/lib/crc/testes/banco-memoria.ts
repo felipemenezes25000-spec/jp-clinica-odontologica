@@ -158,6 +158,13 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // junto com a primeira.
   crc_knowledge_sources: [{ colunas: ["organization_id", "titulo"] }],
   crc_knowledge_chunks: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  // Os índices do 13. Uma rota por finalidade, e um balde de gasto por dia:
+  // duas rotas para a mesma finalidade seria ambiguidade sobre qual o gateway
+  // usa, e dois baldes do mesmo dia fariam o teto valer o dobro.
+  crc_ai_credentials: [{ colunas: ["organization_id", "provedor", "apelido"] }],
+  crc_ai_bindings: [{ colunas: ["organization_id", "finalidade"] }],
+  crc_ai_gastos: [{ colunas: ["organization_id", "dia"] }],
+  crc_ai_orcamentos: [{ colunas: ["organization_id"] }],
   crc_users: [{ colunas: ["organization_id", "email"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.
@@ -580,6 +587,39 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
         .slice(0, teto);
 
       return Promise.resolve(achados as T[]);
+    }
+
+    /*
+     * A soma de gasto do 13.
+     *
+     * ELA É ATÔMICA NO POSTGRES e sequencial aqui, o que basta: o que o teste
+     * precisa provar é que somar duas chamadas dá a soma das duas, e que o
+     * balde é por dia. A corrida de verdade — dois turnos terminando no mesmo
+     * milissegundo — é o que a função SQL resolve com `on conflict do update`, e
+     * um fake de processo único não consegue reproduzi-la de qualquer forma.
+     */
+    case "crc_somar_gasto": {
+      const org = argumentos["p_organization_id"];
+      const dia = String(argumentos["p_dia"] ?? "");
+      const micro =
+        typeof argumentos["p_micro"] === "number" ? Math.max(argumentos["p_micro"], 0) : 0;
+
+      const baldes = tabelas["crc_ai_gastos"] ?? [];
+      let balde = baldes.find((b) => b["organization_id"] === org && b["dia"] === dia);
+      if (balde === undefined) {
+        balde = { organization_id: org, dia, micro_reais: 0, chamadas: 0 };
+        baldes.push(balde);
+        tabelas["crc_ai_gastos"] = baldes;
+      }
+
+      balde["micro_reais"] =
+        (typeof balde["micro_reais"] === "number" ? balde["micro_reais"] : 0) + micro;
+      balde["chamadas"] = (typeof balde["chamadas"] === "number" ? balde["chamadas"] : 0) + 1;
+      balde["atualizado_em"] = new Date(agoraMs()).toISOString();
+
+      return Promise.resolve([
+        { dia_micro: balde["micro_reais"], chamadas_dia: balde["chamadas"] },
+      ] as T[]);
     }
 
     default:

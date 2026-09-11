@@ -97,6 +97,16 @@ export type PedidoTurno = {
    */
   supervisionar?: boolean;
   /**
+   * A porta do supervisor, quando a clínica roteou essa finalidade para outro
+   * modelo — Fatia 8. Ausente, usa a mesma da conversa.
+   *
+   * A separação vale dinheiro: o supervisor roda em todo turno, produz colunas e
+   * não prosa, e o modelo pequeno faz isso bem. Pagar o modelo da conversa para
+   * produzir uma nota de 0 a 10 dobraria o custo do turno sem melhorar nada que
+   * um paciente leia.
+   */
+  portaSupervisor?: PortaIa | null;
+  /**
    * A porta de embeddings, para `conhecimento.buscar`. Fatia 7.
    *
    * Separada da `porta` de conversa porque é outra capacidade, com outro modelo
@@ -222,6 +232,21 @@ async function decidirEEntregar(
     trace.ferramentas(resultado.passos);
 
     if (resultado.tipo === "falha") {
+      /*
+       * TETO DE GASTO ESTOURADO VIRA GENTE, E NÃO ERRO (ADR-12).
+       *
+       * A distinção existe porque do outro lado tem um paciente que escreveu e
+       * está esperando. "A IA acabou o orçamento" é um problema da clínica, não
+       * dele — e o único desfecho aceitável é alguém da recepção ver a conversa.
+       *
+       * O reconhecimento é pelo prefixo estável que o gateway coloca, e não pelo
+       * texto em português da mensagem. Ver `MOTIVO_ORCAMENTO`.
+       */
+      const { MOTIVO_ORCAMENTO } = await import("../integracoes/ia/gateway");
+      if (resultado.motivo.includes(MOTIVO_ORCAMENTO)) {
+        await abrirCasoPorOrcamento(pedido, ctx, resultado.motivo);
+      }
+
       return await encerrar(trace, chaveDedupe, ctx, {
         tipo: "falha_segura",
         motivo: resultado.motivo.slice(0, 240),
@@ -337,6 +362,34 @@ async function decidirEEntregar(
 type Ctx = NonNullable<Awaited<ReturnType<typeof montarContextoDoTurno>>>;
 
 /**
+ * O caso humano que nasce de um teto de gasto — Fatia 8.
+ *
+ * RESPEITA A ESCOLHA DA CLÍNICA. `crc_ai_orcamentos.abrir_caso` existe porque uma
+ * clínica pode preferir que a IA simplesmente pare quando o teto acaba, sem
+ * encher a fila da recepção — e uma coluna que não muda comportamento nenhum
+ * seria pior do que não existir.
+ *
+ * NUNCA LANÇA, pela mesma razão de `abrirCasoHumano`.
+ */
+async function abrirCasoPorOrcamento(pedido: PedidoTurno, ctx: Ctx, motivo: string): Promise<void> {
+  try {
+    const { lerOrcamento } = await import("../aplicacao/orcamento");
+    const orcamento = await lerOrcamento(pedido.organizationId);
+    if (!orcamento.abrirCaso) return;
+
+    await abrirCasoHumano(pedido, ctx, {
+      codigo: "orcamento_estourado",
+      // A frase que a recepção lê tem que dizer o que fazer, e não só o que
+      // aconteceu: quem abre esta tarefa não configurou o teto.
+      motivo: `${motivo.replace(/^[a-z_]+:\s*/u, "")} Responda esta pessoa à mão, e avise quem cuida das configurações.`,
+      respostaBarrada: null,
+    });
+  } catch {
+    // Ver o cabeçalho.
+  }
+}
+
+/**
  * A segunda leitura do turno — Fatia 6.
  *
  * TRÊS CONDIÇÕES, E CADA UMA DESLIGA POR UM MOTIVO DIFERENTE:
@@ -358,7 +411,11 @@ async function supervisionar(
   resultado: ResultadoTurno,
 ): Promise<void> {
   if (pedido.supervisionar !== true) return;
-  if (pedido.porta === null) return;
+
+  // A porta do supervisor, quando a clínica roteou essa finalidade para outro
+  // modelo. Sem rota própria, a mesma da conversa.
+  const porta = pedido.portaSupervisor ?? pedido.porta;
+  if (porta === null) return;
 
   const ctx = visto.ctx;
   if (ctx === null) return;
@@ -374,7 +431,7 @@ async function supervisionar(
       patientId: ctx.paciente?.id ?? null,
       runId,
       agora: pedido.agora,
-      porta: pedido.porta,
+      porta,
       resultado,
       respostaDoAgente: visto.resposta,
       mensagens: ctx.mensagens,

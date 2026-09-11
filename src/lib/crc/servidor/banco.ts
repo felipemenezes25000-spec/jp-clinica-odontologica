@@ -95,7 +95,11 @@ export type Tabela =
   | "crc_ai_memories"
   | "crc_ai_supervisoes"
   | "crc_knowledge_sources"
-  | "crc_knowledge_chunks";
+  | "crc_knowledge_chunks"
+  | "crc_ai_credentials"
+  | "crc_ai_bindings"
+  | "crc_ai_orcamentos"
+  | "crc_ai_gastos";
 
 export type Linha = Record<string, unknown>;
 

@@ -299,3 +299,33 @@ export function criarProvedorIa(organizationId: string | null): EstadoIa {
   const modelo = (process.env["OPENAI_MODEL_CRC"] ?? "gpt-5.6-luna").trim();
   return { configurado: true, porta: new ProvedorOpenAi(chave, modelo, organizationId) };
 }
+
+/**
+ * A porta da OpenAI com chave e modelo escolhidos por quem chama — Fatia 8.
+ *
+ * Existe para o gateway de modelos poder montar a porta com a chave DA CLÍNICA e
+ * o modelo que a rota daquela finalidade declara. `criarProvedorIa` continua
+ * sendo o caminho de quem não tem rota configurada: lê o ambiente e pronto.
+ */
+export function criarPortaOpenAi(
+  chave: string,
+  modelo: string,
+  organizationId: string | null,
+): PortaIa {
+  return new ProvedorOpenAi(chave, modelo, organizationId);
+}
+
+/** A IA de sandbox, para o gateway poder rotear para ela explicitamente. */
+export function criarPortaSandboxIa(): PortaIa {
+  return new ProvedorSandboxIa();
+}
+
+/** Exposta para o gateway estimar custo ANTES da chamada (ADR-12). */
+export function precoDoModelo(modelo: string): { entrada: number; saida: number } | null {
+  return PRECOS_USD_POR_MILHAO[modelo] ?? null;
+}
+
+/** O câmbio em uso, para a estimativa do gateway sair na mesma moeda. */
+export function cambioUsdBrl(): number {
+  return cambio();
+}

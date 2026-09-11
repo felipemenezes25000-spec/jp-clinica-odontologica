@@ -128,10 +128,34 @@ que também explica por que ela não entrou na `PortaIa`.
 
 ---
 
-## Fatia 8 — Model gateway, BYOK e orçamento
+## Fatia 8 — Model gateway, BYOK e orçamento *(concluída)*
 
 Multi-provider com roteamento por finalidade, credencial cifrada por
 organização, teto de gasto checado antes da chamada.
+
+Entregue:
+
+- `supabase/13-crc-modelos-orcamento.sql` — credenciais, rotas, tetos, baldes
+  diários de gasto e a função `crc_somar_gasto`, que é atômica de propósito;
+- `dominio/orcamento.ts` — a decisão em micro-reais inteiros, com o estado
+  `alerta` que avisa antes de a máquina parar;
+- `servidor/segredo.ts` — AES-256-GCM, e a honestidade sobre o que ela não
+  protege (ADR-22);
+- `integracoes/ia/anthropic.ts` — o segundo provedor de verdade, com structured
+  output via tool forçada;
+- `integracoes/ia/gateway.ts` — rota por finalidade, chave da clínica, e o
+  orçamento como DECORADOR da porta (ADR-20, ADR-21);
+- `aplicacao/modelos.ts` e `aplicacao/orcamento.ts`;
+- tela **Modelos e custo**: gasto de hoje e do mês, limites, rota por tarefa e
+  cadastro de chave.
+
+**Quatro finalidades, não uma.** `conversa`, `classificacao`, `supervisor`,
+`embeddings`. Um modelo único para as quatro significa pagar o preço da conversa
+em toda classificação — que é a chamada de maior volume do CRC.
+
+**O que a troca trouxe de graça.** `turno.ts`, `supervisor.ts` e a classificação
+não mudaram uma linha e passaram a respeitar teto de gasto, porque o teto é um
+decorador e não uma checagem de chamador.
 
 ---
 

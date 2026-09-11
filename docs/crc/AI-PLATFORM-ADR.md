@@ -269,3 +269,56 @@ vagamente parecidos.
 "aceitam" a "aceitamos" e "convênio" a "conveniado", e deixa "pagar" e
 "pagamento" de fora. Um stemmer de português de verdade (RSLP) são duzentas regras
 e uma dependência; a lacuna fica com o vetor, que é o papel dele.
+
+---
+
+## ADR-20 — O teto de gasto é um decorador da porta, não uma checagem do chamador
+
+**Decisão.** `comOrcamento(porta, …)` embrulha a `PortaIa` e verifica o teto antes
+de `gerarEstruturado`, registrando o gasto depois. `turno.ts`, `supervisor.ts` e a
+classificação recebem uma porta e não sabem que existe orçamento.
+
+**Por quê.** É o que torna impossível esquecer a verificação. Se cada chamador
+fizesse a própria checagem, o quinto caminho de chamada — escrito dentro de seis
+meses, por pressa — seria o que não checa, e ninguém notaria até a fatura.
+
+**Consequência aceita.** A recusa volta como `RespostaIa` normal
+(`{ ok: false, motivo: "recusada" }`), com um prefixo estável no detalhe. Casar
+texto em português quebraria calado na primeira melhoria de redação; o prefixo é
+o contrato entre o gateway e o turno.
+
+---
+
+## ADR-21 — Chave de provedor revogada não cai na chave da plataforma
+
+**Decisão.** Quando a rota aponta para uma credencial da clínica e ela está
+revogada, ausente ou não decifra, o gateway devolve "não configurado" com o
+motivo. Nunca usa a chave do ambiente como alternativa.
+
+**Por quê.** O fallback silencioso cobraria da plataforma um consumo que a
+clínica pediu para cobrar dela — e a descoberta viria pela fatura, meses depois,
+sem nada no sistema explicando.
+
+**A contraparte.** O gasto É registrado mesmo quando a chamada falha com erro do
+provedor: um 500 depois de o prompt ser processado foi cobrado. Ignorar isso faria
+o contador divergir da fatura justamente nos dias ruins.
+
+---
+
+## ADR-22 — Cifra de segredo com AES-256-GCM e chave no ambiente
+
+**Decisão.** A chave de provedor da clínica é guardada cifrada com AES-256-GCM,
+chave de 32 bytes em `CRC_SEGREDO_CHAVE`. Sem a variável, o cadastro é RECUSADO —
+nada é gravado em claro. O prefixo `v1:` permite trocar de algoritmo depois.
+
+**O que protege, exatamente.** Dump do banco, backup vazado, `select *` de quem
+tem leitura no Postgres. Nesses casos a coluna é ruído.
+
+**O que NÃO protege, dito aqui para ninguém decidir risco confiando na palavra
+"cifrado".** O servidor da aplicação decifra, porque é o trabalho dele. Quem tem o
+ambiente do servidor tem as chaves de todas as clínicas. Não existe BYOK em SaaS
+que resolva isso sem um HSM por cliente.
+
+**GCM e não CBC.** GCM autentica: texto cifrado alterado falha na verificação da
+tag em vez de decifrar como lixo. Com CBC, alguém com escrita no banco poderia
+alterar a coluna e a aplicação não perceberia.

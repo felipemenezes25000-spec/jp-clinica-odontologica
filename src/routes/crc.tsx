@@ -14,6 +14,7 @@ import {
   CalendarDays,
   Camera,
   Cable,
+  CircleDollarSign,
   ChevronDown,
   ChevronRight,
   Columns3,
@@ -46,6 +47,7 @@ import { Logo } from "@/components/site/Logo";
 import { Campanhas } from "@/components/crc/Campanhas";
 import { Inteligencia } from "@/components/crc/Inteligencia";
 import { Conhecimento } from "@/components/crc/Conhecimento";
+import { ModelosECusto } from "@/components/crc/ModelosECusto";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
@@ -97,6 +99,7 @@ type Aba =
   | "campanhas"
   | "inteligencia"
   | "conhecimento"
+  | "modelos"
   | "integracoes"
   | "configuracoes"
   | "equipe";
@@ -189,6 +192,15 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
     rotulo: "Administração",
     itens: [
       { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes", icone: Cable },
+      {
+        aba: "modelos",
+        rotulo: "Modelos e custo",
+        // `gerenciar_integracoes`, e não `ver_integracoes`: aqui se cadastra
+        // credencial de provedor e se define quanto a clínica pode gastar. Quem
+        // só acompanha a saúde das conexões não precisa disso.
+        permissao: "gerenciar_integracoes",
+        icone: CircleDollarSign,
+      },
       { aba: "equipe", rotulo: "Equipe", permissao: "gerenciar_usuarios", icone: UserRoundCog },
       {
         aba: "configuracoes",
@@ -627,6 +639,44 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "O agente usa", tom: "positiva" },
       { rotulo: "Só você vê", tom: "alerta" },
       { rotulo: "Falta indexar", tom: "perigo" },
+    ],
+  },
+  modelos: {
+    sobretitulo: "O dinheiro da IA",
+    paraQue: "quanto a IA gasta, e o limite disso",
+    descricao:
+      "Toda vez que a IA lê uma mensagem, responde alguém, revisa um atendimento ou procura no material da clínica, ela consulta um serviço que cobra por uso. Esta tela mostra quanto isso somou hoje e no mês, e deixa você pôr um limite — que é verificado ANTES de cada consulta, não depois. Aqui também se escolhe qual modelo faz cada tarefa e, se a clínica quiser pagar direto ao provedor, se cadastra a chave dela.",
+    acoes: [
+      {
+        faca: "Limite por dia / por mês",
+        efeito:
+          "Ao atingir o limite, a IA para de responder na hora — a verificação acontece antes de cada consulta. Em branco significa sem limite. Zero significa desligar a IA por aqui.",
+      },
+      {
+        faca: "A caixa “colocar na fila da recepção”",
+        efeito:
+          "Marcada, cada paciente que escrever depois de o limite acabar vira um caso para alguém responder à mão. Desmarcada, as mensagens ficam sem resposta. Do outro lado tem gente esperando, então a escolha é real.",
+      },
+      {
+        faca: "Mudar, numa das quatro tarefas",
+        efeito:
+          "Troca o modelo usado só naquela tarefa. Conversar com paciente e classificar mensagem têm exigências opostas: a primeira alguém lê, a segunda acontece a cada mensagem que chega. Sem mexer, fica no padrão.",
+      },
+      {
+        faca: "Guardar chave",
+        efeito:
+          "A partir daí o consumo é cobrado no cartão cadastrado no provedor pela clínica, e não no do sistema. A chave é guardada embaralhada e nunca mais aparece: fica só o começo e o fim, para você conferir que colou a certa.",
+      },
+      {
+        faca: "Parar de usar, numa chave",
+        efeito:
+          "A IA para de usá-la imediatamente. A chave não é apagada, e quem tentar usá-la recebe uma mensagem dizendo que foi revogada — em vez de o sistema voltar calado para a chave dele.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Em uso", tom: "positiva" },
+      { rotulo: "Chegando no limite", tom: "alerta" },
+      { rotulo: "Parada por limite de gasto", tom: "perigo" },
     ],
   },
   integracoes: {
@@ -1475,6 +1525,7 @@ function PortalCrc() {
 
           {abaAtual === "inteligencia" && <Inteligencia />}
           {abaAtual === "conhecimento" && <Conhecimento />}
+          {abaAtual === "modelos" && <ModelosECusto />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
         </main>
