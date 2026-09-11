@@ -64,10 +64,23 @@ export async function processarWebhookWhatsapp(
   const inbox = await inserirIgnorandoDuplicata("crc_webhook_inbox", {
     provedor: porta.nome,
     external_id: chave,
-    // O payload cru é mascarado antes de ir para o banco: ele contém telefone
-    // e o texto da mensagem, e a tabela de inbox não é o lugar de guardar uma
-    // segunda cópia disso (item 75).
-    payload: mascarar(payload),
+    /*
+     * O ENVELOPE JÁ INTERPRETADO, e não o payload cru mascarado.
+     *
+     * A versão anterior gravava `mascarar(payload)`, e isso tornava a linha
+     * inútil para o que ela existe: o mascarador corta profundidade acima de
+     * seis níveis e limita arrays. O envelope da Meta é
+     * `entry > changes > value > messages > …` — ou seja, o mascarador
+     * destruía exatamente a parte que um replay precisaria ler.
+     *
+     * `mascarar` é a ferramenta certa para LOG. Não é serializador de fila.
+     *
+     * O formato normalizado resolve os dois lados: é raso, é estável entre
+     * provedores (Meta, Twilio e WAHA produzem a mesma forma), e é literalmente
+     * a entrada da etapa seguinte — então repetir a etapa é repetir com o mesmo
+     * dado, e não com uma aproximação dele.
+     */
+    payload: interpretado as unknown as Linha,
     status: "PENDENTE",
   });
 
@@ -119,15 +132,59 @@ export async function processarWebhookWhatsapp(
     inboxId,
     erros.length === 0 ? "PROCESSADO" : "FALHOU",
     erros.length === 0 ? null : erros.join(" | ").slice(0, 1000),
+    1,
   );
 
   return resultado;
 }
 
-async function marcar(id: string, status: string, erro: string | null): Promise<void> {
+/**
+ * Fecha o envelope — ou o devolve para a fila.
+ *
+ * DUAS COISAS ACONTECEM AQUI que não aconteciam antes, e as duas são o conserto
+ * do item 126 ter ficado pela metade:
+ *
+ *   FALHA AGENDA A PRÓXIMA TENTATIVA. Antes, `FALHOU` era um estado final de
+ *   fato: ninguém lia a tabela. O envelope ficava lá, o paciente sem resposta, e
+ *   a Meta já tinha recebido `200` — ou seja, ela nunca reenviaria. Agora
+ *   `disponivel_em` empurra a linha para a frente e o pulso a repesca.
+ *
+ *   SUCESSO APAGA O PAYLOAD. Enquanto pendente, ele guarda telefone e texto,
+ *   porque é o que o replay precisa. Depois de processado, esse conteúdo já está
+ *   em `crc_messages` com as regras de acesso de lá — manter a cópia aqui seria
+ *   um segundo lugar com PII e outra política de retenção (item 75), que é
+ *   exatamente o que o `mascarar()` original tentava evitar.
+ */
+async function marcar(
+  id: string,
+  status: string,
+  erro: string | null,
+  tentativas = 0,
+): Promise<void> {
   const mudancas: Linha = { status, ultimo_erro: erro };
-  if (status === "PROCESSADO") mudancas["processado_em"] = new Date().toISOString();
+
+  if (status === "PROCESSADO") {
+    mudancas["processado_em"] = new Date().toISOString();
+    mudancas["payload"] = {};
+    mudancas["travado_ate"] = null;
+  } else if (status === "FALHOU") {
+    mudancas["travado_ate"] = null;
+    mudancas["disponivel_em"] = new Date(Date.now() + esperaDoWebhook(tentativas)).toISOString();
+  }
+
   await atualizar("crc_webhook_inbox", [{ coluna: "id", op: "eq", valor: id }], mudancas);
+}
+
+/**
+ * Quanto esperar antes de repescar, em milissegundos.
+ *
+ * 15s, 1min, 4min, 16min. MAIS CURTO QUE O DO AGENTE de propósito: ali o que
+ * espera é um job de recuperação; aqui é a mensagem que o paciente acabou de
+ * mandar, e cada minuto é um minuto de silêncio depois de um "oi".
+ */
+export function esperaDoWebhook(tentativas: number): number {
+  const base = 15_000 * Math.pow(4, Math.max(tentativas - 1, 0));
+  return Math.min(base, 16 * 60_000);
 }
 
 /**
@@ -149,4 +206,196 @@ async function resolverEscopo(): Promise<{ organizationId: string; clinicId: str
     organizationId: String(clinica["organization_id"] ?? ""),
     clinicId: String(clinica["id"] ?? ""),
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* A repescagem — o lado que faltava do inbox pattern                        */
+/* -------------------------------------------------------------------------- */
+
+export type ResultadoDaRepescagem = {
+  reservados: number;
+  recuperados: number;
+  falhados: number;
+  descartados: number;
+  presosLiberados: number;
+};
+
+/**
+ * Reprocessa os envelopes que falharam.
+ *
+ * ========================================================================
+ *  ESTA FUNÇÃO É O CONSERTO DE UM P0, e o defeito era a ausência dela.
+ *
+ *  O cabeçalho deste arquivo sempre prometeu: "se a interpretação falhar, o
+ *  payload cru continua no banco e pode ser reprocessado depois". A gravação
+ *  foi feita; a repescagem nunca existiu. `crc_webhook_inbox` era escrita e
+ *  lida por ninguém.
+ *
+ *  O efeito, e ele é silencioso dos dois lados:
+ *
+ *      a Meta manda o webhook
+ *      o CRC grava e começa a processar
+ *      o banco pisca no meio
+ *      a linha vira FALHOU, e o CRC responde 200
+ *      a Meta considera entregue e NUNCA reenvia
+ *      ninguém repesca
+ *
+ *  A mensagem do paciente some. Nenhum alerta dispara: do lado da Meta deu
+ *  certo, e do nosso a linha está lá, parada, num estado que ninguém observa.
+ * ========================================================================
+ *
+ * NUNCA LANÇA. Ela roda dentro do pulso; um envelope problemático não pode
+ * impedir os outros — nem o resto da volta.
+ */
+export async function repescarWebhooks(
+  opcoes: { limite?: number; quem?: string } = {},
+): Promise<ResultadoDaRepescagem> {
+  const { rpc } = await import("../servidor/banco");
+
+  const resultado: ResultadoDaRepescagem = {
+    reservados: 0,
+    recuperados: 0,
+    falhados: 0,
+    descartados: 0,
+    presosLiberados: 0,
+  };
+
+  // Primeiro os presos: PROCESSANDO com lease vencido e teto estourado não
+  // aparece na fila nem na lista de falhas. Some.
+  try {
+    const linhas = await rpc("crc_liberar_webhooks_presos", {});
+    const n = linhas[0];
+    resultado.presosLiberados = n === undefined ? 0 : Number(Object.values(n)[0] ?? 0);
+  } catch {
+    // Higiene não pode impedir o trabalho do lote.
+  }
+
+  let reservados: Linha[] = [];
+  try {
+    reservados = await rpc("crc_reservar_webhooks", {
+      limite: opcoes.limite ?? 10,
+      lock_segundos: 120,
+      quem: opcoes.quem ?? null,
+      max_tentativas: MAX_TENTATIVAS_WEBHOOK,
+    });
+  } catch (erro) {
+    registrar("erro", "Não foi possível reservar webhooks para repescagem.", {
+      detalhe: descreverErro(erro),
+    });
+    return resultado;
+  }
+
+  resultado.reservados = reservados.length;
+
+  for (const linha of reservados) {
+    const id = String(linha["id"] ?? "");
+    const tentativas = typeof linha["tentativas"] === "number" ? linha["tentativas"] : 1;
+
+    try {
+      const aplicado = await aplicarEnvelope(linha);
+      if (aplicado) {
+        await marcar(id, "PROCESSADO", null, tentativas);
+        resultado.recuperados += 1;
+      } else {
+        /*
+         * DESCARTADO, E NÃO FALHOU. O envelope não tem como ser aplicado nunca
+         * — payload vazio de uma linha já concluída, ou forma que nenhum
+         * provedor produz. Deixá-lo como FALHOU o faria voltar à fila cinco
+         * vezes para falhar cinco vezes, e encheria a dead letter de coisa que
+         * ninguém pode consertar.
+         */
+        await marcar(id, "DESCARTADO", "Envelope sem conteúdo aplicável.", tentativas);
+        resultado.descartados += 1;
+      }
+    } catch (erro) {
+      const detalhe = descreverErro(erro);
+      await marcar(id, "FALHOU", detalhe, tentativas);
+      resultado.falhados += 1;
+
+      if (tentativas >= MAX_TENTATIVAS_WEBHOOK) {
+        await mandarParaDeadLetter(linha, detalhe);
+      }
+    }
+  }
+
+  return resultado;
+}
+
+/** Cinco tentativas, como as outras filas do CRC. */
+export const MAX_TENTATIVAS_WEBHOOK = 5;
+
+/**
+ * Aplica um envelope guardado.
+ *
+ * Devolve `false` quando não há nada aplicável — ver o comentário do
+ * `DESCARTADO` acima.
+ */
+async function aplicarEnvelope(linha: Linha): Promise<boolean> {
+  const payload = linha["payload"];
+  if (typeof payload !== "object" || payload === null) return false;
+
+  const envelope = payload as { mensagens?: unknown; entregas?: unknown };
+  const mensagens = Array.isArray(envelope.mensagens) ? envelope.mensagens : [];
+  const entregas = Array.isArray(envelope.entregas) ? envelope.entregas : [];
+
+  if (mensagens.length === 0 && entregas.length === 0) return false;
+
+  const escopo = await resolverEscopo();
+  if (escopo === null) {
+    // Lança de propósito: sem organização, isto é falha de configuração e o
+    // envelope deve voltar à fila, não ser descartado.
+    throw new Error("Nenhuma organização configurada.");
+  }
+
+  for (const m of mensagens) {
+    await receberMensagem(
+      escopo.organizationId,
+      escopo.clinicId,
+      m as Parameters<typeof receberMensagem>[2],
+    );
+  }
+
+  for (const e of entregas) {
+    const entrega = e as { providerMessageId?: unknown; status?: unknown; erro?: unknown };
+    await atualizarEntrega(
+      escopo.organizationId,
+      String(entrega.providerMessageId ?? ""),
+      String(entrega.status ?? "") as Parameters<typeof atualizarEntrega>[2],
+      typeof entrega.erro === "string" ? entrega.erro : null,
+    );
+  }
+
+  return true;
+}
+
+/**
+ * O envelope esgotou as tentativas.
+ *
+ * A DEAD LETTER É ESCRITA AQUI, e não deixada para alguém notar depois: um
+ * webhook que esgotou as tentativas sai da fila de trabalho, e sem registro ele
+ * sai do mundo. Do outro lado tem um paciente que escreveu e nunca foi
+ * respondido — e a Meta não vai reenviar, porque para ela deu certo.
+ */
+async function mandarParaDeadLetter(linha: Linha, erro: string): Promise<void> {
+  try {
+    const { inserir } = await import("../servidor/banco");
+    const escopo = await resolverEscopo();
+
+    await inserir("crc_dead_letters", {
+      organization_id: escopo?.organizationId ?? null,
+      origem: "webhook",
+      referencia: String(linha["id"] ?? ""),
+      erro: erro.slice(0, 500),
+      payload: {
+        provedor: linha["provedor"],
+        externalId: linha["external_id"],
+        tentativas: linha["tentativas"],
+      },
+      status: "PENDENTE",
+    });
+  } catch (falha) {
+    registrar("erro", "Webhook esgotou as tentativas e a dead letter falhou.", {
+      detalhe: descreverErro(falha),
+    });
+  }
 }

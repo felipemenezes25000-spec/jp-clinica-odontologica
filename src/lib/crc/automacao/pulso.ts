@@ -46,6 +46,8 @@
 import { registrar } from "../servidor/registro";
 
 export type ResultadoDoPulso = {
+  /** Os webhooks que falharam e voltaram à fila. Ver `repescarWebhooks`. */
+  webhooks: { reservados: number; recuperados: number; falhados: number; descartados: number };
   eventos: { reservados: number; processados: number; falhados: number; semHandler: number };
   turnos: { reservados: number; concluidos: number; descartados: number; falhados: number };
   /** Uma entrada por organização que teve jornada avançada. */
@@ -96,6 +98,16 @@ export async function baterPulso(
    * atende todas as organizações numa chamada só. O que estava preso numa
    * clínica era o lado batch, e é ele que o laço abaixo conserta.
    */
+  /*
+   * OS WEBHOOKS REPESCADOS VÊM ANTES DOS EVENTOS, e a ordem importa: repescar
+   * um envelope GERA `message.received`. Na ordem inversa, a mensagem
+   * recuperada esperaria a volta seguinte do pulso para virar turno — o
+   * paciente ganharia mais cinco minutos de silêncio por um problema que já
+   * tinha sido resolvido.
+   */
+  const { repescarWebhooks } = await import("../aplicacao/webhooks");
+  const repescagem = await repescarWebhooks({ quem: opcoes.quem ?? "pulso" });
+
   const { processarEventos } = await import("../aplicacao/eventos");
   const eventos = await processarEventos(opcoes.limiteEventos ?? 40);
 
@@ -127,6 +139,12 @@ export async function baterPulso(
   }
 
   return {
+    webhooks: {
+      reservados: repescagem.reservados,
+      recuperados: repescagem.recuperados,
+      falhados: repescagem.falhados,
+      descartados: repescagem.descartados,
+    },
     eventos,
     turnos: {
       reservados: turnos.reservados,

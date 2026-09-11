@@ -71,8 +71,14 @@ export const Route = createFileRoute("/api/crc/pulso")({
            * e um log que é 95% ruído é um log que ninguém abre no dia do
            * incidente.
            */
-          if (r.eventos.reservados > 0 || r.turnos.reservados > 0 || r.jornadas.length > 0) {
+          if (
+            r.eventos.reservados > 0 ||
+            r.turnos.reservados > 0 ||
+            r.jornadas.length > 0 ||
+            r.webhooks.reservados > 0
+          ) {
             registrar("info", "Pulso com trabalho.", {
+              webhooksRecuperados: r.webhooks.recuperados,
               eventos: r.eventos.processados,
               turnos: r.turnos.concluidos,
               organizacoes: r.organizacoes,

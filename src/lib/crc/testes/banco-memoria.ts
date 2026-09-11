@@ -1036,6 +1036,70 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
     }
 
     /*
+     * A reserva de webhooks — o consumidor que nunca existiu.
+     *
+     * Reproduz as quatro condicoes que importam da RPC de verdade: pega
+     * PENDENTE e FALHOU, pega tambem PROCESSANDO com lease vencido, respeita o
+     * backoff de `disponivel_em`, e ignora quem passou do teto de tentativas.
+     * A tentativa e incrementada NA RESERVA — um envelope que derruba o worker
+     * toda vez nunca chegaria ao teto se o incremento fosse no fim.
+     */
+    case "crc_reservar_webhooks": {
+      const teto = typeof argumentos["limite"] === "number" ? argumentos["limite"] : 10;
+      const lockSeg =
+        typeof argumentos["lock_segundos"] === "number" ? argumentos["lock_segundos"] : 120;
+      const maxTentativas =
+        typeof argumentos["max_tentativas"] === "number" ? argumentos["max_tentativas"] : 5;
+      const ateQuando = new Date(agora + lockSeg * 1000).toISOString();
+
+      const disponivel = (l: Linha): boolean => {
+        const q = l["disponivel_em"];
+        return typeof q !== "string" || Date.parse(q) <= agora;
+      };
+
+      const alvo = (tabelas["crc_webhook_inbox"] ?? [])
+        .filter(
+          (l) =>
+            l["status"] === "PENDENTE" ||
+            l["status"] === "FALHOU" ||
+            (l["status"] === "PROCESSANDO" && !livre(l)),
+        )
+        .filter(disponivel)
+        .filter((l) => (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) < maxTentativas)
+        .slice(0, teto);
+
+      for (const l of alvo) {
+        l["status"] = "PROCESSANDO";
+        l["travado_ate"] = ateQuando;
+        l["travado_por"] = argumentos["quem"] ?? null;
+        l["tentativas"] = (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) + 1;
+      }
+
+      return Promise.resolve(alvo.map((l) => ({ ...l })) as T[]);
+    }
+
+    case "crc_liberar_webhooks_presos": {
+      const maxTentativas =
+        typeof argumentos["max_tentativas"] === "number" ? argumentos["max_tentativas"] : 5;
+
+      const presos = (tabelas["crc_webhook_inbox"] ?? []).filter(
+        (l) =>
+          l["status"] === "PROCESSANDO" &&
+          typeof l["travado_ate"] === "string" &&
+          Date.parse(l["travado_ate"]) < agora &&
+          (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) >= maxTentativas,
+      );
+
+      for (const l of presos) {
+        l["status"] = "FALHOU";
+        l["travado_ate"] = null;
+        l["ultimo_erro"] = l["ultimo_erro"] ?? "O worker nao terminou o webhook e o lease venceu.";
+      }
+
+      return Promise.resolve([{ crc_liberar_webhooks_presos: presos.length }] as T[]);
+    }
+
+    /*
      * Fecha o job que ficou RODANDO com o lease vencido E o teto estourado.
      *
      * Sem isto ele nao aparece na fila de trabalho (a reserva ignora quem passou

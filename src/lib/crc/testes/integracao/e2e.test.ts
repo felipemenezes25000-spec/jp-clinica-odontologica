@@ -370,6 +370,118 @@ describe("o crash recupera o job E a run", () => {
 });
 
 /* ========================================================================== */
+/* 2c. A inbox de webhook: crash e replay                                     */
+/* ========================================================================== */
+
+/**
+ * O CENÁRIO QUE A AUDITORIA PEDIU, e que não existia em teste nenhum:
+ *
+ *     Meta manda o webhook → CRC grava → 💥 → linha FALHOU → 200 para a Meta
+ *     → a Meta NUNCA reenvia → alguém tem que repescar
+ *
+ * Enquanto ninguém repescava, a mensagem do paciente sumia em silêncio. Aqui a
+ * fila é exercitada contra o Postgres de verdade, onde `FOR UPDATE SKIP LOCKED`
+ * é `FOR UPDATE SKIP LOCKED` e não uma imitação.
+ */
+describe("a inbox de webhook repesca o que falhou", () => {
+  const inserir = (externalId: string, extra = "") =>
+    sql(`
+      insert into public.crc_webhook_inbox
+        (provedor, external_id, payload, status ${extra.length > 0 ? ", " + extra.split("=")[0] : ""})
+      values ('meta_cloud', '${externalId}', '{"mensagens":[],"entregas":[]}'::jsonb, 'FALHOU'
+              ${extra.length > 0 ? ", " + (extra.split("=")[1] ?? "") : ""})
+    `);
+
+  beforeEach(async () => {
+    await sql(`delete from public.crc_webhook_inbox`);
+  });
+
+  it("o envelope que falhou é reservado de volta", async () => {
+    await inserir("wamid.CAIU");
+
+    const pego = await sql<{ external_id: string; tentativas: number }>(
+      `select external_id, tentativas from public.crc_reservar_webhooks(10, 120, 'w1', 5)`,
+    );
+
+    expect(pego).toHaveLength(1);
+    // Incrementada NA RESERVA: um envelope que derruba o worker toda vez nunca
+    // chegaria ao teto se o incremento fosse no fim.
+    expect(Number(pego[0]?.tentativas)).toBe(1);
+  });
+
+  it("dois workers simultâneos NÃO pegam o mesmo envelope", async () => {
+    /*
+     * A corrida que o banco em memória não pode provar — JavaScript é uma
+     * thread só. Aqui são duas transações de verdade disputando as linhas.
+     */
+    for (let i = 0; i < 6; i += 1) await inserir(`wamid.C${String(i)}`);
+
+    const [a, b] = await Promise.all([
+      sql<{ id: string }>(`select id from public.crc_reservar_webhooks(3, 120, 'wa', 5)`),
+      sql<{ id: string }>(`select id from public.crc_reservar_webhooks(3, 120, 'wb', 5)`),
+    ]);
+
+    const ids = [...a.map((x) => x.id), ...b.map((x) => x.id)];
+    expect(ids).toHaveLength(6);
+    expect(new Set(ids).size).toBe(6);
+  });
+
+  it("o backoff segura: envelope com `disponivel_em` no futuro não volta", async () => {
+    await inserir("wamid.ESPERA");
+    await sql(`update public.crc_webhook_inbox set disponivel_em = now() + interval '10 minutes'`);
+
+    expect(await sql(`select id from public.crc_reservar_webhooks(10, 120, 'w1', 5)`)).toHaveLength(
+      0,
+    );
+  });
+
+  it("passado o teto, sai da fila — e a limpeza o torna visível", async () => {
+    await inserir("wamid.DESISTIU");
+    await sql(`update public.crc_webhook_inbox set tentativas = 5`);
+
+    // Invisível na fila de trabalho...
+    expect(await sql(`select id from public.crc_reservar_webhooks(10, 120, 'w1', 5)`)).toHaveLength(
+      0,
+    );
+
+    // ...e o pior estado é ficar PROCESSANDO com o lease vencido: some das duas
+    // filas ao mesmo tempo. A limpeza o devolve para FALHOU, onde alguém vê.
+    await sql(`
+      update public.crc_webhook_inbox
+         set status = 'PROCESSANDO', travado_ate = now() - interval '1 second'
+    `);
+
+    const [n] = await sql<{ crc_liberar_webhooks_presos: number }>(
+      `select public.crc_liberar_webhooks_presos(5)`,
+    );
+    expect(Number(n?.crc_liberar_webhooks_presos)).toBe(1);
+
+    const [linha] = await sql<{ status: string }>(`select status from public.crc_webhook_inbox`);
+    expect(linha?.status).toBe("FALHOU");
+  });
+
+  it("a limpeza de retenção só apaga PROCESSADO antigo", async () => {
+    await inserir("wamid.VELHA");
+    await sql(`
+      update public.crc_webhook_inbox
+         set status = 'PROCESSADO', processado_em = now() - interval '60 days'
+    `);
+    await inserir("wamid.RECENTE");
+
+    const [n] = await sql<{ crc_limpar_webhooks_antigos: number }>(
+      `select public.crc_limpar_webhooks_antigos(30)`,
+    );
+    expect(Number(n?.crc_limpar_webhooks_antigos)).toBe(1);
+
+    // A falha recente continua lá: ela ainda tem trabalho a fazer.
+    const restantes = await sql<{ external_id: string }>(
+      `select external_id from public.crc_webhook_inbox`,
+    );
+    expect(restantes.map((r) => r.external_id)).toEqual(["wamid.RECENTE"]);
+  });
+});
+
+/* ========================================================================== */
 /* 3. Carga                                                                   */
 /* ========================================================================== */
 
