@@ -16,7 +16,8 @@ Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 | **FASE E (Postgres real, tenant, E2E, carga)** | concluída e provada |
 | **FASE F (adapters, disjuntor, saúde)** | concluída e provada |
 | **FASE G (registro, estúdios, playground)** | concluída e provada |
-| **FASES H e I** | não iniciadas |
+| **FASE H (inteligência vertical)** | concluída e provada |
+| **FASE I** | não iniciada |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
@@ -110,6 +111,13 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 30 | Playground dry-run | `PASS` | `aplicacao/playground.ts`: turno completo com dados reais e QUATRO travas — sem envio, sem porta, escritas dubladas e sem gravar a run. `playground.test.ts` é quase todo asserção de ausência |
 | 31 | Eval gate cobre segurança/tenant/handoff/tools | `PARCIAL` | Cobre três das quatro. `tenant` não tem caso |
 | 32-34 | E2E / recovery / load | `PARCIAL` | `integracao/e2e.test.ts` cobre mensagem→job→reserva→recovery, cem jobs com dez workers, cinquenta reservas concorrentes e mil mensagens numa conversa. O provedor de IA e o de WhatsApp seguem dublados porque nenhum tem contrato — item `BLOCKED_EXTERNAL` |
+| 37b | A/B com amostra honesta | `PASS` | `dominio/experimento.ts` se RECUSA a declarar vencedor abaixo de 100 por variante e diz quantos casos faltam. "Empate" é resultado. `inteligencia.test.ts` |
+| 37c | Patient Brain / Opportunity Brain | `PASS` | `aplicacao/cerebros.ts`. Leitura pura, nada escreve. Opt-out na frente de tudo; memória PENDENTE não entra na ficha |
+| 37d | Next Best Action | `PASS` | `dominio/proxima-acao.ts`: risco × valor, com o valor em escala LOGARÍTMICA para três orçamentos grandes não ocuparem a lista inteira |
+| 37e | Best Send Time | `PASS` | `dominio/melhor-horario.ts`. Só RESPOSTA conta, no fuso da clínica, e quem responde a qualquer hora recebe "não sei" em vez de um palpite |
+| 37f | Objeções | `PASS` | `dominio/objecoes.ts`. Guarda o TEXTO ORIGINAL sempre; a categoria é índice, não substituto |
+| 37g | Churn | `PASS` | `dominio/churn.ts`. Ausência RELATIVA ao intervalo esperado, e consulta marcada zera o escore |
+| 37h | Atribuição de receita | `PASS` | `dominio/atribuicao.ts`, posicional 40/20/40 e janela de 90 dias. O consolidado mostra quanto da receita ficou SEM origem — o número mais importante quando está alto |
 | 35 | CI completo verde | `PASS` | `quality.yml` (lint/types/787 testes/build) + `crc-integracao.yml` (schema do zero e 43 testes contra Postgres) |
 | 36 | Flags de produção seguras | `PASS` | Todas nascem desligadas; `ai_agente_envio` ainda travado pelo gate de avaliação |
 | 37 | Runbook atualizado | `FAIL` | `RUNBOOK.md` não existe |
