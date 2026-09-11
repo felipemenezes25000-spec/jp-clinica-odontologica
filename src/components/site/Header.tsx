@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
-import { CLINICA, NAV, whatsappLink } from "@/lib/jp";
+import { CLINICA, NAV } from "@/lib/jp";
 import { contatoWhatsApp } from "@/lib/contato";
 
 export function Header() {
@@ -35,7 +35,7 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
+      className={`sticky top-0 z-[100] w-full transition-shadow duration-300 ${
         scrolled ? "shadow-[0_10px_40px_rgba(3,47,1,0.08)]" : ""
       }`}
     >
@@ -87,14 +87,17 @@ export function Header() {
         </div>
       </div>
 
-      {/* NAVEGAÇÃO PRINCIPAL */}
-      <div className="border-b border-border-soft bg-[#FDFEFA]/95 backdrop-blur-xl">
+      {/* NAVEGAÇÃO PRINCIPAL
+          No mobile/tablet o fundo é praticamente sólido de propósito: backdrop-filter
+          num elemento sticky custa composição a cada frame durante o scroll. O blur
+          premium fica só no desktop, onde há GPU/viewport para ele e a barra é maior. */}
+      <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
         <div
           /* O gap é fluido porque é ele que separa o menu do logo e do botão,
              e 24px fixos ficavam apertados justamente onde a barra é mais
              estreita. Cresce com a largura, então em tela grande os três blocos
-             respiram sem precisar de outro ajuste. */
-          className={`jp-container flex items-center justify-between gap-[clamp(24px,2.2vw,44px)] transition-all duration-300 ${
+             respiram sem precisar de outro ajuste. */}
+          className={`jp-container flex items-center justify-between gap-[clamp(24px,2.2vw,44px)] transition-[height] duration-300 ${
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
@@ -114,32 +117,12 @@ export function Header() {
               variante="lockup"
               fundo="claro"
               altura={66}
-              className={`w-auto transition-all duration-300 ${
+              className={`w-auto transition-[height] duration-300 ${
                 scrolled ? "h-[44px] lg:h-[56px]" : "h-[50px] lg:h-[66px]"
               }`}
             />
           </a>
 
-          {/* O gap fluido é o que faz os itens caberem sem estourar: o navegador
-              aperta o espaçamento conforme a largura, em vez de quebrar a linha.
-
-              A CONTA PRECISOU SER REFEITA quando o menu passou a ter dez itens.
-              Com 2vw de espaçamento, a 1280px a lista media 793px dentro de uma
-              caixa de 745 — e como ela é centralizada, o excesso vazava 24px
-              para CADA lado: "Início" entrava por baixo do logo e "Carreiras"
-              encostava no botão de agendar. Não era falta de margem, era a
-              linha não caber e ninguém segurar o transbordo.
-
-              São três medidas fluidas trabalhando juntas, e nenhuma delas
-              sozinha resolvia: o gap da barra afasta os blocos, este gap aperta
-              a lista, e o corpo do texto cede 1px na faixa estreita. Abaixo de
-              ~1470px o item fica em 13px; daí para cima volta aos 14.
-
-              O TETO DE 28px NÃO É ARREDONDAMENTO. A lista para de crescer em
-              900px (o max-w acima), mas o espaçamento continuaria subindo com a
-              tela: em 2560px, com os 34px de antes, os dez itens somavam 909 e
-              transbordavam de novo — o mesmo defeito, só que na outra ponta.
-              Com 28px eles somam 863 e sobra folga para variação de fonte. */}
           <nav
             className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
             aria-label="Navegação principal"
@@ -159,8 +142,7 @@ export function Header() {
           </nav>
 
           {/* Sem pílula de telefone aqui: ele já aparece na barra superior,
-              40px acima. A duplicata consumia ~150px e deixava a navegação de
-              9 itens com apenas 24px de folga de cada lado. */}
+              40px acima. A duplicata consumia espaço sem acrescentar informação. */}
           <div className="hidden shrink-0 items-center gap-3 xl:flex">
             <a
               href={wa}
