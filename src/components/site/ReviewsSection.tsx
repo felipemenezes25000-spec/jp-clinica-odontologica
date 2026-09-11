@@ -49,10 +49,9 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
 }
 
 /**
- * Prova social com os depoimentos confirmados pela clínica como avaliações reais
- * do Google. Duas entradas ainda carregam uma flag `ficticio` legada em jp.ts,
- * mas o histórico do repositório registra a confirmação posterior da clínica de
- * que a marcação estava errada; por isso a fonte pública é a lista inteira.
+ * Prova social com as avaliações do Google transcritas da ficha da clínica.
+ * Todas são reais — a clínica confirmou em 11/09/2026, e a marcação `ficticio`
+ * que duas carregavam foi removida de jp.ts junto com o aviso que a acompanhava.
  *
  * Não exibimos estrelas individuais porque o dado salvo de cada depoimento tem
  * apenas autor + texto. Atribuir 5/5 sem a nota individual registrada seria

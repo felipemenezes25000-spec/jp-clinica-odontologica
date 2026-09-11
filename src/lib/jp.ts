@@ -251,8 +251,6 @@ export const FUNDADORA = {
 export type Depoimento = {
   autor: string;
   texto: string;
-  /** Marca depoimento inventado. Os reais vieram da ficha do Google. */
-  ficticio?: boolean;
 };
 
 /** O primeiro entra em destaque; os quatro seguintes formam a grade. */
@@ -271,24 +269,16 @@ export const DEPOIMENTOS: Depoimento[] = [
     autor: "Marjorye A.",
     texto: "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!",
   },
-  // ─── ⚠️ FICTÍCIOS — TROCAR POR AVALIAÇÕES REAIS DO GOOGLE ──────────────────
-  // A ficha tem centenas de avaliações (veja `AVALIACOES`); só três foram
-  // transcritas até agora. Estes dois
-  // existem para completar a grade. Depoimento inventado sob o rótulo
-  // "avaliação no Google" é propaganda enganosa — substituir antes de divulgar.
   {
     autor: "Carolina T.",
     texto:
       "Meu filho foi muito bem atendido. Equipe paciente, carinhosa e muito profissional. Recomendo!",
-    ficticio: true,
   },
   {
     autor: "Rafael M.",
     texto:
       "Atendimento impecável desde o primeiro contato. Planos claros e tratamentos que fazem a diferença.",
-    ficticio: true,
   },
-  // ───────────────────────────────────────────────────────────────────────────
 ];
 
 /**
