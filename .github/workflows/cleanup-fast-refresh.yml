@@ -1,0 +1,160 @@
+name: Cleanup Fast Refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/cleanup-fast-refresh.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Separate hooks and pure helpers from component modules
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          root = Path("src")
+
+          # 1) Funil: consome filtro puro direto do módulo puro; Visoes volta a exportar só componente.
+          p = root / "components/crc/Funil.tsx"
+          s = p.read_text()
+          old = 'import { BarraDeVisoes, FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./Visoes";'
+          new = 'import { BarraDeVisoes } from "./Visoes";\nimport { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./filtroFunil";'
+          if old not in s:
+              raise SystemExit("import esperado do Funil não encontrado")
+          p.write_text(s.replace(old, new, 1))
+
+          p = root / "components/crc/Visoes.tsx"
+          s = p.read_text()
+          line = 'export { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi };\n'
+          if line not in s:
+              raise SystemExit("reexport esperado de Visoes não encontrado")
+          p.write_text(s.replace(line, "", 1))
+
+          # 2) PainelDuvidas: helper é privado do próprio arquivo; não precisa ser exportado.
+          p = root / "components/rh/PainelDuvidas.tsx"
+          s = p.read_text()
+          old = "export function duvidasParaTexto("
+          if s.count(old) != 1:
+              raise SystemExit("duvidasParaTexto exportado não encontrado de forma única")
+          p.write_text(s.replace(old, "function duvidasParaTexto(", 1))
+
+          # 3) useSanfonas em módulo de hook próprio.
+          hook_sanfona = root / "components/rh/useSanfonas.ts"
+          hook_sanfona.write_text('''import { useCallback, useState } from "react";\n\n/** Mantém uma única sanfona aberta por vez. */\nexport function useSanfonas(iniciais: string[] = []): {\n  aberta: (chave: string) => boolean;\n  alternar: (chave: string) => void;\n} {\n  const [abertaAtual, setAbertaAtual] = useState<string | null>(iniciais[0] ?? null);\n  const aberta = useCallback((chave: string) => abertaAtual === chave, [abertaAtual]);\n  const alternar = useCallback((chave: string) => {\n    setAbertaAtual((atual) => (atual === chave ? null : chave));\n  }, []);\n  return { aberta, alternar };\n}\n''')
+
+          p = root / "components/rh/Sanfona.tsx"
+          s = p.read_text()
+          s = s.replace('import { useCallback, useState } from "react";\n', "")
+          marker = '/**\n * Estado das sanfonas com uma regra deliberada: UMA seção aberta por vez.'
+          if marker not in s:
+              raise SystemExit("bloco useSanfonas não encontrado")
+          s = s[:s.index(marker)].rstrip() + "\n"
+          p.write_text(s)
+
+          replacements = {
+            root / "components/rh/LeituraIa.tsx": (
+              'import { Sanfona, useSanfonas } from "./Sanfona";',
+              'import { Sanfona } from "./Sanfona";\nimport { useSanfonas } from "./useSanfonas";',
+            ),
+            root / "components/rh/GavetaCandidatura.tsx": (
+              'import { Sanfona, useSanfonas } from "@/components/rh/Sanfona";',
+              'import { Sanfona } from "@/components/rh/Sanfona";\nimport { useSanfonas } from "@/components/rh/useSanfonas";',
+            ),
+          }
+          for file, (before, after) in replacements.items():
+              s = file.read_text()
+              if before not in s:
+                  raise SystemExit(f"import useSanfonas não encontrado em {file}")
+              file.write_text(s.replace(before, after, 1))
+
+          # 4) useAcao em módulo próprio. O tipo é estrutural e continua compatível com BarraDeRecado.
+          hook_acao = root / "components/crc/useAcao.ts"
+          hook_acao.write_text('''import { useCallback, useState } from "react";\n\ntype Recado = { tom: "alerta" | "perigo" | "info"; texto: string } | null;\n\n/** Executa uma ação remota e centraliza carregamento, sucesso e falha. */\nexport function useAcao(): {\n  rodando: boolean;\n  recado: Recado;\n  limpar: () => void;\n  avisar: (texto: string, tom?: "info" | "perigo") => void;\n  executar: <T extends { ok: boolean; message?: string }>(\n    acao: () => Promise<T>,\n    aoDarCerto?: (resultado: T & { ok: true }) => void,\n    mensagemSucesso?: string,\n  ) => Promise<void>;\n} {\n  const [rodando, setRodando] = useState(false);\n  const [recado, setRecado] = useState<Recado>(null);\n\n  const executar = useCallback(\n    async <T extends { ok: boolean; message?: string }>(\n      acao: () => Promise<T>,\n      aoDarCerto?: (resultado: T & { ok: true }) => void,\n      mensagemSucesso?: string,\n    ): Promise<void> => {\n      setRodando(true);\n      setRecado(null);\n      try {\n        const resultado = await acao();\n        if (resultado.ok) {\n          aoDarCerto?.(resultado as T & { ok: true });\n          if (mensagemSucesso !== undefined) setRecado({ tom: "info", texto: mensagemSucesso });\n        } else {\n          setRecado({ tom: "perigo", texto: resultado.message ?? "Não foi possível concluir a ação." });\n        }\n      } catch {\n        setRecado({\n          tom: "perigo",\n          texto: "Não conseguimos falar com o servidor. Seus dados continuam seguros; tente de novo.",\n        });\n      } finally {\n        setRodando(false);\n      }\n    },\n    [],\n  );\n\n  const avisar = useCallback((texto: string, tom: "info" | "perigo" = "info"): void => {\n    setRecado({ tom, texto });\n  }, []);\n\n  return { rodando, recado, limpar: () => setRecado(null), avisar, executar };\n}\n''')
+
+          p = root / "components/crc/base.tsx"
+          s = p.read_text()
+          marker = '/* -------------------------------------------------------------------------- */\n/* Hook de ação'
+          if marker not in s:
+              raise SystemExit("bloco useAcao não encontrado em base.tsx")
+          p.write_text(s[:s.index(marker)].rstrip() + "\n")
+
+          # Move useAcao para import dedicado em todos os consumidores.
+          for file in list((root / "components/crc").glob("*.tsx")) + [root / "routes/crc.tsx"]:
+              if file.name == "base.tsx":
+                  continue
+              s = file.read_text()
+              if "useAcao" not in s:
+                  continue
+              pattern = re.compile(r'import\s*\{(?P<body>[^}]*)\}\s*from\s*"(?P<path>(?:@/components/crc/|\./)base)";', re.S)
+              m = pattern.search(s)
+              if not m or "useAcao" not in m.group("body"):
+                  raise SystemExit(f"não achei import de useAcao em {file}")
+              items = [x.strip() for x in m.group("body").split(",") if x.strip() and x.strip() != "useAcao"]
+              if not items:
+                  raise SystemExit(f"import base ficaria vazio em {file}")
+              base_import = "import { " + ", ".join(items) + ' } from "' + m.group("path") + '";'
+              hook_path = "@/components/crc/useAcao" if m.group("path").startswith("@/") else "./useAcao"
+              replacement = base_import + '\nimport { useAcao } from "' + hook_path + '";'
+              file.write_text(s[:m.start()] + replacement + s[m.end():])
+
+          # 5) Dados da capa da vaga em módulo puro; o componente volta a exportar só componente.
+          dados = root / "components/site/capaVagaDados.ts"
+          dados.write_text('''import capaRecepcao1100 from "@/assets/capa-recepcao-1100.webp";\nimport capaRecepcao1536 from "@/assets/capa-recepcao-1536.webp";\nimport consultorioImg from "@/assets/consultorio-1.webp";\nimport consultorioJovemImg from "@/assets/consultorio-2.webp";\nimport consultorioWideImg from "@/assets/consultorio-wide.webp";\nimport escritorioImg from "@/assets/escritorio-completa.webp";\nimport esterilizacaoImg from "@/assets/esterilizacao.webp";\n\nexport type CapaVagaDados = { src: string; menor?: string; largura: number; altura: number };\n\nconst CAPAS: Record<string, CapaVagaDados> = {\n  dentista: { src: consultorioImg, largura: 1400, altura: 1045 },\n  "asb-tsb": { src: esterilizacaoImg, largura: 1200, altura: 967 },\n  recepcao: { src: capaRecepcao1536, menor: capaRecepcao1100, largura: 1536, altura: 1024 },\n  administrativo: { src: escritorioImg, largura: 1080, altura: 1080 },\n  estagio: { src: consultorioJovemImg, largura: 1200, altura: 896 },\n  outra: { src: consultorioWideImg, largura: 1500, altura: 800 },\n};\n\nexport function capaDaArea(area: string): CapaVagaDados | null {\n  return CAPAS[area] ?? null;\n}\n''')
+
+          p = root / "components/site/CapaVaga.tsx"
+          s = p.read_text()
+          start = s.index('import capaRecepcao1100 from')
+          end_marker = 'export function capaDaArea(area: string): Capa | null {\n  return CAPAS[area] ?? null;\n}\n'
+          end = s.index(end_marker, start) + len(end_marker)
+          replacement = 'import { capaDaArea } from "./capaVagaDados";\n'
+          p.write_text(s[:start] + replacement + s[end:])
+
+          p = root / "routes/carreiras/$slug.tsx"
+          s = p.read_text()
+          old = 'import { CapaVaga, capaDaArea } from "@/components/site/CapaVaga";'
+          new = 'import { CapaVaga } from "@/components/site/CapaVaga";\nimport { capaDaArea } from "@/components/site/capaVagaDados";'
+          if old not in s:
+              raise SystemExit("import capaDaArea esperado não encontrado")
+          p.write_text(s.replace(old, new, 1))
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint with zero warnings
+        run: npx eslint src vite.config.ts eslint.config.js --max-warnings=0
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit clean component boundaries
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/cleanup-fast-refresh.yml
+          git add src
+          git commit -m "refactor(ui): zera warnings de Fast Refresh"
+          git push origin HEAD:main
