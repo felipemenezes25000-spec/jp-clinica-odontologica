@@ -5,13 +5,16 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import tsConfigPaths from "vite-tsconfig-paths";
 
 const srcDir = fileURLToPath(new URL("./src", import.meta.url));
 
 export default defineConfig({
   resolve: {
     alias: { "@": srcDir },
+    // Vite 8 resolves compilerOptions.paths natively. Keeping the explicit @
+    // alias above makes the most common path independent from tsconfig lookup,
+    // while tsconfigPaths covers any future aliases without another plugin.
+    tsconfigPaths: true,
     // React and TanStack must resolve to a single copy. A duplicated React
     // breaks hooks at runtime; a duplicated query-core breaks the cache identity.
     dedupe: [
@@ -47,7 +50,9 @@ export default defineConfig({
     ssr: {
       build: {
         rollupOptions: {
-          output: { inlineDynamicImports: true },
+          // Rolldown deprecated `inlineDynamicImports`; `codeSplitting: false`
+          // is the supported equivalent and preserves the SSR incident fix.
+          output: { codeSplitting: false },
         },
       },
     },
@@ -61,12 +66,11 @@ export default defineConfig({
     postcss: {},
   },
 
-  // Plugin order matters: Tailwind and path resolution must be registered before
-  // TanStack Start generates the route tree, and React comes last so it transforms
-  // the output of everything above it.
+  // Plugin order matters: Tailwind must be registered before TanStack Start
+  // generates the route tree, and React comes last so it transforms the output
+  // of everything above it. Path aliases are resolved natively by Vite 8.
   plugins: [
     tailwindcss(),
-    tsConfigPaths({ projects: ["./tsconfig.json"] }),
     // Routes the bundled server entry to src/server.ts (the SSR error wrapper).
     tanstackStart({ server: { entry: "server" } }),
     // Build-only. Nitro auto-detects the host (Vercel sets VERCEL=1); this is the
