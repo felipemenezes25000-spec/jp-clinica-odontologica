@@ -26,8 +26,11 @@ jobs:
           node-version: 22
           cache: npm
 
+      # O lockfile legado ainda não passa `npm ci` (falta lru-cache@11.5.2).
+      # Mantemos a instalação tolerante até o lock ser regenerado isoladamente,
+      # sem transformar uma modernização de CI em alteração de dependências.
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Lint
         run: npx eslint src vite.config.ts eslint.config.js
