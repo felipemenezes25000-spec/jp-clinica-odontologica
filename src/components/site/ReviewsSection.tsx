@@ -1,23 +1,7 @@
 import { ArrowRight, Heart, ShieldCheck, Sparkles, Star, UsersRound } from "lucide-react";
 
-import { DEPOIMENTOS } from "@/lib/jp";
+import { DEPOIMENTOS_REAIS } from "@/lib/jp";
 import { GoogleRating } from "@/components/site/GoogleRating";
-
-function Estrelas({ dark = false, size = 17 }: { dark?: boolean; size?: number }) {
-  return (
-    <div className="flex items-center gap-1" role="img" aria-label="5 de 5 estrelas">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          size={size}
-          strokeWidth={0}
-          aria-hidden="true"
-          className={dark ? "fill-lime" : "fill-[#56A805]"}
-        />
-      ))}
-    </div>
-  );
-}
 
 function ItemNota({
   icon,
@@ -54,29 +38,26 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
 
       <div className="my-4 h-px bg-border-soft" />
 
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-ink">{autor}</p>
-            <p className="mt-0.5 text-micro font-bold uppercase tracking-[0.1em] text-brand-text">
-              Avaliação no Google
-            </p>
-          </div>
-        </div>
-        <div className="hidden gap-[2px] lg:flex">
-          <Estrelas size={12} />
-        </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-ink">{autor}</p>
+        <p className="mt-0.5 text-micro font-bold uppercase tracking-[0.1em] text-brand-text">
+          Avaliação no Google
+        </p>
       </div>
     </article>
   );
 }
 
 /**
- * Prova social. O primeiro depoimento vai em destaque; os seguintes formam a
- * grade. A nota exibida acompanha a ficha do Google.
+ * Prova social. O primeiro depoimento real vai em destaque; os seguintes
+ * formam a grade. A nota agregada acompanha a ficha do Google.
+ *
+ * Não exibimos estrelas individuais porque o dado salvo de cada depoimento tem
+ * apenas autor + texto. Atribuir 5/5 sem a nota individual registrada seria
+ * transformar ausência de dado em afirmação.
  */
 export function ReviewsSection() {
-  const [destaque, ...grade] = DEPOIMENTOS;
+  const [destaque, ...grade] = DEPOIMENTOS_REAIS;
 
   return (
     <section id="depoimentos" className="jp-section relative overflow-hidden bg-paper">
@@ -131,9 +112,8 @@ export function ReviewsSection() {
 
                   <div>
                     <p className="mb-2 text-micro font-bold uppercase tracking-[0.12em] text-brand-text">
-                      Avaliação média dos pacientes
+                      Nota da ficha no Google
                     </p>
-
                     <GoogleRating variante="destaque" />
                   </div>
                 </div>
@@ -205,16 +185,11 @@ export function ReviewsSection() {
 
                 <div className="my-7 h-px bg-white/15" />
 
-                <div className="flex flex-wrap items-center justify-between gap-5">
-                  <div className="flex items-center gap-4">
-                    <div>
-                      <p className="font-display text-lg font-bold text-white">{destaque.autor}</p>
-                      <span className="text-micro font-bold uppercase tracking-[0.12em] text-lime">
-                        Avaliação no Google
-                      </span>
-                    </div>
-                  </div>
-                  <Estrelas dark />
+                <div>
+                  <p className="font-display text-lg font-bold text-white">{destaque.autor}</p>
+                  <span className="text-micro font-bold uppercase tracking-[0.12em] text-lime">
+                    Avaliação no Google
+                  </span>
                 </div>
               </article>
             )}
