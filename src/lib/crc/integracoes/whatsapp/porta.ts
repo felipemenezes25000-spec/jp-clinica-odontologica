@@ -102,6 +102,18 @@ export type PedidoWebhook = {
 
 export type PortaMensageria = {
   readonly nome: "meta_cloud" | "twilio" | "sandbox";
+  /**
+   * Este canal recusa texto livre fora da janela de 24 horas?
+   *
+   * A REGRA É DA META, E NÃO DE "WHATSAPP" EM GERAL. Meta Cloud e Twilio
+   * aplicam a janela de atendimento: passadas 24 horas da última mensagem do
+   * paciente, só sai template aprovado. O sandbox não aplica — ele não fala
+   * com ninguém — e um canal não-oficial como o WAHA também não.
+   *
+   * Declarar isto na porta, em vez de assumir globalmente, é o que permite a
+   * regra valer em produção sem inventar uma restrição onde ela não existe.
+   */
+  readonly exigeTemplateForaDaJanela: boolean;
   enviarTexto(envio: EnvioTexto): Promise<ResultadoEnvio>;
   enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnvio>;
   /**

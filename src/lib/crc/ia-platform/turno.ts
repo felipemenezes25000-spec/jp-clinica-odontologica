@@ -247,11 +247,7 @@ function ultimaEntradaTexto(ctx: Ctx): string | null {
 }
 
 /** Entrega ao chokepoint de mensagens. Nunca à porta de mensageria. */
-async function entregar(
-  pedido: PedidoTurno,
-  ctx: Ctx,
-  texto: string,
-): Promise<ResultadoTurno> {
+async function entregar(pedido: PedidoTurno, ctx: Ctx, texto: string): Promise<ResultadoTurno> {
   const porta = pedido.portaMensageria;
   if (porta === null || porta === undefined) {
     return { tipo: "falha_segura", motivo: "Envio ligado sem provedor de WhatsApp configurado." };
@@ -303,7 +299,10 @@ async function encerrar(
   chaveDedupe: string,
   ctx: Ctx | null,
   resultado: ResultadoTurno,
-  extras?: { candidata?: { texto: string; raciocinio: string; precisaHumano: boolean }; portao?: string },
+  extras?: {
+    candidata?: { texto: string; raciocinio: string; precisaHumano: boolean };
+    portao?: string;
+  },
 ): Promise<ResultadoTurno> {
   await trace.gravar(chaveDedupe, ctx, resultado, extras);
   return resultado;

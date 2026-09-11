@@ -44,6 +44,8 @@ export type ConfigMeta = {
 
 export class ProvedorMetaCloud implements PortaMensageria {
   readonly nome = "meta_cloud" as const;
+  // A janela de atendimento e regra da Meta.
+  readonly exigeTemplateForaDaJanela = true;
 
   private readonly cfg: ConfigMeta;
   private readonly organizationId: string | null;

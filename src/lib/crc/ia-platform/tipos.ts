@@ -156,8 +156,7 @@ export const PROMPT_TURNO_SOMBRA = "agent_shadow_turn_v1";
  * conteúdo é aqui, e é pura — testável sem provedor.
  */
 export type ValidacaoCandidata =
-  | { ok: true; resposta: RespostaCandidata }
-  | { ok: false; motivo: string };
+  { ok: true; resposta: RespostaCandidata } | { ok: false; motivo: string };
 
 /** Acima disso não é resposta de WhatsApp, é artigo. */
 export const MAX_CARACTERES_RESPOSTA = 900;

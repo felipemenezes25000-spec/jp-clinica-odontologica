@@ -141,11 +141,7 @@ export const portaoPediuHumano: Portao = {
 /* Os portões de conteúdo                                                     */
 /* -------------------------------------------------------------------------- */
 
-const normalizar = (t: string): string =>
-  t
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "");
+const normalizar = (t: string): string => t.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
 /**
  * Nada clínico sai da máquina. Nunca.
@@ -271,10 +267,16 @@ export const portaoVazamento: Portao = {
 export const portaoRepeticao: Portao = {
   nome: "repeticao",
   avaliar: (ctx) => {
-    const alvo = normalizar(ctx.texto).replace(/[^a-z0-9 ]/gu, "").trim();
+    const alvo = normalizar(ctx.texto)
+      .replace(/[^a-z0-9 ]/gu, "")
+      .trim();
     if (alvo.length === 0) return PASSA;
     for (const anterior of ctx.enviadosRecentes) {
-      if (normalizar(anterior).replace(/[^a-z0-9 ]/gu, "").trim() === alvo) {
+      if (
+        normalizar(anterior)
+          .replace(/[^a-z0-9 ]/gu, "")
+          .trim() === alvo
+      ) {
         return {
           passa: false,
           codigo: "repeticao",
@@ -310,7 +312,13 @@ export const PORTOES_ANTES_DE_ENVIAR: readonly Portao[] = [
 
 export type ResultadoPortoes =
   | { passa: true }
-  | { passa: false; portao: string; codigo: string; motivo: string; destino: "humano" | "descartar" };
+  | {
+      passa: false;
+      portao: string;
+      codigo: string;
+      motivo: string;
+      destino: "humano" | "descartar";
+    };
 
 /**
  * Roda a cadeia e para no primeiro veto.

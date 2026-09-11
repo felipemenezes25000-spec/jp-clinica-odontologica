@@ -498,11 +498,21 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
    * A decisão é do domínio (`dominio/janela-whatsapp.ts`, puro e testado); aqui
    * só se executa o que ela mandou.
    */
-  const ultimaEntrada = await ultimaEntradaDaConversa(pedido);
-  const forma = comoEnviar({
-    janela: estadoDaJanela(ultimaEntrada, agora),
-    providerNome: pedido.providerNome ?? null,
-  });
+  //
+  // A CAPACIDADE É DO CANAL. Sandbox e canais não-oficiais não aplicam a janela
+  // da Meta; inventar a restrição para eles recusaria envio que funcionaria.
+  const ultimaEntrada = pedido.porta.exigeTemplateForaDaJanela
+    ? await ultimaEntradaDaConversa(pedido)
+    : null;
+  const forma = pedido.porta.exigeTemplateForaDaJanela
+    ? comoEnviar({
+        // O relógio do pedido, e não o de parede: o motor de jornadas já decide a
+        // espera com um "agora" próprio, e julgar a janela com outro instante
+        // produziria duas verdades no mesmo envio.
+        janela: estadoDaJanela(ultimaEntrada, pedido.agora ?? new Date()),
+        providerNome: pedido.providerNome ?? null,
+      })
+    : ({ forma: "texto" } as const);
 
   if (forma.forma === "recusado") {
     await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {

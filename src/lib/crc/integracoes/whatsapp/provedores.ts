@@ -59,6 +59,8 @@ export type MensagemSandbox = {
  */
 class ProvedorSandbox implements PortaMensageria {
   readonly nome = "sandbox" as const;
+  // Sandbox nao fala com ninguem: nao ha janela para respeitar.
+  readonly exigeTemplateForaDaJanela = false;
 
   private readonly enviadas: MensagemSandbox[] = [];
   private contador = 0;

@@ -73,6 +73,8 @@ function deTwilio(valor: string): string | null {
 
 export class ProvedorTwilio implements PortaMensageria {
   readonly nome = "twilio" as const;
+  // O Twilio intermedia a mesma API da Meta, e herda a regra.
+  readonly exigeTemplateForaDaJanela = true;
 
   private readonly cfg: ConfigTwilio;
   private readonly organizationId: string | null;

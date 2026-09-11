@@ -666,7 +666,73 @@ export function instalarHandlers(): void {
   registrarHandler("patient.updated", aoMudarSituacao);
   registrarHandler("message.received", aoResponderSobreCobranca);
   registrarHandler("message.received", aoReceberMensagem);
+  registrarHandler("message.received", aoRodarTurnoDoAgente);
   registrarHandler("lead.created", aoCriarLead);
+}
+
+/* -------------------------------------------------------------------------- */
+/* O turno do agente — Fatias 1 e 2 do CRC AI OS                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Roda o agente sobre a mensagem que acabou de chegar.
+ *
+ * É UM HANDLER SEPARADO, e não mais um trecho dentro de `aoReceberMensagem`.
+ * Os dois observam o mesmo evento e não se conhecem: a classificação continua
+ * acontecendo com o agente desligado, e o agente falhando não impede a
+ * classificação nem a jornada de agendamento. Acoplá-los economizaria uma
+ * leitura de flag e custaria a independência — que é justamente o que permite
+ * ligar um sem arriscar o outro.
+ *
+ * A ORDEM DAS TRAVAS, de fora para dentro:
+ *
+ *   `ai_agente_sombra`  o agente sequer pensa sem isto. Nasce desligada.
+ *   kill switches       incidente desliga tudo, sem passar por flag.
+ *   `ai_agente_envio`   separa "pensou e gravou" de "o paciente recebeu".
+ *
+ * Com só a primeira ligada, o sistema inteiro roda e nada sai — que é o
+ * objetivo declarado da Fatia 1.
+ */
+export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
+  const conversationId = evento.payload["conversationId"];
+  if (typeof conversationId !== "string") return;
+
+  const { lerFlags, lerKillSwitches } = await import("../servidor/configuracao");
+  const [flags, interruptores] = await Promise.all([
+    lerFlags(evento.organizationId),
+    lerKillSwitches(evento.organizationId),
+  ]);
+
+  if (flags["ai_agente_sombra"] !== true) return;
+  if (interruptores["kill_ia_auto"] === true || interruptores["kill_automacoes"] === true) return;
+
+  const { criarProvedorIa } = await import("../integracoes/ia/provedor");
+  const provedor = criarProvedorIa(evento.organizationId);
+
+  // O envio exige a SEGUNDA flag. Sem ela o turno termina em `candidato`: a
+  // resposta fica gravada em `crc_ai_runs` e ninguém a recebe.
+  const podeEnviar = flags["ai_agente_envio"] === true && interruptores["kill_envios"] !== true;
+
+  let portaMensageria = null;
+  if (podeEnviar) {
+    const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
+    const m = criarProvedorMensageria(evento.organizationId);
+    portaMensageria = m.configurado ? m.porta : null;
+  }
+
+  const { rodarTurno } = await import("../ia-platform/turno");
+  await rodarTurno({
+    organizationId: evento.organizationId,
+    conversationId,
+    // O ID DO EVENTO É A CHAVE DE DEDUPE. O motor pode reprocessar um evento
+    // depois de um restart; sem isto, o mesmo turno rodaria de novo e pagaria
+    // o modelo de novo.
+    eventoId: evento.id,
+    agora: new Date(),
+    porta: provedor.configurado ? provedor.porta : null,
+    portaMensageria,
+    podeEnviar,
+  });
 }
 
 /** Só para teste. */
