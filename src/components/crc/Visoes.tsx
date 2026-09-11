@@ -29,18 +29,7 @@ import {
 } from "@/lib/crc/api";
 
 import { Botao, Campo, Entrada, Etiqueta, Modal } from "./base";
-
-export type FiltroFunilUi = {
-  tipos: string[];
-  etapaChave: string | null;
-  apenasMinhas: boolean;
-};
-
-export const FILTRO_VAZIO: FiltroFunilUi = { tipos: [], etapaChave: null, apenasMinhas: false };
-
-export function filtroVazio(f: FiltroFunilUi): boolean {
-  return f.tipos.length === 0 && f.etapaChave === null && !f.apenasMinhas;
-}
+import { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./filtroFunil";
 
 /** Duas visões são a mesma quando os três campos batem. Ordem de tipo não conta. */
 function mesmoFiltro(a: FiltroFunilUi, b: FiltroFunilUi): boolean {
@@ -74,7 +63,7 @@ export function BarraDeVisoes({
       if (r.ok) setVisoes(r.visoes);
     } catch {
       // Uma barra de atalhos que falha não merece tela de erro: o funil
-      // continua inteiro sem ela, e insistir seria transformar um confort
+      // continua inteiro sem ela, e insistir seria transformar um conforto
       // em um obstáculo.
       setVisoes([]);
     }
