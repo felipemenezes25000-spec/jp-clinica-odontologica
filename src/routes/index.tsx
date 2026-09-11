@@ -461,7 +461,7 @@ function Home() {
                   className="button-primary"
                 >
                   <MessageCircle className="h-5 w-5" />
-                  Agendar pelo WhatsApp
+                  Agendar avaliação
                   <ArrowUpRight className="h-4 w-4" />
                 </a>
                 <a
@@ -814,7 +814,7 @@ function Home() {
                     className="button-primary"
                   >
                     <MessageCircle className="h-4.5 w-4.5" />
-                    Agendar pelo WhatsApp
+                    Agendar avaliação
                     <ArrowUpRight className="h-4 w-4" />
                   </a>
                   <a

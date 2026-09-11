@@ -83,7 +83,7 @@ export function FloatingCTA() {
               className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(9,89,2,.9)] transition hover:-translate-y-0.5"
             >
               <MessageCircle className="h-4 w-4" />
-              Agendar avaliação agora
+              Agendar avaliação
               <ArrowUpRight className="h-4 w-4" />
             </a>
 

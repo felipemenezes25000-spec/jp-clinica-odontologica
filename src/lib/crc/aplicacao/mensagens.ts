@@ -14,6 +14,7 @@
  * não registrada, que a jornada seguinte mandaria de novo.
  */
 import { CONFIGURACAO_PADRAO, type ConfiguracaoCrc } from "../dominio/configuracao";
+import { comoEnviar, estadoDaJanela } from "../dominio/janela-whatsapp";
 import { pedeDescadastro, podeContatar, type ContextoContato } from "../dominio/regras";
 import { normalizarTelefone, variacoesDeTelefone } from "../dominio/telefone";
 import { truncar } from "../dominio/formatar";
@@ -355,6 +356,25 @@ export type PedidoEnvio = {
    * alguém falando sozinho.
    */
   proativo: boolean;
+  /**
+   * O nome do modelo APROVADO NA META, quando este envio tem um.
+   *
+   * Fora da janela de 24 horas, texto livre é recusado pelo WhatsApp. Com este
+   * nome, a mensagem sai como template; sem ele, ela é recusada aqui — com
+   * motivo — em vez de ser recusada lá, em silêncio.
+   *
+   * Vem de `crc_templates.provider_nome`. Ter o modelo no CRC não basta: sem
+   * aprovação, o nome não existe do outro lado.
+   */
+  providerNome?: string | null;
+  /**
+   * As variáveis do template, na ordem em que ele as espera.
+   *
+   * Só usadas quando a mensagem sai como template. O texto renderizado continua
+   * sendo `texto`, e é ele que fica em `crc_messages` — a Inbox mostra o que o
+   * paciente leu, não o nome do modelo.
+   */
+  variaveisTemplate?: readonly string[];
   porta: PortaMensageria;
   configuracao?: ConfiguracaoCrc;
   /**
@@ -369,6 +389,29 @@ export type PedidoEnvio = {
 export type ResultadoEnvioMensagem =
   | { ok: true; mensagemId: string; providerMessageId: string }
   | { ok: false; codigo: string; motivo: string; reagendarPara?: Date; permanente: boolean };
+
+/**
+ * O instante da última mensagem RECEBIDA do paciente nesta conversa.
+ *
+ * Mensagem que NÓS enviamos não reabre a janela — por isso o filtro por direção.
+ * Sem `conversationId` não há janela para consultar, e o envio é tratado como
+ * fora dela: é o caso da campanha, que é proativa por definição.
+ */
+async function ultimaEntradaDaConversa(pedido: PedidoEnvio): Promise<string | null> {
+  if (pedido.conversationId === undefined) return null;
+
+  const l = await selecionarUm("crc_messages", {
+    colunas: "criado_em",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+      { coluna: "conversation_id", op: "eq", valor: pedido.conversationId },
+      { coluna: "direcao", op: "eq", valor: "IN" },
+    ],
+    ordenar: [{ coluna: "criado_em", ascendente: false }],
+  });
+
+  return typeof l?.["criado_em"] === "string" ? l["criado_em"] : null;
+}
 
 export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvioMensagem> {
   const cfg = pedido.configuracao ?? CONFIGURACAO_PADRAO;
@@ -443,11 +486,53 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
 
   const mensagemId = String(linha["id"] ?? "");
 
-  const resultado = await pedido.porta.enviarTexto({
-    destino: { telefone: pedido.telefone },
-    texto: pedido.texto,
-    chaveDedupe: pedido.chaveDedupe,
+  /*
+   * A JANELA DE 24 HORAS — a regra que este arquivo ignorava.
+   *
+   * Até aqui, TODO envio chamava `enviarTexto`. `enviarTemplate` existia na
+   * porta e nos três adapters e nunca era chamado. O efeito em produção seria
+   * este: campanha e automação proativa produzindo mensagem que a Meta recusa
+   * com 131047, sem nada aparecer na tela — porque do nosso lado o envio
+   * "funcionou".
+   *
+   * A decisão é do domínio (`dominio/janela-whatsapp.ts`, puro e testado); aqui
+   * só se executa o que ela mandou.
+   */
+  const ultimaEntrada = await ultimaEntradaDaConversa(pedido);
+  const forma = comoEnviar({
+    janela: estadoDaJanela(ultimaEntrada, agora),
+    providerNome: pedido.providerNome ?? null,
   });
+
+  if (forma.forma === "recusado") {
+    await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
+      status_entrega: "FAILED",
+      erro: `${forma.codigo}: ${forma.motivo}`,
+    });
+    return {
+      ok: false,
+      codigo: forma.codigo,
+      motivo: forma.motivo,
+      // PERMANENTE: insistir não abre a janela. O que resolve é um modelo
+      // aprovado, e isso é decisão de gente, não retentativa.
+      permanente: true,
+    };
+  }
+
+  const resultado =
+    forma.forma === "template"
+      ? await pedido.porta.enviarTemplate({
+          destino: { telefone: pedido.telefone },
+          template: forma.providerNome,
+          variaveis: [...(pedido.variaveisTemplate ?? [])],
+          textoRenderizado: pedido.texto,
+          chaveDedupe: pedido.chaveDedupe,
+        })
+      : await pedido.porta.enviarTexto({
+          destino: { telefone: pedido.telefone },
+          texto: pedido.texto,
+          chaveDedupe: pedido.chaveDedupe,
+        });
 
   if (!resultado.ok) {
     await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
