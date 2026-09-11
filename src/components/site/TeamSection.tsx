@@ -15,13 +15,24 @@ import { EQUIPE } from "@/lib/jp";
  *
  * Abaixo de 4 a regra de md (três por linha) já resolve. Acima de 8 uma linha
  * só não cabe em tela nenhuma, e aí a grade volta a quebrar, que é o certo.
+ *
+ * OS SUBLINHADOS EM `calc(50%_-_10px)` NÃO SÃO ENFEITE. Sem eles fica
+ * `calc(50%-10px)`, que é CSS inválido — em calc() o menos precisa de espaço
+ * dos dois lados, senão o `-10px` é lido como um número negativo solto. O
+ * Tailwind converte cada `_` em espaço; sem eles a classe simplesmente não é
+ * gerada, e o `w-full` da base passa a valer sozinho.
+ *
+ * Foi o que aconteceu: as quatro larguras estavam sem espaço, nenhuma existia
+ * no CSS compilado, e a equipe inteira descia em coluna única a partir de sm —
+ * seis cards de 1756px, 11 mil pixels de seção. Conferir no CSS gerado, não só
+ * no JSX, é o que pega isso.
  */
 const LARGURA_XL: Record<number, string> = {
-  4: "xl:w-[calc(25%-15px)]",
-  5: "xl:w-[calc(20%-16px)]",
-  6: "xl:w-[calc(16.666%-17px)]",
-  7: "xl:w-[calc(14.285%-18px)]",
-  8: "xl:w-[calc(12.5%-18px)]",
+  4: "xl:w-[calc(25%_-_15px)]",
+  5: "xl:w-[calc(20%_-_16px)]",
+  6: "xl:w-[calc(16.666%_-_17px)]",
+  7: "xl:w-[calc(14.285%_-_18px)]",
+  8: "xl:w-[calc(12.5%_-_18px)]",
 };
 
 const LARGURA_UMA_LINHA = LARGURA_XL[EQUIPE.length] ?? "";
@@ -40,7 +51,7 @@ function CardProfissional({
 }) {
   return (
     <article
-      className={`group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%-10px)] md:w-[calc(33.333%-14px)] ${LARGURA_UMA_LINHA}`}
+      className={`group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%_-_10px)] md:w-[calc(33.333%_-_14px)] ${LARGURA_UMA_LINHA}`}
     >
       <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
