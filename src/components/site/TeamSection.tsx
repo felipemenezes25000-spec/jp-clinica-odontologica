@@ -13,26 +13,6 @@ const EQUIPE_PUBLICA = EQUIPE.filter((pessoa) => !pessoa.ficticio && !pessoa.pla
  * A partir de xl a equipe inteira cabe numa linha só. Antes era 20% cravado —
  * cinco por linha —, e com seis pessoas a última descia sozinha para a linha de
  * baixo, menor que as outras porque não tinha ninguém ao lado para esticá-la.
- *
- * A largura agora sai do tamanho da lista, então isso continua valendo quando
- * entrar ou sair gente. O desconto é a calha que cabe a cada card: 20px de gap
- * vezes (n-1), dividido por n, arredondado para cima para não estourar o
- * container. As classes são literais de propósito — o Tailwind lê o
- * código-fonte, não o valor que o JavaScript calcula.
- *
- * Abaixo de 4 a regra de md (três por linha) já resolve. Acima de 8 uma linha
- * só não cabe em tela nenhuma, e aí a grade volta a quebrar, que é o certo.
- *
- * OS SUBLINHADOS EM `calc(50%_-_10px)` NÃO SÃO ENFEITE. Sem eles fica
- * `calc(50%-10px)`, que é CSS inválido — em calc() o menos precisa de espaço
- * dos dois lados, senão o `-10px` é lido como um número negativo solto. O
- * Tailwind converte cada `_` em espaço; sem eles a classe simplesmente não é
- * gerada, e o `w-full` da base passa a valer sozinho.
- *
- * Foi o que aconteceu: as quatro larguras estavam sem espaço, nenhuma existia
- * no CSS compilado, e a equipe inteira descia em coluna única a partir de sm —
- * seis cards de 1756px, 11 mil pixels de seção. Conferir no CSS gerado, não só
- * no JSX, é o que pega isso.
  */
 const LARGURA_XL: Record<number, string> = {
   4: "xl:w-[calc(25%_-_15px)]",
@@ -52,7 +32,6 @@ function CardProfissional({
 }: {
   nome: string;
   papel?: string | undefined;
-  /** Ausente em quem não é do conselho — a recepção, por exemplo. */
   registro?: string | undefined;
   foto?: string | undefined;
 }) {
@@ -62,8 +41,6 @@ function CardProfissional({
     >
       <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
-          /* width/height são obrigatórios: a foto é lazy e, sem a proporção
-             intrínseca, o card colapsaria até o download terminar. */
           <img
             src={foto}
             alt={`Retrato de ${nome}`}
@@ -98,7 +75,6 @@ function CardProfissional({
         {registro ? (
           <>
             <div aria-hidden="true" className="mx-auto my-3 h-px w-[82%] bg-border-soft" />
-
             <p className="text-micro uppercase tracking-[0.1em] text-ink-soft">Registro</p>
             <p className="mt-2 text-[12px] font-medium text-[#2C4A2E]">{registro}</p>
           </>
@@ -107,8 +83,6 @@ function CardProfissional({
     </article>
   );
 }
-
-const TODOS_COM_REGISTRO = EQUIPE_PUBLICA.every((pessoa) => pessoa.registro);
 
 export function TeamSection() {
   return (
@@ -161,10 +135,8 @@ export function TeamSection() {
             <span className="text-brand-text">equipe.</span>
           </h2>
 
-          <p className="mt-5 max-w-[470px] text-[15px] leading-6 text-ink-soft">
-            {TODOS_COM_REGISTRO
-              ? "Atendimento feito por profissionais com registro ativo no Conselho Regional de Odontologia."
-              : "Atendimento clínico feito por profissionais com registro ativo no Conselho Regional de Odontologia."}
+          <p className="mt-5 max-w-[520px] text-[15px] leading-6 text-ink-soft">
+            Atendimento clínico realizado por cirurgiões-dentistas identificados pelo número de registro no Conselho Regional de Odontologia.
           </p>
         </div>
 
