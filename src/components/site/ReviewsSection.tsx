@@ -1,6 +1,6 @@
 import { ArrowRight, Heart, ShieldCheck, Sparkles, Star, UsersRound } from "lucide-react";
 
-import { DEPOIMENTOS_REAIS } from "@/lib/jp";
+import { DEPOIMENTOS } from "@/lib/jp";
 import { GoogleRating } from "@/components/site/GoogleRating";
 
 function ItemNota({
@@ -49,15 +49,17 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
 }
 
 /**
- * Prova social. O primeiro depoimento real vai em destaque; os seguintes
- * formam a grade. A nota agregada acompanha a ficha do Google.
+ * Prova social. Só avaliações não marcadas como fictícias podem ser exibidas.
+ * A defesa fica no ponto de renderização para que uma entrada de layout jamais
+ * chegue ao paciente por acidente.
  *
  * Não exibimos estrelas individuais porque o dado salvo de cada depoimento tem
  * apenas autor + texto. Atribuir 5/5 sem a nota individual registrada seria
  * transformar ausência de dado em afirmação.
  */
 export function ReviewsSection() {
-  const [destaque, ...grade] = DEPOIMENTOS_REAIS;
+  const depoimentosReais = DEPOIMENTOS.filter((depoimento) => !depoimento.ficticio);
+  const [destaque, ...grade] = depoimentosReais;
 
   return (
     <section id="depoimentos" className="jp-section relative overflow-hidden bg-paper">
