@@ -5,6 +5,7 @@
  * e a camada de persistência do servidor. Por isso ele não faz I/O, não importa
  * React e não conhece `fs` — qualquer um dos três lados pode carregá-lo.
  */
+import { HISTORIA } from "@/lib/jp";
 import type { FichaEntrevista } from "./ficha";
 import type { AnaliseIa } from "./ia/tipos";
 
@@ -594,8 +595,15 @@ export function configuracoesPadrao(): ConfiguracoesRh {
     // `src/lib/jp.ts`), e o site já corrigiu uma vez a mesma figura: dizer "há
     // mais de 20 anos cuidando dos sorrisos da vizinhança" atribui ao bairro
     // atual um tempo que pertence aos dois endereços.
-    chamadaPortal:
-      "Há mais de 20 anos cuidando de sorrisos em São Paulo. Se para você atender bem é olhar no olho, chamar pelo nome e explicar o tratamento com calma, o seu lugar é aqui.",
+    // "mais de 20 anos" era literal, e o site se contradizia por causa disso: o
+    // topo de /carreiras dizia 20 e as estatísticas logo abaixo, na MESMA
+    // página, diziam 24 e "desde 2002". Tecnicamente 24 é "mais de 20" — mas
+    // quem lê os dois números juntos não lê uma tecnicalidade, lê descuido.
+    //
+    // Agora sai de HISTORIA.anos, a mesma fonte do resto do site, e o número
+    // deixa de envelhecer sozinho. O fato exato também vende melhor que o
+    // arredondado para baixo.
+    chamadaPortal: `Há ${String(HISTORIA.anos)} anos cuidando de sorrisos em São Paulo. Se para você atender bem é olhar no olho, chamar pelo nome e explicar o tratamento com calma, o seu lugar é aqui.`,
     textoSobre:
       "A JP Clínica Integrada Odontológica nasceu em 2002 e hoje atende na Vila Bruna, na região da Freguesia do Ó, em São Paulo. As pessoas voltam, trazem a família e conhecem a equipe pelo nome. Nossa missão é proporcionar um tratamento humanizado e personalizado do começo ao fim — saúde bucal, sorriso e satisfação, resgatando a autoestima de cada paciente. Quem trabalha aqui encontra estrutura completa, equipe que se apoia de verdade e espaço para crescer junto com a clínica.",
     // Lista escrita em verbas trabalhistas (registro em carteira,
