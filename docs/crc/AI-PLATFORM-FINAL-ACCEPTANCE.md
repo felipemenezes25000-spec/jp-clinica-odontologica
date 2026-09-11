@@ -14,7 +14,8 @@ Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 | **FASE C (handoff, ownership, chokepoints)** | concluída e provada |
 | **FASE D (atomicidade e fuso)** | concluída e provada |
 | **FASE E (Postgres real, tenant, E2E, carga)** | concluída e provada |
-| **FASES F a I** | não iniciadas |
+| **FASE F (adapters, disjuntor, saúde)** | concluída e provada |
+| **FASES G a I** | não iniciadas |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
@@ -26,10 +27,9 @@ por isso mais concreto:
 1. **Os dois provedores externos continuam sem contrato.** Sem WhatsApp e sem
    Dental Office, ligar a flag não muda nada no mundo — não há para onde a
    mensagem sair. É `BLOCKED_EXTERNAL`, e é o motivo que independe de código.
-2. **As FASES F a I não foram feitas.** Sem circuit breaker e sem saúde de
-   provedor (F), uma oscilação do provedor de IA vira fila de retry em vez de
-   degradação controlada. Sem observabilidade e runbook (I), ninguém sabe o que
-   fazer quando isso acontecer às 19h de uma sexta.
+2. **As FASES G a I não foram feitas.** Sem observabilidade e runbook (I),
+   o painel de saúde da FASE F diz o que está errado mas ninguém escreveu o que
+   fazer em cada caso.
 3. **O gate de avaliação nunca rodou com caso de tenant.** Está no item 31, e
    enquanto ele for `PARCIAL` a régua que libera a flag está incompleta.
 
@@ -99,10 +99,10 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 19 | Publicação do agente atômica | `PASS` | `crc_publicar_versao_agente`. Sem versão publicada `turno.ts` cai no texto do código em silêncio — o defeito não dava erro. `estudio.test.ts` |
 | 20-21 | Banco real no CI / migrations do zero | `PASS` | `.github/workflows/crc-integracao.yml` sobe Postgres+pgvector e PostgREST, aplica `supabase/*.sql` num banco vazio com `ON_ERROR_STOP=1` e roda 43 testes. **Achou defeito na primeira execução:** o schema dependia dos papéis do Supabase e não subia em Postgres puro — `supabase/00-papeis.sql` |
 | 22 | Tenant isolation com teste real | `PASS` | `integracao/tenant.test.ts`: RLS conferida no catálogo, busca semântica com vetores IDÊNTICOS entre clínicas (só o tenant pode separar), e FKs compostas. **Achou defeito grave:** as FKs eram separadas e o banco ACEITAVA conversa da org A com clínica de B — `supabase/19` |
-| 23 | WAHA | `FAIL` | Não implementado nem formalmente retirado |
-| 24 | MCP | `FAIL` | Documentado no ADR-06, não implementado |
-| 25 | Providers previstos | `PARCIAL` | OpenAI e Anthropic implementados. Gemini não |
-| 26 | Circuit breakers | `FAIL` | — |
+| 23 | WAHA | `PASS` | `integracoes/whatsapp/waha.ts`, com TRAVA DUPLA: `WHATSAPP_PROVEDOR=waha` exige também `WAHA_EU_ACEITO_O_RISCO=1`, porque o canal viola os termos do WhatsApp e o número pode ser banido junto com o histórico inteiro |
+| 24 | MCP | `PASS` | `ia-platform/mcp.ts`, fachada sobre o registro de ferramentas. Tenant da SESSÃO, `SENSIVEL` invisível no catálogo, recusa idêntica para inexistente e proibida. `mcp.test.ts` |
+| 25 | Providers previstos | `PASS` | Gemini em `integracoes/ia/gemini.ts`, com a tradução de JSON Schema para o subconjunto OpenAPI que ele exige — mandar o schema cru falha com 400 sem dizer qual campo |
+| 26 | Circuit breakers | `PASS` | `dominio/disjuntor.ts` no gateway de IA. `contaComoQueda` separa queda do provedor de defeito nosso: um 400 por prompt malformado NÃO abre o disjuntor. 24 testes |
 | 27 | Tool registry cobre o domínio | `PARCIAL` | 6 tools. O §20 pede ~20 |
 | 28 | Studio usa o mesmo runtime | `PASS` | `turno.ts` lê a versão publicada; teste prova |
 | 29 | Workflow Studio usa o motor existente | `NOT_APPLICABLE` | Editor não entregue — recorte declarado no roadmap |

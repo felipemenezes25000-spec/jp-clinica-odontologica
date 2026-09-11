@@ -26,6 +26,7 @@
 import { type Finalidade, type VeredictoOrcamento } from "../../dominio/orcamento";
 
 import { criarPortaAnthropic, precoAnthropic } from "./anthropic";
+import { precoDoModeloGemini, ProvedorGemini } from "./gemini";
 import {
   comOrcamentoEmbeddings,
   criarPortaEmbeddingsOpenAi,
@@ -38,6 +39,39 @@ import { cambioUsdBrl, criarPortaOpenAi, criarPortaSandboxIa, precoDoModelo } fr
 /* -------------------------------------------------------------------------- */
 /* A rota                                                                     */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * A variável de ambiente que guarda a chave de cada provedor.
+ *
+ * MAPA, E NÃO TERNÁRIO ENCADEADO. Com dois provedores o ternário cabia; com
+ * três, o quarto vai ser acrescentado por alguém com pressa que esquece um dos
+ * dois lugares — e o sintoma seria "a chave do Gemini não é lida", com a chave
+ * configurada corretamente.
+ */
+const VARIAVEL_DA_CHAVE: Readonly<Record<string, string>> = {
+  openai: "OPENAI_API_KEY",
+  anthropic: "ANTHROPIC_API_KEY",
+  gemini: "GEMINI_API_KEY",
+};
+
+/** Monta a porta do provedor da rota. Desconhecido cai na OpenAI. */
+function montarPorta(
+  provedor: string,
+  chave: string,
+  modelo: string,
+  organizationId: string | null,
+): PortaIa {
+  if (provedor === "anthropic") return criarPortaAnthropic(chave, modelo, organizationId);
+  if (provedor === "gemini") return new ProvedorGemini(chave, modelo, organizationId);
+  /*
+   * PROVEDOR DESCONHECIDO CAI NA OPENAI, e isso é deliberado. A rota vem do
+   * banco, digitada por gente; um erro de digitação não pode derrubar o
+   * atendimento. O que não pode acontecer é o erro passar despercebido — e não
+   * passa, porque a chave lida será a da OpenAI e a resposta dirá qual variável
+   * falta.
+   */
+  return criarPortaOpenAi(chave, modelo, organizationId);
+}
 
 export type Rota = {
   finalidade: Finalidade;
@@ -168,7 +202,12 @@ export function estimarCustoDaChamada(
   modelo: string,
   maxTokens: number,
 ): number | null {
-  const preco = provedor === "anthropic" ? precoAnthropic(modelo) : precoDoModelo(modelo);
+  const preco =
+    provedor === "anthropic"
+      ? precoAnthropic(modelo)
+      : provedor === "gemini"
+        ? precoDoModeloGemini(modelo)
+        : precoDoModelo(modelo);
   if (preco === null) return null;
 
   // Entrada suposta: o contexto de um turno fica na casa de 1.500 tokens. Saída:
@@ -227,6 +266,40 @@ export function comOrcamento(
        * Agora a decisão e o incremento acontecem na mesma transação do Postgres.
        * Quem perde a corrida não chama.
        */
+      /*
+       * O DISJUNTOR VEM ANTES DE TUDO — Fase F, item 26.
+       *
+       * Antes da reserva de orçamento, e antes da chamada. Se o provedor está
+       * fora, nem o lock do contador de gasto precisa ser tomado.
+       *
+       * O QUE ELE EVITA, concretamente: com a fila da Fase B, cem pacientes
+       * esperando viram quinhentas chamadas condenadas, cada uma segurando uma
+       * conexão pelo tempo inteiro do timeout. O worker fica ocupado esperando
+       * respostas que não vêm — e as clínicas cujo provedor ESTÁ no ar param de
+       * ser atendidas junto. Uma queda vira duas.
+       *
+       * A CHAVE INCLUI A ORGANIZAÇÃO porque cada clínica pode ter a própria
+       * chave de API (BYOK). Uma clínica com a cota estourada não pode abrir o
+       * disjuntor da vizinha, que está com a conta em dia.
+       */
+      const { disjuntorDe, contaComoQueda } = await import("../../dominio/disjuntor");
+      const disjuntor = disjuntorDe(
+        `ia:${contexto.organizationId}:${porta.nome}:${contexto.finalidade}`,
+      );
+      const leitura = disjuntor.ler(agora);
+
+      if (!leitura.liberado) {
+        const volta = leitura.liberaEm?.toISOString() ?? "em instantes";
+        return {
+          ok: false,
+          motivo: "indisponivel",
+          detalhe: `O provedor ${porta.nome} está fora do ar (${String(leitura.falhasSeguidas)} falhas seguidas). Próxima tentativa a partir de ${volta}.`,
+          // `uso: null` porque NÃO HOUVE CHAMADA. É o que distingue "não gastei"
+          // de "gastei e deu erro", e o contador de custo depende disso.
+          uso: null,
+        };
+      }
+
       const reserva = await reservarOrcamento(contexto.organizationId, agora, estimativa);
 
       /*
@@ -282,6 +355,20 @@ export function comOrcamento(
        * provedor processar o prompt foi cobrado, e ignorar isso faria o contador
        * divergir da fatura justamente nos dias ruins.
        */
+      /*
+       * O DISJUNTOR APRENDE COM O RESULTADO.
+       *
+       * `contaComoQueda` é o que separa "o provedor caiu" de "nosso pedido
+       * estava errado". Um 400 por prompt malformado é defeito NOSSO: abrir o
+       * disjuntor por causa dele derrubaria o atendimento de todas as clínicas
+       * por um bug que afeta uma conversa.
+       */
+      if (r.ok) {
+        disjuntor.sucesso();
+      } else if (contaComoQueda(r.motivo === "recusada" ? r.detalhe : r.motivo)) {
+        disjuntor.falha(agora);
+      }
+
       const uso = r.ok ? r.uso : r.uso;
       await liquidarGasto(contexto.organizationId, reserva, uso?.custoEstimado ?? null, agora);
 
@@ -327,7 +414,7 @@ export async function portaParaFinalidade(
     return { configurado: false, motivo: daClinica.erro, faltando: [] };
   }
 
-  const variavel = rota.provedor === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY";
+  const variavel = VARIAVEL_DA_CHAVE[rota.provedor] ?? "OPENAI_API_KEY";
   const chave = daClinica.chave ?? (process.env[variavel] ?? "").trim();
 
   if (chave.length === 0) {
@@ -338,10 +425,7 @@ export async function portaParaFinalidade(
     };
   }
 
-  const bruta =
-    rota.provedor === "anthropic"
-      ? criarPortaAnthropic(chave, rota.modelo, organizationId)
-      : criarPortaOpenAi(chave, rota.modelo, organizationId);
+  const bruta = montarPorta(rota.provedor, chave, rota.modelo, organizationId);
 
   return {
     configurado: true,

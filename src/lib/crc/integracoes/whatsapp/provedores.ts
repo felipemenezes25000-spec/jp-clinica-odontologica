@@ -26,6 +26,7 @@ import { registrar } from "../../servidor/registro";
 
 import { ProvedorMetaCloud, interpretarWebhookMeta } from "./meta-cloud";
 import { ProvedorTwilio } from "./twilio";
+import { ProvedorWaha } from "./waha";
 import type {
   EnvioTemplate,
   EnvioTexto,
@@ -37,6 +38,7 @@ import type {
 
 export { interpretarWebhookMeta } from "./meta-cloud";
 export { interpretarWebhookTwilio } from "./twilio";
+export { interpretarWebhookWaha } from "./waha";
 
 /* -------------------------------------------------------------------------- */
 /* Sandbox                                                                    */
@@ -137,7 +139,7 @@ export function _reiniciarSandboxMensageria(): void {
 /* Fábrica                                                                    */
 /* -------------------------------------------------------------------------- */
 
-export type EscolhaProvedor = "twilio" | "meta" | "sandbox";
+export type EscolhaProvedor = "twilio" | "meta" | "sandbox" | "waha";
 
 /**
  * Qual provedor usar.
@@ -150,6 +152,7 @@ export function provedorEscolhido(): EscolhaProvedor {
   const bruto = (process.env["WHATSAPP_PROVEDOR"] ?? "").trim().toLowerCase();
   if (bruto === "meta" || bruto === "meta_cloud") return "meta";
   if (bruto === "sandbox") return "sandbox";
+  if (bruto === "waha") return "waha";
   return "twilio";
 }
 
@@ -169,7 +172,56 @@ export function criarProvedorMensageria(organizationId: string | null): EstadoMe
     return { configurado: true, porta: obterSandboxMensageria() };
   }
 
-  return provedorEscolhido() === "meta" ? criarMeta(organizationId) : criarTwilio(organizationId);
+  const escolha = provedorEscolhido();
+  if (escolha === "waha") return criarWaha(organizationId);
+  return escolha === "meta" ? criarMeta(organizationId) : criarTwilio(organizationId);
+}
+
+/**
+ * O WAHA, com a trava dupla — Fase F.
+ *
+ * `WHATSAPP_PROVEDOR=waha` NÃO BASTA. É preciso também
+ * `WAHA_EU_ACEITO_O_RISCO=1`, e a duplicação é atrito de propósito.
+ *
+ * O RISCO, dito sem rodeio: o WAHA automatiza o WhatsApp Web com o número da
+ * clínica, o que viola os termos de uso. O número pode ser banido — e quando é,
+ * some junto todo o histórico daquele WhatsApp Business. Meses de conversa com
+ * cada paciente, sem recurso.
+ *
+ * Uma variável só seria fácil demais de copiar de um tutorial. Duas exigem que
+ * alguém escreva, com as próprias mãos, que aceitou o risco — e deixam no
+ * ambiente um registro de quem decidiu.
+ */
+function criarWaha(organizationId: string | null): EstadoMensageria {
+  if ((process.env["WAHA_EU_ACEITO_O_RISCO"] ?? "").trim() !== "1") {
+    return {
+      configurado: false,
+      motivo:
+        "O WAHA não é API oficial do WhatsApp: ele automatiza o WhatsApp Web e viola os termos de uso. O número pode ser banido, e com ele some o histórico inteiro de conversas da clínica. Para usar mesmo assim, defina WAHA_EU_ACEITO_O_RISCO=1.",
+      faltando: ["WAHA_EU_ACEITO_O_RISCO"],
+    };
+  }
+
+  const url = (process.env["WAHA_URL"] ?? "").trim();
+  const apiKey = (process.env["WAHA_API_KEY"] ?? "").trim();
+  const sessao = (process.env["WAHA_SESSAO"] ?? "default").trim();
+
+  const faltando: string[] = [];
+  if (url.length === 0) faltando.push("WAHA_URL");
+  // A CHAVE É OBRIGATÓRIA, e não opcional como no WAHA original. Sem ela,
+  // `verificarAssinatura` recusaria todo webhook — e um canal que recebe
+  // mensagem mas não consegue provar a origem dela é pior do que um canal
+  // desligado: a automação obedeceria a qualquer um que descobrisse a URL.
+  if (apiKey.length === 0) faltando.push("WAHA_API_KEY");
+
+  if (faltando.length > 0) {
+    return { configurado: false, motivo: "O WAHA ainda não foi configurado.", faltando };
+  }
+
+  return {
+    configurado: true,
+    porta: new ProvedorWaha({ url, apiKey, sessao }, organizationId),
+  };
 }
 
 function criarTwilio(organizationId: string | null): EstadoMensageria {

@@ -101,7 +101,7 @@ export type PedidoWebhook = {
 };
 
 export type PortaMensageria = {
-  readonly nome: "meta_cloud" | "twilio" | "sandbox";
+  readonly nome: "meta_cloud" | "twilio" | "sandbox" | "waha";
   /**
    * Este canal recusa texto livre fora da janela de 24 horas?
    *
