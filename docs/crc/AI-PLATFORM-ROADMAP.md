@@ -159,11 +159,35 @@ decorador e não uma checagem de chamador.
 
 ---
 
-## Fatia 9 — Avaliação, replay e publicação com gate
+## Fatia 9 — Avaliação, replay e publicação com gate *(concluída)*
 
 Suíte de casos, replay sem efeito externo, e o gate que impede publicar versão
 que falhe em segurança, autorização de tool, isolamento de tenant ou handoff
 obrigatório.
+
+Entregue:
+
+- `supabase/14-crc-avaliacao.sql` — casos, rodadas e execuções;
+- `dominio/avaliacao.ts` — a conferência de expectativa e o gate, com as quatro
+  categorias bloqueantes do contrato (ADR-24);
+- `ia-platform/replay.ts` — roda um caso sem tocar no mundo (ADR-23);
+- `ia-platform/instrucoes.ts` — as instruções do agente saíram de `turno.ts` para
+  a avaliação rodar o MESMO prompt;
+- `aplicacao/avaliacao.ts` — nove casos que já vêm escritos, as rodadas, e o
+  estado do gate;
+- o gate ligado em `definirFeatureFlag`: `ai_agente_envio` não LIGA sem rodada
+  aprovada e recente (ADR-25);
+- tela **Avaliação**: veredicto primeiro, o que impede publicar, o que só avisa.
+
+**O gate tem dente.** É a diferença entre esta fatia e um relatório: com a suíte
+reprovada ou vencida, o botão que faz o agente responder pacientes recusa, com o
+motivo.
+
+**A categoria `tenant` não tem caso padrão, e a tela diz isso.** O isolamento entre
+clínicas hoje é garantido pelo filtro DENTRO de `crc_buscar_conhecimento` e pelos
+testes de `conhecimento.test.ts`. Um caso de replay sobre isso mediria um contexto
+que o próprio caso montou — não provaria nada. O veredicto reporta a categoria
+vazia em vez de fingir cobertura.
 
 ---
 

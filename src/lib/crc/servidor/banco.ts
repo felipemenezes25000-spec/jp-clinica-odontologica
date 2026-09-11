@@ -99,7 +99,10 @@ export type Tabela =
   | "crc_ai_credentials"
   | "crc_ai_bindings"
   | "crc_ai_orcamentos"
-  | "crc_ai_gastos";
+  | "crc_ai_gastos"
+  | "crc_eval_casos"
+  | "crc_eval_rodadas"
+  | "crc_eval_execucoes";
 
 export type Linha = Record<string, unknown>;
 

@@ -667,6 +667,29 @@ export const definirFeatureFlag = createServerFn({ method: "POST" })
         return { ok: false as const, code: "VALIDACAO", message: "Flag desconhecida." };
       }
 
+      /*
+       * O GATE DE PUBLICAÇÃO — Fatia 9.
+       *
+       * É aqui que a suíte de avaliação deixa de ser um relatório e passa a ter
+       * dente: LIGAR o envio do agente exige uma rodada aprovada e recente. Sem
+       * isto, "87% dos casos passaram" é um número que alguém olha, acha bom, e
+       * liga o agente de qualquer forma.
+       *
+       * SÓ NO CAMINHO DE LIGAR. Desligar nunca é barrado — um gate que atrapalha
+       * desligar é um gate que se transforma em incidente.
+       *
+       * E SÓ NESTA FLAG. Sombra, escrita e supervisor não falam com paciente; o
+       * envio fala. Barrar as três faria a rampa inteira depender de avaliação
+       * antes de existir o que avaliar.
+       */
+      if (data.chave === FLAGS.aiAgenteEnvio && data.ligada) {
+        const { estadoDoGate } = await import("./aplicacao/avaliacao");
+        const gate = await estadoDoGate(ctx.organizationId);
+        if (!gate.liberado) {
+          return { ok: false as const, code: "gate_de_avaliacao", message: gate.motivo };
+        }
+      }
+
       const { definirFlag } = await import("./servidor/configuracao");
       await definirFlag(
         ctx.organizationId,
@@ -1545,6 +1568,141 @@ export const criarMemoriaDaIa = createServerFn({ method: "POST" })
       if (recusa !== undefined) {
         return { ok: false as const, code: recusa.codigo, message: recusa.motivo };
       }
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Avaliação e gate de publicação (Fatia 9)                                   */
+/* -------------------------------------------------------------------------- */
+
+export type CasoDeAvaliacaoDto = {
+  id: string;
+  nome: string;
+  categoria: string;
+  rotuloCategoria: string;
+  bloqueante: boolean;
+  mensagens: readonly { direcao: string; texto: string }[];
+  ativo: boolean;
+};
+
+export type RodadaDto = {
+  id: string;
+  rotulo: string | null;
+  modelo: string | null;
+  total: number;
+  passaram: number;
+  liberado: boolean;
+  bloqueios: readonly {
+    categoria: string;
+    caso: string;
+    falhas: readonly { descricao: string }[];
+  }[];
+  avisos: readonly { categoria: string; caso: string; falhas: readonly { descricao: string }[] }[];
+  categoriasSemCaso: readonly string[];
+  custoEstimado: number | null;
+  criadoEm: string;
+};
+
+export type PainelDeAvaliacaoDto = {
+  casos: CasoDeAvaliacaoDto[];
+  ultima: RodadaDto | null;
+  gate: { liberado: boolean; motivo: string; expirada: boolean };
+  /** `false` quando falta provedor: a tela precisa dizer, não ficar quieta. */
+  provedorConfigurado: boolean;
+  motivoProvedor: string;
+};
+
+export const carregarAvaliacao = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ painel: PainelDeAvaliacaoDto }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { listarCasos, ultimaRodada, estadoDoGate } = await import("./aplicacao/avaliacao");
+      const { ROTULO_CATEGORIA, ehBloqueante, ehCategoria } = await import("./dominio/avaliacao");
+      const { portaParaFinalidade } = await import("./integracoes/ia/gateway");
+
+      const [casos, ultima, gate, provedor] = await Promise.all([
+        listarCasos(ctx.organizationId),
+        ultimaRodada(ctx.organizationId),
+        estadoDoGate(ctx.organizationId),
+        portaParaFinalidade(ctx.organizationId, "conversa"),
+      ]);
+
+      return {
+        ok: true as const,
+        painel: {
+          casos: casos.map((c) => {
+            const categoria = ehCategoria(c.categoria) ? c.categoria : "qualidade";
+            return {
+              id: c.id,
+              nome: c.nome,
+              categoria,
+              rotuloCategoria: ROTULO_CATEGORIA[categoria],
+              bloqueante: ehBloqueante(categoria),
+              mensagens: c.mensagens.map((m) => ({ direcao: m.direcao, texto: m.texto })),
+              ativo: c.ativo,
+            };
+          }),
+          ultima,
+          gate: { liberado: gate.liberado, motivo: gate.motivo, expirada: gate.expirada },
+          provedorConfigurado: provedor.configurado,
+          motivoProvedor: provedor.configurado ? "" : provedor.motivo,
+        },
+      };
+    }),
+);
+
+/**
+ * Roda a suíte.
+ *
+ * `POST` e não `GET` porque custa dinheiro: são N chamadas de modelo, uma por
+ * caso. Um `GET` seria pré-carregado por qualquer coisa que faça prefetch de
+ * link, e a clínica pagaria a suíte sem ninguém ter pedido.
+ */
+export const rodarAvaliacaoAgora = createServerFn({ method: "POST" })
+  .validator((e: { rotulo?: string }) => ({
+    rotulo: typeof e.rotulo === "string" && e.rotulo.length > 0 ? e.rotulo : null,
+  }))
+  .handler(
+    async ({ data }): Promise<Resposta<{ liberado: boolean; total: number; passaram: number }>> =>
+      comContexto("gerenciar_automacao", async (ctx) => {
+        const { portaParaFinalidade } = await import("./integracoes/ia/gateway");
+        const estado = await portaParaFinalidade(ctx.organizationId, "conversa");
+        if (!estado.configurado) {
+          return { ok: false as const, code: "sem_provedor", message: estado.motivo };
+        }
+
+        const { rodarAvaliacao } = await import("./aplicacao/avaliacao");
+        const r = await rodarAvaliacao({
+          organizationId: ctx.organizationId,
+          porta: estado.porta,
+          rotulo: data.rotulo,
+          userId: ctx.usuario.id,
+        });
+
+        return {
+          ok: true as const,
+          liberado: r.veredicto.liberado,
+          total: r.veredicto.total,
+          passaram: r.veredicto.passaram,
+        };
+      }),
+  );
+
+export const instalarCasosDeAvaliacao = createServerFn({ method: "POST" }).handler(
+  async (): Promise<Resposta<{ criados: number }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { instalarCasosPadrao } = await import("./aplicacao/avaliacao");
+      const r = await instalarCasosPadrao(ctx.organizationId, ctx.usuario.id);
+      return { ok: true as const, criados: r.criados };
+    }),
+);
+
+export const removerCasoDeAvaliacao = createServerFn({ method: "POST" })
+  .validator((e: { casoId: string }) => ({ casoId: String(e.casoId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { removerCaso } = await import("./aplicacao/avaliacao");
+      await removerCaso(ctx.organizationId, data.casoId);
       return { ok: true as const };
     }),
   );

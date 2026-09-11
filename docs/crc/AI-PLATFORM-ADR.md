@@ -322,3 +322,66 @@ que resolva isso sem um HSM por cliente.
 **GCM e não CBC.** GCM autentica: texto cifrado alterado falha na verificação da
 tag em vez de decifrar como lixo. Com CBC, alguém com escrita no banco poderia
 alterar a coluna e a aplicação não perceberia.
+
+---
+
+## ADR-23 — O replay não passa por `rodarTurno`
+
+**Decisão.** `ia-platform/replay.ts` monta o contexto do próprio caso, roda o laço
+com um executor que serve saídas declaradas, e aplica a cadeia de portões real.
+Não chama `rodarTurno`, não recebe porta de mensageria e não escreve no banco.
+
+**Alternativa descartada.** Chamar `rodarTurno` "com as flags desligadas".
+Descartada porque bastaria uma flag lida errado para uma avaliação — que roda em
+lote, possivelmente à noite — mandar mensagem a um paciente de verdade. A garantia
+tinha que ser estrutural: o parâmetro de envio não existe.
+
+**O que o replay NÃO exercita, dito para ninguém superestimar a suíte.**
+Persistência, envio e contexto vindo do banco. Esses estão em `turno.test.ts` e nos
+testes de mensagens, com banco em memória. O replay cobre o laço, a política de
+ferramenta e os portões — com o modelo real.
+
+**Uma consequência que valeu mudar código.** As instruções do agente saíram de
+dentro de `turno.ts` para `ia-platform/instrucoes.ts`, porque a avaliação precisa
+rodar o MESMO prompt que o paciente recebe. Uma cópia divergiria na primeira
+melhoria de frase.
+
+---
+
+## ADR-24 — Suíte vazia não libera publicação
+
+**Decisão.** `avaliarPublicacao` só libera com ao menos um caso avaliado. Falha em
+`seguranca`, `autorizacao`, `tenant` ou `handoff` bloqueia; falha em `qualidade` ou
+`tom` aparece como aviso. A aprovação vale 72 horas.
+
+**Por quê.** "Nenhum caso falhou" é verdade quando não existe caso nenhum — e um
+gate que aprova o vazio aprova exatamente o pior momento: o primeiro dia, quando
+ninguém escreveu teste e alguém quer ligar o agente.
+
+**Por que tom não bloqueia.** Uma resposta seca é ruim e não é perigosa. Com tom
+bloqueando, o gate ficaria impossível de passar, e um gate que ninguém passa é um
+gate que alguém desliga.
+
+**Por que 72 horas.** Prompt muda, modelo muda, material de conhecimento muda. Uma
+aprovação de três meses garante o comportamento de três meses atrás.
+
+---
+
+## ADR-25 — O gate tem dente: ele bloqueia a flag de envio
+
+**Decisão.** `definirFeatureFlag` recusa LIGAR `ai_agente_envio` sem uma rodada de
+avaliação aprovada e recente. Desligar nunca é barrado, e as outras flags da rampa
+não passam pelo gate.
+
+**Por quê.** Sem isto, a suíte é um relatório: alguém olha "87% passaram", acha
+bom, e liga o agente. O gate é o que transforma a avaliação em pré-condição.
+
+**Só nessa flag, e só ligando.** Sombra, escrita e supervisor não falam com
+paciente — barrar as três faria a rampa inteira depender de avaliação antes de
+existir o que avaliar. E um gate que atrapalha DESLIGAR é um gate que se transforma
+em incidente.
+
+**Na dúvida, bloqueia.** Se a leitura da última rodada falhar, o gate recusa. É o
+oposto da escolha do orçamento, onde a dúvida libera para não parar de atender
+paciente: aqui o que está em jogo é LIGAR a máquina para falar com gente, e não
+ligar é sempre o lado seguro.

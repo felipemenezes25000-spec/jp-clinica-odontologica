@@ -129,6 +129,24 @@ export type DependenciasLaco = {
   ) => Promise<{ ok: true; dados: Record<string, unknown> } | { ok: false; detalhe: string }>;
   estado: EstadoPolitica;
   executor: DependenciasExecutor;
+  /**
+   * Quem roda a ferramenta. O padrão é `executarFerramenta`, que fala com os
+   * casos de uso do CRC.
+   *
+   * EXISTE PARA O REPLAY (Fatia 9), e a troca é o que garante que uma avaliação
+   * não tem efeito no mundo: o replay passa um executor que serve saídas
+   * declaradas no caso e não conhece Dental Office, banco nem WhatsApp.
+   *
+   * A POLÍTICA CONTINUA SENDO AVALIADA ACIMA, antes desta chamada — de propósito.
+   * Se a substituição pulasse a política, o replay deixaria de poder provar que
+   * uma ferramenta proibida é barrada, que é justamente uma das categorias
+   * bloqueantes do gate de publicação.
+   */
+  executar?: (
+    ferramenta: string,
+    argumentos: Record<string, unknown>,
+    deps: DependenciasExecutor,
+  ) => Promise<{ ok: boolean; saida: string }>;
 };
 
 /**
@@ -193,7 +211,8 @@ export async function rodarLaco(deps: DependenciasLaco): Promise<ResultadoLaco> 
       continue;
     }
 
-    const saida = await executarFerramenta(ferramenta, argumentos, deps.executor);
+    const rodar = deps.executar ?? executarFerramenta;
+    const saida = await rodar(ferramenta, argumentos, deps.executor);
     usadas += 1;
     observacoes.push(`Resultado de ${ferramenta}:\n${saida.saida}`);
     passos.push({ ferramenta, ok: saida.ok, bloqueadoPor: null });

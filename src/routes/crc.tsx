@@ -15,6 +15,7 @@ import {
   Camera,
   Cable,
   CircleDollarSign,
+  ClipboardCheck,
   ChevronDown,
   ChevronRight,
   Columns3,
@@ -48,6 +49,7 @@ import { Campanhas } from "@/components/crc/Campanhas";
 import { Inteligencia } from "@/components/crc/Inteligencia";
 import { Conhecimento } from "@/components/crc/Conhecimento";
 import { ModelosECusto } from "@/components/crc/ModelosECusto";
+import { Avaliacao } from "@/components/crc/Avaliacao";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
@@ -100,6 +102,7 @@ type Aba =
   | "inteligencia"
   | "conhecimento"
   | "modelos"
+  | "avaliacao"
   | "integracoes"
   | "configuracoes"
   | "equipe";
@@ -176,6 +179,15 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
         // máquina, não atender paciente.
         permissao: "gerenciar_automacao",
         icone: Brain,
+      },
+      {
+        aba: "avaliacao",
+        rotulo: "Avaliação",
+        // Mesma permissão da Inteligência e do Conhecimento: é a mesma pessoa
+        // que afina a máquina. E é ela quem decide rodar uma suíte que custa uma
+        // consulta de IA por caso.
+        permissao: "gerenciar_automacao",
+        icone: ClipboardCheck,
       },
       {
         aba: "conhecimento",
@@ -596,6 +608,44 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Passou para a equipe", tom: "alerta" },
       { rotulo: "Falhou com segurança", tom: "perigo" },
       { rotulo: "Anotação esperando você conferir", tom: "alerta" },
+    ],
+  },
+  avaliacao: {
+    sobretitulo: "A prova do agente",
+    paraQue: "o teste que a IA tem que passar antes de falar com paciente",
+    descricao:
+      "Uma lista de conversas de mentira com a resposta certa já definida. A IA resolve cada uma e o sistema confere: falou de remédio? prometeu que alguém vai ligar? citou preço? inventou horário? usou uma ferramenta que não tinha permissão? Nada disso chega a paciente — a conversa é montada aqui e nenhuma mensagem sai. E o resultado não é só relatório: com a prova reprovada ou vencida, o botão que liga a IA para responder pacientes RECUSA, em Configurações, com o motivo desta tela.",
+    acoes: [
+      {
+        faca: "Rodar agora",
+        efeito:
+          "Roda todos os casos, um por vez. Custa uma consulta de IA por caso. No fim, diz se o envio da IA está liberado e lista exatamente o que falhou.",
+      },
+      {
+        faca: "Instalar os casos prontos",
+        efeito:
+          "Traz nove casos já escritos, cobrindo o que a clínica não quer que a IA faça. Aparece só quando a lista está vazia, e não desfaz ajuste seu se você já mexeu num caso.",
+      },
+      {
+        faca: "“Impede publicar” num caso",
+        efeito:
+          "Falha nesse caso trava o botão de ligar o envio. São quatro assuntos: o que a IA diz, permissão de ferramenta, não misturar conteúdo de clínicas, e passar para uma pessoa quando é preciso.",
+      },
+      {
+        faca: "“Só avisa” num caso",
+        efeito:
+          "Falha aqui aparece no relatório e não trava nada. Uma resposta seca é ruim e não é perigosa; travar por isso tornaria a prova impossível de passar — e uma prova que ninguém passa é uma prova que alguém desliga.",
+      },
+      {
+        faca: "Esperar mais de 72 horas",
+        efeito:
+          "A aprovação vence. Não é burocracia: o texto da IA, o modelo e o material da clínica mudam, e um selo antigo não garante o comportamento de hoje.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Aprovado para responder", tom: "positiva" },
+      { rotulo: "Vencido ou nunca rodado", tom: "alerta" },
+      { rotulo: "Impede publicar", tom: "perigo" },
     ],
   },
   conhecimento: {
@@ -1526,6 +1576,7 @@ function PortalCrc() {
           {abaAtual === "inteligencia" && <Inteligencia />}
           {abaAtual === "conhecimento" && <Conhecimento />}
           {abaAtual === "modelos" && <ModelosECusto />}
+          {abaAtual === "avaliacao" && <Avaliacao />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
         </main>

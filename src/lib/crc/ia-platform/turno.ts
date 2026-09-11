@@ -29,35 +29,9 @@ import type { PortaMensageria } from "../integracoes/whatsapp/porta";
 import type { EstadoPolitica } from "./ferramentas";
 import { instrucoesDoLaco, rodarLaco, ESQUEMA_DECISAO } from "./laco";
 import { montarContextoDoTurno, textoDoContexto } from "./contexto";
+import { INSTRUCOES_DO_AGENTE } from "./instrucoes";
 import { abrirTrace, type Trace } from "./tracing";
 import { PROMPT_TURNO_SOMBRA, type ResultadoTurno } from "./tipos";
-
-/**
- * As instruções do agente.
- *
- * Curtas de propósito. Instrução longa não torna o modelo mais obediente — ela
- * dilui o que importa e encarece cada turno. As proibições que realmente
- * importam não estão aqui: estão em `dominio/guardrails.ts`, onde o modelo não
- * pode negociá-las.
- */
-const INSTRUCOES = `Você atende pelo WhatsApp da JP Clínica Integrada Odontológica.
-
-Fale como a recepção fala: direto, gentil, em português do Brasil, sem formalidade
-de carta. Uma ideia por mensagem. Nunca mais de três linhas.
-
-O que você PODE fazer: responder sobre horário de funcionamento e localização,
-entender o que a pessoa quer, confirmar o que ela disse, e dizer que vai passar
-para a equipe quando for o caso.
-
-O que você NÃO pode fazer, nunca:
-- falar de diagnóstico, remédio, dose ou sintoma;
-- afirmar horário disponível — você não consultou a agenda;
-- prometer que alguém vai ligar, verificar ou retornar;
-- citar preço, desconto ou negociação;
-- mencionar sistema, ferramenta ou o fato de você ser um programa.
-
-Quando a mensagem tocar em qualquer um desses pontos, responda algo curto e
-acolhedor e marque precisaHumano = true com o motivo.`;
 
 /* -------------------------------------------------------------------------- */
 /* O pedido                                                                   */
@@ -215,7 +189,7 @@ async function decidirEEntregar(
 
           const r = await porta.gerarEstruturado({
             promptVersao: PROMPT_TURNO_SOMBRA,
-            instrucoes: `${INSTRUCOES}\n\n${instrucoesDoLaco(pedido.politica)}`,
+            instrucoes: `${INSTRUCOES_DO_AGENTE}\n\n${instrucoesDoLaco(pedido.politica)}`,
             entrada,
             esquema: { nome: "decisao_do_agente", schema: ESQUEMA_DECISAO },
             maxTokens: 400,

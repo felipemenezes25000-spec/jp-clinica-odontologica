@@ -165,6 +165,9 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_ai_bindings: [{ colunas: ["organization_id", "finalidade"] }],
   crc_ai_gastos: [{ colunas: ["organization_id", "dia"] }],
   crc_ai_orcamentos: [{ colunas: ["organization_id"] }],
+  // O índice do 14: dois casos de avaliação homônimos numa lista de quarenta é a
+  // forma mais rápida de ninguém confiar no relatório.
+  crc_eval_casos: [{ colunas: ["organization_id", "nome"] }],
   crc_users: [{ colunas: ["organization_id", "email"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.

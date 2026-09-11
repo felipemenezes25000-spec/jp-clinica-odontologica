@@ -1907,3 +1907,16 @@
     gap: var(--crc-e3);
   }
 }
+
+/* ==========================================================================
+   Avaliação — o caso que impede publicar
+   ==========================================================================
+
+   FILETE VERMELHO NA BORDA, e não fundo vermelho no cartão inteiro: dentro
+   deste cartão o que se lê é o TEXTO da falha, e fundo colorido atrás de três
+   linhas de explicação atrapalha justamente a leitura que importa. O filete diz
+   "este é dos graves" sem competir com o conteúdo.
+   ========================================================================== */
+.crc-app .crc-cartao-compacto[data-status="bloqueio"] {
+  border-left: 3px solid var(--crc-perigo);
+}
