@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClareamentoDentalRouteImport } from './routes/clareamento-dental'
 import { Route as CrcRouteImport } from './routes/crc'
 import { Route as CrcInstitucionalRouteImport } from './routes/crc-institucional'
+import { Route as HarmonizacaoFacialRouteImport } from './routes/harmonizacao-facial'
 import { Route as ImplanteDentarioRouteImport } from './routes/implante-dentario'
 import { Route as LimpezaDentalRouteImport } from './routes/limpeza-dental'
 import { Route as OdontopediatriaRouteImport } from './routes/odontopediatria'
@@ -52,6 +53,11 @@ const CrcRoute = CrcRouteImport.update({
 const CrcInstitucionalRoute = CrcInstitucionalRouteImport.update({
   id: '/crc-institucional',
   path: '/crc-institucional',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HarmonizacaoFacialRoute = HarmonizacaoFacialRouteImport.update({
+  id: '/harmonizacao-facial',
+  path: '/harmonizacao-facial',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImplanteDentarioRoute = ImplanteDentarioRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/clareamento-dental': typeof ClareamentoDentalRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/harmonizacao-facial': typeof HarmonizacaoFacialRoute
   '/implante-dentario': typeof ImplanteDentarioRoute
   '/limpeza-dental': typeof LimpezaDentalRoute
   '/odontopediatria': typeof OdontopediatriaRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/clareamento-dental': typeof ClareamentoDentalRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/harmonizacao-facial': typeof HarmonizacaoFacialRoute
   '/implante-dentario': typeof ImplanteDentarioRoute
   '/limpeza-dental': typeof LimpezaDentalRoute
   '/odontopediatria': typeof OdontopediatriaRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/clareamento-dental': typeof ClareamentoDentalRoute
   '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
+  '/harmonizacao-facial': typeof HarmonizacaoFacialRoute
   '/implante-dentario': typeof ImplanteDentarioRoute
   '/limpeza-dental': typeof LimpezaDentalRoute
   '/odontopediatria': typeof OdontopediatriaRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/clareamento-dental'
     | '/crc'
     | '/crc-institucional'
+    | '/harmonizacao-facial'
     | '/implante-dentario'
     | '/limpeza-dental'
     | '/odontopediatria'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/clareamento-dental'
     | '/crc'
     | '/crc-institucional'
+    | '/harmonizacao-facial'
     | '/implante-dentario'
     | '/limpeza-dental'
     | '/odontopediatria'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/clareamento-dental'
     | '/crc'
     | '/crc-institucional'
+    | '/harmonizacao-facial'
     | '/implante-dentario'
     | '/limpeza-dental'
     | '/odontopediatria'
@@ -320,6 +332,7 @@ export interface RootRouteChildren {
   ClareamentoDentalRoute: typeof ClareamentoDentalRoute
   CrcRoute: typeof CrcRoute
   CrcInstitucionalRoute: typeof CrcInstitucionalRoute
+  HarmonizacaoFacialRoute: typeof HarmonizacaoFacialRoute
   ImplanteDentarioRoute: typeof ImplanteDentarioRoute
   LimpezaDentalRoute: typeof LimpezaDentalRoute
   OdontopediatriaRoute: typeof OdontopediatriaRoute
@@ -370,6 +383,13 @@ declare module '@tanstack/react-router' {
       path: '/crc-institucional'
       fullPath: '/crc-institucional'
       preLoaderRoute: typeof CrcInstitucionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/harmonizacao-facial': {
+      id: '/harmonizacao-facial'
+      path: '/harmonizacao-facial'
+      fullPath: '/harmonizacao-facial'
+      preLoaderRoute: typeof HarmonizacaoFacialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/implante-dentario': {
@@ -520,6 +540,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClareamentoDentalRoute: ClareamentoDentalRoute,
   CrcRoute: CrcRoute,
   CrcInstitucionalRoute: CrcInstitucionalRoute,
+  HarmonizacaoFacialRoute: HarmonizacaoFacialRoute,
   ImplanteDentarioRoute: ImplanteDentarioRoute,
   LimpezaDentalRoute: LimpezaDentalRoute,
   OdontopediatriaRoute: OdontopediatriaRoute,

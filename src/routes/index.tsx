@@ -23,7 +23,11 @@ import {
 
 import fachadaImg from "@/assets/fachada.webp";
 import consultorioRealImg from "@/assets/consultorio-1.webp";
+import consultorioReal800 from "@/assets/consultorio-1-800.webp";
+import consultorioReal1100 from "@/assets/consultorio-1-1100.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
+import consultorioWide800 from "@/assets/consultorio-wide-800.webp";
+import consultorioWide1100 from "@/assets/consultorio-wide-1100.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
 import escritorioImg from "@/assets/escritorio.webp";
@@ -494,9 +498,20 @@ function Home() {
             <Reveal delay={90} className="relative mx-auto w-full max-w-[690px]">
               <div className="relative overflow-hidden rounded-[2.3rem] border border-forest/8 bg-white p-2.5 shadow-[0_38px_100px_-45px_rgba(3,47,1,.42)] sm:rounded-[3rem] sm:p-3">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-[1.9rem] sm:rounded-[2.45rem]">
+                  {/* srcset porque esta é a imagem do LCP e o contêiner tem
+                      690px no máximo. O arquivo de 1400px só serve desktop
+                      retina; servi-lo a um celular de 390px era mandar 60 KB
+                      que o navegador joga fora — medido pelo Lighthouse.
+                      `sizes` descreve o contêiner, não a tela: até 640px a
+                      imagem ocupa a largura inteira menos a calha; acima
+                      disso, para nos 690px do card. */}
                   <img
                     src={consultorioRealImg}
+                    srcSet={`${consultorioReal800} 800w, ${consultorioReal1100} 1100w, ${consultorioRealImg} 1400w`}
+                    sizes="(max-width: 640px) calc(100vw - 2.5rem), 690px"
                     alt="Consultório da JP Clínica Integrada Odontológica"
+                    width={1400}
+                    height={1045}
                     fetchPriority="high"
                     className="h-full w-full object-cover"
                   />
@@ -566,10 +581,17 @@ function Home() {
           id="clinica"
           className="jp-section relative isolate overflow-hidden bg-brand-deep text-white"
         >
+          {/* Decoração de fundo: ocupa 64% da largura e é `aria-hidden`.
+              Sem srcset ela baixava 1500px para preencher ~250px de celular —
+              peso puro, numa imagem que a pessoa nem registra como conteúdo. */}
           <img
             src={consultorioWideImg}
+            srcSet={`${consultorioWide800} 800w, ${consultorioWide1100} 1100w, ${consultorioWideImg} 1500w`}
+            sizes="(max-width: 1024px) 64vw, 58vw"
             alt=""
             aria-hidden="true"
+            width={1500}
+            height={800}
             loading="lazy"
             className="absolute right-0 top-0 h-[48%] w-[64%] object-cover object-right-top opacity-80 lg:h-[55%] lg:w-[58%]"
           />
@@ -597,9 +619,17 @@ function Home() {
             <div className="mt-14 grid gap-8 lg:grid-cols-[.86fr_1.14fr]">
               <Reveal>
                 <div className="relative h-full min-h-[520px] overflow-hidden rounded-[2.2rem] border border-white/12">
+                  {/* Segunda aparição da mesma foto, abaixo da dobra. Sem
+                      srcset aqui ela puxava de novo o arquivo de 1400px — e
+                      uma imagem grande fora da dobra é peso que nunca aparece
+                      na tela do celular. */}
                   <img
                     src={consultorioRealImg}
+                    srcSet={`${consultorioReal800} 800w, ${consultorioReal1100} 1100w, ${consultorioRealImg} 1400w`}
+                    sizes="(max-width: 1024px) calc(100vw - 2.5rem), 40vw"
                     alt="Consultório da JP Clínica, com luz natural e cadeira preparada"
+                    width={1400}
+                    height={1045}
                     loading="lazy"
                     className="absolute inset-0 h-full w-full object-cover"
                   />

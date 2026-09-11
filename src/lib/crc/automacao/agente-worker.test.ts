@@ -505,3 +505,58 @@ describe("o reclaim da run", () => {
     expect(conteudo("crc_ai_runs")).toHaveLength(0);
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("o evento não some quando o enfileiramento falha", () => {
+  const evento = {
+    id: EVENTO,
+    organizationId: ORG,
+    clinicId: null,
+    tipo: "message.received" as const,
+    entityType: null,
+    entityId: null,
+    payload: { conversationId: CONVERSA },
+    fingerprint: `message.received:${EVENTO}`,
+    status: "PROCESSANDO" as const,
+    tentativas: 0,
+    ocorridoEm: AGORA.toISOString(),
+  };
+
+  it("o handler LANÇA, e é o que devolve o evento para a fila", async () => {
+    /*
+     * O SEGUNDO P0, no ponto onde ele doía.
+     *
+     * `aoRodarTurnoDoAgente` ignorava o retorno de `enfileirarTurno` — e era
+     * obrigado a ignorar, porque o retorno era um booleano em que "já existia" e
+     * "o banco caiu" tinham o mesmo valor. O evento saía marcado como
+     * PROCESSADO, o job nunca nascia, e do outro lado ficava um paciente que
+     * escreveu e nunca foi respondido. Nada na fila indicava isso.
+     *
+     * O `throw` aqui é o que aciona a repescagem: `processarEventos` devolve o
+     * evento para PENDENTE com backoff e, esgotadas as tentativas, o manda para
+     * a dead letter — onde uma pessoa vê. Perder um turno deixou de ser mudo.
+     */
+    const { aoRodarTurnoDoAgente } = await import("./handlers");
+
+    falharProximaEscrita("crc_agent_jobs");
+
+    await expect(aoRodarTurnoDoAgente(evento)).rejects.toThrow(/enfileirar o turno/u);
+    expect(conteudo("crc_agent_jobs")).toHaveLength(0);
+  });
+
+  it("mas o job DUPLICADO não lança: é o reprocessamento normal", async () => {
+    /*
+     * A outra metade, e sem ela o conserto seria pior que o defeito: o motor de
+     * eventos reprocessa em restart, por desenho. Se duplicata lançasse, todo
+     * restart encheria a dead letter de eventos saudáveis — e uma dead letter
+     * cheia de coisa boa é uma dead letter que ninguém lê.
+     */
+    const { aoRodarTurnoDoAgente } = await import("./handlers");
+
+    await aoRodarTurnoDoAgente(evento);
+    await expect(aoRodarTurnoDoAgente(evento)).resolves.toBeUndefined();
+
+    expect(conteudo("crc_agent_jobs")).toHaveLength(1);
+  });
+});

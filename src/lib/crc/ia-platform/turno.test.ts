@@ -24,7 +24,13 @@ vi.mock("../servidor/registro", async () => {
   return { ...real, registrar: () => undefined };
 });
 
-import { conteudo, definirRelogio, limparBanco, semear } from "../testes/banco-memoria";
+import {
+  conteudo,
+  definirRelogio,
+  falharProximaEscrita,
+  limparBanco,
+  semear,
+} from "../testes/banco-memoria";
 import { rodarTurno } from "./turno";
 import type { PortaIa, RespostaIa } from "../integracoes/ia/porta";
 import type { PortaMensageria, ResultadoEnvio } from "../integracoes/whatsapp/porta";
@@ -238,6 +244,60 @@ describe("o turno protege o paciente antes de gastar modelo", () => {
     });
     expect(r.tipo).toBe("falha_segura");
     expect(espia.enviadas).toHaveLength(0);
+  });
+
+  it("sem idempotência garantida, o turno PARA — e o modelo não é chamado", async () => {
+    /*
+     * FALHA FECHADA, e o contrário disto era um P0.
+     *
+     * A reserva da run é o que impede o mesmo turno de rodar duas vezes. Quando
+     * ela falha, a versão anterior SEGUIA em frente — o comentário justificava
+     * que "não responder um paciente é pior que pagar o modelo duas vezes".
+     *
+     * O raciocínio ignora o efeito no mundo: sem idempotência, duas execuções
+     * podem mandar DUAS MENSAGENS à pessoa, ou marcar duas consultas. E o turno
+     * não se perdia — `falha_segura` faz o worker devolver o job à fila, e ele
+     * roda de novo em segundos.
+     *
+     * `sem_acao` aqui seria o desastre silencioso: o worker CONCLUIRIA o job.
+     */
+    const espia = mensageriaEspia();
+    let chamou = false;
+    const porta: PortaIa = {
+      nome: "fake",
+      modelo: "fake-1",
+      gerarEstruturado: () => {
+        chamou = true;
+        return Promise.resolve(respostaOk({ acao: "responder", texto: "oi" }));
+      },
+    };
+
+    falharProximaEscrita("crc_reivindicar_ai_run");
+
+    const r = await rodarTurno({
+      ...pedidoBase(porta),
+      portaMensageria: espia.porta,
+      podeEnviar: true,
+    });
+
+    expect(r.tipo).toBe("falha_segura");
+    expect(chamou).toBe(false);
+    expect(espia.enviadas).toHaveLength(0);
+  });
+
+  it("o turno que outro worker JÁ está executando encerra sem agir", async () => {
+    // O outro lado da moeda: aqui `sem_acao` é o certo. Alguém está cuidando
+    // disto agora, e insistir seria a execução dupla que a reserva evita.
+    const { abrirTrace } = await import("./tracing");
+    await abrirTrace(ORG, CONVERSA).reservar({
+      chaveDedupe: "turno:evt-1",
+      conversationId: CONVERSA,
+      jobId: null,
+      quem: "worker-1",
+    });
+
+    const r = await rodarTurno(pedidoBase(portaFake(respostaOk({ acao: "responder", texto: "oi" }))));
+    expect(r.tipo).toBe("sem_acao");
   });
 });
 

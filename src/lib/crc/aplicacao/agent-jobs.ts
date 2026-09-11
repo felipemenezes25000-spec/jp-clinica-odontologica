@@ -265,7 +265,35 @@ export async function falharJob(job: AgentJob, erro: string, agora = new Date())
 
 /** Fecha os jobs que ficaram RODANDO sem ninguém para terminá-los. */
 export async function liberarPresos(): Promise<number> {
-  const linhas = await rpc("crc_liberar_agent_jobs_presos");
+  return await contarDaRpc("crc_liberar_agent_jobs_presos");
+}
+
+/**
+ * Fecha as RUNS que ficaram abertas e cujo job já saiu da fila.
+ *
+ * A IRMÃ DA FUNÇÃO ACIMA, e ela precisa existir pelo mesmo motivo. Desde a Fase
+ * B a run nasce antes da chamada de modelo, então uma run aberta é um turno em
+ * curso — ou um turno cujo processo morreu. Enquanto o job puder voltar, a run é
+ * retomada pelo lease e não há o que fazer. Quando o job esgota as tentativas e
+ * vira FALHOU, ninguém mais vai retomá-la: ela fica RODANDO para sempre.
+ *
+ * O CUSTO DE NÃO FAZER ISSO é a métrica que apodrece. O painel de saúde conta
+ * "turnos abertos há mais de 30 minutos" para denunciar worker morto; com runs
+ * penduradas de incidentes antigos, o número sobe e nunca desce, e o alerta que
+ * era um sinal vira ruído que se aprende a ignorar.
+ */
+export async function fecharRunsAbandonadas(minutos = 30): Promise<number> {
+  return await contarDaRpc("crc_fechar_ai_runs_abandonadas", { p_minutos: minutos });
+}
+
+/**
+ * As duas RPCs acima devolvem um escalar, e o PostgREST embrulha escalar num
+ * objeto de uma chave cujo nome é o da função. Ler por `Object.values` evita
+ * repetir esse nome — e evita o erro silencioso de repeti-lo errado, que
+ * devolveria zero sem nunca falhar.
+ */
+async function contarDaRpc(nome: string, argumentos: Record<string, unknown> = {}): Promise<number> {
+  const linhas = await rpc(nome, argumentos);
   const n = linhas[0];
   const valor = n === undefined ? 0 : Number(Object.values(n)[0] ?? 0);
   return Number.isFinite(valor) ? valor : 0;

@@ -73,6 +73,8 @@ export type ResultadoDoWorker = {
   descartados: number;
   falhados: number;
   presosLiberados: number;
+  /** Runs que ficaram abertas porque o job delas morreu de vez. */
+  runsFechadas: number;
 };
 
 /**
@@ -88,14 +90,28 @@ export async function processarTurnosDoAgente(
     quem?: string;
   } = {},
 ): Promise<ResultadoDoWorker> {
-  const { liberarPresos, reservarJobs, concluirJob, descartarJob, falharJob } =
-    await import("../aplicacao/agent-jobs");
+  const {
+    liberarPresos,
+    fecharRunsAbandonadas,
+    reservarJobs,
+    concluirJob,
+    descartarJob,
+    falharJob,
+  } = await import("../aplicacao/agent-jobs");
 
   // Primeiro os abandonados: um job que ficou RODANDO com o lease vencido e o
   // teto estourado não aparece na fila nem na lista de falhas. Some.
   let presosLiberados = 0;
+  let runsFechadas = 0;
   try {
     presosLiberados = await liberarPresos();
+    /*
+     * E DEPOIS AS RUNS ÓRFÃS DELES, nesta ordem: a linha acima acabou de marcar
+     * jobs como FALHOU, e é justamente isso que torna as runs deles
+     * irrecuperáveis. Fechar as runs antes deixaria as recém-órfãs para a volta
+     * seguinte do cron — que na Vercel Hobby é o dia seguinte.
+     */
+    runsFechadas = await fecharRunsAbandonadas();
   } catch {
     // A limpeza é higiene, não pode impedir o trabalho do lote.
   }
@@ -148,7 +164,7 @@ export async function processarTurnosDoAgente(
     }
   }
 
-  return { reservados: jobs.length, concluidos, descartados, falhados, presosLiberados };
+  return { reservados: jobs.length, concluidos, descartados, falhados, presosLiberados, runsFechadas };
 }
 
 type DesfechoDoJob = { tipo: "feito" } | { tipo: "descartado"; motivo: string };
