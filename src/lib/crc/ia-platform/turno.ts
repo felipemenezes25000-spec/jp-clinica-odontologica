@@ -94,7 +94,56 @@ export type PedidoTurno = {
    * a busca por significado está fora do ar.
    */
   portaEmbeddings?: import("../integracoes/ia/embeddings").PortaEmbeddings | null;
+  /**
+   * Substitui quem executa as ferramentas — Fase G.
+   *
+   * O LAÇO JÁ ACEITAVA ISTO; o turno é que não repassava, e por isso só o
+   * replay conseguia usar. O Playground precisa: ele roda um turno REAL com
+   * dados REAIS e não pode marcar consulta na agenda de verdade.
+   *
+   * A POLÍTICA CONTINUA SENDO AVALIADA ANTES desta substituição — de propósito.
+   * Um executor dublado que pulasse a política faria o Playground mostrar um
+   * agente com mais permissões do que ele tem, e a pessoa ajustaria o texto
+   * contra um comportamento que não existe.
+   */
+  executar?: (
+    ferramenta: string,
+    argumentos: Record<string, unknown>,
+    deps: import("./executor").DependenciasExecutor,
+  ) => Promise<{ ok: boolean; saida: string }>;
+  /**
+   * Roda o turno SEM gravar a run — Fase G.
+   *
+   * Existe para o Playground, e a razão é métrica, não desempenho. Se cada
+   * execução de teste virasse uma run, ajustar um prompt vinte vezes entraria
+   * na contagem de turnos e na taxa de acerto do agente — e essa taxa é
+   * justamente o que o gate de avaliação usa para decidir se a flag de envio
+   * pode ser ligada. Testar derrubaria a régua que autoriza produção.
+   *
+   * O trace continua existindo em memória: os spans são o que o Playground
+   * mostra. O que não acontece é a escrita.
+   */
+  semRegistro?: boolean;
 };
+
+/**
+ * Um trace que mede e não grava — Fase G.
+ *
+ * `reservar` devolve `dono: true` sempre: sem isso, o Playground disputaria a
+ * chave de dedupe com o turno real da mesma conversa e perderia, devolvendo
+ * "outra execução já está cuidando deste turno" para quem só queria testar.
+ */
+function traceDeMentira(): Trace {
+  return {
+    medir: async (_nome, _tipo, fn) => await fn(),
+    medirSync: (_nome, _tipo, fn) => fn(),
+    reservar: () => Promise.resolve({ dono: true as const, runId: "" }),
+    runId: () => null,
+    uso: () => undefined,
+    ferramentas: () => undefined,
+    gravar: () => Promise.resolve(),
+  };
+}
 
 /* -------------------------------------------------------------------------- */
 /* O turno                                                                    */
@@ -109,7 +158,10 @@ export type PedidoTurno = {
  * jornada. O agente falhando não pode calar o resto do sistema (ADR-11).
  */
 export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
-  const trace = abrirTrace(pedido.organizationId, pedido.conversationId);
+  const trace =
+    pedido.semRegistro === true
+      ? traceDeMentira()
+      : abrirTrace(pedido.organizationId, pedido.conversationId);
 
   /*
    * O QUE O TURNO VIU, para o supervisor poder olhar depois.
@@ -225,6 +277,7 @@ async function decidirEEntregar(
           contextoAgendamento: pedido.contextoAgendamento ?? (() => Promise.resolve(null)),
           portaEmbeddings: pedido.portaEmbeddings ?? null,
         },
+        ...(pedido.executar === undefined ? {} : { executar: pedido.executar }),
         decidir: async (observacoes) => {
           const entrada =
             observacoes.length === 0

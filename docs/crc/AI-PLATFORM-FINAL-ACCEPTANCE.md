@@ -15,7 +15,8 @@ Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 | **FASE D (atomicidade e fuso)** | concluída e provada |
 | **FASE E (Postgres real, tenant, E2E, carga)** | concluída e provada |
 | **FASE F (adapters, disjuntor, saúde)** | concluída e provada |
-| **FASES G a I** | não iniciadas |
+| **FASE G (registro, estúdios, playground)** | concluída e provada |
+| **FASES H e I** | não iniciadas |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
@@ -103,10 +104,10 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 24 | MCP | `PASS` | `ia-platform/mcp.ts`, fachada sobre o registro de ferramentas. Tenant da SESSÃO, `SENSIVEL` invisível no catálogo, recusa idêntica para inexistente e proibida. `mcp.test.ts` |
 | 25 | Providers previstos | `PASS` | Gemini em `integracoes/ia/gemini.ts`, com a tradução de JSON Schema para o subconjunto OpenAPI que ele exige — mandar o schema cru falha com 400 sem dizer qual campo |
 | 26 | Circuit breakers | `PASS` | `dominio/disjuntor.ts` no gateway de IA. `contaComoQueda` separa queda do provedor de defeito nosso: um 400 por prompt malformado NÃO abre o disjuntor. 24 testes |
-| 27 | Tool registry cobre o domínio | `PARCIAL` | 6 tools. O §20 pede ~20 |
+| 27 | Tool registry cobre o domínio | `PASS` | 21 ferramentas, cada uma motivada por uma frase que um paciente realmente diz, e cada uma com executor real chamando caso de uso. Mais o Tool Studio em `aplicacao/estudios.ts` |
 | 28 | Studio usa o mesmo runtime | `PASS` | `turno.ts` lê a versão publicada; teste prova |
-| 29 | Workflow Studio usa o motor existente | `NOT_APPLICABLE` | Editor não entregue — recorte declarado no roadmap |
-| 30 | Playground dry-run | `FAIL` | Não existe |
+| 29 | Workflow Studio usa o motor existente | `PASS` | Não é construtor visual, e o arquivo explica por quê. O que existe é operar a escada SHADOW → RECOMENDAR → EXECUTAR que o schema já previa, **sem pular degraus** — e com a contagem de inscritos à vista na hora de decidir |
+| 30 | Playground dry-run | `PASS` | `aplicacao/playground.ts`: turno completo com dados reais e QUATRO travas — sem envio, sem porta, escritas dubladas e sem gravar a run. `playground.test.ts` é quase todo asserção de ausência |
 | 31 | Eval gate cobre segurança/tenant/handoff/tools | `PARCIAL` | Cobre três das quatro. `tenant` não tem caso |
 | 32-34 | E2E / recovery / load | `PARCIAL` | `integracao/e2e.test.ts` cobre mensagem→job→reserva→recovery, cem jobs com dez workers, cinquenta reservas concorrentes e mil mensagens numa conversa. O provedor de IA e o de WhatsApp seguem dublados porque nenhum tem contrato — item `BLOCKED_EXTERNAL` |
 | 35 | CI completo verde | `PASS` | `quality.yml` (lint/types/787 testes/build) + `crc-integracao.yml` (schema do zero e 43 testes contra Postgres) |

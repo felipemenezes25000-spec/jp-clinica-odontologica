@@ -121,6 +121,24 @@ export async function processarTurnosDoAgente(
 type DesfechoDoJob = { tipo: "feito" } | { tipo: "descartado"; motivo: string };
 
 /**
+ * As ferramentas que a clínica desligou. NUNCA LANÇA.
+ *
+ * Falha de leitura devolve lista vazia — ou seja, NADA desligado. A direção do
+ * padrão importa: se uma oscilação do banco desligasse as ferramentas, o agente
+ * perderia a agenda e passaria a inventar horário em vez de consultar. O padrão
+ * seguro aqui é o comportamento do código, que já passa por política e portões.
+ */
+async function ferramentasDesligadas(organizationId: string): Promise<readonly string[]> {
+  try {
+    const { listarFerramentasDaClinica } = await import("../aplicacao/estudios");
+    const lista = await listarFerramentasDaClinica(organizationId);
+    return lista.filter((f) => !f.ligada).map((f) => f.chave);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Executa UM job: relê as travas, monta as portas e roda o turno.
  *
  * AS TRAVAS SÃO RELIDAS AQUI, e não no momento de enfileirar. A diferença
@@ -196,6 +214,15 @@ async function executarJob(job: AgentJob): Promise<DesfechoDoJob> {
       agendamentoAutonomo: flags["auto_scheduling"] === true,
       escritasDentalOfficePausadas: interruptores["kill_escritas_do"] === true,
       ferramentasUsadas: 0,
+      /*
+       * O TOOL STUDIO CHEGA AO TURNO POR AQUI — Fase G.
+       *
+       * Sem esta linha, desligar uma ferramenta na tela gravaria a
+       * configuração e não mudaria nada: o modelo continuaria vendo a
+       * ferramenta no catálogo e continuaria podendo usá-la. É a pior forma de
+       * configuração — a pessoa acha que desligou.
+       */
+      desligadas: await ferramentasDesligadas(job.organizationId),
     },
     contextoAgendamento: () =>
       contextoDeAgendamentoParaJob(
