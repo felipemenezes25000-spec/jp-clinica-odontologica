@@ -185,3 +185,32 @@ begin
   get diagnostics afetados = row_count;
   return afetados > 0;
 end $corpo$;
+
+-- ----------------------------------------------------------------------------
+-- Privilégios
+-- ----------------------------------------------------------------------------
+--
+-- POR QUE A MIGRAÇÃO CONCEDE, em vez de confiar no default.
+--
+-- Tabela criada DEPOIS dos `grant` de instalação nasce sem privilégio para
+-- `service_role` — e o app inteiro fala com o banco por ela. O sintoma é
+-- `permission denied`, e ele aparece só quando alguém exercita o caminho novo,
+-- que costuma ser em produção.
+--
+-- No Supabase o `alter default privileges` geralmente cobre isso. "Geralmente"
+-- não é bom o bastante para uma migração aplicada à mão: repetir o grant é
+-- idempotente e remove a dependência de como a instalação foi configurada.
+do $privilegios$
+begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    execute 'grant all on all tables in schema public to service_role';
+    execute 'grant all on all sequences in schema public to service_role';
+    execute 'grant all on all functions in schema public to service_role';
+  end if;
+
+  -- `anon` só lê, e só o que a RLS deixar. É o papel do cliente não
+  -- autenticado; dar escrita a ele seria dar escrita à internet.
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    execute 'grant select on all tables in schema public to anon';
+  end if;
+end $privilegios$;

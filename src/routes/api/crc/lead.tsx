@@ -72,10 +72,29 @@ export const Route = createFileRoute("/api/crc/lead")({
         try {
           const { bancoConfigurado, selecionarUm } = await import("@/lib/crc/servidor/banco");
           if (!bancoConfigurado().ok) {
-            // O formulário não pode dar erro para o visitante por causa de
-            // configuração nossa. Registra e confirma.
-            registrar("erro", "Lead recebido com banco não configurado — PERDIDO.");
-            return json({ ok: true, recebido: true }, 200);
+            /*
+             * ========================================================================
+             *  ANTES ISTO RESPONDIA 200 COM "recebido: true". E não tinha recebido.
+             *
+             *  A intenção era boa: não punir o visitante por um problema nosso. Mas
+             *  "obrigado, recebemos" quando não se recebeu é pior para o negócio do
+             *  que um erro honesto — a pessoa vai embora achando que a clínica vai
+             *  ligar, e ninguém vai. O lead some, e o log que diz "PERDIDO" é lido
+             *  por nós, não por ela.
+             *
+             *  Com 503, o formulário mostra "tente de novo" e a pessoa tenta — ou
+             *  liga. Perder um lead em silêncio é caro demais para ser a escolha
+             *  confortável.
+             * ========================================================================
+             */
+            registrar("erro", "Lead recebido com banco não configurado.");
+            return json(
+              {
+                ok: false,
+                erro: "Não conseguimos registrar seu contato agora. Tente de novo em instantes, ou ligue para a clínica.",
+              },
+              503,
+            );
           }
 
           const clinica = await selecionarUm("crc_clinics", {
@@ -85,8 +104,16 @@ export const Route = createFileRoute("/api/crc/lead")({
           });
 
           if (clinica === null) {
-            registrar("erro", "Lead recebido sem clínica cadastrada — PERDIDO.");
-            return json({ ok: true, recebido: true }, 200);
+            // Mesma razão: dizer "recebemos" sem ter para onde mandar é o pior
+            // dos dois erros possíveis.
+            registrar("erro", "Lead recebido sem clínica cadastrada.");
+            return json(
+              {
+                ok: false,
+                erro: "Não conseguimos registrar seu contato agora. Tente de novo em instantes, ou ligue para a clínica.",
+              },
+              503,
+            );
           }
 
           const { lerAtribuicao, registrarLead } = await import("@/lib/crc/aplicacao/leads");

@@ -45,14 +45,39 @@ const erro = (id: unknown, code: number, message: string): Response =>
 async function sessaoDoToken(
   req: Request,
 ): Promise<{ organizationId: string; clienteId: string; permitirEscrita: boolean } | null> {
-  const esperado = (process.env["CRC_MCP_TOKEN"] ?? "").trim();
-  // SEM TOKEN CONFIGURADO, A ROTA NÃO EXISTE. É o padrão seguro: um endpoint
-  // MCP aberto é uma porta para o CRC inteiro.
-  if (esperado.length === 0) return null;
-
   const cabecalho = req.headers.get("authorization") ?? "";
   const enviado = cabecalho.replace(/^Bearer\s+/iu, "").trim();
   if (enviado.length === 0) return null;
+
+  /*
+   * ========================================================================
+   *  PRIMEIRO O TOKEN DO BANCO, por organização.
+   *
+   *  `CRC_MCP_TOKEN` é UM token para a instalação inteira: não dá para dar
+   *  acesso à Clínica A sem dar à B, não dá para revogar o de uma sem trocar o
+   *  de todas, não há validade, não há escopo e não há registro de uso.
+   *
+   *  `crc_mcp_tokens` guarda o HASH, nunca o token — mesmo motivo de senha.
+   *  Quem perde gera outro; ninguém, nem com acesso ao banco, lê o que foi
+   *  entregue ao cliente.
+   *
+   *  A BUSCA É PELO HASH, e é isso que a torna segura sem comparação em tempo
+   *  constante: o índice recebe o sha-256 do que veio, e um atacante não
+   *  consegue aproximar um hash byte a byte como aproximaria um segredo.
+   * ========================================================================
+   */
+  const doBanco = await sessaoDoBanco(enviado);
+  if (doBanco !== null) return doBanco;
+
+  /*
+   * O TOKEN DO AMBIENTE, como caminho de transição.
+   *
+   * Continua valendo para não derrubar quem já usa o MCP hoje. Assim que
+   * houver um token no banco para aquela organização, ele é o caminho — e
+   * apagar a variável é o que desliga o modelo antigo.
+   */
+  const esperado = (process.env["CRC_MCP_TOKEN"] ?? "").trim();
+  if (esperado.length === 0) return null;
 
   const { timingSafeEqual } = await import("node:crypto");
   const a = Buffer.from(enviado);
@@ -76,6 +101,56 @@ async function sessaoDoToken(
      */
     permitirEscrita: (process.env["CRC_MCP_ESCRITA"] ?? "").trim() === "1",
   };
+}
+
+/**
+ * O token cadastrado, com escopo e revogação.
+ *
+ * NUNCA LANÇA: uma oscilação do banco aqui deve cair no caminho do ambiente, e
+ * não derrubar o MCP inteiro. E devolve `null` — negar acesso — sempre que não
+ * puder AFIRMAR que o token vale.
+ */
+async function sessaoDoBanco(
+  token: string,
+): Promise<{ organizationId: string; clienteId: string; permitirEscrita: boolean } | null> {
+  try {
+    const { createHash } = await import("node:crypto");
+    const hash = createHash("sha256").update(token).digest("hex");
+
+    const { selecionarUm, atualizar } = await import("@/lib/crc/servidor/banco");
+    const linha = await selecionarUm("crc_mcp_tokens", {
+      colunas: "id,organization_id,apelido,permite_escrita,expira_em,revogado_em",
+      filtros: [{ coluna: "token_hash", op: "eq", valor: hash }],
+    });
+
+    if (linha === null) return null;
+    if (linha["revogado_em"] != null) return null;
+
+    const expira = linha["expira_em"];
+    if (typeof expira === "string" && Date.parse(expira) <= Date.now()) return null;
+
+    /*
+     * O ÚLTIMO USO É GRAVADO, e é o que permite revogar com confiança: sem
+     * saber qual token está em uso, ninguém apaga nenhum — e um token que
+     * ninguém ousa revogar é um token eterno.
+     *
+     * Sem `await`: o registro de uso não pode atrasar a resposta do MCP, e
+     * perdê-lo numa falha de banco é aceitável.
+     */
+    void atualizar(
+      "crc_mcp_tokens",
+      [{ coluna: "id", op: "eq", valor: String(linha["id"] ?? "") }],
+      { ultimo_uso_em: new Date().toISOString() },
+    ).catch(() => undefined);
+
+    return {
+      organizationId: String(linha["organization_id"] ?? ""),
+      clienteId: String(linha["apelido"] ?? "mcp"),
+      permitirEscrita: linha["permite_escrita"] === true,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export const Route = createFileRoute("/api/crc/mcp")({

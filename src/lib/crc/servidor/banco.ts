@@ -84,6 +84,7 @@ export type Tabela =
   | "crc_dead_letters"
   | "crc_webhook_inbox"
   | "crc_canais_whatsapp"
+  | "crc_mcp_tokens"
   | "crc_integracoes_clinica"
   | "crc_saved_views"
   | "crc_ad_spend"

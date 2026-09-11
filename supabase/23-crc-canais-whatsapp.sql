@@ -168,3 +168,118 @@ create unique index if not exists idx_crc_sync_state_por_clinica
     recurso,
     coalesce(clinic_id, '00000000-0000-0000-0000-000000000000'::uuid)
   );
+
+/*
+ * E A CHAVE PRIMÁRIA ANTIGA PRECISA SAIR, senão nada disso vale.
+ *
+ * ISTO QUASE PASSOU DESPERCEBIDO. O índice único acima existe e está certo — e
+ * sozinho não muda nada, porque `crc_sync_state_pkey` continua sendo
+ * `(organization_id, recurso)` e continua recusando a segunda clínica. O teste
+ * de integração é que mostrou: duas linhas, e a segunda batia na chave
+ * primária.
+ *
+ * É a lição de sempre com `alter table`: acrescentar uma restrição nova não
+ * remove a antiga, e a antiga é que estava errada.
+ *
+ * A NOVA PK INCLUI A CLÍNICA e usa `coalesce`, pelo mesmo motivo do índice: as
+ * linhas legadas têm `clinic_id` nulo, e uma PK com coluna nula seria recusada
+ * pelo Postgres. Uma coluna GERADA resolve os dois problemas de uma vez — ela é
+ * `not null` por construção e a PK pode usá-la.
+ */
+alter table public.crc_sync_state
+  add column if not exists clinic_key uuid
+  generated always as (coalesce(clinic_id, '00000000-0000-0000-0000-000000000000'::uuid)) stored;
+
+alter table public.crc_sync_state
+  drop constraint if exists crc_sync_state_pkey;
+
+do $pk$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'crc_sync_state_pk_por_clinica'
+  ) then
+    alter table public.crc_sync_state
+      add constraint crc_sync_state_pk_por_clinica
+      primary key (organization_id, recurso, clinic_key);
+  end if;
+end $pk$;
+
+-- O índice acima vira redundante com a PK nova; deixá-lo seria um segundo
+-- índice mantendo a mesma garantia, escrito a cada gravação por nada.
+drop index if exists public.idx_crc_sync_state_por_clinica;
+
+-- ----------------------------------------------------------------------------
+-- Tokens de MCP, por organização
+-- ----------------------------------------------------------------------------
+--
+-- O MCP autentica por `CRC_MCP_TOKEN`, uma variável de ambiente. UM token para
+-- a instalação inteira significa:
+--
+--   não dá para dar acesso à Clínica A sem dar à B;
+--   não dá para revogar o de uma sem trocar o de todas;
+--   não há validade, não há escopo, e não há registro de quem usou.
+--
+-- O TOKEN NÃO É GUARDADO, só o hash — pelo mesmo motivo que senha não é. Quem
+-- perde o token gera outro; ninguém, nem com acesso ao banco, consegue ler o
+-- que foi entregue ao cliente.
+create table if not exists public.crc_mcp_tokens (
+  id              uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.crc_organizations(id) on delete cascade,
+
+  -- Como a pessoa chama este token: "Claude do Dr. João", "n8n da recepção".
+  apelido         text not null,
+  -- sha-256 do token inteiro. A busca é por ele.
+  token_hash      text not null unique,
+  -- Primeiros e últimos caracteres, para conferência visual. Nunca o meio.
+  dica            text not null default '',
+
+  /*
+   * ESCRITA POR TOKEN, e não por instalação.
+   *
+   * `CRC_MCP_ESCRITA=1` liga escrita para todo mundo que tem o token. Aqui, um
+   * token de leitura para o assistente do dentista convive com um de escrita
+   * para a automação da recepção — que é o desenho que faz sentido.
+   */
+  permite_escrita boolean not null default false,
+
+  expira_em       timestamptz,
+  revogado_em     timestamptz,
+  ultimo_uso_em   timestamptz,
+  criado_por      uuid references public.crc_users(id) on delete set null,
+  criado_em       timestamptz not null default now()
+);
+
+create index if not exists idx_crc_mcp_tokens_org
+  on public.crc_mcp_tokens (organization_id)
+  where revogado_em is null;
+
+alter table public.crc_mcp_tokens enable row level security;
+
+-- ----------------------------------------------------------------------------
+-- Privilégios
+-- ----------------------------------------------------------------------------
+--
+-- POR QUE A MIGRAÇÃO CONCEDE, em vez de confiar no default.
+--
+-- Tabela criada DEPOIS dos `grant` de instalação nasce sem privilégio para
+-- `service_role` — e o app inteiro fala com o banco por ela. O sintoma é
+-- `permission denied`, e ele aparece só quando alguém exercita o caminho novo,
+-- que costuma ser em produção.
+--
+-- No Supabase o `alter default privileges` geralmente cobre isso. "Geralmente"
+-- não é bom o bastante para uma migração aplicada à mão: repetir o grant é
+-- idempotente e remove a dependência de como a instalação foi configurada.
+do $privilegios$
+begin
+  if exists (select 1 from pg_roles where rolname = 'service_role') then
+    execute 'grant all on all tables in schema public to service_role';
+    execute 'grant all on all sequences in schema public to service_role';
+    execute 'grant all on all functions in schema public to service_role';
+  end if;
+
+  -- `anon` só lê, e só o que a RLS deixar. É o papel do cliente não
+  -- autenticado; dar escrita a ele seria dar escrita à internet.
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    execute 'grant select on all tables in schema public to anon';
+  end if;
+end $privilegios$;

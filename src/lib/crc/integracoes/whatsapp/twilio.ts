@@ -114,23 +114,35 @@ export class ProvedorTwilio implements PortaMensageria {
    * `ContentVariables` leva um JSON `{"1":"Maria","2":"14:30"}` — as variáveis
    * são numeradas por posição, e não por nome.
    *
-   * Quando `template` não parece um Content SID (`HX...`), caímos para texto
-   * simples com o conteúdo já renderizado. Isso é o que faz o sandbox e a
-   * janela de 24h funcionarem sem nenhum template cadastrado — e é seguro
-   * porque, dentro da janela, mensagem livre é permitida.
+   * ========================================================================
+   *  SEM CONTENT SID, ESTA FUNÇÃO RECUSA. E a versão anterior enviava texto.
+   *
+   *  O comentário que estava aqui dizia que cair para texto "é seguro porque,
+   *  dentro da janela, mensagem livre é permitida". A premissa está certa e a
+   *  conclusão não se aplica: **`enviarTemplate` só é chamado FORA da janela.**
+   *
+   *  `enviarMensagem` decide a forma com `comoEnviar()`, e `forma: "template"`
+   *  significa exatamente "a janela de 24h fechou". Dentro da janela ele chama
+   *  `enviarTexto`, e nunca passa por aqui.
+   *
+   *  Ou seja: o fallback mandava texto livre justamente na única situação em
+   *  que texto livre é proibido. O Twilio recusa — e, no pior caso, aceita e
+   *  não entrega. Do nosso lado o envio "funcionou".
+   *
+   *  FALHA PERMANENTE, e não transitória: insistir não cria um template. O que
+   *  resolve é alguém cadastrar o Content SID, que é decisão de gente.
+   * ========================================================================
    */
   enviarTemplate(envio: EnvioTemplate): Promise<ResultadoEnvio> {
     const ehContentSid = /^HX[0-9a-f]{32}$/iu.test(envio.template);
 
     if (!ehContentSid) {
-      return this.postar(
-        {
-          From: paraTwilio(this.cfg.numeroDe),
-          To: paraTwilio(envio.destino.telefone),
-          Body: envio.textoRenderizado,
-        },
-        "enviar_template_como_texto",
-      );
+      return Promise.resolve({
+        ok: false,
+        classe: "permanente",
+        codigo: "TEMPLATE_SEM_CONTENT_SID",
+        detalhe: `O Twilio exige um Content SID (HX…) fora da janela de 24 horas, e "${envio.template}" não é um. Cadastre o template no Twilio e guarde o SID em \`provider_nome\`.`,
+      });
     }
 
     const variaveis: Record<string, string> = {};

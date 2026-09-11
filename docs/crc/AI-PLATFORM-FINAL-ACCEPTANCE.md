@@ -36,6 +36,7 @@ Isso foi corrigido:
 | **FASE G (registro, estúdios, playground)** | concluída e provada |
 | **FASE H (inteligência vertical)** | concluída e provada |
 | **FASE I (observabilidade, runbook)** | concluída e provada |
+| **FASE J (orquestração: cadência, inbox, leases, tenant)** | concluída e provada |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
@@ -71,6 +72,65 @@ número, então uma quinta passa a exigir caso sozinha.
 
 *Os três P0 de recuperação da auditoria externa.* Foram corrigidos nesta rodada
 — a seção abaixo detalha cada um.
+
+---
+
+## A terceira auditoria: os problemas migraram para sistemas distribuídos
+
+Uma terceira auditoria externa releu o HEAD sem usar este documento como
+verdade. O veredito mudou de lugar, e isso é informativo: **ela não encontrou
+mais erro básico de arquitetura do agente.** Os defeitos passaram a ser de
+ownership, polling, replay, lease, efeito externo e roteamento de tenant.
+
+Conferi cada afirmação contra o código. **15 dos 16 achados procedem.**
+
+### O que foi corrigido
+
+| # | Achado | O que era | Onde foi |
+|---|---|---|---|
+| 1 | **O CRC não era tempo real** | Cron diário era o único chamador da fila. Mensagem das 14h respondida às 9h do dia seguinte | `automacao/pulso.ts` + `/api/crc/pulso` + `.github/workflows/crc-pulso.yml` + toque do webhook |
+| 2 | **A inbox de webhook não tinha consumidor** | A tabela era escrita e lida por ninguém. Webhook que falhava = mensagem de paciente perdida, com 200 devolvido à Meta | `supabase/21` + `repescarWebhooks()` |
+| 2b | **O payload não servia para replay** | `mascarar()` corta acima de 6 níveis, e o envelope da Meta tem mais. A linha existia e era inútil | Guarda o envelope normalizado; apaga ao concluir |
+| 4a | **Lease sem heartbeat** | Turno lento mas vivo passava dos 180s, e o reclaim agia contra quem não caiu | `supabase/22` — heartbeat no laço e fencing na conclusão |
+| 4b | **Timeout do WhatsApp duplicava mensagem** | Qualquer erro de rede liberava o dedupe. Timeout depois de a Meta aceitar = segunda mensagem | `ClasseDeFalha` com três estados; `DESCONHECIDO` na Inbox |
+| 4c | **Timeout do Dental Office duplicava consulta** | Só 409/422 eram mapeados; o resto subia e o retry mandava outro POST | `INCERTO` + `conciliarAgendamento()` |
+| 3 | **Tenant vinha da primeira clínica** | Toda mensagem ia para a primeira clínica cadastrada, qualquer que fosse o número | `supabase/23` — `crc_canais_whatsapp`, roteamento por `phone_number_id` |
+| 3b | **Motor atendia uma clínica** | `selecionarUm("crc_clinics")` | `automacao/volta-pesada.ts` itera todas |
+| 5a | **Gemini fora do Studio** | Gateway sabia falar; o cadastro não oferecia | `PROVEDORES` passa a incluir |
+| 5b | **Twilio mandava texto fora da janela** | Fallback para `Body` no caminho que só roda FORA das 24h | Recusa sem Content SID |
+| 5c | **Login por e-mail sem organização** | Schema permite o mesmo e-mail em duas orgs; o login pegava uma linha arbitrária | Confere a senha contra todas as contas |
+| 5d | **MCP com token único** | Um token para a instalação, sem escopo, validade ou revogação | `crc_mcp_tokens`, com hash e `permite_escrita` por token |
+| 5e | **Lead dizia "recebemos" sem receber** | 200 com `recebido: true` quando o banco estava fora | 503 honesto |
+| 5f | **CRC reusava o segredo de sessão do RH** | Cookie forjado com o segredo de um valeria no outro | Fallback só fora de produção |
+| 5g | **Cursor de sync sem clínica** | Duas unidades compartilhavam o cursor; a segunda parava de atualizar sem erro | `clinic_id` + PK nova |
+
+### O único achado que não procedia
+
+A matriz **não** dizia 310 testes. Dizia 979 — desatualizada em algumas dezenas,
+o que é bem menos grave do que o relatado.
+
+### E o que a auditoria não viu
+
+**Eventos e turnos já eram multi-tenant.** `crc_reservar_eventos` e
+`crc_reservar_agent_jobs` não filtram por organização, e cada linha carrega a
+sua. O caminho quente inteiro — paciente escreve, evento, turno, resposta — já
+atendia todas as clínicas numa chamada só. O que estava preso numa clínica era o
+lado batch, o que reduz bastante o tamanho do P0 SaaS.
+
+**E a receita do P0 nº 1 não era aplicável.** A auditoria propôs cron de ~1
+minuto; a conta está no plano Hobby da Vercel, onde cron é no máximo 1×/dia — não
+é descuido de configuração, é o teto do plano. O agendador foi para o GitHub
+Actions, com o toque do webhook como caminho rápido.
+
+### O que continua em aberto, e é honesto dizer
+
+- **Credenciais por organização:** as tabelas existem (`crc_canais_whatsapp`,
+  `crc_integracoes_clinica`), mas WhatsApp e Dental Office ainda leem do
+  ambiente. O roteamento — a parte que causa vazamento entre clínicas — está
+  feito; a leitura por tenant e a tela de cadastro, não.
+- **E2E com serviços externos reais:** `BLOCKED_EXTERNAL` nos dois.
+- **Workflow Studio estilo Dify:** o canvas é honesto sobre o motor linear; não
+  há branch, merge, subflow nem loops.
 
 ---
 
@@ -120,7 +180,7 @@ npx vitest run
 npm run test:integracao
 ```
 
-→ 979 unitários e 48 de integração passando, com `supabase/20` aplicado.
+→ 1065 unitários e 62 de integração passando, com `supabase/20` a `23` aplicados.
 
 ---
 

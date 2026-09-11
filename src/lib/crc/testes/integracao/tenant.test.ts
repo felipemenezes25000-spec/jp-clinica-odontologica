@@ -335,3 +335,98 @@ const quote = (t: string): string => `'${t.replace(/'/gu, "''")}'`;
 /** Um vetor de 1536 posições com o mesmo valor, no formato do pgvector. */
 const vetorCru = (v: number): string => `[${Array.from({ length: 1536 }, () => v).join(",")}]`;
 const vetorFixo = (v: number): string => `'${vetorCru(v)}'::vector`;
+
+/* ========================================================================== */
+/* O roteamento do webhook, contra o banco de verdade                        */
+/* ========================================================================== */
+
+/**
+ * O CENÁRIO QUE A AUDITORIA PEDIU e que nenhum teste fazia:
+ *
+ *     "quando chegam dois webhooks de números Meta diferentes, qual
+ *      organização cada um recebe?"
+ *
+ * Os testes de tenant provavam magnificamente que a fila carrega o
+ * `organization_id` certo e que o banco recusa mistura. Nenhum perguntava quem
+ * DECIDE esse `organization_id` na entrada — e a resposta era "a primeira
+ * clínica cadastrada", para toda mensagem.
+ */
+describe("de qual clínica é o webhook", () => {
+  beforeEach(async () => {
+    await sql(`
+      insert into public.crc_canais_whatsapp
+        (organization_id, clinic_id, provedor, identificador, rotulo)
+      values
+        ('${ORG_A}', '${CLINICA_A}', 'meta_cloud', 'phone-da-A', 'Número da A'),
+        ('${ORG_B}', '${CLINICA_B}', 'meta_cloud', 'phone-da-B', 'Número da B');
+    `);
+  });
+
+  it("cada identificador resolve para a SUA organização", async () => {
+    const [a] = await sql<{ organization_id: string; clinic_id: string }>(
+      `select organization_id, clinic_id from public.crc_canais_whatsapp
+        where provedor = 'meta_cloud' and identificador = 'phone-da-A' and ativo`,
+    );
+    const [b] = await sql<{ organization_id: string; clinic_id: string }>(
+      `select organization_id, clinic_id from public.crc_canais_whatsapp
+        where provedor = 'meta_cloud' and identificador = 'phone-da-B' and ativo`,
+    );
+
+    expect(a?.organization_id).toBe(ORG_A);
+    expect(b?.organization_id).toBe(ORG_B);
+    expect(a?.clinic_id).not.toBe(b?.clinic_id);
+  });
+
+  it("o banco RECUSA dois canais com o mesmo identificador", async () => {
+    /*
+     * Sem esta constraint, um webhook teria dois donos possíveis e a escolha
+     * voltaria a ser arbitrária — que é exatamente o defeito de origem. A trava
+     * é do banco, e não do código, porque código se contorna.
+     */
+    await expect(
+      sql(`
+        insert into public.crc_canais_whatsapp
+          (organization_id, clinic_id, provedor, identificador)
+        values ('${ORG_B}', '${CLINICA_B}', 'meta_cloud', 'phone-da-A')
+      `),
+    ).rejects.toThrow();
+  });
+
+  it("o banco RECUSA canal de uma organização apontando para clínica de outra", async () => {
+    // A mesma FK composta do `supabase/19`, aplicada à tabela nova. É o tipo de
+    // borda que precisa ser impossível por construção num sistema de saúde.
+    await expect(
+      sql(`
+        insert into public.crc_canais_whatsapp
+          (organization_id, clinic_id, provedor, identificador)
+        values ('${ORG_A}', '${CLINICA_B}', 'meta_cloud', 'phone-misturado')
+      `),
+    ).rejects.toThrow();
+  });
+
+  it("o cursor de sync passa a ser POR CLÍNICA", async () => {
+    /*
+     * `crc_sync_state` tinha chave `(organization_id, recurso)`. Duas unidades
+     * da mesma organização compartilhavam o cursor de `agendamentos`: a primeira
+     * a sincronizar o avançava, e a segunda pedia "o que mudou desde então" e
+     * recebia vazio. A agenda da segunda parava de atualizar, sem erro nenhum.
+     */
+    await sql(`
+      insert into public.crc_sync_state (organization_id, clinic_id, recurso, cursor)
+      values ('${ORG_A}', '${CLINICA_A}', 'agendamentos', '2026-09-01T00:00:00Z'),
+             ('${ORG_A}', '${CLINICA_B}', 'agendamentos', '2026-01-01T00:00:00Z')
+      on conflict do nothing;
+    `);
+
+    const linhas = await sql<{ clinic_id: string; cursor: string }>(
+      `select clinic_id, cursor from public.crc_sync_state
+        where organization_id = '${ORG_A}' and recurso = 'agendamentos'
+        order by cursor`,
+    );
+
+    // Duas linhas, cursores independentes. Antes, a segunda seria recusada pela
+    // chave primária — ou sobrescreveria a primeira.
+    expect(linhas).toHaveLength(2);
+    expect(linhas[0]?.cursor).not.toBe(linhas[1]?.cursor);
+  });
+});

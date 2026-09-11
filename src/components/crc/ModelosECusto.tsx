@@ -48,6 +48,7 @@ const reais = (v: number): string =>
 const PROVEDORES: readonly { valor: string; rotulo: string }[] = [
   { valor: "openai", rotulo: "OpenAI" },
   { valor: "anthropic", rotulo: "Anthropic (Claude)" },
+  { valor: "gemini", rotulo: "Google (Gemini)" },
 ];
 
 export function ModelosECusto() {

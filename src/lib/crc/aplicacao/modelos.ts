@@ -17,12 +17,21 @@ import { agoraIso, apagar, atualizar, gravar, selecionar, selecionarUm } from ".
 /* Credenciais                                                                */
 /* -------------------------------------------------------------------------- */
 
-export const PROVEDORES = ["openai", "anthropic"] as const;
+/*
+ * O GATEWAY JÁ SABIA FALAR COM OS TRÊS, e esta lista deixava um de fora.
+ *
+ * `integracoes/ia/gemini.ts` existe, o gateway monta `ProvedorGemini` e o
+ * disjuntor o cobre. Só o CADASTRO não o oferecia — então a capacidade estava
+ * pronta e inalcançável pela tela. É o pior tipo de lacuna: nada acusa, e o
+ * roadmap marca "feito".
+ */
+export const PROVEDORES = ["openai", "anthropic", "gemini"] as const;
 export type Provedor = (typeof PROVEDORES)[number];
 
 export const ROTULO_PROVEDOR: Readonly<Record<Provedor, string>> = {
   openai: "OpenAI",
   anthropic: "Anthropic (Claude)",
+  gemini: "Google (Gemini)",
 };
 
 export function ehProvedor(v: unknown): v is Provedor {

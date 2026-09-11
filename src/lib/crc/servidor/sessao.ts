@@ -36,7 +36,20 @@ function producao(): boolean {
 let avisouSegredo = false;
 
 function segredo(): string | null {
-  const configurado = process.env["CRC_SESSION_SECRET"] ?? process.env["RH_SESSION_SECRET"];
+  /*
+   * O FALLBACK PARA O SEGREDO DO RH SÓ VALE FORA DE PRODUÇÃO.
+   *
+   * Dois sistemas assinando sessão com a mesma chave significa que um cookie
+   * forjado com o segredo de um vale no outro. São bases de usuário diferentes,
+   * com permissões diferentes — e um vazamento do segredo do RH passaria a ser
+   * também um vazamento do CRC, que tem conversa de paciente.
+   *
+   * Em desenvolvimento o reaproveitamento economiza uma variável e não custa
+   * nada; em produção ele é um acoplamento de segurança que ninguém escolheu.
+   */
+  const configurado = producao()
+    ? process.env["CRC_SESSION_SECRET"]
+    : (process.env["CRC_SESSION_SECRET"] ?? process.env["RH_SESSION_SECRET"]);
   if (configurado !== undefined && configurado.length >= 32) return configurado;
   if (producao()) return null;
 
@@ -243,17 +256,60 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
 
   if (limpo.length === 0 || senha.length === 0) return generico;
 
-  const linha = await selecionarUm("crc_users", {
+  /*
+   * ========================================================================
+   *  O SCHEMA E O LOGIN DEFENDIAM MODELOS DIFERENTES.
+   *
+   *  `crc_users` tem `unique (organization_id, email)` — ou seja, o mesmo
+   *  e-mail PODE existir em duas organizações, e isso é intencional num SaaS:
+   *  um dentista que atende em duas clínicas.
+   *
+   *  Só que `entrar()` buscava com `selecionarUm` filtrando SÓ por e-mail. Com
+   *  duas contas, ele pegava uma — a que o banco devolvesse primeiro, sem
+   *  ordenação nenhuma. A pessoa entrava numa organização arbitrária, e a
+   *  próxima tentativa podia cair na outra.
+   *
+   *  Pior: a senha conferida é a DAQUELA linha. Então quem tem duas contas com
+   *  senhas diferentes entra ou não dependendo de qual linha veio — e o erro é
+   *  "e-mail ou senha incorretos", que manda a pessoa procurar no lugar errado.
+   * ========================================================================
+   *
+   * LÊ TODAS AS CONTAS DO E-MAIL e casa a senha contra cada uma. É o que
+   * transforma "qual linha o banco devolveu" em "qual conta tem esta senha" —
+   * uma pergunta que tem resposta única na prática.
+   *
+   * O CUSTO: uma verificação de scrypt por conta homônima. São duas ou três, e
+   * o scrypt é caro de propósito. Um teto de cinco evita que alguém transforme
+   * isso em vetor de carga cadastrando o mesmo e-mail cem vezes.
+   */
+  const candidatos = await selecionar("crc_users", {
     filtros: [
       { coluna: "email", op: "eq", valor: limpo },
       { coluna: "ativo", op: "eq", valor: true },
     ],
+    ordenar: [{ coluna: "criado_em", ascendente: true }],
+    limite: 5,
   });
 
-  const guardado = typeof linha?.["senha_hash"] === "string" ? linha["senha_hash"] : null;
-  // A verificação roda mesmo sem usuário encontrado: ver `senhaConfere`.
-  const confere = await senhaConfere(senha, guardado);
-  if (linha === null || !confere) return generico;
+  let linha: (typeof candidatos)[number] | null = null;
+
+  /*
+   * O LAÇO NÃO PARA NO PRIMEIRO ACERTO, e não é por indecisão: parar cedo faria
+   * o tempo de resposta variar conforme a posição da conta certa, o que é um
+   * canal lateral. Conferir todas leva sempre o mesmo tempo.
+   *
+   * E quando NÃO há candidato nenhum, ainda assim roda uma verificação (abaixo),
+   * pelo mesmo motivo: sem ela, e-mail inexistente responderia rápido e e-mail
+   * existente responderia devagar — transformando a tela de login num
+   * verificador de quais e-mails têm conta.
+   */
+  for (const candidato of candidatos) {
+    const hash = typeof candidato["senha_hash"] === "string" ? candidato["senha_hash"] : null;
+    if (await senhaConfere(senha, hash)) linha = linha ?? candidato;
+  }
+
+  if (candidatos.length === 0) await senhaConfere(senha, null);
+  if (linha === null) return generico;
 
   const organizationId = String(linha["organization_id"] ?? "");
   const userId = String(linha["id"] ?? "");
