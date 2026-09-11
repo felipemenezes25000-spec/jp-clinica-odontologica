@@ -69,7 +69,7 @@ export function contatoWhatsApp(intencao: Intencao, assunto?: string): string {
 
 /* ────────────────────────────────────────────────────────────────────────── */
 
-type Evento =
+export type Evento =
   | "whatsapp_click"
   | "schedule_click"
   | "phone_click"
@@ -78,7 +78,9 @@ type Evento =
   | "map_click"
   | "review_click"
   | "form_start"
-  | "form_submit";
+  | "form_submit"
+  | "career_view"
+  | "career_apply";
 
 declare global {
   interface Window {
