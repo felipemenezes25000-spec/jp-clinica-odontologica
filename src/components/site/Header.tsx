@@ -19,6 +19,20 @@ export function Header() {
     return () => window.removeEventListener("scroll", aoRolar);
   }, []);
 
+  // Se o menu estiver aberto em tablet e a viewport crescer para o breakpoint
+  // em que a navegação desktop assume, feche o estado móvel também. Sem isso o
+  // CSS escondia o menu, mas o efeito abaixo mantinha o body sem rolagem.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    const fecharNoDesktop = () => {
+      if (desktop.matches) setAberto(false);
+    };
+
+    fecharNoDesktop();
+    desktop.addEventListener("change", fecharNoDesktop);
+    return () => desktop.removeEventListener("change", fecharNoDesktop);
+  }, []);
+
   // Enquanto o menu móvel está aberto, ele se comporta como uma superfície
   // modal: trava o scroll da página, fecha ao tocar fora e mantém o foco dentro
   // dos controles visíveis. Isso evita a sensação de menu "solto" sobre a home.
