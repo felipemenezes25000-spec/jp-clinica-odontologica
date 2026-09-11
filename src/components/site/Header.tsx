@@ -92,11 +92,11 @@ export function Header() {
           num elemento sticky custa composição a cada frame durante o scroll. O blur
           premium fica só no desktop, onde há GPU/viewport para ele e a barra é maior. */}
       <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
+        {/* O gap é fluido porque é ele que separa o menu do logo e do botão,
+            e 24px fixos ficavam apertados justamente onde a barra é mais
+            estreita. Cresce com a largura, então em tela grande os três blocos
+            respiram sem precisar de outro ajuste. */}
         <div
-          /* O gap é fluido porque é ele que separa o menu do logo e do botão,
-             e 24px fixos ficavam apertados justamente onde a barra é mais
-             estreita. Cresce com a largura, então em tela grande os três blocos
-             respiram sem precisar de outro ajuste. */}
           className={`jp-container flex items-center justify-between gap-[clamp(24px,2.2vw,44px)] transition-[height] duration-300 ${
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
