@@ -59,12 +59,6 @@ export function FloatingCTA() {
             : "pointer-events-none invisible translate-y-8 opacity-0"
         }`}
         aria-hidden={!visivel}
-        /* `inert` junto do aria-hidden, e nao um ou outro: o Lighthouse
-           reprovou com "[aria-hidden] elements contain focusable descendents".
-           aria-hidden esconde do leitor de tela mas NAO tira do Tab -- quem
-           navega por teclado caia dentro de um convite invisivel e ficava sem
-           saber onde estava. `inert` tira do foco e da arvore de acessibilidade
-           de uma vez. */
         inert={!visivel}
       >
         <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
@@ -77,11 +71,6 @@ export function FloatingCTA() {
                 Pronto para transformar seu sorriso?
               </p>
               <p className="mt-0.5 hidden truncate text-xs font-medium text-white lg:block">
-                {/* Era "descubra o melhor cuidado": superlativo sobre o proprio
-                    serviço, que o CFO 118/2012 nao admite em publicidade
-                    odontologica e que, mesmo se admitisse, e a frase que toda
-                    clinica escreve. O que a JP de fato oferece e planejamento
-                    caso a caso — isso e verificavel, e diz mais. */}
                 Agende sua avaliação e veja o que faz sentido para você e sua família.
               </p>
             </div>
@@ -111,16 +100,18 @@ export function FloatingCTA() {
         </div>
       </div>
 
-      {/* O balão solto começa só em md. Em telas menores o CTA inferior já
-          oferece WhatsApp; exibir os dois ao mesmo tempo cria competição visual
-          e foi exatamente o que cobriu conteúdo/CTA no QA de 390px. */}
+      {/* O balão é o estado compacto. Quando a barra maior aparece ele some:
+          dois CTAs persistentes para a mesma ação só ocupavam área útil e
+          aumentavam a chance de cobrir conteúdo. */}
       <a
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
+        aria-hidden={visivel}
+        tabIndex={visivel ? -1 : undefined}
         className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-[26px] rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
-          visivel ? "bottom-[128px]" : "bottom-7"
+          visivel ? "pointer-events-none invisible translate-y-3 opacity-0" : "bottom-7 opacity-100"
         }`}
       >
         <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
@@ -139,20 +130,11 @@ export function FloatingCTA() {
         />
       </a>
 
-      {/* `invisible` + aria-hidden quando recolhida: só `translate-y-full` a tira
-          da vista, mas deixa os dois links na ordem de tabulação e anunciados
-          pelo leitor de tela — a pessoa navegava para botões fora da tela. */}
       <div
         className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/98 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-[translate,visibility] duration-500 sm:hidden ${
           visivel ? "translate-y-0" : "invisible translate-y-full"
         }`}
         aria-hidden={!visivel}
-        /* `inert` junto do aria-hidden, e nao um ou outro: o Lighthouse
-           reprovou com "[aria-hidden] elements contain focusable descendents".
-           aria-hidden esconde do leitor de tela mas NAO tira do Tab -- quem
-           navega por teclado caia dentro de um convite invisivel e ficava sem
-           saber onde estava. `inert` tira do foco e da arvore de acessibilidade
-           de uma vez. */
         inert={!visivel}
       >
         <div className="grid grid-cols-[.34fr_1fr_auto] gap-2">
