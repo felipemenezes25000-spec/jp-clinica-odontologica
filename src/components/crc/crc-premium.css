@@ -1678,18 +1678,9 @@
     border-radius: 14px;
   }
 
-  .crc-app .crc-login {
-    display: block;
-  }
-
-  .crc-app .crc-login-apresentacao {
-    display: none;
-  }
-
-  .crc-app .crc-login-formulario {
-    min-height: 100dvh;
-    padding: 18px;
-  }
+  /* O LAYOUT DO LOGIN NO CELULAR MUDOU DE ARQUIVO, para `crc-screens.css`.
+     Ele estava aqui e não vencia: mesma especificidade da regra base, e este
+     arquivo é carregado antes dela. Ver o comentário longo lá. */
 
   .crc-app .crc-login-cartao {
     padding: 24px;

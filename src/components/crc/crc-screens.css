@@ -1120,6 +1120,26 @@
   /* A linha que faltava. Sem ela o texto herda o #102519 do corpo e some
      dentro do próprio painel. */
   color: #fff;
+
+  /*
+   * O ESPAÇO MÍNIMO ENTRE O LOGO E O TEXTO.
+   *
+   * O centramento vertical do bloco do meio vem de `margin-block: auto` no
+   * `.crc-login-copy`. Isso funciona enquanto SOBRA espaço: as margens
+   * automáticas repartem o que sobrou. Numa janela baixa — um notebook de
+   * 1280×620, uma janela não maximizada — não sobra nada, as margens colapsam
+   * para zero e o lockup encosta no "CENTRAL DE RELACIONAMENTO". Medido: zero
+   * pixel entre os dois.
+   *
+   * `gap` resolve porque ele é aplicado ANTES de as margens automáticas
+   * repartirem o resto. Em tela alta, o `auto` continua centralizando como
+   * antes; em tela baixa, o gap é o piso que impede o encosto.
+   *
+   * A alternativa seria `margin-top` no `.crc-login-copy`, e ela seria pior:
+   * `margin-block: auto` sobrescreveria o lado de cima, e o conserto
+   * dependeria da ordem das regras.
+   */
+  gap: clamp(24px, 4vh, 48px);
 }
 
 .crc-app .crc-login-lockup {
@@ -1203,6 +1223,47 @@
   place-items: center;
   min-height: 100dvh;
   padding: clamp(24px, 5vw, 64px);
+}
+
+/* --------------------------------------------------------------------------
+   O login no celular
+   --------------------------------------------------------------------------
+
+   ESTE BLOCO ESTAVA NO ARQUIVO ERRADO, e o efeito era o login do CRC quebrado
+   em qualquer tela menor que 780px: o painel verde espremido em 64px de largura
+   com o cartão de acesso por cima dele.
+
+   O DIAGNÓSTICO, porque o sintoma engana. A regra existia — em
+   `crc-premium.css`, dentro de um `@media (max-width: 780px)` — e a media query
+   CASAVA. O que não acontecia era ela vencer: media query não acrescenta
+   especificidade, e o bundler carregava `crc-premium.css` ANTES de
+   `crc-screens.css`. Duas regras de mesma especificidade, a última ganha, e a
+   última era `display: grid` sem media nenhuma.
+
+   O CONSERTO NÃO É `!important` NEM MEXER NA ORDEM DE IMPORT. Os dois deixariam
+   a regra dependendo de uma coisa distante e frágil. O conserto é o óbvio: uma
+   regra responsiva mora ao lado da regra que ela sobrescreve. Separá-las em
+   arquivos diferentes foi exatamente o que criou o problema.
+
+   O que fica no `crc-premium.css` é o que é dele: o acabamento do cartão. */
+@media (max-width: 780px) {
+  /* Uma coluna. A grade de duas colunas tem uma faixa de 390px fixos para o
+     formulário, e num celular de 375px isso não sobra nada para a outra. */
+  .crc-app .crc-login {
+    display: block;
+  }
+
+  /* O painel de apresentação some, e é decisão de produto: quem abre o CRC no
+     celular é alguém da clínica querendo entrar, não alguém descobrindo o
+     produto. A vitrine fica para a tela grande. */
+  .crc-app .crc-login-apresentacao {
+    display: none;
+  }
+
+  .crc-app .crc-login-formulario {
+    min-height: 100dvh;
+    padding: 18px;
+  }
 }
 
 

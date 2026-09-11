@@ -35,7 +35,9 @@ export function RastreioDeContato() {
     if (pagina === "/carreiras" || pagina.startsWith("/carreiras/")) {
       rastrear("career_view", {
         pagina,
-        vaga: pagina.startsWith("/carreiras/") ? (pagina.split("/").filter(Boolean).pop() ?? "") : "",
+        vaga: pagina.startsWith("/carreiras/")
+          ? (pagina.split("/").filter(Boolean).pop() ?? "")
+          : "",
       });
     }
   }, [location.pathname]);

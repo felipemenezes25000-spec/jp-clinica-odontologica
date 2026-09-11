@@ -99,7 +99,9 @@ export function Header() {
 
   const itemAtivo = (href: string) => {
     if (href === "/carreiras") {
-      return location.pathname.startsWith("/carreiras") || location.pathname === "/trabalhe-conosco";
+      return (
+        location.pathname.startsWith("/carreiras") || location.pathname === "/trabalhe-conosco"
+      );
     }
 
     if (href === "/#tratamentos" && location.pathname.startsWith("/tratamentos/")) return true;
@@ -199,7 +201,9 @@ export function Header() {
                   <li key={item.href} className="shrink-0">
                     <a
                       href={item.href}
-                      aria-current={ativo ? (item.href.includes("#") ? "location" : "page") : undefined}
+                      aria-current={
+                        ativo ? (item.href.includes("#") ? "location" : "page") : undefined
+                      }
                       className={`relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 focus-visible:text-forest-2 hover:after:w-full focus-visible:after:w-full ${
                         ativo ? "text-forest-2 after:w-full" : "text-brand-text after:w-0"
                       }`}
