@@ -383,6 +383,26 @@ export async function aceitarHorario(
  * do mesmo dentista no minuto exato — para a chamada ser barata e a resposta,
  * inequívoca.
  */
+/**
+ * Relê o kill switch de escrita e devolve o motivo quando ele foi acionado.
+ *
+ * `null` significa "pode escrever". Ver o comentário na chamada.
+ */
+async function escritaFoiDesligadaAgora(ctx: ContextoAgendamento): Promise<string | null> {
+  try {
+    const { lerKillSwitches } = await import("../servidor/configuracao");
+    const atuais = await lerKillSwitches(ctx.organizationId);
+    if (atuais[KILL_SWITCHES.escritasDentalOffice] !== true) return null;
+    return "A escrita no Dental Office foi desligada enquanto esta consulta era marcada.";
+  } catch (erro) {
+    registrar("erro", "Não foi possível reler o kill switch de escrita; marcação recusada.", {
+      organizationId: ctx.organizationId,
+      detalhe: erro instanceof Error ? erro.message : String(erro),
+    });
+    return "Não foi possível confirmar se a escrita no Dental Office está liberada.";
+  }
+}
+
 async function reservar(
   ctx: ContextoAgendamento,
   dados: {
@@ -424,6 +444,31 @@ async function reservar(
       motivo: "O horário foi ocupado entre a oferta e a resposta.",
       opcao,
     };
+  }
+
+  /*
+   * O INTERRUPTOR É RELIDO AQUI — Fase C.
+   *
+   * `ctx.interruptores` é um retrato tirado no começo do turno. Entre ele e esta
+   * linha passaram a chamada do modelo e a resposta do paciente: tempo de sobra
+   * para alguém apertar o botão de emergência.
+   *
+   * E o botão de emergência é apertado JUSTAMENTE quando algo já está errado —
+   * a agenda foi importada torta, a integração está gravando consulta em cima de
+   * consulta. Honrar o retrato antigo aqui significaria escrever na agenda real
+   * da clínica depois de mandarem parar.
+   *
+   * A flag não é relida junto porque ela é configuração, não emergência: quem a
+   * desliga não espera efeito no meio de um turno. O kill switch espera.
+   *
+   * FALHA DE LEITURA NÃO ESCREVE. Se a consulta quebrar, tratamos como desligado
+   * e a consulta vira tarefa para marcar à mão. O erro barato é a recepcionista
+   * marcar manualmente; o caro é a consulta fantasma na agenda.
+   */
+  const paradoAgora = await escritaFoiDesligadaAgora(ctx);
+  if (paradoAgora !== null) {
+    await tarefaParaMarcarNaMao(ctx, dados, paradoAgora);
+    return { ok: false, codigo: "ESCRITA_DESLIGADA", motivo: paradoAgora, opcao };
   }
 
   const criado = await ctx.cliente.criarAgendamento({

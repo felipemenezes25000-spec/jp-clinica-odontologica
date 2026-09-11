@@ -369,3 +369,88 @@ describe("aceitar", () => {
     expect(r.codigo).toBe("SEM_OFERTA");
   });
 });
+
+/* ========================================================================== */
+/* O interruptor de emergência no meio do turno — Fase C                      */
+/* ========================================================================== */
+
+describe("kill switch acionado depois da oferta", () => {
+  async function comOferta(ctx: ContextoAgendamento) {
+    const r = await oferecerHorarios(ctx, { conversationId: CONVERSA, patientId: PACIENTE });
+    if (!r.ok) throw new Error(r.motivo);
+    return r;
+  }
+
+  /**
+   * O CENÁRIO, e por que ele é o que importa.
+   *
+   * `ctx.interruptores` é um retrato tirado quando o turno começou. Entre ele e
+   * a gravação na agenda real passaram a chamada do modelo e a resposta do
+   * paciente — dezenas de segundos.
+   *
+   * E o botão de emergência é apertado JUSTAMENTE nesse intervalo, porque
+   * alguém acabou de perceber que algo está errado: a agenda veio torta da
+   * importação, a integração está marcando em cima de consulta existente.
+   * Honrar o retrato antigo aqui é escrever na agenda da clínica DEPOIS de
+   * mandarem parar.
+   */
+  it("não marca na agenda real quando o botão é apertado no meio do caminho", async () => {
+    const ctx = contexto();
+    const oferta = await comOferta(ctx);
+    const escolhido = oferta.opcoes[0];
+    if (escolhido === undefined) throw new Error("sem opção");
+
+    // AQUI é o meio do turno: alguém aperta o botão na tela de operação.
+    // O `ctx` continua com o retrato antigo, de propósito — é o retrato que o
+    // código tinha e que este teste prova não ser mais suficiente.
+    semear("crc_feature_flags", [
+      {
+        organization_id: ORG,
+        chave: KILL_SWITCHES.escritasDentalOffice,
+        ligada: true,
+      },
+    ]);
+
+    const r = await aceitarHorario(ctx, {
+      conversationId: CONVERSA,
+      texto: `${escolhido.horaLocal} tá ótimo`,
+    });
+
+    expect(r.ok).toBe(false);
+    if (r.ok) return;
+    expect(r.codigo).toBe("ESCRITA_DESLIGADA");
+
+    // NADA FOI ESCRITO NA AGENDA DA CLÍNICA. É a asserção que conta: o horário
+    // continua livre lá.
+    const livres = await ctx.cliente.horariosDisponiveis({
+      clinicaExternaId: "clin-1",
+      dentistaExternoId: escolhido.dentistaExternoId,
+      diasAFrente: 14,
+      clinicId: CLINICA,
+    });
+    expect(livres.some((s) => s.inicioEm === escolhido.inicioEm)).toBe(true);
+    expect(conteudo("crc_appointments")).toHaveLength(0);
+
+    // E O PACIENTE NÃO FICA NO VÁCUO: a consulta vira tarefa para a recepção
+    // marcar à mão. Recusar sem registrar seria trocar um erro por outro.
+    const tarefas = conteudo("crc_tasks");
+    expect(tarefas.length).toBeGreaterThan(0);
+  });
+
+  it("deixa marcar quando o botão continua solto", async () => {
+    const ctx = contexto();
+    const oferta = await comOferta(ctx);
+    const escolhido = oferta.opcoes[0];
+    if (escolhido === undefined) throw new Error("sem opção");
+
+    // Sem nenhuma linha em `crc_feature_flags`, a releitura devolve vazio — e
+    // vazio é "solto". O caminho feliz não pode ter sido quebrado pela trava.
+    const r = await aceitarHorario(ctx, {
+      conversationId: CONVERSA,
+      texto: `${escolhido.horaLocal} tá ótimo`,
+    });
+
+    expect(r.ok).toBe(true);
+    expect(conteudo("crc_appointments")).toHaveLength(1);
+  });
+});

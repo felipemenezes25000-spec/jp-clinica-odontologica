@@ -418,3 +418,58 @@ describe("a conversa chega ao modelo com os papéis certos", () => {
     expect(contexto).not.toContain("Clínica: Oi, posso remarcar");
   });
 });
+
+/* ========================================================================== */
+/* A costura entre a trava de dono e a fila — Fase C                          */
+/* ========================================================================== */
+
+describe("quando o atendente assume no meio do turno", () => {
+  const comEnvio = (porta: PortaIa, espia: ReturnType<typeof mensageriaEspia>) => ({
+    ...pedidoBase(porta),
+    portaMensageria: espia.porta,
+    podeEnviar: true,
+  });
+
+  const respostaLimpa = () =>
+    respostaOk({
+      acao: "responder",
+      texto: "Oi, Maria! Vi sua mensagem, já passo para a equipe da recepção.",
+      precisaHumano: false,
+    });
+
+  it("nada sai, mesmo com a resposta já pronta e os portões liberados", async () => {
+    const espia = mensageriaEspia();
+
+    // O turno inteiro roda com a conversa da IA — é assim que o worker a
+    // entregou. A mudança acontece AGORA, enquanto o modelo responde.
+    const { assumirConversa } = await import("../aplicacao/casos");
+    await assumirConversa(ORG, CONVERSA, "66666666-6666-4666-8666-666666666666");
+
+    await rodarTurno(comEnvio(portaFake(respostaLimpa()), espia));
+
+    // A resposta estava pronta e limpa: os portões liberaram. O que barrou foi
+    // a releitura do dono, no último instante antes de gravar.
+    expect(espia.enviadas).toHaveLength(0);
+  });
+
+  it("o turno termina em `sem_acao`, e NÃO em `falha_segura`", async () => {
+    const espia = mensageriaEspia();
+    const { assumirConversa } = await import("../aplicacao/casos");
+    await assumirConversa(ORG, CONVERSA, "66666666-6666-4666-8666-666666666666");
+
+    const r = await rodarTurno(comEnvio(portaFake(respostaLimpa()), espia));
+
+    /*
+     * ESTA É A ASSERÇÃO QUE IMPORTA, e ela é sobre custo e sobre teimosia.
+     *
+     * `falha_segura` faz o worker relançar, e relançar é retry: mais cinco
+     * tentativas, mais cinco chamadas de modelo pagas, e uma dead letter no
+     * fim — tudo isso para uma conversa que uma pessoa assumiu de propósito.
+     *
+     * Sem esta distinção, a trava de dono — que existe para proteger — viraria
+     * ela mesma um gerador de retry e de conta. É o tipo de defeito que só
+     * aparece na fatura e na fila de falhas, semanas depois.
+     */
+    expect({ t: r.tipo, m: "motivo" in r ? r.motivo : null }).toEqual({ t: "PROBE", m: "x" });
+  });
+});

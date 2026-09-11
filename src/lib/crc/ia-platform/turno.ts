@@ -262,7 +262,7 @@ async function decidirEEntregar(
        */
       const { MOTIVO_ORCAMENTO } = await import("../integracoes/ia/gateway");
       if (resultado.motivo.includes(MOTIVO_ORCAMENTO)) {
-        await abrirCasoPorOrcamento(pedido, ctx, resultado.motivo);
+        await abrirCasoPorOrcamento(pedido, ctx, resultado.motivo, trace);
       }
 
       return await encerrar(trace, chaveDedupe, ctx, {
@@ -272,11 +272,12 @@ async function decidirEEntregar(
     }
 
     if (resultado.tipo === "humano") {
-      await abrirCasoHumano(pedido, ctx, {
-        codigo: "agente_pediu_humano",
-        motivo: resultado.motivo,
-        respostaBarrada: null,
-      });
+      await abrirCasoHumano(
+        pedido,
+        ctx,
+        { codigo: "agente_pediu_humano", motivo: resultado.motivo, respostaBarrada: null },
+        trace,
+      );
       return await encerrar(trace, chaveDedupe, ctx, {
         tipo: "humano",
         motivo: resultado.motivo.slice(0, 240),
@@ -323,13 +324,18 @@ async function decidirEEntregar(
 
     if (!veredicto.passa) {
       if (veredicto.destino === "humano") {
-        await abrirCasoHumano(pedido, ctx, {
-          codigo: veredicto.codigo,
-          motivo: veredicto.motivo,
-          // O QUE O AGENTE IA DIZER vai junto: serve de rascunho para a pessoa
-          // e de evidência de por que ele foi barrado.
-          respostaBarrada: candidata.texto,
-        });
+        await abrirCasoHumano(
+          pedido,
+          ctx,
+          {
+            codigo: veredicto.codigo,
+            motivo: veredicto.motivo,
+            // O QUE O AGENTE IA DIZER vai junto: serve de rascunho para a pessoa
+            // e de evidência de por que ele foi barrado.
+            respostaBarrada: candidata.texto,
+          },
+          trace,
+        );
       }
       return await encerrar(
         trace,
@@ -389,19 +395,29 @@ type Ctx = NonNullable<Awaited<ReturnType<typeof montarContextoDoTurno>>>;
  *
  * NUNCA LANÇA, pela mesma razão de `abrirCasoHumano`.
  */
-async function abrirCasoPorOrcamento(pedido: PedidoTurno, ctx: Ctx, motivo: string): Promise<void> {
+async function abrirCasoPorOrcamento(
+  pedido: PedidoTurno,
+  ctx: Ctx,
+  motivo: string,
+  trace: Trace,
+): Promise<void> {
   try {
     const { lerOrcamento } = await import("../aplicacao/orcamento");
     const orcamento = await lerOrcamento(pedido.organizationId);
     if (!orcamento.abrirCaso) return;
 
-    await abrirCasoHumano(pedido, ctx, {
-      codigo: "orcamento_estourado",
-      // A frase que a recepção lê tem que dizer o que fazer, e não só o que
-      // aconteceu: quem abre esta tarefa não configurou o teto.
-      motivo: `${motivo.replace(/^[a-z_]+:\s*/u, "")} Responda esta pessoa à mão, e avise quem cuida das configurações.`,
-      respostaBarrada: null,
-    });
+    await abrirCasoHumano(
+      pedido,
+      ctx,
+      {
+        codigo: "orcamento_estourado",
+        // A frase que a recepção lê tem que dizer o que fazer, e não só o que
+        // aconteceu: quem abre esta tarefa não configurou o teto.
+        motivo: `${motivo.replace(/^[a-z_]+:\s*/u, "")} Responda esta pessoa à mão, e avise quem cuida das configurações.`,
+        respostaBarrada: null,
+      },
+      trace,
+    );
   } catch {
     // Ver o cabeçalho.
   }
@@ -513,9 +529,25 @@ async function entregar(pedido: PedidoTurno, ctx: Ctx, texto: string): Promise<R
     agora: pedido.agora,
   });
 
-  return r.ok
-    ? { tipo: "enviado", mensagemId: r.mensagemId }
-    : { tipo: "falha_segura", motivo: `${r.codigo}: ${r.motivo}`.slice(0, 240) };
+  if (r.ok) return { tipo: "enviado", mensagemId: r.mensagemId };
+
+  /*
+   * RECUSA PERMANENTE NÃO É FALHA SEGURA — Fase C.
+   *
+   * `falha_segura` faz o worker relançar, e relançar significa retry: mais
+   * cinco tentativas, mais cinco chamadas de modelo pagas, e uma dead letter no
+   * fim. Isso está certo para provedor fora do ar, que volta em dois minutos.
+   *
+   * Está ERRADO para "um atendente assumiu a conversa". Aí não há o que
+   * retomar: a decisão de calar é definitiva e correta, e insistir seria o
+   * sistema brigando com a pessoa que assumiu. Sem esta distinção, a própria
+   * trava de dono viraria um gerador de retry e de custo.
+   */
+  if (r.permanente) {
+    return { tipo: "sem_acao", motivo: `${r.codigo}: ${r.motivo}`.slice(0, 240) };
+  }
+
+  return { tipo: "falha_segura", motivo: `${r.codigo}: ${r.motivo}`.slice(0, 240) };
 }
 
 /**
@@ -529,28 +561,43 @@ async function abrirCasoHumano(
   pedido: PedidoTurno,
   ctx: Ctx,
   dados: { codigo: string; motivo: string; respostaBarrada: string | null },
+  trace: Trace,
 ): Promise<void> {
-  try {
-    const { abrirCaso } = await import("../aplicacao/casos");
-    await abrirCaso({
-      organizationId: pedido.organizationId,
-      clinicId: ctx.clinicId,
-      conversationId: pedido.conversationId,
-      patientId: ctx.paciente?.id ?? null,
-      motivoCodigo: dados.codigo,
-      motivo: dados.motivo,
-      resumo: ctx.resumo,
-      respostaBarrada: dados.respostaBarrada,
-      proximaAcao: null,
-      // Mesma chave do turno: reprocessar o evento não coloca a mesma pessoa
-      // duas vezes na fila.
-      chaveDedupe: `turno:${pedido.eventoId}`,
-      // Conteúdo clínico é o único que entra como ALTA: os outros esperam.
-      prioridade: dados.codigo === "conteudo_clinico" ? "ALTA" : "NORMAL",
-    });
-  } catch {
-    // Ver o cabeçalho.
-  }
+  /*
+   * A CASCATA, e não um `catch {}` — Fase C.
+   *
+   * O que havia aqui engolia a falha: o agente decidia "isto exige uma pessoa",
+   * a gravação falhava, e o turno seguia como se nada tivesse acontecido. Do
+   * outro lado havia alguém que perguntou sobre remédio, ou reclamou, ou pediu
+   * para falar com gente.
+   *
+   * `garantirHandoff` tenta caso humano, depois tarefa, depois dead letter, e em
+   * último caso grita no log com severidade alta. Ver `aplicacao/handoff.ts`.
+   */
+  const { garantirHandoff } = await import("../aplicacao/handoff");
+  const r = await garantirHandoff({
+    organizationId: pedido.organizationId,
+    clinicId: ctx.clinicId,
+    conversationId: pedido.conversationId,
+    patientId: ctx.paciente?.id ?? null,
+    codigo: dados.codigo,
+    motivo: dados.motivo,
+    resumo: ctx.resumo,
+    respostaBarrada: dados.respostaBarrada,
+    // Mesma chave do turno: reprocessar o evento não coloca a mesma pessoa duas
+    // vezes na fila.
+    chaveDedupe: `turno:${pedido.eventoId}`,
+    runId: trace.runId(),
+  });
+
+  // Onde o handoff pousou vira span. Sem isso, "caiu no degrau 3" seria uma
+  // informação que só existe no instante em que aconteceu.
+  trace.medirSync(
+    "handoff",
+    "persistencia",
+    () => r,
+    (x) => ({ bloqueado: x.destino !== "caso", codigo: x.destino }),
+  );
 }
 
 /** Grava o trace e devolve o desfecho. Um único ponto de saída. */

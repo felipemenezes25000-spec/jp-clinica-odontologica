@@ -1,6 +1,6 @@
 import { ArrowRight, Heart, ShieldCheck, Sparkles, Star, UsersRound } from "lucide-react";
 
-import { DEPOIMENTOS } from "@/lib/jp";
+import { DEPOIMENTOS_REAIS } from "@/lib/jp";
 import { GoogleRating } from "@/components/site/GoogleRating";
 
 function Estrelas({ dark = false, size = 17 }: { dark?: boolean; size?: number }) {
@@ -76,7 +76,10 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
  * formam a grade. A nota exibida acompanha a ficha do Google.
  */
 export function ReviewsSection() {
-  const [destaque, ...grade] = DEPOIMENTOS;
+  // DEPOIMENTOS_REAIS, e não a lista bruta: os marcados `ficticio` eram
+  // preenchimento de layout, e estavam indo ao ar sob o rótulo "Avaliação no
+  // Google" — que é o que transforma preenchimento em publicidade enganosa.
+  const [destaque, ...grade] = DEPOIMENTOS_REAIS;
 
   return (
     <section id="depoimentos" className="jp-section relative overflow-hidden bg-paper">

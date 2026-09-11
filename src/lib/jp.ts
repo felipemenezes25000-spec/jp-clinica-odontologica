@@ -298,6 +298,21 @@ export const DEPOIMENTOS: Depoimento[] = [
  * publicar número errado expõe a clínica. Os dados abaixo foram lidos da placa
  * da fachada. Campos opcionais ficam de fora do card quando ausentes.
  */
+/**
+ * OS DEPOIMENTOS QUE O SITE PODE MOSTRAR — só os reais.
+ *
+ * `DEPOIMENTOS` guarda a lista inteira, inclusive os marcados `ficticio: true`,
+ * que entraram como preenchimento de layout enquanto a clínica não transcrevia
+ * mais avaliações. Renderizar um deles sob o rótulo "Avaliação no Google" é
+ * publicidade enganosa — CDC art. 37 — e infração à publicidade odontológica.
+ *
+ * Por isso o site consome ESTA constante, nunca a lista bruta. A regra é a
+ * mesma que vale para qualquer número do site: se não há dado real, não se
+ * exibe. Três avaliações verdadeiras valem mais que cinco com duas inventadas,
+ * e a seção se ajusta sozinha quando a clínica transcrever mais.
+ */
+export const DEPOIMENTOS_REAIS = DEPOIMENTOS.filter((d) => !d.ficticio);
+
 export type Profissional = {
   nome: string;
   registro: string;

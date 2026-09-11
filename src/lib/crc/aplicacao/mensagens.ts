@@ -416,8 +416,82 @@ async function ultimaEntradaDaConversa(pedido: PedidoEnvio): Promise<string | nu
   return typeof l?.["criado_em"] === "string" ? l["criado_em"] : null;
 }
 
+/**
+ * Relê o dono da conversa e recusa o envio da IA quando ela não manda mais.
+ *
+ * DEVOLVE RECUSA PERMANENTE de propósito. Um envio recusado por dono não deve
+ * voltar para a fila: a conversa passou para uma pessoa, e reagendar significaria
+ * a IA tentar de novo daqui a pouco — exatamente o que não pode acontecer.
+ *
+ * FALHA DE LEITURA NÃO LIBERA O ENVIO. Se a consulta quebrar, a resposta é
+ * recusar: entre calar indevidamente e falar por cima de um atendente, calar é o
+ * erro barato. A recusa fica registrada com o motivo.
+ */
+async function recusarSeAIaPerdeuAConversa(
+  pedido: PedidoEnvio,
+): Promise<ResultadoEnvioMensagem | null> {
+  if (pedido.remetente !== "ia") return null;
+  // Sem conversa não há dono a consultar. Envio da IA sem conversa não existe
+  // hoje — o turno sempre tem uma —, e se um dia existir, ele não é resposta a
+  // ninguém e não tem como atropelar atendente nenhum.
+  if (pedido.conversationId === undefined) return null;
+
+  let dono: string;
+  try {
+    const { donoDaConversa } = await import("./casos");
+    dono = (await donoDaConversa(pedido.organizationId, pedido.conversationId)).dono;
+  } catch (erro) {
+    registrar("erro", "Não foi possível reler o dono da conversa; envio da IA recusado.", {
+      organizationId: pedido.organizationId,
+      conversationId: pedido.conversationId,
+      detalhe: descreverErro(erro),
+    });
+    return {
+      ok: false,
+      codigo: "DONO_INDISPONIVEL",
+      motivo: "Não foi possível confirmar quem responde esta conversa.",
+      permanente: true,
+    };
+  }
+
+  if (dono === "ia") return null;
+
+  registrar("aviso", "A IA tentou enviar numa conversa que não é mais dela.", {
+    organizationId: pedido.organizationId,
+    conversationId: pedido.conversationId,
+    dono,
+  });
+
+  return {
+    ok: false,
+    codigo: dono === "humano" ? "CONVERSA_ASSUMIDA" : "IA_PAUSADA",
+    motivo:
+      dono === "humano"
+        ? "Um atendente assumiu esta conversa enquanto a IA pensava."
+        : "A IA está pausada nesta conversa.",
+    permanente: true,
+  };
+}
+
 export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvioMensagem> {
   const cfg = pedido.configuracao ?? CONFIGURACAO_PADRAO;
+
+  /*
+   * O DONO É RELIDO AQUI, no último instante antes de gravar — Fase C.
+   *
+   * O worker já verifica o dono ao começar o job. Entre aquela leitura e esta há
+   * a chamada do modelo: dez, vinte segundos. É tempo de sobra para um atendente
+   * ver a conversa na Inbox, clicar em "assumir" e começar a digitar.
+   *
+   * Sem esta releitura, o que o paciente recebe é a resposta da IA por cima da
+   * resposta da pessoa — duas vozes no mesmo minuto, dizendo coisas diferentes,
+   * e a clínica descobre pelo print que o paciente manda depois.
+   *
+   * SÓ VALE PARA `ia`. `atendente` é a pessoa que assumiu, e `automacao` é
+   * jornada agendada, que roda por outra decisão e tem outros portões.
+   */
+  const recusa = await recusarSeAIaPerdeuAConversa(pedido);
+  if (recusa !== null) return recusa;
 
   if (pedido.proativo) {
     // ATENÇÃO À CONDIÇÃO. Antes ela era `patientId !== null`, e o efeito era um
