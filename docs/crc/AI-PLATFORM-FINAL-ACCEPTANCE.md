@@ -69,6 +69,59 @@ nove funções de servidor e o endpoint MCP. Ver "A ponta visível", no topo.
 bloqueantes têm caso, e um teste compara com a LISTA de categorias em vez de um
 número, então uma quinta passa a exigir caso sozinha.
 
+*Os três P0 de recuperação da auditoria externa.* Foram corrigidos nesta rodada
+— a seção abaixo detalha cada um.
+
+---
+
+## A auditoria externa: três P0 de recuperação
+
+Uma auditoria externa reprovou o release autônomo por **três motivos técnicos
+concretos**, e os três se confirmaram na leitura do código. Eles tinham uma
+origem comum: **a fila do agente tratava dois estados diferentes como se fossem
+o mesmo**, e em cada caso o estado benigno era o que ganhava.
+
+| # | O que dizia | Confirmado? | O que foi feito |
+|---|---|---|---|
+| 1 | Crash recupera o job, mas **não** a run | Sim | A run ganhou lease próprio. `crc_reivindicar_ai_run` (`supabase/20`) separa **nova / ocupada / reclaim / terminal** num `insert … on conflict do update` com predicado — atômico, sem ler-decidir-escrever |
+| 2 | Falha no enfileiramento pode **perder um turno** | Sim | `enfileirarTurno` devolve `{criado \| duplicado \| erro}`; `erro` faz o handler lançar, e o evento volta à fila |
+| 3 | Falha na reserva de idempotência deixava **continuar sem garantia** | Sim | A reserva falha FECHADA: `indefinido` → `falha_segura` → o job volta à fila em vez de ser concluído |
+
+**O que os três tinham em comum, e é a lição que fica:** um retorno com menos
+estados do que a realidade. `boolean` para três desfechos, `dono: true/false`
+para quatro. Em ambos, quem chamava era *obrigado* a tratar o caso grave como se
+fosse o benigno — não por descuido, mas porque o tipo não deixava distinguir. O
+conserto dos três é o mesmo: **dar nome a cada estado**, e deixar o compilador
+cobrar o tratamento.
+
+**O que essas correções ainda não fazem:** nenhuma delas envia mensagem a
+paciente. O sistema continua `BLOCKED_EXTERNAL` nos dois provedores, e o "não"
+para `ai_agente_envio` continua de pé pelas duas razões acima — que não são de
+código.
+
+**Evidência.** `integracao/e2e.test.ts > o crash recupera o job E a run` (cinco
+casos contra Postgres real, incluindo duas retomadas simultâneas do lease
+vencido), `agente-worker.test.ts > o reclaim da run`, `> o evento não some
+quando o enfileiramento falha`, e `turno.test.ts > sem idempotência garantida, o
+turno PARA`.
+
+**Injeção de defeito (verificada, quatro reversões):** tirar o predicado de
+lease do `do update` quebra 2 testes de integração; devolver `dono: true` no
+`catch` da reserva quebra 1; colapsar `erro` em `duplicado` quebra 1; fazer o
+handler ignorar o retorno quebra 1.
+
+**Comandos:**
+
+```bash
+npx vitest run
+```
+
+```bash
+npm run test:integracao
+```
+
+→ 979 unitários e 48 de integração passando, com `supabase/20` aplicado.
+
 ---
 
 ## O que esta rodada corrigiu
@@ -120,10 +173,14 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 4 | Janela WhatsApp funciona com dados reais | `PASS` | O CI de integração roda contra Postgres real com o schema aplicado do zero |
 | 5 | Destino WhatsApp vem de camada canônica | `PASS` | `aplicacao/conversas.ts` |
 | 6 | Agent job é durável | `PASS` | `supabase/17-crc-agent-jobs.sql` + `aplicacao/agent-jobs.ts` + `automacao/agente-worker.ts`. O handler só enfileira |
+| 6b | O turno não se perde entre o evento e a fila | `PASS` | **Furo encontrado por auditoria externa.** `enfileirarTurno` devolvia `boolean`, e o `false` queria dizer "já existia" (normal) E "o banco caiu" (paciente sem resposta). O handler ignorava — não tinha como distinguir —, o evento saía `PROCESSADO` sem job nenhum, e nada na fila registrava a perda. Agora o retorno é `{criado \| duplicado \| erro}` e `erro` faz o handler lançar, o que devolve o evento à fila com backoff e, no teto, à dead letter. `agente-worker.test.ts > o evento não some quando o enfileiramento falha` |
 | 7 | Retry existe | `PASS` | Backoff 30s/2min/8min/32min com teto de 5 tentativas; `agente-worker.test.ts` |
 | 8 | Dead letter existe | `PASS` | `falharJob` grava em `crc_dead_letters` ao esgotar as tentativas |
 | 9 | Claim é atômico | `PASS` | Provado contra Postgres: dez workers disputando cinco jobs, cada job para um só. `integracao/concorrencia.test.ts` |
-| 10 | Idempotência ANTES dos efeitos | `PASS` | `trace.reservar()` insere a run com `resultado='RODANDO'` antes da primeira chamada de modelo; quem perde a corrida devolve `sem_acao` |
+| 10 | Idempotência ANTES dos efeitos | `PASS` | `trace.reservar()` reivindica a run com `resultado='RODANDO'` antes da primeira chamada de modelo; quem perde a corrida devolve `sem_acao` sem ter gastado nada |
+| 10b | A run se recupera de crash, e não só o job | `PASS` | **O mais grave dos três furos da auditoria externa.** A reserva era `insert … on conflict do nothing`: a linha existir significava "outro é o dono" — inclusive quando o outro era o processo morto. O job voltava pelo lease dele, batia no conflito, o turno devolvia `sem_acao`, e o worker **concluía** o job. O paciente nunca era respondido e a fila saía marcada como resolvida — pior do que não recuperar nada. Agora a run tem lease próprio e `crc_reivindicar_ai_run` (`supabase/20`) distingue **nova / ocupada / reclaim / terminal**. `integracao/e2e.test.ts > o crash recupera o job E a run` percorre a sequência inteira contra Postgres, inclusive duas retomadas simultâneas do lease vencido |
+| 10c | Falha na reserva é FECHADA | `PASS` | **O terceiro furo.** Quando o banco caía na hora da reserva, `reservar` devolvia `dono: true` e o turno seguia — sem idempotência, e o comentário justificava com "não responder é pior que pagar duas vezes". O raciocínio ignorava o efeito no mundo: duas execuções podem mandar duas mensagens ao paciente. Agora devolve `indefinido`, `rodarTurno` responde `falha_segura`, e o job volta à fila em vez de ser concluído. `turno.test.ts > sem idempotência garantida, o turno PARA` |
+| 10d | Run órfã não fica aberta para sempre | `PASS` | Quando o job esgota as tentativas, ninguém mais retoma a run dele. `crc_fechar_ai_runs_abandonadas` fecha só essas — e não as de job que ainda pode voltar —, chamada a cada rodada do worker. Sem isso o alerta "N turnos começaram e nunca terminaram" contaria incidentes antigos para sempre, até virar ruído |
 | 11-13 | Crash não duplica agenda / mensagem / tool | `PASS` | Dez gravações simultâneas da mesma chave resultam em UMA linha, no Postgres. `integracao/concorrencia.test.ts` |
 | 14 | Handoff não falha em silêncio | `PASS` | `aplicacao/handoff.ts`: caso → tarefa → dead letter → log `erro`. `handoff.test.ts` derruba cada degrau e confere onde pousou |
 | 15 | Ownership revalidado antes do envio | `PASS` | `enviarMensagem` relê o dono antes de gravar e recusa `remetente='ia'` fora de conversa da IA. `dono-no-envio.test.ts` |

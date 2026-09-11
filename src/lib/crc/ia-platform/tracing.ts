@@ -288,16 +288,20 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
         };
 
         /*
-         * DOIS CAMINHOS, e o segundo e o de compatibilidade.
+         * DOIS CAMINHOS, e o segundo tem um caso real — não é só legado.
          *
-         * Com a run RESERVADA no comeco (Fase B), aqui so falta escrever o
-         * desfecho por cima da linha que ja existe. Sem reserva — porque o banco
-         * piscou naquele instante, ou porque quem chamou nao reservou — a linha
-         * ainda nao existe, e o insert-ignorando-duplicata de antes continua
-         * valendo.
+         * Com a run REIVINDICADA no começo, aqui só falta escrever o desfecho
+         * por cima da linha que já existe.
          *
-         * Manter os dois e o que permite a Fase B nao quebrar nenhum chamador
-         * que ainda nao foi migrado.
+         * Sem reivindicação, a linha ainda não existe, e o
+         * insert-ignorando-duplicata continua valendo. Quando isso acontece: o
+         * turno explodiu ANTES de chegar à reserva — montando contexto, lendo
+         * flags, resolvendo destino. A rede de segurança de `rodarTurno` chama
+         * `gravar` direto, e sem este caminho essa falha não deixaria registro
+         * nenhum — justamente a falha mais difícil de investigar depois.
+         *
+         * O que NÃO cai mais aqui é "a reserva falhou e o turno seguiu": a
+         * reserva agora falha fechada, e o turno para antes de gastar nada.
          */
         let runId = idDaRun;
 

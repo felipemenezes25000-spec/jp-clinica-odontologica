@@ -72,18 +72,45 @@ mudar.
 
 **O que é.** Um worker morreu no meio — deploy, timeout, reinício.
 
-**Isso se recupera sozinho.** O lease expira em três minutos e outro worker
-retoma o job. Espere uma rodada antes de agir.
+**Isso se recupera sozinho.** O lease expira em três minutos e **duas** coisas
+são retomadas: o job, e a run do turno. Espere uma rodada antes de agir.
+
+> A run só passou a se recuperar depois da migração `20-crc-reclaim-da-run.sql`.
+> Antes dela o job voltava sozinho, tentava reservar a run, encontrava a linha
+> que ele mesmo tinha criado antes de morrer, lia isso como "outro worker está
+> cuidando" e **concluía o job**. O paciente ficava sem resposta e a fila ficava
+> marcada como resolvida — pior do que não ter recuperação nenhuma. Se você está
+> lendo isto num banco onde o 20 não foi aplicado, aplique-o antes de qualquer
+> outra coisa.
+
+Para ver quem está travado e em que tentativa:
+
+```sql
+select chave_dedupe, tentativa, travado_por, travado_ate, iniciado_em
+  from crc_ai_runs
+ where resultado = 'RODANDO'
+ order by iniciado_em;
+```
+
+`travado_por` responde a pergunta operacional: **é o turno que trava, ou é o
+worker?** Se todos os travados são do mesmo worker, o problema é ele.
 
 Se não recuperar:
 
 ```sql
 select public.crc_liberar_agent_jobs_presos();
+select public.crc_fechar_ai_runs_abandonadas(30);
 ```
 
-Ela marca como `FALHOU` os jobs que estouraram as cinco tentativas enquanto
-estavam travados. Sem isso, esses jobs ficam invisíveis nas duas filas — a de
-trabalho e a de falhas —, que é o pior estado possível.
+A primeira marca como `FALHOU` os jobs que estouraram as cinco tentativas
+enquanto estavam travados. Sem isso, esses jobs ficam invisíveis nas duas filas —
+a de trabalho e a de falhas —, que é o pior estado possível.
+
+A segunda fecha as runs cujo job já saiu da fila de vez: ninguém vai retomá-las,
+e deixá-las abertas faz este mesmo alerta contar incidentes antigos para sempre,
+até virar ruído. **Rode nesta ordem** — a primeira é o que torna as runs órfãs.
+
+O worker já chama as duas a cada rodada; rodar à mão só adianta o relógio.
 
 ### 4. O painel mostra "N turnos esgotaram as tentativas"
 
