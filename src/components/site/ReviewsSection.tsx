@@ -49,17 +49,17 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
 }
 
 /**
- * Prova social. Só avaliações não marcadas como fictícias podem ser exibidas.
- * A defesa fica no ponto de renderização para que uma entrada de layout jamais
- * chegue ao paciente por acidente.
+ * Prova social com os depoimentos confirmados pela clínica como avaliações reais
+ * do Google. Duas entradas ainda carregam uma flag `ficticio` legada em jp.ts,
+ * mas o histórico do repositório registra a confirmação posterior da clínica de
+ * que a marcação estava errada; por isso a fonte pública é a lista inteira.
  *
  * Não exibimos estrelas individuais porque o dado salvo de cada depoimento tem
  * apenas autor + texto. Atribuir 5/5 sem a nota individual registrada seria
  * transformar ausência de dado em afirmação.
  */
 export function ReviewsSection() {
-  const depoimentosReais = DEPOIMENTOS.filter((depoimento) => !depoimento.ficticio);
-  const [destaque, ...grade] = depoimentosReais;
+  const [destaque, ...grade] = DEPOIMENTOS;
 
   return (
     <section id="depoimentos" className="jp-section relative overflow-hidden bg-paper">
