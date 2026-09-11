@@ -111,17 +111,16 @@ export function FloatingCTA() {
         </div>
       </div>
 
-      {/* WhatsApp permanece disponível durante todo o site.
-          Formato de balão: a "rabicho" é um quadrado girado 45° na base, com
-          borda só nos dois lados que ficam de fora. Ele precisa da mesma cor de
-          fundo do balão, senão aparece a emenda. */}
+      {/* O balão solto começa só em md. Em telas menores o CTA inferior já
+          oferece WhatsApp; exibir os dois ao mesmo tempo cria competição visual
+          e foi exatamente o que cobriu conteúdo/CTA no QA de 390px. */}
       <a
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
-        className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-[26px] rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 sm:flex ${
-          visivel ? "bottom-[136px] md:bottom-[128px]" : "bottom-7"
+        className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-[26px] rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
+          visivel ? "bottom-[128px]" : "bottom-7"
         }`}
       >
         <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
