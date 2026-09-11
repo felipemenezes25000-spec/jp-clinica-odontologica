@@ -43,10 +43,6 @@ function registrarLead(dados: {
       keepalive: true,
       body: JSON.stringify({
         nome: dados.nome,
-        // O TELEFONE É O QUE LIGA ESTE LEAD À CONVERSA que começa no WhatsApp
-        // um segundo depois. Sem ele o registro é recusado (não há como
-        // responder) e a campanha que trouxe a pessoa fica sem atribuição
-        // nenhuma: a mensagem do WhatsApp chega sem utm e sem gclid.
         telefone: dados.telefone,
         mensagem: [
           `Assunto: ${dados.assunto}`,
@@ -56,15 +52,12 @@ function registrarLead(dados: {
         ]
           .filter((l) => l.length > 0)
           .join(" · "),
-        // A URL COMPLETA, porque é ela que carrega utm_source, gclid e afins.
-        // O `referer` diria de onde a pessoa veio, e não com qual campanha.
         url: typeof window === "undefined" ? "" : window.location.href,
-        // O campo-armadilha vai vazio: humano não preenche o que não vê.
         empresa: "",
       }),
     }).catch(() => undefined);
   } catch {
-    // Ver o cabeçalho: falha nossa não interrompe a conversa dele.
+    // Falha interna nunca deve impedir o visitante de abrir o WhatsApp.
   }
 }
 
@@ -131,6 +124,9 @@ export function ContactForm() {
             <UserRound className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
             <input
               required
+              name="name"
+              autoComplete="name"
+              maxLength={120}
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Como podemos te chamar?"
@@ -145,8 +141,11 @@ export function ContactForm() {
             <Phone className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
             <input
               required
+              name="tel"
               type="tel"
               inputMode="tel"
+              autoComplete="tel"
+              maxLength={30}
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
               placeholder="(11) 90000-0000"
@@ -157,7 +156,12 @@ export function ContactForm() {
 
         <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Melhor forma de contato
-          <select value={contato} onChange={(e) => setContato(e.target.value)} className={input}>
+          <select
+            name="contact-preference"
+            value={contato}
+            onChange={(e) => setContato(e.target.value)}
+            className={input}
+          >
             {CONTATOS.map((item) => (
               <option key={item}>{item}</option>
             ))}
@@ -166,7 +170,12 @@ export function ContactForm() {
 
         <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Assunto ou interesse
-          <select value={assunto} onChange={(e) => setAssunto(e.target.value)} className={input}>
+          <select
+            name="subject"
+            value={assunto}
+            onChange={(e) => setAssunto(e.target.value)}
+            className={input}
+          >
             <option>Avaliação geral</option>
             {TRATAMENTOS.map((t) => (
               <option key={t.titulo}>{t.titulo}</option>
@@ -177,7 +186,12 @@ export function ContactForm() {
 
         <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Melhor período
-          <select value={periodo} onChange={(e) => setPeriodo(e.target.value)} className={input}>
+          <select
+            name="preferred-period"
+            value={periodo}
+            onChange={(e) => setPeriodo(e.target.value)}
+            className={input}
+          >
             {PERIODOS.map((p) => (
               <option key={p}>{p}</option>
             ))}
@@ -187,7 +201,9 @@ export function ContactForm() {
         <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft sm:col-span-2">
           Mensagem opcional
           <textarea
+            name="message"
             rows={3}
+            maxLength={700}
             value={obs}
             onChange={(e) => setObs(e.target.value)}
             placeholder="Conte-nos brevemente sobre suas necessidades ou dúvidas."
@@ -203,10 +219,6 @@ export function ContactForm() {
           quando houver parâmetros de campanha no endereço acessado, registrar a origem da
           solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja
           os detalhes na{" "}
-          {/* Sem alvo de 44px aqui, e é o certo: a WCAG 2.5.8 abre exceção
-              para link embutido numa frase, e esticar a caixa deste quebraria
-              o parágrafo em que ele vive. O mesmo destino tem link próprio no
-              rodapé, com área cheia, para quem precisa de alvo grande. */}
           <a
             href="/politica-de-privacidade"
             className="font-bold text-brand-text underline decoration-brand-text/35 underline-offset-2 transition hover:text-forest-2"
@@ -225,7 +237,7 @@ export function ContactForm() {
 
       <div className="mt-6 grid gap-4 border-t border-forest/9 pt-5 sm:grid-cols-3">
         {[
-          [Clock3, "Resposta rápida", "Retorno durante o horário de atendimento."],
+          [Clock3, "Retorno no horário", "Atendimento durante o horário informado pela clínica."],
           [HeartHandshake, "Atendimento humanizado", "Cuidado e atenção em cada etapa."],
           [ShieldCheck, "Avaliação profissional", "A indicação é definida caso a caso."],
         ].map(([Icon, title, text]) => {
