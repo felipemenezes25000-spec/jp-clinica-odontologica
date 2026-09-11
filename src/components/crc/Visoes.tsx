@@ -31,6 +31,11 @@ import {
 import { Botao, Campo, Entrada, Etiqueta, Modal } from "./base";
 import { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./filtroFunil";
 
+// Compatibilidade temporária com Funil.tsx. O estado já mora em filtroFunil.ts;
+// este re-export evita uma alteração gigante no arquivo do funil só para trocar
+// um caminho de import. O próximo refactor pode remover esta ponte.
+export { FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./filtroFunil";
+
 /** Duas visões são a mesma quando os três campos batem. Ordem de tipo não conta. */
 function mesmoFiltro(a: FiltroFunilUi, b: FiltroFunilUi): boolean {
   if (a.etapaChave !== b.etapaChave || a.apenasMinhas !== b.apenasMinhas) return false;
