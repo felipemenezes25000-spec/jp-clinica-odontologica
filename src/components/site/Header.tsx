@@ -5,6 +5,7 @@ import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, NAV } from "@/lib/jp";
 import { contatoWhatsApp } from "@/lib/contato";
+import "./visual-fixes.css";
 
 export function Header() {
   const location = useLocation();
@@ -168,7 +169,7 @@ export function Header() {
           premium fica só no desktop, onde há GPU/viewport para ele e a barra é maior. */}
       <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
         <div
-          className={`jp-container flex items-center justify-between gap-[clamp(24px,2.2vw,44px)] transition-[height] duration-300 ${
+          className={`jp-container flex items-center justify-between gap-3 transition-[height] duration-300 sm:gap-5 xl:gap-[clamp(24px,2.2vw,44px)] ${
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
@@ -233,7 +234,7 @@ export function Header() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white sm:flex"
+              className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white md:flex"
             >
               Agendar avaliação
             </a>
