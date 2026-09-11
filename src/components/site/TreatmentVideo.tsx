@@ -71,7 +71,7 @@ export function TreatmentVideo({
   const pausarManual = () => ref.current?.pause();
 
   return (
-    <figure className="relative overflow-hidden rounded-[2rem] border border-forest/12 bg-brand-deep shadow-lift">
+    <figure className="relative overflow-hidden rounded-3xl border border-forest/12 bg-brand-deep shadow-lift">
       <video
         ref={ref}
         src={src}

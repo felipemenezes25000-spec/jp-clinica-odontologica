@@ -37,7 +37,7 @@ function CardProfissional({
 }) {
   return (
     <article
-      className={`group flex w-full flex-col overflow-hidden rounded-[22px] border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%_-_10px)] md:w-[calc(33.333%_-_14px)] ${LARGURA_UMA_LINHA}`}
+      className={`group flex w-full flex-col overflow-hidden rounded-xl border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%_-_10px)] md:w-[calc(33.333%_-_14px)] ${LARGURA_UMA_LINHA}`}
     >
       <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (
@@ -153,7 +153,7 @@ export function TeamSection() {
           ))}
         </div>
 
-        <div className="mx-auto mt-7 flex w-fit max-w-full items-center gap-4 rounded-[18px] border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(3,47,1,.06)] backdrop-blur">
+        <div className="mx-auto mt-7 flex w-fit max-w-full items-center gap-4 rounded-lg border border-border-soft bg-white/70 px-6 py-4 shadow-[0_12px_35px_rgba(3,47,1,.06)] backdrop-blur">
           <span
             aria-hidden="true"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-green/45 text-brand-text"

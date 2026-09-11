@@ -236,8 +236,8 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
 
             <Reveal delay={100} className="relative">
               <DepthCard className="treatment-visual relative mx-auto max-w-[620px]">
-                <div className="overflow-hidden rounded-[2.5rem] border border-white/12 bg-white/6 p-2.5 shadow-[0_40px_100px_-40px_rgba(0,0,0,.7)]">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] sm:aspect-[5/4] lg:aspect-[4/5]">
+                <div className="overflow-hidden rounded-4xl border border-white/12 bg-white/6 p-2.5 shadow-[0_40px_100px_-40px_rgba(0,0,0,.7)]">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-3xl sm:aspect-[5/4] lg:aspect-[4/5]">
                     <img
                       src={image}
                       alt={`JP Clínica Integrada Odontológica — ${treatment.titulo}`}
@@ -339,7 +339,7 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
             </Reveal>
 
             <Reveal delay={100}>
-              <DepthCard className="relative h-full min-h-[520px] overflow-hidden rounded-[2.5rem] bg-brand-deep">
+              <DepthCard className="relative h-full min-h-[520px] overflow-hidden rounded-4xl bg-brand-deep">
                 <img
                   src={
                     treatment.slug === "implantes-dentarios"
@@ -414,7 +414,7 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
             <ol className="mt-14 grid gap-4 lg:grid-cols-4">
               {treatment.etapas.map((step, i) => (
                 <Reveal as="li" key={step.n} delay={i * 75}>
-                  <article className="process-card relative min-h-[310px] overflow-hidden rounded-[2rem] border border-white/22 bg-brand-deep/45 p-6 backdrop-blur-sm sm:p-7">
+                  <article className="process-card relative min-h-[310px] overflow-hidden rounded-3xl border border-white/22 bg-brand-deep/45 p-6 backdrop-blur-sm sm:p-7">
                     <span
                       aria-hidden="true"
                       className="section-number font-display text-6xl font-black text-white"
@@ -471,7 +471,7 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
               <Reveal delay={140}>
                 {/* Branco sobre o limão: 3,00:1, que é o piso de texto grande —
                     e o título aqui é 3xl/4xl em peso black, então serve. */}
-                <div className="mt-4 rounded-[2rem] border border-lime/25 bg-lime p-7 text-white sm:p-8">
+                <div className="mt-4 rounded-3xl border border-lime/25 bg-lime p-7 text-white sm:p-8">
                   <BadgeCheck className="h-6 w-6" />
                   <h3 className="mt-7 max-w-xl font-display text-3xl font-black leading-[.92] sm:text-4xl">
                     A melhor próxima etapa é a que começa com informação sobre o seu caso.
@@ -508,7 +508,7 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
                 <Reveal key={item.slug} delay={i * 70}>
                   <a
                     href={`/tratamentos/${item.slug}`}
-                    className="group block min-h-[270px] rounded-[2rem] border border-forest/10 bg-white p-6 transition-all duration-500 hover:-translate-y-2 hover:border-lime hover:shadow-lift sm:p-7"
+                    className="group block min-h-[270px] rounded-3xl border border-forest/10 bg-white p-6 transition-all duration-500 hover:-translate-y-2 hover:border-lime hover:shadow-lift sm:p-7"
                   >
                     <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-forest-2">
                       <Sparkles className="h-5 w-5" />

@@ -478,10 +478,7 @@ function Home() {
                   Agendar avaliação
                   <ArrowUpRight className="h-4 w-4" />
                 </a>
-                <a
-                  href="#tratamentos"
-                  className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full border border-forest/14 bg-white px-5 py-3 font-extrabold text-forest-2 transition hover:-translate-y-0.5 hover:border-primary/45"
-                >
+                <a href="#tratamentos" className="button-secondary">
                   Conhecer tratamentos
                   <ArrowRight className="h-4 w-4" />
                 </a>
@@ -496,8 +493,8 @@ function Home() {
             </Reveal>
 
             <Reveal delay={90} className="relative mx-auto w-full max-w-[690px]">
-              <div className="relative overflow-hidden rounded-[2.3rem] border border-forest/8 bg-white p-2.5 shadow-[0_38px_100px_-45px_rgba(3,47,1,.42)] sm:rounded-[3rem] sm:p-3">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-[1.9rem] sm:rounded-[2.45rem]">
+              <div className="relative overflow-hidden rounded-4xl border border-forest/8 bg-white p-2.5 shadow-[0_38px_100px_-45px_rgba(3,47,1,.42)] sm:rounded-5xl sm:p-3">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-3xl sm:rounded-4xl">
                   {/* srcset porque esta é a imagem do LCP e o contêiner tem
                       690px no máximo. O arquivo de 1400px só serve desktop
                       retina; servi-lo a um celular de 390px era mandar 60 KB
@@ -519,7 +516,7 @@ function Home() {
                 </div>
               </div>
 
-              <div className="absolute -left-3 top-8 rounded-[1.3rem] border border-forest/8 bg-white p-4 shadow-lift sm:-left-8 sm:top-12 sm:p-5">
+              <div className="absolute -left-3 top-8 rounded-xl border border-forest/8 bg-white p-4 shadow-lift sm:-left-8 sm:top-12 sm:p-5">
                 <div className="flex items-center gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-forest-2">
                     <UsersRound className="h-5 w-5" />
@@ -535,7 +532,7 @@ function Home() {
                 </div>
               </div>
 
-              <div className="absolute -bottom-6 right-4 hidden max-w-[15rem] rounded-[1.3rem] bg-brand-deep p-5 text-white shadow-lift sm:block">
+              <div className="absolute -bottom-6 right-4 hidden max-w-[15rem] rounded-xl bg-brand-deep p-5 text-white shadow-lift sm:block">
                 <HeartHandshake className="h-5 w-5 text-lime" />
                 <p className="mt-3 font-display text-lg font-extrabold leading-tight">
                   Atendimento calmo, conversa clara.
@@ -546,7 +543,7 @@ function Home() {
 
           <div className="jp-container relative mt-16">
             <Reveal delay={150}>
-              <div className="grid overflow-hidden rounded-[1.7rem] border border-forest/9 bg-white shadow-[0_18px_50px_-38px_rgba(3,47,1,.35)] sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid overflow-hidden rounded-2xl border border-forest/9 bg-white shadow-[0_18px_50px_-38px_rgba(3,47,1,.35)] sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   [
                     HeartHandshake,
@@ -618,7 +615,7 @@ function Home() {
 
             <div className="mt-14 grid gap-8 lg:grid-cols-[.86fr_1.14fr]">
               <Reveal>
-                <div className="relative h-full min-h-[520px] overflow-hidden rounded-[2.2rem] border border-white/12">
+                <div className="relative h-full min-h-[520px] overflow-hidden rounded-3xl border border-white/12">
                   {/* Segunda aparição da mesma foto, abaixo da dobra. Sem
                       srcset aqui ela puxava de novo o arquivo de 1400px — e
                       uma imagem grande fora da dobra é peso que nunca aparece
@@ -667,7 +664,7 @@ function Home() {
                   },
                 ].map((item, i) => (
                   <Reveal key={item.title} delay={i * 55}>
-                    <article className="h-full rounded-[1.6rem] border border-white/12 bg-white p-6 text-forest-2 shadow-[0_24px_60px_-40px_rgba(0,0,0,.65)] sm:p-7">
+                    <article className="h-full rounded-2xl border border-white/12 bg-white p-6 text-forest-2 shadow-[0_24px_60px_-40px_rgba(0,0,0,.65)] sm:p-7">
                       <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-primary-ink">
                         <item.icon className="h-5 w-5" />
                       </span>
@@ -752,7 +749,7 @@ function Home() {
             <StructureGallery />
 
             <Reveal delay={90}>
-              <div className="mt-7 grid overflow-hidden rounded-[1.5rem] border border-forest/8 bg-secondary/65 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="mt-7 grid overflow-hidden rounded-xl border border-forest/8 bg-secondary/65 sm:grid-cols-2 lg:grid-cols-4">
                 {[
                   [ShieldCheck, "Ambientes", "seguros e higienizados"],
                   [BadgeCheck, "Equipamentos", "modernos"],
@@ -808,7 +805,7 @@ function Home() {
                 </p>
 
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                  <a href={CLINICA.telefoneHref} className="jp-soft-card rounded-[1.35rem] p-5">
+                  <a href={CLINICA.telefoneHref} className="jp-soft-card rounded-xl p-5">
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-primary-ink">
                       <Phone className="h-4.5 w-4.5" />
                     </span>
@@ -821,7 +818,7 @@ function Home() {
                     href={contatoWhatsApp("agendar")}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="jp-soft-card rounded-[1.35rem] p-5"
+                    className="jp-soft-card rounded-xl p-5"
                   >
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-primary-ink">
                       <MessageCircle className="h-4.5 w-4.5" />
@@ -836,7 +833,7 @@ function Home() {
                     href={CLINICA.mapsHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="jp-soft-card rounded-[1.35rem] p-5 sm:col-span-2"
+                    className="jp-soft-card rounded-xl p-5 sm:col-span-2"
                   >
                     <div className="flex items-start gap-4">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-primary-ink">
@@ -861,28 +858,31 @@ function Home() {
                   </a>
                 </div>
 
-                <div className="mt-6 grid gap-2.5 sm:grid-cols-3">
+                {/* Duas colunas, com o primário ocupando as duas.
+                    Eram três colunas iguais de ~190px, e "Agendar avaliação"
+                    com dois ícones não cabe nisso: os três botões quebravam o
+                    texto em duas linhas e ficavam com 79px de altura.
+                    Assim o CTA principal fica visualmente dominante, que é o
+                    que ele deve ser, e os dois secundários param de quebrar. */}
+                <div className="mt-6 grid gap-2.5 sm:grid-cols-2">
                   <a
                     href={waGeral}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="button-primary"
+                    className="button-primary sm:col-span-2"
                   >
                     <MessageCircle className="h-4.5 w-4.5" />
                     Agendar avaliação
                     <ArrowUpRight className="h-4 w-4" />
                   </a>
-                  <a
-                    href={CLINICA.telefoneHref}
-                    className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full border border-forest/12 bg-white px-5 py-3 text-sm font-extrabold text-forest-2 transition hover:-translate-y-0.5 hover:border-primary/40"
-                  >
+                  <a href={CLINICA.telefoneHref} className="button-secondary">
                     <Phone className="h-4 w-4" /> Ligar agora
                   </a>
                   <a
                     href={waGeral}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full border border-forest/12 bg-white px-5 py-3 text-sm font-extrabold text-forest-2 transition hover:-translate-y-0.5 hover:border-primary/40"
+                    className="button-secondary"
                   >
                     <MessageCircle className="h-4 w-4" /> Tirar dúvidas
                   </a>
@@ -895,7 +895,7 @@ function Home() {
             </div>
 
             <Reveal delay={130} className="mt-12">
-              <div className="relative overflow-hidden rounded-[2rem] border border-forest/8 bg-white p-2 shadow-[0_28px_80px_-48px_rgba(3,47,1,.45)]">
+              <div className="relative overflow-hidden rounded-3xl border border-forest/8 bg-white p-2 shadow-[0_28px_80px_-48px_rgba(3,47,1,.45)]">
                 {/* O embed é de viewport e não desenha marcador, então o pino é
                     nosso.
 
@@ -908,7 +908,7 @@ function Home() {
                     Com o mapa deslocado, o centro dele deixa de coincidir com o
                     centro do contêiner: o pino desce para ~43% para continuar
                     sobre o endereço. */}
-                <div className="relative h-[370px] overflow-hidden rounded-[1.55rem] sm:h-[445px]">
+                <div className="relative h-[370px] overflow-hidden rounded-2xl sm:h-[445px]">
                   <iframe
                     src={CLINICA.mapsEmbed}
                     title="Mapa com a localização da JP Clínica Integrada Odontológica"
@@ -934,7 +934,7 @@ function Home() {
                   </span>
                 </div>
 
-                <div className="absolute left-5 top-5 max-w-[21rem] rounded-[1.35rem] border border-forest/8 bg-white/95 p-5 shadow-[0_24px_60px_-38px_rgba(3,47,1,.55)] backdrop-blur sm:left-7 sm:top-7">
+                <div className="absolute left-5 top-5 max-w-[21rem] rounded-xl border border-forest/8 bg-white/95 p-5 shadow-[0_24px_60px_-38px_rgba(3,47,1,.55)] backdrop-blur sm:left-7 sm:top-7">
                   <div className="flex items-start gap-3">
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-forest-2">
                       <MapPin className="h-4.5 w-4.5" />

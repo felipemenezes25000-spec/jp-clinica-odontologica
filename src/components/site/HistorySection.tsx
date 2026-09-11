@@ -65,9 +65,9 @@ function CardPessoa({
   const [primeiro, ...resto] = texto;
 
   return (
-    <article className="overflow-hidden rounded-[20px] border border-white/12 bg-[#032F01]/70">
+    <article className="overflow-hidden rounded-lg border border-white/12 bg-[#032F01]/70">
       <div className="flex gap-4 p-4">
-        <div className="relative h-[112px] w-[106px] shrink-0 overflow-hidden rounded-[14px] bg-border-soft">
+        <div className="relative h-[112px] w-[106px] shrink-0 overflow-hidden rounded-md bg-border-soft">
           {foto ? (
             <img
               src={foto}
@@ -281,7 +281,7 @@ export function HistorySection() {
             </div>
 
             {/* MISSÃO — texto real, transcrito do quadro na parede da clínica */}
-            <figure className="mt-8 max-w-[625px] rounded-[24px] border border-white/20 bg-white/[0.025] p-6 backdrop-blur-sm sm:p-7">
+            <figure className="mt-8 max-w-[625px] rounded-xl border border-white/20 bg-white/[0.025] p-6 backdrop-blur-sm sm:p-7">
               <div className="flex gap-5">
                 <Quote
                   size={50}
@@ -301,7 +301,7 @@ export function HistorySection() {
               </div>
             </figure>
 
-            <div className="mt-5 grid max-w-[730px] overflow-hidden rounded-[23px] border border-white/20 bg-white/[0.025] backdrop-blur-sm sm:grid-cols-3">
+            <div className="mt-5 grid max-w-[730px] overflow-hidden rounded-xl border border-white/20 bg-white/[0.025] backdrop-blur-sm sm:grid-cols-3">
               <Metrica
                 icon={<CalendarDays size={24} />}
                 title={`Desde ${HISTORIA.fundacao}`}
@@ -330,7 +330,7 @@ export function HistorySection() {
 
           {/* COLUNA DIREITA */}
           <div>
-            <div className="relative overflow-hidden rounded-[30px] border border-white/20 bg-white/[0.045] p-5 shadow-[0_35px_90px_rgba(0,0,0,.18)] backdrop-blur-md sm:p-8">
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-white/[0.045] p-5 shadow-[0_35px_90px_rgba(0,0,0,.18)] backdrop-blur-md sm:p-8">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute left-[30%] top-0 h-[300px] w-[350px] bg-lime/[0.045] blur-[80px]"
@@ -374,7 +374,7 @@ export function HistorySection() {
               </div>
             </div>
 
-            <div className="mt-5 flex items-center gap-5 rounded-[23px] bg-paper px-6 py-5 text-ink shadow-[0_20px_50px_rgba(0,0,0,.12)]">
+            <div className="mt-5 flex items-center gap-5 rounded-xl bg-paper px-6 py-5 text-ink shadow-[0_20px_50px_rgba(0,0,0,.12)]">
               <span
                 aria-hidden="true"
                 className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#56A805] text-white"

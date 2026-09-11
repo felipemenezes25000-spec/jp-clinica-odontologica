@@ -127,7 +127,7 @@ export function FaqSection() {
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
-            className="group mt-9 inline-flex w-full items-center gap-4 rounded-[21px] border border-lime/25 bg-[linear-gradient(110deg,rgba(86,168,5,.13),rgba(3,47,1,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lime/50 hover:bg-[#032F01]/80 sm:w-auto sm:min-w-[365px]"
+            className="group mt-9 inline-flex w-full items-center gap-4 rounded-xl border border-lime/25 bg-[linear-gradient(110deg,rgba(86,168,5,.13),rgba(3,47,1,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lime/50 hover:bg-[#032F01]/80 sm:w-auto sm:min-w-[365px]"
           >
             <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-lime text-white shadow-[0_8px_24px_rgba(86,168,5,.25)]">
               <IconeWhatsApp />
@@ -190,7 +190,7 @@ export function FaqSection() {
               return (
                 <article
                   key={item.q}
-                  className={`overflow-hidden rounded-[22px] border backdrop-blur-[8px] transition-all duration-300 ${
+                  className={`overflow-hidden rounded-xl border backdrop-blur-[8px] transition-all duration-300 ${
                     isOpen
                       ? "border-[#56A805]/45 bg-[linear-gradient(110deg,rgba(16,63,23,.78),rgba(4,38,12,.86))] shadow-[0_18px_45px_rgba(0,0,0,.14)]"
                       : "border-white/15 bg-[#032F01]/65 hover:border-lime/35 hover:bg-[#032F01]/75"
@@ -205,7 +205,7 @@ export function FaqSection() {
                   >
                     <span
                       aria-hidden="true"
-                      className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-[10px] bg-[#032F01] text-[12px] font-bold text-[#56A805]"
+                      className="flex h-[36px] w-[36px] shrink-0 items-center justify-center rounded-sm bg-[#032F01] text-[12px] font-bold text-[#56A805]"
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>

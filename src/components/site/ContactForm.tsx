@@ -93,7 +93,7 @@ export function ContactForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-[2rem] border border-forest/10 bg-white p-5 shadow-[0_30px_90px_-48px_rgba(3,47,1,.48)] sm:p-7 lg:p-8"
+      className="rounded-3xl border border-forest/10 bg-white p-5 shadow-[0_30px_90px_-48px_rgba(3,47,1,.48)] sm:p-7 lg:p-8"
     >
       <div className="flex items-start justify-between gap-5">
         <div>

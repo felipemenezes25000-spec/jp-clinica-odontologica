@@ -162,32 +162,64 @@ junto.**
 
 ### Raio
 
-Tudo deriva de `--radius: 1.15rem`:
+Oito degraus, em números redondos:
 
-| Token          | Cálculo           | Uso                    |
-| -------------- | ----------------- | ---------------------- |
-| `--radius-sm`  | `radius − 6px`    | badge, pill pequeno    |
-| `--radius-md`  | `radius − 4px`    | input                  |
-| `--radius-lg`  | `radius − 2px`    | card interno           |
-| `--radius-xl`  | `radius`          | card padrão            |
-| `--radius-2xl` | `radius + 6px`    | card de destaque       |
-| `--radius-3xl` | `radius + 14px`   | bloco de mídia         |
-| `--radius-4xl` | `radius + 22px`   | moldura de foto grande |
+| Token          | Valor  | Uso                                       |
+| -------------- | ------ | ----------------------------------------- |
+| `--radius-sm`  | `10px` | selo, pílula pequena, detalhe             |
+| `--radius-md`  | `14px` | campo de formulário, chip                 |
+| `--radius-lg`  | `18px` | card pequeno                              |
+| `--radius-xl`  | `22px` | **card padrão — o tier mais usado**       |
+| `--radius-2xl` | `26px` | card elevado, bloco de destaque           |
+| `--radius-3xl` | `32px` | bloco de seção, moldura de mídia          |
+| `--radius-4xl` | `40px` | moldura grande                            |
+| `--radius-5xl` | `48px` | moldura do hero                           |
+
+> **Por que números redondos, e não uma fórmula.** A escala era derivada de
+> `--radius` com somas em px: 1.15rem dava 18.4, e os degraus saíam 12.4, 14.4,
+> 16.4, 24.4, 32.4, 40.4. Ninguém digita 24.4 — então ninguém usava a escala.
+>
+> Medido no site publicado antes da correção: **52 raios escritos à mão em 30
+> valores distintos**, e nove deles caíam entre 18,4 e 26px. Diferenças que o
+> olho não vê e que a manutenção paga. Depois: **10 valores em uso**, e dois são
+> intencionais (a curva de 90px do card de equipe e os 999px das cápsulas).
+>
+> Quem precisar de um raio escolhe o tier. Se nenhum servir, o problema é a
+> escala, não o caso — discuta antes de escrever `rounded-[23px]`.
 
 Botões fogem da escala de propósito: são `999px` (cápsula), que é o que os
 distingue de qualquer superfície.
 
 ### Botões
 
-| Classe               | Fundo          | Texto  | Papel                |
-| -------------------- | -------------- | ------ | -------------------- |
-| `.button-primary`    | `--forest`     | branco | **CTA principal**    |
-| `.button-dark`       | `--forest-2`   | branco | CTA em fundo claro   |
-| `.button-ghost-light`| transparente   | branco | secundário no escuro |
+| Classe                | Fundo        | Texto  | Papel                        |
+| --------------------- | ------------ | ------ | ---------------------------- |
+| `.button-primary`     | `--forest`   | branco | **CTA principal**            |
+| `.button-secondary`   | branco       | escuro | ao lado do principal, claro  |
+| `.button-dark`        | `--forest-2` | branco | CTA sobre fundo claro        |
+| `.button-ghost-light` | transparente | branco | secundário sobre fundo escuro |
 
-Todos têm `min-height: 3.25rem` (52px) e `border-radius: 999px`. A altura vem de
-linha (24px) mais o `padding` — não é um número cravado, então texto maior não
-estoura a caixa.
+Todos medem **exatamente 52px** de altura e `border-radius: 999px`.
+
+> **O `min-height` manda, não o conteúdo.** Antes o padding vertical era grande
+> e o `line-height` variava entre as variantes, então o **ícone** decidia a
+> altura: o mesmo `.button-primary` media 52px no hero e 55px no rodapé, e o
+> `.button-dark` media 53. Um ícone de 16px ao lado de outro de 18px bastava
+> para desalinhar dois botões da mesma fileira.
+>
+> Agora o padding vertical é pequeno e a altura mínima é fixa. Um botão de uma
+> linha mede 52px com ícone, sem ícone, com ícone de qualquer tamanho. O padding
+> segue existindo para o caso de o texto quebrar.
+>
+> `.button-secondary` nasceu desta auditoria: o visual já existia — cápsula
+> branca de borda fina ao lado do CTA principal — mas escrito à mão, em cadeias
+> de sessenta caracteres de Tailwind repetidas a cada uso. E divergindo: um par
+> vinha com 14px de fonte ao lado de um primário de 16px, na mesma fileira.
+
+**Medido depois da correção, em 320, 390, 768 e 1440px:** as três variantes em
+52px, todas com 16px de fonte. Antes havia cinco alturas (44, 48, 52, 55, 79) e
+quatro tamanhos de fonte. Os de 79px eram três botões lado a lado numa grade de
+três colunas estreitas demais, com o texto quebrando em duas linhas em cada um.
 
 **Hierarquia de CTA**, e ela é uma só no site inteiro:
 

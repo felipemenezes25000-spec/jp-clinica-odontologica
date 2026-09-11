@@ -54,7 +54,7 @@ function CardEspecialidade({
   index: number;
 }) {
   return (
-    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-[24px] border border-border-soft bg-white shadow-[0_12px_40px_rgba(3,47,1,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-brand-green/60 hover:shadow-[0_22px_55px_rgba(3,47,1,.11)]">
+    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-xl border border-border-soft bg-white shadow-[0_12px_40px_rgba(3,47,1,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-brand-green/60 hover:shadow-[0_22px_55px_rgba(3,47,1,.11)]">
       <div className="relative h-[185px] overflow-hidden bg-[#FAFBF8]">
         <img
           src={IMAGENS[slug]}

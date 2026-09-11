@@ -111,7 +111,7 @@ export function Footer() {
                   href={CLINICA.mapsHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-3 leading-relaxed transition-colors hover:text-lime"
+                  className="alvo-toque items-start gap-3 leading-relaxed transition-colors hover:text-lime"
                 >
                   <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-lime" />
                   {CLINICA.endereco}

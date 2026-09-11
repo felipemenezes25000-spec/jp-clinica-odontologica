@@ -27,7 +27,7 @@ function ItemNota({
 
 function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
   return (
-    <article className="flex min-h-[220px] flex-col rounded-[26px] border border-border-soft bg-white p-6 shadow-[0_18px_50px_rgba(3,47,1,0.055)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(3,47,1,0.09)]">
+    <article className="flex min-h-[220px] flex-col rounded-2xl border border-border-soft bg-white p-6 shadow-[0_18px_50px_rgba(3,47,1,0.055)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(3,47,1,0.09)]">
       <span aria-hidden="true" className="font-serif text-[48px] leading-[0.6] text-brand-text">
         &ldquo;
       </span>
@@ -99,7 +99,7 @@ export function ReviewsSection() {
               da clínica.
             </p>
 
-            <div className="mt-10 overflow-hidden rounded-[28px] border border-border-soft bg-white/75 shadow-[0_18px_60px_rgba(3,47,1,0.06)] backdrop-blur">
+            <div className="mt-10 overflow-hidden rounded-2xl border border-border-soft bg-white/75 shadow-[0_18px_60px_rgba(3,47,1,0.06)] backdrop-blur">
               <div className="p-7 sm:p-9">
                 <div className="flex flex-col gap-7 sm:flex-row sm:items-center">
                   <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#EBF5E1]">
@@ -159,7 +159,7 @@ export function ReviewsSection() {
 
           <div>
             {destaque && (
-              <article className="relative overflow-hidden rounded-[32px] bg-brand-deep px-7 py-8 shadow-[0_28px_70px_rgba(3,47,1,0.17)] sm:px-10 sm:py-10">
+              <article className="relative overflow-hidden rounded-3xl bg-brand-deep px-7 py-8 shadow-[0_28px_70px_rgba(3,47,1,0.17)] sm:px-10 sm:py-10">
                 <span
                   aria-hidden="true"
                   className="pointer-events-none absolute right-16 top-0 select-none font-serif text-[180px] leading-none text-white/[0.03]"
@@ -203,7 +203,7 @@ export function ReviewsSection() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-5 rounded-[24px] border border-border-soft bg-white/65 px-6 py-5 shadow-[0_15px_50px_rgba(3,47,1,0.05)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-5 rounded-xl border border-border-soft bg-white/65 px-6 py-5 shadow-[0_15px_50px_rgba(3,47,1,0.05)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <span
               aria-hidden="true"

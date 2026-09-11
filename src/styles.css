@@ -15,13 +15,25 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 6px);
-  --radius-md: calc(var(--radius) - 4px);
-  --radius-lg: calc(var(--radius) - 2px);
-  --radius-xl: var(--radius);
-  --radius-2xl: calc(var(--radius) + 6px);
-  --radius-3xl: calc(var(--radius) + 14px);
-  --radius-4xl: calc(var(--radius) + 22px);
+  /* A ESCALA DE RAIO — números redondos, e isso é o ponto.
+   *
+   * Era derivada de `--radius` com somas em px: 1.15rem dava 18.4, e os degraus
+   * saíam 12.4, 14.4, 16.4, 24.4, 32.4, 40.4. Ninguém digita 24.4 — então
+   * ninguém usava a escala. O código tinha 52 raios escritos à mão em 30 valores
+   * distintos, e NOVE deles caíam entre 18,4 e 26px: diferenças que o olho não
+   * vê e que a manutenção paga.
+   *
+   * Os degraus abaixo saem dos agrupamentos que já existiam no desenho, agora
+   * com um nome cada. Quem precisar de um raio escolhe o tier, não inventa o
+   * número. */
+  --radius-sm: 10px; /* selo, pílula pequena, detalhe             */
+  --radius-md: 14px; /* campo de formulário, chip                 */
+  --radius-lg: 18px; /* card pequeno                              */
+  --radius-xl: 22px; /* CARD PADRÃO — o tier mais usado do site   */
+  --radius-2xl: 26px; /* card elevado, bloco de destaque          */
+  --radius-3xl: 32px; /* bloco de seção, moldura de mídia         */
+  --radius-4xl: 40px; /* moldura grande                           */
+  --radius-5xl: 48px; /* moldura do hero                          */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -336,17 +348,31 @@
    A borda lime devolve o destaque que o preenchimento perdeu: sobre o verde
    escuro das seções ela mede 8.2:1, bem acima dos 3:1 que a WCAG pede para
    a borda de um componente. */
+/* AS TRÊS VARIANTES COMPARTILHAM A MESMA CAIXA, e isso é o ponto.
+ *
+ * Antes cada uma media diferente: primário 52px no hero e 55px no rodapé, dark
+ * 53px, secundário 52px. Mesma classe, alturas diferentes — porque o padding
+ * vertical era grande e o `line-height` variava, então o ÍCONE (16px aqui,
+ * 18px ali) decidia a altura do botão.
+ *
+ * Agora o `min-height` manda: padding vertical pequeno, altura mínima fixa. Um
+ * botão de uma linha mede sempre 52px, com ou sem ícone, com ícone de qualquer
+ * tamanho. O padding continua existindo para o caso do texto quebrar.
+ *
+ * Dois botões lado a lado com três pixels de diferença é o tipo de coisa que
+ * ninguém aponta e todo mundo sente. */
 .button-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
   min-height: 3.25rem;
-  padding: 0.9rem 1.35rem;
+  padding: 0.5rem 1.35rem;
   border-radius: 999px;
   background: var(--forest);
   border: 1.5px solid var(--lime);
   color: #ffffff;
+  line-height: 1.15;
   font-weight: 850;
   letter-spacing: -0.01em;
   box-shadow: 0 16px 34px -20px color-mix(in oklab, var(--forest) 75%, black);
@@ -366,16 +392,52 @@
   justify-content: center;
   gap: 0.65rem;
   min-height: 3.25rem;
-  padding: 0.9rem 1.35rem;
+  padding: 0.5rem 1.35rem;
   border-radius: 999px;
   background: var(--forest-2);
   /* Fundo verde: branco puro. Era --cream (#f7f8f2). */
   color: white;
+  line-height: 1.15;
   font-weight: 800;
   transition:
     transform 0.35s var(--ease-out),
     background 0.35s var(--ease-out);
 }
+/* BOTÃO SECUNDÁRIO — a variante que faltava ter nome.
+ *
+ * Este visual já existia: cápsula branca com borda fina, usado ao lado do CTA
+ * principal. Só que escrito à mão, em cadeias de sessenta caracteres de Tailwind
+ * repetidas a cada uso — e por isso divergindo: um par vinha com text-sm (14px)
+ * ao lado de um primário de 16px, na mesma fileira.
+ *
+ * Herda a altura, o padding e o raio do primário de propósito: dois botões lado
+ * a lado com um pixel de diferença de altura é o tipo de coisa que ninguém
+ * aponta e todo mundo sente. */
+.button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 1.35rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--forest) 14%, transparent);
+  background: #ffffff;
+  color: var(--forest-2);
+  font-size: 1rem;
+  line-height: 1.15;
+  font-weight: 800;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.button-secondary:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
+  box-shadow: 0 14px 30px -18px rgba(3, 47, 1, 0.35);
+}
+
 .button-dark:hover {
   transform: translateY(-3px);
   background: var(--forest);

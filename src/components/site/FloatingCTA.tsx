@@ -61,7 +61,7 @@ export function FloatingCTA() {
         aria-hidden={!visivel}
         inert={!visivel}
       >
-        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-[1.25rem] border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
+        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-lg border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
             <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-brand-deep shadow-[0_10px_26px_-16px_rgba(86,168,5,.9)]">
               <CalendarCheck className="h-5 w-5" aria-hidden="true" />
@@ -110,7 +110,7 @@ export function FloatingCTA() {
         aria-label="Falar com a JP Clínica no WhatsApp"
         aria-hidden={visivel}
         tabIndex={visivel ? -1 : undefined}
-        className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-[26px] rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
+        className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-2xl rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
           visivel ? "pointer-events-none invisible translate-y-3 opacity-0" : "bottom-7 opacity-100"
         }`}
       >
