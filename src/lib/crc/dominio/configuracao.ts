@@ -98,6 +98,16 @@ export const CONFIGURACAO_PADRAO: ConfiguracaoCrc = {
 export const FLAGS = {
   /** Permite a IA agir sozinha dentro dos guardrails. */
   aiAutopilot: "ai_autopilot",
+  /**
+   * O turno de sombra: o agente lê, pensa e registra uma resposta candidata —
+   * sem enviar nada. Nasce desligado, e ligá-lo não fala com paciente nenhum.
+   */
+  aiAgenteSombra: "ai_agente_sombra",
+  /**
+   * A trava que separa "o agente escreveu" de "o paciente recebeu". Sozinha ela
+   * não basta: o envio ainda passa pelos portões e pela janela de 24h.
+   */
+  aiAgenteEnvio: "ai_agente_envio",
   /** Permite a IA marcar consulta sem humano no meio. */
   autoScheduling: "auto_scheduling",
   /** Liga a leitura de orçamentos. */
@@ -112,6 +122,8 @@ export type ChaveFlag = (typeof FLAGS)[keyof typeof FLAGS];
 
 export const FLAGS_PADRAO: Readonly<Record<ChaveFlag, boolean>> = {
   ai_autopilot: false,
+  ai_agente_sombra: false,
+  ai_agente_envio: false,
   auto_scheduling: false,
   budget_integration: false,
   automatic_whatsapp: false,

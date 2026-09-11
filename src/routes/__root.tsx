@@ -12,6 +12,7 @@ import { type ReactNode } from "react";
 import { Logo } from "@/components/site/Logo";
 import { SITE_URL } from "@/lib/jp";
 import appCss from "../styles.css?url";
+import { RastreioDeContato } from "@/components/site/RastreioDeContato";
 
 /**
  * Shared shell for the 404 and error boundaries. Both are dead ends, so they
@@ -190,6 +191,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Um ouvinte só, na raiz, para os cliques de conversão de TODAS as rotas
+          — WhatsApp, telefone, mapa e avaliações. Fica aqui e não em cada botão
+          porque link novo nasceria sem rastreio até alguém lembrar. Não desenha
+          nada e não bloqueia clique nenhum: se o analytics falhar, falha calado. */}
+      <RastreioDeContato />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

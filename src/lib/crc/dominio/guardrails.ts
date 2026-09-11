@@ -197,9 +197,14 @@ export const portaoClinico: Portao = {
  * numa clínica.
  */
 const PROMESSAS: readonly RegExp[] = [
-  /\b(vou|irei|ja\s+estou|estou)\s+(verificar|conferir|checar|agendar|marcar|remarcar|cancelar|pedir|solicitar|encaminhar|falar\s+com)/u,
+  // RADICAL, e não o infinitivo: o modelo escreve "já estou agendando" com a
+  // mesma frequência com que escreve "vou agendar", e uma lista de infinitivos
+  // deixa o gerúndio passar inteiro.
+  /\b(vou|irei|ja\s+estou|estou)\s+(verific|confer|check|agend|marc|remarc|cancel|ped|solicit|encaminh|fal)/u,
   /\b(te\s+)?(retorno|aviso|confirmo|respondo)\s+(em\s+breve|logo|mais\s+tarde|ainda\s+hoje|assim\s+que)/u,
-  /\b(alguem|a\s+recepcao|a\s+doutora|o\s+doutor)\s+(vai|ira)\s+(te\s+)?(ligar|entrar\s+em\s+contato|chamar)/u,
+  // O `(\s+d[aeo]\s+\w+)?` cobre o sujeito qualificado — "alguém DA RECEPÇÃO
+  // vai te ligar" — que é justamente como a frase costuma sair.
+  /\b(alguem|a\s+recepcao|a\s+doutora|o\s+doutor)(\s+d[aeo]\s+\w+)?\s+(vai|ira)\s+(te\s+)?(ligar|entrar\s+em\s+contato|chamar)/u,
 ];
 
 export const portaoPromessa: Portao = {
@@ -233,7 +238,9 @@ const VAZAMENTOS: readonly RegExp[] = [
   /\b(como\s+(um\s+)?(assistente|modelo|ia)\s+(de\s+)?(linguagem|virtual)?)\b/u,
   /\b(tool|function_call|json|schema|payload|endpoint|api)\b/u,
   /\b(organization_id|patient_id|conversation_id|crc_[a-z_]+)\b/u,
-  /\b(nao\s+(posso|consigo)\s+(acessar|executar)\s+(a\s+)?(ferramenta|funcao))\b/u,
+  // Passado incluído: a falha de ferramenta quase sempre é relatada como
+  // "não consegui", não como "não consigo".
+  /\bnao\s+(posso|consigo|consegui|conseguimos|pude)\s+(acessar|executar|usar)\s+(a\s+)?(ferramenta|funcao|api)/u,
 ];
 
 export const portaoVazamento: Portao = {
