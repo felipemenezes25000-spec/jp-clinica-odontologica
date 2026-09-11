@@ -1,5 +1,15 @@
 # JP Clínica Integrada Odontológica — redesign aplicado
 
+> **📌 DOCUMENTO HISTÓRICO.** Registra a proposta aprovada em conversa, do
+> redesign original. **Não descreve mais o site de hoje** — o verde `#2F6B35`
+> saiu, a clínica tem 24 anos (não 23) e a ordem da home mudou: tratamentos
+> subiram para a terceira posição e a história desceu para a quinta.
+>
+> **O sistema visual vigente está em [DESIGN.md](DESIGN.md)**, com razões de
+> contraste medidas e tokens conferidos contra o CSS compilado. Este arquivo
+> fica como registro do ponto de partida.
+
+
 Este pacote é a versão consolidada do redesign aprovado na conversa.
 
 ## Sistema visual

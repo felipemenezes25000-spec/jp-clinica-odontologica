@@ -2,7 +2,7 @@
 
 Site institucional da **JP Clínica Integrada Odontológica** — Rua Rio Verde, 1029, Vila Bruna, região da Freguesia do Ó, São Paulo.
 
-🔗 **[jp-clinica-odontologica-award-final.vercel.app](https://jp-clinica-odontologica-award-final.vercel.app)**
+🔗 **[www.jpclinicaodontologica.com.br](https://www.jpclinicaodontologica.com.br)**
 
 O objetivo do site é um só: fazer a pessoa agendar pelo WhatsApp. Toda decisão de conteúdo, peso e acessibilidade foi tomada com esse funil em vista.
 
@@ -43,14 +43,25 @@ Sem biblioteca de componentes. Os componentes são próprios, em `src/components
 
 ```
 src/
-├── lib/jp.ts                    ← FONTE ÚNICA DE VERDADE
+├── lib/
+│   ├── jp.ts                    ← FONTE ÚNICA DE VERDADE (contato, avaliação, tratamentos, equipe)
+│   ├── seo.ts                   título e descrição dentro do que o Google mostra
+│   ├── dadosEstruturados.ts     o JSON-LD, montado a partir de jp.ts
+│   └── analytics.ts             eventos de conversão, um ouvinte só
 ├── routes/
 │   ├── __root.tsx               shell, metatags globais, 404 e erro
 │   ├── index.tsx                home (9 seções)
 │   └── tratamentos/$slug.tsx    as 8 páginas de tratamento
 ├── components/site/             componentes próprios
-└── assets/                      fotos e vídeos
+├── assets/
+│   ├── fontes/                  Inter e Manrope, hospedadas aqui
+│   └── …                        fotos e vídeos
+└── styles.css                   tokens e classes de sistema — ver DESIGN.md
 ```
+
+**O sistema visual tem documento próprio: [DESIGN.md](DESIGN.md)** — paleta com
+razões de contraste medidas, escala tipográfica, calha, raio, botões, hierarquia
+de CTA, regras de acessibilidade e as armadilhas que custaram iteração.
 
 ### Os três sistemas que moram neste repo
 
@@ -124,11 +135,11 @@ Regras que decorrem daí:
 - **Nunca `--forest` com opacidade para texto.** A faixa que existia (40% a 70%) ia de 1,87:1 a 3,31:1 — toda ela reprovava. Use `--ink-soft` sólido.
 - **Sobre o lime**, texto tem de ser `--forest-2` (8,2:1). `--ink-soft` ali dá 3,08:1.
 
-### Piso de 11px na tipografia
+### Piso de 12px na tipografia
 
-Havia 34 elementos abaixo de 11px, sendo 10 a **8px** — caixa alta com `tracking` largo nesse tamanho é ilegível para muita gente. Todos subiram para 11px. Onde o texto passou a não caber, a solução foi reduzir o `tracking`, não voltar a diminuir a fonte.
+`--text-micro` (0.75rem) é o menor tamanho do site. Havia **44 valores escritos à mão** — `text-[11px]` em 43 lugares e um `text-[10px]` — espalhados por nove arquivos: valor mágico repetido **e** abaixo do confortável de ler no celular. Rótulo discreto fica discreto por caixa-alta, peso e espaçamento entre letras, não por encolher abaixo do legível.
 
-O site usa duas famílias: **Manrope** nos títulos (`font-display`) e **Inter** no resto.
+O site usa duas famílias, **hospedadas neste repositório** (`src/assets/fontes/`): **Manrope** nos títulos (`font-display`) e **Inter** no resto. Vinham do Google e bloqueavam 835 ms de renderização no celular — além de mandar o IP de cada visitante a um terceiro. Detalhes em [DESIGN.md](DESIGN.md).
 
 ### O menu mobile é a navegação do celular
 
@@ -148,6 +159,36 @@ Fechado, ele leva **`invisible`** junto com `max-h-0`. Só altura zero não bast
 
 Nenhuma seção repete `mx-auto max-w-[1320px] px-5 md:px-8 xl:px-10`. Se alguma repetir, é regressão: mudar a calha do site passa a exigir uma edição por arquivo.
 
+### `calc()` sem espaço não gera classe nenhuma
+
+`w-[calc(50%-10px)]` é **CSS inválido** — dentro de `calc()` o operador precisa
+de espaço dos dois lados. O Tailwind simplesmente **não gera a classe**, sem
+avisar. Escreve-se com sublinhado, que ele converte em espaço:
+
+```
+w-[calc(50%-10px)]      ← a classe não existe no CSS
+w-[calc(50%_-_10px)]    ← certo
+```
+
+Aconteceu em sete larguras da grade de equipe. Nenhuma foi gerada, o `w-full` da
+base passou a valer sozinho, e os seis cards desciam **um por linha** em tablet e
+desktop: seção de **11.086 pixels**, doze telas para ver seis pessoas. Depois:
+**932px**.
+
+O que pega isso não é ler o JSX — as classes estavam lá, literais. É conferir se
+chegaram ao CSS que o navegador baixa:
+
+```bash
+npm run build && grep -F "calc(33.333% - 14px)" .vercel/output/static/assets/*.css
+```
+
+### A âncora precisa limpar o cabeçalho grudado
+
+`scroll-padding-top` tem de ser **maior que a altura do header sticky**. Era
+92px contra um cabeçalho de 127px: clicar em "Tratamentos" parava a seção 35px
+atrás dele, engolindo o começo do título. Hoje são 136px. **Se a altura do
+cabeçalho mudar, esse número muda junto.**
+
 ### O intervalo entre seções é uma soma, não um valor
 
 O espaço que se vê entre duas seções é o `padding-bottom` de uma **mais** o `padding-top` da seguinte. `.jp-section` vale 4,5rem de cada lado, então o intervalo real é **144px**, não 72px.
@@ -164,7 +205,7 @@ Isto não é detalhe de implementação. É uma clínica de saúde real e a publ
 | ----------------------- | --------------------------------------------------------------------------- |
 | Imagens dos ambientes   | **Versões geradas por IA** a partir das fotos reais da clínica — ver abaixo |
 | Texto dos depoimentos   | **Avaliações reais do Google**, com o nome como aparece lá                  |
-| Nota e volume           | **4,5★ · 176 avaliações**, conferido na ficha do Google                     |
+| Nota e volume           | **4,6★ · 192 avaliações** — vive em `AVALIACOES`, ver [DESIGN.md](DESIGN.md) |
 | Missão                  | **Transcrita do quadro** afixado na parede da clínica                       |
 | 7 dos 8 vídeos          | Acervo da própria clínica                                                   |
 | Vídeo de clareamento    | Pexels (licença livre para uso comercial)                                   |
@@ -189,21 +230,33 @@ As fotos originais em 3024×4032 estão preservadas fora do repositório (`Downl
 >
 > Modelos de imagem erram texto com naturalidade, e um CRO falso na publicidade de uma clínica é infração ao CFO. Placa, letreiro, diploma ou qualquer documento legível numa imagem gerada tem de ser lido caractere a caractere.
 
-### ⚠️ As 8 pessoas fictícias
+### As pessoas do site são reais
 
-O site **exibe hoje 8 rostos de pessoas que não existem**, gerados por um gerador de faces, marcados com `ficticio: true` no código:
+Já não são. Este bloco existiu por meses avisando o contrário, e o aviso ficou
+para trás quando os dados chegaram — registro aqui o estado de hoje para ninguém
+"corrigir" de volta.
 
-| Onde          | Quantos                         | Arquivo                                  |
-| ------------- | ------------------------------- | ---------------------------------------- |
-| `EQUIPE`      | 4 de 5 (CRO-SP 00.002 a 00.005) | `src/lib/jp.ts`                          |
-| `DEPOIMENTOS` | 2 de 5 avatares                 | `src/lib/jp.ts`                          |
-| `FUNDADORES`  | 2 (CRO-SP 00.006 e 00.007)      | `src/components/site/HistorySection.tsx` |
+| Onde          | Situação                                                                |
+| ------------- | ----------------------------------------------------------------------- |
+| `EQUIPE`      | **6 pessoas reais.** Cinco com CROSP conferido, mais a recepção         |
+| `DEPOIMENTOS` | **5 avaliações reais**, transcritas da ficha do Google                  |
+| Fundação      | Jeferson Barbosa e **Dra. Juliana Pelisser Barbosa — CROSP 75.159**     |
 
-São **preenchimento de layout**, colocados a pedido para a clínica ver a diagramação pronta. Os CROs usam o formato `00.00X`, que nenhum registro verdadeiro tem — é proposital, para o número falso ser reconhecível de imediato.
+Os CROs no ar: **177.801, 168.512, 175.851, 75.157, 162.394** e, na responsável
+técnica, **75.159**. A carteira traz o número sem ponto (`SP-162394`); o ponto é
+só de exibição.
 
-> **Nada disso pode ir ao ar.** Divulgar profissional com CRO inventado é infração ao CFO, e um depoimento com rosto fabricado é publicidade enganosa. Buscar por `ficticio: true` lista tudo que falta trocar.
+> **Duas armadilhas neste assunto, as duas já cometidas aqui.**
 >
-> A única pessoa real no site é a **Dra. Juliana Pelisser (CROSP 78.159)**, responsável técnica.
+> Havia um aviso `⚠️ FICTÍCIOS` sobre dois depoimentos que a clínica depois
+> confirmou serem reais. A marcação estava errada, não o site — e ela me levou a
+> remover duas avaliações verdadeiras do site publicado. Marcação de conteúdo
+> falso tem de sair no instante em que o dado real chega; enquanto fica, ela
+> mente para a próxima pessoa que abrir o arquivo.
+>
+> `Profissional.ficticio` **continua existindo e é lógica viva**: o
+> `TeamSection` filtra a equipe por ele. Se um dia entrar alguém sem dado
+> confirmado, é essa a marcação que mantém a pessoa fora do ar.
 
 ### Regras que o site precisa manter
 
@@ -247,6 +300,50 @@ Slug inexistente devolve **404 de verdade**, não 200 com tela de erro. Cada rot
 
 ---
 
+## SEO
+
+Cada rota emite `title`, `description`, `og:*` e `canonical` próprios **no HTML
+servido** — o robô de preview do WhatsApp não roda JavaScript, e o WhatsApp é o
+canal de conversão.
+
+### O título começa pela busca, não pela marca
+
+`src/lib/seo.ts` monta título e descrição dentro do que o Google **mostra** (60 e
+155 caracteres). Antes todo título tinha 65 a 75 e toda descrição 164 a 228 — a
+clínica escrevia um fim de frase que ninguém lia, e o corte caía dentro do nome
+dela.
+
+A ordem é a decisão: quem procura dentista digita *"implante dentário na
+Freguesia do Ó"*, não o nome de uma clínica que ainda não conhece. O
+procedimento e o bairro ocupam o começo; a marca fecha, e **encolhe até caber** —
+"Restaurações" sobra espaço e leva o nome inteiro, "Harmonização orofacial" leva
+o curto.
+
+### Dados estruturados
+
+`src/lib/dadosEstruturados.ts` monta o JSON-LD **a partir de `jp.ts`**, nunca
+digitado:
+
+| Onde                 | Tipo                             |
+| -------------------- | -------------------------------- |
+| Home                 | `Dentist` + `FAQPage`            |
+| Cada tratamento      | `MedicalWebPage` + `FAQPage`     |
+| Cada vaga            | `JobPosting`                     |
+
+O `Dentist` traz endereço, coordenadas, horário, CNPJ, a responsável técnica com
+CRO, os 8 tratamentos e o **`aggregateRating`** — é ele que permite o Google
+desenhar as estrelas no resultado.
+
+> Dado estruturado que **discorda** da página visível é pior que dado nenhum: o
+> Google trata divergência como sinal de manipulação. Por isso sai tudo da mesma
+> fonte — não há como divergir. E `foundingDate` vai em ISO 8601 (`2002-08-17`),
+> não no formato que a página exibe: data errada o Google descarta em silêncio.
+
+**Lighthouse de SEO: 100** em 11 das 12 rotas. A exceção é `/trabalhe-conosco`,
+que é `noindex` de propósito — quem procura emprego deve cair em `/carreiras`.
+
+---
+
 ## Acessibilidade
 
 O site passou por auditoria WCAG 2.1 AA com contraste calculado, não estimado.
@@ -254,16 +351,27 @@ O site passou por auditoria WCAG 2.1 AA com contraste calculado, não estimado.
 - Contorno de foco muda de cor conforme a superfície (escuro no claro, lime no escuro)
 - Menu mobile com Escape, retorno de foco e `invisible` quando fechado
 - Skip link em todas as rotas
-- Alvos de toque de 44px no cabeçalho (WCAG 2.5.8 com folga)
+- **Alvo de toque de 44px no site inteiro** via `.alvo-toque`, não só no cabeçalho
+- **Piso de 12px em todo texto** (`--text-micro`)
 - Vídeos com rótulo acessível e controle de pausa
+- `prefers-reduced-motion` zera transição e animação, e desliga o autoplay
 - Decoração de fundo é `aria-hidden` e `pointer-events-none` — nada disso chega ao leitor de tela
+
+**Medido no site publicado, em 320, 390 e 1440px:** zero alvo abaixo de 44px,
+zero texto abaixo de 12px, zero rolagem horizontal e **zero falha de contraste em
+112 elementos**. Lighthouse de acessibilidade **100** nas 12 rotas.
+
+> Contraste se mede pintando a cor num canvas e **lendo o pixel**. Parser por
+> expressão regular mente com `oklch()`/`oklab()`, que é o que o Tailwind v4
+> emite — cheguei a reportar 18 falhas que não existiam. Está detalhado em
+> [DESIGN.md](DESIGN.md).
 
 ---
 
 ## Pendências
 
-- [ ] 🔴 **Trocar as 8 pessoas fictícias antes de divulgar** — equipe, fundadores e dois avatares de depoimento. Nome, CRO **conferido** e foto recortada com fundo transparente de cada profissional. `grep -rn "ficticio: true" src` lista todas.
-- [x] ~~Confirmar os 23 anos.~~ **Confirmado pela clínica em 09/08/2026: 23 anos, desde 2003.** O CNPJ de 2021 é da pessoa jurídica atual, não o início da clínica — está documentado em `HISTORIA` para ninguém "corrigir" o número achando que é erro.
+- [x] ~~Trocar as pessoas fictícias.~~ **Feito.** Equipe, fundação e depoimentos são reais; `grep -rn "ficticio: true" src` não devolve nada. A marcação `Profissional.ficticio` segue disponível para quem entrar sem dado confirmado.
+- [x] ~~Confirmar a idade da clínica.~~ **Confirmado pela clínica em 14/08/2026: 24 anos, fundada em 17/08/2002.** O CNPJ de 2021 é da pessoa jurídica atual, não o início da clínica — está documentado em `HISTORIA` para ninguém "corrigir" o número achando que é erro.
 - [ ] **Vincular o site à ficha do Google.** Hoje o Google mostra "Adicionar website" — é tráfego direto e gratuito sendo perdido.
-- [ ] **Trocar o domínio.** Ao migrar, atualizar `SITE_URL` em `jp.ts` e as URLs de `public/sitemap.xml`.
+- [x] ~~Trocar o domínio.~~ **Feito.** O site responde em `www.jpclinicaodontologica.com.br`; `SITE_URL` e o sitemap já apontam para lá.
 - [ ] Páginas de **facetas**, **endodontia** e **periodontia** — os dois últimos estão na placa da clínica mas não no site, e há bom material de vídeo para os três.
