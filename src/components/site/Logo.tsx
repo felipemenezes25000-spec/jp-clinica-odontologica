@@ -55,6 +55,13 @@ export function Logo({
       height={altura}
       className={className}
       draggable={false}
+      /* A marca e o elemento LCP no celular -- medido pelo Lighthouse contra o
+         build de producao. Ela abre a pagina, entao esperar a fila normal de
+         download custa direto no numero que o Google olha.
+         `fetchpriority="high"` poe ela na frente; `loading="eager"` impede que
+         alguem, mais tarde, ache que um <img> no topo tambem merece lazy. */
+      fetchPriority="high"
+      loading="eager"
     />
   );
 }
