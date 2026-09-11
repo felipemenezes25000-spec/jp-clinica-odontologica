@@ -136,7 +136,8 @@ export function TeamSection() {
           </h2>
 
           <p className="mt-5 max-w-[520px] text-[15px] leading-6 text-ink-soft">
-            Atendimento clínico realizado por cirurgiões-dentistas identificados pelo número de registro no Conselho Regional de Odontologia.
+            Atendimento clínico realizado por cirurgiões-dentistas identificados pelo número de
+            registro no Conselho Regional de Odontologia.
           </p>
         </div>
 

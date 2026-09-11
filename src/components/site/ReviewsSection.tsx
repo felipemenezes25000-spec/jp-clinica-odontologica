@@ -96,7 +96,8 @@ export function ReviewsSection() {
             </h2>
 
             <p className="mt-7 max-w-[590px] text-[16px] leading-7 text-ink-soft">
-              Abaixo estão relatos publicados por pacientes no Google, junto da nota atual da ficha da clínica.
+              Abaixo estão relatos publicados por pacientes no Google, junto da nota atual da ficha
+              da clínica.
             </p>
 
             <div className="mt-10 overflow-hidden rounded-[28px] border border-border-soft bg-white/75 shadow-[0_18px_60px_rgba(3,47,1,0.06)] backdrop-blur">
