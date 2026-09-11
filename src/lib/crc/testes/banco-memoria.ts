@@ -172,6 +172,10 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_eval_casos: [{ colunas: ["organization_id", "nome"] }],
   // Os índices do 15. Os dois PARCIAIS são o que faz "qual texto o agente usa?" e
   // "qual rascunho está aberto?" terem UMA resposta cada.
+  // O indice do 17: um evento enfileira UM job. Sem ele, o motor reprocessando
+  // poria o mesmo turno na fila duas vezes — duas chamadas de modelo pagas para
+  // produzir a mesma resposta.
+  crc_agent_jobs: [{ colunas: ["organization_id", "chave_dedupe"] }],
   crc_agent_versions: [
     { colunas: ["organization_id", "versao"] },
     { colunas: ["organization_id"], onde: (l) => l["status"] === "PUBLICADA" },
@@ -669,6 +673,75 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       return Promise.resolve([
         { dia_micro: balde["micro_reais"], chamadas_dia: balde["chamadas"] },
       ] as T[]);
+    }
+
+    /*
+     * A reserva de jobs do agente — Fase B.
+     *
+     * Reproduz as tres condicoes que importam da RPC de verdade: so pega o que
+     * esta disponivel, so pega o que nao esta travado por outro worker, e
+     * incrementa a tentativa NA RESERVA. A terceira e a que impede um job que
+     * derruba o worker de tentar para sempre.
+     */
+    case "crc_reservar_agent_jobs": {
+      const teto = typeof argumentos["limite"] === "number" ? argumentos["limite"] : 5;
+      const lockSeg =
+        typeof argumentos["lock_segundos"] === "number" ? argumentos["lock_segundos"] : 180;
+      const quem = argumentos["quem"] ?? null;
+      const ateQuando = new Date(agora + lockSeg * 1000).toISOString();
+
+      const disponivel = (l: Linha): boolean => {
+        const q = l["disponivel_em"];
+        return typeof q !== "string" || Date.parse(q) <= agora;
+      };
+
+      const alvo = (tabelas["crc_agent_jobs"] ?? [])
+        .filter(
+          (l) =>
+            l["status"] === "PENDENTE" ||
+            l["status"] === "REPETIR" ||
+            // Lease vencido: o worker morreu e o trabalho volta a ser de quem
+            // pegar. Ver o comentario da RPC no 17.
+            (l["status"] === "RODANDO" && livre(l)),
+        )
+        .filter(disponivel)
+        .filter(livre)
+        .filter((l) => (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) < 5)
+        .slice(0, teto);
+
+      for (const l of alvo) {
+        l["status"] = "RODANDO";
+        l["travado_ate"] = ateQuando;
+        l["travado_por"] = quem;
+        l["comecou_em"] = new Date(agora).toISOString();
+        l["tentativas"] = (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) + 1;
+      }
+
+      return Promise.resolve(alvo.map((l) => ({ ...l })) as T[]);
+    }
+
+    /*
+     * Fecha o job que ficou RODANDO com o lease vencido E o teto estourado.
+     *
+     * Sem isto ele nao aparece na fila de trabalho (a reserva ignora quem passou
+     * de cinco tentativas) nem na de falhas (o status e RODANDO). Some.
+     */
+    case "crc_liberar_agent_jobs_presos": {
+      const presos = (tabelas["crc_agent_jobs"] ?? []).filter(
+        (l) =>
+          l["status"] === "RODANDO" &&
+          typeof l["travado_ate"] === "string" &&
+          Date.parse(l["travado_ate"]) < agora &&
+          (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) >= 5,
+      );
+
+      for (const l of presos) {
+        l["status"] = "FALHOU";
+        l["terminou_em"] = new Date(agora).toISOString();
+        l["ultimo_erro"] = l["ultimo_erro"] ?? "O worker nao terminou o job e o lease venceu.";
+      }
+
+      return Promise.resolve([{ crc_liberar_agent_jobs_presos: presos.length }] as T[]);
     }
 
     default:

@@ -551,21 +551,43 @@ async function contextoDeAgendamento(
   flags: Readonly<Record<string, boolean>>,
   interruptores: Readonly<Record<string, boolean>>,
 ): Promise<ContextoAgendamento | null> {
+  return contextoDeAgendamentoParaJob(evento.organizationId, "", cfg, flags, interruptores);
+}
+
+/**
+ * O mesmo contexto, montado a partir da organização — Fase B.
+ *
+ * O worker da fila não tem um `EventoCrc` em mãos: ele tem um job, que carrega
+ * `organization_id` como COLUNA. É a diferença que importa para o isolamento de
+ * tenant: o valor vem de uma linha que o sistema escreveu, e não de um payload
+ * que passou perto do modelo.
+ *
+ * `conversationId` entra na assinatura porque uma versão futura pode precisar
+ * dele para escolher a clínica certa numa organização com várias. Hoje não usa,
+ * e é honesto dizer isso aqui em vez de fingir que usa.
+ */
+export async function contextoDeAgendamentoParaJob(
+  organizationId: string,
+  _conversationId: string,
+  cfg: ConfiguracaoCrc,
+  flags: Readonly<Record<string, boolean>>,
+  interruptores: Readonly<Record<string, boolean>>,
+): Promise<ContextoAgendamento | null> {
   const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
-  const cliente = criarClienteDentalOffice({ organizationId: evento.organizationId });
+  const cliente = criarClienteDentalOffice({ organizationId });
   if (!cliente.ok) return null;
 
   const clinica = await selecionarUm("crc_clinics", {
     colunas: "id,external_id",
     filtros: [
-      { coluna: "organization_id", op: "eq", valor: evento.organizationId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
       { coluna: "ativa", op: "eq", valor: true },
     ],
   });
   if (clinica === null) return null;
 
   return {
-    organizationId: evento.organizationId,
+    organizationId,
     clinicId: String(clinica["id"] ?? ""),
     clinicaExternaId: String(clinica["external_id"] ?? ""),
     cliente: cliente.cliente,
@@ -700,87 +722,28 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
   const conversationId = evento.payload["conversationId"];
   if (typeof conversationId !== "string") return;
 
-  const { lerFlags, lerKillSwitches } = await import("../servidor/configuracao");
-  const [flags, interruptores] = await Promise.all([
-    lerFlags(evento.organizationId),
-    lerKillSwitches(evento.organizationId),
-  ]);
-
-  if (flags["ai_agente_sombra"] !== true) return;
-  if (interruptores["kill_ia_auto"] === true || interruptores["kill_automacoes"] === true) return;
-
   /*
-   * O GATEWAY, E NÃO A FÁBRICA DE AMBIENTE — Fatia 8.
+   * ELE SÓ ENFILEIRA — Fase B.
    *
-   * Três coisas vêm de graça na troca, e nenhuma delas aparece aqui como
-   * código: a rota por finalidade (conversa e supervisor podem ser modelos
-   * diferentes), a chave da própria clínica quando ela cadastrou uma, e o teto de
-   * gasto verificado ANTES de cada chamada. O teto é um decorador da porta
-   * justamente para não existir caminho de chamada que esqueça de checá-lo.
-   */
-  const { portaParaFinalidade, portaDeEmbeddingsDaOrganizacao } =
-    await import("../integracoes/ia/gateway");
-  const [provedor, supervisorIa] = await Promise.all([
-    portaParaFinalidade(evento.organizationId, "conversa"),
-    portaParaFinalidade(evento.organizationId, "supervisor"),
-  ]);
-
-  // A busca no material escrito é capacidade SEPARADA (Fatia 7): sem ela o
-  // agente continua atendendo horário, endereço e agenda, e a ferramenta de
-  // conhecimento responde que o material não está disponível — o que faz o
-  // modelo passar para a equipe em vez de responder de memória.
-  const busca = await portaDeEmbeddingsDaOrganizacao(evento.organizationId);
-
-  // O envio exige a SEGUNDA flag. Sem ela o turno termina em `candidato`: a
-  // resposta fica gravada em `crc_ai_runs` e ninguém a recebe.
-  const podeEnviar = flags["ai_agente_envio"] === true && interruptores["kill_envios"] !== true;
-
-  let portaMensageria = null;
-  if (podeEnviar) {
-    const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
-    const m = criarProvedorMensageria(evento.organizationId);
-    portaMensageria = m.configurado ? m.porta : null;
-  }
-
-  /*
-   * A POLÍTICA É LIDA AQUI, uma vez, e entregue pronta ao laço.
+   * Antes, este handler rodava o turno INTEIRO: montava contexto, chamava o
+   * modelo, esperava, aplicava portões e respondia. Numa função serverless isso
+   * amarra o trabalho ao ciclo de vida da requisição — um deploy no meio, um
+   * timeout, um 5xx do provedor, e o turno some sem registro de que faltou
+   * responder alguém. Não havia retry porque não havia o que retomar.
    *
-   * O laço não vai ao banco perguntar se pode: ele recebe o estado e decide
-   * com ele. Assim a mesma volta do laço não pode ver a flag mudar no meio —
-   * e a política fica testável sem banco.
+   * AS TRAVAS NÃO SÃO LIDAS AQUI, e isso é deliberado. Entre a mensagem chegar
+   * e o worker rodar pode passar um minuto, e nesse minuto alguém pode desligar
+   * o agente ou assumir a conversa. Quem lê a flag é quem vai agir — o worker —
+   * senão o sistema agiria com uma decisão já revogada.
+   *
+   * O custo da escolha: a fila ganha jobs que serão descartados sem fazer nada.
+   * É barato: uma linha, e o descarte é registrado com o motivo.
    */
-  const politica = {
-    escritaLiberada: flags["ai_agente_escrita"] === true,
-    writebackLiberado: flags["dental_office_writeback"] === true,
-    agendamentoAutonomo: flags["auto_scheduling"] === true,
-    escritasDentalOfficePausadas: interruptores["kill_escritas_do"] === true,
-    ferramentasUsadas: 0,
-  };
-
-  const { lerConfiguracao } = await import("../servidor/configuracao");
-  const cfg = await lerConfiguracao(evento.organizationId);
-
-  const { rodarTurno } = await import("../ia-platform/turno");
-  await rodarTurno({
+  const { enfileirarTurno } = await import("../aplicacao/agent-jobs");
+  await enfileirarTurno({
     organizationId: evento.organizationId,
     conversationId,
-    politica,
-    // Montado só quando alguma ferramenta de agenda for escolhida: construí-lo
-    // exige falar com o Dental Office, e a maioria dos turnos não usa agenda.
-    contextoAgendamento: () => contextoDeAgendamento(evento, cfg, flags, interruptores),
-    // O ID DO EVENTO É A CHAVE DE DEDUPE. O motor pode reprocessar um evento
-    // depois de um restart; sem isto, o mesmo turno rodaria de novo e pagaria
-    // o modelo de novo.
-    eventoId: evento.id,
-    agora: new Date(),
-    porta: provedor.configurado ? provedor.porta : null,
-    portaSupervisor: supervisorIa.configurado ? supervisorIa.porta : null,
-    portaEmbeddings: busca.configurado ? busca.porta : null,
-    portaMensageria,
-    podeEnviar,
-    // A segunda leitura do turno, e a única coisa que propõe memória. Custa uma
-    // chamada de modelo a mais por turno, então é flag separada.
-    supervisionar: flags["ai_supervisor"] === true,
+    eventId: evento.id,
   });
 }
 

@@ -31,6 +31,8 @@ import { createFileRoute } from "@tanstack/react-router";
 type Relatorio = {
   sincronizacao: unknown;
   eventos: unknown;
+  /** Os turnos do agente que este ciclo reservou e rodou — Fase B. */
+  turnos: unknown;
   campanhas: unknown;
   jornadas: unknown;
   varreduras: unknown[];
@@ -151,6 +153,23 @@ export const Route = createFileRoute("/api/crc/motor")({
           const { processarEventos } = await import("@/lib/crc/aplicacao/eventos");
           const eventos = await processarEventos(40);
 
+          /*
+           * OS TURNOS DO AGENTE — Fase B.
+           *
+           * Depois dos eventos, porque é o processamento de evento que enfileira
+           * o turno: rodar antes faria a fila só pegar o que sobrou do ciclo
+           * anterior, e cada resposta ao paciente chegaria um ciclo atrasada.
+           *
+           * Antes das jornadas, porque o paciente que acabou de escrever espera
+           * uma resposta AGORA. Jornada é trabalho de recuperação, e pode ceder
+           * a vez.
+           */
+          const { processarTurnosDoAgente } = await import("@/lib/crc/automacao/agente-worker");
+          const turnos = await processarTurnosDoAgente({
+            limite: 5,
+            quem: `cron:${new Date().toISOString()}`,
+          });
+
           const { rodarCiclo } = await import("@/lib/crc/automacao/motor");
           const { lerConfiguracao, lerKillSwitches } =
             await import("@/lib/crc/servidor/configuracao");
@@ -219,6 +238,7 @@ export const Route = createFileRoute("/api/crc/motor")({
           const relatorio: Relatorio = {
             sincronizacao,
             eventos,
+            turnos,
             campanhas,
             jornadas,
             varreduras,

@@ -27,7 +27,32 @@ type Span = {
   resumo: string | null;
 };
 
+/**
+ * O resultado da reserva do turno.
+ *
+ * `dono: false` significa que outra execução já reivindicou este turno — não é
+ * erro, é a dedupe funcionando. Quem chama encerra sem fazer nada.
+ */
+export type ReservaDoTurno = { dono: true; runId: string } | { dono: false };
+
 export type Trace = {
+  /**
+   * Reivindica o turno ANTES de qualquer efeito — Fase B.
+   *
+   * A run nascia no ENCERRAMENTO, e a dedupe funcionava tarde demais: quando a
+   * linha era escrita, o modelo já tinha sido chamado e pago. Duas execuções do
+   * mesmo evento pagavam duas vezes para depois uma delas descobrir que era
+   * duplicata.
+   *
+   * Agora a linha nasce com `resultado = 'RODANDO'`, e o índice único
+   * `(organization_id, chave_dedupe)` decide quem executa. Quem perder a corrida
+   * recebe `dono: false` e para antes de gastar qualquer coisa.
+   */
+  reservar: (dados: {
+    chaveDedupe: string;
+    conversationId: string;
+    jobId: string | null;
+  }) => Promise<ReservaDoTurno>;
   /** Mede uma etapa assíncrona. Repassa a exceção depois de registrá-la. */
   medir: <T>(nome: string, tipo: TipoSpan, fn: () => Promise<T>) => Promise<T>;
   /**
@@ -129,6 +154,49 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
             };
     },
 
+    async reservar({ chaveDedupe, conversationId: conversa, jobId }) {
+      try {
+        const { inserirIgnorandoDuplicata } = await import("../servidor/banco");
+
+        const criada = await inserirIgnorandoDuplicata("crc_ai_runs", {
+          organization_id: organizationId,
+          conversation_id: conversa,
+          chave_dedupe: chaveDedupe,
+          // O estado de trabalho. Quem lê a tabela sabe que este turno está em
+          // curso, e há quanto tempo.
+          resultado: "RODANDO",
+          iniciado_em: new Date(inicio).toISOString(),
+          job_id: jobId,
+          prompt_versao: "agent_shadow_turn_v1",
+        });
+
+        const id = criada === null ? null : criada["id"];
+        if (typeof id !== "string") return { dono: false };
+
+        idDaRun = id;
+        return { dono: true, runId: id };
+      } catch (erro) {
+        /*
+         * NÃO CONSEGUIU RESERVAR: O TURNO SEGUE.
+         *
+         * A reserva protege contra execução dupla, que custa dinheiro. A
+         * indisponibilidade do banco nessa hora é outra coisa, e recusar o turno
+         * por causa dela significaria deixar de responder um paciente por um
+         * problema que talvez nem afete o resto do fluxo.
+         *
+         * Sem reserva, o `gravar` no fim cai no caminho antigo — insere a run
+         * então. A proteção contra duplicata volta a ser tardia nesse caso, e é
+         * o preço assumido.
+         */
+        const { registrar: log } = await import("../servidor/registro");
+        log("aviso", "Não foi possível reservar a run do turno.", {
+          organizationId,
+          detalhe: descrever(erro),
+        });
+        return { dono: true, runId: "" };
+      }
+    },
+
     runId() {
       return idDaRun;
     },
@@ -149,35 +217,59 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
 
     async gravar(chaveDedupe, ctx, resultado, extras) {
       try {
-        const { inserirIgnorandoDuplicata, inserir } = await import("../servidor/banco");
+        const { atualizar, inserirIgnorandoDuplicata, inserir } = await import("../servidor/banco");
 
         const candidata = extras?.candidata ?? null;
-        const criada = await inserirIgnorandoDuplicata("crc_ai_runs", {
-          organization_id: organizationId,
+        const desfecho = {
           clinic_id: ctx?.clinicId ?? null,
-          conversation_id: conversationId,
           patient_id: ctx?.paciente?.id ?? null,
-          chave_dedupe: chaveDedupe,
           resultado: resultado.tipo,
           motivo: "motivo" in resultado ? resultado.motivo : null,
           resposta_candidata: candidata?.texto ?? null,
           raciocinio: candidata?.raciocinio ?? null,
           precisa_humano: candidata?.precisaHumano ?? false,
           modelo: consumo?.modelo ?? null,
-          prompt_versao: "agent_shadow_turn_v1",
           input_tokens: consumo?.inputTokens ?? null,
           output_tokens: consumo?.outputTokens ?? null,
           custo_estimado: consumo?.custoEstimado ?? null,
           duracao_ms: Date.now() - inicio,
           portao_bloqueou: extras?.portao ?? null,
-        });
+        };
 
-        // `inserirIgnorandoDuplicata` devolve null quando a chave já existia:
-        // o turno já foi processado, e os spans dele também. Sem esta guarda, um
-        // reprocessamento duplicaria o trace sem duplicar a run.
-        const runId = criada === null ? null : criada["id"];
-        if (typeof runId !== "string") return;
-        idDaRun = runId;
+        /*
+         * DOIS CAMINHOS, e o segundo e o de compatibilidade.
+         *
+         * Com a run RESERVADA no comeco (Fase B), aqui so falta escrever o
+         * desfecho por cima da linha que ja existe. Sem reserva — porque o banco
+         * piscou naquele instante, ou porque quem chamou nao reservou — a linha
+         * ainda nao existe, e o insert-ignorando-duplicata de antes continua
+         * valendo.
+         *
+         * Manter os dois e o que permite a Fase B nao quebrar nenhum chamador
+         * que ainda nao foi migrado.
+         */
+        let runId = idDaRun;
+
+        if (runId !== null && runId.length > 0) {
+          await atualizar("crc_ai_runs", [{ coluna: "id", op: "eq", valor: runId }], desfecho);
+        } else {
+          const criada = await inserirIgnorandoDuplicata("crc_ai_runs", {
+            organization_id: organizationId,
+            conversation_id: conversationId,
+            chave_dedupe: chaveDedupe,
+            prompt_versao: "agent_shadow_turn_v1",
+            iniciado_em: new Date(inicio).toISOString(),
+            ...desfecho,
+          });
+
+          // `null` quando a chave ja existia: o turno ja foi processado, e os
+          // spans dele tambem. Sem esta guarda, um reprocessamento duplicaria o
+          // trace sem duplicar a run.
+          const id = criada === null ? null : criada["id"];
+          if (typeof id !== "string") return;
+          runId = id;
+          idDaRun = id;
+        }
 
         if (spans.length > 0) {
           await inserir(

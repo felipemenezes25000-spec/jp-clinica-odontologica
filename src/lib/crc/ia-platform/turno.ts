@@ -61,6 +61,13 @@ export type PedidoTurno = {
     import("../aplicacao/agendamento").ContextoAgendamento | null
   >;
   /**
+   * O job durável que originou este turno — Fase B.
+   *
+   * Serve para ligar a run ao job na hora de investigar. Ausente quando alguém
+   * chama `rodarTurno` direto, o que hoje só acontece em teste.
+   */
+  jobId?: string | null;
+  /**
    * `ai_supervisor` ligada. Roda a segunda leitura DEPOIS do desfecho, e é ela
    * quem propõe memória.
    *
@@ -167,6 +174,31 @@ async function decidirEEntregar(
     }
     // Capturada aqui para o TypeScript saber, dentro da closure do laço, que
     // ela não é nula — em vez de uma asserção espalhada em cada uso.
+
+    /*
+     * A RESERVA DO TURNO — Fase B, e o ponto do ADR-28.
+     *
+     * Daqui para baixo tudo custa: chamada de modelo, ferramenta, escrita no
+     * Dental Office, mensagem. Antes disso, nada custou.
+     *
+     * A run nasce agora com `resultado = RODANDO`, e o índice único da chave de
+     * dedupe decide quem executa. Quem perder a corrida para aqui — sem ter
+     * pago nada. Antes, a mesma dedupe existia e acontecia no ENCERRAMENTO: as
+     * duas execuções chamavam o modelo e só depois uma descobria que era
+     * duplicata.
+     */
+    const reserva = await trace.reservar({
+      chaveDedupe,
+      conversationId: pedido.conversationId,
+      jobId: pedido.jobId ?? null,
+    });
+
+    if (!reserva.dono) {
+      return {
+        tipo: "sem_acao",
+        motivo: "Outra execução já está cuidando deste turno.",
+      };
+    }
 
     // --- o laço: modelo decide, ferramenta roda, modelo decide de novo -----
     const porta = pedido.porta;
