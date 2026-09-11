@@ -1,6 +1,6 @@
 import { ArrowUpRight, Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
-import { CLINICA, HISTORIA, NAV, RESPONSAVEL_TECNICA, whatsappLink } from "@/lib/jp";
+import { CLINICA, HISTORIA, NAV_RODAPE, RESPONSAVEL_TECNICA, whatsappLink } from "@/lib/jp";
 
 export function Footer() {
   return (
@@ -52,7 +52,7 @@ export function Footer() {
           <nav aria-label="Navegação do rodapé">
             <p className="eyebrow text-lime">Navegue</p>
             <ul className="mt-6 grid gap-2.5">
-              {NAV.map((item) => (
+              {NAV_RODAPE.map((item) => (
                 <li key={item.href}>
                   <a
                     href={item.href}

@@ -512,19 +512,54 @@ export const EQUIPE: MembroEquipe[] = [
 export const whatsappLink = (mensagem: string) =>
   `${CLINICA.whatsappHref}?text=${encodeURIComponent(mensagem)}`;
 
+/**
+ * O MENU DO TOPO — cinco itens, e o corte é a decisão.
+ *
+ * Eram dez: Início, A Clínica, Nossa História, Equipe, Tratamentos, Depoimentos,
+ * Estrutura, FAQ, Contato e Carreiras. Dez itens não são uma navegação, são um
+ * índice — e num notebook eles disputavam a barra com o logo, o telefone e o
+ * botão de agendar, que é o que a pessoa veio fazer.
+ *
+ * O que saiu e por quê:
+ * - "Início" era o logo repetido: a marca já leva para /#inicio.
+ * - "Nossa História", "Estrutura" e "FAQ" continuam na página, e continuam no
+ *   rodapé. Deixaram de competir no topo porque ninguém chega num site de
+ *   dentista procurando a estrutura antes de saber se atendem o que ele tem.
+ * - "Carreiras" foi para o rodapé porque é outro público: o site vende a
+ *   clínica para pacientes, a página de vagas vende a clínica para candidatos.
+ *   Quem procura emprego chega pelo Google ou por um link no WhatsApp, não
+ *   rolando a home.
+ *
+ * "Depoimentos" virou "Avaliações" para casar com o título da própria seção,
+ * que já era esse. O `href` continua `#depoimentos`: o id é contrato com links
+ * antigos que já circulam por aí.
+ */
 export const NAV = [
+  { label: "A Clínica", href: "/#clinica" },
+  { label: "Tratamentos", href: "/#tratamentos" },
+  { label: "Equipe", href: "/#equipe" },
+  { label: "Avaliações", href: "/#depoimentos" },
+  { label: "Contato", href: "/#fale" },
+];
+
+/**
+ * O MAPA DO RODAPÉ — completo, porque rodapé é onde mapa mora.
+ *
+ * O topo escolhe, o rodapé lista: quem rolou o site inteiro e chegou aqui já
+ * sabe o que procura, e para essa pessoa o custo de um item a mais é zero.
+ * É também o que impede o corte do menu de virar perda de acesso — nenhuma
+ * seção ficou sem link, só mudou de andar.
+ */
+export const NAV_RODAPE = [
   { label: "Início", href: "/#inicio" },
   { label: "A Clínica", href: "/#clinica" },
   { label: "Nossa História", href: "/#historia" },
   { label: "Equipe", href: "/#equipe" },
   { label: "Tratamentos", href: "/#tratamentos" },
-  { label: "Depoimentos", href: "/#depoimentos" },
+  { label: "Avaliações", href: "/#depoimentos" },
   { label: "Estrutura", href: "/#estrutura" },
   { label: "FAQ", href: "/#faq" },
   { label: "Contato", href: "/#fale" },
-  /* Única entrada do menu que não é âncora da home: o portal de vagas é página
-     própria, com URL indexável, porque quem procura emprego chega pelo Google
-     ou por um link colado no WhatsApp — não rolando a home até uma seção. */
   { label: "Carreiras", href: "/carreiras" },
 ];
 
