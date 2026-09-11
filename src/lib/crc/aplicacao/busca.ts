@@ -217,7 +217,7 @@ async function buscarOportunidades(
   if (pacientes.size === 0) return [];
 
   const linhas = await selecionar("crc_opportunities", {
-    colunas: "id,clinic_id,patient_id,tipo,prioridade,fechada_em,motivo,criado_em",
+    colunas: "id,clinic_id,patient_id,tipo,priority_score,fechada_em,motivo,criado_em",
     filtros: [
       daOrg,
       { coluna: "patient_id", op: "in", valor: [...pacientes.keys()] },
@@ -225,7 +225,7 @@ async function buscarOportunidades(
       // atender agora. O histórico dela vive na ficha do paciente.
       { coluna: "fechada_em", op: "is", valor: null },
     ],
-    ordenar: [{ coluna: "prioridade", ascendente: false }],
+    ordenar: [{ coluna: "priority_score", ascendente: false }],
     limite: LIMITE_POR_GRUPO,
   });
 
@@ -235,7 +235,7 @@ async function buscarOportunidades(
     patientId: iso(l["patient_id"]),
     clinicId: iso(l["clinic_id"]),
     titulo: pacientes.get(texto(l["patient_id"])) ?? "Paciente",
-    detalhe: `${texto(l["tipo"]).toLowerCase().replace(/_/gu, " ")} · prioridade ${String(l["prioridade"] ?? 0)}`,
+    detalhe: `${texto(l["tipo"]).toLowerCase().replace(/_/gu, " ")} · prioridade ${String(l["priority_score"] ?? 0)}`,
     em: iso(l["criado_em"]),
   }));
 }

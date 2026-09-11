@@ -32,6 +32,8 @@
  */
 import type { Linha, OpcoesSelecao, Filtro } from "../servidor/banco";
 
+import { colunaExiste } from "./schema-real";
+
 /* -------------------------------------------------------------------------- */
 /* Estado                                                                     */
 /* -------------------------------------------------------------------------- */
@@ -239,7 +241,41 @@ export function conteudo(tabela: string): Linha[] {
 /** Insere sem passar pelas travas — para montar o cenário do teste. */
 export function semear(tabela: string, linhas: Linha[]): void {
   const alvo = (tabelas[tabela] ??= []);
-  for (const l of linhas) alvo.push({ ...comPadroes(tabela, l) });
+  for (const l of linhas) {
+    conferirColunas(tabela, l, "Semeadura");
+    alvo.push({ ...comPadroes(tabela, l) });
+  }
+}
+
+/**
+ * Recusa gravar coluna que o SQL não declara.
+ *
+ * ESTA FUNÇÃO É A CORREÇÃO DE UMA CLASSE INTEIRA DE BUG, e não de um bug.
+ *
+ * Este banco guarda objetos e não tem schema. Isso o torna rápido e o torna
+ * cúmplice: um teste que semeia `{ telefone: "..." }` e um código que lê
+ * `telefone` concordam perfeitamente entre si, e os dois estão errados porque a
+ * coluna real é `contato_externo`. Foi assim que três consultas do runtime
+ * passaram por 696 testes verdes sem nunca terem funcionado contra o Postgres.
+ *
+ * Com esta conferência, TODO teste que já existe vira também teste de schema,
+ * sem que nenhum deles precise ser reescrito.
+ *
+ * CONFERE O QUE O CHAMADOR ESCREVEU, e não a linha depois dos padrões: o
+ * `comPadroes` injeta `atualizado_em` em tudo, e nem toda tabela tem essa
+ * coluna. Validar a saída acusaria o próprio fake.
+ *
+ * TABELA DESCONHECIDA PASSA. O portal de RH tem tabelas com outro estilo, e um
+ * verificador que grita sem motivo é desligado na primeira semana.
+ */
+function conferirColunas(tabela: string, linha: Linha, operacao: string): void {
+  const invalidas = Object.keys(linha).filter((c) => !colunaExiste(tabela, c));
+  if (invalidas.length === 0) return;
+
+  throw new Error(
+    `${operacao} em ${tabela} usou coluna que não existe no SQL: ${invalidas.join(", ")}. ` +
+      `A fonte de verdade é supabase/*.sql — confira o nome lá antes de mudar o teste.`,
+  );
 }
 
 function comPadroes(tabela: string, linha: Linha): Linha {
@@ -393,6 +429,7 @@ export function inserir<T = Linha>(tabela: string, linhas: Linha | Linha[]): Pro
   const criadas: Linha[] = [];
 
   for (const bruta of lista) {
+    conferirColunas(tabela, bruta, "Inserção");
     const nova = comPadroes(tabela, bruta);
     if (conflita(tabela, nova)) throw new ErroBancoFake("unique violation");
     alvo.push(nova);
@@ -427,6 +464,7 @@ export function gravar<T = Linha>(
   const saida: Linha[] = [];
 
   for (const bruta of lista) {
+    conferirColunas(tabela, bruta, "Gravação");
     const chave = colunas.map((c) => String(bruta[c] ?? "")).join("|");
     const existente = alvo.find((l) => colunas.map((c) => String(l[c] ?? "")).join("|") === chave);
 
@@ -452,6 +490,7 @@ export function atualizar<T = Linha>(
   mudancas: Linha,
 ): Promise<T[]> {
   if (filtros.length === 0) throw new Error(`Atualização em ${tabela} sem filtro foi recusada.`);
+  conferirColunas(tabela, mudancas, "Atualização");
 
   const alvo = tabelas[tabela] ?? [];
   const atingidas = alvo.filter((l) => filtros.every((f) => casa(l, f)));

@@ -86,7 +86,7 @@ function montarCenario(opcoes: { optOut?: boolean } = {}): void {
       organization_id: ORG,
       clinic_id: CLINICA,
       patient_id: PACIENTE,
-      telefone: "5511999998888",
+      contato_externo: "5511999998888",
       resumo_ia: "Quer remarcar.",
       intencao: "REMARCAR",
       temperatura: "morna",
@@ -106,7 +106,7 @@ function montarCenario(opcoes: { optOut?: boolean } = {}): void {
       id: "55555555-5555-4555-8555-555555555555",
       organization_id: ORG,
       conversation_id: CONVERSA,
-      direcao: "IN",
+      direcao: "ENTRADA",
       conteudo: "Oi, posso remarcar minha consulta?",
       nota_interna: false,
       criado_em: new Date(AGORA.getTime() - 60_000).toISOString(),
@@ -371,5 +371,50 @@ describe("o texto do agente vem do Estúdio", () => {
     await rodarTurno(pedidoBase(espia.porta));
 
     expect(espia.instrucoes[0]).not.toContain("versos de cordel");
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe("a conversa chega ao modelo com os papéis certos", () => {
+  it("ENTRADA vira “Paciente:” e SAIDA vira “Clínica:”", async () => {
+    /*
+     * O BUG QUE ESTE TESTE EXISTE PARA IMPEDIR era invisível e grave: o
+     * contexto lia `direcao === "IN"`, valor que o banco nunca guardou, e TODA
+     * mensagem do paciente era rotulada como se a clínica tivesse dito aquilo.
+     * O agente respondia a própria fala.
+     */
+    semear("crc_messages", [
+      {
+        id: "77777777-7777-4777-8777-777777777777",
+        organization_id: ORG,
+        conversation_id: CONVERSA,
+        direcao: "SAIDA",
+        remetente: "ia",
+        conteudo: "Oi! Como posso ajudar?",
+        nota_interna: false,
+        criado_em: new Date(AGORA.getTime() - 120_000).toISOString(),
+      },
+    ]);
+
+    const entradas: string[] = [];
+    const porta: PortaIa = {
+      nome: "fake",
+      modelo: "fake-1",
+      gerarEstruturado: (p) => {
+        entradas.push(p.entrada);
+        return Promise.resolve(
+          respostaOk({ acao: "responder", texto: "Certo, obrigada.", precisaHumano: false }),
+        );
+      },
+    };
+
+    await rodarTurno(pedidoBase(porta));
+
+    const contexto = entradas[0] ?? "";
+    expect(contexto).toContain("Paciente: Oi, posso remarcar minha consulta?");
+    expect(contexto).toContain("Clínica: Oi! Como posso ajudar?");
+    // E o inverso NÃO pode aparecer: era exatamente isso que o bug produzia.
+    expect(contexto).not.toContain("Clínica: Oi, posso remarcar");
   });
 });

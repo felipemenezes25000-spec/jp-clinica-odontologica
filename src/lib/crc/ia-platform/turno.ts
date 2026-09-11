@@ -450,30 +450,26 @@ async function entregar(pedido: PedidoTurno, ctx: Ctx, texto: string): Promise<R
     return { tipo: "falha_segura", motivo: "Envio ligado sem provedor de WhatsApp configurado." };
   }
 
-  const { selecionarUm } = await import("../servidor/banco");
-  const conversa = await selecionarUm("crc_conversations", {
-    colunas: "telefone,clinic_id,patient_id",
-    filtros: [
-      { coluna: "id", op: "eq", valor: ctx.conversationId },
-      { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
-    ],
-  });
+  // O destino vem da camada canônica, e não de uma consulta escrita aqui: a
+  // coluna `telefone` que este trecho pedia não existe em `crc_conversations`, e
+  // o PostgREST recusava a consulta inteira. Ver `aplicacao/conversas.ts`.
+  const { destinoDaConversa } = await import("../aplicacao/conversas");
+  const destino = await destinoDaConversa(ctx.organizationId, ctx.conversationId);
 
-  if (conversa === null) {
-    return { tipo: "falha_segura", motivo: "Conversa não encontrada na hora do envio." };
-  }
-  const telefone = typeof conversa["telefone"] === "string" ? conversa["telefone"] : "";
-  if (telefone.length === 0) {
-    return { tipo: "falha_segura", motivo: "Conversa sem telefone." };
+  if (destino === null) {
+    return {
+      tipo: "falha_segura",
+      motivo: "A conversa não foi encontrada ou está sem contato para responder.",
+    };
   }
 
   const { enviarMensagem } = await import("../aplicacao/mensagens");
   const r = await enviarMensagem({
     organizationId: ctx.organizationId,
-    clinicId: typeof conversa["clinic_id"] === "string" ? conversa["clinic_id"] : "",
-    patientId: ctx.paciente?.id ?? null,
+    clinicId: destino.clinicId ?? "",
+    patientId: ctx.paciente?.id ?? destino.patientId,
     conversationId: ctx.conversationId,
-    telefone,
+    telefone: destino.contato,
     texto,
     chaveDedupe: `agente:${pedido.eventoId}`,
     remetente: "ia",

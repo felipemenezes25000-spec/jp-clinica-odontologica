@@ -175,7 +175,6 @@ beforeEach(() => {
       patient_id: PACIENTE,
       canal: "whatsapp",
       contato_externo: "5511999990001",
-      telefone: "5511999990001",
       status: "ABERTA",
     },
   ]);

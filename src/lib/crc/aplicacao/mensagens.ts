@@ -405,7 +405,10 @@ async function ultimaEntradaDaConversa(pedido: PedidoEnvio): Promise<string | nu
     filtros: [
       { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
       { coluna: "conversation_id", op: "eq", valor: pedido.conversationId },
-      { coluna: "direcao", op: "eq", valor: "IN" },
+      // `ENTRADA`, e não `IN`: o filtro anterior nunca casava com linha nenhuma,
+      // e o efeito era a janela de 24 horas SEMPRE parecer fechada. Num provedor
+      // que exige template fora dela, isso é o agente nunca poder responder.
+      { coluna: "direcao", op: "eq", valor: "ENTRADA" },
     ],
     ordenar: [{ coluna: "criado_em", ascendente: false }],
   });

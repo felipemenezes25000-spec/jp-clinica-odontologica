@@ -590,21 +590,20 @@ async function responderNaConversa(
   template: string,
   variaveis: Record<string, string>,
 ): Promise<void> {
-  const conversa = await selecionarUm("crc_conversations", {
-    colunas: "telefone,patient_id",
-    filtros: [
-      { coluna: "id", op: "eq", valor: conversationId },
-      { coluna: "organization_id", op: "eq", valor: evento.organizationId },
-    ],
-  });
-  const telefone = typeof conversa?.["telefone"] === "string" ? conversa["telefone"] : "";
-  if (telefone.length === 0) return;
+  // Mesmo motivo do turno do agente: `crc_conversations.telefone` não existe, e
+  // pedi-la fazia o PostgREST recusar a consulta inteira. Ver
+  // `aplicacao/conversas.ts`.
+  const { destinoDaConversa } = await import("../aplicacao/conversas");
+  const destino = await destinoDaConversa(evento.organizationId, conversationId);
+  if (destino === null) return;
+
+  const telefone = destino.contato;
 
   const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
   const provedor = criarProvedorMensageria(evento.organizationId);
   if (!provedor.configurado) return;
 
-  const patientId = typeof conversa?.["patient_id"] === "string" ? conversa["patient_id"] : null;
+  const patientId = destino.patientId;
   const nome = await primeiroNomeDoPaciente(evento.organizationId, patientId);
 
   const { renderizarTemplate } = await import("./templates");

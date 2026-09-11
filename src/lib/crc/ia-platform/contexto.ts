@@ -12,6 +12,7 @@
  * para a equipe, e mandá-la ao modelo é o caminho mais curto para ela voltar
  * parafraseada numa resposta.
  */
+import { comoNoTurno } from "../dominio/direcao";
 import { selecionar, selecionarUm } from "../servidor/banco";
 
 import type { ContextoTurno, MensagemDoTurno } from "./tipos";
@@ -116,7 +117,10 @@ async function carregarMensagens(
 
   return linhas
     .map((l) => ({
-      direcao: l["direcao"] === "IN" || l["direcao"] === "recebida" ? "recebida" : "enviada",
+      // A coluna vale `ENTRADA | SAIDA`. Ler qualquer outra coisa aqui rotula a
+      // mensagem do paciente como se fosse da clínica — ver `dominio/direcao.ts`,
+      // que existe por causa desse bug.
+      direcao: comoNoTurno(l["direcao"]),
       texto: typeof l["conteudo"] === "string" ? l["conteudo"] : "",
       em: typeof l["criado_em"] === "string" ? l["criado_em"] : "",
     }))
@@ -147,6 +151,23 @@ async function carregarMemorias(
   }
 }
 
+/**
+ * A oportunidade aberta do paciente.
+ *
+ * AS COLUNAS SÃO AS DO SCHEMA, e a lista anterior não era: pedia `etapa`,
+ * `valor_potencial` e filtrava por `status = 'ABERTA'` — três nomes que não
+ * existem em `crc_opportunities`. O PostgREST recusa a consulta inteira, e como
+ * ela roda dentro do `Promise.all` que monta o contexto, TODO turno de paciente
+ * com oportunidade morria em `falha_segura`.
+ *
+ * O QUE ABRE E FECHA UMA OPORTUNIDADE É `fechada_em`, não uma coluna `status`.
+ * `is null` é o filtro correto, e é o mesmo que o resto do CRC usa.
+ *
+ * A ETAPA É UMA FK, e o nome dela vive em `crc_opportunity_stages`. A segunda
+ * consulta só acontece quando existe oportunidade aberta — que é a minoria dos
+ * turnos — e traz o nome que uma pessoa reconhece, em vez de um UUID que não
+ * significa nada para o modelo.
+ */
 async function carregarOportunidade(
   organizationId: string,
   patientId: string | null,
@@ -154,11 +175,11 @@ async function carregarOportunidade(
   if (patientId === null) return null;
 
   const l = await selecionarUm("crc_opportunities", {
-    colunas: "id,tipo,etapa,valor_potencial",
+    colunas: "id,tipo,stage_id,potential_value",
     filtros: [
       { coluna: "organization_id", op: "eq", valor: organizationId },
       { coluna: "patient_id", op: "eq", valor: patientId },
-      { coluna: "status", op: "eq", valor: "ABERTA" },
+      { coluna: "fechada_em", op: "is", valor: null },
     ],
     ordenar: [{ coluna: "criado_em", ascendente: false }],
   });
@@ -167,9 +188,23 @@ async function carregarOportunidade(
   return {
     id: typeof l["id"] === "string" ? l["id"] : "",
     tipo: typeof l["tipo"] === "string" ? l["tipo"] : "",
-    etapa: typeof l["etapa"] === "string" ? l["etapa"] : "",
-    valorPotencial: texto(l["valor_potencial"]),
+    etapa: await nomeDaEtapa(organizationId, l["stage_id"]),
+    valorPotencial: texto(l["potential_value"]),
   };
+}
+
+/** O nome da etapa do funil. String vazia quando a oportunidade não tem etapa. */
+async function nomeDaEtapa(organizationId: string, stageId: unknown): Promise<string> {
+  if (typeof stageId !== "string" || stageId.length === 0) return "";
+
+  const etapa = await selecionarUm("crc_opportunity_stages", {
+    colunas: "nome",
+    filtros: [
+      { coluna: "id", op: "eq", valor: stageId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+  });
+  return typeof etapa?.["nome"] === "string" ? etapa["nome"] : "";
 }
 
 async function carregarOferta(

@@ -286,7 +286,7 @@ describe("o supervisor dentro do turno", () => {
         organization_id: ORG,
         clinic_id: CLINICA,
         patient_id: PACIENTE,
-        telefone: "5511999998888",
+        contato_externo: "5511999998888",
       },
     ]);
     semear("crc_patients", [
@@ -297,7 +297,7 @@ describe("o supervisor dentro do turno", () => {
         id: "55555555-5555-4555-8555-555555555555",
         organization_id: ORG,
         conversation_id: CONVERSA,
-        direcao: "IN",
+        direcao: "ENTRADA",
         conteudo: "Só consigo depois das 17h",
         nota_interna: false,
         criado_em: new Date(AGORA.getTime() - 60_000).toISOString(),
