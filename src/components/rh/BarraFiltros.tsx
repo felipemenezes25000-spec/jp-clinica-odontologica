@@ -490,7 +490,7 @@ const OPCAO = "bg-white text-ink";
 const ROTULO = "whitespace-nowrap text-[0.65rem] font-bold uppercase tracking-[0.14em] text-ink";
 
 const BASE_CONTROLE =
-  "min-w-[9.5rem] flex-1 basis-full sm:basis-[calc(50%-0.375rem)] lg:basis-auto";
+  "min-w-[9.5rem] flex-1 basis-full sm:basis-[calc(50%_-_0.375rem)] lg:basis-auto";
 
 /* Legenda do controle. Pequena e apagada de propósito: quem já sabe o que o
    campo faz varre a linha sem tropeçar nela, e quem não sabe acha a resposta
