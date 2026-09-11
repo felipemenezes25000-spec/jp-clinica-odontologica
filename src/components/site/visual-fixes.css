@@ -1,0 +1,44 @@
+/* Ajustes cirúrgicos de QA visual do site público.
+   Mantidos aqui porque atravessam Home + tratamentos e não justificam
+   duplicar utilitários nos dois arquivos de rota. */
+
+/* Hero da Home: os dois CTAs precisam ter exatamente a mesma caixa visual. */
+#inicio .button-primary,
+#inicio a[href="#tratamentos"] {
+  height: 3.25rem;
+  flex-shrink: 0;
+}
+
+/* Em desktop intermediário o selo sobre a foto chegava a invadir a coluna de
+   texto. Mantê-lo dentro da imagem nessa faixa preserva o efeito sem colisão. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #inicio .jp-container.relative.grid > .reveal:nth-child(2) > div:nth-child(2) {
+    left: 0.5rem;
+  }
+}
+
+/* Os CTAs do hero de tratamento compartilham altura e não encolhem o texto.
+   Isso evita o corte observado em Implantes numa largura de desktop estreita. */
+.treatment-hero .button-primary,
+.treatment-hero .button-ghost-light {
+  height: 3.25rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (min-width: 1024px) and (max-width: 1120px) {
+  .treatment-hero .button-primary,
+  .treatment-hero .button-ghost-light {
+    padding-inline: 1rem;
+    font-size: 0.92rem;
+  }
+}
+
+/* Quando o CTA inferior móvel está visível, o rodapé ganha área de escape para
+   que links e textos legais possam rolar acima da barra fixa em vez de ficar
+   escondidos atrás dela. */
+@media (max-width: 639px) {
+  body:has(.mobile-sticky-cta:not(.invisible)) footer {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+}
