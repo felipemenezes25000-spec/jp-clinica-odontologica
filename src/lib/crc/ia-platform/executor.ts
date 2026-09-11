@@ -28,6 +28,15 @@ export type DependenciasExecutor = {
   ctx: ContextoTurno;
   /** Montado sob demanda: só a ferramenta de agenda precisa dele. */
   contextoAgendamento: () => Promise<import("../aplicacao/agendamento").ContextoAgendamento | null>;
+  /**
+   * A porta de embeddings, quando existe. Só `conhecimento.buscar` usa.
+   *
+   * Opcional porque é capacidade separada, com credencial e disponibilidade
+   * próprias: o agente continua atendendo horário e agenda com a busca por
+   * significado fora do ar. Ausente, a ferramenta responde que o material não
+   * está disponível — e o modelo passa para a equipe em vez de inventar.
+   */
+  portaEmbeddings?: import("../integracoes/ia/embeddings").PortaEmbeddings | null;
 };
 
 /**
@@ -48,6 +57,8 @@ export async function executarFerramenta(
         return resumoDoPaciente(deps.ctx);
       case "clinica.informacoes":
         return await informacoesDaClinica();
+      case "conhecimento.buscar":
+        return await buscarNoConhecimento(argumentos, deps);
       case "agenda.horarios_livres":
         return await horariosLivres(deps);
       case "agenda.oferecer":
@@ -124,6 +135,63 @@ async function informacoesDaClinica(): Promise<ResultadoFerramenta> {
       `WhatsApp: ${CLINICA.whatsapp}`,
     ].join("\n"),
   };
+}
+
+/**
+ * Busca no material escrito da clínica — Fatia 7.
+ *
+ * O QUE VOLTA PARA O MODELO JÁ VEM COM A ORDEM DE NÃO EXTRAPOLAR. É a linha
+ * final de `textoDosTrechos`, e ela é a diferença entre um agente que responde
+ * o que está escrito e um que completa a lacuna com o que "sabe" sobre clínicas
+ * em geral — inventando o convênio de uma clínica específica.
+ *
+ * NADA ENCONTRADO É RESPOSTA, E NÃO ERRO. `ok: true` com a instrução de dizer
+ * que vai confirmar com a equipe. Devolver erro faria o modelo tentar de novo
+ * com outras palavras, gastando as poucas chamadas de ferramenta do turno para
+ * chegar ao mesmo lugar.
+ */
+async function buscarNoConhecimento(
+  argumentos: Record<string, unknown>,
+  deps: DependenciasExecutor,
+): Promise<ResultadoFerramenta> {
+  const porta = deps.portaEmbeddings;
+  if (porta === null || porta === undefined) {
+    return {
+      ok: false,
+      saida:
+        "A busca no material da clínica não está disponível agora. Não responda de memória: diga que vai confirmar com a equipe.",
+    };
+  }
+
+  const pergunta = typeof argumentos["pergunta"] === "string" ? argumentos["pergunta"].trim() : "";
+  if (pergunta.length < 3) {
+    return { ok: false, saida: "Passe a pergunta da pessoa em uma frase." };
+  }
+
+  const { buscarConhecimento } = await import("../aplicacao/conhecimento");
+  const r = await buscarConhecimento({
+    organizationId: deps.ctx.organizationId,
+    consulta: pergunta,
+    porta,
+  });
+
+  if (!r.ok) {
+    return {
+      ok: false,
+      saida: `Não consegui consultar o material da clínica (${r.motivo}). Diga que vai confirmar com a equipe.`,
+    };
+  }
+
+  if (r.trechos.length === 0) {
+    return {
+      ok: true,
+      saida:
+        "Não há nada escrito sobre isso no material da clínica. NÃO responda de memória: diga que vai confirmar com a equipe e passe adiante.",
+    };
+  }
+
+  const { textoDosTrechos } = await import("../dominio/conhecimento");
+  return { ok: true, saida: textoDosTrechos(r.trechos) };
 }
 
 /* -------------------------------------------------------------------------- */

@@ -1550,6 +1550,190 @@ export const criarMemoriaDaIa = createServerFn({ method: "POST" })
   );
 
 /* -------------------------------------------------------------------------- */
+/* Conhecimento (Fatia 7)                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type FonteDeConhecimentoDto = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  corpo: string;
+  status: string;
+  versao: number;
+  pedacos: number;
+  atualizadoEm: string;
+};
+
+export type PainelDeConhecimentoDto = {
+  fontes: FonteDeConhecimentoDto[];
+  /** `false` quando falta credencial: a tela precisa dizer isso, não ficar quieta. */
+  buscaConfigurada: boolean;
+  /** O provedor em uso. "sandbox" é aviso, não detalhe. */
+  provedor: string;
+  motivo: string;
+};
+
+export const carregarConhecimento = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ painel: PainelDeConhecimentoDto }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { listarFontes } = await import("./aplicacao/conhecimento");
+      const { criarProvedorEmbeddings } = await import("./integracoes/ia/embeddings");
+
+      const estado = criarProvedorEmbeddings(ctx.organizationId);
+      return {
+        ok: true as const,
+        painel: {
+          fontes: await listarFontes(ctx.organizationId),
+          buscaConfigurada: estado.configurado,
+          provedor: estado.configurado ? estado.porta.nome : "",
+          motivo: estado.configurado ? "" : estado.motivo,
+        },
+      };
+    }),
+);
+
+export const salvarFonteDeConhecimento = createServerFn({ method: "POST" })
+  .validator((e: { titulo: string; tipo: string; corpo: string }) => ({
+    titulo: String(e.titulo ?? ""),
+    tipo: String(e.tipo ?? "texto"),
+    corpo: String(e.corpo ?? ""),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ id: string }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      if (data.titulo.trim().length < 3) {
+        return { ok: false as const, code: "titulo_curto", message: "Dê um título ao texto." };
+      }
+      if (data.corpo.trim().length < 20) {
+        return {
+          ok: false as const,
+          code: "corpo_curto",
+          message: "Escreva o conteúdo antes de salvar.",
+        };
+      }
+
+      const { salvarFonte } = await import("./aplicacao/conhecimento");
+      const r = await salvarFonte({
+        organizationId: ctx.organizationId,
+        titulo: data.titulo,
+        tipo: data.tipo,
+        corpo: data.corpo,
+        userId: ctx.usuario.id,
+      });
+      return { ok: true as const, id: r.id };
+    }),
+  );
+
+/**
+ * Indexa: parte o texto e calcula os vetores.
+ *
+ * É um botão SEPARADO de salvar, e não um efeito dele, porque custa dinheiro e
+ * tempo: uma pessoa corrigindo vírgula em três passadas pagaria três ingestões
+ * sem saber. O botão diz o que faz.
+ */
+export const indexarFonteDeConhecimento = createServerFn({ method: "POST" })
+  .validator((e: { sourceId: string }) => ({ sourceId: String(e.sourceId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ pedacos: number }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { criarProvedorEmbeddings } = await import("./integracoes/ia/embeddings");
+      const estado = criarProvedorEmbeddings(ctx.organizationId);
+      if (!estado.configurado) {
+        return { ok: false as const, code: "sem_provedor", message: estado.motivo };
+      }
+
+      const { ingerirFonte } = await import("./aplicacao/conhecimento");
+      const r = await ingerirFonte({
+        organizationId: ctx.organizationId,
+        sourceId: data.sourceId,
+        porta: estado.porta,
+      });
+
+      if (!r.ok) return { ok: false as const, code: r.codigo, message: r.motivo };
+      return { ok: true as const, pedacos: r.pedacos };
+    }),
+  );
+
+export const publicarFonteDeConhecimento = createServerFn({ method: "POST" })
+  .validator((e: { sourceId: string }) => ({ sourceId: String(e.sourceId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { publicarFonte } = await import("./aplicacao/conhecimento");
+      const { auditar } = await import("./servidor/registro");
+
+      const r = await publicarFonte(ctx.organizationId, data.sourceId);
+      if (!r.ok) return { ok: false as const, code: "nao_indexada", message: r.motivo };
+
+      // Publicar é o momento em que o texto passa a responder paciente. Fica
+      // com nome e hora.
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "conhecimento_publicado",
+        entityType: "crc_knowledge_sources",
+        entityId: data.sourceId,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+export const arquivarFonteDeConhecimento = createServerFn({ method: "POST" })
+  .validator((e: { sourceId: string }) => ({ sourceId: String(e.sourceId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { arquivarFonte } = await import("./aplicacao/conhecimento");
+      await arquivarFonte(ctx.organizationId, data.sourceId);
+      return { ok: true as const };
+    }),
+  );
+
+export type TrechoDeBuscaDto = {
+  titulo: string;
+  conteudo: string;
+  similaridade: number;
+  nota: number;
+  termosEncontrados: number;
+};
+
+/**
+ * A busca de teste — o que o agente acharia com esta pergunta.
+ *
+ * ESTE ENDPOINT É O QUE TORNA A BUSCA POR SIGNIFICADO OBSERVÁVEL. Sem ele,
+ * escrever material para um agente é escrever no escuro: a pessoa publica,
+ * espera, e descobre na conversa de um paciente que a pergunta óbvia não achava
+ * o parágrafo óbvio. Com ele, a mesma descoberta custa dez segundos.
+ */
+export const testarBuscaNoConhecimento = createServerFn({ method: "POST" })
+  .validator((e: { pergunta: string }) => ({ pergunta: String(e.pergunta ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ trechos: TrechoDeBuscaDto[] }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { criarProvedorEmbeddings } = await import("./integracoes/ia/embeddings");
+      const estado = criarProvedorEmbeddings(ctx.organizationId);
+      if (!estado.configurado) {
+        return { ok: false as const, code: "sem_provedor", message: estado.motivo };
+      }
+
+      const { buscarConhecimento } = await import("./aplicacao/conhecimento");
+      const r = await buscarConhecimento({
+        organizationId: ctx.organizationId,
+        consulta: data.pergunta,
+        porta: estado.porta,
+      });
+
+      if (!r.ok) return { ok: false as const, code: r.codigo, message: r.motivo };
+      return {
+        ok: true as const,
+        trechos: r.trechos.map((t) => ({
+          titulo: t.titulo,
+          conteudo: t.conteudo,
+          similaridade: t.similaridade,
+          nota: t.nota,
+          termosEncontrados: t.termosEncontrados,
+        })),
+      };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
 /* Inbox 2.0 — dono da conversa e casos humanos (Fatia 5)                     */
 /* -------------------------------------------------------------------------- */
 

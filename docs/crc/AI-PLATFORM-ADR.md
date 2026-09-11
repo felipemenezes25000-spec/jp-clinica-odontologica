@@ -80,8 +80,16 @@ transformaria o protocolo numa porta dos fundos que ignora RBAC.
 
 ## ADR-07 — RAG no Postgres com pgvector
 
-**Decisão.** `vector` extension no Supabase, chunks em `crc_ai_chunks`, filtro de
-tenant **dentro da query**.
+**Decisão.** `vector` extension no Supabase, chunks em `crc_knowledge_chunks`,
+filtro de tenant **dentro da query**.
+
+**Como ficou, na Fatia 7.** A tabela chama `crc_knowledge_chunks` (o nome
+`crc_ai_chunks` da Fase 0 ficou para trás), e o filtro de tenant vive dentro da
+função SQL `crc_buscar_conhecimento` — não numa query montada no TypeScript. A
+função também exige `status = 'PUBLICADA'`. As duas condições são parte do `where`
+que o índice percorre, e não existe caminho de código capaz de omiti-las: é
+justamente o que torna impossível o defeito clássico de RAG multi-tenant, em que
+alguém pega os vizinhos mais próximos e filtra depois.
 
 **Alternativa descartada.** Pinecone/Weaviate. Descartada por ausência de
 necessidade medida: a base de conhecimento de uma clínica é pequena, e um
@@ -210,3 +218,54 @@ supervisão do primeiro.
 porque o índice de dedupe recusou a run — isto é, o evento já foi processado. A
 mesma condição que impede a supervisão duplicada impede pagar o modelo duas vezes
 pelo mesmo evento.
+
+---
+
+## ADR-17 — Embeddings são uma porta separada de `PortaIa`
+
+**Decisão.** `PortaEmbeddings` é um contrato próprio, com `nome`, `modelo`,
+`dimensoes` e `gerar`. `PortaIa` continua com um método só.
+
+**Por quê.** São capacidades diferentes, com modelo, preço e disponibilidade
+diferentes. Enfiar embeddings em `PortaIa` obrigaria todo adapter de conversa a
+implementar um método sem relação com conversa — o sandbox de conversa é regras
+por palavra-chave e não teria o que devolver — e furaria a estreiteza que o
+cabeçalho daquele arquivo defende.
+
+**Consequência que vale nomear.** `dimensoes` é campo do contrato porque a coluna
+`vector(1536)` é fixa no schema. A aplicação confere antes de ingerir: um modelo
+de outra dimensão não "funciona pior", ele faz o Postgres recusar o insert no meio
+da troca e deixa metade do documento indexado.
+
+---
+
+## ADR-18 — O conhecimento antigo só é apagado depois de o novo estar pronto
+
+**Decisão.** A ingestão calcula TODOS os vetores em memória antes de tocar no
+banco. Só então apaga os pedaços da fonte e grava os novos.
+
+**Por quê.** O caminho ingênuo — apagar e ir gravando — falha calado: o provedor
+cai no meio, a clínica fica com metade do documento indexado, e a busca continua
+respondendo, só que errado e pela metade. Ninguém vê erro. Com a ordem invertida,
+uma falha de provedor não muda nada.
+
+---
+
+## ADR-19 — A reordenação é lexical, e o nome não esconde isso
+
+**Decisão.** Depois da busca vetorial, os candidatos são reordenados por uma nota
+que combina a similaridade de cosseno (peso 0,7) com a cobertura de termos da
+pergunta (0,3), casando radicais de cinco caracteres ou mais. Há teto de dois
+trechos por fonte, e trecho com nota irrisória é descartado em vez de completar a
+lista.
+
+**O que isto NÃO é.** Um cross-encoder. Reranking de verdade é um segundo modelo,
+com custo e latência por candidato. O que está aqui é desempate por palavra, e
+existe para um caso concreto: a pergunta usa um termo exato — "parcelado",
+"sábado", "estacionamento" — e o trecho que o contém está atrás de dois trechos
+vagamente parecidos.
+
+**Consequência aceita.** O casamento por radical de cinco caracteres liga
+"aceitam" a "aceitamos" e "convênio" a "conveniado", e deixa "pagar" e
+"pagamento" de fora. Um stemmer de português de verdade (RSLP) são duzentas regras
+e uma dependência; a lacuna fica com o vetor, que é o papel dele.

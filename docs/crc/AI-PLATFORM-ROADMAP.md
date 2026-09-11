@@ -100,9 +100,31 @@ envelhecer de forma diferente.
 
 ---
 
-## Fatia 7 — Conhecimento / RAG
+## Fatia 7 — Conhecimento / RAG *(concluída)*
 
 pgvector, ingestão, chunk com metadata, filtro de tenant na query, rerank.
+
+Entregue:
+
+- `supabase/12-crc-conhecimento.sql` — `crc_knowledge_sources`,
+  `crc_knowledge_chunks`, índice HNSW e a função `crc_buscar_conhecimento`, que é
+  onde o filtro de tenant e a exigência de `PUBLICADA` moram (ADR-07);
+- `integracoes/ia/embeddings.ts` — a porta nova, com sandbox determinístico
+  (ADR-17);
+- `dominio/conhecimento.ts` — corte em parágrafo/frase com sobreposição, e a
+  reordenação lexical sobre os candidatos vetoriais (ADR-19);
+- `aplicacao/conhecimento.ts` — ingestão que só apaga o antigo depois de o novo
+  estar pronto (ADR-18), e busca;
+- ferramenta `conhecimento.buscar` no catálogo de LEITURA;
+- tela **Conhecimento**: escrever, indexar, publicar, e a caixa que mostra o que
+  o agente acharia com uma pergunta de teste.
+
+**O bloqueador que existia e foi resolvido.** `PortaIa` tinha um método só,
+`gerarEstruturado`, e nenhuma capacidade de embeddings. A Fase 0 previa isso para
+a Fatia 8, junto do model gateway; a solução foi uma porta separada — ver ADR-17,
+que também explica por que ela não entrou na `PortaIa`.
+
+**O que esta fatia NÃO é.** O rerank é lexical, não cross-encoder. Ver ADR-19.
 
 ---
 

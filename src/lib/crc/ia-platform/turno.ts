@@ -96,6 +96,14 @@ export type PedidoTurno = {
    * o inverso não faz sentido — supervisionar exige ter o que supervisionar.
    */
   supervisionar?: boolean;
+  /**
+   * A porta de embeddings, para `conhecimento.buscar`. Fatia 7.
+   *
+   * Separada da `porta` de conversa porque é outra capacidade, com outro modelo
+   * e outra disponibilidade: o agente segue respondendo horário e agenda quando
+   * a busca por significado está fora do ar.
+   */
+  portaEmbeddings?: import("../integracoes/ia/embeddings").PortaEmbeddings | null;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -187,6 +195,7 @@ async function decidirEEntregar(
         executor: {
           ctx,
           contextoAgendamento: pedido.contextoAgendamento ?? (() => Promise.resolve(null)),
+          portaEmbeddings: pedido.portaEmbeddings ?? null,
         },
         decidir: async (observacoes) => {
           const entrada =

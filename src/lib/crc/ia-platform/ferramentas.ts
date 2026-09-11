@@ -96,6 +96,36 @@ export const FERRAMENTAS_LEITURA: readonly DefinicaoFerramenta[] = [
     aprovacao: "NENHUMA",
     timeoutMs: 3000,
   },
+  /*
+   * A busca no material da clínica — Fatia 7.
+   *
+   * EXIGE A PERGUNTA COMO ARGUMENTO, e não reaproveita a última mensagem do
+   * paciente. Duas razões: a pergunta real costuma estar espalhada em três
+   * mensagens ("oi" / "queria saber uma coisa" / "aceita meu convênio?"), e o
+   * modelo reformulando em uma frase é justamente o que faz a busca por
+   * significado achar o trecho certo.
+   */
+  {
+    chave: "conhecimento.buscar",
+    descricao:
+      "Procura no material escrito da clínica (formas de pagamento, convênios, políticas, procedimentos) e devolve os trechos mais próximos da pergunta. Use SEMPRE que a pessoa perguntar algo que não seja horário, endereço ou agenda — e responda usando apenas o que voltar daqui. Passe a pergunta em uma frase, do jeito mais claro que você conseguir.",
+    entrada: {
+      type: "object",
+      additionalProperties: false,
+      required: ["pergunta"],
+      properties: {
+        pergunta: {
+          type: "string",
+          description: "A dúvida da pessoa em uma frase clara, reescrita por você se necessário.",
+        },
+      },
+    },
+    permissao: "LEITURA",
+    aprovacao: "NENHUMA",
+    // Mais folgado que as outras leituras: são duas idas à rede, o embedding da
+    // pergunta e a busca no banco.
+    timeoutMs: 9000,
+  },
 ];
 
 /**

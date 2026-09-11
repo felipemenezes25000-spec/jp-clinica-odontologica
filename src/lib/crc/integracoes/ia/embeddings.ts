@@ -122,7 +122,8 @@ class EmbeddingsOpenAi implements PortaEmbeddings {
 
       if (resposta.status >= 400) {
         const detalhe =
-          textoOpcional(campo(resposta.corpo, "error.message")) ?? `HTTP ${String(resposta.status)}`;
+          textoOpcional(campo(resposta.corpo, "error.message")) ??
+          `HTTP ${String(resposta.status)}`;
         return { ok: false, motivo: resposta.status < 500 ? "recusada" : "indisponivel", detalhe };
       }
 
@@ -145,7 +146,8 @@ class EmbeddingsOpenAi implements PortaEmbeddings {
        */
       const vetores: number[][] = new Array<number[]>(textos.length);
       for (const item of dados) {
-        if (!ehObjeto(item)) return { ok: false, motivo: "invalida", detalhe: "Item não é objeto." };
+        if (!ehObjeto(item))
+          return { ok: false, motivo: "invalida", detalhe: "Item não é objeto." };
         const indice = numeroOpcional(item["index"]) ?? -1;
         const vetor = item["embedding"];
         if (indice < 0 || indice >= textos.length || !Array.isArray(vetor)) {
@@ -172,7 +174,7 @@ class EmbeddingsOpenAi implements PortaEmbeddings {
           custoEstimado:
             preco === undefined || tokens === null
               ? null
-              : Number((((tokens / 1_000_000) * preco * cambio()).toFixed(6))),
+              : Number(((tokens / 1_000_000) * preco * cambio()).toFixed(6)),
           duracaoMs,
         },
       };

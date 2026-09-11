@@ -709,6 +709,13 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
   const { criarProvedorIa } = await import("../integracoes/ia/provedor");
   const provedor = criarProvedorIa(evento.organizationId);
 
+  // A busca no material escrito é capacidade SEPARADA (Fatia 7): sem ela o
+  // agente continua atendendo horário, endereço e agenda, e a ferramenta de
+  // conhecimento responde que o material não está disponível — o que faz o
+  // modelo passar para a equipe em vez de responder de memória.
+  const { criarProvedorEmbeddings } = await import("../integracoes/ia/embeddings");
+  const busca = criarProvedorEmbeddings(evento.organizationId);
+
   // O envio exige a SEGUNDA flag. Sem ela o turno termina em `candidato`: a
   // resposta fica gravada em `crc_ai_runs` e ninguém a recebe.
   const podeEnviar = flags["ai_agente_envio"] === true && interruptores["kill_envios"] !== true;
@@ -752,6 +759,7 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
     eventoId: evento.id,
     agora: new Date(),
     porta: provedor.configurado ? provedor.porta : null,
+    portaEmbeddings: busca.configurado ? busca.porta : null,
     portaMensageria,
     podeEnviar,
     // A segunda leitura do turno, e a única coisa que propõe memória. Custa uma

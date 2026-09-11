@@ -93,7 +93,9 @@ export type Tabela =
   | "crc_ai_spans"
   | "crc_human_cases"
   | "crc_ai_memories"
-  | "crc_ai_supervisoes";
+  | "crc_ai_supervisoes"
+  | "crc_knowledge_sources"
+  | "crc_knowledge_chunks";
 
 export type Linha = Record<string, unknown>;
 

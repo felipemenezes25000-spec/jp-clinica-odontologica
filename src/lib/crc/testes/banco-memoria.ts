@@ -153,6 +153,11 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // memória em vez de criar uma cópia dela; o segundo, um supervisor por turno.
   crc_ai_memories: [{ colunas: ["organization_id", "chave_dedupe"] }],
   crc_ai_supervisoes: [{ colunas: ["run_id"] }],
+  // Os índices do 12. O do título é o que faz "salvar o mesmo texto de novo"
+  // ATUALIZAR a fonte em vez de criar uma segunda homônima, que responderia
+  // junto com a primeira.
+  crc_knowledge_sources: [{ colunas: ["organization_id", "titulo"] }],
+  crc_knowledge_chunks: [{ colunas: ["organization_id", "chave_dedupe"] }],
   crc_users: [{ colunas: ["organization_id", "email"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.
@@ -523,9 +528,78 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       return Promise.resolve([] as T[]);
     }
 
+    /*
+     * A busca vetorial do 12, em JavaScript.
+     *
+     * ELA REPRODUZ AS DUAS TRAVAS QUE IMPORTAM, e não a performance: o filtro de
+     * organização e a exigência de a fonte estar PUBLICADA. São as duas coisas
+     * que, se sumirem da função SQL algum dia, fazem o conteúdo de uma clínica
+     * responder pela outra ou um rascunho responder paciente — e um fake que não
+     * as reproduzisse aceitaria essa regressão sem uma falha de teste.
+     *
+     * O cosseno aqui é exato; no Postgres o HNSW é aproximado. A diferença não
+     * muda nenhuma asserção destes testes, que têm dezenas de pedaços e não
+     * milhares.
+     */
+    case "crc_buscar_conhecimento": {
+      const org = argumentos["p_organization_id"];
+      const consulta = Array.isArray(argumentos["p_embedding"])
+        ? (argumentos["p_embedding"] as number[])
+        : [];
+      const teto = typeof argumentos["p_limite"] === "number" ? argumentos["p_limite"] : 20;
+      const minimo = typeof argumentos["p_minimo"] === "number" ? argumentos["p_minimo"] : 0;
+
+      const fontes = new Map<string, Linha>();
+      for (const f of tabelas["crc_knowledge_sources"] ?? []) {
+        fontes.set(String(f["id"] ?? ""), f);
+      }
+
+      const achados = (tabelas["crc_knowledge_chunks"] ?? [])
+        .filter((c) => c["organization_id"] === org && Array.isArray(c["embedding"]))
+        .map((c) => {
+          const fonte = fontes.get(String(c["source_id"] ?? ""));
+          return { c, fonte };
+        })
+        .filter(
+          (x) =>
+            x.fonte !== undefined &&
+            x.fonte["organization_id"] === org &&
+            x.fonte["status"] === "PUBLICADA",
+        )
+        .map((x) => ({
+          id: x.c["id"],
+          source_id: x.c["source_id"],
+          titulo: x.fonte?.["titulo"] ?? "",
+          tipo: x.fonte?.["tipo"] ?? "texto",
+          ordem: x.c["ordem"],
+          conteudo: x.c["conteudo"],
+          similaridade: cosseno(consulta, x.c["embedding"] as number[]),
+        }))
+        .filter((x) => x.similaridade >= minimo)
+        .sort((a, b) => b.similaridade - a.similaridade)
+        .slice(0, teto);
+
+      return Promise.resolve(achados as T[]);
+    }
+
     default:
       return Promise.resolve([] as T[]);
   }
+}
+
+function cosseno(a: readonly number[], b: readonly number[]): number {
+  let produto = 0;
+  let na = 0;
+  let nb = 0;
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i += 1) {
+    const x = a[i] ?? 0;
+    const y = b[i] ?? 0;
+    produto += x * y;
+    na += x * x;
+    nb += y * y;
+  }
+  return na === 0 || nb === 0 ? 0 : produto / (Math.sqrt(na) * Math.sqrt(nb));
 }
 
 export { ErroBancoFake as ErroBanco };

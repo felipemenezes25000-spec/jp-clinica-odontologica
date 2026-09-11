@@ -8,6 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
+  BookOpenText,
   Brain,
   Compass,
   CalendarDays,
@@ -44,6 +45,7 @@ import { Logo } from "@/components/site/Logo";
 
 import { Campanhas } from "@/components/crc/Campanhas";
 import { Inteligencia } from "@/components/crc/Inteligencia";
+import { Conhecimento } from "@/components/crc/Conhecimento";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
@@ -94,6 +96,7 @@ type Aba =
   | "automacoes"
   | "campanhas"
   | "inteligencia"
+  | "conhecimento"
   | "integracoes"
   | "configuracoes"
   | "equipe";
@@ -170,6 +173,14 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
         // máquina, não atender paciente.
         permissao: "gerenciar_automacao",
         icone: Brain,
+      },
+      {
+        aba: "conhecimento",
+        rotulo: "Conhecimento",
+        // Mesma permissão da Inteligência: escrever o que o agente responde é
+        // afinar a máquina, e não atender paciente.
+        permissao: "gerenciar_automacao",
+        icone: BookOpenText,
       },
     ],
   },
@@ -573,6 +584,49 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Passou para a equipe", tom: "alerta" },
       { rotulo: "Falhou com segurança", tom: "perigo" },
       { rotulo: "Anotação esperando você conferir", tom: "alerta" },
+    ],
+  },
+  conhecimento: {
+    sobretitulo: "O que a clínica ensina",
+    paraQue: "os textos que o agente usa para responder",
+    descricao:
+      "Aqui ficam os textos que o agente consulta antes de responder: formas de pagamento, convênios, o que fazer antes de uma extração. Ele responde SÓ com o que estiver escrito — quando não acha, diz que vai confirmar com a equipe em vez de inventar. Um texto passa por três etapas antes de valer: escrever, indexar e publicar. Escrever não custa nada; indexar é o que ensina o agente a achar o texto; publicar é o momento em que ele passa a responder paciente.",
+    acoes: [
+      {
+        faca: "Ver o que o agente acha",
+        efeito:
+          "Roda a busca de verdade com a sua pergunta e mostra os trechos que o agente veria — nada mais do que isso. É o jeito de descobrir em dez segundos que a pergunta óbvia não achava o parágrafo óbvio, em vez de descobrir semanas depois na conversa de um paciente.",
+      },
+      {
+        faca: "Indexar",
+        efeito:
+          "Corta o texto em pedaços e ensina o sistema a reconhecê-los. Custa uma consulta de IA por pedaço, então é botão separado de Salvar: corrigir uma vírgula não precisa custar dinheiro.",
+      },
+      {
+        faca: "Publicar",
+        efeito:
+          "A partir daqui o texto responde paciente. Fica registrado quem publicou e quando. Texto sem indexar não pode ser publicado, porque ficaria invisível para a busca sem nada explicando por quê.",
+      },
+      {
+        faca: "Editar um texto já publicado",
+        efeito:
+          "Volta para rascunho automaticamente e sai do ar. É de propósito: a versão nova não responde paciente antes de alguém reler e publicar de novo.",
+      },
+      {
+        faca: "Tirar do ar",
+        efeito:
+          "Para de responder na hora e o texto continua guardado aqui, para ser republicado depois. Não apaga nada.",
+      },
+      {
+        faca: "Linha em branco no meio do texto",
+        efeito:
+          "É onde o sistema corta. Cada pedaço responde uma pergunta, então separar assuntos com uma linha em branco melhora a busca mais do que qualquer outra coisa que você faça nesta tela.",
+      },
+    ],
+    legendas: [
+      { rotulo: "O agente usa", tom: "positiva" },
+      { rotulo: "Só você vê", tom: "alerta" },
+      { rotulo: "Falta indexar", tom: "perigo" },
     ],
   },
   integracoes: {
@@ -1420,6 +1474,7 @@ function PortalCrc() {
           {abaAtual === "campanhas" && <Campanhas />}
 
           {abaAtual === "inteligencia" && <Inteligencia />}
+          {abaAtual === "conhecimento" && <Conhecimento />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
         </main>
