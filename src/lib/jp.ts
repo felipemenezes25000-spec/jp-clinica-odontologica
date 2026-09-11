@@ -32,6 +32,44 @@ const ENDERECO = {
   pais: "BR",
 } as const;
 
+/**
+ * A ficha da clínica no Google. FONTE ÚNICA — nada de número de avaliação
+ * digitado em componente.
+ *
+ * O motivo é concreto: o total sobe toda semana, e enquanto ele era literal em
+ * cada tela o site publicava três respostas diferentes para a mesma pergunta.
+ * Quem abria a home via 192, quem caía na página de limpeza via 176, e quem
+ * comparava as duas via uma clínica que não sabe quantos pacientes avaliou.
+ * Prova social que se contradiz vira o contrário de prova social.
+ *
+ * Para atualizar: mexa em `nota` e `total` AQUI, em lugar nenhum mais. Tudo o
+ * que o site mostra sobre a avaliação — o número grande, a quinta estrela
+ * parcial, o texto do rodapé, o selo das páginas de tratamento — sai daqui.
+ *
+ * `notaBR` e `preenchimentoDaQuintaEstrela` são derivados de propósito: a
+ * vírgula decimal e a fatia da estrela eram escritas à mão, então bastava
+ * alguém mudar 4,6 para 4,7 e esquecer o `w-[60%]` para o desenho passar a
+ * mentir sobre o próprio número ao lado.
+ */
+export const AVALIACOES = {
+  nota: 4.6,
+  total: 192,
+  /** Conferido na ficha do Google em 10/09/2026. */
+  conferidoEm: "2026-09-10",
+};
+
+/** "4,6" — a nota como o Brasil escreve, derivada de `AVALIACOES.nota`. */
+export const notaBR = AVALIACOES.nota.toLocaleString("pt-BR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/**
+ * Quanto da última estrela fica pintada, em porcentagem inteira.
+ * 4,6 → quatro cheias e 60% da quinta.
+ */
+export const preenchimentoDaQuintaEstrela = Math.round((AVALIACOES.nota % 1) * 100);
+
 export const CLINICA = {
   nome: "JP Clínica Integrada Odontológica",
   razaoSocial: "J P Clínica Integrada Odontológica LTDA",
@@ -66,7 +104,7 @@ export const CLINICA = {
   horario: "Segunda a sexta, 08:00 às 18:00",
   instagram: "https://www.instagram.com/jpclinicaodontologica/",
   facebook: "https://www.facebook.com/jpclinicaodontologica/",
-  provaSocial: "4,6★ no Google • 192 avaliações",
+  provaSocial: `${notaBR}★ no Google • ${String(AVALIACOES.total)} avaliações`,
 };
 
 /**
@@ -196,7 +234,7 @@ export const FUNDADORA = {
  * Avaliações reais de pacientes no Google.
  *
  * Nota e volume conferidos direto na ficha do Google em agosto de 2026:
- * 4,6 estrelas com 192 avaliações.
+ * A nota e o volume vivem em `AVALIACOES`, no topo deste arquivo.
  *
  * Os textos abaixo vieram de um agregador (DentMap), que capturou apenas parte
  * das avaliações — vale conferir na ficha do Google e, se possível, ampliar
@@ -234,7 +272,8 @@ export const DEPOIMENTOS: Depoimento[] = [
     texto: "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!",
   },
   // ─── ⚠️ FICTÍCIOS — TROCAR POR AVALIAÇÕES REAIS DO GOOGLE ──────────────────
-  // A ficha tem 192 avaliações; só três foram transcritas até agora. Estes dois
+  // A ficha tem centenas de avaliações (veja `AVALIACOES`); só três foram
+  // transcritas até agora. Estes dois
   // existem para completar a grade. Depoimento inventado sob o rótulo
   // "avaliação no Google" é propaganda enganosa — substituir antes de divulgar.
   {

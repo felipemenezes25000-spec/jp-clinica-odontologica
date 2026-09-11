@@ -66,6 +66,7 @@ import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
 import { TeamSection } from "@/components/site/TeamSection";
 import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { GoogleRating } from "@/components/site/GoogleRating";
 
 const TITLE = "JP Clínica Integrada Odontológica — Dentista na Freguesia do Ó, São Paulo";
 const DESCRIPTION =
@@ -500,10 +501,7 @@ function Home() {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs font-extrabold text-ink-soft">
-                <span className="flex items-center gap-2">
-                  <Star className="h-4 w-4 fill-primary text-primary" /> 4,6 no Google
-                </span>
-                <span>192 avaliações</span>
+                <GoogleRating variante="itens" />
                 <span className="flex items-center gap-2">
                   <Clock3 className="h-4 w-4 text-primary" /> Seg–Sex • 08h–18h
                 </span>

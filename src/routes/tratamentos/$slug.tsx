@@ -47,6 +47,7 @@ import posterOrtodontia from "@/assets/video-ortodontia-poster.webp";
 import videoProtese from "@/assets/video-protese.mp4?url";
 import posterProtese from "@/assets/video-protese-poster.webp";
 import { CLINICA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { GoogleRating } from "@/components/site/GoogleRating";
 
 export const Route = createFileRoute("/tratamentos/$slug")({
   component: TreatmentPage,
@@ -453,7 +454,7 @@ function TreatmentPage() {
                 Antes de decidir, <span className="text-lime">entenda.</span>
               </h2>
               <div className="mt-8 flex items-center gap-2 text-sm font-bold text-white/50">
-                <Star className="h-4 w-4 fill-lime text-lime" /> {CLINICA.provaSocial}
+                <GoogleRating variante="selo" />
               </div>
             </Reveal>
             <div className="grid gap-3">
