@@ -209,12 +209,44 @@ export function comOrcamento(
 
     async gerarEstruturado(pedido: PedidoIa): Promise<RespostaIa> {
       const agora = contexto.agora?.() ?? new Date();
-      const { verificarOrcamento, registrarGasto } = await import("../../aplicacao/orcamento");
+      const { liquidarGasto, reservarOrcamento, verificarOrcamento } =
+        await import("../../aplicacao/orcamento");
 
       const estimativa =
         estimarCustoDaChamada(porta.nome, porta.modelo, pedido.maxTokens ?? 500) ?? 0;
 
-      const veredicto = await verificarOrcamento(contexto.organizationId, agora, estimativa);
+      /*
+       * RESERVA, E NÃO CONSULTA — Fase D.
+       *
+       * `verificarOrcamento` lia o gasto e comparava com o teto; a soma só vinha
+       * depois da chamada. Dois turnos simultâneos liam o mesmo número, os dois
+       * achavam que cabia, e os dois chamavam. Com cinco workers por minuto — o
+       * desenho da Fase B — o teto de R$ 50 virava R$ 50 mais o que coubesse
+       * entre a leitura e a escrita.
+       *
+       * Agora a decisão e o incremento acontecem na mesma transação do Postgres.
+       * Quem perde a corrida não chama.
+       */
+      const reserva = await reservarOrcamento(contexto.organizationId, agora, estimativa);
+
+      /*
+       * O VEREDICTO CONTINUA EXISTINDO, e por dois motivos que não são o mesmo.
+       *
+       * A tela lê `ultimoVeredicto()` para mostrar "quanto falta do teto" — isso
+       * é consulta, e consulta pode ser feita depois da decisão.
+       *
+       * E `turno.ts` reconhece a recusa pelo prefixo estável do detalhe, não
+       * pelo veredicto. Por isso a recusa da reserva é traduzida para o MESMO
+       * formato: quem lê daqui para baixo não precisa saber que a decisão mudou
+       * de lugar.
+       */
+      const veredicto: VeredictoOrcamento = reserva.reservou
+        ? await verificarOrcamento(contexto.organizationId, agora, 0)
+        : {
+            pode: false,
+            codigo: reserva.codigo === "teto_mes" ? "teto_do_mes" : "teto_do_dia",
+            motivo: reserva.motivo,
+          };
       ultimo = veredicto;
 
       if (!veredicto.pode) {
@@ -238,11 +270,20 @@ export function comOrcamento(
 
       const r = await porta.gerarEstruturado(pedido);
 
-      // O gasto é registrado mesmo quando a chamada FALHA: um 500 depois de o
-      // provedor processar o prompt foi cobrado. Ignorar isso faria o contador
-      // divergir da fatura justamente nos dias ruins.
+      /*
+       * O AJUSTE SUBSTITUI O REGISTRO, porque a reserva já somou a estimativa.
+       * Somar de novo aqui contaria a mesma chamada duas vezes.
+       *
+       * O delta é frequentemente NEGATIVO: a estimativa usa `maxTokens`, e a
+       * resposta quase sempre é menor. Um contador que só sobe acumularia erro
+       * para cima até o teto virar ficção.
+       *
+       * O AJUSTE ACONTECE MESMO QUANDO A CHAMADA FALHA: um 500 depois de o
+       * provedor processar o prompt foi cobrado, e ignorar isso faria o contador
+       * divergir da fatura justamente nos dias ruins.
+       */
       const uso = r.ok ? r.uso : r.uso;
-      await registrarGasto(contexto.organizationId, uso?.custoEstimado ?? null, agora);
+      await liquidarGasto(contexto.organizationId, reserva, uso?.custoEstimado ?? null, agora);
 
       return r;
     },

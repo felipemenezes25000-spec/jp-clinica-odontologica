@@ -232,6 +232,15 @@ export class ErroBancoFake extends Error {
   }
 }
 
+/** `"[0.1,0.2]"` vira `[0.1, 0.2]`. Já-array passa direto. */
+function comoVetor(v: unknown): number[] | null {
+  if (Array.isArray(v)) return v.map(Number);
+  if (typeof v !== "string") return null;
+  const cru = v.trim().replace(/^\[/u, "").replace(/\]$/u, "");
+  if (cru.length === 0) return [];
+  return cru.split(",").map((n) => Number(n.trim()));
+}
+
 export function limparBanco(): void {
   tabelas = {};
   sequencia = 0;
@@ -651,6 +660,147 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
      * milissegundo — é o que a função SQL resolve com `on conflict do update`, e
      * um fake de processo único não consegue reproduzi-la de qualquer forma.
      */
+    /*
+     * A RESERVA DE ORÇAMENTO — Fase D.
+     *
+     * O QUE O FAKE PODE E NÃO PODE PROVAR, dito antes de qualquer asserção.
+     *
+     * PODE: que a decisão e o incremento acontecem no mesmo passo, que o teto do
+     * dia e o do mês são ambos respeitados, que teto zero significa sem teto, e
+     * que a chamada seguinte enxerga o que a anterior reservou.
+     *
+     * NÃO PODE: que duas transações CONCORRENTES no Postgres não se atropelam.
+     * Isso é `for update` de verdade, e só o item 20 — Postgres no CI — prova.
+     * JavaScript é uma thread só: aqui a concorrência é simulada, não sofrida.
+     */
+    case "crc_reservar_orcamento": {
+      const org = argumentos["p_organization_id"];
+      const dia = String(argumentos["p_dia"] ?? "");
+      const micro = Number(argumentos["p_micro"] ?? 0);
+      const tetoDia = Number(argumentos["p_teto_dia_micro"] ?? 0);
+      const tetoMes = Number(argumentos["p_teto_mes_micro"] ?? 0);
+      const primeiro = `${dia.slice(0, 7)}-01`;
+
+      const baldes = tabelas["crc_ai_gastos"] ?? [];
+      let balde = baldes.find((b) => b["organization_id"] === org && b["dia"] === dia);
+      if (balde === undefined) {
+        balde = { organization_id: org, dia, micro_reais: 0, chamadas: 0 };
+        baldes.push(balde);
+        tabelas["crc_ai_gastos"] = baldes;
+      }
+
+      const doDia = Number(balde["micro_reais"] ?? 0);
+      const doMes = baldes
+        .filter((b) => b["organization_id"] === org && String(b["dia"] ?? "") >= primeiro)
+        .reduce((t, b) => t + Number(b["micro_reais"] ?? 0), 0);
+
+      // Teto <= 0 é SEM TETO, igual ao SQL. Divergir aqui faria o fake aprovar
+      // o que o banco recusa, que é o pior tipo de dublê.
+      const estourou =
+        (tetoDia > 0 && doDia + micro > tetoDia) || (tetoMes > 0 && doMes + micro > tetoMes);
+
+      if (estourou) {
+        return Promise.resolve([{ reservou: false, dia_micro: doDia, mes_micro: doMes }] as T[]);
+      }
+
+      balde["micro_reais"] = doDia + micro;
+      balde["chamadas"] = Number(balde["chamadas"] ?? 0) + 1;
+      balde["atualizado_em"] = new Date(agoraMs()).toISOString();
+
+      return Promise.resolve([
+        { reservou: true, dia_micro: doDia + micro, mes_micro: doMes + micro },
+      ] as T[]);
+    }
+
+    case "crc_ajustar_gasto": {
+      const org = argumentos["p_organization_id"];
+      const dia = String(argumentos["p_dia"] ?? "");
+      const delta = Number(argumentos["p_delta_micro"] ?? 0);
+
+      const balde = (tabelas["crc_ai_gastos"] ?? []).find(
+        (b) => b["organization_id"] === org && b["dia"] === dia,
+      );
+      if (balde !== undefined) {
+        // `max(...,0)` igual ao SQL: contador negativo é pior do que impreciso.
+        balde["micro_reais"] = Math.max(Number(balde["micro_reais"] ?? 0) + delta, 0);
+        balde["atualizado_em"] = new Date(agoraMs()).toISOString();
+      }
+      return Promise.resolve([] as T[]);
+    }
+
+    /*
+     * A TROCA DO CONHECIMENTO — Fase D.
+     *
+     * O fake apaga e insere em sequência, que é justamente o que o SQL deixou de
+     * fazer. A diferença é invisível aqui e é o ponto todo lá: em JavaScript não
+     * existe "outra requisição no meio". O que ESTE dublê prova é o contrato —
+     * quais pedaços sobram e com que conteúdo —, não a atomicidade.
+     */
+    case "crc_trocar_conhecimento": {
+      const org = argumentos["p_organization_id"];
+      const fonte = argumentos["p_source_id"];
+      const pedacos = Array.isArray(argumentos["p_pedacos"])
+        ? (argumentos["p_pedacos"] as Record<string, unknown>[])
+        : [];
+
+      const restantes = (tabelas["crc_knowledge_chunks"] ?? []).filter(
+        (c) => !(c["organization_id"] === org && c["source_id"] === fonte),
+      );
+
+      for (const p of pedacos) {
+        restantes.push(
+          comPadroes("crc_knowledge_chunks", {
+            organization_id: org,
+            source_id: fonte,
+            ordem: p["ordem"],
+            conteudo: p["conteudo"],
+            tamanho: p["tamanho"],
+            // O CHAMADOR MANDA O FORMATO DE FIO do pgvector — `[0.1,0.2]` como
+            // texto, porque é o que o cast `::vector` aceita. A COLUNA, porém, é
+            // um vetor, e o resto do fake (a busca por similaridade) trabalha
+            // com números. Desfazer a serialização aqui é o que mantém o dublê
+            // modelando a coluna, e não o protocolo.
+            embedding: comoVetor(p["embedding"]),
+            chave_dedupe: p["chave_dedupe"],
+          }),
+        );
+      }
+
+      tabelas["crc_knowledge_chunks"] = restantes;
+      return Promise.resolve([{ quantos: pedacos.length }] as T[]);
+    }
+
+    /*
+     * A PUBLICAÇÃO — Fase D.
+     *
+     * `rascunho_indisponivel` é lançado com a MESMA string do SQL, porque o
+     * chamador reconhece a corrida por ela. Um fake que lançasse outra mensagem
+     * deixaria o caminho de recuperação sem teste.
+     */
+    case "crc_publicar_versao_agente": {
+      const org = argumentos["p_organization_id"];
+      const versaoId = argumentos["p_versao_id"];
+      const versoes = tabelas["crc_agent_versions"] ?? [];
+
+      const alvo = versoes.find((v) => v["organization_id"] === org && v["id"] === versaoId);
+      if (alvo === undefined || alvo["status"] !== "RASCUNHO") {
+        return Promise.reject(new Error("rascunho_indisponivel"));
+      }
+
+      for (const v of versoes) {
+        if (v["organization_id"] === org && v["status"] === "PUBLICADA" && v["id"] !== versaoId) {
+          v["status"] = "ARQUIVADA";
+        }
+      }
+
+      alvo["status"] = "PUBLICADA";
+      alvo["rodada_id"] = argumentos["p_rodada_id"] ?? null;
+      alvo["publicado_por"] = argumentos["p_user_id"] ?? null;
+      alvo["publicado_em"] = new Date(agoraMs()).toISOString();
+
+      return Promise.resolve([{ ok: true }] as T[]);
+    }
+
     case "crc_somar_gasto": {
       const org = argumentos["p_organization_id"];
       const dia = String(argumentos["p_dia"] ?? "");

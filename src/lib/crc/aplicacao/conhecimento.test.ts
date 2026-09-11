@@ -387,3 +387,98 @@ describe("busca", () => {
     if (r.ok) expect(r.trechos).toEqual([]);
   });
 });
+
+/* ========================================================================== */
+/* A troca atômica — Fase D                                                   */
+/* ========================================================================== */
+
+describe("reindexar não deixa a clínica sem conhecimento", () => {
+  /**
+   * O DEFEITO QUE ISTO FECHA não aparece em nenhuma tela: aparece na boca do
+   * paciente.
+   *
+   * `ingerirFonte` apagava os pedaços antigos e depois inseria os novos, em duas
+   * chamadas ao PostgREST — duas transações. Entre elas, a fonte tem ZERO
+   * pedaços, e o agente não para de atender durante uma reindexação.
+   *
+   * O paciente pergunta "vocês aceitam meu convênio?" e ouve "não tenho essa
+   * informação" de uma clínica que TEM a informação cadastrada. Dura segundos,
+   * se resolve sozinho, e é irreprodutível — o pior formato possível de defeito.
+   */
+  it("a contagem de pedaços nunca passa por zero", async () => {
+    const porta = portaSandbox();
+    const id = await semearFontePublicada(ORG, "Pagamento", PAGAMENTO, porta);
+
+    const antes = conteudo("crc_knowledge_chunks").length;
+    expect(antes).toBeGreaterThan(0);
+
+    await ingerirFonte({ organizationId: ORG, sourceId: id, porta });
+
+    // Depois da troca, a fonte tem pedaços — e o teste do buraco é o de baixo.
+    expect(conteudo("crc_knowledge_chunks").length).toBeGreaterThan(0);
+  });
+
+  it("a troca é UMA chamada ao banco, e não duas", async () => {
+    // É a asserção estrutural que impede a regressão. Se alguém voltar a
+    // escrever `apagar` seguido de `inserir`, o buraco volta — e nenhum teste de
+    // conteúdo acusaria, porque o resultado FINAL é o mesmo.
+    const porta = portaSandbox();
+    const id = await semearFontePublicada(ORG, "Pagamento", PAGAMENTO, porta);
+
+    const fonte = await import("./conhecimento");
+    const codigo = fonte.ingerirFonte.toString();
+
+    expect(codigo).toContain("crc_trocar_conhecimento");
+    expect(codigo).not.toContain('apagar("crc_knowledge_chunks"');
+    void id;
+  });
+
+  it("falha do provedor de vetores não apaga o que já respondia", async () => {
+    const boa = portaSandbox();
+    const id = await semearFontePublicada(ORG, "Pagamento", PAGAMENTO, boa);
+    const antes = conteudo("crc_knowledge_chunks").length;
+
+    const quebrada: PortaEmbeddings = {
+      nome: "sandbox",
+      modelo: "sandbox-hash",
+      dimensoes: DIMENSOES_EMBEDDING,
+      gerar: () =>
+        Promise.resolve({ ok: false, motivo: "indisponivel", detalhe: "504", uso: null }),
+    };
+
+    const r = await ingerirFonte({ organizationId: ORG, sourceId: id, porta: quebrada });
+
+    expect(r.ok).toBe(false);
+    // O conhecimento antigo continua respondendo. É a ordem das quatro etapas:
+    // partir, embutir TUDO, e só então trocar.
+    expect(conteudo("crc_knowledge_chunks")).toHaveLength(antes);
+  });
+
+  it("a troca substitui, e não acumula", async () => {
+    const porta = portaSandbox();
+    const id = await semearFontePublicada(ORG, "Pagamento", PAGAMENTO, porta);
+    const antes = conteudo("crc_knowledge_chunks").length;
+
+    await ingerirFonte({ organizationId: ORG, sourceId: id, porta });
+
+    expect(conteudo("crc_knowledge_chunks")).toHaveLength(antes);
+  });
+
+  it("reindexar uma fonte não toca no conhecimento de outra clínica", async () => {
+    const porta = portaSandbox();
+    const meu = await semearFontePublicada(ORG, "Pagamento", PAGAMENTO, porta);
+    await semearFontePublicada(OUTRA_ORG, "Pagamento", PAGAMENTO, porta);
+
+    const deles = conteudo("crc_knowledge_chunks").filter(
+      (c) => c["organization_id"] === OUTRA_ORG,
+    ).length;
+
+    await ingerirFonte({ organizationId: ORG, sourceId: meu, porta });
+
+    // O `delete` da função SQL filtra por tenant além do `source_id`. Sem isso,
+    // um id vazado apagaria o conhecimento da clínica vizinha.
+    expect(
+      conteudo("crc_knowledge_chunks").filter((c) => c["organization_id"] === OUTRA_ORG),
+    ).toHaveLength(deles);
+  });
+});

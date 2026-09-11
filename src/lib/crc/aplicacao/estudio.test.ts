@@ -272,3 +272,80 @@ describe("o gate olha a versão publicada", () => {
     expect((await estadoDoGate(ORG, AGORA)).liberado).toBe(true);
   });
 });
+
+/* ========================================================================== */
+/* A publicação atômica — Fase D                                              */
+/* ========================================================================== */
+
+describe("publicar não deixa a clínica sem versão", () => {
+  /**
+   * O MODO COMO ESTE DEFEITO APARECIA é o que o tornava perigoso.
+   *
+   * Arquivar a publicada e publicar o rascunho eram dois `update` separados, e
+   * cada chamada ao PostgREST é uma transação própria. Morrer entre as duas
+   * deixava a clínica SEM VERSÃO PUBLICADA.
+   *
+   * E `turno.ts` não quebra sem versão publicada: ele cai no texto que vem no
+   * código. O agente simplesmente passa a falar com a personalidade padrão, sem
+   * erro, sem alerta. A única pista é alguém estranhar que as respostas mudaram.
+   */
+  async function publicarUmaVersao(texto: string): Promise<void> {
+    const r = await salvarRascunho({ organizationId: ORG, instrucoes: texto });
+    await aprovar(r.ok ? r.id : null);
+    const p = await publicarRascunho({ organizationId: ORG, agora: AGORA });
+    expect(p.ok).toBe(true);
+  }
+
+  it("existe SEMPRE exatamente uma publicada, antes e depois da troca", async () => {
+    await publicarUmaVersao(TEXTO);
+    const umaSo = (): number =>
+      conteudo("crc_agent_versions").filter((v) => v["status"] === "PUBLICADA").length;
+
+    expect(umaSo()).toBe(1);
+
+    await publicarUmaVersao(`${TEXTO}\n\nMais uma linha para virar outra versão.`);
+
+    // Duas publicadas violariam o índice parcial; zero é o buraco que a Fase D
+    // fechou. O número certo é um, nos dois momentos.
+    expect(umaSo()).toBe(1);
+  });
+
+  it("a versão anterior vira ARQUIVADA, e não some", async () => {
+    await publicarUmaVersao(TEXTO);
+    const primeira = conteudo("crc_agent_versions").find((v) => v["status"] === "PUBLICADA");
+
+    await publicarUmaVersao(`${TEXTO}\n\nSegunda versão do texto do agente.`);
+
+    const antiga = conteudo("crc_agent_versions").find((v) => v["id"] === primeira?.["id"]);
+    // Arquivada, não apagada: é o histórico que permite voltar atrás.
+    expect(antiga?.["status"]).toBe("ARQUIVADA");
+  });
+
+  it("a troca é UMA chamada, e não dois updates", async () => {
+    // Asserção estrutural: o resultado final de dois updates é idêntico ao de
+    // uma transação, então nenhum teste de conteúdo pegaria a regressão.
+    const modulo = await import("./estudio");
+    const codigo = modulo.publicarRascunho.toString();
+
+    expect(codigo).toContain("crc_publicar_versao_agente");
+    expect(codigo).not.toContain('status: "ARQUIVADA"');
+  });
+
+  it("corrida de duas abas: a segunda recebe recusa nomeada, e nada quebra", async () => {
+    const r = await salvarRascunho({ organizationId: ORG, instrucoes: TEXTO });
+    await aprovar(r.ok ? r.id : null);
+
+    const primeira = await publicarRascunho({ organizationId: ORG, agora: AGORA });
+    expect(primeira.ok).toBe(true);
+
+    // A segunda aba manda publicar o MESMO rascunho, que já não é rascunho.
+    const segunda = await publicarRascunho({ organizationId: ORG, agora: AGORA });
+
+    expect(segunda.ok).toBe(false);
+    // Recusa com nome, para a tela poder dizer "recarregue" em vez de mostrar
+    // um erro cru — e sem ter deixado a clínica sem versão pelo caminho.
+    expect(conteudo("crc_agent_versions").filter((v) => v["status"] === "PUBLICADA")).toHaveLength(
+      1,
+    );
+  });
+});

@@ -11,6 +11,7 @@
  * `crc_ai_runs`, que é onde se investiga "por que gastou tanto" — aqui é o
  * contador, e contador precisa ser rápido.
  */
+import { diaLocal, FUSO_PADRAO, primeiroDiaDoMesLocal } from "../dominio/dia-local";
 import {
   avaliarOrcamento,
   emMicro,
@@ -85,12 +86,54 @@ export async function salvarOrcamento(pedido: {
 /* Gasto                                                                      */
 /* -------------------------------------------------------------------------- */
 
-/** `YYYY-MM-DD` no fuso do servidor, que é o mesmo que o resto do CRC usa. */
-const diaDe = (agora: Date): string => agora.toISOString().slice(0, 10);
+/**
+ * `YYYY-MM-DD` no fuso DA CLÍNICA — Fase D.
+ *
+ * Era `agora.toISOString().slice(0, 10)`, ou seja, o dia UTC. A Vercel roda em
+ * UTC e a clínica opera em -03: **o dia virava às 21h**, e o teto diário zerava
+ * junto. Todo dia a clínica ganhava três horas de orçamento de graça, e o
+ * relatório "gasto de hoje" mentia das 21h à meia-noite — que é exatamente
+ * quando alguém fecha o caixa e olha.
+ *
+ * O fuso vem da configuração; `lerFusoDaOrganizacao` tem o cuidado de nunca
+ * derrubar o chamador. Ver `dominio/dia-local.ts`.
+ */
+const diaDe = (agora: Date, fuso: string = FUSO_PADRAO): string => diaLocal(agora, fuso);
+
+/**
+ * O fuso da clínica. NUNCA LANÇA: sem configuração, São Paulo.
+ *
+ * Uma leitura a mais por verificação de orçamento é barata perto de somar gasto
+ * no balde errado — e o resultado é cacheado por organização enquanto o processo
+ * vive, porque fuso de clínica não muda no meio do expediente.
+ */
+const FUSOS = new Map<string, string>();
+
+export async function lerFusoDaOrganizacao(organizationId: string): Promise<string> {
+  const guardado = FUSOS.get(organizationId);
+  if (guardado !== undefined) return guardado;
+
+  try {
+    const { lerConfiguracao } = await import("../servidor/configuracao");
+    const cfg = await lerConfiguracao(organizationId);
+    const bruto = cfg.horarioComercial.fuso;
+    const fuso = bruto.trim().length > 0 ? bruto : FUSO_PADRAO;
+    FUSOS.set(organizationId, fuso);
+    return fuso;
+  } catch {
+    return FUSO_PADRAO;
+  }
+}
+
+/** Só para teste: o cache de fuso não pode vazar de um caso para o outro. */
+export function esquecerFusos(): void {
+  FUSOS.clear();
+}
 
 export async function lerGasto(organizationId: string, agora: Date): Promise<GastoAtual> {
-  const hoje = diaDe(agora);
-  const primeiroDoMes = `${hoje.slice(0, 7)}-01`;
+  const fuso = await lerFusoDaOrganizacao(organizationId);
+  const hoje = diaDe(agora, fuso);
+  const primeiroDoMes = primeiroDiaDoMesLocal(agora, fuso);
 
   const baldes = await selecionar("crc_ai_gastos", {
     colunas: "dia,micro_reais",
@@ -130,7 +173,7 @@ export async function registrarGasto(
   try {
     await rpc("crc_somar_gasto", {
       p_organization_id: organizationId,
-      p_dia: diaDe(agora),
+      p_dia: diaDe(agora, await lerFusoDaOrganizacao(organizationId)),
       p_micro: emMicro(custoEstimadoReais),
     });
   } catch (erro) {
@@ -190,8 +233,179 @@ export async function zerarGastoDoDia(organizationId: string, agora: Date): Prom
     "crc_ai_gastos",
     [
       { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "dia", op: "eq", valor: diaDe(agora) },
+      { coluna: "dia", op: "eq", valor: diaDe(agora, await lerFusoDaOrganizacao(organizationId)) },
     ],
     { micro_reais: 0, chamadas: 0, atualizado_em: agoraIso() },
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/* A reserva atômica — Fase D                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A CORRIDA QUE ISTO FECHA, sem eufemismo.
+ *
+ * O desenho anterior era: ler o gasto → comparar com o teto → chamar o modelo →
+ * somar o gasto. Quatro passos, e a soma só no fim.
+ *
+ * Dois turnos simultâneos leem o mesmo número, os dois concluem que cabe, os
+ * dois chamam. Com cinco workers por minuto — que é literalmente o desenho da
+ * Fase B —, um teto de R$ 50 vira "R$ 50 mais o que couber entre a leitura e a
+ * escrita". Não é estouro teórico: é o comportamento normal de um contador que é
+ * lido antes de ser escrito.
+ *
+ * A INVERSÃO: reservar ANTES de chamar, na mesma transação que lê. Quem perde a
+ * corrida recebe `false` e não chama.
+ *
+ * O QUE ISTO CUSTA, dito na frente: a reserva usa a ESTIMATIVA, e estimativa
+ * erra. Por isso `ajustarGasto` existe — depois da chamada, o custo real
+ * substitui a estimativa, para mais ou para menos. E se o processo morrer entre
+ * reservar e ajustar, a reserva fica: o teto errou para MENOS gasto permitido,
+ * que é o lado certo para errar.
+ */
+export type Reserva =
+  | {
+      reservou: true;
+      /**
+       * QUANTO FOI EFETIVAMENTE RESERVADO, em micro-reais.
+       *
+       * Zero significa "passou sem reservar" — clínica sem teto, ou estimativa
+       * zero, ou o contador indisponível. A diferença importa na hora de fechar
+       * a conta: quem reservou AJUSTA a diferença, quem não reservou SOMA o
+       * total. Sem este número, uma das duas somaria duas vezes e a outra
+       * nenhuma.
+       */
+      reservadoMicro: number;
+      diaMicro: number;
+      mesMicro: number;
+    }
+  | { reservou: false; codigo: "teto_dia" | "teto_mes" | "indisponivel"; motivo: string };
+
+export async function reservarOrcamento(
+  organizationId: string,
+  agora: Date,
+  estimativaReais: number,
+): Promise<Reserva> {
+  const micro = emMicro(Math.max(estimativaReais, 0));
+
+  // Estimativa zero não reserva nada, e não deve tomar um lock por isso.
+  if (micro === 0) return { reservou: true, reservadoMicro: 0, diaMicro: 0, mesMicro: 0 };
+
+  const tetos = await lerOrcamento(organizationId).catch(() => SEM_TETO);
+
+  // SEM TETO NÃO PRECISA DE RESERVA. Quem não configurou orçamento não deve
+  // pagar o custo de um lock por chamada de modelo.
+  if (tetos.diaMicro === null && tetos.mesMicro === null) {
+    return { reservou: true, reservadoMicro: 0, diaMicro: 0, mesMicro: 0 };
+  }
+
+  try {
+    const fuso = await lerFusoDaOrganizacao(organizationId);
+    const linhas = await rpc("crc_reservar_orcamento", {
+      p_organization_id: organizationId,
+      p_dia: diaDe(agora, fuso),
+      p_micro: micro,
+      // O SQL trata `<= 0` como "sem teto". Null vira zero aqui para não
+      // precisar de duas assinaturas de função.
+      p_teto_dia_micro: tetos.diaMicro ?? 0,
+      p_teto_mes_micro: tetos.mesMicro ?? 0,
+    });
+
+    const l = linhas[0];
+    if (l === undefined) {
+      return { reservou: false, codigo: "indisponivel", motivo: "A reserva não respondeu." };
+    }
+
+    const diaMicro = Number(l["dia_micro"] ?? 0);
+    const mesMicro = Number(l["mes_micro"] ?? 0);
+
+    if (l["reservou"] === true) {
+      return { reservou: true, reservadoMicro: micro, diaMicro, mesMicro };
+    }
+
+    // QUAL teto estourou muda a mensagem que a recepção lê: "volta amanhã" e
+    // "acabou o mês" pedem providências diferentes.
+    const estourouDia = tetos.diaMicro !== null && diaMicro + micro > tetos.diaMicro;
+    return estourouDia
+      ? { reservou: false, codigo: "teto_dia", motivo: "O teto de gasto do dia foi atingido." }
+      : { reservou: false, codigo: "teto_mes", motivo: "O teto de gasto do mês foi atingido." };
+  } catch (erro) {
+    /*
+     * EM CASO DE DÚVIDA, LIBERA — e isto é uma escolha, não um descuido.
+     *
+     * A alternativa seria parar de atender paciente porque o contador de custo
+     * está indisponível. O teto existe para controlar gasto, não para ser um
+     * segundo interruptor de emergência: esse já existe, é o kill switch, e ele
+     * é acionado por gente.
+     *
+     * O que NÃO pode acontecer é a falha ser silenciosa — por isso o log.
+     */
+    const { registrar } = await import("../servidor/registro");
+    registrar("aviso", "A reserva de orçamento falhou; o turno seguiu sem teto.", {
+      organizationId,
+      detalhe: erro instanceof Error ? erro.message : String(erro),
+    });
+    return { reservou: true, reservadoMicro: 0, diaMicro: 0, mesMicro: 0 };
+  }
+}
+
+/**
+ * Fecha a conta da chamada: o custo real entra no lugar do que foi reservado.
+ *
+ * NUNCA LANÇA. Perder o registro de um gasto é ruim; derrubar um turno que já
+ * respondeu ao paciente porque o contador falhou é pior.
+ *
+ * OS DOIS CAMINHOS, e por que não dá para ter só um:
+ *
+ *   RESERVOU  →  ajusta a DIFERENÇA. A estimativa já está somada, e somar de
+ *                novo contaria a mesma chamada duas vezes. O delta costuma ser
+ *                negativo: a estimativa usa `maxTokens` e a resposta quase
+ *                sempre é menor. Um contador que só sobe acumula erro para cima
+ *                até o teto virar ficção.
+ *
+ *   NÃO RESERVOU  →  soma o TOTAL. É o caso da clínica sem teto configurado, e
+ *                    ela também quer ver "gasto de hoje" na tela. O contador
+ *                    serve ao relatório, não só ao limite — foi por esquecer
+ *                    isso que a primeira versão desta fase parou de registrar
+ *                    gasto de quem não tinha teto.
+ */
+export async function liquidarGasto(
+  organizationId: string,
+  reserva: Reserva,
+  realReais: number | null,
+  agora: Date,
+): Promise<void> {
+  if (!reserva.reservou) return;
+
+  const realMicro = realReais === null ? null : emMicro(Math.max(realReais, 0));
+
+  if (reserva.reservadoMicro === 0) {
+    // Sem custo informado não há o que somar: inventar zero é tão errado quanto
+    // inventar qualquer outro número, e o log da chamada guarda o que houve.
+    if (realMicro === null || realMicro === 0) return;
+    await registrarGasto(organizationId, realReais, agora);
+    return;
+  }
+
+  // Custo desconhecido: a estimativa reservada fica de pé. Apagá-la
+  // transformaria "não sei quanto custou" em "custou zero".
+  if (realMicro === null) return;
+
+  const delta = realMicro - reserva.reservadoMicro;
+  if (delta === 0) return;
+
+  try {
+    await rpc("crc_ajustar_gasto", {
+      p_organization_id: organizationId,
+      p_dia: diaDe(agora, await lerFusoDaOrganizacao(organizationId)),
+      p_delta_micro: delta,
+    });
+  } catch (erro) {
+    const { registrar } = await import("../servidor/registro");
+    registrar("aviso", "Não foi possível ajustar o gasto estimado para o real.", {
+      organizationId,
+      detalhe: erro instanceof Error ? erro.message : String(erro),
+    });
+  }
 }

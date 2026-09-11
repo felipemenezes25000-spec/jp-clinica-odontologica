@@ -269,24 +269,39 @@ export async function ingerirFonte(pedido: {
     };
   }
 
-  // --- a troca --------------------------------------------------------------
-  await apagar("crc_knowledge_chunks", [
-    { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
-    { coluna: "source_id", op: "eq", valor: pedido.sourceId },
-  ]);
-
-  await inserir(
-    "crc_knowledge_chunks",
-    chunks.map((c, i) => ({
-      organization_id: pedido.organizationId,
-      source_id: pedido.sourceId,
+  /*
+   * A TROCA, AGORA ATÔMICA — Fase D.
+   *
+   * O QUE HAVIA AQUI eram duas chamadas: `apagar` e depois `inserir`. Entre elas
+   * a fonte fica com ZERO pedaços — e o agente não para de atender durante uma
+   * reindexação.
+   *
+   * O efeito, na boca do paciente: ele pergunta "vocês aceitam meu convênio?" e
+   * recebe "não tenho essa informação" de uma clínica que TEM a informação
+   * cadastrada. Dura segundos, volta ao normal sozinho, e é irreprodutível — o
+   * pior formato possível de defeito.
+   *
+   * E se o `inserir` falhasse, o buraco era permanente: o conhecimento antigo já
+   * tinha ido embora.
+   *
+   * `crc_trocar_conhecimento` faz DELETE e INSERT na mesma transação. Quem lê no
+   * meio vê o conteúdo ANTIGO, inteiro.
+   */
+  const gravados = await rpc("crc_trocar_conhecimento", {
+    p_organization_id: pedido.organizationId,
+    p_source_id: pedido.sourceId,
+    p_pedacos: chunks.map((c, i) => ({
       ordem: c.ordem,
       conteudo: c.conteudo,
       tamanho: c.conteudo.length,
-      embedding: vetores[i] ?? null,
+      // O vetor vai como texto no formato do pgvector: `[0.1,0.2,...]`. Mandar
+      // array JSON faria o cast `::vector` falhar com uma mensagem que não
+      // explica nada.
+      embedding: vetores[i] === undefined ? null : `[${(vetores[i] ?? []).join(",")}]`,
       chave_dedupe: c.chaveDedupe,
     })),
-  );
+  });
+  void gravados;
 
   return { ok: true, pedacos: chunks.length, custoEstimado: custo };
 }

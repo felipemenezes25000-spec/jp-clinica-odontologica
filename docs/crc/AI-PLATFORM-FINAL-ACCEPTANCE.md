@@ -12,7 +12,8 @@ Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 | **FASE A (P0 de schema)** | concluída e provada |
 | **FASE B (job durável, idempotência precoce)** | concluída e provada |
 | **FASE C (handoff, ownership, chokepoints)** | concluída e provada |
-| **FASES D a I** | não iniciadas |
+| **FASE D (atomicidade e fuso)** | concluída e provada |
+| **FASES E a I** | não iniciadas |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
@@ -93,10 +94,10 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 15 | Ownership revalidado antes do envio | `PASS` | `enviarMensagem` relê o dono antes de gravar e recusa `remetente='ia'` fora de conversa da IA. `dono-no-envio.test.ts` |
 | 15b | Portão de dono é lista de permissão | `PASS` | **Furo encontrado durante a FASE C:** `portaoDono` recusava só `humano`, e `ninguem` — o estado em que `abrirCaso` deixa a conversa — passava. Toda conversa escalada voltava a receber resposta automática no turno seguinte. `turno.test.ts > conversa com a IA pausada` |
 | 15c | Kill switch de escrita relido no ato | `PASS` | **Mesma classe do item 15:** `ctx.interruptores` é retrato do início do turno. `agendamento.ts` relê antes de `criarAgendamento`. `agendamento.test.ts > kill switch acionado depois da oferta` |
-| 16 | RAG swap atômico | `FAIL` | `DELETE` + `INSERT` separados. Os embeddings são calculados antes (bom), mas a troca não é transacional |
-| 17 | Budget concorrente/atômico | `FAIL` | Lê → avalia → chama → soma. Duas chamadas simultâneas passam do teto |
-| 18 | Timezone da organização | `FAIL` | `toISOString().slice(0,10)` define "o dia" em `aplicacao/orcamento.ts` |
-| 19 | Publicação do agente atômica | `FAIL` | Arquiva e publica em duas operações |
+| 16 | RAG swap atômico | `PASS` | `crc_trocar_conhecimento` em `supabase/18`. O buraco era visível ao paciente: "não tenho essa informação" de uma clínica que tem. `conhecimento.test.ts` |
+| 17 | Budget concorrente/atômico | `PARCIAL` | `crc_reservar_orcamento` reserva ANTES de chamar, com `for update`. O contrato está provado em `atomicidade.test.ts`; a concorrência real é do Postgres e depende do item 20 |
+| 18 | Timezone da organização | `PASS` | `dominio/dia-local.ts` com `Intl`, não offset fixo. O teto diário zerava às 21h e a clínica ganhava três horas de graça por dia. `dia-local.test.ts` |
+| 19 | Publicação do agente atômica | `PASS` | `crc_publicar_versao_agente`. Sem versão publicada `turno.ts` cai no texto do código em silêncio — o defeito não dava erro. `estudio.test.ts` |
 | 20-21 | Banco real no CI / migrations do zero | `FAIL` | — |
 | 22 | Tenant isolation com teste real | `PARCIAL` | `conhecimento.test.ts` prova isolamento de knowledge com o filtro dentro do SQL. Falta memória, oportunidade, paciente, casos, credenciais |
 | 23 | WAHA | `FAIL` | Não implementado nem formalmente retirado |

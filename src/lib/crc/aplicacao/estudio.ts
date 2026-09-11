@@ -19,7 +19,7 @@
  * versão publicada.
  */
 import { INSTRUCOES_DO_AGENTE } from "../ia-platform/instrucoes";
-import { agoraIso, atualizar, inserir, selecionar, selecionarUm } from "../servidor/banco";
+import { agoraIso, atualizar, inserir, rpc, selecionar, selecionarUm } from "../servidor/banco";
 
 /* -------------------------------------------------------------------------- */
 /* Leitura                                                                    */
@@ -224,23 +224,46 @@ export async function publicarRascunho(pedido: {
     };
   }
 
-  // A ordem importa: ARQUIVA a publicada primeiro. O índice parcial
-  // `uq_crc_agent_versions_publicada` recusaria duas publicadas ao mesmo tempo, e
-  // a recusa aconteceria DEPOIS de a nova já ter sido gravada se fosse ao
-  // contrário.
-  const publicada = await versaoPublicada(pedido.organizationId);
-  if (publicada !== null) {
-    await atualizar("crc_agent_versions", [{ coluna: "id", op: "eq", valor: publicada.id }], {
-      status: "ARQUIVADA",
+  /*
+   * AS DUAS ESCRITAS VIRARAM UMA — Fase D.
+   *
+   * Arquivar a publicada e publicar o rascunho eram dois `update` separados, e
+   * cada chamada ao PostgREST é uma transação própria. Morrer entre as duas
+   * deixava a clínica SEM VERSÃO PUBLICADA.
+   *
+   * E o modo como isso aparece é o problema: `turno.ts` não quebra sem versão
+   * publicada — ele cai no texto que vem no código. O agente simplesmente passa
+   * a falar com a personalidade padrão, e a única pista é alguém estranhar que
+   * as respostas mudaram.
+   *
+   * A ORDEM CONTINUA SENDO ARQUIVAR PRIMEIRO, por causa do índice parcial
+   * `uq_crc_agent_versions_publicada`. O que mudou é que agora as duas coisas
+   * acontecem ou nenhuma acontece.
+   *
+   * AS RECUSAS CONTINUAM AQUI EM CIMA, em TypeScript, de propósito: o gate de
+   * avaliação é regra de produto, e regra de produto em PL/pgSQL é regra que
+   * ninguém revisa. No SQL mora só a atomicidade.
+   */
+  try {
+    await rpc("crc_publicar_versao_agente", {
+      p_organization_id: pedido.organizationId,
+      p_versao_id: rascunho.id,
+      p_rodada_id: rodada.id,
+      p_user_id: pedido.userId ?? null,
     });
+  } catch (erro) {
+    // `rascunho_indisponivel` é a corrida: outra aba publicou, ou o rascunho
+    // virou outra coisa entre a checagem e a gravação. Nada foi alterado — o
+    // rollback da transação incluiu o arquivamento.
+    const detalhe = erro instanceof Error ? erro.message : String(erro);
+    return detalhe.includes("rascunho_indisponivel")
+      ? {
+          ok: false,
+          codigo: "rascunho_mudou",
+          motivo: "Este rascunho mudou enquanto você publicava. Recarregue e tente de novo.",
+        }
+      : { ok: false, codigo: "falha_ao_publicar", motivo: detalhe.slice(0, 200) };
   }
-
-  await atualizar("crc_agent_versions", [{ coluna: "id", op: "eq", valor: rascunho.id }], {
-    status: "PUBLICADA",
-    rodada_id: rodada.id,
-    publicado_por: pedido.userId ?? null,
-    publicado_em: agoraIso(),
-  });
 
   return { ok: true, codigo: "", motivo: "" };
 }
