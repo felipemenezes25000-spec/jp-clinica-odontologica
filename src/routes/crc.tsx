@@ -8,6 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
+  Brain,
   Compass,
   CalendarDays,
   Camera,
@@ -42,6 +43,7 @@ import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
 
 import { Campanhas } from "@/components/crc/Campanhas";
+import { Inteligencia } from "@/components/crc/Inteligencia";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
@@ -82,6 +84,7 @@ type Aba =
   | "importar"
   | "automacoes"
   | "campanhas"
+  | "inteligencia"
   | "integracoes"
   | "configuracoes"
   | "equipe";
@@ -150,6 +153,15 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
       { aba: "importar", rotulo: "Importar", permissao: "importar_dados", icone: FileUp },
       { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao", icone: Workflow },
       { aba: "campanhas", rotulo: "Campanhas", permissao: "gerenciar_automacao", icone: Megaphone },
+      {
+        aba: "inteligencia",
+        rotulo: "Inteligência",
+        // A MESMA permissão de automação, e não `ver_conversa`: a resposta
+        // candidata é conteúdo que NÃO foi enviado, e lê-la é afinar a
+        // máquina, não atender paciente.
+        permissao: "gerenciar_automacao",
+        icone: Brain,
+      },
     ],
   },
   {
@@ -498,6 +510,39 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Rascunho", tom: "neutra" },
       { rotulo: "Em execução", tom: "info" },
       { rotulo: "Concluída", tom: "positiva" },
+    ],
+  },
+  inteligencia: {
+    sobretitulo: "O que a máquina decidiu",
+    paraQue: "o que o agente pensou, e o que não enviou",
+    descricao:
+      "Cada vez que um paciente escreve, o agente lê, decide e registra o que faria. Esta tela mostra essas decisões — inclusive as que foram barradas antes de virar mensagem. Enquanto o envio estiver desligado, nada daqui chegou a ninguém, e a faixa do topo diz isso com todas as letras.",
+    acoes: [
+      {
+        faca: "A faixa verde do topo",
+        efeito:
+          "Responde a primeira pergunta de quem abre esta tela: a máquina falou com alguém? Se estiver verde, nenhuma resposta saiu.",
+      },
+      {
+        faca: '"barrado por…"',
+        efeito:
+          "Diz qual regra impediu a resposta de sair — conteúdo clínico, promessa sem ação, vazamento interno. É a regra funcionando sobre um caso real.",
+      },
+      {
+        faca: "N etapas",
+        efeito:
+          "Abre o passo a passo do turno: montar contexto, cada ferramenta usada, os portões. É o que responde por que demorou e por que custou.",
+      },
+      {
+        faca: "Custo destes turnos",
+        efeito:
+          "Soma TODAS as voltas do laço, não só a última chamada. Um turno que usa três ferramentas faz quatro chamadas de modelo.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Não enviou", tom: "neutra" },
+      { rotulo: "Passou para a equipe", tom: "alerta" },
+      { rotulo: "Falhou com segurança", tom: "perigo" },
     ],
   },
   integracoes: {
@@ -1338,6 +1383,8 @@ function PortalCrc() {
           )}
 
           {abaAtual === "campanhas" && <Campanhas />}
+
+          {abaAtual === "inteligencia" && <Inteligencia />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
         </main>

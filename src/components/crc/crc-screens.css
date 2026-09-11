@@ -1670,3 +1670,124 @@
     align-items: flex-start;
   }
 }
+
+/* ==========================================================================
+   Inteligência — os turnos do agente
+   ==========================================================================
+
+   A LISTA É DE LEITURA, e o visual segue isso: sem sombra, sem elevação, sem
+   cartão que sobe ao passar o mouse. Nada aqui é clicável exceto o botão que
+   abre as etapas, e prometer interação onde não há é o jeito mais rápido de
+   ensinar a equipe a clicar em coisa que não faz nada.
+
+   A cor da barra à esquerda carrega o desfecho: quem varre a lista procurando
+   "o que deu errado" acha pela cor, sem ler.
+   ========================================================================== */
+
+.crc-app .crc-turno-ia {
+  border-left: 3px solid var(--crc-borda-forte);
+}
+
+.crc-app .crc-turno-ia[data-resultado="enviado"] {
+  border-left-color: var(--crc-primaria);
+}
+.crc-app .crc-turno-ia[data-resultado="humano"] {
+  border-left-color: var(--crc-alerta);
+}
+.crc-app .crc-turno-ia[data-resultado="falha_segura"] {
+  border-left-color: var(--crc-perigo);
+}
+
+.crc-app .crc-turno-ia-icone {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 9px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-turno-ia[data-resultado="humano"] .crc-turno-ia-icone {
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+.crc-app .crc-turno-ia[data-resultado="falha_segura"] .crc-turno-ia-icone {
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+}
+.crc-app .crc-turno-ia[data-resultado="enviado"] .crc-turno-ia-icone {
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria-texto, var(--crc-primaria));
+}
+
+/* O portão que barrou. Monoespaçado porque é código, não prosa — e porque é
+   o que alguém vai copiar para procurar no log. */
+.crc-app .crc-turno-ia-portao {
+  padding: 2px 7px;
+  border: 1px solid var(--crc-perigo-suave);
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-perigo-suave);
+  color: var(--crc-perigo);
+  font-family: var(--crc-fonte-dado);
+  font-size: 0.6875rem;
+}
+
+/* A resposta que NÃO foi enviada. Citação, e não balão de conversa: balão
+   sugere que ela chegou a alguém. */
+.crc-app .crc-turno-ia-resposta {
+  margin: var(--crc-e2) 0 0;
+  padding: 8px 12px;
+  border-left: 2px solid var(--crc-borda-forte);
+  color: var(--crc-texto-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.crc-app .crc-turno-ia-trace {
+  margin: var(--crc-e3) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.crc-app .crc-turno-ia-trace li {
+  display: grid;
+  grid-template-columns: minmax(0, 10rem) auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--crc-e3);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--crc-superficie-2);
+  font-size: 0.75rem;
+}
+
+.crc-app .crc-turno-ia-trace li[data-status="bloqueado"] {
+  background: var(--crc-perigo-suave);
+}
+.crc-app .crc-turno-ia-trace li[data-status="erro"] {
+  background: var(--crc-alerta-suave);
+}
+
+.crc-app .crc-turno-ia-span-nome {
+  font-family: var(--crc-fonte-dado);
+  color: var(--crc-texto);
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-turno-ia-span-resumo {
+  color: var(--crc-texto-3);
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .crc-app .crc-turno-ia-trace li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .crc-app .crc-turno-ia-span-resumo {
+    grid-column: 1 / -1;
+  }
+}

@@ -1212,6 +1212,142 @@ export const salvarMinhaFoto = createServerFn({ method: "POST" })
   );
 
 /* -------------------------------------------------------------------------- */
+/* Inteligência — os turnos do agente                                         */
+/* -------------------------------------------------------------------------- */
+
+export type SpanDto = {
+  nome: string;
+  tipo: string;
+  duracaoMs: number;
+  status: string;
+  resumo: string | null;
+};
+
+export type TurnoDaIaDto = {
+  id: string;
+  conversationId: string;
+  patientId: string | null;
+  resultado: string;
+  motivo: string | null;
+  respostaCandidata: string | null;
+  precisaHumano: boolean;
+  portaoBloqueou: string | null;
+  modelo: string | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  custoEstimado: number | null;
+  duracaoMs: number | null;
+  criadoEm: string;
+  spans: SpanDto[];
+};
+
+export type PanoramaDaIaDto = {
+  turnos: TurnoDaIaDto[];
+  /** Quantos turnos por desfecho, na janela carregada. */
+  porResultado: Record<string, number>;
+  custoTotal: number;
+  /** `true` quando nenhuma resposta chegou a paciente nenhum. */
+  sombraPura: boolean;
+};
+
+/**
+ * Os turnos recentes do agente, com o trace de cada um.
+ *
+ * PERMISSÃO `gerenciar_automacao`, e não `ver_conversa`: a resposta candidata é
+ * conteúdo que NÃO foi enviado ao paciente, e lê-la é afinar a máquina, não
+ * atender. Quem faz isso é quem já pode ligar e desligar automação.
+ *
+ * Os spans vêm em UMA consulta para todos os turnos, e não uma por turno: vinte
+ * turnos na tela produziriam vinte idas ao banco para desenhar uma linha do
+ * tempo que ninguém abriu ainda.
+ */
+export const carregarPanoramaDaIa = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ panorama: PanoramaDaIaDto }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { selecionar } = await import("./servidor/banco");
+
+      const runs = await selecionar("crc_ai_runs", {
+        filtros: [{ coluna: "organization_id", op: "eq", valor: ctx.organizationId }],
+        ordenar: [{ coluna: "criado_em", ascendente: false }],
+        limite: 40,
+      });
+
+      const ids = runs.map((r) => String(r["id"] ?? "")).filter((id) => id.length > 0);
+      const spans =
+        ids.length === 0
+          ? []
+          : await selecionar("crc_ai_spans", {
+              filtros: [
+                { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+                { coluna: "run_id", op: "in", valor: ids },
+              ],
+              ordenar: [{ coluna: "ordem", ascendente: true }],
+              limite: 500,
+            });
+
+      const porRun = new Map<string, SpanDto[]>();
+      for (const s of spans) {
+        const runId = String(s["run_id"] ?? "");
+        const lista = porRun.get(runId) ?? [];
+        lista.push({
+          nome: String(s["nome"] ?? ""),
+          tipo: String(s["tipo"] ?? ""),
+          duracaoMs: typeof s["duracao_ms"] === "number" ? s["duracao_ms"] : 0,
+          status: String(s["status"] ?? "ok"),
+          resumo: typeof s["resumo"] === "string" ? s["resumo"] : null,
+        });
+        porRun.set(runId, lista);
+      }
+
+      const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
+      const txt = (v: unknown): string | null =>
+        typeof v === "string" && v.trim().length > 0 ? v : null;
+
+      const turnos: TurnoDaIaDto[] = runs.map((r) => {
+        const id = String(r["id"] ?? "");
+        return {
+          id,
+          conversationId: String(r["conversation_id"] ?? ""),
+          patientId: txt(r["patient_id"]),
+          resultado: String(r["resultado"] ?? ""),
+          motivo: txt(r["motivo"]),
+          respostaCandidata: txt(r["resposta_candidata"]),
+          precisaHumano: r["precisa_humano"] === true,
+          portaoBloqueou: txt(r["portao_bloqueou"]),
+          modelo: txt(r["modelo"]),
+          inputTokens: num(r["input_tokens"]),
+          outputTokens: num(r["output_tokens"]),
+          custoEstimado:
+            typeof r["custo_estimado"] === "string"
+              ? Number.parseFloat(r["custo_estimado"])
+              : num(r["custo_estimado"]),
+          duracaoMs: num(r["duracao_ms"]),
+          criadoEm: String(r["criado_em"] ?? ""),
+          spans: porRun.get(id) ?? [],
+        };
+      });
+
+      const porResultado: Record<string, number> = {};
+      let custoTotal = 0;
+      for (const t of turnos) {
+        porResultado[t.resultado] = (porResultado[t.resultado] ?? 0) + 1;
+        custoTotal += t.custoEstimado ?? 0;
+      }
+
+      return {
+        ok: true as const,
+        panorama: {
+          turnos,
+          porResultado,
+          custoTotal: Math.round(custoTotal * 10000) / 10000,
+          // A afirmação que a tela precisa poder fazer com honestidade.
+          sombraPura: turnos.every((t) => t.resultado !== "enviado"),
+        },
+      };
+    }),
+);
+
+/* -------------------------------------------------------------------------- */
 /* Inbox 2.0 — dono da conversa e casos humanos (Fatia 5)                     */
 /* -------------------------------------------------------------------------- */
 
