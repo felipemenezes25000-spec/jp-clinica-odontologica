@@ -8,7 +8,9 @@ import { contatoWhatsApp } from "@/lib/contato";
 export function Header() {
   const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const aoRolar = () => setScrolled(window.scrollY > 30);
@@ -17,16 +19,61 @@ export function Header() {
     return () => window.removeEventListener("scroll", aoRolar);
   }, []);
 
-  // Escape fecha e devolve o foco ao botão — senão a pessoa perde o lugar.
+  // Enquanto o menu móvel está aberto, ele se comporta como uma superfície
+  // modal: trava o scroll da página, fecha ao tocar fora e mantém o foco dentro
+  // dos controles visíveis. Isso evita a sensação de menu "solto" sobre a home.
   useEffect(() => {
     if (!aberto) return;
+
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const focarPrimeiroItem = window.requestAnimationFrame(() => {
+      menuRef.current?.querySelector<HTMLElement>("a[href], button:not([disabled])")?.focus();
+    });
+
     const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setAberto(false);
-      botaoRef.current?.focus();
+      if (e.key === "Escape") {
+        setAberto(false);
+        botaoRef.current?.focus();
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+
+      const focaveis = Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      ).filter((item) => !item.hasAttribute("disabled") && item.offsetParent !== null);
+
+      const primeiro = focaveis[0];
+      const ultimo = focaveis[focaveis.length - 1];
+      if (!primeiro || !ultimo) return;
+
+      if (e.shiftKey && document.activeElement === primeiro) {
+        e.preventDefault();
+        ultimo.focus();
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault();
+        primeiro.focus();
+      }
     };
+
+    const aoTocarFora = (e: PointerEvent) => {
+      if (headerRef.current?.contains(e.target as Node)) return;
+      setAberto(false);
+    };
+
     document.addEventListener("keydown", aoTeclar);
-    return () => document.removeEventListener("keydown", aoTeclar);
+    document.addEventListener("pointerdown", aoTocarFora);
+
+    return () => {
+      window.cancelAnimationFrame(focarPrimeiroItem);
+      document.body.style.overflow = overflowAnterior;
+      document.removeEventListener("keydown", aoTeclar);
+      document.removeEventListener("pointerdown", aoTocarFora);
+    };
   }, [aberto]);
 
   const wa = contatoWhatsApp("agendar");
@@ -35,6 +82,7 @@ export function Header() {
 
   return (
     <header
+      ref={headerRef}
       className={`sticky top-0 z-[100] w-full transition-shadow duration-300 ${
         scrolled ? "shadow-[0_10px_40px_rgba(3,47,1,0.08)]" : ""
       }`}
@@ -132,7 +180,7 @@ export function Header() {
                 <li key={item.href} className="shrink-0">
                   <a
                     href={item.href}
-                    className="relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full"
+                    className="relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full focus-visible:text-forest-2 focus-visible:after:w-full"
                   >
                     {item.label}
                   </a>
@@ -189,6 +237,7 @@ export function Header() {
           `invisible` quando fechado é essencial: só com max-h-0 os links seguem
           alcançáveis por Tab, e a pessoa navega por itens que não consegue ver. */}
       <div
+        ref={menuRef}
         id="menu-mobile"
         className={`absolute left-0 right-0 top-full border-b border-border-soft bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
           aberto
@@ -214,6 +263,7 @@ export function Header() {
           <div className="mt-5 grid gap-3 border-t border-border-soft pt-5 sm:grid-cols-2">
             <a
               href={CLINICA.telefoneHref}
+              onClick={fechar}
               className="flex items-center justify-center gap-2 rounded-full border border-border-soft px-5 py-4 text-sm font-semibold text-forest-2"
             >
               <Phone size={16} aria-hidden="true" />
