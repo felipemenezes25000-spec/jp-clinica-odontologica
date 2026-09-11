@@ -3,6 +3,13 @@ import { ShieldCheck, UsersRound } from "lucide-react";
 import { EQUIPE } from "@/lib/jp";
 
 /**
+ * A seção pública nunca renderiza pessoa marcada como fictícia ou placeholder.
+ * A defesa fica aqui, no ponto de exibição: assim um item temporário usado para
+ * acertar layout não consegue virar profissional publicado por acidente.
+ */
+const EQUIPE_PUBLICA = EQUIPE.filter((pessoa) => !pessoa.ficticio && !pessoa.placeholder);
+
+/**
  * A partir de xl a equipe inteira cabe numa linha só. Antes era 20% cravado —
  * cinco por linha —, e com seis pessoas a última descia sozinha para a linha de
  * baixo, menor que as outras porque não tinha ninguém ao lado para esticá-la.
@@ -35,7 +42,7 @@ const LARGURA_XL: Record<number, string> = {
   8: "xl:w-[calc(12.5%_-_18px)]",
 };
 
-const LARGURA_UMA_LINHA = LARGURA_XL[EQUIPE.length] ?? "";
+const LARGURA_UMA_LINHA = LARGURA_XL[EQUIPE_PUBLICA.length] ?? "";
 
 function CardProfissional({
   nome,
@@ -80,11 +87,6 @@ function CardProfissional({
       </div>
 
       <div className="flex flex-1 flex-col justify-start pt-4 text-center">
-        {/* Duas linhas reservadas mesmo quando o nome ocupa uma só. Sem isso,
-            um nome que quebra — "Dra. Sabrina Vamszer Flaquer" — empurra a
-            especialidade e o bloco de registro dela para baixo, e os três
-            ficam desalinhados em relação aos cards vizinhos. 45px = duas
-            linhas de 18px com leading-tight. */}
         <h3 className="min-h-[45px] font-display text-[18px] font-extrabold leading-tight tracking-[-0.025em] text-forest-2">
           {nome}
         </h3>
@@ -93,14 +95,6 @@ function CardProfissional({
           {papel}
         </p>
 
-        {/* Sem registro não sai nem o rótulo nem o traço: um "Registro" seguido
-            de nada leria como cadastro faltando, e não como alguém que
-            legitimamente não é do conselho.
-
-            O bloco de texto cresce (flex-1) mas alinha ao topo: centralizar a
-            sobra empurrava o nome de quem não tem registro uns 40px abaixo do
-            nome dos vizinhos de fileira, e são os nomes que o olho lê como
-            linha. A sobra fica no rodapé do card, onde não desalinha nada. */}
         {registro ? (
           <>
             <div aria-hidden="true" className="mx-auto my-3 h-px w-[82%] bg-border-soft" />
@@ -114,12 +108,7 @@ function CardProfissional({
   );
 }
 
-/**
- * A linha de apoio da seção afirma registro no CRO. Desde que a recepção entrou
- * na grade, essa afirmação não cobre todo mundo que aparece aqui — então ela
- * acompanha a lista em vez de ficar cravada no JSX.
- */
-const TODOS_COM_REGISTRO = EQUIPE.every((pessoa) => pessoa.registro);
+const TODOS_COM_REGISTRO = EQUIPE_PUBLICA.every((pessoa) => pessoa.registro);
 
 export function TeamSection() {
   return (
@@ -179,30 +168,9 @@ export function TeamSection() {
           </p>
         </div>
 
-        {/* Flex, e não mais um grid de 5 colunas fixas: a lista cresce conforme
-            a clínica manda os retratos, e num grid fixo a última fila
-            incompleta encosta à esquerda com um buraco ao lado. Aqui a sobra
-            fica centrada, e a largura do card continua sendo a mesma em
-            qualquer quantidade de pessoas.
-
-            Histórico da grade: a responsável técnica não está nela, a pedido da
-            clínica — ela tem apresentação própria no bloco de história. Tirá-la
-            só foi seguro porque o rodapé deixou de ler EQUIPE[0] e passou a ler
-            RESPONSAVEL_TECNICA: pela regra antiga, aquela mudança teria
-            publicado o CRO inventado do Dr. Ricardo Almeida na linha que a
-            Resolução CFO 196/2019 exige.
-
-            gap-[20px] literal, e não gap-5: as larguras acima descontam 10, 14
-            e 16px, contas que só fecham se a calha valer exatamente 20px.
-            gap-5 é 1.25rem, que vira 25px em quem navega com fonte base de
-            20px — aí a fileira de 5 estoura o container e o último card cai
-            para a linha de baixo. Mexer no gap agora pede mexer nos três
-            descontos junto. */}
         <div className="flex flex-wrap justify-center gap-[20px]">
-          {EQUIPE.map((pessoa) => (
+          {EQUIPE_PUBLICA.map((pessoa) => (
             <CardProfissional
-              /* Chaveado pelo nome: o registro deixou de servir como chave
-                 quando entrou na lista gente que não tem CRO. */
               key={pessoa.nome}
               nome={pessoa.nome}
               papel={pessoa.papel ?? pessoa.especialidade}
