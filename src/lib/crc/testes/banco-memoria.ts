@@ -1014,9 +1014,7 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
         l["motivo"] = l["motivo"] ?? "O turno começou e o processo não voltou.";
       }
 
-      return Promise.resolve([
-        { crc_fechar_ai_runs_abandonadas: abandonadas.length },
-      ] as T[]);
+      return Promise.resolve([{ crc_fechar_ai_runs_abandonadas: abandonadas.length }] as T[]);
     }
 
     /*

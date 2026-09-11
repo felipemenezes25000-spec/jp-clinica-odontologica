@@ -164,7 +164,14 @@ export async function processarTurnosDoAgente(
     }
   }
 
-  return { reservados: jobs.length, concluidos, descartados, falhados, presosLiberados, runsFechadas };
+  return {
+    reservados: jobs.length,
+    concluidos,
+    descartados,
+    falhados,
+    presosLiberados,
+    runsFechadas,
+  };
 }
 
 type DesfechoDoJob = { tipo: "feito" } | { tipo: "descartado"; motivo: string };

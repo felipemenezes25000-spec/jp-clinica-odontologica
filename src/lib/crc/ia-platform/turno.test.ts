@@ -296,7 +296,9 @@ describe("o turno protege o paciente antes de gastar modelo", () => {
       quem: "worker-1",
     });
 
-    const r = await rodarTurno(pedidoBase(portaFake(respostaOk({ acao: "responder", texto: "oi" }))));
+    const r = await rodarTurno(
+      pedidoBase(portaFake(respostaOk({ acao: "responder", texto: "oi" }))),
+    );
     expect(r.tipo).toBe("sem_acao");
   });
 });

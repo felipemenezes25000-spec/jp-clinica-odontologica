@@ -292,7 +292,10 @@ export async function fecharRunsAbandonadas(minutos = 30): Promise<number> {
  * repetir esse nome — e evita o erro silencioso de repeti-lo errado, que
  * devolveria zero sem nunca falhar.
  */
-async function contarDaRpc(nome: string, argumentos: Record<string, unknown> = {}): Promise<number> {
+async function contarDaRpc(
+  nome: string,
+  argumentos: Record<string, unknown> = {},
+): Promise<number> {
   const linhas = await rpc(nome, argumentos);
   const n = linhas[0];
   const valor = n === undefined ? 0 : Number(Object.values(n)[0] ?? 0);
