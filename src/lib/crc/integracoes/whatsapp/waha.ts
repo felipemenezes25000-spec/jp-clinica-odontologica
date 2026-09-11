@@ -44,7 +44,7 @@ import { timingSafeEqual } from "node:crypto";
 
 import { normalizarTelefone } from "../../dominio/telefone";
 import { campo, ehObjeto, lista, textoOpcional } from "../../dominio/validar";
-import { caminhoParaLog, pedir, type EventoHttp } from "../../servidor/http";
+import { caminhoParaLog, entregaFicouIncerta, pedir, type EventoHttp } from "../../servidor/http";
 import { registrarIntegracao } from "../../servidor/registro";
 
 import type {
@@ -154,7 +154,13 @@ export class ProvedorWaha implements PortaMensageria {
            * desconectou, ou o número foi banido. Repetir não resolve; alguém
            * precisa parear o QR code de novo.
            */
-          permanente: resposta.status >= 400 && resposta.status < 500 && resposta.status !== 429,
+          // Uma RESPOSTA chegou: não há incerteza nenhuma aqui. 4xx que não é
+          // 429 é problema do pedido — número inválido, template não aprovado,
+          // janela fechada. Repetir não muda nada.
+          classe:
+            resposta.status >= 400 && resposta.status < 500 && resposta.status !== 429
+              ? "permanente"
+              : "transitoria",
           codigo: String(resposta.status),
           detalhe,
         };
@@ -164,7 +170,13 @@ export class ProvedorWaha implements PortaMensageria {
     } catch (erro) {
       return {
         ok: false,
-        permanente: false,
+        /*
+         * AQUI ESTAVA O DEFEITO. `permanente: false` liberava a chave de
+         * dedupe, e um timeout DEPOIS de a Meta aceitar virava uma segunda
+         * mensagem para o paciente. `entregaFicouIncerta` separa "a conexão
+         * foi recusada" de "o pedido saiu e não voltou resposta".
+         */
+        classe: entregaFicouIncerta(erro) ? "incerta" : "transitoria",
         codigo: "REDE",
         detalhe: erro instanceof Error ? erro.message : String(erro),
       };

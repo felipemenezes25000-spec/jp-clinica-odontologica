@@ -47,15 +47,34 @@ export type EnvioTemplate = {
   chaveDedupe: string;
 };
 
+/**
+ * Como uma falha de envio terminou. TRÊS estados, e não um booleano.
+ *
+ * ========================================================================
+ *  O BOOLEANO `permanente` TINHA MENOS ESTADOS QUE A REALIDADE, e o estado que
+ *  faltava é o que manda mensagem repetida para paciente.
+ *
+ *      "permanente"   número inválido, template não aprovado. Não insista.
+ *      "transitoria"  o provedor está fora, a conexão foi recusada. O pedido
+ *                     NÃO chegou; repetir é seguro e necessário.
+ *      "incerta"      o pedido SAIU e a resposta não voltou. A Meta pode ter
+ *                     aceitado. Repetir manda a mensagem DUAS VEZES.
+ *
+ *  O código HTTP já sabia disso: `repetirEscrita: false` existe porque "um POST
+ *  que deu timeout pode ter entregue a mensagem". Só que uma camada acima, o
+ *  `catch` devolvia `permanente: false` para qualquer erro de rede — e
+ *  `permanente: false` liberava a chave de dedupe, reabrindo exatamente a porta
+ *  que o HTTP tinha fechado.
+ * ========================================================================
+ */
+export type ClasseDeFalha = "permanente" | "transitoria" | "incerta";
+
 export type ResultadoEnvio =
   | { ok: true; providerMessageId: string }
   | {
       ok: false;
-      /**
-       * `permanente` decide o destino da falha: repetir ou dead letter.
-       * Número inválido é permanente; provedor fora do ar é transitório.
-       */
-      permanente: boolean;
+      /** Ver `ClasseDeFalha`. Decide entre repetir, desistir e não saber. */
+      classe: ClasseDeFalha;
       codigo: string;
       detalhe: string;
     };

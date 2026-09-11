@@ -364,6 +364,35 @@ class SandboxDentalOffice implements PortaDentalOffice {
     return Promise.resolve(slots.slice(0, 40));
   }
 
+  /**
+   * O sandbox concilia olhando a própria agenda em memória.
+   *
+   * Ele NUNCA devolve `INCERTO` — não há rede para falhar. Esta função existe
+   * para o contrato ser o mesmo dos dois lados: um teste que exercita a
+   * reconciliação contra o sandbox testa a lógica de quem chama, e não um
+   * caminho que só o cliente real tem.
+   */
+  conciliarAgendamento(dados: {
+    clinicaExternaId: string;
+    pacienteExternoId: string;
+    dentistaExternoId: string;
+    inicioEm: string;
+  }): Promise<{ achou: true; externalId: string } | { achou: false }> {
+    const inicio = Date.parse(dados.inicioEm);
+
+    const nosso = this.agendamentos.find(
+      (a) =>
+        a.pacienteExternoId === dados.pacienteExternoId &&
+        a.dentistaExternoId === dados.dentistaExternoId &&
+        Date.parse(a.inicioEm) === inicio &&
+        (a.descricao ?? "").includes("JP CRC"),
+    );
+
+    return Promise.resolve(
+      nosso === undefined ? { achou: false } : { achou: true, externalId: nosso.externalId },
+    );
+  }
+
   criarAgendamento(dados: {
     pacienteExternoId: string;
     dentistaExternoId: string;

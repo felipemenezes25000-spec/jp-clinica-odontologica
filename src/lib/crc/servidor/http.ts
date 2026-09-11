@@ -86,10 +86,36 @@ export class ErroHttp extends Error {
   readonly transitorio: boolean;
   readonly corpo: unknown;
   readonly requestId: string | undefined;
+  /**
+   * O pedido pode ter chegado do outro lado?
+   *
+   * ========================================================================
+   *  A PERGUNTA MAIS CARA DE UM POST QUE FALHOU, e ela não é "deu erro?" — é
+   *  "deu erro ANTES ou DEPOIS de o outro lado receber?".
+   *
+   *  Conexão recusada, DNS que não resolve, timeout de CONEXÃO: o pedido nunca
+   *  saiu. Repetir é seguro, e não repetir perde a mensagem à toa.
+   *
+   *  Timeout de RESPOSTA, conexão cortada no meio: o pedido saiu. A Meta pode
+   *  ter aceitado e a resposta se perdido na volta. Repetir manda a mensagem
+   *  DUAS VEZES para o paciente.
+   *
+   *  Os dois casos chegam aqui como "erro de rede". Tratá-los igual — que era
+   *  o que este arquivo fazia — obriga a escolher entre perder mensagem e
+   *  duplicar mensagem, para sempre.
+   * ========================================================================
+   */
+  readonly entregaIncerta: boolean;
 
   constructor(
     mensagem: string,
-    opcoes: { status?: number | null; transitorio?: boolean; corpo?: unknown; requestId?: string },
+    opcoes: {
+      status?: number | null;
+      transitorio?: boolean;
+      corpo?: unknown;
+      requestId?: string;
+      entregaIncerta?: boolean;
+    },
   ) {
     super(mensagem);
     this.name = "ErroHttp";
@@ -97,7 +123,42 @@ export class ErroHttp extends Error {
     this.transitorio = opcoes.transitorio ?? false;
     this.corpo = opcoes.corpo;
     this.requestId = opcoes.requestId;
+    this.entregaIncerta = opcoes.entregaIncerta ?? false;
   }
+}
+
+/**
+ * A falha de rede deixou o pedido chegar do outro lado?
+ *
+ * A CLASSIFICAÇÃO VEM DO `cause.code` do undici, que é o cliente HTTP do Node.
+ * Ela é conservadora por construção: o padrão, para um código que não
+ * reconhecemos, é INCERTO. Errar para o lado de "pode ter chegado" custa uma
+ * mensagem não reenviada; errar para o outro custa um paciente recebendo a
+ * mesma mensagem duas vezes, e a segunda é muito mais cara.
+ */
+export function entregaFicouIncerta(erro: unknown): boolean {
+  // O `AbortSignal.timeout` dispara isto. O pedido JÁ FOI: estamos esperando
+  // resposta, e ela não veio. É o caso incerto por excelência.
+  if (erro instanceof Error && erro.name === "TimeoutError") return true;
+
+  const causa = (erro as { cause?: { code?: unknown } } | null)?.cause;
+  const codigo = typeof causa?.code === "string" ? causa.code : "";
+
+  /*
+   * OS CÓDIGOS EM QUE O PEDIDO COMPROVADAMENTE NÃO SAIU. A conexão nunca se
+   * estabeleceu, então não há como o outro lado ter lido byte nenhum.
+   */
+  const nuncaSaiu = new Set([
+    "ECONNREFUSED",
+    "ENOTFOUND",
+    "EAI_AGAIN",
+    "UND_ERR_CONNECT_TIMEOUT",
+    "ERR_SSL_WRONG_VERSION_NUMBER",
+    "CERT_HAS_EXPIRED",
+    "UNABLE_TO_VERIFY_LEAF_SIGNATURE",
+  ]);
+
+  return !nuncaSaiu.has(codigo);
 }
 
 const TIMEOUT_PADRAO_MS = 15_000;
@@ -276,6 +337,9 @@ export async function pedir(url: string, opcoes: OpcoesHttp = {}): Promise<Respo
           {
             status: null,
             transitorio: true,
+            // Só importa para escrita, e quem usa é o envio de WhatsApp e a
+            // criação de consulta. Numa leitura, repetir nunca fez mal.
+            entregaIncerta: entregaFicouIncerta(erro),
             ...(opcoes.requestId !== undefined ? { requestId: opcoes.requestId } : {}),
           },
         );

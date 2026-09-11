@@ -388,7 +388,22 @@ export type PedidoEnvio = {
 
 export type ResultadoEnvioMensagem =
   | { ok: true; mensagemId: string; providerMessageId: string }
-  | { ok: false; codigo: string; motivo: string; reagendarPara?: Date; permanente: boolean };
+  | {
+      ok: false;
+      codigo: string;
+      motivo: string;
+      reagendarPara?: Date;
+      /** "Não tente de novo sozinho." Inclui a falha incerta — ver `classe`. */
+      permanente: boolean;
+      /**
+       * A classificação fina, quando a falha veio do provedor.
+       *
+       * Ausente quando a recusa foi NOSSA — opt-out, cooldown, janela fechada,
+       * dono da conversa. Nesses casos não houve pedido, então não há entrega
+       * incerta possível, e inventar uma classe daria a impressão de que houve.
+       */
+      classe?: import("../integracoes/whatsapp/porta").ClasseDeFalha;
+    };
 
 /**
  * O instante da última mensagem RECEBIDA do paciente nesta conversa.
@@ -627,34 +642,65 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
         });
 
   if (!resultado.ok) {
+    /*
+     * ========================================================================
+     *  O ESTADO QUE FALTAVA: `DESCONHECIDO`.
+     *
+     *  `FAILED` diz "não foi". Quando o POST saiu e a resposta não voltou, isso
+     *  é mentira — pode ter ido. Marcar como falha faz a Inbox mostrar "não
+     *  enviada" para uma mensagem que o paciente talvez tenha recebido, e é a
+     *  partir dessa leitura errada que alguém manda de novo à mão.
+     * ========================================================================
+     */
+    const incerta = resultado.classe === "incerta";
+
     await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
-      status_entrega: "FAILED",
+      status_entrega: incerta ? "DESCONHECIDO" : "FAILED",
       erro: `${resultado.codigo}: ${resultado.detalhe}`,
     });
 
-    // FALHA TRANSITÓRIA LIBERA A CHAVE DE DEDUPE.
-    // Sem isso, uma queda momentânea do provedor bloquearia a mensagem para
-    // sempre: a linha ficaria em FAILED ocupando a chave única, e a retentativa
-    // seria recusada como "já enviada". Falha permanente MANTÉM a chave — não
-    // adianta insistir num número inválido.
-    if (!resultado.permanente) {
+    /*
+     * SÓ A FALHA TRANSITÓRIA LIBERA A CHAVE DE DEDUPE, e a palavra "só" é o
+     * conserto.
+     *
+     * Sem liberar, uma queda momentânea do provedor bloquearia a mensagem para
+     * sempre: a linha ficaria ocupando a chave única e a retentativa seria
+     * recusada como "já enviada".
+     *
+     * Mas liberar na falha INCERTA reabre a porta que o HTTP tinha fechado: o
+     * pedido saiu, a Meta pode ter aceitado, e a próxima tentativa manda a
+     * segunda mensagem. Entre "o paciente talvez não receba" e "o paciente
+     * recebe duas vezes", o segundo é pior — ele é visível, parece descuido, e
+     * não há como desfazer.
+     *
+     * A mensagem incerta não fica órfã: ela está `DESCONHECIDO` na Inbox, com o
+     * erro, para uma pessoa decidir. É uma decisão que exige olhar a conversa, e
+     * é por isso que ela é de gente.
+     */
+    if (resultado.classe === "transitoria") {
       await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
         chave_dedupe: null,
       });
     }
 
-    registrar("aviso", "Envio de mensagem falhou.", {
+    registrar(incerta ? "erro" : "aviso", "Envio de mensagem falhou.", {
       organizationId: pedido.organizationId,
       mensagemId,
       codigo: resultado.codigo,
-      permanente: resultado.permanente,
+      classe: resultado.classe,
     });
 
     return {
       ok: false,
       codigo: resultado.codigo,
       motivo: resultado.detalhe,
-      permanente: resultado.permanente,
+      /*
+       * INCERTA CONTA COMO PERMANENTE para quem chama, e isso é deliberado:
+       * `permanente` aqui significa "não tente de novo sozinho", que é
+       * exatamente o que se quer. Quem precisa da distinção fina lê `classe`.
+       */
+      permanente: resultado.classe !== "transitoria",
+      classe: resultado.classe,
     };
   }
 

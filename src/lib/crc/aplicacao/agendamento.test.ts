@@ -454,3 +454,127 @@ describe("kill switch acionado depois da oferta", () => {
     expect(conteudo("crc_appointments")).toHaveLength(1);
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("a chamada que não teve resposta", () => {
+  /**
+   * Um cliente que aceita a criação e depois "perde" a resposta.
+   *
+   * É o cenário exato: o Dental Office CRIOU, e a rede caiu na volta. Do lado
+   * de cá isso é indistinguível de "não criou" — a não ser olhando a agenda.
+   */
+  function clienteQuePerdeARespostaDepoisDeCriar(): ContextoAgendamento["cliente"] {
+    const sandbox = criarSandbox();
+    return {
+      ...sandbox,
+      criarAgendamento: async (dados) => {
+        // A consulta é criada DE VERDADE no sandbox...
+        await sandbox.criarAgendamento(dados);
+        // ...e a resposta se perde.
+        return { ok: false as const, codigo: "INCERTO" as const, detalhe: "sem resposta" };
+      },
+      conciliarAgendamento: (d) => sandbox.conciliarAgendamento(d),
+      horariosDisponiveis: (o) => sandbox.horariosDisponiveis(o),
+      listarAgendamentos: (o) => sandbox.listarAgendamentos(o),
+    } as ContextoAgendamento["cliente"];
+  }
+
+  it("concilia e ADOTA a consulta que já existia — sem marcar uma segunda", async () => {
+    /*
+     * ========================================================================
+     *  O DEFEITO QUE ISTO TRAVA.
+     *
+     *  `criarAgendamento` só mapeava 409/422; qualquer outro erro subia. O turno
+     *  repetia, chegava de novo aqui, e mandava um SEGUNDO POST. A cadeira
+     *  ficava bloqueada duas vezes, outro paciente não conseguia marcar, e
+     *  alguém tinha que ligar para desmarcar.
+     *
+     *  Duplicar texto é chato; duplicar consulta é problema operacional.
+     * ========================================================================
+     */
+    const ctx = contexto({ cliente: clienteQuePerdeARespostaDepoisDeCriar() });
+    const oferta = await oferecerHorarios(ctx, {
+      conversationId: CONVERSA,
+      patientId: PACIENTE,
+    });
+    if (!oferta.ok) throw new Error(oferta.motivo);
+
+    const escolhido = oferta.opcoes[0];
+    if (escolhido === undefined) throw new Error("sem opção");
+
+    const r = await aceitarHorario(ctx, {
+      conversationId: CONVERSA,
+      texto: `${escolhido.horaLocal} tá ótimo`,
+    });
+
+    // O desfecho é SUCESSO: a consulta existe, e é nossa.
+    expect(r.ok).toBe(true);
+
+    // E existe UMA, não duas.
+    const marcadas = conteudo("crc_appointments");
+    expect(marcadas).toHaveLength(1);
+  });
+
+  it("quando NÃO acha nada na agenda, vira tarefa que manda CONFERIR", async () => {
+    /*
+     * O outro lado: o POST realmente não chegou. Aí a falha é real — mas agora
+     * é uma falha CONFERIDA, e não suposta.
+     *
+     * E o texto da tarefa importa: dizer "o Dental Office recusou" mandaria a
+     * recepção marcar por cima de uma consulta que talvez exista. "Confira a
+     * agenda" é a única instrução honesta para quem não sabe.
+     */
+    const sandbox = criarSandbox();
+    const ctx = contexto({
+      cliente: {
+        ...sandbox,
+        criarAgendamento: () =>
+          Promise.resolve({
+            ok: false as const,
+            codigo: "INCERTO" as const,
+            detalhe: "sem resposta",
+          }),
+        conciliarAgendamento: () => Promise.resolve({ achou: false as const }),
+        horariosDisponiveis: (o) => sandbox.horariosDisponiveis(o),
+      } as ContextoAgendamento["cliente"],
+    });
+
+    const oferta = await oferecerHorarios(ctx, {
+      conversationId: CONVERSA,
+      patientId: PACIENTE,
+    });
+    if (!oferta.ok) throw new Error(oferta.motivo);
+    const escolhido = oferta.opcoes[0];
+    if (escolhido === undefined) throw new Error("sem opção");
+
+    const r = await aceitarHorario(ctx, {
+      conversationId: CONVERSA,
+      texto: `${escolhido.horaLocal} tá ótimo`,
+    });
+
+    expect(r.ok).toBe(false);
+    expect(conteudo("crc_appointments")).toHaveLength(0);
+
+    const tarefa = conteudo("crc_tasks")[0];
+    expect(String(tarefa?.["motivo"] ?? "")).toContain("CONFIRA a agenda");
+  });
+
+  it("a reconciliação NÃO adota consulta que a recepção marcou", async () => {
+    /*
+     * A marca "JP CRC" é o que separa "nós criamos" de "a recepção criou no
+     * mesmo minuto". Sem ela, o CRC adotaria a consulta alheia como sua e o
+     * paciente ficaria sem a que pediu ao agente — com o sistema achando que
+     * tinha marcado.
+     */
+    const sandbox = criarSandbox();
+    const achado = await sandbox.conciliarAgendamento({
+      clinicaExternaId: "clin-1",
+      pacienteExternoId: "qualquer",
+      dentistaExternoId: "qualquer",
+      inicioEm: AGORA.toISOString(),
+    });
+
+    expect(achado.achou).toBe(false);
+  });
+});

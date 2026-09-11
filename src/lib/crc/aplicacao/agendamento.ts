@@ -471,7 +471,7 @@ async function reservar(
     return { ok: false, codigo: "ESCRITA_DESLIGADA", motivo: paradoAgora, opcao };
   }
 
-  const criado = await ctx.cliente.criarAgendamento({
+  let criado = await ctx.cliente.criarAgendamento({
     clinicaExternaId: ctx.clinicaExternaId,
     pacienteExternoId,
     dentistaExternoId: opcao.dentistaExternoId,
@@ -483,13 +483,64 @@ async function reservar(
     descricao: "Agendado pelo JP CRC",
   });
 
+  /*
+   * ========================================================================
+   *  A RECONCILIAÇÃO — e é ela que impede uma consulta duplicada.
+   *
+   *  `INCERTO` significa: o POST saiu e a resposta não voltou. O Dental Office
+   *  PODE ter criado a consulta. Antes disto existir, o erro subia, o turno
+   *  repetia, e `aceitarHorario` mandava um segundo POST — a cadeira ficava
+   *  bloqueada duas vezes, outro paciente não conseguia marcar, e alguém
+   *  precisava ligar para desmarcar.
+   *
+   *  Em vez de escolher entre repetir (duplicar) e desistir (deixar o paciente
+   *  sem a consulta), a gente PERGUNTA: tem, nesta agenda, uma consulta deste
+   *  paciente, com este dentista, neste horário, com a nossa marca?
+   *
+   *  Se tem, ela é nossa e o desfecho é sucesso. Se não tem, aí sim é falha —
+   *  e agora é uma falha que a gente CONFERIU, e não uma que a gente supôs.
+   * ========================================================================
+   *
+   * A conciliação em si pode falhar (é outra chamada de rede). Se falhar, cai
+   * no tratamento de falha abaixo, que abre tarefa para marcar à mão: o pior
+   * desfecho aqui é uma pessoa conferir a agenda, e não uma consulta fantasma.
+   */
+  if (!criado.ok && criado.codigo === "INCERTO") {
+    try {
+      const achado = await ctx.cliente.conciliarAgendamento({
+        clinicaExternaId: ctx.clinicaExternaId,
+        pacienteExternoId,
+        dentistaExternoId: opcao.dentistaExternoId,
+        inicioEm: opcao.inicioEm,
+      });
+
+      if (achado.achou) {
+        criado = { ok: true, externalId: achado.externalId };
+      }
+    } catch {
+      // Segue para o tratamento de falha: tarefa para uma pessoa conferir.
+    }
+  }
+
   if (!criado.ok) {
     // `SLOT_OCUPADO` é a corrida que a revalidação não pegou — a janela entre
     // conferir e gravar. Rara, mas existe, e o desfecho é o mesmo: nova oferta.
     const codigo = criado.codigo === "SLOT_OCUPADO" ? "SLOT_SUMIU" : "RECUSADO_PELA_API";
     await fecharOferta(ctx, dados.offerId, "CANCELADA", null, null);
     if (codigo === "RECUSADO_PELA_API") {
-      await tarefaParaMarcarNaMao(ctx, dados, `O Dental Office recusou: ${criado.detalhe}`);
+      /*
+       * A MENSAGEM DIZ A VERDADE, e no caso incerto a verdade é desconfortável:
+       * "não sei". Escrever "o Dental Office recusou" para uma chamada que não
+       * teve resposta mandaria a recepção marcar por cima de uma consulta que
+       * talvez exista — que é exatamente a duplicata que se quis evitar.
+       */
+      await tarefaParaMarcarNaMao(
+        ctx,
+        dados,
+        criado.codigo === "INCERTO"
+          ? `A chamada ao Dental Office não teve resposta e não achamos a consulta na agenda. CONFIRA a agenda antes de marcar: ${criado.detalhe}`
+          : `O Dental Office recusou: ${criado.detalhe}`,
+      );
     }
     return { ok: false, codigo, motivo: criado.detalhe, opcao };
   }

@@ -110,8 +110,41 @@ export type PortaDentalOffice = {
     descricao?: string;
   }): Promise<
     | { ok: true; externalId: string }
-    | { ok: false; codigo: "SLOT_OCUPADO" | "RECUSADO"; detalhe: string }
+    /**
+     * `INCERTO`: o POST saiu e a resposta não voltou.
+     *
+     * NÃO É FALHA, e tratá-lo como falha é o que marca duas consultas. O
+     * Dental Office pode ter criado o agendamento; a resposta é que se perdeu.
+     * Quem chama precisa CONCILIAR antes de decidir — ver
+     * `conciliarAgendamento`.
+     */
+    | { ok: false; codigo: "SLOT_OCUPADO" | "RECUSADO" | "INCERTO"; detalhe: string }
   >;
+
+  /**
+   * Procura um agendamento que PODEMOS ter criado.
+   *
+   * ========================================================================
+   *  A PEÇA QUE FALTAVA PARA O `INCERTO` SER ÚTIL.
+   *
+   *  Sem reconciliação, "não sei se criou" só pode virar uma de duas
+   *  escolhas ruins: repetir (e marcar duas consultas) ou desistir (e deixar o
+   *  paciente sem a consulta que ele pediu).
+   *
+   *  Com ela, "não sei" vira uma pergunta que TEM resposta: basta olhar a
+   *  agenda. Mesmo paciente, mesmo dentista, mesmo início, com a marca do CRC.
+   *
+   *  DUPLICAR TEXTO É CHATO; DUPLICAR CONSULTA É PROBLEMA OPERACIONAL — a
+   *  cadeira fica bloqueada, outro paciente não consegue marcar, e alguém
+   *  precisa ligar para desmarcar.
+   * ========================================================================
+   */
+  conciliarAgendamento(dados: {
+    clinicaExternaId: string;
+    pacienteExternoId: string;
+    dentistaExternoId: string;
+    inicioEm: string;
+  }): Promise<{ achou: true; externalId: string } | { achou: false }>;
   /**
    * Muda a situação da consulta no Dental Office.
    *
@@ -513,7 +546,7 @@ class ClienteDentalOffice implements PortaDentalOffice {
     descricao?: string;
   }): Promise<
     | { ok: true; externalId: string }
-    | { ok: false; codigo: "SLOT_OCUPADO" | "RECUSADO"; detalhe: string }
+    | { ok: false; codigo: "SLOT_OCUPADO" | "RECUSADO" | "INCERTO"; detalhe: string }
   > {
     try {
       /*
@@ -577,8 +610,70 @@ class ClienteDentalOffice implements PortaDentalOffice {
           detalhe: "Este horário acabou de ser ocupado.",
         };
       }
+
+      /*
+       * O POST SAIU E A RESPOSTA NÃO VOLTOU.
+       *
+       * Antes isto era relançado como erro qualquer — e o turno, ao repetir,
+       * chegava de novo em `aceitarHorario` e mandava um SEGUNDO POST. O
+       * Dental Office podia já ter criado a consulta, e a cadeira ficava
+       * bloqueada duas vezes.
+       *
+       * Devolver `INCERTO` em vez de lançar é o que permite a quem chama
+       * CONCILIAR antes de decidir.
+       */
+      if (erro instanceof ErroHttp && erro.entregaIncerta) {
+        return {
+          ok: false,
+          codigo: "INCERTO",
+          detalhe: `A chamada não teve resposta: ${erro.message}`,
+        };
+      }
+
       throw erro;
     }
+  }
+
+  async conciliarAgendamento(dados: {
+    clinicaExternaId: string;
+    pacienteExternoId: string;
+    dentistaExternoId: string;
+    inicioEm: string;
+  }): Promise<{ achou: true; externalId: string } | { achou: false }> {
+    /*
+     * A JANELA É ESTREITA, e de propósito: um minuto para cada lado do início
+     * pedido. O que se procura é a consulta que NÓS acabamos de tentar criar, e
+     * ela tem exatamente o horário que pedimos. Uma janela larga acharia a
+     * consulta das 15h quando a nossa era das 14h30 e a adotaria como sucesso —
+     * transformando uma incerteza numa resposta errada com cara de certeza.
+     */
+    const inicio = Date.parse(dados.inicioEm);
+    if (!Number.isFinite(inicio)) return { achou: false };
+
+    const lote = await this.listarAgendamentos({
+      clinicaExternaId: dados.clinicaExternaId,
+      de: new Date(inicio - 60_000).toISOString(),
+      ate: new Date(inicio + 60_000).toISOString(),
+      pagina: 1,
+      tamanho: 50,
+    });
+
+    const nosso = lote.itens.find(
+      (a) =>
+        a.pacienteExternoId === dados.pacienteExternoId &&
+        a.dentistaExternoId === dados.dentistaExternoId &&
+        Date.parse(a.inicioEm) === inicio &&
+        /*
+         * A MARCA É O QUE SEPARA "nós criamos" de "a recepção criou".
+         *
+         * Sem ela, uma consulta que a recepção marcou por telefone no mesmo
+         * minuto seria adotada como nossa — e o paciente ficaria sem a segunda
+         * que ele pediu ao agente, com o CRC achando que tinha marcado.
+         */
+        (a.descricao ?? "").includes("JP CRC"),
+    );
+
+    return nosso === undefined ? { achou: false } : { achou: true, externalId: nosso.externalId };
   }
 
   async atualizarStatusAgendamento(
