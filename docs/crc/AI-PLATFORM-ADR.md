@@ -385,3 +385,42 @@ em incidente.
 oposto da escolha do orçamento, onde a dúvida libera para não parar de atender
 paciente: aqui o que está em jogo é LIGAR a máquina para falar com gente, e não
 ligar é sempre o lado seguro.
+
+---
+
+## ADR-26 — O texto do agente é versionado e vive no banco
+
+**Decisão.** As instruções do agente são uma versão em `crc_agent_versions`.
+Editar cria um RASCUNHO; publicar arquiva a anterior; o turno lê a PUBLICADA. Sem
+nenhuma versão publicada, vale a constante de `ia-platform/instrucoes.ts`.
+
+**Por quê.** É o ADR-09 aplicado à coisa que mais muda o comportamento do sistema.
+Sem versão, "por que o agente respondeu assim em março?" não tem resposta — e a
+mudança que produziu a resposta ruim não tem como ser desfeita a não ser por
+memória de quem editou.
+
+**O fallback não é detalhe.** Ele é o que faz esta fatia não quebrar nada de quem
+nunca abriu o Estúdio: a clínica que nunca publicou versão continua com o texto do
+código, e o Estúdio é um lugar que ela pode ignorar.
+
+---
+
+## ADR-27 — Publicar o texto exige avaliação DAQUELE texto
+
+**Decisão.** `publicarRascunho` lê a aprovação de `crc_agent_versions.rodada_id`,
+que `rodarAvaliacaoAgora` grava e `salvarRascunho` LIMPA a cada edição. A
+avaliação roda sobre o rascunho quando existe um, não sobre o publicado.
+
+**O caso que isso cobre, e que acontece todo dia.** A pessoa avalia, lê o
+resultado, ajusta uma frase e publica. O texto mudou e ninguém o avaliou — com a
+aprovação amarrada só à versão, e não ao conteúdo dela, a edição de última hora
+entraria no ar sem prova.
+
+**Consequência aceita.** Um ajuste de vírgula custa uma rodada inteira de
+avaliação. É caro e é o lado certo do erro: o barato seria deixar passar texto não
+avaliado.
+
+**O gate da flag continua olhando a última rodada DA VERSÃO PUBLICADA**, e não
+esta. São perguntas diferentes: publicar pergunta "este texto novo foi provado?";
+ligar o envio pergunta "o texto que está no ar foi provado recentemente?" — e essa
+segunda pode ser respondida rodando a suíte de novo, sem republicar nada.

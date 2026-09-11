@@ -50,6 +50,7 @@ import { Inteligencia } from "@/components/crc/Inteligencia";
 import { Conhecimento } from "@/components/crc/Conhecimento";
 import { ModelosECusto } from "@/components/crc/ModelosECusto";
 import { Avaliacao } from "@/components/crc/Avaliacao";
+import { Estudio } from "@/components/crc/Estudio";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
@@ -103,6 +104,7 @@ type Aba =
   | "conhecimento"
   | "modelos"
   | "avaliacao"
+  | "estudio"
   | "integracoes"
   | "configuracoes"
   | "equipe";
@@ -179,6 +181,14 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
         // máquina, não atender paciente.
         permissao: "gerenciar_automacao",
         icone: Brain,
+      },
+      {
+        aba: "estudio",
+        rotulo: "Estúdio",
+        // Antes da Avaliação na lista, porque é a ordem do trabalho: escreve-se o
+        // texto do agente, e depois se prova que ele passa.
+        permissao: "gerenciar_automacao",
+        icone: Sparkles,
       },
       {
         aba: "avaliacao",
@@ -608,6 +618,43 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Passou para a equipe", tom: "alerta" },
       { rotulo: "Falhou com segurança", tom: "perigo" },
       { rotulo: "Anotação esperando você conferir", tom: "alerta" },
+    ],
+  },
+  estudio: {
+    sobretitulo: "Quem a IA é",
+    paraQue: "escrever o jeito da IA, e ver o que ela pode fazer",
+    descricao:
+      "Aqui fica o texto que a IA lê antes de cada resposta: como falar, o que pode dizer, o que nunca pode. Editar não muda nada na hora — cria um rascunho, o rascunho passa pela prova em Avaliação, e só depois vai ao ar. Esta tela também lista tudo o que a IA consegue fazer hoje, e diz qual chave está faltando no que estiver bloqueado. É o lugar para responder “por que a IA não está fazendo X?”.",
+    acoes: [
+      {
+        faca: "Salvar rascunho",
+        efeito:
+          "Guarda o texto novo sem ligar nada. Nenhum paciente vê o rascunho. Salvar de novo depois de uma prova aprovada apaga a aprovação: o texto mudou, então a prova precisa rodar de novo.",
+      },
+      {
+        faca: "Publicar",
+        efeito:
+          "Troca o texto que a IA usa, valendo da próxima mensagem em diante. Só fica disponível depois de a prova do rascunho passar, e ela vale por 72 horas.",
+      },
+      {
+        faca: "Voltar ao texto de fábrica",
+        efeito:
+          "Traz de volta para a caixa o texto que veio com o sistema. Não publica nada: você ainda precisa salvar e passar pela prova.",
+      },
+      {
+        faca: "Descartar rascunho",
+        efeito: "Joga o rascunho fora. O texto que está no ar não é tocado.",
+      },
+      {
+        faca: '"Bloqueada" numa linha de ferramenta',
+        efeito:
+          "Diz exatamente qual chave impede aquilo. Não é o texto da IA que bloqueia — apagar uma frase daqui não libera a IA a mexer na agenda.",
+      },
+    ],
+    legendas: [
+      { rotulo: "No ar", tom: "positiva" },
+      { rotulo: "Rascunho", tom: "alerta" },
+      { rotulo: "Ferramenta bloqueada", tom: "neutra" },
     ],
   },
   avaliacao: {
@@ -1577,6 +1624,7 @@ function PortalCrc() {
           {abaAtual === "conhecimento" && <Conhecimento />}
           {abaAtual === "modelos" && <ModelosECusto />}
           {abaAtual === "avaliacao" && <Avaliacao />}
+          {abaAtual === "estudio" && <Estudio />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
         </main>

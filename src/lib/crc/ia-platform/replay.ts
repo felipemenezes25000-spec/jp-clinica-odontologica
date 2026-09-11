@@ -148,7 +148,21 @@ export function contextoDoCaso(caso: CasoDeAvaliacao, agora: Date): ContextoTurn
  */
 export async function rodarCaso(
   caso: CasoDeAvaliacao,
-  opcoes: { porta: PortaIa; agora?: Date },
+  opcoes: {
+    porta: PortaIa;
+    agora?: Date;
+    /**
+     * O texto do agente a avaliar — Fatia 10.
+     *
+     * ENTRA POR PARÂMETRO porque a avaliação tem que rodar sobre o RASCUNHO que
+     * alguém quer publicar, e não sobre o que está no ar. Sem isto, a suíte
+     * aprovaria o texto publicado e o gate liberaria a publicação de outro.
+     *
+     * O padrão é a constante do código, que é o que vale para quem nunca abriu o
+     * Estúdio.
+     */
+    instrucoes?: string;
+  },
 ): Promise<ResultadoDoReplay> {
   const comecou = Date.now();
   const agora = opcoes.agora ?? new Date();
@@ -204,7 +218,7 @@ export async function rodarCaso(
 
         const r = await opcoes.porta.gerarEstruturado({
           promptVersao: PROMPT_TURNO_SOMBRA,
-          instrucoes: `${INSTRUCOES_DO_AGENTE}\n\n${instrucoesDoLaco(politica)}`,
+          instrucoes: `${opcoes.instrucoes ?? INSTRUCOES_DO_AGENTE}\n\n${instrucoesDoLaco(politica)}`,
           entrada,
           esquema: { nome: "decisao_do_agente", schema: ESQUEMA_DECISAO },
           maxTokens: 400,

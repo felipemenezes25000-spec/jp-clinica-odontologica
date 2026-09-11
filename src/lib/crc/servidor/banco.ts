@@ -102,7 +102,8 @@ export type Tabela =
   | "crc_ai_gastos"
   | "crc_eval_casos"
   | "crc_eval_rodadas"
-  | "crc_eval_execucoes";
+  | "crc_eval_execucoes"
+  | "crc_agent_versions";
 
 export type Linha = Record<string, unknown>;
 

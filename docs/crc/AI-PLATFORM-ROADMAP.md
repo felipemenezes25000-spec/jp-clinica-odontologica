@@ -191,10 +191,36 @@ vazia em vez de fingir cobertura.
 
 ---
 
-## Fatia 10 — AI Studio e Workflow Studio
+## Fatia 10 — AI Studio e Workflow Studio *(concluída, com um recorte declarado)*
 
 As telas. Vêm por último de propósito: interface para uma plataforma que ainda
 não existe é a forma mais cara de descobrir que o desenho estava errado.
+
+Entregue — **AI Studio**, e ele não é só tela:
+
+- `supabase/15-crc-estudio.sql` — `crc_agent_versions`, com índice parcial de uma
+  publicada e um rascunho por clínica, e a coluna `agent_version_id` na rodada de
+  avaliação;
+- `aplicacao/estudio.ts` — rascunho, publicação e histórico (ADR-26);
+- o ciclo fechado: editar cria rascunho → a avaliação roda SOBRE o rascunho →
+  publicar exige a aprovação daquele texto → editar de novo apaga a aprovação
+  (ADR-27);
+- `turno.ts` passa a ler a versão publicada, com fallback para a constante do
+  código;
+- tela **Estúdio**: o texto do agente, o histórico de versões, e o catálogo de
+  ferramentas dizendo qual chave bloqueia cada uma.
+
+**O recorte do Workflow Studio, declarado em vez de disfarçado.** As jornadas já
+têm tela (Automações), motor durável e versões — ADR-02 é explícito: o Studio
+compila para `automacao/motor.ts`, não traz motor novo. O que esta fatia NÃO
+entrega é um editor gráfico de passos. Editar a composição de uma jornada por UI
+sem a validação do motor seria a forma mais cara de quebrar o envio de mensagem, e
+o valor marginal sobre a tela que já existe é baixo: as dez jornadas do CRC foram
+desenhadas com a clínica, e o que muda no dia a dia é o MODO (sombra, recomendar,
+executar) — que já é um clique em Automações.
+
+Fica anotado como reabrível, com o critério: quando alguém precisar de uma jornada
+que o catálogo não tem, e não antes.
 
 ---
 

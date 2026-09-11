@@ -168,6 +168,13 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // O índice do 14: dois casos de avaliação homônimos numa lista de quarenta é a
   // forma mais rápida de ninguém confiar no relatório.
   crc_eval_casos: [{ colunas: ["organization_id", "nome"] }],
+  // Os índices do 15. Os dois PARCIAIS são o que faz "qual texto o agente usa?" e
+  // "qual rascunho está aberto?" terem UMA resposta cada.
+  crc_agent_versions: [
+    { colunas: ["organization_id", "versao"] },
+    { colunas: ["organization_id"], onde: (l) => l["status"] === "PUBLICADA" },
+    { colunas: ["organization_id"], onde: (l) => l["status"] === "RASCUNHO" },
+  ],
   crc_users: [{ colunas: ["organization_id", "email"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.

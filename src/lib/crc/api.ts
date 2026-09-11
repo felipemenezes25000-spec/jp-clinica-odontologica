@@ -1573,6 +1573,193 @@ export const criarMemoriaDaIa = createServerFn({ method: "POST" })
   );
 
 /* -------------------------------------------------------------------------- */
+/* Estúdio — o texto do agente, versionado (Fatia 10)                         */
+/* -------------------------------------------------------------------------- */
+
+export type VersaoDoAgenteDto = {
+  id: string;
+  versao: number;
+  status: string;
+  criadoEm: string;
+  publicadoEm: string | null;
+};
+
+export type FerramentaDoAgenteDto = {
+  chave: string;
+  descricao: string;
+  permissao: string;
+  /** Em português: o que precisa estar ligado para ela funcionar. */
+  exigencia: string;
+  liberada: boolean;
+};
+
+export type PainelDoEstudioDto = {
+  /** O texto que o agente usa AGORA. */
+  emUso: string;
+  /** O rascunho aberto, quando existe. */
+  rascunho: string | null;
+  versaoEmUso: number | null;
+  versoes: VersaoDoAgenteDto[];
+  /** O texto que vem no código, para a pessoa poder comparar e voltar. */
+  padraoDoCodigo: string;
+  ferramentas: FerramentaDoAgenteDto[];
+  /** A rampa, para a tela mostrar o estado sem obrigar a ir a Configurações. */
+  flags: Record<string, boolean>;
+  gate: { liberado: boolean; motivo: string };
+  /** `true` quando o rascunho já foi avaliado e aprovado: pode publicar. */
+  podePublicar: boolean;
+  motivoPublicacao: string;
+};
+
+/**
+ * O painel do Estúdio.
+ *
+ * REÚNE O QUE ESTAVA ESPALHADO: o texto do agente, o catálogo de ferramentas com
+ * o que cada uma exige, a rampa e o estado do gate. Não porque juntar é bonito, e
+ * sim porque a pergunta "por que o agente não está fazendo X?" tem quatro
+ * respostas possíveis — texto, ferramenta sem permissão, flag desligada, gate
+ * reprovado — e procurá-las em quatro telas é como ninguém encontra a terceira.
+ */
+export const carregarEstudio = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ painel: PainelDoEstudioDto }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { instrucoesEmUso, listarVersoes, rascunhoDoAgente, versaoPublicada } =
+        await import("./aplicacao/estudio");
+      const { estadoDoGate, ultimaRodadaDaVersao } = await import("./aplicacao/avaliacao");
+      const { aprovacaoAindaVale } = await import("./dominio/avaliacao");
+      const { INSTRUCOES_DO_AGENTE } = await import("./ia-platform/instrucoes");
+      const { TODAS_AS_FERRAMENTAS, avaliarPolitica } = await import("./ia-platform/ferramentas");
+      const { lerFlags, lerKillSwitches } = await import("./servidor/configuracao");
+
+      const agora = new Date();
+      const [emUso, rascunho, publicada, versoes, gate, flags, interruptores] = await Promise.all([
+        instrucoesEmUso(ctx.organizationId),
+        rascunhoDoAgente(ctx.organizationId),
+        versaoPublicada(ctx.organizationId),
+        listarVersoes(ctx.organizationId),
+        estadoDoGate(ctx.organizationId, agora),
+        lerFlags(ctx.organizationId),
+        lerKillSwitches(ctx.organizationId),
+      ]);
+
+      // O MESMO estado de política que o laço usa, e não uma segunda leitura das
+      // flags nesta tela: duas interpretações da mesma flag divergem no primeiro
+      // ajuste.
+      const politica = {
+        escritaLiberada: flags["ai_agente_escrita"] === true,
+        writebackLiberado: flags["dental_office_writeback"] === true,
+        agendamentoAutonomo: flags["auto_scheduling"] === true,
+        escritasDentalOfficePausadas: interruptores["kill_escritas_do"] === true,
+        ferramentasUsadas: 0,
+      };
+
+      // Pode publicar? Só com avaliação DESTE rascunho, aprovada e recente.
+      let podePublicar = false;
+      let motivoPublicacao = "Nenhum rascunho aberto.";
+      if (rascunho !== null) {
+        const rodada = await ultimaRodadaDaVersao(ctx.organizationId, rascunho.id);
+        if (rodada === null) {
+          motivoPublicacao = "Rode a avaliação sobre este rascunho antes de publicar.";
+        } else if (!rodada.liberado) {
+          motivoPublicacao =
+            "A avaliação deste rascunho não passou. Ajuste o texto e rode de novo.";
+        } else if (!aprovacaoAindaVale(rodada.criadoEm, agora)) {
+          motivoPublicacao = "A avaliação deste rascunho tem mais de 72 horas. Rode de novo.";
+        } else {
+          podePublicar = true;
+          motivoPublicacao = "";
+        }
+      }
+
+      return {
+        ok: true as const,
+        painel: {
+          emUso,
+          rascunho: rascunho?.instrucoes ?? null,
+          versaoEmUso: publicada?.versao ?? null,
+          versoes: versoes.map((v) => ({
+            id: v.id,
+            versao: v.versao,
+            status: v.status,
+            criadoEm: v.criadoEm,
+            publicadoEm: v.publicadoEm,
+          })),
+          padraoDoCodigo: INSTRUCOES_DO_AGENTE,
+          ferramentas: TODAS_AS_FERRAMENTAS.map((f) => {
+            const veredicto = avaliarPolitica(f.chave, politica);
+            return {
+              chave: f.chave,
+              descricao: f.descricao,
+              permissao: f.permissao,
+              exigencia: veredicto.permite ? "" : veredicto.motivo,
+              liberada: veredicto.permite,
+            };
+          }),
+          flags,
+          gate: { liberado: gate.liberado, motivo: gate.motivo },
+          podePublicar,
+          motivoPublicacao,
+        },
+      };
+    }),
+);
+
+export const salvarRascunhoDoAgente = createServerFn({ method: "POST" })
+  .validator((e: { instrucoes: string }) => ({ instrucoes: String(e.instrucoes ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ versao: number }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { salvarRascunho } = await import("./aplicacao/estudio");
+      const r = await salvarRascunho({
+        organizationId: ctx.organizationId,
+        instrucoes: data.instrucoes,
+        userId: ctx.usuario.id,
+      });
+      if (!r.ok) return { ok: false as const, code: r.codigo, message: r.motivo };
+      return { ok: true as const, versao: r.versao };
+    }),
+  );
+
+/**
+ * Publica o rascunho.
+ *
+ * A permissão é `gerenciar_autopilot`, e não `gerenciar_automacao`: publicar o
+ * texto do agente muda o que a clínica diz a cada paciente a partir do próximo
+ * minuto. É a mesma permissão que liga e desliga a autonomia da IA.
+ */
+export const publicarVersaoDoAgente = createServerFn({ method: "POST" }).handler(
+  async (): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { publicarRascunho } = await import("./aplicacao/estudio");
+      const { auditar } = await import("./servidor/registro");
+
+      const r = await publicarRascunho({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+      });
+      if (!r.ok) return { ok: false as const, code: r.codigo, message: r.motivo };
+
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "texto_do_agente_publicado",
+        entityType: "crc_agent_versions",
+        entityId: ctx.organizationId,
+      });
+      return { ok: true as const };
+    }),
+);
+
+export const descartarRascunhoDoAgente = createServerFn({ method: "POST" }).handler(
+  async (): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { descartarRascunho } = await import("./aplicacao/estudio");
+      await descartarRascunho(ctx.organizationId);
+      return { ok: true as const };
+    }),
+);
+
+/* -------------------------------------------------------------------------- */
 /* Avaliação e gate de publicação (Fatia 9)                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -1671,13 +1858,36 @@ export const rodarAvaliacaoAgora = createServerFn({ method: "POST" })
           return { ok: false as const, code: "sem_provedor", message: estado.motivo };
         }
 
+        /*
+         * A AVALIAÇÃO RODA SOBRE O RASCUNHO QUANDO EXISTE UM — Fatia 10.
+         *
+         * É a ordem que fecha o ciclo do Estúdio: quem editou o texto quer saber
+         * se o texto NOVO passa. Rodar sobre o publicado daria um selo à versão
+         * que já está no ar e liberaria publicar outra — o gate aprovaria o
+         * passado com a aparência de estar funcionando.
+         */
+        const { rascunhoDoAgente, versaoPublicada } = await import("./aplicacao/estudio");
+        const [rascunho, publicada] = await Promise.all([
+          rascunhoDoAgente(ctx.organizationId),
+          versaoPublicada(ctx.organizationId),
+        ]);
+        const alvo = rascunho ?? publicada;
+
         const { rodarAvaliacao } = await import("./aplicacao/avaliacao");
         const r = await rodarAvaliacao({
           organizationId: ctx.organizationId,
           porta: estado.porta,
           rotulo: data.rotulo,
           userId: ctx.usuario.id,
+          ...(alvo === null ? {} : { instrucoes: alvo.instrucoes, agentVersionId: alvo.id }),
         });
+
+        // A aprovação volta a valer para ESTE texto. `salvarRascunho` a limpa
+        // quando alguém edita; é aqui que ela é devolvida.
+        if (alvo !== null && r.rodadaId.length > 0) {
+          const { registrarAvaliacaoDaVersao } = await import("./aplicacao/estudio");
+          await registrarAvaliacaoDaVersao(ctx.organizationId, alvo.id, r.rodadaId);
+        }
 
         return {
           ok: true as const,

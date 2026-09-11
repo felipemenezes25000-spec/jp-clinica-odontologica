@@ -29,7 +29,6 @@ import type { PortaMensageria } from "../integracoes/whatsapp/porta";
 import type { EstadoPolitica } from "./ferramentas";
 import { instrucoesDoLaco, rodarLaco, ESQUEMA_DECISAO } from "./laco";
 import { montarContextoDoTurno, textoDoContexto } from "./contexto";
-import { INSTRUCOES_DO_AGENTE } from "./instrucoes";
 import { abrirTrace, type Trace } from "./tracing";
 import { PROMPT_TURNO_SOMBRA, type ResultadoTurno } from "./tipos";
 
@@ -173,6 +172,19 @@ async function decidirEEntregar(
     const porta = pedido.porta;
     const base = textoDoContexto(ctx);
 
+    /*
+     * O TEXTO DO AGENTE VEM DO ESTÚDIO — Fatia 10.
+     *
+     * `instrucoesEmUso` devolve a versão PUBLICADA quando existe uma, e a
+     * constante do código quando não. O fallback é o que faz esta fatia não
+     * quebrar nada de quem nunca abriu o Estúdio.
+     *
+     * NUNCA O RASCUNHO: rascunho não fala com paciente. Ele só é lido pela
+     * avaliação, que é onde ele precisa ser lido.
+     */
+    const { instrucoesEmUso } = await import("../aplicacao/estudio");
+    const instrucoesDoAgente = await instrucoesEmUso(pedido.organizationId);
+
     const resultado = await trace.medir("laco", "modelo", () =>
       rodarLaco({
         estado: pedido.politica,
@@ -189,7 +201,7 @@ async function decidirEEntregar(
 
           const r = await porta.gerarEstruturado({
             promptVersao: PROMPT_TURNO_SOMBRA,
-            instrucoes: `${INSTRUCOES_DO_AGENTE}\n\n${instrucoesDoLaco(pedido.politica)}`,
+            instrucoes: `${instrucoesDoAgente}\n\n${instrucoesDoLaco(pedido.politica)}`,
             entrada,
             esquema: { nome: "decisao_do_agente", schema: ESQUEMA_DECISAO },
             maxTokens: 400,

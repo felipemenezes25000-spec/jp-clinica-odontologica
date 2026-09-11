@@ -303,3 +303,73 @@ describe("os portões barram antes do envio", () => {
     expect(espia.enviadas).toHaveLength(1);
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("o texto do agente vem do Estúdio", () => {
+  /** Uma porta que guarda as instruções que recebeu. */
+  function portaEspiando(): { porta: PortaIa; instrucoes: string[] } {
+    const instrucoes: string[] = [];
+    return {
+      instrucoes,
+      porta: {
+        nome: "fake",
+        modelo: "fake-1",
+        gerarEstruturado: (p) => {
+          instrucoes.push(p.instrucoes);
+          return Promise.resolve(
+            respostaOk({ acao: "responder", texto: "Certo, obrigada.", precisaHumano: false }),
+          );
+        },
+      },
+    };
+  }
+
+  it("sem versão publicada, usa o texto que vem no código", async () => {
+    const espia = portaEspiando();
+    await rodarTurno(pedidoBase(espia.porta));
+
+    expect(espia.instrucoes[0]).toContain("JP Clínica Integrada Odontológica");
+  });
+
+  it("com versão publicada, é ELA que vai ao modelo", async () => {
+    /*
+     * SEM ESTE TESTE, a Fatia 10 seria uma tela que grava texto num banco que
+     * ninguém lê. A injeção de defeito que trocasse `instrucoesEmUso` por uma
+     * constante passaria despercebida.
+     */
+    semear("crc_agent_versions", [
+      {
+        id: "99999999-9999-4999-8999-999999999999",
+        organization_id: ORG,
+        versao: 1,
+        status: "PUBLICADA",
+        instrucoes: "Atenda em versos de cordel, e jamais fale de horário.",
+      },
+    ]);
+
+    const espia = portaEspiando();
+    await rodarTurno(pedidoBase(espia.porta));
+
+    expect(espia.instrucoes[0]).toContain("versos de cordel");
+    // E o texto de fábrica não vai junto: é substituição, não acréscimo.
+    expect(espia.instrucoes[0]).not.toContain("JP Clínica Integrada Odontológica");
+  });
+
+  it("RASCUNHO publicado não entra: só a versão publicada", async () => {
+    semear("crc_agent_versions", [
+      {
+        id: "88888888-8888-4888-8888-888888888888",
+        organization_id: ORG,
+        versao: 2,
+        status: "RASCUNHO",
+        instrucoes: "Atenda em versos de cordel, e jamais fale de horário.",
+      },
+    ]);
+
+    const espia = portaEspiando();
+    await rodarTurno(pedidoBase(espia.porta));
+
+    expect(espia.instrucoes[0]).not.toContain("versos de cordel");
+  });
+});

@@ -298,6 +298,9 @@ export async function rodarAvaliacao(pedido: {
   rotulo?: string | null;
   userId?: string | null;
   agora?: Date;
+  /** O texto avaliado, e o id da versão dele. Fatia 10. */
+  instrucoes?: string;
+  agentVersionId?: string | null;
 }): Promise<ResultadoDaRodada> {
   const comecou = Date.now();
   const agora = pedido.agora ?? new Date();
@@ -309,7 +312,11 @@ export async function rodarAvaliacao(pedido: {
   let custo: number | null = null;
 
   for (const caso of casos) {
-    const r = await rodarCaso(caso, { porta: pedido.porta, agora });
+    const r = await rodarCaso(caso, {
+      porta: pedido.porta,
+      agora,
+      ...(pedido.instrucoes === undefined ? {} : { instrucoes: pedido.instrucoes }),
+    });
     if (r.custoEstimado !== null) custo = (custo ?? 0) + r.custoEstimado;
 
     const categoria: CategoriaDeCaso = ehCategoria(caso.categoria) ? caso.categoria : "qualidade";
@@ -352,6 +359,9 @@ export async function rodarAvaliacao(pedido: {
     categorias_sem_caso: veredicto.categoriasSemCaso,
     custo_estimado: custo,
     duracao_ms: duracaoMs,
+    // O VÍNCULO COM A VERSÃO AVALIADA. É o que impede o gate de aprovar o
+    // passado depois de alguém trocar o texto do agente.
+    agent_version_id: pedido.agentVersionId ?? null,
     criado_por: pedido.userId ?? null,
   });
 
@@ -381,6 +391,8 @@ export type RodadaResumida = {
   avisos: readonly { categoria: string; caso: string; falhas: readonly { descricao: string }[] }[];
   categoriasSemCaso: readonly string[];
   custoEstimado: number | null;
+  /** A versão do texto do agente que esta rodada avaliou. `null` = a do código. */
+  agentVersionId: string | null;
   criadoEm: string;
 };
 
@@ -389,8 +401,11 @@ export async function ultimaRodada(organizationId: string): Promise<RodadaResumi
     filtros: [{ coluna: "organization_id", op: "eq", valor: organizationId }],
     ordenar: [{ coluna: "criado_em", ascendente: false }],
   });
-  if (l === null) return null;
+  return l === null ? null : lerRodada(l);
+}
 
+/** UMA leitura de linha para as duas consultas. Duas divergiriam. */
+function lerRodada(l: Record<string, unknown>): RodadaResumida {
   const lista = (v: unknown): RodadaResumida["bloqueios"] =>
     Array.isArray(v) ? (v as RodadaResumida["bloqueios"]) : [];
 
@@ -407,8 +422,49 @@ export async function ultimaRodada(organizationId: string): Promise<RodadaResumi
       ? (l["categorias_sem_caso"] as string[])
       : [],
     custoEstimado: l["custo_estimado"] === null ? null : Number(l["custo_estimado"]),
+    agentVersionId: typeof l["agent_version_id"] === "string" ? l["agent_version_id"] : null,
     criadoEm: String(l["criado_em"] ?? ""),
   };
+}
+
+/** Uma rodada pelo id. Usada pelo Estúdio para conferir a aprovação do rascunho. */
+export async function rodadaPorId(
+  organizationId: string,
+  rodadaId: string,
+): Promise<RodadaResumida | null> {
+  const l = await selecionarUm("crc_eval_rodadas", {
+    filtros: [
+      { coluna: "id", op: "eq", valor: rodadaId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+  });
+  return l === null ? null : lerRodada(l);
+}
+
+/**
+ * A última rodada que avaliou UMA versão específica do texto do agente.
+ *
+ * ESTA FUNÇÃO É O QUE IMPEDE O GATE DE APROVAR O PASSADO. Sem ela, "a última
+ * rodada passou" continuaria verdadeiro depois de alguém trocar o texto do agente
+ * — a suíte teria aprovado outra coisa.
+ *
+ * `versaoId === null` procura as rodadas que avaliaram o texto que vem no código,
+ * que é o estado de quem nunca publicou versão nenhuma.
+ */
+export async function ultimaRodadaDaVersao(
+  organizationId: string,
+  versaoId: string | null,
+): Promise<RodadaResumida | null> {
+  const l = await selecionarUm("crc_eval_rodadas", {
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      versaoId === null
+        ? { coluna: "agent_version_id", op: "is", valor: null }
+        : { coluna: "agent_version_id", op: "eq", valor: versaoId },
+    ],
+    ordenar: [{ coluna: "criado_em", ascendente: false }],
+  });
+  return l === null ? null : lerRodada(l);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -446,7 +502,18 @@ export async function estadoDoGate(
   agora = new Date(),
 ): Promise<EstadoDoGate> {
   try {
-    const rodada = await ultimaRodada(organizationId);
+    /*
+     * A RODADA QUE IMPORTA É A DA VERSÃO PUBLICADA — Fatia 10.
+     *
+     * `ultimaRodada` responderia "a última que rodou", que é outra pergunta: com
+     * um rascunho reprovado em cima de uma versão publicada e aprovada, ela diria
+     * que está tudo reprovado; com um rascunho aprovado em cima de uma publicada
+     * antiga, diria que está tudo liberado. Nenhuma das duas é verdade sobre o
+     * texto que o paciente recebe.
+     */
+    const { versaoPublicada } = await import("./estudio");
+    const publicada = await versaoPublicada(organizationId);
+    const rodada = await ultimaRodadaDaVersao(organizationId, publicada?.id ?? null);
 
     if (rodada === null) {
       return {
