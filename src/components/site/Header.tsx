@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
@@ -6,6 +7,7 @@ import { CLINICA, NAV } from "@/lib/jp";
 import { contatoWhatsApp } from "@/lib/contato";
 
 export function Header() {
+  const location = useLocation();
   const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
@@ -94,6 +96,17 @@ export function Header() {
 
   const fechar = () => setAberto(false);
 
+  const itemAtivo = (href: string) => {
+    if (href === "/carreiras") {
+      return location.pathname.startsWith("/carreiras") || location.pathname === "/trabalhe-conosco";
+    }
+
+    if (href === "/#tratamentos" && location.pathname.startsWith("/tratamentos/")) return true;
+
+    if (location.pathname !== "/" || !href.startsWith("/#")) return false;
+    return location.hash === href.slice(1);
+  };
+
   return (
     <header
       ref={headerRef}
@@ -154,27 +167,16 @@ export function Header() {
           num elemento sticky custa composição a cada frame durante o scroll. O blur
           premium fica só no desktop, onde há GPU/viewport para ele e a barra é maior. */}
       <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
-        {/* O gap é fluido porque é ele que separa o menu do logo e do botão,
-            e 24px fixos ficavam apertados justamente onde a barra é mais
-            estreita. Cresce com a largura, então em tela grande os três blocos
-            respiram sem precisar de outro ajuste. */}
         <div
           className={`jp-container flex items-center justify-between gap-[clamp(24px,2.2vw,44px)] transition-[height] duration-300 ${
             scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
-          {/* A marca oficial já traz o nome desenhado, então aqui não entra
-              texto ao lado: o que existia era o nome redigitado em Manrope
-              disputando com a mesma palavra dentro do logo. O nome acessível
-              vem do aria-label, e o "Integrada" segue no <title> e no rodapé. */}
           <a
             href="/#inicio"
             className="flex shrink-0 items-center"
             aria-label={`${CLINICA.nome} — início`}
           >
-            {/* A altura acompanha a barra (92px → 78px ao rolar). Em 66px o
-                "Clínica Odontológica" desenhado bate os 14px dos itens de menu:
-                menor que isso, a marca lê como legenda do menu, não como marca. */}
             <Logo
               variante="lockup"
               fundo="claro"
@@ -190,21 +192,25 @@ export function Header() {
             aria-label="Navegação principal"
           >
             <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(14px,1.25vw,28px)]">
-              {NAV.map((item) => (
-                <li key={item.href} className="shrink-0">
-                  <a
-                    href={item.href}
-                    className="relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full focus-visible:text-forest-2 focus-visible:after:w-full"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
+              {NAV.map((item) => {
+                const ativo = itemAtivo(item.href);
+                return (
+                  <li key={item.href} className="shrink-0">
+                    <a
+                      href={item.href}
+                      aria-current={ativo ? (item.href.includes("#") ? "location" : "page") : undefined}
+                      className={`relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 focus-visible:text-forest-2 hover:after:w-full focus-visible:after:w-full ${
+                        ativo ? "text-forest-2 after:w-full" : "text-brand-text after:w-0"
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
 
-          {/* Sem pílula de telefone aqui: ele já aparece na barra superior,
-              40px acima. A duplicata consumia espaço sem acrescentar informação. */}
           <div className="hidden shrink-0 items-center gap-3 xl:flex">
             <a
               href={wa}
@@ -247,9 +253,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* MENU MOBILE
-          `invisible` quando fechado é essencial: só com max-h-0 os links seguem
-          alcançáveis por Tab, e a pessoa navega por itens que não consegue ver. */}
       <div
         ref={menuRef}
         id="menu-mobile"
@@ -261,17 +264,25 @@ export function Header() {
       >
         <nav className="jp-container py-6" aria-label="Navegação móvel">
           <div className="grid gap-1 sm:grid-cols-2">
-            {NAV.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={fechar}
-                className="flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold text-forest transition hover:bg-[#EBF5E1] hover:text-forest-2"
-              >
-                {item.label}
-                <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
-              </a>
-            ))}
+            {NAV.map((item) => {
+              const ativo = itemAtivo(item.href);
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={fechar}
+                  aria-current={ativo ? (item.href.includes("#") ? "location" : "page") : undefined}
+                  className={`flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold transition ${
+                    ativo
+                      ? "bg-[#EBF5E1] text-forest-2"
+                      : "text-forest hover:bg-[#EBF5E1] hover:text-forest-2"
+                  }`}
+                >
+                  {item.label}
+                  <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
+                </a>
+              );
+            })}
           </div>
 
           <div className="mt-5 grid gap-3 border-t border-border-soft pt-5 sm:grid-cols-2">
