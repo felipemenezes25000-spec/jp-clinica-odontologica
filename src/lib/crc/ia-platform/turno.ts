@@ -180,6 +180,11 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
     }
 
     if (resultado.tipo === "humano") {
+      await abrirCasoHumano(pedido, ctx, {
+        codigo: "agente_pediu_humano",
+        motivo: resultado.motivo,
+        respostaBarrada: null,
+      });
       return await encerrar(trace, chaveDedupe, ctx, {
         tipo: "humano",
         motivo: resultado.motivo.slice(0, 240),
@@ -194,6 +199,10 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
 
     // --- portões ----------------------------------------------------------
     const janela = estadoDaJanela(ultimaEntradaEm(ctx), pedido.agora);
+    const { dono } = await import("../aplicacao/casos").then((m) =>
+      m.donoDaConversa(pedido.organizationId, pedido.conversationId),
+    );
+
     const ctxPortao: ContextoPortao = {
       texto: candidata.texto,
       // Sempre falso AQUI: o opt-out encerrou o turno lá em cima, antes de
@@ -202,7 +211,9 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
       // das checagens deste arquivo.
       temOptOut: false,
       ultimaEntrada: ultimaEntradaTexto(ctx),
-      dono: "ia",
+      // O ESTADO REAL, e não "ia" fixo. É o que faz a IA calar quando um
+      // atendente assumiu — e é a razão de a Fatia 5 existir.
+      dono,
       janelaAberta: janela.aberta,
       enviadosRecentes: ctx.mensagens.filter((m) => m.direcao === "enviada").map((m) => m.texto),
       pediuHumano: candidata.precisaHumano,
@@ -218,6 +229,15 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
     );
 
     if (!veredicto.passa) {
+      if (veredicto.destino === "humano") {
+        await abrirCasoHumano(pedido, ctx, {
+          codigo: veredicto.codigo,
+          motivo: veredicto.motivo,
+          // O QUE O AGENTE IA DIZER vai junto: serve de rascunho para a pessoa
+          // e de evidência de por que ele foi barrado.
+          respostaBarrada: candidata.texto,
+        });
+      }
       return await encerrar(
         trace,
         chaveDedupe,
@@ -327,6 +347,41 @@ async function entregar(pedido: PedidoTurno, ctx: Ctx, texto: string): Promise<R
   return r.ok
     ? { tipo: "enviado", mensagemId: r.mensagemId }
     : { tipo: "falha_segura", motivo: `${r.codigo}: ${r.motivo}`.slice(0, 240) };
+}
+
+/**
+ * Abre o caso humano deste turno.
+ *
+ * NUNCA LANÇA: um caso que não pôde ser aberto é ruim, mas um turno que morre
+ * porque o caso não abriu é pior — o desfecho já está decidido, e engoli-lo
+ * transformaria "precisa de gente" em silêncio.
+ */
+async function abrirCasoHumano(
+  pedido: PedidoTurno,
+  ctx: Ctx,
+  dados: { codigo: string; motivo: string; respostaBarrada: string | null },
+): Promise<void> {
+  try {
+    const { abrirCaso } = await import("../aplicacao/casos");
+    await abrirCaso({
+      organizationId: pedido.organizationId,
+      clinicId: ctx.clinicId,
+      conversationId: pedido.conversationId,
+      patientId: ctx.paciente?.id ?? null,
+      motivoCodigo: dados.codigo,
+      motivo: dados.motivo,
+      resumo: ctx.resumo,
+      respostaBarrada: dados.respostaBarrada,
+      proximaAcao: null,
+      // Mesma chave do turno: reprocessar o evento não coloca a mesma pessoa
+      // duas vezes na fila.
+      chaveDedupe: `turno:${pedido.eventoId}`,
+      // Conteúdo clínico é o único que entra como ALTA: os outros esperam.
+      prioridade: dados.codigo === "conteudo_clinico" ? "ALTA" : "NORMAL",
+    });
+  } catch {
+    // Ver o cabeçalho.
+  }
 }
 
 /** Grava o trace e devolve o desfecho. Um único ponto de saída. */

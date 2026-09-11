@@ -1605,3 +1605,68 @@
   font-size: 0.72rem;
   line-height: 1.4;
 }
+
+/* ==========================================================================
+   Inbox — quem manda na conversa
+   ==========================================================================
+
+   A FAIXA EXISTE PORQUE O ESTADO É INVISÍVEL SEM ELA. "A IA está respondendo"
+   e "eu estou respondendo" produzem a mesma tela de mensagens, e a diferença
+   entre as duas é o paciente receber uma ou duas respostas.
+
+   A cor carrega o estado, e não só o texto: verde quando a máquina atende,
+   âmbar quando alguém assumiu, cinza quando ninguém está.
+   ========================================================================== */
+
+.crc-app .crc-dono-faixa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--crc-e3);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--crc-borda);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.crc-app .crc-dono-faixa > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  color: var(--crc-texto-2);
+}
+
+.crc-app .crc-dono-faixa svg {
+  flex-shrink: 0;
+}
+
+.crc-app .crc-dono-faixa[data-dono="ia"] {
+  background: var(--crc-primaria-suave);
+  border-bottom-color: var(--crc-primaria-borda);
+}
+.crc-app .crc-dono-faixa[data-dono="ia"] svg {
+  color: var(--crc-primaria-texto, var(--crc-primaria));
+}
+
+.crc-app .crc-dono-faixa[data-dono="humano"] {
+  background: var(--crc-alerta-suave);
+  border-bottom-color: #e8d6ae;
+}
+.crc-app .crc-dono-faixa[data-dono="humano"] svg {
+  color: var(--crc-alerta);
+}
+
+.crc-app .crc-dono-faixa[data-dono="ninguem"] {
+  background: var(--crc-superficie-3);
+}
+
+@media (max-width: 640px) {
+  /* Empilha: em 375px, frase e botões na mesma linha deixam os dois
+     ilegíveis. */
+  .crc-app .crc-dono-faixa {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

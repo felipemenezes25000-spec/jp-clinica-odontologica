@@ -90,7 +90,8 @@ export type Tabela =
   | "crc_dentists"
   | "crc_scheduling_offers"
   | "crc_ai_runs"
-  | "crc_ai_spans";
+  | "crc_ai_spans"
+  | "crc_human_cases";
 
 export type Linha = Record<string, unknown>;
 

@@ -139,6 +139,16 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // O índice do 09: é ele que faz um evento reprocessado NÃO rodar o turno do
   // agente de novo — e, com ele, não pagar o modelo de novo.
   crc_ai_runs: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  // O índice PARCIAL do 10: uma conversa não acumula dois casos abertos. Sem
+  // ele, duas mensagens em sequência colocariam a mesma pessoa duas vezes na
+  // fila da recepção.
+  crc_human_cases: [
+    { colunas: ["organization_id", "chave_dedupe"] },
+    {
+      colunas: ["organization_id", "conversation_id"],
+      onde: (l) => l["status"] === "ABERTO" || l["status"] === "ASSUMIDO",
+    },
+  ],
   crc_users: [{ colunas: ["organization_id", "email"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.

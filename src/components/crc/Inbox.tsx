@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
+  CirclePause,
   ArrowUpRight,
   Bot,
   MessageSquareText,
@@ -12,7 +13,15 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { abrirConversa, carregarInbox, responderConversa, type Falha } from "@/lib/crc/api";
+import {
+  abrirConversa,
+  assumirConversaDaIa,
+  carregarInbox,
+  devolverConversaParaIa,
+  pausarIaDaConversa,
+  responderConversa,
+  type Falha,
+} from "@/lib/crc/api";
 import type { Conversa, Mensagem } from "@/lib/crc/dominio/tipos";
 import { hora, iniciais, tempoRelativo, truncar } from "@/lib/crc/dominio/formatar";
 import { ROTULO_INTENCAO, ROTULO_TEMPERATURA } from "@/lib/crc/dominio/rotulos";
@@ -20,6 +29,81 @@ import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 
 import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
 import "./crc-operational.css";
+
+/**
+ * Quem manda nesta conversa, e o botão para mudar isso.
+ *
+ * A FAIXA EXISTE PORQUE O ESTADO É INVISÍVEL SEM ELA. "A IA está respondendo"
+ * e "eu estou respondendo" produzem a mesma tela de mensagens — e a diferença
+ * entre as duas é o paciente receber uma ou duas respostas.
+ *
+ * Três estados, três frases, e em cada uma só o botão que faz sentido ali. Um
+ * painel com os três botões sempre visíveis faria a pessoa ler antes de agir;
+ * aqui ela só vê a saída do estado em que está.
+ */
+function DonoDaConversa({
+  dono,
+  rodando,
+  aoAssumir,
+  aoDevolver,
+  aoPausar,
+}: {
+  dono: "ia" | "humano" | "ninguem";
+  rodando: boolean;
+  aoAssumir: () => void;
+  aoDevolver: () => void;
+  aoPausar: () => void;
+}) {
+  if (dono === "humano") {
+    return (
+      <div className="crc-dono-faixa" data-dono="humano">
+        <span>
+          <UserRound size={14} aria-hidden="true" />
+          <strong>Você está respondendo.</strong> A IA está calada nesta conversa.
+        </span>
+        <Botao pequeno variante="discreto" disabled={rodando} onClick={aoDevolver}>
+          Devolver para a IA
+        </Botao>
+      </div>
+    );
+  }
+
+  if (dono === "ninguem") {
+    return (
+      <div className="crc-dono-faixa" data-dono="ninguem">
+        <span>
+          <CirclePause size={14} aria-hidden="true" />
+          <strong>IA pausada aqui.</strong> Ninguém está respondendo esta conversa.
+        </span>
+        <div className="crc-linha" style={{ gap: "var(--crc-e2)" }}>
+          <Botao pequeno disabled={rodando} onClick={aoAssumir}>
+            Assumir
+          </Botao>
+          <Botao pequeno variante="discreto" disabled={rodando} onClick={aoDevolver}>
+            Devolver para a IA
+          </Botao>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="crc-dono-faixa" data-dono="ia">
+      <span>
+        <Bot size={14} aria-hidden="true" />
+        <strong>A IA está atendendo.</strong> Assuma antes de responder, para não falar por cima.
+      </span>
+      <div className="crc-linha" style={{ gap: "var(--crc-e2)" }}>
+        <Botao pequeno disabled={rodando} onClick={aoAssumir}>
+          Assumir conversa
+        </Botao>
+        <Botao pequeno variante="discreto" disabled={rodando} onClick={aoPausar}>
+          Pausar IA
+        </Botao>
+      </div>
+    </div>
+  );
+}
 
 export function Inbox({
   aoAbrirPaciente,
@@ -40,6 +124,7 @@ export function Inbox({
   const [notaInterna, setNotaInterna] = useState(false);
   const [apenasNaoLidas, setApenasNaoLidas] = useState(false);
   const [carregandoConversa, setCarregandoConversa] = useState(false);
+  const [mudandoDono, setMudandoDono] = useState(false);
   const [busca, setBusca] = useState("");
 
   const acao = useAcao();
@@ -59,6 +144,33 @@ export function Inbox({
       setErro("Não conseguimos carregar as conversas. Tente atualizar a página.");
     }
   }, [apenasNaoLidas]);
+
+  /**
+   * Troca o dono e recarrega.
+   *
+   * RECARREGA A LISTA INTEIRA de propósito, em vez de remendar o estado local:
+   * o dono aparece na faixa E governa se o envio é seguro, e um estado local
+   * desatualizado aqui é exatamente o bug que esta fatia existe para impedir.
+   */
+  const trocarDono = useCallback(
+    async (acao: "assumir" | "devolver" | "pausar"): Promise<void> => {
+      if (selecionada === null || mudandoDono) return;
+      setMudandoDono(true);
+      try {
+        const data = { conversationId: selecionada.id };
+        if (acao === "assumir") await assumirConversaDaIa({ data });
+        else if (acao === "devolver") await devolverConversaParaIa({ data });
+        else await pausarIaDaConversa({ data });
+        await recarregar();
+      } catch {
+        // A faixa continua mostrando o estado antigo, que é a verdade até a
+        // próxima leitura. Melhor do que mostrar um estado que não foi gravado.
+      } finally {
+        setMudandoDono(false);
+      }
+    },
+    [selecionada, mudandoDono, recarregar],
+  );
 
   useEffect(() => {
     void recarregar();
@@ -324,6 +436,14 @@ export function Inbox({
                   </Botao>
                 )}
               </header>
+
+              <DonoDaConversa
+                dono={selecionada.dono}
+                rodando={mudandoDono}
+                aoAssumir={() => void trocarDono("assumir")}
+                aoDevolver={() => void trocarDono("devolver")}
+                aoPausar={() => void trocarDono("pausar")}
+              />
 
               <div className="crc-painel-corpo crc-inbox-conversa-corpo">
                 {selecionada.revisaoPendente && (

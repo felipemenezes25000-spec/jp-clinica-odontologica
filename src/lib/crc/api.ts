@@ -1211,6 +1211,119 @@ export const salvarMinhaFoto = createServerFn({ method: "POST" })
     }),
   );
 
+/* -------------------------------------------------------------------------- */
+/* Inbox 2.0 — dono da conversa e casos humanos (Fatia 5)                     */
+/* -------------------------------------------------------------------------- */
+
+export type CasoHumanoDto = {
+  id: string;
+  conversationId: string;
+  patientId: string | null;
+  status: string;
+  motivo: string;
+  motivoCodigo: string;
+  prioridade: string;
+  resumo: string | null;
+  respostaBarrada: string | null;
+  criadoEm: string;
+  assumidoPor: string | null;
+};
+
+export const carregarCasosHumanos = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ casos: CasoHumanoDto[] }>> =>
+    comContexto("ver_conversa", async (ctx) => {
+      const { listarCasosAbertos } = await import("./aplicacao/casos");
+      const casos = await listarCasosAbertos(ctx.organizationId);
+      return { ok: true as const, casos };
+    }),
+);
+
+/**
+ * Assume a conversa. A IA cala a partir daqui.
+ *
+ * NÃO RECEBE `userId`: quem assume é quem está na sessão. Aceitar o id por
+ * parâmetro criaria um jeito de assumir a conversa em nome de outra pessoa, e
+ * a auditoria registraria a mentira sem saber.
+ */
+export const assumirConversaDaIa = createServerFn({ method: "POST" })
+  .validator((e: { conversationId: string }) => ({
+    conversationId: String(e.conversationId ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { assumirConversa } = await import("./aplicacao/casos");
+      const { auditar } = await import("./servidor/registro");
+
+      await assumirConversa(ctx.organizationId, data.conversationId, ctx.usuario.id);
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "conversa_assumida",
+        entityType: "crc_conversations",
+        entityId: data.conversationId,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+export const devolverConversaParaIa = createServerFn({ method: "POST" })
+  .validator((e: { conversationId: string }) => ({
+    conversationId: String(e.conversationId ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { devolverParaIa } = await import("./aplicacao/casos");
+      const { auditar } = await import("./servidor/registro");
+
+      await devolverParaIa(ctx.organizationId, data.conversationId);
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "conversa_devolvida_para_ia",
+        entityType: "crc_conversations",
+        entityId: data.conversationId,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+export const pausarIaDaConversa = createServerFn({ method: "POST" })
+  .validator((e: { conversationId: string }) => ({
+    conversationId: String(e.conversationId ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { pausarIaNaConversa } = await import("./aplicacao/casos");
+      await pausarIaNaConversa(ctx.organizationId, data.conversationId);
+      return { ok: true as const };
+    }),
+  );
+
+export const assumirCasoHumano = createServerFn({ method: "POST" })
+  .validator((e: { casoId: string }) => ({ casoId: String(e.casoId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { assumirCaso } = await import("./aplicacao/casos");
+      await assumirCaso(ctx.organizationId, data.casoId, ctx.usuario.id);
+      return { ok: true as const };
+    }),
+  );
+
+export const resolverCasoHumano = createServerFn({ method: "POST" })
+  .validator((e: { casoId: string; resolucao: string }) => ({
+    casoId: String(e.casoId ?? ""),
+    resolucao: String(e.resolucao ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { resolverCaso } = await import("./aplicacao/casos");
+      await resolverCaso(ctx.organizationId, data.casoId, data.resolucao);
+      return { ok: true as const };
+    }),
+  );
+
 export const mudarAtivacaoDoMembro = createServerFn({ method: "POST" })
   .validator((e: { userId: string; ativo: boolean }) => ({
     userId: String(e.userId ?? ""),

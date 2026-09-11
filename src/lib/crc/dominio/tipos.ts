@@ -303,7 +303,17 @@ export type Conversa = {
   resumoIa: string | null;
   resumoIaEm: string | null;
   revisaoPendente: boolean;
+  /**
+   * Quem manda nesta conversa: `ia`, `humano` ou `ninguem` (ADR-10).
+   *
+   * Estado declarado, e não deduzido de "quem respondeu por último" — a
+   * dedução produz duas respostas ao mesmo paciente no mesmo segundo.
+   */
+  dono: DonoDaConversa;
+  donoUserId: string | null;
 };
+
+export type DonoDaConversa = "ia" | "humano" | "ninguem";
 
 export type Mensagem = {
   id: string;

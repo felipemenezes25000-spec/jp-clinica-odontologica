@@ -306,6 +306,11 @@ export function linhaParaConversa(l: Linha): Conversa {
     intencao: intencao === null ? null : (intencao as Intencao),
     resumoIa: textoOuNulo(l, "resumo_ia"),
     resumoIaEm: textoOuNulo(l, "resumo_ia_em"),
+    // Conversa criada antes da Fatia 5 não tem a coluna. O padrão é `ia`
+    // porque era a automação que já vinha respondendo — tratar como "ninguem"
+    // calaria o sistema inteiro no dia do deploy.
+    dono: umDe(l, "dono", ["ia", "humano", "ninguem"] as const, "ia"),
+    donoUserId: textoOuNulo(l, "dono_user_id"),
     revisaoPendente: booleano(l, "revisao_pendente", false),
   };
 }
