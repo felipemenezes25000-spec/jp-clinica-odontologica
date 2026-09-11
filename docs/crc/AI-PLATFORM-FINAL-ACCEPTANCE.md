@@ -13,7 +13,8 @@ Gerado em 11/09/2026. Atualizado ao fim da FASE C.
 | **FASE B (job durável, idempotência precoce)** | concluída e provada |
 | **FASE C (handoff, ownership, chokepoints)** | concluída e provada |
 | **FASE D (atomicidade e fuso)** | concluída e provada |
-| **FASES E a I** | não iniciadas |
+| **FASE E (Postgres real, tenant, E2E, carga)** | concluída e provada |
+| **FASES F a I** | não iniciadas |
 | **Seguro ligar `ai_agente_envio`?** | **NÃO** |
 
 O motivo do "não" mudou de lugar duas vezes. Era "não porque nunca foi avaliado";
@@ -22,17 +23,15 @@ por isso mais concreto:
 
 **Não, por três razões que continuam abertas.**
 
-1. **Nada foi exercitado contra Postgres de verdade.** As garantias de B e C são
-   de banco — `FOR UPDATE SKIP LOCKED`, índice único, `not null`. O fake reproduz
-   os índices do `supabase/*.sql` e por isso vale muito mais do que valia; ainda
-   assim, o que prova constraint é o Postgres executando a constraint. É o item
-   20, e é a FASE E.
-2. **A FASE D não foi feita.** Orçamento, RAG e publicação ainda são
-   ler-decidir-escrever em passos separados. Duas chamadas simultâneas passam do
-   teto de gasto, e o "dia" da clínica ainda é UTC.
-3. **Os dois provedores externos continuam sem contrato.** Sem WhatsApp e sem
+1. **Os dois provedores externos continuam sem contrato.** Sem WhatsApp e sem
    Dental Office, ligar a flag não muda nada no mundo — não há para onde a
-   mensagem sair.
+   mensagem sair. É `BLOCKED_EXTERNAL`, e é o motivo que independe de código.
+2. **As FASES F a I não foram feitas.** Sem circuit breaker e sem saúde de
+   provedor (F), uma oscilação do provedor de IA vira fila de retry em vez de
+   degradação controlada. Sem observabilidade e runbook (I), ninguém sabe o que
+   fazer quando isso acontecer às 19h de uma sexta.
+3. **O gate de avaliação nunca rodou com caso de tenant.** Está no item 31, e
+   enquanto ele for `PARCIAL` a régua que libera a flag está incompleta.
 
 ---
 
@@ -82,24 +81,24 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 1 | Nenhuma query referencia coluna inexistente | `PASS` | `schema.test.ts` |
 | 2 | ENTRADA/SAIDA interpretados corretamente | `PASS` | `direcao.test.ts` |
 | 3 | Última entrada do paciente é encontrada | `PASS` | `janela-envio.test.ts` |
-| 4 | Janela WhatsApp funciona com dados reais | `PARCIAL` | Prova contra banco em memória com valores reais do schema. Contra Postgres de verdade, não |
+| 4 | Janela WhatsApp funciona com dados reais | `PASS` | O CI de integração roda contra Postgres real com o schema aplicado do zero |
 | 5 | Destino WhatsApp vem de camada canônica | `PASS` | `aplicacao/conversas.ts` |
 | 6 | Agent job é durável | `PASS` | `supabase/17-crc-agent-jobs.sql` + `aplicacao/agent-jobs.ts` + `automacao/agente-worker.ts`. O handler só enfileira |
 | 7 | Retry existe | `PASS` | Backoff 30s/2min/8min/32min com teto de 5 tentativas; `agente-worker.test.ts` |
 | 8 | Dead letter existe | `PASS` | `falharJob` grava em `crc_dead_letters` ao esgotar as tentativas |
-| 9 | Claim é atômico | `PARCIAL` | `crc_reservar_agent_jobs` usa `FOR UPDATE SKIP LOCKED`, igual a `crc_reservar_eventos`. A atomicidade real é do Postgres e só o item 20 a prova |
+| 9 | Claim é atômico | `PASS` | Provado contra Postgres: dez workers disputando cinco jobs, cada job para um só. `integracao/concorrencia.test.ts` |
 | 10 | Idempotência ANTES dos efeitos | `PASS` | `trace.reservar()` insere a run com `resultado='RODANDO'` antes da primeira chamada de modelo; quem perde a corrida devolve `sem_acao` |
-| 11-13 | Crash não duplica agenda / mensagem / tool | `PARCIAL` | Provado em `agente-worker.test.ts` com injeção de defeito. A proteção é índice único, e o fake reproduz os índices do SQL — contra Postgres real, item 20 |
+| 11-13 | Crash não duplica agenda / mensagem / tool | `PASS` | Dez gravações simultâneas da mesma chave resultam em UMA linha, no Postgres. `integracao/concorrencia.test.ts` |
 | 14 | Handoff não falha em silêncio | `PASS` | `aplicacao/handoff.ts`: caso → tarefa → dead letter → log `erro`. `handoff.test.ts` derruba cada degrau e confere onde pousou |
 | 15 | Ownership revalidado antes do envio | `PASS` | `enviarMensagem` relê o dono antes de gravar e recusa `remetente='ia'` fora de conversa da IA. `dono-no-envio.test.ts` |
 | 15b | Portão de dono é lista de permissão | `PASS` | **Furo encontrado durante a FASE C:** `portaoDono` recusava só `humano`, e `ninguem` — o estado em que `abrirCaso` deixa a conversa — passava. Toda conversa escalada voltava a receber resposta automática no turno seguinte. `turno.test.ts > conversa com a IA pausada` |
 | 15c | Kill switch de escrita relido no ato | `PASS` | **Mesma classe do item 15:** `ctx.interruptores` é retrato do início do turno. `agendamento.ts` relê antes de `criarAgendamento`. `agendamento.test.ts > kill switch acionado depois da oferta` |
 | 16 | RAG swap atômico | `PASS` | `crc_trocar_conhecimento` em `supabase/18`. O buraco era visível ao paciente: "não tenho essa informação" de uma clínica que tem. `conhecimento.test.ts` |
-| 17 | Budget concorrente/atômico | `PARCIAL` | `crc_reservar_orcamento` reserva ANTES de chamar, com `for update`. O contrato está provado em `atomicidade.test.ts`; a concorrência real é do Postgres e depende do item 20 |
+| 17 | Budget concorrente/atômico | `PASS` | Vinte chamadas simultâneas num teto que cabe cinco: passam exatamente cinco. `integracao/concorrencia.test.ts` |
 | 18 | Timezone da organização | `PASS` | `dominio/dia-local.ts` com `Intl`, não offset fixo. O teto diário zerava às 21h e a clínica ganhava três horas de graça por dia. `dia-local.test.ts` |
 | 19 | Publicação do agente atômica | `PASS` | `crc_publicar_versao_agente`. Sem versão publicada `turno.ts` cai no texto do código em silêncio — o defeito não dava erro. `estudio.test.ts` |
-| 20-21 | Banco real no CI / migrations do zero | `FAIL` | — |
-| 22 | Tenant isolation com teste real | `PARCIAL` | `conhecimento.test.ts` prova isolamento de knowledge com o filtro dentro do SQL. Falta memória, oportunidade, paciente, casos, credenciais |
+| 20-21 | Banco real no CI / migrations do zero | `PASS` | `.github/workflows/crc-integracao.yml` sobe Postgres+pgvector e PostgREST, aplica `supabase/*.sql` num banco vazio com `ON_ERROR_STOP=1` e roda 43 testes. **Achou defeito na primeira execução:** o schema dependia dos papéis do Supabase e não subia em Postgres puro — `supabase/00-papeis.sql` |
+| 22 | Tenant isolation com teste real | `PASS` | `integracao/tenant.test.ts`: RLS conferida no catálogo, busca semântica com vetores IDÊNTICOS entre clínicas (só o tenant pode separar), e FKs compostas. **Achou defeito grave:** as FKs eram separadas e o banco ACEITAVA conversa da org A com clínica de B — `supabase/19` |
 | 23 | WAHA | `FAIL` | Não implementado nem formalmente retirado |
 | 24 | MCP | `FAIL` | Documentado no ADR-06, não implementado |
 | 25 | Providers previstos | `PARCIAL` | OpenAI e Anthropic implementados. Gemini não |
@@ -109,8 +108,8 @@ O pedido era impedir que a classe volte, não corrigir as oito.
 | 29 | Workflow Studio usa o motor existente | `NOT_APPLICABLE` | Editor não entregue — recorte declarado no roadmap |
 | 30 | Playground dry-run | `FAIL` | Não existe |
 | 31 | Eval gate cobre segurança/tenant/handoff/tools | `PARCIAL` | Cobre três das quatro. `tenant` não tem caso |
-| 32-34 | E2E / recovery / load | `FAIL` | — |
-| 35 | CI completo verde | `PARCIAL` | lint, typecheck, testes e build passam localmente. Não há CI com banco |
+| 32-34 | E2E / recovery / load | `PARCIAL` | `integracao/e2e.test.ts` cobre mensagem→job→reserva→recovery, cem jobs com dez workers, cinquenta reservas concorrentes e mil mensagens numa conversa. O provedor de IA e o de WhatsApp seguem dublados porque nenhum tem contrato — item `BLOCKED_EXTERNAL` |
+| 35 | CI completo verde | `PASS` | `quality.yml` (lint/types/787 testes/build) + `crc-integracao.yml` (schema do zero e 43 testes contra Postgres) |
 | 36 | Flags de produção seguras | `PASS` | Todas nascem desligadas; `ai_agente_envio` ainda travado pelo gate de avaliação |
 | 37 | Runbook atualizado | `FAIL` | `RUNBOOK.md` não existe |
 

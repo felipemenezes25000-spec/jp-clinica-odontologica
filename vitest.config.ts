@@ -20,6 +20,17 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts"],
+    /*
+     * OS TESTES DE INTEGRAÇÃO FICAM DE FORA DAQUI, e não por serem lentos.
+     *
+     * Eles EXIGEM um Postgres de verdade e falham alto quando não o encontram —
+     * de propósito, porque um teste de integração que passa sem integração é a
+     * pior linha verde do repositório. Deixá-los neste `include` faria
+     * `npm test` reprovar em toda máquina que não tem banco em pé.
+     *
+     * Quem os roda é `npm run test:integracao`, com a config própria.
+     */
+    exclude: ["**/node_modules/**", "src/lib/crc/testes/integracao/**"],
     // O relatório precisa ser legível no terminal de quem roda `npm run check`.
     reporters: ["default"],
   },

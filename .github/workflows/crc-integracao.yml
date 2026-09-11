@@ -1,0 +1,166 @@
+name: CRC Integração
+
+# ============================================================================
+# O CI QUE USA POSTGRES DE VERDADE — Fase E, item 20.
+#
+# POR QUE ELE É SEPARADO DO `quality.yml`. Aquele roda em segundos e tem que
+# continuar rodando em segundos: é o que dá retorno a cada push. Este sobe dois
+# serviços, aplica dezoito arquivos de schema num banco vazio e roda testes de
+# concorrência. São coisas diferentes, com tempos diferentes.
+#
+# O QUE SÓ ESTE WORKFLOW CONSEGUE PROVAR, e nenhum teste de unidade jamais vai:
+#
+#   `FOR UPDATE SKIP LOCKED` impedindo dois workers de pegarem o mesmo job;
+#   um índice único recusando a segunda mensagem sob concorrência real;
+#   o rollback desfazendo o arquivamento quando a publicação falha;
+#   a RLS estando de fato ligada;
+#   o teto de gasto segurando quando vinte chamadas chegam juntas;
+#   e, antes de tudo isso, que os arquivos de schema SOBEM do zero.
+#
+# Esse último é o que mais tinha ficado para trás: os arquivos foram escritos um
+# a um contra um banco que já existia. Uma ordem quebrada ou uma coluna fora de
+# sincronia era invisível — até alguém instalar o sistema em outro lugar.
+# ============================================================================
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: crc-integracao-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integracao:
+    name: schema do zero, tenant, concorrência e recovery
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      # A imagem oficial do pgvector. A do Postgres puro não tem a extensão, e
+      # `create extension vector` falharia no arquivo 12 — depois de onze
+      # arquivos terem passado, o que torna o erro confuso de ler.
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      # Público de propósito: é um banco efêmero, dentro de um runner efêmero.
+      # O segredo de produção é do Supabase e nunca passa por aqui.
+      PGRST_JWT_SECRET: segredo-de-teste-do-crc-com-no-minimo-32-caracteres
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # ----------------------------------------------------------------------
+      # 1. O schema, do zero
+      # ----------------------------------------------------------------------
+      #
+      # ESTE PASSO É UM TESTE, e o mais barato de todos. `ON_ERROR_STOP=1` está
+      # dentro do script: sem ele, o psql reportaria o erro, seguiria adiante e
+      # sairia com status 0 — o CI ficaria verde com metade do schema criado,
+      # que é pior do que não ter CI nenhum.
+      - name: Aplicar supabase/*.sql num banco vazio
+        run: node scripts/aplicar-schema.mjs --com-teste
+
+      # ----------------------------------------------------------------------
+      # 2. O papel que o PostgREST assume
+      # ----------------------------------------------------------------------
+      #
+      # O app usa a SERVICE_ROLE, que ignora RLS — é assim em produção, porque
+      # todo acesso passa pelo servidor, que já resolveu quem é o usuário.
+      #
+      # `authenticator` é o papel de entrada; ele não tem poder nenhum sozinho e
+      # só sabe virar os outros dois. É o desenho do próprio Supabase, e copiá-lo
+      # aqui é o que faz o teste exercitar o mesmo caminho do ar.
+      # `anon` e `service_role` NÃO são criados aqui: quem os cria é
+      # `supabase/00-papeis.sql`, aplicado no passo anterior.
+      #
+      # Esse arquivo nasceu desta própria fase: ao aplicar o schema num Postgres
+      # vazio pela primeira vez na vida do projeto, o arquivo 01 falhou com
+      # `role "anon" does not exist`. Os três papéis vêm do Supabase, e a
+      # dependência nunca tinha sido declarada em lugar nenhum — instalar o
+      # sistema fora de um projeto Supabase era impossível, e ninguém sabia.
+      #
+      # O que resta aqui é `authenticator`, que é do PostgREST e não do schema.
+      - name: Criar o papel de entrada e conceder privilégios
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+            do $papeis$
+            begin
+              if not exists (select 1 from pg_roles where rolname = 'authenticator') then
+                create role authenticator login password 'postgres' noinherit;
+              end if;
+            end $papeis$;
+
+            grant anon, service_role to authenticator;
+            grant usage on schema public to anon, service_role;
+            grant all on all tables in schema public to service_role;
+            grant all on all sequences in schema public to service_role;
+            grant all on all functions in schema public to service_role;
+            grant select on all tables in schema public to anon;
+          SQL
+
+      - name: Subir o PostgREST
+        run: |
+          docker run -d --name postgrest --network host \
+            -e PGRST_DB_URI="postgres://authenticator:postgres@localhost:5432/postgres" \
+            -e PGRST_DB_SCHEMA="public" \
+            -e PGRST_DB_ANON_ROLE="anon" \
+            -e PGRST_JWT_SECRET="$PGRST_JWT_SECRET" \
+            -e PGRST_SERVER_PORT="3001" \
+            -e PGRST_DB_POOL="20" \
+            postgrest/postgrest:v12.2.3
+
+      # Um `sleep` fixo aqui seria ou lento demais ou curto demais, e o segundo
+      # caso produz falha intermitente — o tipo de teste que as pessoas aprendem
+      # a reexecutar sem ler.
+      - name: Esperar o PostgREST responder
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:3001/ >/dev/null 2>&1; then
+              echo "PostgREST no ar depois de ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "PostgREST não subiu. Log:"
+          docker logs postgrest
+          exit 1
+
+      # ----------------------------------------------------------------------
+      # 3. Os testes
+      # ----------------------------------------------------------------------
+      - name: Testes de integração
+        run: |
+          export SUPABASE_URL="http://localhost:3001"
+          export SUPABASE_SERVICE_ROLE="$(node scripts/jwt-de-teste.mjs service_role)"
+          npm run test:integracao
+
+      # O log do PostgREST é onde aparece o erro de permissão que, do lado do
+      # teste, chega como um 401 sem explicação.
+      - name: Log do PostgREST (quando falha)
+        if: failure()
+        run: docker logs postgrest | tail -100
