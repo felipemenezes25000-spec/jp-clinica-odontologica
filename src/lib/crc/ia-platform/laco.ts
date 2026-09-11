@@ -120,7 +120,16 @@ export type PassoDoLaco = {
 export type ResultadoLaco =
   | { tipo: "responder"; texto: string; precisaHumano: boolean; passos: PassoDoLaco[] }
   | { tipo: "humano"; motivo: string; passos: PassoDoLaco[] }
-  | { tipo: "falha"; motivo: string; passos: PassoDoLaco[] };
+  | { tipo: "falha"; motivo: string; passos: PassoDoLaco[] }
+  /**
+   * Perdemos a posse do turno no meio do caminho.
+   *
+   * NÃO É FALHA, e a distinção é o ponto: outro worker assumiu e está fazendo o
+   * trabalho agora. Tratar como falha faria o job voltar para a fila e o turno
+   * rodar uma TERCEIRA vez. O certo é parar em silêncio e deixar quem tem a
+   * posse terminar.
+   */
+  | { tipo: "perdeu_posse"; passos: PassoDoLaco[] };
 
 export type DependenciasLaco = {
   /** Pede uma decisão ao modelo, dado o histórico de ferramentas já usadas. */
@@ -147,6 +156,31 @@ export type DependenciasLaco = {
     argumentos: Record<string, unknown>,
     deps: DependenciasExecutor,
   ) => Promise<{ ok: boolean; saida: string }>;
+  /**
+   * Renova o lease e diz se ainda somos donos deste turno.
+   *
+   * ========================================================================
+   *  POR QUE O BATIMENTO FICA AQUI, E NÃO NUM TEMPORIZADOR.
+   *
+   *  O lease do job é de 180 segundos. Um turno com cinco passos, cada um com
+   *  uma chamada de modelo de até 25s e uma ida ao Dental Office no meio, passa
+   *  disso estando PERFEITAMENTE VIVO. Quando passa, outro worker encontra o
+   *  lease vencido e reivindica — e o reclaim, que existe para recuperar
+   *  crash, passa a agir contra quem não caiu.
+   *
+   *  Um `setInterval` seria o reflexo natural e está errado aqui: em serverless
+   *  a função pode ser congelada entre awaits, e um temporizador que não dispara
+   *  dá a garantia mais perigosa de todas — a que parece existir. Batendo no
+   *  laço, o batimento acontece exatamente quando há progresso, que é quando
+   *  ele significa alguma coisa.
+   *
+   *  E o retorno `false` é metade do valor: ele avisa que PERDEMOS a posse, e aí
+   *  parar é obrigatório. Sem isso, dois workers responderiam o mesmo paciente.
+   * ========================================================================
+   *
+   * Ausente no Playground e no replay, onde não existe job para renovar.
+   */
+  bater?: () => Promise<boolean>;
 };
 
 /**
@@ -163,6 +197,19 @@ export async function rodarLaco(deps: DependenciasLaco): Promise<ResultadoLaco> 
   let usadas = 0;
 
   for (let passo = 0; passo < MAX_PASSOS; passo += 1) {
+    /*
+     * BATE ANTES DE CADA PASSO, e não depois: o que consome tempo é o passo que
+     * vem a seguir. Bater depois renovaria o lease e então gastaria 25s de
+     * modelo — chegando ao passo seguinte com o lease já quase vencido de novo.
+     *
+     * O primeiro passo também bate, e de propósito: entre a reserva do job e a
+     * primeira decisão já aconteceu a montagem de contexto, que lê o banco
+     * várias vezes.
+     */
+    if (deps.bater !== undefined && !(await deps.bater())) {
+      return { tipo: "perdeu_posse", passos };
+    }
+
     const r = await deps.decidir(observacoes);
     if (!r.ok) return { tipo: "falha", motivo: `O modelo não respondeu: ${r.detalhe}`, passos };
 

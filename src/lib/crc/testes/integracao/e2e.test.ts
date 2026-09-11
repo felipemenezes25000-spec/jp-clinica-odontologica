@@ -370,6 +370,117 @@ describe("o crash recupera o job E a run", () => {
 });
 
 /* ========================================================================== */
+/* 2b-bis. Heartbeat e fencing: o turno lento que não caiu                    */
+/* ========================================================================== */
+
+/**
+ * O CENÁRIO QUE O RECLAIM CRIOU, e que só o heartbeat fecha.
+ *
+ * O lease é de 180s. Um turno com cinco passos, cada um com uma chamada de
+ * modelo de até 25s e uma ida ao Dental Office no meio, passa disso ESTANDO
+ * VIVO. Aí outro worker encontra o lease vencido e reivindica — e o reclaim,
+ * que existe para recuperar crash, passa a agir contra quem não caiu.
+ */
+describe("o turno lento renova o lease em vez de ser roubado", () => {
+  const CHAVE = "turno:heartbeat";
+
+  beforeEach(async () => {
+    await sql(`
+      insert into public.crc_agent_jobs (organization_id, conversation_id, status, chave_dedupe)
+      values ('${ORG_A}', '${CONVERSA}', 'PENDENTE', '${CHAVE}')
+    `);
+  });
+
+  const reservar = (quem: string, lease = 1) =>
+    sql<{ id: string; lease_token: string }>(
+      `select id, lease_token from public.crc_reservar_agent_jobs(1, ${String(lease)}, '${quem}')`,
+    );
+
+  it("cada reserva emite um token diferente", async () => {
+    const a = await reservar("A");
+    await sql(`update public.crc_agent_jobs set travado_ate = now() - interval '1 second'`);
+    const b = await reservar("B");
+
+    expect(a[0]?.lease_token).toBeTruthy();
+    expect(b[0]?.lease_token).not.toBe(a[0]?.lease_token);
+  });
+
+  it("o heartbeat mantém o lease — e o outro worker NÃO leva o job", async () => {
+    const a = await reservar("A", 2);
+
+    // O turno está demorando, mas está vivo: bate.
+    const [ok] = await sql<{ crc_renovar_lease: boolean }>(
+      `select public.crc_renovar_lease('${a[0]?.id ?? ""}', '${a[0]?.lease_token ?? ""}', 300)`,
+    );
+    expect(ok?.crc_renovar_lease).toBe(true);
+
+    // Sem o batimento, os 2s teriam vencido e B levaria. Com ele, não há o que
+    // levar.
+    expect(await reservar("B")).toHaveLength(0);
+  });
+
+  it("perdida a posse, o heartbeat devolve false", async () => {
+    const a = await reservar("A");
+    await sql(`update public.crc_agent_jobs set travado_ate = now() - interval '1 second'`);
+    await reservar("B");
+
+    const [ok] = await sql<{ crc_renovar_lease: boolean }>(
+      `select public.crc_renovar_lease('${a[0]?.id ?? ""}', '${a[0]?.lease_token ?? ""}', 300)`,
+    );
+    // É como o worker antigo DESCOBRE que precisa parar.
+    expect(ok?.crc_renovar_lease).toBe(false);
+  });
+
+  it("o perdedor NÃO grava o desfecho por cima do vencedor", async () => {
+    /*
+     * A metade que falta em quase toda implementação de lease. Sem fencing, o
+     * worker A acorda depois do reclaim e grava CONCLUIDO por cima do trabalho
+     * do B — e o último a escrever vence, que é o pior critério possível.
+     */
+    const a = await reservar("A");
+    await sql(`update public.crc_agent_jobs set travado_ate = now() - interval '1 second'`);
+    const b = await reservar("B");
+
+    const [perdedor] = await sql<{ crc_encerrar_agent_job: boolean }>(
+      `select public.crc_encerrar_agent_job('${a[0]?.id ?? ""}', '${a[0]?.lease_token ?? ""}', 'CONCLUIDO')`,
+    );
+    expect(perdedor?.crc_encerrar_agent_job).toBe(false);
+
+    const [aindaRodando] = await sql<{ status: string }>(
+      `select status from public.crc_agent_jobs where chave_dedupe = '${CHAVE}'`,
+    );
+    expect(aindaRodando?.status).toBe("RODANDO");
+
+    const [vencedor] = await sql<{ crc_encerrar_agent_job: boolean }>(
+      `select public.crc_encerrar_agent_job('${b[0]?.id ?? ""}', '${b[0]?.lease_token ?? ""}', 'CONCLUIDO')`,
+    );
+    expect(vencedor?.crc_encerrar_agent_job).toBe(true);
+  });
+
+  it("o heartbeat renova o lease da RUN junto com o do job", async () => {
+    // Os dois precisam vencer juntos: com o da run mais curto, ela é assumida
+    // por outro worker enquanto o dono do job ainda trabalha.
+    const a = await reservar("A", 300);
+    await sql(`
+      insert into public.crc_ai_runs
+        (organization_id, conversation_id, chave_dedupe, resultado, iniciado_em, job_id, travado_ate)
+      values ('${ORG_A}', '${CONVERSA}', '${CHAVE}', 'RODANDO', now(),
+              '${a[0]?.id ?? ""}', now() + interval '1 second')
+    `);
+
+    await sql(
+      `select public.crc_renovar_lease('${a[0]?.id ?? ""}', '${a[0]?.lease_token ?? ""}', 600)`,
+    );
+
+    const [run] = await sql<{ sobra: number }>(
+      `select extract(epoch from (travado_ate - now())) as sobra
+         from public.crc_ai_runs where chave_dedupe = '${CHAVE}'`,
+    );
+    expect(Number(run?.sobra)).toBeGreaterThan(500);
+  });
+});
+
+/* ========================================================================== */
 /* 2c. A inbox de webhook: crash e replay                                     */
 /* ========================================================================== */
 

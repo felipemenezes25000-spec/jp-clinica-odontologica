@@ -259,6 +259,18 @@ async function executarJob(job: AgentJob, quem: string | null): Promise<Desfecho
     eventoId: job.eventId ?? job.id,
     jobId: job.id,
     quem,
+    /*
+     * O BATIMENTO, e ele fecha a janela aberta pelo reclaim.
+     *
+     * O laço chama isto antes de cada passo. Enquanto o turno progride, o lease
+     * é renovado e ninguém o reivindica; se a posse tiver sido perdida mesmo
+     * assim, o `false` faz o turno parar em vez de responder um paciente que
+     * outro worker já está respondendo.
+     */
+    bater: async () => {
+      const { renovarLease } = await import("../aplicacao/agent-jobs");
+      return await renovarLease(job.id, job.leaseToken);
+    },
     agora: new Date(),
     porta: provedor.configurado ? provedor.porta : null,
     portaSupervisor: supervisorIa.configurado ? supervisorIa.porta : null,

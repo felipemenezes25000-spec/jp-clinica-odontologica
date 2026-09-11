@@ -560,3 +560,118 @@ describe("o evento não some quando o enfileiramento falha", () => {
     expect(conteudo("crc_agent_jobs")).toHaveLength(1);
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("o heartbeat e o fencing", () => {
+  const reservar = async (quem: string) => (await reservarJobs({ quem, limite: 1 }))[0];
+
+  it("cada reserva emite um token DIFERENTE", async () => {
+    /*
+     * É o que separa "eu peguei este job" de "eu peguei este job AGORA". O
+     * `travado_por` se repete entre invocações do mesmo cron; o token não —
+     * e sem essa diferença o fencing seria uma comparação de nomes.
+     */
+    await enfileirar();
+    const a = await reservar("worker-A");
+
+    definirRelogio(new Date(AGORA.getTime() + 200_000));
+    const b = await reservar("worker-B");
+
+    expect(a?.leaseToken).toBeTruthy();
+    expect(b?.leaseToken).toBeTruthy();
+    expect(b?.leaseToken).not.toBe(a?.leaseToken);
+  });
+
+  it("quem tem a posse renova; quem perdeu recebe FALSE", async () => {
+    /*
+     * O DEFEITO QUE ISTO TRAVA é consequência do reclaim que eu mesmo
+     * consertei: o lease é de 180s e um turno de cinco passos passa disso
+     * ESTANDO VIVO. Sem heartbeat, outro worker o reivindica e o reclaim —
+     * feito para recuperar crash — age contra quem não caiu.
+     */
+    const { renovarLease } = await import("../aplicacao/agent-jobs");
+
+    await enfileirar();
+    const a = await reservar("worker-A");
+    expect(await renovarLease(a?.id ?? "", a?.leaseToken ?? null)).toBe(true);
+
+    // O lease vence e outro assume.
+    definirRelogio(new Date(AGORA.getTime() + 200_000));
+    const b = await reservar("worker-B");
+    expect(b?.id).toBe(a?.id);
+
+    // Agora o antigo precisa DESCOBRIR que não é mais dono.
+    expect(await renovarLease(a?.id ?? "", a?.leaseToken ?? null)).toBe(false);
+    expect(await renovarLease(b?.id ?? "", b?.leaseToken ?? null)).toBe(true);
+  });
+
+  it("quem perdeu a posse NÃO grava o desfecho", async () => {
+    /*
+     * A metade que falta em quase toda implementação de lease. Sem fencing:
+     *
+     *   A perde o lease → B assume e responde o paciente → A acorda e grava
+     *   CONCLUIDO por cima
+     *
+     * O job sai da fila com o desfecho do perdedor e o trabalho do B fica sem
+     * registro. O último a escrever vence.
+     */
+    const { concluirJob } = await import("../aplicacao/agent-jobs");
+
+    await enfileirar();
+    const a = await reservar("worker-A");
+
+    definirRelogio(new Date(AGORA.getTime() + 200_000));
+    const b = await reservar("worker-B");
+
+    expect(await concluirJob(a as NonNullable<typeof a>, 10)).toBe(false);
+    // E o job continua RODANDO: o desfecho do perdedor não entrou.
+    expect(conteudo("crc_agent_jobs")[0]?.["status"]).toBe("RODANDO");
+
+    expect(await concluirJob(b as NonNullable<typeof b>, 10)).toBe(true);
+    expect(conteudo("crc_agent_jobs")[0]?.["status"]).toBe("CONCLUIDO");
+  });
+
+  it("o heartbeat renova o lease da RUN junto", async () => {
+    // Os dois precisam vencer juntos. Com o da run mais curto, ela é assumida
+    // por outro worker enquanto o dono do job ainda está trabalhando.
+    const { renovarLease } = await import("../aplicacao/agent-jobs");
+
+    await enfileirar();
+    const a = await reservar("worker-A");
+
+    semear("crc_ai_runs", [
+      {
+        organization_id: ORG,
+        conversation_id: CONVERSA,
+        chave_dedupe: "turno:hb",
+        resultado: "RODANDO",
+        job_id: a?.id,
+        travado_ate: new Date(AGORA.getTime() + 1000).toISOString(),
+      },
+    ]);
+
+    await renovarLease(a?.id ?? "", a?.leaseToken ?? null, 300);
+
+    const run = conteudo("crc_ai_runs")[0];
+    const ate = Date.parse(String(run?.["travado_ate"]));
+    expect(ate).toBeGreaterThan(AGORA.getTime() + 200_000);
+  });
+
+  it("sem token — banco sem a migração 22 — nada quebra", async () => {
+    /*
+     * Código novo entra em produção antes de alguém rodar o SQL à mão; é assim
+     * neste projeto, por decisão. Sem token, o heartbeat responde `true` e o
+     * encerramento cai no caminho antigo: sem fencing, e funcionando.
+     */
+    const { renovarLease, concluirJob } = await import("../aplicacao/agent-jobs");
+
+    await enfileirar();
+    const a = await reservar("worker-A");
+    const semToken = { ...(a as NonNullable<typeof a>), leaseToken: null };
+
+    expect(await renovarLease(semToken.id, null)).toBe(true);
+    expect(await concluirJob(semToken, 10)).toBe(true);
+    expect(conteudo("crc_agent_jobs")[0]?.["status"]).toBe("CONCLUIDO");
+  });
+});

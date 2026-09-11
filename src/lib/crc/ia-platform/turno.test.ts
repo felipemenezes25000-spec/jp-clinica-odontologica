@@ -285,6 +285,52 @@ describe("o turno protege o paciente antes de gastar modelo", () => {
     expect(espia.enviadas).toHaveLength(0);
   });
 
+  it("perder a posse no MEIO do turno para o laço, e não vira falha", async () => {
+    /*
+     * O DEFEITO QUE ISTO TRAVA é consequência do reclaim: o lease é de 180s, e
+     * um turno de cinco passos com chamada de modelo em cada um passa disso
+     * ESTANDO VIVO. Outro worker então o reivindica, e os dois respondem o
+     * mesmo paciente.
+     *
+     * O heartbeat avisa. E o desfecho é `sem_acao`, não `falha_segura`: falha
+     * faria o job voltar para a fila e o turno rodar uma TERCEIRA vez, piorando
+     * exatamente o problema que se quer resolver.
+     */
+    const espia = mensageriaEspia();
+    let chamadasAoModelo = 0;
+    const porta: PortaIa = {
+      nome: "fake",
+      modelo: "fake-1",
+      gerarEstruturado: () => {
+        chamadasAoModelo += 1;
+        return Promise.resolve(respostaOk({ acao: "responder", texto: "oi" }));
+      },
+    };
+
+    const r = await rodarTurno({
+      ...pedidoBase(porta),
+      portaMensageria: espia.porta,
+      podeEnviar: true,
+      bater: () => Promise.resolve(false),
+    });
+
+    expect(r.tipo).toBe("sem_acao");
+    // E o modelo NUNCA foi chamado: parar cedo é o ponto.
+    expect(chamadasAoModelo).toBe(0);
+    expect(espia.enviadas).toHaveLength(0);
+  });
+
+  it("com a posse mantida, o turno roda normalmente", async () => {
+    // O controle. Sem ele, um `bater` que devolvesse sempre `false` passaria no
+    // teste acima e desligaria o agente inteiro sem nada acusar.
+    const r = await rodarTurno({
+      ...pedidoBase(portaFake(respostaOk({ acao: "responder", texto: "Claro, Maria!" }))),
+      bater: () => Promise.resolve(true),
+    });
+
+    expect(r.tipo).toBe("candidato");
+  });
+
   it("o turno que outro worker JÁ está executando encerra sem agir", async () => {
     // O outro lado da moeda: aqui `sem_acao` é o certo. Alguém está cuidando
     // disto agora, e insistir seria a execução dupla que a reserva evita.

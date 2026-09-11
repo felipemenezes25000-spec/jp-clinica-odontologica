@@ -284,7 +284,17 @@ function observarDesfecho(
       ferramentasBloqueadas: bloqueadas,
     };
   }
-  if (resultado.tipo === "falha") {
+  /*
+   * O REPLAY NUNCA PERDE POSSE, porque não há job: ele não passa `bater` ao
+   * laço. Este ramo existe para o compilador — e o compilador está certo em
+   * exigi-lo, porque é assim que um desfecho novo do laço não passa
+   * despercebido por aqui no dia em que o replay ganhar um job.
+   *
+   * Mapeado para `falha` e não para `humano`: se um dia acontecer, é um estado
+   * que a avaliação não sabe interpretar, e o lado seguro é contar como não
+   * tendo respondido.
+   */
+  if (resultado.tipo === "falha" || resultado.tipo === "perdeu_posse") {
     return {
       desfecho: "falha",
       texto: null,

@@ -50,6 +50,16 @@ export type AgentJob = {
   tentativas: number;
   ultimoErro: string | null;
   criadoEm: string;
+  /**
+   * A prova de posse desta reserva.
+   *
+   * Gerado pelo banco a cada reserva, e é o que separa "eu peguei este job" de
+   * "eu peguei este job AGORA". O identificador do worker se repete entre
+   * invocações; o token não. Sem ele, o fencing seria uma comparação de nomes.
+   *
+   * `null` só em banco que ainda não aplicou `supabase/22`.
+   */
+  leaseToken: string | null;
 };
 
 /** Cinco tentativas. Ver o cabeçalho. */
@@ -182,21 +192,130 @@ function deLinha(l: Record<string, unknown>): AgentJob {
     tentativas: Number.isFinite(tentativas) ? tentativas : 0,
     ultimoErro: typeof l["ultimo_erro"] === "string" ? l["ultimo_erro"] : null,
     criadoEm: String(l["criado_em"] ?? ""),
+    leaseToken: typeof l["lease_token"] === "string" ? l["lease_token"] : null,
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Heartbeat                                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Renova o lease do job e da run. Devolve `false` quando a posse foi perdida.
+ *
+ * ========================================================================
+ *  POR QUE ISTO PRECISA EXISTIR, e o defeito é consequência de um conserto.
+ *
+ *  O lease é de 180 segundos. Um turno com cinco passos — cada um com uma
+ *  chamada de modelo de até 25s e uma ida ao Dental Office no meio — passa
+ *  disso estando VIVO. Quando passa, outro worker encontra o lease vencido e
+ *  reivindica, e o reclaim que existe para recuperar crash passa a agir contra
+ *  quem não caiu: duas execuções do mesmo turno, duas chamadas de modelo, e
+ *  possivelmente duas mensagens para o paciente.
+ *
+ *  AUMENTAR O LEASE NÃO RESOLVE: dez minutos só muda o limite de lugar, e faz
+ *  um crash de verdade segurar o trabalho por dez minutos em vez de três.
+ * ========================================================================
+ *
+ * EM CASO DE ERRO, DEVOLVE `true`. É o oposto da regra do resto deste arquivo,
+ * e por um motivo: o heartbeat não decide nada sobre o mundo — ele só responde
+ * "ainda sou o dono?". Uma oscilação do banco respondendo `false` faria um
+ * worker perfeitamente saudável abandonar um turno pago pela metade. O
+ * comportamento seguro aqui é seguir; se a posse tiver sido mesmo perdida, o
+ * fencing do encerramento barra a gravação.
+ */
+export async function renovarLease(
+  jobId: string,
+  leaseToken: string | null,
+  segundos = LEASE_SEGUNDOS,
+): Promise<boolean> {
+  // Sem token, não há o que renovar nem o que provar — banco sem `supabase/22`.
+  if (leaseToken === null || leaseToken.length === 0) return true;
+
+  try {
+    const linhas = await rpc("crc_renovar_lease", {
+      p_job_id: jobId,
+      p_lease_token: leaseToken,
+      p_segundos: segundos,
+    });
+    const linha = linhas[0];
+    if (linha === undefined) return true;
+    return Object.values(linha)[0] !== false;
+  } catch {
+    return true;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 /* Encerrar                                                                   */
 /* -------------------------------------------------------------------------- */
 
-export async function concluirJob(job: AgentJob, duracaoMs: number): Promise<void> {
+/**
+ * Conclui o job — se ainda formos os donos.
+ *
+ * ========================================================================
+ *  O FENCING, e é a metade que falta em quase toda implementação de lease.
+ *
+ *  Renovar o lease impede que nos tomem o trabalho enquanto estamos vivos.
+ *  Isso não basta: falta impedir que, DEPOIS de perdido, o worker antigo
+ *  escreva o desfecho dele.
+ *
+ *      worker A perde o lease (ficou lento demais)
+ *        ↓
+ *      worker B assume, roda o turno e responde o paciente
+ *        ↓
+ *      worker A acorda e grava CONCLUIDO por cima
+ *
+ *  O job sai da fila com o desfecho do PERDEDOR, e o trabalho do B fica sem
+ *  registro. O último a escrever vence — que é o pior critério possível para
+ *  decidir o que aconteceu.
+ * ========================================================================
+ *
+ * O retorno diz se a gravação valeu. Quem chama usa para não contar duas vezes.
+ */
+export async function concluirJob(job: AgentJob, duracaoMs: number): Promise<boolean> {
+  return await encerrarComPosse(job, "CONCLUIDO", null, duracaoMs);
+}
+
+/**
+ * O encerramento com prova de posse, ou o caminho antigo.
+ *
+ * O FALLBACK EXISTE POR CAUSA DA ORDEM DAS COISAS. Código novo entra em
+ * produção antes de alguém rodar o SQL à mão — é assim neste projeto, por
+ * decisão. Sem token, o `update` direto é o comportamento de antes: sem
+ * fencing, e funcionando.
+ */
+async function encerrarComPosse(
+  job: AgentJob,
+  status: StatusJob,
+  erro: string | null,
+  duracaoMs: number | null,
+): Promise<boolean> {
+  if (job.leaseToken !== null && job.leaseToken.length > 0) {
+    try {
+      const linhas = await rpc("crc_encerrar_agent_job", {
+        p_job_id: job.id,
+        p_lease_token: job.leaseToken,
+        p_status: status,
+        p_erro: erro,
+        p_duracao_ms: duracaoMs,
+      });
+      const linha = linhas[0];
+      if (linha !== undefined) return Object.values(linha)[0] !== false;
+    } catch {
+      // Cai no caminho antigo: perder o desfecho é pior que perder o fencing.
+    }
+  }
+
   await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
-    status: "CONCLUIDO",
+    status,
+    ...(erro === null ? {} : { ultimo_erro: erro.slice(0, 500) }),
+    ...(duracaoMs === null ? {} : { duracao_ms: duracaoMs }),
     terminou_em: agoraIso(),
     travado_ate: null,
-    duracao_ms: duracaoMs,
     atualizado_em: agoraIso(),
   });
+  return true;
 }
 
 /**

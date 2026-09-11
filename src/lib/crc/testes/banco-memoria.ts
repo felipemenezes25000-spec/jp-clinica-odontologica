@@ -919,14 +919,74 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
         .slice(0, teto);
 
       for (const l of alvo) {
+        sequencia += 1;
         l["status"] = "RODANDO";
         l["travado_ate"] = ateQuando;
         l["travado_por"] = quem;
+        // UM TOKEN NOVO A CADA RESERVA. É o que faz o fencing funcionar: o
+        // `travado_por` se repete entre invocações, o token não.
+        l["lease_token"] = `lease-${String(sequencia)}`;
         l["comecou_em"] = new Date(agora).toISOString();
         l["tentativas"] = (typeof l["tentativas"] === "number" ? l["tentativas"] : 0) + 1;
       }
 
       return Promise.resolve(alvo.map((l) => ({ ...l })) as T[]);
+    }
+
+    /*
+     * O heartbeat. Renova o lease do job E da run, e SÓ se o token bater.
+     *
+     * O `false` e o que avisa quem chama que a posse foi perdida — e parar ali
+     * e obrigatorio, senao dois workers respondem o mesmo paciente.
+     */
+    case "crc_renovar_lease": {
+      const jobId = argumentos["p_job_id"];
+      const token = argumentos["p_lease_token"];
+      const segundos =
+        typeof argumentos["p_segundos"] === "number" ? argumentos["p_segundos"] : 180;
+      const ateQuando = new Date(agora + segundos * 1000).toISOString();
+
+      const job = (tabelas["crc_agent_jobs"] ?? []).find(
+        (l) => l["id"] === jobId && l["lease_token"] === token && l["status"] === "RODANDO",
+      );
+
+      if (job === undefined) return Promise.resolve([{ crc_renovar_lease: false }] as T[]);
+
+      job["travado_ate"] = ateQuando;
+
+      // A run acompanha o job: os dois leases precisam vencer juntos.
+      for (const r of tabelas["crc_ai_runs"] ?? []) {
+        if (r["job_id"] === jobId && r["resultado"] === "RODANDO") r["travado_ate"] = ateQuando;
+      }
+
+      return Promise.resolve([{ crc_renovar_lease: true }] as T[]);
+    }
+
+    /*
+     * O fencing do encerramento: quem perdeu a posse nao grava o desfecho.
+     *
+     * Sem isto, o worker antigo acorda depois do reclaim e escreve por cima do
+     * trabalho de quem assumiu — e o ultimo a escrever vence.
+     */
+    case "crc_encerrar_agent_job": {
+      const job = (tabelas["crc_agent_jobs"] ?? []).find(
+        (l) =>
+          l["id"] === argumentos["p_job_id"] &&
+          l["lease_token"] === argumentos["p_lease_token"] &&
+          l["status"] === "RODANDO",
+      );
+
+      if (job === undefined) {
+        return Promise.resolve([{ crc_encerrar_agent_job: false }] as T[]);
+      }
+
+      job["status"] = argumentos["p_status"];
+      if (argumentos["p_erro"] != null) job["ultimo_erro"] = argumentos["p_erro"];
+      if (argumentos["p_duracao_ms"] != null) job["duracao_ms"] = argumentos["p_duracao_ms"];
+      job["terminou_em"] = new Date(agora).toISOString();
+      job["travado_ate"] = null;
+
+      return Promise.resolve([{ crc_encerrar_agent_job: true }] as T[]);
     }
 
     /*

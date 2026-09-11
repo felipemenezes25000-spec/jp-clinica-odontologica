@@ -76,6 +76,14 @@ export type PedidoTurno = {
    */
   quem?: string | null;
   /**
+   * Renova o lease e diz se ainda somos donos — Fase de orquestração.
+   *
+   * Vem do worker, que é quem tem o `lease_token` da reserva. Ausente no
+   * Playground e nos testes diretos, onde não há job para renovar — e ausente
+   * significa "não há como perder a posse", que é verdade nesses casos.
+   */
+  bater?: () => Promise<boolean>;
+  /**
    * `ai_supervisor` ligada. Roda a segunda leitura DEPOIS do desfecho, e é ela
    * quem propõe memória.
    *
@@ -322,6 +330,7 @@ async function decidirEEntregar(
           portaEmbeddings: pedido.portaEmbeddings ?? null,
         },
         ...(pedido.executar === undefined ? {} : { executar: pedido.executar }),
+        ...(pedido.bater === undefined ? {} : { bater: pedido.bater }),
         decidir: async (observacoes) => {
           const entrada =
             observacoes.length === 0
@@ -366,6 +375,31 @@ async function decidirEEntregar(
         tipo: "falha_segura",
         motivo: resultado.motivo.slice(0, 240),
       });
+    }
+
+    /*
+     * PERDEMOS A POSSE NO MEIO DO TURNO — o heartbeat devolveu `false`.
+     *
+     * Outro worker reivindicou este turno e está trabalhando nele AGORA. O
+     * desfecho é `sem_acao`, e a escolha entre os três possíveis importa:
+     *
+     *   `falha_segura` faria o worker relançar, o job voltar à fila e o turno
+     *   rodar uma TERCEIRA vez — piorando exatamente o problema.
+     *
+     *   `humano` abriria um caso na recepção por um evento que é interno e
+     *   normal, e encheria a fila de gente com ruído de infraestrutura.
+     *
+     *   `sem_acao` é a verdade: não fizemos nada, e não havia o que fazer.
+     *
+     * E o desfecho NÃO é gravado na run: ela pertence a quem assumiu, e
+     * escrever nela aqui sobrescreveria o trabalho do outro worker — que é o
+     * defeito que o fencing existe para impedir.
+     */
+    if (resultado.tipo === "perdeu_posse") {
+      return {
+        tipo: "sem_acao",
+        motivo: "Outro worker assumiu este turno enquanto ele rodava.",
+      };
     }
 
     if (resultado.tipo === "humano") {
