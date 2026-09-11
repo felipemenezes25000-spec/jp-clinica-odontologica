@@ -114,6 +114,15 @@ function montarCenario(opcoes: { optOut?: boolean } = {}): void {
   ]);
 }
 
+/** Tudo desligado: o estado em que o CRC nasce. */
+const POLITICA_FECHADA = {
+  escritaLiberada: false,
+  writebackLiberado: false,
+  agendamentoAutonomo: false,
+  escritasDentalOfficePausadas: false,
+  ferramentasUsadas: 0,
+};
+
 const pedidoBase = (porta: PortaIa) => ({
   organizationId: ORG,
   conversationId: CONVERSA,
@@ -121,6 +130,7 @@ const pedidoBase = (porta: PortaIa) => ({
   agora: AGORA,
   porta,
   podeEnviar: false,
+  politica: POLITICA_FECHADA,
 });
 
 beforeEach(() => {
@@ -136,10 +146,9 @@ describe("o turno de sombra não envia nada", () => {
       ...pedidoBase(
         portaFake(
           respostaOk({
+            acao: "responder",
             texto: "Claro, Maria! Vou ver o que temos.",
-            raciocinio: "Ela quer remarcar.",
             precisaHumano: false,
-            motivoHumano: null,
           }),
         ),
       ),
@@ -162,10 +171,9 @@ describe("o turno de sombra não envia nada", () => {
       pedidoBase(
         portaFake(
           respostaOk({
-            texto: "Claro! Já te retorno com os horários.",
-            raciocinio: "x",
+            acao: "responder",
+            texto: "Bom dia! Vi sua mensagem.",
             precisaHumano: false,
-            motivoHumano: null,
           }),
         ),
       ),
@@ -173,7 +181,7 @@ describe("o turno de sombra não envia nada", () => {
     const spans = conteudo("crc_ai_spans");
     expect(spans.length).toBeGreaterThanOrEqual(2);
     expect(spans.map((s) => s["nome"])).toContain("contexto");
-    expect(spans.map((s) => s["nome"])).toContain("modelo");
+    expect(spans.map((s) => s["nome"])).toContain("laco");
   });
 
   it("não roda duas vezes para o mesmo evento", async () => {
@@ -204,7 +212,7 @@ describe("o turno protege o paciente antes de gastar modelo", () => {
       modelo: "fake-1",
       gerarEstruturado: () => {
         chamou = true;
-        return Promise.resolve(respostaOk({}));
+        return Promise.resolve(respostaOk({ acao: "responder", texto: "oi" }));
       },
     };
 
@@ -224,7 +232,7 @@ describe("o turno protege o paciente antes de gastar modelo", () => {
   it("resposta inválida do modelo não vira mensagem", async () => {
     const espia = mensageriaEspia();
     const r = await rodarTurno({
-      ...pedidoBase(portaFake(respostaOk({ texto: "", precisaHumano: false }))),
+      ...pedidoBase(portaFake(respostaOk({ acao: "responder", texto: "", precisaHumano: false }))),
       portaMensageria: espia.porta,
       podeEnviar: true,
     });
@@ -246,10 +254,9 @@ describe("os portões barram antes do envio", () => {
       comEnvio(
         portaFake(
           respostaOk({
+            acao: "responder",
             texto: "Tome dipirona 500mg de 8 em 8 horas até a consulta.",
-            raciocinio: "x",
             precisaHumano: false,
-            motivoHumano: null,
           }),
         ),
         espia,
@@ -266,10 +273,9 @@ describe("os portões barram antes do envio", () => {
       comEnvio(
         portaFake(
           respostaOk({
+            acao: "responder",
             texto: "Vou verificar com a recepção e te retorno.",
-            raciocinio: "x",
             precisaHumano: false,
-            motivoHumano: null,
           }),
         ),
         espia,
@@ -285,10 +291,9 @@ describe("os portões barram antes do envio", () => {
       comEnvio(
         portaFake(
           respostaOk({
+            acao: "responder",
             texto: "Oi, Maria! Vi sua mensagem, já passo para a equipe da recepção.",
-            raciocinio: "x",
             precisaHumano: false,
-            motivoHumano: null,
           }),
         ),
         espia,

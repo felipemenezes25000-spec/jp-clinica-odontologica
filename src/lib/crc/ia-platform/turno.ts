@@ -26,14 +26,11 @@ import { estadoDaJanela } from "../dominio/janela-whatsapp";
 import type { PortaIa } from "../integracoes/ia/porta";
 import type { PortaMensageria } from "../integracoes/whatsapp/porta";
 
+import type { EstadoPolitica } from "./ferramentas";
+import { instrucoesDoLaco, rodarLaco, ESQUEMA_DECISAO } from "./laco";
 import { montarContextoDoTurno, textoDoContexto } from "./contexto";
 import { abrirTrace, type Trace } from "./tracing";
-import {
-  ESQUEMA_RESPOSTA_CANDIDATA,
-  PROMPT_TURNO_SOMBRA,
-  validarRespostaCandidata,
-  type ResultadoTurno,
-} from "./tipos";
+import { PROMPT_TURNO_SOMBRA, type ResultadoTurno } from "./tipos";
 
 /**
  * As instruções do agente.
@@ -77,6 +74,19 @@ export type PedidoTurno = {
   portaMensageria?: PortaMensageria | null;
   /** `ai_agente_envio` ligada E a automação em EXECUTAR. */
   podeEnviar: boolean;
+  /**
+   * O estado das travas que a política consulta. Vem do handler, já lido —
+   * o laço não vai ao banco perguntar se pode.
+   */
+  politica: EstadoPolitica;
+  /**
+   * Monta o contexto de agendamento sob demanda. Só as ferramentas de agenda
+   * precisam dele, e montá-lo exige falar com o Dental Office — caro demais
+   * para fazer em todo turno.
+   */
+  contextoAgendamento?: () => Promise<
+    import("../aplicacao/agendamento").ContextoAgendamento | null
+  >;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -124,37 +134,64 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
         motivo: "Nenhum provedor de IA configurado.",
       });
     }
+    // Capturada aqui para o TypeScript saber, dentro da closure do laço, que
+    // ela não é nula — em vez de uma asserção espalhada em cada uso.
 
-    // --- modelo -----------------------------------------------------------
-    const resposta = await trace.medir("modelo", "modelo", () =>
-      // O `porta` já foi checado acima; o TypeScript não sabe disso dentro da
-      // closure, então a asserção é local e verdadeira.
-      pedido.porta!.gerarEstruturado({
-        promptVersao: PROMPT_TURNO_SOMBRA,
-        instrucoes: INSTRUCOES,
-        entrada: textoDoContexto(ctx),
-        esquema: { nome: "resposta_candidata", schema: ESQUEMA_RESPOSTA_CANDIDATA },
-        maxTokens: 400,
+    // --- o laço: modelo decide, ferramenta roda, modelo decide de novo -----
+    const porta = pedido.porta;
+    const base = textoDoContexto(ctx);
+
+    const resultado = await trace.medir("laco", "modelo", () =>
+      rodarLaco({
+        estado: pedido.politica,
+        executor: {
+          ctx,
+          contextoAgendamento:
+            pedido.contextoAgendamento ?? (() => Promise.resolve(null)),
+        },
+        decidir: async (observacoes) => {
+          const entrada =
+            observacoes.length === 0
+              ? base
+              : `${base}\n\n## O que você já descobriu neste turno\n${observacoes.join("\n\n")}`;
+
+          const r = await porta.gerarEstruturado({
+            promptVersao: PROMPT_TURNO_SOMBRA,
+            instrucoes: `${INSTRUCOES}\n\n${instrucoesDoLaco(pedido.politica)}`,
+            entrada,
+            esquema: { nome: "decisao_do_agente", schema: ESQUEMA_DECISAO },
+            maxTokens: 400,
+          });
+
+          // O custo se acumula a cada volta: um turno com três ferramentas faz
+          // quatro chamadas, e o trace precisa somar todas.
+          trace.uso(r.ok ? r.uso : null);
+          return r.ok ? { ok: true, dados: r.dados } : { ok: false, detalhe: r.detalhe };
+        },
       }),
     );
 
-    if (!resposta.ok) {
-      trace.uso(resposta.uso);
-      return await encerrar(trace, chaveDedupe, ctx, {
-        tipo: "falha_segura",
-        motivo: `O modelo não respondeu: ${resposta.detalhe}`.slice(0, 240),
-      });
-    }
-    trace.uso(resposta.uso);
+    trace.ferramentas(resultado.passos);
 
-    const validada = validarRespostaCandidata(resposta.dados);
-    if (!validada.ok) {
+    if (resultado.tipo === "falha") {
       return await encerrar(trace, chaveDedupe, ctx, {
         tipo: "falha_segura",
-        motivo: `Resposta inválida do modelo: ${validada.motivo}.`,
+        motivo: resultado.motivo.slice(0, 240),
       });
     }
-    const candidata = validada.resposta;
+
+    if (resultado.tipo === "humano") {
+      return await encerrar(trace, chaveDedupe, ctx, {
+        tipo: "humano",
+        motivo: resultado.motivo.slice(0, 240),
+      });
+    }
+
+    const candidata = {
+      texto: resultado.texto,
+      raciocinio: "",
+      precisaHumano: resultado.precisaHumano,
+    };
 
     // --- portões ----------------------------------------------------------
     const janela = estadoDaJanela(ultimaEntradaEm(ctx), pedido.agora);

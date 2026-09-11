@@ -16,7 +16,7 @@ import type { UsoIa } from "../integracoes/ia/porta";
 
 import type { ContextoTurno, ResultadoTurno } from "./tipos";
 
-type TipoSpan = "contexto" | "modelo" | "portao" | "persistencia";
+type TipoSpan = "contexto" | "modelo" | "ferramenta" | "portao" | "persistencia";
 
 type Span = {
   nome: string;
@@ -43,8 +43,18 @@ export type Trace = {
     fn: () => T,
     resumir?: (r: T) => { bloqueado: boolean; codigo: string | null },
   ) => T;
-  /** Registra o consumo da chamada de modelo. */
+  /**
+   * Registra o consumo de UMA chamada de modelo.
+   *
+   * Chamado a cada volta do laço, e os valores SOMAM: um turno com três
+   * ferramentas faz quatro chamadas, e reportar só a última faria o custo do
+   * turno parecer um quarto do que foi.
+   */
   uso: (u: UsoIa | null) => void;
+  /** Registra as ferramentas que o laço usou, uma span por passo. */
+  ferramentas: (
+    passos: readonly { ferramenta: string; ok: boolean; bloqueadoPor: string | null }[],
+  ) => void;
   /** Fecha o trace e persiste. Nunca lança. */
   gravar: (
     chaveDedupe: string,
@@ -96,7 +106,31 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
     },
 
     uso(u) {
-      consumo = u;
+      if (u === null) return;
+      consumo =
+        consumo === null
+          ? u
+          : {
+              modelo: u.modelo,
+              inputTokens: soma(consumo.inputTokens, u.inputTokens),
+              outputTokens: soma(consumo.outputTokens, u.outputTokens),
+              custoEstimado: soma(consumo.custoEstimado, u.custoEstimado),
+              duracaoMs: consumo.duracaoMs + u.duracaoMs,
+            };
+    },
+
+    ferramentas(passos) {
+      for (const p of passos) {
+        ordem += 1;
+        spans.push({
+          nome: p.ferramenta,
+          tipo: "ferramenta",
+          ordem,
+          duracaoMs: 0,
+          status: p.bloqueadoPor !== null ? "bloqueado" : p.ok ? "ok" : "erro",
+          resumo: p.bloqueadoPor,
+        });
+      }
     },
 
     async gravar(chaveDedupe, ctx, resultado, extras) {
@@ -157,6 +191,10 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
     },
   };
 }
+
+/** Soma que trata ausência como zero, mas não inventa zero onde não há dado. */
+const soma = (a: number | null, b: number | null): number | null =>
+  a === null && b === null ? null : (a ?? 0) + (b ?? 0);
 
 const descrever = (e: unknown): string =>
   (e instanceof Error ? e.message : String(e)).slice(0, 200);

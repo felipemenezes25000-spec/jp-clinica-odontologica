@@ -108,6 +108,12 @@ export const FLAGS = {
    * não basta: o envio ainda passa pelos portões e pela janela de 24h.
    */
   aiAgenteEnvio: "ai_agente_envio",
+  /**
+   * Libera as ferramentas que MUDAM estado — registrar oferta, marcar consulta.
+   * Separada do envio de propósito: um agente que só lê e responde é um risco
+   * completamente diferente de um que grava na agenda da clínica.
+   */
+  aiAgenteEscrita: "ai_agente_escrita",
   /** Permite a IA marcar consulta sem humano no meio. */
   autoScheduling: "auto_scheduling",
   /** Liga a leitura de orçamentos. */
@@ -124,6 +130,7 @@ export const FLAGS_PADRAO: Readonly<Record<ChaveFlag, boolean>> = {
   ai_autopilot: false,
   ai_agente_sombra: false,
   ai_agente_envio: false,
+  ai_agente_escrita: false,
   auto_scheduling: false,
   budget_integration: false,
   automatic_whatsapp: false,

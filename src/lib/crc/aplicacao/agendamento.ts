@@ -113,6 +113,108 @@ function descreverSlot(slot: SlotDisponivel, fuso: string): OpcaoOferecida & { r
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* Consultar                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type ResultadoConsulta =
+  | { ok: true; opcoes: OpcaoDeHorario[] }
+  | { ok: false; codigo: MotivoSemOferta; motivo: string };
+
+/**
+ * O que está livre na agenda, SEM registrar oferta nenhuma.
+ *
+ * EXTRAÍDA DE `oferecerHorarios` quando o agente ganhou ferramentas: ele
+ * precisa poder perguntar "existe horário?" antes de decidir se vai oferecer.
+ * Se cada consulta registrasse oferta, a conversa acumularia ofertas abertas
+ * que ninguém citou — e a regra de "uma oferta aberta por conversa" passaria a
+ * barrar a oferta de verdade.
+ *
+ * Os dois chamadores compartilham esta função de propósito: o que é "horário
+ * livre" precisa ser uma resposta só. Duas implementações divergiriam no
+ * primeiro ajuste de janela ou de filtro.
+ */
+export async function consultarHorariosLivres(
+  ctx: ContextoAgendamento,
+  pedido: { janelaDias?: number; maximo?: number } = {},
+): Promise<ResultadoConsulta> {
+  const maximo = Math.min(3, Math.max(1, pedido.maximo ?? 3));
+
+  const dentistas = await dentistasDaClinica(ctx);
+  if (dentistas.length === 0) {
+    return {
+      ok: false,
+      codigo: "SEM_DENTISTA",
+      motivo: "Nenhum dentista sincronizado para consultar a agenda.",
+    };
+  }
+
+  /*
+   * DIAS À FRENTE, e não um intervalo de datas.
+   *
+   * A API do Dental Office aceita só `dentist_id` e `next` em
+   * `available_hours` — não existe "de 10 a 20 de outubro". Guardar o
+   * horizonte como número de dias é o que o adapter consegue cumprir de
+   * verdade; um `de`/`ate` aqui seria uma promessa que morre na borda.
+   */
+  const diasAFrente = pedido.janelaDias ?? 14;
+
+  const encontrados: SlotDisponivel[] = [];
+  for (const dentistaExternoId of dentistas) {
+    try {
+      const slots = await ctx.cliente.horariosDisponiveis({
+        clinicaExternaId: ctx.clinicaExternaId,
+        dentistaExternoId,
+        diasAFrente,
+        clinicId: ctx.clinicId,
+      });
+      encontrados.push(...slots);
+    } catch (erro) {
+      // Um dentista com agenda indisponível não pode derrubar a consulta
+      // inteira: os outros ainda têm horário, e o paciente está esperando.
+      registrar("aviso", "Agenda de um dentista não pôde ser lida.", {
+        organizationId: ctx.organizationId,
+        dentistaExternoId,
+        erro: erro instanceof Error ? erro.message : String(erro),
+      });
+    }
+    if (encontrados.length >= maximo * 4) break;
+  }
+
+  // Só horário dentro da janela em que a clínica atende. A API pode devolver
+  // vaga às 7h de sábado porque a cadeira está livre — não porque a clínica
+  // queira marcar ali.
+  const validos = encontrados
+    .filter((s) => dentroDoHorario(new Date(s.inicioEm), ctx.configuracao.horarioComercial))
+    .sort((a, b) => a.inicioEm.localeCompare(b.inicioEm));
+
+  // Um horário por dia, para as opções não serem "10:00, 10:30 e 11:00 da
+  // mesma terça" — três variações da mesma resposta.
+  const porDia = new Map<string, SlotDisponivel>();
+  for (const s of validos) {
+    const dia = descreverSlot(s, ctx.configuracao.horarioComercial.fuso).diaLocal;
+    if (!porDia.has(dia)) porDia.set(dia, s);
+    if (porDia.size >= maximo) break;
+  }
+
+  if (porDia.size === 0) {
+    return { ok: false, codigo: "SEM_SLOT", motivo: "A agenda não tem horário livre na janela." };
+  }
+
+  const nomes = await nomesDosDentistas(ctx);
+  return {
+    ok: true,
+    opcoes: [...porDia.values()].map((s) => ({
+      ...descreverSlot(s, ctx.configuracao.horarioComercial.fuso),
+      dentistaExternoId: s.dentistaExternoId,
+      cadeiraExternaId: s.cadeiraExternaId,
+      duracaoMinutos: s.duracaoMinutos,
+      fimEm: s.fimEm,
+      dentistaNome: nomes.get(s.dentistaExternoId) ?? null,
+    })),
+  };
+}
+
 /**
  * Busca horários reais e registra a oferta.
  *
@@ -151,76 +253,14 @@ export async function oferecerHorarios(
     return { ok: false, codigo: "JA_TEM_CONSULTA", motivo: "O paciente já tem consulta marcada." };
   }
 
-  const dentistas = await dentistasDaClinica(ctx);
-  if (dentistas.length === 0) {
-    return {
-      ok: false,
-      codigo: "SEM_DENTISTA",
-      motivo: "Nenhum dentista sincronizado para consultar a agenda.",
-    };
-  }
-
-  /*
-   * DIAS À FRENTE, e não um intervalo de datas.
-   *
-   * A API do Dental Office aceita só `dentist_id` e `next` em
-   * `available_hours` — não existe "de 10 a 20 de outubro". Guardar o
-   * horizonte como número de dias é o que o adapter consegue cumprir de
-   * verdade; um `de`/`ate` aqui seria uma promessa que morre na borda.
-   */
-  const diasAFrente = pedido.janelaDias ?? 14;
-
-  const encontrados: SlotDisponivel[] = [];
-  for (const dentistaExternoId of dentistas) {
-    try {
-      const slots = await ctx.cliente.horariosDisponiveis({
-        clinicaExternaId: ctx.clinicaExternaId,
-        dentistaExternoId,
-        diasAFrente,
-        clinicId: ctx.clinicId,
-      });
-      encontrados.push(...slots);
-    } catch (erro) {
-      // Um dentista com agenda indisponível não pode derrubar a oferta inteira:
-      // os outros ainda têm horário, e o paciente está esperando resposta.
-      registrar("aviso", "Agenda de um dentista não pôde ser lida.", {
-        organizationId: ctx.organizationId,
-        dentistaExternoId,
-        erro: erro instanceof Error ? erro.message : String(erro),
-      });
-    }
-    if (encontrados.length >= maximo * 4) break;
-  }
-
-  // Só horário dentro da janela em que a clínica atende. A API pode devolver
-  // vaga às 7h de sábado porque a cadeira está livre — não porque a clínica
-  // queira marcar ali.
-  const validos = encontrados
-    .filter((s) => dentroDoHorario(new Date(s.inicioEm), ctx.configuracao.horarioComercial))
-    .sort((a, b) => a.inicioEm.localeCompare(b.inicioEm));
-
-  // Um horário por dia, para as opções não serem "10:00, 10:30 e 11:00 da
-  // mesma terça" — três variações da mesma resposta.
-  const porDia = new Map<string, SlotDisponivel>();
-  for (const s of validos) {
-    const dia = descreverSlot(s, ctx.configuracao.horarioComercial.fuso).diaLocal;
-    if (!porDia.has(dia)) porDia.set(dia, s);
-    if (porDia.size >= maximo) break;
-  }
-
-  if (porDia.size === 0) {
-    return { ok: false, codigo: "SEM_SLOT", motivo: "A agenda não tem horário livre na janela." };
-  }
-
-  const nomes = await nomesDosDentistas(ctx);
-  const opcoes: OpcaoDeHorario[] = [...porDia.values()].map((s) => ({
-    ...descreverSlot(s, ctx.configuracao.horarioComercial.fuso),
-    dentistaExternoId: s.dentistaExternoId,
-    cadeiraExternaId: s.cadeiraExternaId,
-    duracaoMinutos: s.duracaoMinutos,
-    fimEm: s.fimEm,
-    dentistaNome: nomes.get(s.dentistaExternoId) ?? null,
-  }));
+  // `exactOptionalPropertyTypes`: passar `janelaDias: undefined` não é o mesmo
+  // que omitir a chave, e o compilador está certo em reclamar.
+  const consulta = await consultarHorariosLivres(ctx, {
+    ...(pedido.janelaDias === undefined ? {} : { janelaDias: pedido.janelaDias }),
+    maximo,
+  });
+  if (!consulta.ok) return consulta;
+  const opcoes = consulta.opcoes;
 
   const linha = await inserirIgnorandoDuplicata("crc_scheduling_offers", {
     organization_id: ctx.organizationId,

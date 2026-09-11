@@ -643,10 +643,15 @@ function Home() {
           </div>
         </section>
 
-        {/* 03 — HISTÓRIA */}
-        <HistorySection />
+        {/* 03 — TRATAMENTOS
 
-        {/* 04 — EQUIPE
+            Subiu da quinta para a terceira posição: é a resposta à pergunta com
+            que a pessoa chegou. Deixá-la atrás de história e equipe era pedir
+            que ela rolasse quatro telas para descobrir se a clínica faz o que
+            ela precisa. */}
+        <SpecialtiesSection />
+
+        {/* 06 — EQUIPE
 
             Voltou ao ar em 07/09/2026. Tinha saído porque ficou com cinco
             dentistas fictícios depois que a responsável técnica deixou a
@@ -660,11 +665,21 @@ function Home() {
             checagem sozinho. */}
         <TeamSection />
 
-        {/* 05 — ESPECIALIDADES */}
-        <SpecialtiesSection />
-
-        {/* 06 — AVALIAÇÕES */}
+        {/* 04 — AVALIAÇÕES */}
         <ReviewsSection />
+
+        {/* 05 — HISTÓRIA
+
+            Desceu da terceira para a quinta posição em 11/09/2026, e o motivo é
+            a pessoa que chega, não a clínica: quem procura dentista quer saber
+            se atendem o que ela tem antes de saber que a casa existe desde 2002.
+            A história não perde valor por vir depois — ganha, porque chega
+            depois de ela já ter motivo para se importar.
+
+            Também arruma o ritmo de fundo: A CLÍNICA e HISTÓRIA são as duas
+            seções escuras do topo e estavam coladas uma na outra. Agora há
+            claro entre elas. */}
+        <HistorySection />
 
         {/* 07 — ESTRUTURA */}
         <section id="estrutura" className="jp-section relative overflow-hidden bg-paper ">

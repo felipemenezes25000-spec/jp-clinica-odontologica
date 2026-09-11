@@ -720,10 +720,32 @@ export async function aoRodarTurnoDoAgente(evento: EventoCrc): Promise<void> {
     portaMensageria = m.configurado ? m.porta : null;
   }
 
+  /*
+   * A POLÍTICA É LIDA AQUI, uma vez, e entregue pronta ao laço.
+   *
+   * O laço não vai ao banco perguntar se pode: ele recebe o estado e decide
+   * com ele. Assim a mesma volta do laço não pode ver a flag mudar no meio —
+   * e a política fica testável sem banco.
+   */
+  const politica = {
+    escritaLiberada: flags["ai_agente_escrita"] === true,
+    writebackLiberado: flags["dental_office_writeback"] === true,
+    agendamentoAutonomo: flags["auto_scheduling"] === true,
+    escritasDentalOfficePausadas: interruptores["kill_escritas_do"] === true,
+    ferramentasUsadas: 0,
+  };
+
+  const { lerConfiguracao } = await import("../servidor/configuracao");
+  const cfg = await lerConfiguracao(evento.organizationId);
+
   const { rodarTurno } = await import("../ia-platform/turno");
   await rodarTurno({
     organizationId: evento.organizationId,
     conversationId,
+    politica,
+    // Montado só quando alguma ferramenta de agenda for escolhida: construí-lo
+    // exige falar com o Dental Office, e a maioria dos turnos não usa agenda.
+    contextoAgendamento: () => contextoDeAgendamento(evento, cfg, flags, interruptores),
     // O ID DO EVENTO É A CHAVE DE DEDUPE. O motor pode reprocessar um evento
     // depois de um restart; sem isto, o mesmo turno rodaria de novo e pagaria
     // o modelo de novo.
