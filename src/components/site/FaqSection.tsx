@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { ChevronRight, Heart, MessageCircleQuestion, Minus, Plus, ShieldCheck } from "lucide-react";
 
-import { FAQ, whatsappLink } from "@/lib/jp";
+import { FAQ } from "@/lib/jp";
 import { IconDente } from "@/components/site/TreatmentIcons";
 import { contatoWhatsApp } from "@/lib/contato";
 
@@ -46,11 +46,6 @@ export function FaqSection() {
       id="faq"
       className="relative isolate min-h-[900px] overflow-hidden bg-[#032F01] text-white lg:min-h-[960px]"
     >
-      {/* FOTO DE FUNDO
-          object-[38%_center] é o que alinha o rosto como na referência: com
-          object-cover o recorte é centralizado, e 38% puxa o enquadramento
-          para a esquerda o suficiente para o rosto cair no vão entre as duas
-          colunas. Se trocar a foto, este é o número a ajustar. */}
       <img
         src="/images/faq/faq-sorriso.jpg"
         alt=""
@@ -92,7 +87,6 @@ export function FaqSection() {
       </svg>
 
       <div className="relative mx-auto grid min-h-[900px] max-w-[1440px] gap-14 px-6 py-24 md:px-10 lg:min-h-[960px] lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-16 lg:px-12 xl:px-14">
-        {/* COLUNA ESQUERDA */}
         <div className="max-w-[620px]">
           <div className="mb-8 flex items-center gap-3 text-[#56A805]">
             <MessageCircleQuestion size={21} strokeWidth={1.6} aria-hidden="true" />
@@ -133,9 +127,6 @@ export function FaqSection() {
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
-            /* min-w só a partir de sm. O `max-sm:min-w-0` do original dependia
-               da ordem das variantes no CSS gerado e perdia: o botão media
-               365px numa faixa de 327px e era cortado no celular. */
             className="group mt-9 inline-flex w-full items-center gap-4 rounded-[21px] border border-lime/25 bg-[linear-gradient(110deg,rgba(86,168,5,.13),rgba(3,47,1,.7))] px-4 py-3 shadow-[0_12px_35px_rgba(0,0,0,.15)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-lime/50 hover:bg-[#032F01]/80 sm:w-auto sm:min-w-[365px]"
           >
             <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-lime text-white shadow-[0_8px_24px_rgba(86,168,5,.25)]">
@@ -146,7 +137,7 @@ export function FaqSection() {
                 Fale com a gente no WhatsApp
               </span>
               <span className="mt-1 block text-[13px] text-white/60">
-                Resposta rápida e humanizada
+                Atendimento durante o horário da clínica
               </span>
             </span>
             <ChevronRight
@@ -190,9 +181,6 @@ export function FaqSection() {
           </div>
         </div>
 
-        {/* COLUNA DIREITA — as perguntas vêm de jp.ts, as mesmas que alimentam
-            o JSON-LD de FAQPage. Duplicar aqui faria a página e o resultado do
-            Google divergirem no dia em que uma resposta mudasse. */}
         <div className="w-full">
           <div className="space-y-[12px]">
             {FAQ.map((item, index) => {
@@ -238,13 +226,6 @@ export function FaqSection() {
                     </span>
                   </button>
 
-                  {/* grid-rows 0fr→1fr anima a altura sem precisar medi-la em JS.
-                      Altura zero esconde da tela, mas o leitor de tela ainda
-                      leria as 8 respostas de uma vez — daí o aria-hidden.
-                      Usar `invisible` aqui seria pior: visibility interpola de
-                      forma discreta e troca no meio da transição, deixando a
-                      resposta invisível durante metade da abertura. Como o
-                      painel só tem texto, sem nada focável, aria-hidden basta. */}
                   <div
                     id={idPainel}
                     aria-hidden={!isOpen}
