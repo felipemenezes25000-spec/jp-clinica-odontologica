@@ -9,6 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   BookOpenText,
+  Activity,
   Brain,
   Compass,
   CalendarDays,
@@ -20,12 +21,14 @@ import {
   ChevronRight,
   Columns3,
   FileUp,
+  FlaskConical,
   House,
   ImageOff,
   ListTodo,
   LogOut,
   Megaphone,
   MessageSquareText,
+  PhoneCall,
   Search,
   Settings2,
   ShieldCheck,
@@ -33,6 +36,7 @@ import {
   UserRoundCog,
   UsersRound,
   Workflow,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 
@@ -51,6 +55,10 @@ import { Conhecimento } from "@/components/crc/Conhecimento";
 import { ModelosECusto } from "@/components/crc/ModelosECusto";
 import { Avaliacao } from "@/components/crc/Avaliacao";
 import { Estudio } from "@/components/crc/Estudio";
+import { Ferramentas } from "@/components/crc/Ferramentas";
+import { Playground } from "@/components/crc/Playground";
+import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
+import { Saude } from "@/components/crc/Saude";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
 import { Importar } from "@/components/crc/Importar";
@@ -105,6 +113,10 @@ type Aba =
   | "modelos"
   | "avaliacao"
   | "estudio"
+  | "playground"
+  | "ferramentas"
+  | "proximas"
+  | "saude"
   | "integracoes"
   | "configuracoes"
   | "equipe";
@@ -163,6 +175,15 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
       { aba: "funil", rotulo: "Funil", permissao: "ver_oportunidade", icone: Columns3 },
       { aba: "agenda", rotulo: "Agenda", permissao: "ver_paciente", icone: CalendarDays },
       { aba: "pacientes", rotulo: "Pacientes", permissao: "ver_paciente", icone: UsersRound },
+      {
+        aba: "proximas",
+        rotulo: "Próximas ações",
+        // `ver_financeiro` porque a fila é ORDENADA por valor em aberto e o
+        // total aparece na tela. Quem não pode ver dinheiro não pode ver uma
+        // lista ordenada por dinheiro — item 229.
+        permissao: "ver_financeiro",
+        icone: PhoneCall,
+      },
     ],
   },
   {
@@ -191,6 +212,23 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
         icone: Sparkles,
       },
       {
+        aba: "playground",
+        rotulo: "Playground",
+        // Ao lado do Estúdio, e logo depois dele: escreve-se o texto, testa-se
+        // aqui, e só então se avalia. É a ordem do trabalho.
+        permissao: "gerenciar_automacao",
+        icone: FlaskConical,
+      },
+      {
+        aba: "ferramentas",
+        rotulo: "Ferramentas",
+        // `gerenciar_autopilot` na função de servidor; aqui basta a de
+        // automação para VER. Esconder o item de quem pode olhar seria
+        // esconder informação, e não proteger nada.
+        permissao: "gerenciar_automacao",
+        icone: Wrench,
+      },
+      {
         aba: "avaliacao",
         rotulo: "Avaliação",
         // Mesma permissão da Inteligência e do Conhecimento: é a mesma pessoa
@@ -213,6 +251,15 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
     id: "administracao",
     rotulo: "Administração",
     itens: [
+      {
+        aba: "saude",
+        rotulo: "Saúde",
+        // A primeira tela a abrir quando algo parou. Fica em Administração e
+        // não em Performance porque a pergunta dela é "está no ar?", e não
+        // "está bom?".
+        permissao: "gerenciar_automacao",
+        icone: Activity,
+      },
       { aba: "integracoes", rotulo: "Integrações", permissao: "ver_integracoes", icone: Cable },
       {
         aba: "modelos",
@@ -655,6 +702,133 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "No ar", tom: "positiva" },
       { rotulo: "Rascunho", tom: "alerta" },
       { rotulo: "Ferramenta bloqueada", tom: "neutra" },
+    ],
+  },
+  playground: {
+    sobretitulo: "Testar sem soltar",
+    paraQue: "ver como a IA responderia, sem ninguém receber nada",
+    descricao:
+      "Até agora, para saber como a IA responderia a uma mensagem era preciso esperar um paciente escrever aquela mensagem — e para testar um texto novo, era preciso publicar o texto, ou seja, soltá-lo em cima de gente. Aqui você escolhe uma conversa real, escreve a mensagem que quer testar, e vê o turno inteiro acontecer. Nada sai: nenhuma mensagem é enviada, nenhuma consulta é marcada, nenhuma tarefa é criada — mesmo que a IA decida fazer essas coisas. O que ela TERIA feito aparece escrito.",
+    acoes: [
+      {
+        faca: "Rodar o turno",
+        efeito:
+          "A IA responde de verdade, com o histórico e os dados reais daquela conversa. A chamada ao modelo é paga e entra no orçamento de IA — é o único custo real desta tela.",
+      },
+      {
+        faca: "Texto do agente (opcional)",
+        efeito:
+          "Cole aqui o rascunho do Estúdio para ver o efeito dele ANTES de publicar. Vazio, usa o texto que está no ar.",
+      },
+      {
+        faca: '"O que TERIA mudado no mundo"',
+        efeito:
+          "Aparece quando a IA decide marcar consulta, criar tarefa ou registrar opt-out. Nada disso aconteceu — mas teria acontecido em produção, e é onde se descobre isso a tempo.",
+      },
+      {
+        faca: "Passo a passo",
+        efeito:
+          "O que a IA consultou e decidiu antes de responder. Ajustar um texto olhando só a resposta final é tentativa e erro caro.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Responderia", tom: "positiva" },
+      { rotulo: "Passaria para pessoa", tom: "info" },
+      { rotulo: "Teria escrito algo", tom: "alerta" },
+    ],
+  },
+  ferramentas: {
+    sobretitulo: "O que a IA pode fazer",
+    paraQue: "reduzir o que a IA faz sozinha, nunca aumentar",
+    descricao:
+      "Cada linha é uma coisa que a IA consegue fazer: consultar a agenda, ver orçamento, marcar consulta, passar a conversa para uma pessoa. Dá para desligar qualquer uma, e dá para exigir que uma pessoa aprove antes. O que NÃO dá é afrouxar: uma ferramenta que já exige aprovação humana continua exigindo, escolha o que escolher — e a trava não é desta tela, é do sistema, então nem mexer no banco a contorna. Duas ferramentas não podem ser desligadas: passar a conversa para uma pessoa e registrar quem pediu para não ser contatado.",
+    acoes: [
+      {
+        faca: "Ferramentas por conversa",
+        efeito:
+          "Cada ferramenta é uma chamada de modelo a mais. É aqui que o custo por turno sobe — e é o primeiro lugar a apertar quando ele sobe, antes de pensar em trocar de modelo.",
+      },
+      {
+        faca: "Criatividade",
+        efeito:
+          "De 0 a 1, e baixo é o certo. Esta IA responde sobre horário, convênio e orçamento: criatividade aqui tem outro nome, e é invenção.",
+      },
+      {
+        faca: "Desligar uma ferramenta",
+        efeito:
+          "Ela some do que a IA enxerga, na próxima mensagem. Não é aviso: a IA passa a não ter aquilo.",
+      },
+      {
+        faca: '"uma pessoa aprova"',
+        efeito:
+          "A IA passa a registrar o pedido em vez de executar. Vale para a clínica inteira, e fica registrado quem mudou.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Ligada", tom: "positiva" },
+      { rotulo: "Apertada por vocês", tom: "alerta" },
+      { rotulo: "Mexe na agenda real", tom: "perigo" },
+    ],
+  },
+  proximas: {
+    sobretitulo: "Com quem falar primeiro",
+    paraQue: "a fila do dia, em ordem de quanto se perde se ninguém ligar",
+    descricao:
+      "A lista de tarefas é ordenada por prazo, e prazo põe no topo o que alguém agendou — não o que mais importa agora. Aqui a ordem é outra: risco de a pessoa sumir multiplicado por quanto se perde se ela sumir. Quem aprovou um orçamento e não marcou vem antes de um lembrete de rotina que venceu hoje de manhã. Cada linha traz o motivo, e o “Por quê?” abre a ficha inteira: os fatores que somaram pontos, a melhor hora para falar com aquela pessoa, e o que a clínica sabe sobre ela porque alguém disse.",
+    acoes: [
+      {
+        faca: "Por quê?",
+        efeito:
+          "Abre a ficha: de onde vieram os pontos, a melhor hora para ligar, e o que já se sabe. É o que prepara a ligação antes de discar.",
+      },
+      {
+        faca: '"Aguardar"',
+        efeito:
+          "Falamos com essa pessoa há poucos dias. Ela continua na lista, no lugar certo, porque amanhã ela é a primeira — insistir hoje só ensina a pessoa a não atender.",
+      },
+      {
+        faca: "Em risco nesta lista",
+        efeito:
+          "A soma do que está aprovado e não iniciado entre quem dá para ligar hoje. É o motivo de fazer a lista, e não só de olhar.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Prioridade alta", tom: "perigo" },
+      { rotulo: "Vale ligar", tom: "alerta" },
+      { rotulo: "Aguardar", tom: "neutra" },
+    ],
+  },
+  saude: {
+    sobretitulo: "Está no ar?",
+    paraQue: "descobrir se a IA parou, e de quem é o problema",
+    descricao:
+      "Quando a IA para de responder, cinco coisas diferentes têm exatamente a mesma aparência: o provedor caiu, o teto de gasto estourou, alguém acionou um interruptor de emergência e esqueceu, um worker morreu no meio, ou a fila não está sendo puxada. Esta tela separa as cinco. Cada sinal vem com a próxima ação — e se não houver sinal nenhum, o problema não é aqui.",
+    acoes: [
+      {
+        faca: '"Provedor cortado"',
+        efeito:
+          "A IA falhou várias vezes seguidas e as chamadas estão sendo cortadas na hora, para não travar o atendimento das outras clínicas. Se disser meio-aberto, está voltando sozinho — espere.",
+      },
+      {
+        faca: '"Pacientes esperando há N minutos"',
+        efeito:
+          "A fila tem trabalho e ninguém a está puxando. Confira o cron antes de olhar o código.",
+      },
+      {
+        faca: '"Turnos que esgotaram as tentativas"',
+        efeito:
+          "Cada um é um paciente que escreveu e não foi respondido. Eles estão registrados — responda à mão antes de investigar a causa.",
+      },
+      {
+        faca: "Os números dos 30 dias",
+        efeito:
+          "Quanto a IA respondeu, quanto passou adiante e quanto custou. Passar adiante demais ou de menos são os dois problemas, e a tela diz qual é qual.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Tudo funcionando", tom: "positiva" },
+      { rotulo: "Precisa de atenção", tom: "alerta" },
+      { rotulo: "Precisa de você agora", tom: "perigo" },
     ],
   },
   avaliacao: {
@@ -1625,6 +1799,10 @@ function PortalCrc() {
           {abaAtual === "modelos" && <ModelosECusto />}
           {abaAtual === "avaliacao" && <Avaliacao />}
           {abaAtual === "estudio" && <Estudio />}
+          {abaAtual === "playground" && <Playground />}
+          {abaAtual === "ferramentas" && <Ferramentas />}
+          {abaAtual === "proximas" && <ProximasAcoes />}
+          {abaAtual === "saude" && <Saude />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
         </main>

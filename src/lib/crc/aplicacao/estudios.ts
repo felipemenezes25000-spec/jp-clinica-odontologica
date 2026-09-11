@@ -96,6 +96,19 @@ const RIGOR: Record<AprovacaoFerramenta, number> = {
  * pessoa; nenhuma configuração dispensa a aprovação humana de `agenda.cancelar`,
  * porque `Math.max` nunca desce.
  */
+/**
+ * O valor veio de um formulário? Então ele é `string`, e precisa ser conferido.
+ *
+ * A função de servidor recebe JSON do navegador: um `aprovacaoExigida:
+ * "SUPER_ADMIN"` chegaria como string e passaria direto para `mesclarAprovacao`,
+ * onde `RIGOR[daClinica]` seria `undefined` e a comparação `> RIGOR[doCodigo]`
+ * daria `false` — afrouxando em silêncio, que é exatamente o que a direção única
+ * existe para impedir.
+ */
+export function ehAprovacao(v: unknown): v is AprovacaoFerramenta {
+  return v === "NENHUMA" || v === "CONFIRMACAO_PACIENTE" || v === "HUMANO";
+}
+
 export function mesclarAprovacao(
   doCodigo: AprovacaoFerramenta,
   daClinica: AprovacaoFerramenta | null,

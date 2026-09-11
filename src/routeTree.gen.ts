@@ -20,6 +20,7 @@ import { Route as CarreirasSlugRouteImport } from './routes/carreiras/$slug'
 import { Route as TratamentosSlugRouteImport } from './routes/tratamentos/$slug'
 import { Route as ApiCrcInstalarRouteImport } from './routes/api/crc/instalar'
 import { Route as ApiCrcLeadRouteImport } from './routes/api/crc/lead'
+import { Route as ApiCrcMcpRouteImport } from './routes/api/crc/mcp'
 import { Route as ApiCrcMotorRouteImport } from './routes/api/crc/motor'
 import { Route as ApiCrcSaudeRouteImport } from './routes/api/crc/saude'
 import { Route as ApiCrcWhatsappRouteImport } from './routes/api/crc/whatsapp'
@@ -81,6 +82,11 @@ const ApiCrcLeadRoute = ApiCrcLeadRouteImport.update({
   path: '/api/crc/lead',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrcMcpRoute = ApiCrcMcpRouteImport.update({
+  id: '/api/crc/mcp',
+  path: '/api/crc/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCrcMotorRoute = ApiCrcMotorRouteImport.update({
   id: '/api/crc/motor',
   path: '/api/crc/motor',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/carreiras/': typeof CarreirasIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
   '/api/crc/lead': typeof ApiCrcLeadRoute
+  '/api/crc/mcp': typeof ApiCrcMcpRoute
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/carreiras': typeof CarreirasIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
   '/api/crc/lead': typeof ApiCrcLeadRoute
+  '/api/crc/mcp': typeof ApiCrcMcpRoute
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/carreiras/': typeof CarreirasIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
   '/api/crc/lead': typeof ApiCrcLeadRoute
+  '/api/crc/mcp': typeof ApiCrcMcpRoute
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/carreiras/'
     | '/api/crc/instalar'
     | '/api/crc/lead'
+    | '/api/crc/mcp'
     | '/api/crc/motor'
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/carreiras'
     | '/api/crc/instalar'
     | '/api/crc/lead'
+    | '/api/crc/mcp'
     | '/api/crc/motor'
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/carreiras/'
     | '/api/crc/instalar'
     | '/api/crc/lead'
+    | '/api/crc/mcp'
     | '/api/crc/motor'
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
@@ -231,6 +243,7 @@ export interface RootRouteChildren {
   CarreirasIndexRoute: typeof CarreirasIndexRoute
   ApiCrcInstalarRoute: typeof ApiCrcInstalarRoute
   ApiCrcLeadRoute: typeof ApiCrcLeadRoute
+  ApiCrcMcpRoute: typeof ApiCrcMcpRoute
   ApiCrcMotorRoute: typeof ApiCrcMotorRoute
   ApiCrcSaudeRoute: typeof ApiCrcSaudeRoute
   ApiCrcWhatsappRoute: typeof ApiCrcWhatsappRoute
@@ -317,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCrcLeadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/crc/mcp': {
+      id: '/api/crc/mcp'
+      path: '/api/crc/mcp'
+      fullPath: '/api/crc/mcp'
+      preLoaderRoute: typeof ApiCrcMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/crc/motor': {
       id: '/api/crc/motor'
       path: '/api/crc/motor'
@@ -367,6 +387,7 @@ const rootRouteChildren: RootRouteChildren = {
   CarreirasIndexRoute: CarreirasIndexRoute,
   ApiCrcInstalarRoute: ApiCrcInstalarRoute,
   ApiCrcLeadRoute: ApiCrcLeadRoute,
+  ApiCrcMcpRoute: ApiCrcMcpRoute,
   ApiCrcMotorRoute: ApiCrcMotorRoute,
   ApiCrcSaudeRoute: ApiCrcSaudeRoute,
   ApiCrcWhatsappRoute: ApiCrcWhatsappRoute,

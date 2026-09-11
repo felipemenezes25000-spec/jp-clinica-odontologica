@@ -3217,6 +3217,39 @@ export const mudarEstadoAutomacao = createServerFn({ method: "POST" })
         };
       }
 
+      /*
+       * A ESCADA NÃO PODE SER PULADA — Fase G.
+       *
+       * SHADOW calcula e não age. RECOMENDAR cria tarefa para uma pessoa em vez
+       * de agir. EXECUTAR age sozinha. Ir de SHADOW direto para EXECUTAR é ligar
+       * uma automação que nunca teve um único caso conferido por gente — e
+       * automação de clínica manda mensagem para paciente.
+       *
+       * RECOMENDAR é onde se descobre que a jornada dispara para a pessoa
+       * errada, SEM que a pessoa errada receba nada.
+       *
+       * A TRAVA VIVE AQUI, e não numa função paralela, porque este é o único
+       * caminho por onde o modo muda. Uma segunda função com a mesma regra seria
+       * a segunda regra que ninguém revisa — é a lição do chokepoint da Fase C.
+       *
+       * DESCER continua livre, em qualquer distância: quem volta atrás está
+       * reduzindo o que o sistema faz sozinho, e nunca se deve pôr atrito no
+       * caminho de quem quer que ele faça menos.
+       */
+      if (data.modo !== undefined) {
+        const ESCADA = ["SHADOW", "RECOMENDAR", "EXECUTAR"];
+        const de = ESCADA.indexOf(String(antes["modo"] ?? "SHADOW"));
+        const para = ESCADA.indexOf(data.modo);
+
+        if (para > de + 1) {
+          return {
+            ok: false as const,
+            code: "PULOU_DEGRAU",
+            message: `Esta automação está em ${String(antes["modo"] ?? "SHADOW")}. Passe primeiro por ${String(ESCADA[de + 1])}: é lá que se descobre se ela dispara para a pessoa certa, sem ninguém receber nada.`,
+          };
+        }
+      }
+
       await atualizar(
         "crc_automations",
         [
@@ -3922,6 +3955,428 @@ export const carregarHistoricoJornada = createServerFn({ method: "GET" })
           texto: campo(l["detalhe"], "texto"),
           template: campo(l["detalhe"], "template"),
         })),
+      };
+    }),
+  );
+
+/* ========================================================================== */
+/* A ponta visível das Fases F a I                                            */
+/* ========================================================================== */
+/*
+ * O QUE FALTAVA, e por que faltava. As fases F a I entregaram lógica testada em
+ * `aplicacao/` e `dominio/` — disjuntor, playground, estúdios, cérebros,
+ * analytics. Nada disso tinha função de servidor nem tela: existia, funcionava e
+ * ninguém na clínica conseguia abrir.
+ *
+ * Este bloco é a travessia. Cada função abaixo segue a mesma regra do arquivo:
+ * `comContexto` valida sessão E permissão antes do handler, e tudo que é de
+ * servidor entra por `await import()` DENTRO do handler.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* Saúde do sistema — Fase F                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type SinalDeSaudeDto = {
+  codigo: string;
+  titulo: string;
+  acao: string;
+  severidade: "ok" | "atencao" | "critico";
+  detalhe: string;
+};
+
+export type MetricasDeIaDto = {
+  turnos: number;
+  entregues: number;
+  humanos: number;
+  falhas: number;
+  taxaDeEntrega: number;
+  taxaDeHandoff: number;
+  taxaDeFalha: number;
+  custoTotal: number;
+  custoPorTurno: number;
+  portoes: { codigo: string; vezes: number }[];
+};
+
+export type PainelDeSaudeDto = {
+  severidade: "ok" | "atencao" | "critico";
+  sinais: SinalDeSaudeDto[];
+  em: string;
+  /** As métricas do período, e a leitura delas em português. */
+  metricas: MetricasDeIaDto;
+  leituras: SinalDeSaudeDto[];
+  /** Comparação com o período anterior, para saber se está melhorando. */
+  comparacoes: {
+    metrica: string;
+    antes: number;
+    agora: number;
+    variacao: number;
+    significativa: boolean;
+  }[];
+};
+
+/**
+ * O painel que responde "o agente parou. É a gente ou é eles?".
+ *
+ * JUNTA SAÚDE E ANALYTICS numa chamada só, e não é economia de rede: são as duas
+ * metades da mesma pergunta. "A taxa de entrega caiu" e "o disjuntor está
+ * aberto" separados em duas telas fazem alguém investigar qualidade do prompt
+ * durante uma queda de provedor.
+ */
+export const carregarSaudeDoSistema = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ painel: PainelDeSaudeDto }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { panoramaDeSaude } = await import("./aplicacao/saude");
+      const { compararPeriodos, lerMetricas, metricasDeIa } =
+        await import("./aplicacao/analytics-ia");
+
+      const agora = new Date();
+      const trintaDias = 30 * 86_400_000;
+      const inicio = new Date(agora.getTime() - trintaDias);
+      const inicioAnterior = new Date(agora.getTime() - 2 * trintaDias);
+
+      const [saude, atual, anterior] = await Promise.all([
+        panoramaDeSaude(ctx.organizationId, agora),
+        metricasDeIa({ organizationId: ctx.organizationId, de: inicio, ate: agora }),
+        metricasDeIa({
+          organizationId: ctx.organizationId,
+          de: inicioAnterior,
+          ate: inicio,
+        }),
+      ]);
+
+      return {
+        ok: true as const,
+        painel: {
+          severidade: saude.severidade,
+          sinais: saude.sinais,
+          em: saude.em,
+          metricas: {
+            turnos: atual.turnos,
+            entregues: atual.entregues,
+            humanos: atual.humanos,
+            falhas: atual.falhas,
+            taxaDeEntrega: atual.taxaDeEntrega,
+            taxaDeHandoff: atual.taxaDeHandoff,
+            taxaDeFalha: atual.taxaDeFalha,
+            custoTotal: atual.custoTotal,
+            custoPorTurno: atual.custoPorTurno,
+            portoes: atual.portoes,
+          },
+          // A leitura reaproveita o formato de sinal: a tela desenha os dois do
+          // mesmo jeito, e quem lê não precisa aprender dois vocabulários.
+          leituras: lerMetricas(atual).map((l) => ({
+            codigo: "metrica",
+            titulo: l.titulo,
+            acao: l.detalhe,
+            severidade: l.severidade,
+            detalhe: "",
+          })),
+          comparacoes: compararPeriodos(anterior, atual),
+        },
+      };
+    }),
+);
+
+/* -------------------------------------------------------------------------- */
+/* Playground — Fase G                                                        */
+/* -------------------------------------------------------------------------- */
+
+export type ResultadoPlaygroundDto = {
+  resposta: string | null;
+  desfecho: string;
+  motivo: string;
+  passos: { tipo: string; nome: string; detalhe: string; teriaEscrito: boolean }[];
+  escritasSimuladas: string[];
+};
+
+/**
+ * Roda um turno de mentira com dados de verdade.
+ *
+ * `gerenciar_automacao` e não `ver_conversa`: isto CHAMA O MODELO, e chamada de
+ * modelo custa dinheiro da clínica. Quem só atende paciente não deveria poder
+ * gastar orçamento de IA testando texto.
+ */
+export const rodarNoPlayground = createServerFn({ method: "POST" })
+  .validator((e: { conversationId: string; mensagem: string; instrucoes?: string | null }) => ({
+    conversationId: String(e.conversationId ?? ""),
+    mensagem: String(e.mensagem ?? ""),
+    instrucoes: e.instrucoes == null ? null : String(e.instrucoes),
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ resultado: ResultadoPlaygroundDto }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      if (data.conversationId.length === 0 || data.mensagem.trim().length === 0) {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message: "Escolha uma conversa e escreva a mensagem de teste.",
+        };
+      }
+
+      const { rodarPlayground } = await import("./aplicacao/playground");
+      const r = await rodarPlayground({
+        organizationId: ctx.organizationId,
+        conversationId: data.conversationId,
+        mensagem: data.mensagem,
+        instrucoes: data.instrucoes,
+      });
+
+      return {
+        ok: true as const,
+        resultado: {
+          resposta: r.resposta,
+          desfecho: r.desfecho,
+          motivo: r.motivo,
+          passos: r.passos,
+          escritasSimuladas: r.escritasSimuladas,
+        },
+      };
+    }),
+  );
+
+/** As conversas que o Playground pode usar como cenário. */
+export type ConversaParaTesteDto = { id: string; nome: string; ultimaMensagem: string };
+
+export const carregarConversasParaTeste = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ conversas: ConversaParaTesteDto[] }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { selecionar } = await import("./servidor/banco");
+
+      const linhas = await selecionar("crc_conversations", {
+        colunas: "id,contato_externo,ultima_mensagem_trecho,patient_id",
+        filtros: [{ coluna: "organization_id", op: "eq", valor: ctx.organizationId }],
+        ordenar: [{ coluna: "ultima_mensagem_em", ascendente: false }],
+        limite: 30,
+      });
+
+      const ids = linhas
+        .map((l) => l["patient_id"])
+        .filter((v): v is string => typeof v === "string");
+
+      const pacientes =
+        ids.length === 0
+          ? []
+          : await selecionar("crc_patients", {
+              colunas: "id,nome",
+              filtros: [
+                { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+                { coluna: "id", op: "in", valor: ids },
+              ],
+              limite: 30,
+            });
+
+      const nomes = new Map(pacientes.map((p) => [String(p["id"]), String(p["nome"] ?? "")]));
+
+      return {
+        ok: true as const,
+        conversas: linhas.map((l) => {
+          const pid = l["patient_id"];
+          const nome = typeof pid === "string" ? nomes.get(pid) : undefined;
+          return {
+            id: String(l["id"] ?? ""),
+            // Sem paciente casado, o telefone é o que identifica a conversa —
+            // e ele é dado pessoal, então vai mascarado.
+            nome: nome ?? mascarar(String(l["contato_externo"] ?? "")),
+            ultimaMensagem: String(l["ultima_mensagem_trecho"] ?? "").slice(0, 80),
+          };
+        }),
+      };
+    }),
+);
+
+/** `5511999998888` vira `(11) 9****-8888`. Mesmo formato do log. */
+function mascarar(telefone: string): string {
+  const so = telefone.replace(/\D/gu, "");
+  if (so.length < 10) return "conversa sem paciente";
+  const ddd = so.slice(2, 4);
+  const fim = so.slice(-4);
+  return `(${ddd}) 9****-${fim}`;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tool Studio e Agent Studio — Fase G                                        */
+/* -------------------------------------------------------------------------- */
+
+export type FerramentaConfiguravelDto = {
+  chave: string;
+  descricao: string;
+  permissao: string;
+  aprovacaoDoCodigo: string;
+  aprovacaoEfetiva: string;
+  ligada: boolean;
+  apertadaPelaClinica: boolean;
+  essencial: boolean;
+};
+
+export type ParametrosDoAgenteDto = {
+  maxFerramentas: number;
+  maxCaracteres: number;
+  temperatura: number;
+};
+
+export const carregarFerramentasDoAgente = createServerFn({ method: "GET" }).handler(
+  async (): Promise<
+    Resposta<{
+      ferramentas: FerramentaConfiguravelDto[];
+      parametros: ParametrosDoAgenteDto;
+      tetoDeFerramentas: number;
+    }>
+  > =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { listarFerramentasDaClinica, lerParametros } = await import("./aplicacao/estudios");
+      const { MAX_FERRAMENTAS_POR_TURNO } = await import("./ia-platform/ferramentas");
+
+      const [ferramentas, parametros] = await Promise.all([
+        listarFerramentasDaClinica(ctx.organizationId),
+        lerParametros(ctx.organizationId),
+      ]);
+
+      return {
+        ok: true as const,
+        ferramentas,
+        parametros,
+        // O teto do CÓDIGO vai para a tela, para o campo poder dizer "no máximo
+        // 4" em vez de aceitar 99 e silenciosamente aplicar 4.
+        tetoDeFerramentas: MAX_FERRAMENTAS_POR_TURNO,
+      };
+    }),
+);
+
+export const ajustarFerramentaDoAgente = createServerFn({ method: "POST" })
+  .validator((e: { chave: string; ligada: boolean; aprovacaoExigida?: string | null }) => ({
+    chave: String(e.chave ?? ""),
+    ligada: e.ligada === true,
+    aprovacaoExigida: e.aprovacaoExigida == null ? null : String(e.aprovacaoExigida),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    // `gerenciar_autopilot`, e não `gerenciar_automacao`: mexer no que o
+    // agente pode FAZER é a mesma classe de decisão que ligar o Autopilot.
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { ajustarFerramenta } = await import("./aplicacao/estudios");
+      const { ehAprovacao } = await import("./aplicacao/estudios");
+
+      if (data.aprovacaoExigida !== null && !ehAprovacao(data.aprovacaoExigida)) {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message: "Nível de aprovação inválido.",
+        };
+      }
+
+      const r = await ajustarFerramenta({
+        organizationId: ctx.organizationId,
+        chave: data.chave,
+        ligada: data.ligada,
+        aprovacaoExigida: data.aprovacaoExigida,
+        userId: ctx.usuario.id,
+      });
+
+      return r.ok
+        ? { ok: true as const }
+        : { ok: false as const, code: r.codigo, message: r.motivo };
+    }),
+  );
+
+export const salvarParametrosDoAgente = createServerFn({ method: "POST" })
+  .validator((e: { maxFerramentas?: number; maxCaracteres?: number; temperatura?: number }) => ({
+    /*
+     * `exactOptionalPropertyTypes` está ligado neste projeto, e ele distingue
+     * "campo ausente" de "campo presente valendo undefined". Espalhar
+     * condicionalmente é o que produz a primeira forma — a que `Partial` aceita.
+     */
+    ...(e.maxFerramentas === undefined ? {} : { maxFerramentas: Number(e.maxFerramentas) }),
+    ...(e.maxCaracteres === undefined ? {} : { maxCaracteres: Number(e.maxCaracteres) }),
+    ...(e.temperatura === undefined ? {} : { temperatura: Number(e.temperatura) }),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { salvarParametros } = await import("./aplicacao/estudios");
+      await salvarParametros({
+        organizationId: ctx.organizationId,
+        parametros: data,
+        userId: ctx.usuario.id,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* A fila do dia — Fase H                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type AcaoSugeridaDto = {
+  patientId: string;
+  nome: string;
+  prioridade: number;
+  acao: string;
+  porque: string;
+  aguardar: boolean;
+};
+
+export type FilaDoDiaDto = {
+  acoes: AcaoSugeridaDto[];
+  emEspera: number;
+  valorEmRisco: number;
+};
+
+/**
+ * Com quem falar primeiro hoje.
+ *
+ * `ver_financeiro` é exigido junto de `ver_paciente` porque a ordenação usa
+ * valor em aberto e o total aparece na tela. Quem não pode ver dinheiro não
+ * pode ver uma lista ordenada por dinheiro — item 229.
+ */
+export const carregarFilaDoDia = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ fila: FilaDoDiaDto }>> =>
+    comContexto("ver_financeiro", async (ctx) => {
+      const { filaDoDia } = await import("./aplicacao/fila-do-dia");
+      const fila = await filaDoDia(ctx.organizationId, new Date(), 20);
+      return { ok: true as const, fila };
+    }),
+);
+
+export type CerebroDoPacienteDto = {
+  nome: string;
+  resumo: string;
+  escore: number;
+  nivel: string;
+  fatores: { codigo: string; motivo: string; pontos: number }[];
+  acaoSugerida: string;
+  melhorHorario: string | null;
+  memorias: string[];
+  valorEmAberto: number;
+};
+
+export const carregarCerebroDoPaciente = createServerFn({ method: "POST" })
+  .validator((e: { patientId: string }) => ({ patientId: String(e.patientId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ cerebro: CerebroDoPacienteDto }>> =>
+    comContexto("ver_financeiro", async (ctx) => {
+      const { cerebroDoPaciente } = await import("./aplicacao/cerebros");
+      const c = await cerebroDoPaciente(ctx.organizationId, data.patientId);
+
+      if (c === null) {
+        return {
+          ok: false as const,
+          code: "NAO_ENCONTRADO",
+          message: "Não encontramos este paciente.",
+        };
+      }
+
+      return {
+        ok: true as const,
+        cerebro: {
+          nome: c.nome,
+          resumo: c.resumo,
+          escore: c.risco.escore,
+          nivel: c.risco.nivel,
+          fatores: c.risco.fatores,
+          acaoSugerida: c.risco.acaoSugerida,
+          // A explicação, e não a hora crua: "19h" sem o "82% das respostas
+          // chegaram entre 18h e 21h" é um número que ninguém sabe se seguir.
+          melhorHorario: c.melhorHorario.sabemos ? c.melhorHorario.explicacao : null,
+          memorias: c.memorias,
+          valorEmAberto: c.valorEmAberto,
+        },
       };
     }),
   );

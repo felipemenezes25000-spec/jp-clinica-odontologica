@@ -5,6 +5,24 @@
 
 Gerado em 11/09/2026. Atualizado ao fim da FASE I — as nove fases do roadmap.
 
+## A ponta visível
+
+As fases F a I entregaram lógica testada e, por um tempo, **nada disso chegava à
+tela**: nem função de servidor, nem componente. A matriz marcava os itens como
+`PASS` olhando o roadmap técnico, e não o que os nomes prometiam a quem usa —
+"Tool Studio", "Playground" e "editor de Workflow" são, pelo nome, telas.
+
+Isso foi corrigido:
+
+| Item | Onde está agora |
+|---|---|
+| Painel de saúde + analytics de IA | aba **Saúde**, em Administração |
+| Playground | aba **Playground**, ao lado do Estúdio |
+| Tool Studio + Agent Studio | aba **Ferramentas** |
+| Next Best Action + Patient Brain | aba **Próximas ações**, em Operação |
+| Editor de Workflow | a tela de **Automações** já existia; ganhou a trava de degrau |
+| MCP | `POST /api/crc/mcp`, JSON-RPC 2.0, verificado ao vivo |
+
 ## Leitura rápida
 
 | | |
