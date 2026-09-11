@@ -227,7 +227,7 @@ function TreatmentPage() {
                 >
                   <ArrowLeft className="h-4 w-4" /> Todos os tratamentos
                 </a>
-                <p className="mt-8 text-[11px] font-black uppercase tracking-[.2em] text-white/80">
+                <p className="mt-8 text-micro font-black uppercase tracking-[.2em] text-white/80">
                   0{index + 1} / 08 • JP Clínica Integrada Odontológica
                 </p>
                 {/* Tracking capped at -.04em: at this size -.085em pulled the second
@@ -267,7 +267,7 @@ function TreatmentPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-forest-2/85 via-transparent to-forest-2/5" />
                     <div className="absolute inset-x-5 bottom-5 flex items-end justify-between gap-4 sm:inset-x-7 sm:bottom-7">
                       <div className="max-w-[22rem] rounded-2xl border border-white/12 bg-forest-2/72 p-5 backdrop-blur-xl">
-                        <p className="text-[11px] font-black uppercase tracking-[.18em] text-lime">
+                        <p className="text-micro font-black uppercase tracking-[.18em] text-lime">
                           A experiência JP
                         </p>
                         <p className="mt-2 font-display text-2xl font-black leading-[.95]">
@@ -307,7 +307,7 @@ function TreatmentPage() {
                   </span>
                   <div>
                     <p className="font-display text-xl font-black text-forest-2">JP Clínica</p>
-                    <p className="text-[11px] font-black uppercase tracking-[.18em] text-ink-soft">
+                    <p className="text-micro font-black uppercase tracking-[.18em] text-ink-soft">
                       Planejamento individual
                     </p>
                   </div>
@@ -533,7 +533,7 @@ function TreatmentPage() {
                     <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-forest-2">
                       <Sparkles className="h-5 w-5" />
                     </span>
-                    <p className="mt-14 text-[11px] font-black uppercase tracking-[.16em] text-brand-text">
+                    <p className="mt-14 text-micro font-black uppercase tracking-[.16em] text-brand-text">
                       {item.kicker}
                     </p>
                     <h3 className="mt-3 font-display text-3xl font-black leading-[.9] text-forest-2">

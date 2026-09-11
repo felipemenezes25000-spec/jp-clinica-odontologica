@@ -78,7 +78,7 @@ function CardProfissional({
           {nome}
         </h3>
 
-        <p className="mt-1.5 min-h-[30px] text-[11px] font-bold uppercase leading-[1.35] tracking-[0.08em] text-brand-text">
+        <p className="mt-1.5 min-h-[30px] text-micro font-bold uppercase leading-[1.35] tracking-[0.08em] text-brand-text">
           {papel}
         </p>
 
@@ -94,7 +94,7 @@ function CardProfissional({
           <>
             <div aria-hidden="true" className="mx-auto my-3 h-px w-[82%] bg-border-soft" />
 
-            <p className="text-[11px] uppercase tracking-[0.1em] text-ink-soft">Registro</p>
+            <p className="text-micro uppercase tracking-[0.1em] text-ink-soft">Registro</p>
             <p className="mt-2 text-[12px] font-medium text-[#2C4A2E]">{registro}</p>
           </>
         ) : null}
@@ -151,7 +151,7 @@ export function TeamSection() {
 
       <div className="jp-container relative">
         <div className="mb-8 lg:mb-10">
-          <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-text">
+          <p className="mb-4 text-micro font-bold uppercase tracking-[0.18em] text-brand-text">
             Quem cuida de você
           </p>
 

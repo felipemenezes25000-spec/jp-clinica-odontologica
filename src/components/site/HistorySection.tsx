@@ -84,7 +84,7 @@ function CardPessoa({
 
         <div className="min-w-0 flex-1">
           <h4 className="font-display text-[19px] font-bold leading-tight text-white">{nome}</h4>
-          <p className="mt-1.5 text-[11px] font-bold uppercase leading-[1.35] tracking-[0.06em] text-white/70">
+          <p className="mt-1.5 text-micro font-bold uppercase leading-[1.35] tracking-[0.06em] text-white/70">
             {legenda}
           </p>
           {registro && <p className="mt-1.5 text-[12px] text-lime">{registro}</p>}
@@ -121,7 +121,9 @@ function CardPessoa({
           onClick={() => setAberto((v) => !v)}
           aria-expanded={aberto}
           aria-controls={idPainel}
-          className="mt-4 flex items-center gap-2 text-[12px] font-bold uppercase tracking-[0.1em] text-lime transition-colors hover:text-white"
+          /* min-h-11: o botão media 24px de altura, alvo que o polegar erra.
+             A área cresce sem mexer na letra nem no espaçamento. */
+          className="mt-4 flex min-h-11 items-center gap-2 text-micro font-bold uppercase tracking-[0.1em] text-lime transition-colors hover:text-white"
         >
           {aberto ? "Mostrar menos" : "Ler a apresentação"}
           <span
@@ -161,7 +163,7 @@ function Metrica({
       </span>
       <div>
         <p className="font-display text-[13px] font-bold leading-[1.25] text-white">{title}</p>
-        <p className="mt-2 text-[11px] leading-[1.5] text-white/65">{text}</p>
+        <p className="mt-2 text-micro leading-[1.5] text-white/65">{text}</p>
       </div>
     </div>
   );
@@ -292,7 +294,7 @@ export function HistorySection() {
                   <blockquote className="text-[17px] leading-[1.55] text-white/90">
                     {MISSAO}
                   </blockquote>
-                  <figcaption className="mt-5 text-[11px] font-bold uppercase tracking-[0.17em] text-lime">
+                  <figcaption className="mt-5 text-micro font-bold uppercase tracking-[0.17em] text-lime">
                     {CLINICA.nome}
                   </figcaption>
                 </div>
@@ -342,7 +344,7 @@ export function HistorySection() {
                   >
                     <UsersRound size={22} />
                   </span>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-lime">
+                  <p className="text-micro font-bold uppercase tracking-[0.16em] text-lime">
                     Quem faz essa história
                   </p>
                 </div>

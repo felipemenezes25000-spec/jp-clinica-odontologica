@@ -130,7 +130,7 @@ export function SpecialtiesSection() {
       <div className="jp-container relative">
         <div className="mb-[52px] grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-start">
           <div>
-            <span className="mb-5 block text-[11px] font-bold uppercase tracking-[0.18em] text-brand-text">
+            <span className="mb-5 block text-micro font-bold uppercase tracking-[0.18em] text-brand-text">
               Tratamentos
             </span>
 

@@ -125,7 +125,7 @@ export function ContactForm() {
       </div>
 
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft">
+        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Nome completo
           <div className="relative">
             <UserRound className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
@@ -139,7 +139,7 @@ export function ContactForm() {
           </div>
         </label>
 
-        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft">
+        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Telefone com DDD
           <div className="relative">
             <Phone className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
@@ -155,7 +155,7 @@ export function ContactForm() {
           </div>
         </label>
 
-        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft">
+        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Melhor forma de contato
           <select value={contato} onChange={(e) => setContato(e.target.value)} className={input}>
             {CONTATOS.map((item) => (
@@ -164,7 +164,7 @@ export function ContactForm() {
           </select>
         </label>
 
-        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft">
+        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Assunto ou interesse
           <select value={assunto} onChange={(e) => setAssunto(e.target.value)} className={input}>
             <option>Avaliação geral</option>
@@ -175,7 +175,7 @@ export function ContactForm() {
           </select>
         </label>
 
-        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft">
+        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
           Melhor período
           <select value={periodo} onChange={(e) => setPeriodo(e.target.value)} className={input}>
             {PERIODOS.map((p) => (
@@ -184,7 +184,7 @@ export function ContactForm() {
           </select>
         </label>
 
-        <label className="text-[11px] font-extrabold uppercase tracking-[.09em] text-ink-soft sm:col-span-2">
+        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft sm:col-span-2">
           Mensagem opcional
           <textarea
             rows={3}
@@ -198,11 +198,15 @@ export function ContactForm() {
 
       <div className="mt-5 flex gap-3 rounded-2xl border border-forest/10 bg-[#F6F9F2] px-4 py-3.5">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-text" aria-hidden="true" />
-        <p className="text-[11px] leading-5 text-ink-soft">
+        <p className="text-micro leading-5 text-ink-soft">
           Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
           quando houver parâmetros de campanha no endereço acessado, registrar a origem da
           solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja
           os detalhes na{" "}
+          {/* Sem alvo de 44px aqui, e é o certo: a WCAG 2.5.8 abre exceção
+              para link embutido numa frase, e esticar a caixa deste quebraria
+              o parágrafo em que ele vive. O mesmo destino tem link próprio no
+              rodapé, com área cheia, para quem precisa de alvo grande. */}
           <a
             href="/politica-de-privacidade"
             className="font-bold text-brand-text underline decoration-brand-text/35 underline-offset-2 transition hover:text-forest-2"
@@ -232,8 +236,8 @@ export function ContactForm() {
                 <C className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-[11px] font-extrabold text-forest-2">{String(title)}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-ink-soft">{String(text)}</p>
+                <p className="text-micro font-extrabold text-forest-2">{String(title)}</p>
+                <p className="mt-1 text-micro leading-relaxed text-ink-soft">{String(text)}</p>
               </div>
             </div>
           );

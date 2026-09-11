@@ -35,7 +35,7 @@ function ItemNota({
       </div>
       <div>
         <p className="text-xs font-bold text-ink">{title}</p>
-        <p className="mt-1 text-[11px] leading-[1.45] text-ink-soft">{description}</p>
+        <p className="mt-1 text-micro leading-[1.45] text-ink-soft">{description}</p>
       </div>
     </div>
   );
@@ -58,7 +58,7 @@ function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
         <div className="flex min-w-0 items-center gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">{autor}</p>
-            <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.1em] text-brand-text">
+            <p className="mt-0.5 text-micro font-bold uppercase tracking-[0.1em] text-brand-text">
               Avaliação no Google
             </p>
           </div>
@@ -132,7 +132,7 @@ export function ReviewsSection() {
                   </span>
 
                   <div>
-                    <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-brand-text">
+                    <p className="mb-2 text-micro font-bold uppercase tracking-[0.12em] text-brand-text">
                       Avaliação média dos pacientes
                     </p>
 
@@ -212,7 +212,7 @@ export function ReviewsSection() {
                   <div className="flex items-center gap-4">
                     <div>
                       <p className="font-display text-lg font-bold text-white">{destaque.autor}</p>
-                      <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-lime">
+                      <span className="text-micro font-bold uppercase tracking-[0.12em] text-lime">
                         Avaliação no Google
                       </span>
                     </div>
@@ -251,7 +251,7 @@ export function ReviewsSection() {
 
           <a
             href="#clinica"
-            className="group inline-flex shrink-0 items-center justify-center gap-3 rounded-full border border-[#56A805] px-6 py-3 text-xs font-bold uppercase tracking-[0.08em] text-forest-2 transition hover:bg-brand-deep hover:text-white"
+            className="min-h-11 group inline-flex shrink-0 items-center justify-center gap-3 rounded-full border border-[#56A805] px-6 py-3 text-xs font-bold uppercase tracking-[0.08em] text-forest-2 transition hover:bg-brand-deep hover:text-white"
           >
             Conheça a clínica
             <ArrowRight

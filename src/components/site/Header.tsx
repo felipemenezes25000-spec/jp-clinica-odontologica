@@ -45,7 +45,7 @@ export function Header() {
         <div className="jp-container flex h-[34px] items-center justify-between">
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
-            <span className="text-[11px] font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-[11px]">
+            <span className="text-micro font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-micro">
               Vila Bruna
               <span aria-hidden="true" className="mx-2 text-lime">
                 •
@@ -63,7 +63,7 @@ export function Header() {
           <div className="hidden items-center gap-5 md:flex">
             <span className="flex items-center gap-2">
               <Clock3 size={14} className="text-lime" aria-hidden="true" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-[11px]">
+              <span className="text-micro font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-micro">
                 Segunda a sexta
                 <span aria-hidden="true" className="mx-2 text-lime">
                   •
@@ -76,7 +76,7 @@ export function Header() {
 
             <a
               href={CLINICA.telefoneHref}
-              className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.04em] text-white transition hover:text-lime"
+              className="alvo-toque flex items-center gap-2 text-micro font-semibold tracking-[0.04em] text-white transition hover:text-lime"
             >
               <Phone size={13} className="text-lime" aria-hidden="true" />
               {CLINICA.telefone}
@@ -147,7 +147,7 @@ export function Header() {
                 <li key={item.href} className="shrink-0">
                   <a
                     href={item.href}
-                    className="relative whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full"
+                    className="relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] text-brand-text transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 hover:after:w-full"
                   >
                     {item.label}
                   </a>

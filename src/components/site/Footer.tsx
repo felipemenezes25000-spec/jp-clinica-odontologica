@@ -26,7 +26,7 @@ export function Footer() {
                 alt={CLINICA.nome}
                 className="h-[58px] w-auto sm:h-[68px]"
               />
-              <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[.18em] text-white/80">
+              <p className="mt-4 text-micro font-extrabold uppercase tracking-[.18em] text-white/80">
                 Vila Bruna • São Paulo
               </p>
             </div>
@@ -56,7 +56,10 @@ export function Footer() {
                 <li key={item.href}>
                   <a
                     href={item.href}
-                    className="text-sm font-semibold text-white transition-colors hover:text-lime"
+                    /* `alvo-toque` dá 44px de altura de clique sem mexer na
+                       letra: a lista media 17px de alto, o que no polegar é
+                       um alvo que erra. */
+                    className="alvo-toque w-full text-sm font-semibold text-white transition-colors hover:text-lime"
                   >
                     {item.label}
                   </a>
@@ -72,7 +75,7 @@ export function Footer() {
               className="mt-7 flex items-center justify-between gap-3 rounded-2xl border border-lime/25 bg-white/5 px-4 py-3.5 transition-colors hover:border-lime/60 hover:bg-white/10"
             >
               <span>
-                <span className="block text-[10px] font-extrabold uppercase tracking-[.18em] text-lime">
+                <span className="block text-micro font-extrabold uppercase tracking-[.18em] text-lime">
                   Trabalhe na JP
                 </span>
                 <span className="mt-1 block text-sm font-bold text-white">Ver vagas abertas</span>
@@ -87,7 +90,7 @@ export function Footer() {
               <li>
                 <a
                   href={CLINICA.telefoneHref}
-                  className="flex items-center gap-3 transition-colors hover:text-lime"
+                  className="alvo-toque flex items-center gap-3 transition-colors hover:text-lime"
                 >
                   <Phone className="h-4 w-4 text-lime" />
                   {CLINICA.telefone}
@@ -98,7 +101,7 @@ export function Footer() {
                   href={CLINICA.whatsappHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 transition-colors hover:text-lime"
+                  className="alvo-toque flex items-center gap-3 transition-colors hover:text-lime"
                 >
                   <MessageCircle className="h-4 w-4 text-lime" />
                   {CLINICA.whatsapp}
@@ -123,7 +126,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram da JP Clínica"
-                className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
+                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
               >
                 <Instagram className="h-4.5 w-4.5" />
               </a>
@@ -132,7 +135,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook da JP Clínica"
-                className="grid h-10 w-10 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
+                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
               >
                 <Facebook className="h-4.5 w-4.5" />
               </a>
@@ -140,7 +143,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-[11px] leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
+        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-micro leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
           <div>
             {/* Fonte explícita, não mais EQUIPE[0]: esta linha é exigida pela
                 Resolução CFO 196/2019 e não pode depender da ordem de uma
@@ -161,7 +164,7 @@ export function Footer() {
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 sm:justify-end">
               <a
                 href="/politica-de-privacidade"
-                className="font-semibold text-white underline decoration-white/25 underline-offset-2 transition hover:text-lime"
+                className="alvo-toque font-semibold text-white underline decoration-white/25 underline-offset-2 transition hover:text-lime"
               >
                 Política de Privacidade
               </a>

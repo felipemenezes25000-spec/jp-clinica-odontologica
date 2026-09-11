@@ -498,7 +498,7 @@ function Home() {
                     <p className="font-display text-sm font-extrabold text-forest-2">
                       Para toda a família
                     </p>
-                    <p className="mt-0.5 text-[11px] font-semibold text-ink-soft">
+                    <p className="mt-0.5 text-micro font-semibold text-ink-soft">
                       Criança • adulto • idoso
                     </p>
                   </div>
@@ -735,7 +735,7 @@ function Home() {
           <div className="jp-container relative">
             <div className="grid gap-10 lg:grid-cols-[.92fr_1.08fr] lg:items-start">
               <Reveal>
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-mint/55 px-4 py-2 text-[11px] font-extrabold uppercase tracking-[.12em] text-primary-ink">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-mint/55 px-4 py-2 text-micro font-extrabold uppercase tracking-[.12em] text-primary-ink">
                   <span className="h-2 w-2 rounded-full bg-primary" />
                   Fale com a JP
                 </span>
@@ -752,7 +752,7 @@ function Home() {
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-primary-ink">
                       <Phone className="h-4.5 w-4.5" />
                     </span>
-                    <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
+                    <p className="mt-4 text-micro font-extrabold uppercase tracking-[.15em] text-ink-soft">
                       Telefone
                     </p>
                     <p className="mt-1 font-display text-lg font-extrabold">{CLINICA.telefone}</p>
@@ -766,7 +766,7 @@ function Home() {
                     <span className="grid h-10 w-10 place-items-center rounded-full bg-mint text-primary-ink">
                       <MessageCircle className="h-4.5 w-4.5" />
                     </span>
-                    <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
+                    <p className="mt-4 text-micro font-extrabold uppercase tracking-[.15em] text-ink-soft">
                       WhatsApp
                     </p>
                     <p className="mt-1 font-display text-lg font-extrabold">{CLINICA.whatsapp}</p>
@@ -783,13 +783,13 @@ function Home() {
                         <MapPin className="h-4.5 w-4.5" />
                       </span>
                       <div className="min-w-0">
-                        <p className="text-[11px] font-extrabold uppercase tracking-[.15em] text-ink-soft">
+                        <p className="text-micro font-extrabold uppercase tracking-[.15em] text-ink-soft">
                           Endereço
                         </p>
                         <p className="mt-1 max-w-lg font-display text-lg font-extrabold leading-snug">
                           {CLINICA.endereco}
                         </p>
-                        <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-paper px-3 py-2 text-[11px] font-extrabold text-primary-ink">
+                        <span className="mt-4 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-paper px-3 py-2 text-micro font-extrabold text-primary-ink">
                           Ver no Google Maps <ArrowUpRight className="h-3.5 w-3.5" />
                         </span>
                       </div>
@@ -880,7 +880,7 @@ function Home() {
                       <MapPin className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <p className="text-[11px] font-extrabold text-primary-ink">{CLINICA.nome}</p>
+                      <p className="text-micro font-extrabold text-primary-ink">{CLINICA.nome}</p>
                       <p className="mt-2 font-display text-base font-extrabold leading-snug text-forest-2">
                         {CLINICA.local.logradouro} — {CLINICA.local.bairro}
                         <span className="block">
@@ -893,7 +893,7 @@ function Home() {
                     href={CLINICA.mapsHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-deep px-5 py-3 text-xs font-extrabold text-white transition hover:-translate-y-0.5"
+                    className="min-h-11 mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-deep px-5 py-3 text-xs font-extrabold text-white transition hover:-translate-y-0.5"
                   >
                     Abrir no Google Maps
                     <ArrowUpRight className="h-4 w-4" />
@@ -910,7 +910,7 @@ function Home() {
                   {SELOS.map(({ icone: Icone, texto, bordas }) => (
                     <div
                       key={texto}
-                      className={`flex items-center gap-2 border-forest/8 px-4 py-4 text-[11px] font-extrabold text-ink-soft lg:justify-center lg:text-center ${bordas}`}
+                      className={`flex items-center gap-2 border-forest/8 px-4 py-4 text-micro font-extrabold text-ink-soft lg:justify-center lg:text-center ${bordas}`}
                     >
                       <Icone className="h-4 w-4 shrink-0 text-primary-ink" />
                       {texto}

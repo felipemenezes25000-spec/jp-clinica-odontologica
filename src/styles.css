@@ -46,6 +46,18 @@
   --color-paper: var(--paper);
   --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* O MENOR TAMANHO DE TEXTO DO SITE, e o piso é proposital.
+   *
+   * Havia 44 lugares com `text-[11px]` e `text-[10px]` escritos à mão, em nove
+   * arquivos. Duas coisas erradas ao mesmo tempo: valor mágico repetido, e
+   * abaixo dos 12px que é o piso de leitura confortável no celular — medido,
+   * eram ~50 trechos de texto por baixo disso na home.
+   *
+   * 12px é o chão. Rótulo que precise ser discreto fica discreto por peso,
+   * cor e espaçamento entre letras, não por encolher além do legível. */
+  --text-micro: 0.75rem;
+  --text-micro--line-height: 1.35;
 }
 
 :root {
@@ -243,7 +255,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.72rem;
+  /* 0.72rem dava 11.52px — abaixo do piso de leitura no celular. O rótulo
+     continua discreto pelo caixa-alta, pelo peso e pelo espaçamento. */
+  font-size: var(--text-micro);
   line-height: 1;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -2979,4 +2993,20 @@ textarea.rh-campo {
     flex-direction: column;
     justify-content: center;
   }
+}
+
+
+/* ALVO DE TOQUE — 44px de altura mínima em qualquer elemento interativo.
+ *
+ * Medido em 320, 375, 390 e 768px: a home tinha 20 alvos abaixo disso, e o pior
+ * grupo era a lista do rodapé, com 17px de altura. A WCAG 2.5.8 pede 24px como
+ * mínimo em AA; 44px é o que a Apple e o Google recomendam e o que de fato se
+ * acerta com o polegar.
+ *
+ * O ganho é só de área clicável: `inline-flex` com `align-items: center` cresce
+ * a caixa sem mexer no tamanho da letra nem no espaçamento visual da lista. */
+.alvo-toque {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
 }
