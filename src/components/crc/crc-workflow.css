@@ -1,0 +1,392 @@
+/* JP CRC — Workflow Studio: o canvas da jornada.
+   A forma é uma COLUNA de propósito: é o que o motor executa. Ver o cabeçalho
+   de EditorDeJornada.tsx. */
+
+.crc-app .crc-wf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e4);
+}
+
+.crc-app .crc-wf-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--crc-e4);
+  flex-wrap: wrap;
+}
+.crc-app .crc-wf-topo h3 {
+  margin: 0;
+  color: var(--crc-texto);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+.crc-app .crc-wf-topo p {
+  margin: 3px 0 0;
+}
+.crc-app .crc-wf-acoes {
+  display: flex;
+  gap: var(--crc-e2);
+  flex-wrap: wrap;
+}
+
+.crc-app .crc-wf-corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  gap: var(--crc-e5);
+  align-items: start;
+}
+
+/* ---- a coluna do fluxo -------------------------------------------------- */
+
+.crc-app .crc-wf-fluxo {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* O fio entre os nós. É o que faz a coluna ler como fluxo, e não como lista. */
+.crc-app .crc-wf-conector {
+  width: 2px;
+  height: 18px;
+  margin-inline: auto;
+  background: var(--crc-borda-forte);
+}
+
+.crc-app .crc-wf-no {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: var(--crc-e3);
+  align-items: start;
+  padding: var(--crc-e3) var(--crc-e4);
+  border: 1px solid var(--crc-borda);
+  border-radius: 14px;
+  background: var(--crc-superficie);
+}
+.crc-app .crc-wf-no-icone {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+}
+.crc-app .crc-wf-no-corpo {
+  min-width: 0;
+}
+.crc-app .crc-wf-no strong {
+  color: var(--crc-texto);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+.crc-app .crc-wf-no small {
+  display: block;
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+.crc-app .crc-wf-no-gatilho {
+  border-color: var(--crc-info-borda, var(--crc-borda));
+  background: var(--crc-info-suave);
+}
+.crc-app .crc-wf-no-gatilho .crc-wf-no-icone {
+  background: var(--crc-info-suave);
+  color: var(--crc-info);
+}
+.crc-app .crc-wf-no-entrada .crc-wf-no-icone {
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-wf-no-vazio,
+.crc-app .crc-wf-no-fim {
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
+  color: var(--crc-texto-3);
+  font-size: 0.7rem;
+  background: var(--crc-superficie-2);
+  border-style: dashed;
+}
+
+/* A severidade pinta a BORDA, e não o fundo: o fundo colorido em cinco nós
+   seguidos vira um semáforo ilegível, e a borda basta para achar o problema. */
+.crc-app .crc-wf-no-passo[data-severidade="erro"] {
+  border-color: var(--crc-perigo);
+  box-shadow: inset 3px 0 0 var(--crc-perigo);
+}
+.crc-app .crc-wf-no-passo[data-severidade="aviso"] {
+  border-color: var(--crc-alerta);
+  box-shadow: inset 3px 0 0 var(--crc-alerta);
+}
+.crc-app .crc-wf-no-passo[data-tipo="ENVIAR_TEMPLATE"] .crc-wf-no-icone {
+  background: var(--crc-alerta-suave);
+  color: var(--crc-alerta);
+}
+.crc-app .crc-wf-no-passo[data-tipo="SAIR_SE"] .crc-wf-no-icone {
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-3);
+}
+
+.crc-app .crc-wf-no-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--crc-e2);
+  flex-wrap: wrap;
+}
+
+.crc-app .crc-wf-achado {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: var(--crc-e2) 0 0;
+  font-size: 0.67rem;
+  line-height: 1.45;
+}
+.crc-app .crc-wf-achado svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.crc-app .crc-wf-achado strong {
+  font-size: inherit;
+}
+.crc-app .crc-wf-achado-erro {
+  color: var(--crc-perigo);
+}
+.crc-app .crc-wf-achado-aviso {
+  color: var(--crc-alerta);
+}
+
+.crc-app .crc-wf-condicoes {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  color: var(--crc-texto-2);
+  font-size: 0.7rem;
+  line-height: 1.6;
+}
+
+.crc-app .crc-wf-no-botoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.crc-app .crc-wf-icone-botao {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid var(--crc-borda);
+  border-radius: 8px;
+  background: var(--crc-superficie-2);
+  color: var(--crc-texto-2);
+  cursor: pointer;
+}
+.crc-app .crc-wf-icone-botao:hover:not(:disabled) {
+  border-color: var(--crc-borda-forte);
+  color: var(--crc-texto);
+}
+.crc-app .crc-wf-icone-botao:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.crc-app .crc-wf-icone-perigo:hover:not(:disabled) {
+  border-color: var(--crc-perigo);
+  color: var(--crc-perigo);
+}
+
+.crc-app .crc-wf-campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--crc-e3);
+  margin-top: var(--crc-e3);
+  padding-top: var(--crc-e3);
+  border-top: 1px dashed var(--crc-borda);
+}
+
+/* ---- acrescentar passo -------------------------------------------------- */
+
+.crc-app .crc-wf-adicionar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: var(--crc-e3);
+  border: 1px dashed var(--crc-borda-forte);
+  border-radius: 14px;
+  background: var(--crc-superficie-2);
+  color: var(--crc-texto-2);
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+.crc-app .crc-wf-adicionar:hover {
+  border-color: var(--crc-primaria);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-wf-paleta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: var(--crc-e2);
+  padding: var(--crc-e3);
+  border: 1px solid var(--crc-borda);
+  border-radius: 14px;
+  background: var(--crc-superficie-2);
+}
+.crc-app .crc-wf-paleta-item {
+  padding: var(--crc-e3);
+  border: 1px solid var(--crc-borda);
+  border-radius: 11px;
+  background: var(--crc-superficie);
+  text-align: left;
+  cursor: pointer;
+}
+.crc-app .crc-wf-paleta-item:hover {
+  border-color: var(--crc-primaria);
+}
+.crc-app .crc-wf-paleta-item strong {
+  display: block;
+  color: var(--crc-texto);
+  font-size: 0.73rem;
+  font-weight: 750;
+}
+.crc-app .crc-wf-paleta-item small {
+  display: block;
+  margin-top: 3px;
+  color: var(--crc-texto-3);
+  font-size: 0.63rem;
+  line-height: 1.45;
+}
+
+/* ---- a lateral ---------------------------------------------------------- */
+
+.crc-app .crc-wf-lado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e3);
+  position: sticky;
+  top: var(--crc-e4);
+}
+.crc-app .crc-wf-painel {
+  padding: var(--crc-e4);
+  border: 1px solid var(--crc-borda);
+  border-radius: 14px;
+  background: var(--crc-superficie);
+}
+.crc-app .crc-wf-painel h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--crc-e2);
+  color: var(--crc-texto);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+.crc-app .crc-wf-painel .crc-entrada {
+  margin-top: var(--crc-e2);
+}
+
+/* A guarda das saídas: a barra à esquerda corre ao lado de TODOS os passos,
+   porque é isso que ela faz. A posição diz o que o texto teria que explicar. */
+.crc-app .crc-wf-saidas {
+  border-left: 3px solid var(--crc-primaria);
+}
+.crc-app .crc-wf-saidas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: var(--crc-e2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.crc-app .crc-wf-saidas-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--crc-e2);
+  padding: 7px 9px;
+  border: 1px solid var(--crc-borda);
+  border-radius: 9px;
+  background: var(--crc-superficie-2);
+  color: var(--crc-texto-2);
+  font-size: 0.69rem;
+}
+
+.crc-app .crc-wf-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.crc-app .crc-wf-resumo li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--crc-e2);
+  font-size: 0.7rem;
+  color: var(--crc-texto-2);
+}
+.crc-app .crc-wf-resumo strong {
+  color: var(--crc-texto);
+  font-family: var(--crc-fonte-display);
+  font-size: 0.92rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.crc-app .crc-wf-problemas {
+  display: flex;
+  flex-direction: column;
+  gap: var(--crc-e2);
+  margin: var(--crc-e2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.crc-app .crc-wf-problemas li {
+  padding-left: 9px;
+  border-left: 3px solid var(--crc-alerta);
+}
+.crc-app .crc-wf-problemas li[data-severidade="erro"] {
+  border-left-color: var(--crc-perigo);
+}
+.crc-app .crc-wf-problemas strong,
+.crc-app .crc-wf-problemas small {
+  display: block;
+}
+.crc-app .crc-wf-problemas strong {
+  color: var(--crc-texto);
+  font-size: 0.69rem;
+  font-weight: 750;
+}
+.crc-app .crc-wf-problemas small {
+  margin-top: 2px;
+  color: var(--crc-texto-3);
+  font-size: 0.64rem;
+  line-height: 1.45;
+}
+
+/* ---- responsivo ---------------------------------------------------------
+   A lateral desce ANTES do fluxo apertar: num celular, ler o fluxo em coluna
+   estreita ainda funciona; ler o fluxo e o painel lado a lado, não. */
+@media (max-width: 1000px) {
+  .crc-app .crc-wf-corpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .crc-app .crc-wf-lado {
+    position: static;
+  }
+}
+@media (max-width: 620px) {
+  .crc-app .crc-wf-no {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+  .crc-app .crc-wf-no-botoes {
+    grid-column: 2;
+    justify-content: flex-start;
+    margin-top: var(--crc-e2);
+  }
+}

@@ -3280,6 +3280,180 @@ export const mudarEstadoAutomacao = createServerFn({ method: "POST" })
   );
 
 /* -------------------------------------------------------------------------- */
+/* Workflow Studio — editar a jornada                                         */
+/* -------------------------------------------------------------------------- */
+
+/** A jornada, pronta para o editor. */
+export type JornadaParaEditarDto = {
+  automationId: string;
+  nome: string;
+  chave: string;
+  status: string;
+  modo: string;
+  versao: number;
+  definicao: import("./dominio/tipos").DefinicaoAutomacao;
+  templatesDisponiveis: string[];
+  etapasDisponiveis: string[];
+  emJornada: number;
+};
+
+export type AchadoDto = {
+  severidade: string;
+  passo: number | null;
+  mensagem: string;
+  conserto: string;
+};
+
+export const carregarJornadaParaEditar = createServerFn({ method: "GET" })
+  .validator((e: { automationId: string }) => ({ automationId: String(e.automationId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ jornada: JornadaParaEditarDto }>> =>
+    comContexto("ver_automacao", async (ctx) => {
+      const { lerJornadaParaEditar } = await import("./aplicacao/workflows");
+      const j = await lerJornadaParaEditar(ctx.organizationId, data.automationId);
+
+      if (j === null) {
+        return {
+          ok: false as const,
+          code: "NAO_ENCONTRADO",
+          message: "Não encontramos esta automação, ou a definição dela está corrompida.",
+        };
+      }
+
+      return { ok: true as const, jornada: { ...j, definicao: j.definicao } };
+    }),
+  );
+
+/**
+ * Confere a jornada sem gravar.
+ *
+ * POR QUE UMA CHAMADA SÓ PARA CONFERIR. A tela valida a cada tecla com a mesma
+ * função pura — mas ela só conhece os modelos e etapas que vieram no
+ * carregamento. Alguém apagou um modelo em outra aba, e a jornada que o
+ * referencia parece válida na tela até o momento de publicar. Esta função é a
+ * chance de descobrir isso ANTES de clicar em publicar.
+ */
+export const conferirJornada = createServerFn({ method: "POST" })
+  .validator((e: { automationId: string; definicao: unknown }) => ({
+    automationId: String(e.automationId ?? ""),
+    definicao: e.definicao,
+  }))
+  .handler(async ({ data }): Promise<Resposta<{ achados: AchadoDto[] }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { conferirDefinicao } = await import("./aplicacao/workflows");
+      const definicao = comoDefinicao(data.definicao);
+
+      if (definicao === null) {
+        return { ok: false as const, code: "ENTRADA_INVALIDA", message: "Jornada inválida." };
+      }
+
+      const achados = await conferirDefinicao(ctx.organizationId, data.automationId, definicao);
+      return { ok: true as const, achados };
+    }),
+  );
+
+/**
+ * O resultado de publicar — e ele NÃO usa `Resposta<T>`.
+ *
+ * PORQUE A RECUSA PRECISA CARREGAR DADO. `Falha` é `{ok, code, message}` e mais
+ * nada, o que basta para quase tudo neste arquivo. Aqui não basta: uma jornada
+ * recusada tem uma LISTA de problemas, cada um apontando um passo. Espremê-los
+ * dentro de `message` daria uma frase de trezentos caracteres que a tela não tem
+ * como ancorar no passo certo — e o valor inteiro da recusa é dizer ONDE.
+ */
+export type RespostaDaPublicacao =
+  | { ok: true; versao: number }
+  /*
+   * `achados` é OPCIONAL porque `comContexto` também devolve `Falha` pura —
+   * sessão expirada, permissão negada. Essas recusas acontecem antes de existir
+   * qualquer jornada para apontar problema, e exigir a lista ali obrigaria a
+   * inventar um array vazio que não significa "nenhum problema".
+   */
+  | { ok: false; code: string; message: string; achados?: AchadoDto[] };
+
+/**
+ * Publica uma versão nova da jornada.
+ *
+ * PERMISSÃO `gerenciar_automacao`, e não `gerenciar_autopilot`: editar os passos
+ * não sobe o grau de autonomia. Uma jornada em SHADOW continua em SHADOW depois
+ * de editada — quem muda isso é `mudarEstadoAutomacao`, com a escada e a
+ * permissão de gestor. Exigir gestor aqui faria a pessoa que opera a clínica
+ * depender do dono para trocar uma espera de 2h para 3h.
+ */
+export const publicarJornada = createServerFn({ method: "POST" })
+  .validator((e: { automationId: string; definicao: unknown; versaoEsperada: number }) => ({
+    automationId: String(e.automationId ?? ""),
+    definicao: e.definicao,
+    versaoEsperada: Number(e.versaoEsperada ?? 0),
+  }))
+  .handler(async ({ data }): Promise<RespostaDaPublicacao> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { publicarDefinicao } = await import("./aplicacao/workflows");
+      const { auditar } = await import("./servidor/registro");
+      const definicao = comoDefinicao(data.definicao);
+
+      if (definicao === null) {
+        return { ok: false as const, code: "ENTRADA_INVALIDA", message: "Jornada inválida." };
+      }
+
+      const r = await publicarDefinicao({
+        organizationId: ctx.organizationId,
+        automationId: data.automationId,
+        definicao,
+        versaoEsperada: data.versaoEsperada,
+        userId: ctx.usuario.id,
+      });
+
+      if (!r.ok) {
+        /*
+         * OS ACHADOS VOLTAM JUNTO com a recusa. Sem eles, a tela diria "a
+         * jornada tem problemas" e a pessoa teria que caçar qual — e a razão
+         * de a recusa existir é justamente apontar onde.
+         */
+        return {
+          ok: false as const,
+          code: r.codigo === "conflito" ? "CONFLITO" : "ENTRADA_INVALIDA",
+          message: r.motivo,
+          achados: r.achados,
+        };
+      }
+
+      await auditar({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ator: "humano",
+        acao: "automacao.jornada_publicada",
+        entityType: "automation",
+        entityId: data.automationId,
+        antes: { versao: data.versaoEsperada },
+        depois: { versao: r.versao },
+        requestId: ctx.requestId,
+      });
+
+      return { ok: true as const, versao: r.versao };
+    }),
+  );
+
+/**
+ * O `unknown` que veio do cliente vira definição, ou não vira.
+ *
+ * A FUNÇÃO DE SERVIDOR ACEITA QUALQUER JSON — é uma rota HTTP, e o tipo do
+ * `validator` é uma promessa do TypeScript, não uma checagem em runtime. Sem
+ * esta porta, um `passos: "texto"` chegaria ao validador de domínio, que faria
+ * `.length` num string e validaria uma jornada que não existe.
+ */
+function comoDefinicao(bruto: unknown): import("./dominio/tipos").DefinicaoAutomacao | null {
+  if (typeof bruto !== "object" || bruto === null || Array.isArray(bruto)) return null;
+
+  const d = bruto as Record<string, unknown>;
+  if (typeof d["gatilho"] !== "object" || d["gatilho"] === null) return null;
+  if (!Array.isArray(d["passos"])) return null;
+  if (!Array.isArray(d["condicoes"])) return null;
+  if (!Array.isArray(d["saidas"])) return null;
+
+  return bruto as import("./dominio/tipos").DefinicaoAutomacao;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Integrações e administração                                                */
 /* -------------------------------------------------------------------------- */
 

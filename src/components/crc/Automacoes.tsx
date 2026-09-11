@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Sparkles,
   UsersRound,
+  Workflow,
 } from "lucide-react";
 
 import { carregarAutomacoes, mudarEstadoAutomacao, type ResumoAutomacao } from "@/lib/crc/api";
@@ -29,7 +30,9 @@ import {
   useAcao,
 } from "./base";
 import { BotaoJornadas, JornadasDaAutomacao } from "./JornadasDaAutomacao";
+import { EditorDeJornada } from "./EditorDeJornada";
 import "./crc-automations.css";
+import "./crc-workflow.css";
 
 const MODOS: ModoAutomacao[] = ["SHADOW", "RECOMENDAR", "EXECUTAR"];
 
@@ -47,6 +50,15 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
   const [erro, setErro] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState<ResumoAutomacao | null>(null);
   const [jornadasAbertas, setJornadasAbertas] = useState<string | null>(null);
+  /*
+   * UM EDITOR ABERTO POR VEZ, e por isso é um id e não um Set.
+   *
+   * O editor guarda rascunho não publicado. Dois abertos ao mesmo tempo seriam
+   * dois rascunhos concorrendo pela atenção de quem edita, e a tela não teria
+   * como avisar qual deles tem mudança pendente sem virar um gerenciador de
+   * abas — que é problema maior do que o que resolveria.
+   */
+  const [editando, setEditando] = useState<string | null>(null);
   const acao = useAcao();
 
   const recarregar = useCallback(async (): Promise<void> => {
@@ -260,11 +272,25 @@ export function Automacoes({ podeGerenciar }: { podeGerenciar: boolean }) {
                 aberto={jornadasAbertas === a.id}
                 aoAlternar={() => setJornadasAbertas((atual) => (atual === a.id ? null : a.id))}
               />
+              <Botao
+                pequeno
+                variante="discreto"
+                onClick={() => setEditando((atual) => (atual === a.id ? null : a.id))}
+              >
+                <Workflow size={14} aria-hidden="true" />{" "}
+                {editando === a.id ? "Fechar a jornada" : "Ver e editar a jornada"}
+              </Botao>
               <ChevronDown
                 className={jornadasAbertas === a.id ? "crc-auto-chevron-aberto-v2" : ""}
                 aria-hidden="true"
               />
             </footer>
+
+            {editando === a.id && (
+              <div className="crc-auto-jornadas-v2">
+                <EditorDeJornada automationId={a.id} podeGerenciar={podeGerenciar} />
+              </div>
+            )}
 
             {jornadasAbertas === a.id && (
               <div className="crc-auto-jornadas-v2">
