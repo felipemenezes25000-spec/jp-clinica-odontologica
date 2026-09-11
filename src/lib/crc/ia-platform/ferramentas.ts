@@ -173,8 +173,7 @@ export type EstadoPolitica = {
 export const MAX_FERRAMENTAS_POR_TURNO = 4;
 
 export type VeredictoPolitica =
-  | { permite: true }
-  | { permite: false; codigo: string; motivo: string };
+  { permite: true } | { permite: false; codigo: string; motivo: string };
 
 /**
  * A ferramenta escolhida pelo modelo pode rodar?
@@ -182,10 +181,7 @@ export type VeredictoPolitica =
  * A ORDEM É DO MAIS BARATO PARA O MAIS ESPECÍFICO: existência, teto do turno,
  * permissão. Uma ferramenta inexistente não deve gastar consulta de flag.
  */
-export function avaliarPolitica(
-  chave: string,
-  estado: EstadoPolitica,
-): VeredictoPolitica {
+export function avaliarPolitica(chave: string, estado: EstadoPolitica): VeredictoPolitica {
   const def = acharFerramenta(chave);
   if (def === null) {
     return {

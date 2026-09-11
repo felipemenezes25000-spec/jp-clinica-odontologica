@@ -118,8 +118,7 @@ function descreverSlot(slot: SlotDisponivel, fuso: string): OpcaoOferecida & { r
 /* -------------------------------------------------------------------------- */
 
 export type ResultadoConsulta =
-  | { ok: true; opcoes: OpcaoDeHorario[] }
-  | { ok: false; codigo: MotivoSemOferta; motivo: string };
+  { ok: true; opcoes: OpcaoDeHorario[] } | { ok: false; codigo: MotivoSemOferta; motivo: string };
 
 /**
  * O que está livre na agenda, SEM registrar oferta nenhuma.

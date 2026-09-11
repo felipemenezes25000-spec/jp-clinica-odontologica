@@ -124,9 +124,9 @@ export type ResultadoLaco =
 
 export type DependenciasLaco = {
   /** Pede uma decisão ao modelo, dado o histórico de ferramentas já usadas. */
-  decidir: (observacoes: readonly string[]) => Promise<
-    { ok: true; dados: Record<string, unknown> } | { ok: false; detalhe: string }
-  >;
+  decidir: (
+    observacoes: readonly string[],
+  ) => Promise<{ ok: true; dados: Record<string, unknown> } | { ok: false; detalhe: string }>;
   estado: EstadoPolitica;
   executor: DependenciasExecutor;
 };

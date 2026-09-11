@@ -146,8 +146,7 @@ export async function rodarTurno(pedido: PedidoTurno): Promise<ResultadoTurno> {
         estado: pedido.politica,
         executor: {
           ctx,
-          contextoAgendamento:
-            pedido.contextoAgendamento ?? (() => Promise.resolve(null)),
+          contextoAgendamento: pedido.contextoAgendamento ?? (() => Promise.resolve(null)),
         },
         decidir: async (observacoes) => {
           const entrada =

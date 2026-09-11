@@ -27,9 +27,7 @@ export type ResultadoFerramenta = {
 export type DependenciasExecutor = {
   ctx: ContextoTurno;
   /** Montado sob demanda: só a ferramenta de agenda precisa dele. */
-  contextoAgendamento: () => Promise<
-    import("../aplicacao/agendamento").ContextoAgendamento | null
-  >;
+  contextoAgendamento: () => Promise<import("../aplicacao/agendamento").ContextoAgendamento | null>;
 };
 
 /**
