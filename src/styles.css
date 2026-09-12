@@ -2971,7 +2971,8 @@ textarea.rh-campo {
    destruiria a única pista de ligado/desligado, que é justamente a cor. */
 .rh-admin main button:disabled:not(.rh-alternador):not(.rh-superficie-escura *),
 .rh-admin .rh-gaveta button:disabled:not(.rh-alternador):not(.rh-superficie-escura *),
-.rh-admin [role="dialog"]:not(.rh-superficie-escura)
+.rh-admin
+  [role="dialog"]:not(.rh-superficie-escura)
   button:disabled:not(.rh-alternador):not(.rh-superficie-escura *) {
   opacity: 1;
   border-color: var(--border-soft);
@@ -3072,7 +3073,6 @@ textarea.rh-campo {
     justify-content: center;
   }
 }
-
 
 /* ALVO DE TOQUE — 44px de altura mínima em qualquer elemento interativo.
  *

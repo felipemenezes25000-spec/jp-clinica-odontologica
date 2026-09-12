@@ -1,29 +1,29 @@
 customers/{customer_id}/docs:
   get:
     tags:
-    - Documentos do Paciente
+      - Documentos do Paciente
     summary: Listar Documentos
     description: Consulta documentos de um determinado paciente.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     parameters:
-    - name: page
-      in: query
-      schema:
-        type: integer
-      description: Página da busca
-    - name: q
-      in: query
-      schema:
-        type: string
-      description: Busca por nome
-    - name: treatment_id
-      in: query
-      schema:
-        type: integer
-      description: Filtra pelo tratamento desejado
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Página da busca
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Busca por nome
+      - name: treatment_id
+        in: query
+        schema:
+          type: integer
+        description: Filtra pelo tratamento desejado
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -39,18 +39,18 @@ customers/{customer_id}/docs:
                   to: 1
                   current_page: 1
                   results:
-                  - id: 2
-                    customer_id: 1
-                    name: Teste de Docs
-                    description: Descrição do doc
-                    file: ''
-                    file_file_name: data
-                    created_at: '2023-02-28T18:08:48.000Z'
-                    updated_at: '2023-02-28T18:08:48.000Z'
-                    file_urls:
-                      original: ''
-                      pdf: ''
-                    file_file_ext: data
+                    - id: 2
+                      customer_id: 1
+                      name: Teste de Docs
+                      description: Descrição do doc
+                      file: ""
+                      file_file_name: data
+                      created_at: "2023-02-28T18:08:48.000Z"
+                      updated_at: "2023-02-28T18:08:48.000Z"
+                      file_urls:
+                        original: ""
+                        pdf: ""
+                      file_file_ext: data
               example-1:
                 summary: 200 - OK
                 value:
@@ -60,21 +60,21 @@ customers/{customer_id}/docs:
                   to: 1
                   current_page: 1
                   results:
-                  - id: 1
-                    customer_id: 1
-                    name: Pós Operatório
-                    description: null
-                    file: local do arquivo
-                    file_file_name: pos_operatorio.pdf
-                    created_at: '2023-03-10T12:10:27.000Z'
-                    updated_at: '2023-03-10T12:10:27.000Z'
-                    file_urls:
-                      original: url do arquivo
-                      pdf: url do arquivo
-                    file_file_ext: pdf
+                    - id: 1
+                      customer_id: 1
+                      name: Pós Operatório
+                      description: null
+                      file: local do arquivo
+                      file_file_name: pos_operatorio.pdf
+                      created_at: "2023-03-10T12:10:27.000Z"
+                      updated_at: "2023-03-10T12:10:27.000Z"
+                      file_urls:
+                        original: url do arquivo
+                        pdf: url do arquivo
+                      file_file_ext: pdf
   post:
     tags:
-    - Documentos do Paciente
+      - Documentos do Paciente
     summary: Cadastrar Documentos
     description: Adiciona documentos a um determinado paciente.
     requestBody:
@@ -99,8 +99,8 @@ customers/{customer_id}/docs:
                     type: integer
                     description: Identificador do tratamento
                 required:
-                - name
-                - file
+                  - name
+                  - file
           example:
             customer_doc:
               description: Descrição do doc
@@ -108,9 +108,9 @@ customers/{customer_id}/docs:
               name: Teste de Docs
               tag_list: radiografia
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '201':
+      "201":
         description: Created
         content:
           application/json:
@@ -124,12 +124,12 @@ customers/{customer_id}/docs:
               file_file_name: data
               file_content_type: application/pdf
               file_file_size: 25834
-              file_updated_at: '2024-07-30T22:29:59.199Z'
+              file_updated_at: "2024-07-30T22:29:59.199Z"
               deleted_at: null
-              created_at: '2024-07-30T22:29:59.215Z'
-              updated_at: '2024-07-30T22:29:59.215Z'
+              created_at: "2024-07-30T22:29:59.215Z"
+              updated_at: "2024-07-30T22:29:59.215Z"
               treatment_id: null
-      '422':
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -138,26 +138,26 @@ customers/{customer_id}/docs:
             example:
               errors:
                 file_content_type:
-                - Tipo do arquivo não é válido(a)
+                  - Tipo do arquivo não é válido(a)
                 file:
-                - File não é válido(a)
+                  - File não é válido(a)
   parameters:
-  - name: customer_id
-    in: path
-    schema:
-      type: integer
-    required: true
-    example: '1'
+    - name: customer_id
+      in: path
+      schema:
+        type: integer
+      required: true
+      example: "1"
 customers/{customer_id}/docs/{id}:
   get:
     tags:
-    - Documentos do Paciente
+      - Documentos do Paciente
     summary: Visualizar Documento
     description: Consulta os atributos de determinado documento.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -173,18 +173,18 @@ customers/{customer_id}/docs/{id}:
                   to: 1
                   current_page: 1
                   results:
-                  - id: 2
-                    customer_id: 1
-                    name: Teste de Docs
-                    description: Descrição do doc
-                    file: ''
-                    file_file_name: data
-                    created_at: '2023-02-28T18:08:48.000Z'
-                    updated_at: '2023-02-28T18:08:48.000Z'
-                    file_urls:
-                      original: ''
-                      pdf: ''
-                    file_file_ext: data
+                    - id: 2
+                      customer_id: 1
+                      name: Teste de Docs
+                      description: Descrição do doc
+                      file: ""
+                      file_file_name: data
+                      created_at: "2023-02-28T18:08:48.000Z"
+                      updated_at: "2023-02-28T18:08:48.000Z"
+                      file_urls:
+                        original: ""
+                        pdf: ""
+                      file_file_ext: data
               example-1:
                 summary: 200 - OK
                 value:
@@ -194,12 +194,12 @@ customers/{customer_id}/docs/{id}:
                   description: null
                   file: local do arquivo
                   file_file_name: pos_operatorio.pdf
-                  created_at: '2023-03-08T19:50:52.000Z'
-                  updated_at: '2023-03-08T19:50:52.000Z'
+                  created_at: "2023-03-08T19:50:52.000Z"
+                  updated_at: "2023-03-08T19:50:52.000Z"
                   tag_list:
-                  - pos-operatorio
+                    - pos-operatorio
                   file_file_ext: pdf
-      '404':
+      "404":
         description: Not Found
         content:
           application/json:
@@ -207,11 +207,11 @@ customers/{customer_id}/docs/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   patch:
     tags:
-    - Documentos do Paciente
+      - Documentos do Paciente
     summary: Alterar Documento
     description: Altera registro de documento.
     requestBody:
@@ -239,16 +239,16 @@ customers/{customer_id}/docs/{id}:
             customer_doc:
               description: descrição
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
             schema:
               type: string
             example: null
-      '404':
+      "404":
         description: Not Found
         content:
           application/json:
@@ -256,24 +256,24 @@ customers/{customer_id}/docs/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   delete:
     tags:
-    - Documentos do Paciente
+      - Documentos do Paciente
     summary: Remover Documento
     description: Exclui determinado documento.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
             schema:
               type: string
             example: null
-      '404':
+      "404":
         description: Not Found
         content:
           application/json:
@@ -281,18 +281,18 @@ customers/{customer_id}/docs/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   parameters:
-  - name: customer_id
-    in: path
-    schema:
-      type: integer
-    required: true
-    example: '1'
-  - name: id
-    in: path
-    schema:
-      type: integer
-    required: true
-    example: '2'
+    - name: customer_id
+      in: path
+      schema:
+        type: integer
+      required: true
+      example: "1"
+    - name: id
+      in: path
+      schema:
+        type: integer
+      required: true
+      example: "2"

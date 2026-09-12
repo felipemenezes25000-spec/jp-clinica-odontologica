@@ -21,19 +21,19 @@ adapter compara com o arquivo em vez de com a memória.
 
 ## O que tem aqui
 
-| Arquivo | Recurso |
-|---|---|
-| `../openapi-dentaloffice.yml` | o documento raiz: auth, servidores, tags, e a lista de caminhos |
-| `auth.yml` | `POST /auth/tokens` |
-| `customers.yml` | pacientes |
-| `customer-images.yml`, `customer-docs.yml`, `customer-evolutions.yml` | prontuário |
-| `dentists.yml` | dentistas |
-| `chairs.yml` | cadeiras (equipos) |
-| `schedules.yml` | agenda, **incluindo `available_hours`** |
-| `schedule-types.yml`, `schedule-situations.yml`, `schedule-reasons.yml` | metadados da agenda |
-| `disciplines.yml` | especialidades |
-| `users.yml` | usuários |
-| `status.yml` | saúde da API |
+| Arquivo                                                                 | Recurso                                                         |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `../openapi-dentaloffice.yml`                                           | o documento raiz: auth, servidores, tags, e a lista de caminhos |
+| `auth.yml`                                                              | `POST /auth/tokens`                                             |
+| `customers.yml`                                                         | pacientes                                                       |
+| `customer-images.yml`, `customer-docs.yml`, `customer-evolutions.yml`   | prontuário                                                      |
+| `dentists.yml`                                                          | dentistas                                                       |
+| `chairs.yml`                                                            | cadeiras (equipos)                                              |
+| `schedules.yml`                                                         | agenda, **incluindo `available_hours`**                         |
+| `schedule-types.yml`, `schedule-situations.yml`, `schedule-reasons.yml` | metadados da agenda                                             |
+| `disciplines.yml`                                                       | especialidades                                                  |
+| `users.yml`                                                             | usuários                                                        |
+| `status.yml`                                                            | saúde da API                                                    |
 
 São **59 operações**, sendo **33 de escrita**.
 
@@ -44,8 +44,8 @@ e-mail. Concatenar `/v1` no código produz `/v1/v1/...` e 404 em tudo.
 
 **2. O verbo de atualização varia por recurso.** Conferido um a um:
 
-| `PUT` | `PATCH` |
-|---|---|
+| `PUT`                                     | `PATCH`                                                         |
+| ----------------------------------------- | --------------------------------------------------------------- |
 | cadeiras, disciplinas, motivos, situações | pacientes, dentistas, usuários, imagens, documentos, **agenda** |
 
 Não padronize. O CRC escreve só em agenda, e ali é `PATCH`.

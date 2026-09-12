@@ -1,60 +1,60 @@
 customers/{customer_id}/evolutions:
   get:
     tags:
-    - Evoluções do Paciente
+      - Evoluções do Paciente
     summary: Listar Evoluções
     description: Lista as evoluções de tratamento de um paciente.
     responses:
-      '200':
+      "200":
         description: Successful response
         content:
           application/json: {}
     parameters:
-    - name: page
-      in: query
-      schema:
-        type: integer
-      description: Número da página
-    - name: per_page
-      in: query
-      schema:
-        type: integer
-      description: Quantidade de registros por página
-    - name: q
-      in: query
-      schema:
-        type: string
-      description: Termo de busca
-    - name: treatment_id
-      in: query
-      schema:
-        type: integer
-      description: Filtrar por tratamento
-    - name: dentist_id
-      in: query
-      schema:
-        type: integer
-      description: Filtrar por dentista
-    - name: teeth
-      in: query
-      schema:
-        type: string
-      description: Filtrar por dente
-    - name: start_date
-      in: query
-      schema:
-        type: string
-        format: date
-      description: Data inicial do filtro
-    - name: end_date
-      in: query
-      schema:
-        type: string
-        format: date
-      description: Data final do filtro
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Número da página
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+        description: Quantidade de registros por página
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Termo de busca
+      - name: treatment_id
+        in: query
+        schema:
+          type: integer
+        description: Filtrar por tratamento
+      - name: dentist_id
+        in: query
+        schema:
+          type: integer
+        description: Filtrar por dentista
+      - name: teeth
+        in: query
+        schema:
+          type: string
+        description: Filtrar por dente
+      - name: start_date
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Data inicial do filtro
+      - name: end_date
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Data final do filtro
   post:
     tags:
-    - Evoluções do Paciente
+      - Evoluções do Paciente
     summary: Criar Evolução
     description: Cria uma nova evolução para o paciente.
     requestBody:
@@ -86,51 +86,51 @@ customers/{customer_id}/evolutions:
                     type: string
                     description: Região
                 required:
-                - description
+                  - description
           example:
             treatment_evolution:
               treatment_id: 1
               procedure_id: 1
               dentist_id: 1
               evolution: Texto da evolução do paciente
-              teeth_start: '11'
-              teeth_end: '11'
+              teeth_start: "11"
+              teeth_end: "11"
               faces: []
-              background_color: '#FFFFFF'
+              background_color: "#FFFFFF"
               locked: false
               treatment_procedure_id: null
               treatment_procedure_ids: []
-              inclusion_datetime: '2026-03-17T10:00:00'
+              inclusion_datetime: "2026-03-17T10:00:00"
     responses:
-      '200':
+      "200":
         description: Successful response
         content:
           application/json: {}
   parameters:
-  - name: customer_id
-    in: path
-    schema:
-      type: string
-    required: true
+    - name: customer_id
+      in: path
+      schema:
+        type: string
+      required: true
 customers/{customer_id}/evolutions/{id}:
   get:
     tags:
-    - Evoluções do Paciente
+      - Evoluções do Paciente
     summary: Visualizar Evolução
     description: Retorna os detalhes de uma evolução específica.
     responses:
-      '200':
+      "200":
         description: Successful response
         content:
           application/json: {}
   parameters:
-  - name: customer_id
-    in: path
-    schema:
-      type: string
-    required: true
-  - name: id
-    in: path
-    schema:
-      type: string
-    required: true
+    - name: customer_id
+      in: path
+      schema:
+        type: string
+      required: true
+    - name: id
+      in: path
+      schema:
+        type: string
+      required: true

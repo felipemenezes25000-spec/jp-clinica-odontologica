@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: API Dental Office
-  version: '1.0'
+  version: "1.0"
   description: |
     API RESTful para integração com o sistema Dental Office Cloud.
 
@@ -100,64 +100,64 @@ info:
     name: Suporte
     email: api@dentaloffice.com.br
 servers:
-- url: https://demo.api.app.dentaloffice.com.br/v1
-  description: Production (URL de exemplo, substitua pela URL fornecida ao seu cliente)
+  - url: https://demo.api.app.dentaloffice.com.br/v1
+    description: Production (URL de exemplo, substitua pela URL fornecida ao seu cliente)
 security:
-- bearerAuth: []
+  - bearerAuth: []
 tags:
-- name: Autenticação
-  description: Geração de tokens de acesso
-- name: Usuários
-  description: Gerenciamento de usuários do sistema
-- name: Dentistas
-  description: Gerenciamento de dentistas
-- name: Cadeiras
-  description: Cadeiras (equipos) da clínica
-- name: Disciplinas
-  description: Especialidades odontológicas
-- name: Pacientes
-  description: Gerenciamento de pacientes
-- name: Imagens do Paciente
-  description: Imagens vinculadas ao paciente
-- name: Documentos do Paciente
-  description: Documentos vinculados ao paciente
-- name: Evoluções do Paciente
-  description: Evoluções de tratamento do paciente
-- name: Agendamentos
-  description: Agendamentos da clínica
-- name: Tipos de Agendamento
-  description: Tipos de agendamento disponíveis
-- name: Situações do Agendamento
-  description: Situações possíveis do agendamento
-- name: Motivos do Agendamento
-  description: Motivos para agendamento
-- name: Status
-  description: Status da API
+  - name: Autenticação
+    description: Geração de tokens de acesso
+  - name: Usuários
+    description: Gerenciamento de usuários do sistema
+  - name: Dentistas
+    description: Gerenciamento de dentistas
+  - name: Cadeiras
+    description: Cadeiras (equipos) da clínica
+  - name: Disciplinas
+    description: Especialidades odontológicas
+  - name: Pacientes
+    description: Gerenciamento de pacientes
+  - name: Imagens do Paciente
+    description: Imagens vinculadas ao paciente
+  - name: Documentos do Paciente
+    description: Documentos vinculados ao paciente
+  - name: Evoluções do Paciente
+    description: Evoluções de tratamento do paciente
+  - name: Agendamentos
+    description: Agendamentos da clínica
+  - name: Tipos de Agendamento
+    description: Tipos de agendamento disponíveis
+  - name: Situações do Agendamento
+    description: Situações possíveis do agendamento
+  - name: Motivos do Agendamento
+    description: Motivos para agendamento
+  - name: Status
+    description: Status da API
 x-tagGroups:
-- name: Autenticação
-  tags:
-  - Autenticação
-- name: Gerenciar Clínica
-  tags:
-  - Usuários
-  - Dentistas
-  - Cadeiras
-  - Disciplinas
-- name: Gerenciar Pacientes
-  tags:
-  - Pacientes
-  - Imagens do Paciente
-  - Documentos do Paciente
-  - Evoluções do Paciente
-- name: Gerenciar Agendamentos
-  tags:
-  - Agendamentos
-  - Tipos de Agendamento
-  - Situações do Agendamento
-  - Motivos do Agendamento
-- name: Status
-  tags:
-  - Status
+  - name: Autenticação
+    tags:
+      - Autenticação
+  - name: Gerenciar Clínica
+    tags:
+      - Usuários
+      - Dentistas
+      - Cadeiras
+      - Disciplinas
+  - name: Gerenciar Pacientes
+    tags:
+      - Pacientes
+      - Imagens do Paciente
+      - Documentos do Paciente
+      - Evoluções do Paciente
+  - name: Gerenciar Agendamentos
+    tags:
+      - Agendamentos
+      - Tipos de Agendamento
+      - Situações do Agendamento
+      - Motivos do Agendamento
+  - name: Status
+    tags:
+      - Status
 paths:
   /auth/tokens:
     $ref: ./paths/auth.yml#/auth~1tokens

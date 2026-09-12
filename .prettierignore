@@ -22,3 +22,14 @@ apresentacao
 # `.vercel` nao precisa entrar aqui: o Prettier ja o ignora por conta propria
 # (verificado com um arquivo mal formatado dentro e fora do diretorio).
 public/crc-tour
+
+# SKILLS DE TERCEIROS, VENDORIZADAS.
+#
+# `.agents/skills/` vem de fora: o `skills-lock.json` guarda `source`,
+# `sourceType: github` e um `computedHash` do conteudo. Formatar esses arquivos
+# muda o conteudo que o hash descreve, e transforma a proxima sincronizacao num
+# conflito com um diff que ninguem escreveu.
+#
+# Mesmo principio de `apresentacao` e `public/crc-tour`: o que nao e nosso, nao
+# formatamos.
+.agents/skills

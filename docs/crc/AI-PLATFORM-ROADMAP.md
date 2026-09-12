@@ -9,7 +9,7 @@ fundação provar que funciona sem enviar nada.**
 
 ---
 
-## Fase 0 — auditoria *(concluída)*
+## Fase 0 — auditoria _(concluída)_
 
 Os quatro documentos: [AUDIT](AI-PLATFORM-AUDIT.md),
 [PORT-MATRIX](AI-PLATFORM-PORT-MATRIX.md), [ADR](AI-PLATFORM-ADR.md), este.
@@ -18,7 +18,7 @@ Nenhuma mudança de comportamento de produção.
 
 ---
 
-## Fatia 1 — Inbound Agent Shadow Turn *(concluída)*
+## Fatia 1 — Inbound Agent Shadow Turn _(concluída)_
 
 **O que prova:** que existe um runtime agentic durável, com contexto, chamada de
 modelo, trace e custo — **sem mandar nada para ninguém**.
@@ -42,7 +42,7 @@ Depende de: nada além do que já existe.
 
 ---
 
-## Fatia 2 — Guardrails e envio real protegido *(concluída)*
+## Fatia 2 — Guardrails e envio real protegido _(concluída)_
 
 Cadeia de Gates portada do Deskcomm para `dominio/`, mais o envio real atrás de
 flag e de `EXECUTAR`.
@@ -53,14 +53,14 @@ proativo do agente — ver [CUSTO-DAS-MENSAGENS](CUSTO-DAS-MENSAGENS.md).
 
 ---
 
-## Fatia 3 — Tools de leitura sobre casos de uso existentes *(concluída)*
+## Fatia 3 — Tools de leitura sobre casos de uso existentes _(concluída)_
 
 `patient.*`, `appointment.search_available`, `knowledge.search`. Nenhuma escrita.
 Executor aplica policy **depois** da escolha do modelo e **antes** do efeito.
 
 ---
 
-## Fatia 4 — Tools de escrita e agendamento pelo agente *(concluída)*
+## Fatia 4 — Tools de escrita e agendamento pelo agente _(concluída)_
 
 `appointment.offer_slots` → `accept_offer` → `create`, chamando
 `aplicacao/agendamento.ts`. As três travas continuam valendo. Revalidação
@@ -68,14 +68,14 @@ imediatamente antes de gravar.
 
 ---
 
-## Fatia 5 — Human cases e Inbox 2.0 *(concluída)*
+## Fatia 5 — Human cases e Inbox 2.0 _(concluída)_
 
 `crc_human_cases`, estado de dono da conversa, botões de assumir/devolver/pausar,
 resumo automático no handoff.
 
 ---
 
-## Fatia 6 — Memória e supervisor *(concluída)*
+## Fatia 6 — Memória e supervisor _(concluída)_
 
 Memória com origem, confiança, validade e direito de correção. Supervisor
 estruturado pós-turno, atrás da flag `ai_supervisor`.
@@ -100,7 +100,7 @@ envelhecer de forma diferente.
 
 ---
 
-## Fatia 7 — Conhecimento / RAG *(concluída)*
+## Fatia 7 — Conhecimento / RAG _(concluída)_
 
 pgvector, ingestão, chunk com metadata, filtro de tenant na query, rerank.
 
@@ -128,7 +128,7 @@ que também explica por que ela não entrou na `PortaIa`.
 
 ---
 
-## Fatia 8 — Model gateway, BYOK e orçamento *(concluída)*
+## Fatia 8 — Model gateway, BYOK e orçamento _(concluída)_
 
 Multi-provider com roteamento por finalidade, credencial cifrada por
 organização, teto de gasto checado antes da chamada.
@@ -159,7 +159,7 @@ decorador e não uma checagem de chamador.
 
 ---
 
-## Fatia 9 — Avaliação, replay e publicação com gate *(concluída)*
+## Fatia 9 — Avaliação, replay e publicação com gate _(concluída)_
 
 Suíte de casos, replay sem efeito externo, e o gate que impede publicar versão
 que falhe em segurança, autorização de tool, isolamento de tenant ou handoff
@@ -191,7 +191,7 @@ vazia em vez de fingir cobertura.
 
 ---
 
-## Fatia 10 — AI Studio e Workflow Studio *(concluída, com um recorte declarado)*
+## Fatia 10 — AI Studio e Workflow Studio _(concluída, com um recorte declarado)_
 
 As telas. Vêm por último de propósito: interface para uma plataforma que ainda
 não existe é a forma mais cara de descobrir que o desenho estava errado.
@@ -226,10 +226,10 @@ que o catálogo não tem, e não antes.
 
 ## O que fica explicitamente fora, por ora
 
-| Item | Por quê |
-| --- | --- |
-| Multi-tenant de plataforma | A clínica é uma organização |
-| `CODE_SAFE` no workflow | Precisa de sandbox antes |
+| Item                        | Por quê                                      |
+| --------------------------- | -------------------------------------------- |
+| Multi-tenant de plataforma  | A clínica é uma organização                  |
+| `CODE_SAFE` no workflow     | Precisa de sandbox antes                     |
 | Machine learning nos scores | Falta rótulo e volume; começa determinístico |
-| Pinecone/Weaviate | Sem necessidade medida |
-| A/B testing | Depende de volume que ainda não existe |
+| Pinecone/Weaviate           | Sem necessidade medida                       |
+| A/B testing                 | Depende de volume que ainda não existe       |

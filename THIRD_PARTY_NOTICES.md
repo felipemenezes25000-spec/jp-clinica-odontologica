@@ -27,7 +27,6 @@ os originais, sem modificação.
 
 ---
 
-
 ## DeskcommCRM
 
 Partes do runtime agentic do JP CRC foram adaptadas do **DeskcommCRM**, em

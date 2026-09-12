@@ -1,13 +1,13 @@
 clinics/{clinic_id}/chairs:
   get:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Listar Cadeiras
     description: Recupera uma lista de cadeiras associadas a uma clínica específica.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -23,11 +23,11 @@ clinics/{clinic_id}/chairs:
                   to: 1
                   current_page: 1
                   results:
-                  - id: 1
-                    name: Cadeira Principal
-                    created_at: '2023-05-22T22:37:46.000Z'
-                    updated_at: '2023-05-22T22:37:46.000Z'
-                    deleted_at: null
+                    - id: 1
+                      name: Cadeira Principal
+                      created_at: "2023-05-22T22:37:46.000Z"
+                      updated_at: "2023-05-22T22:37:46.000Z"
+                      deleted_at: null
               example-1:
                 summary: 200 - OK Filtered
                 value:
@@ -37,12 +37,12 @@ clinics/{clinic_id}/chairs:
                   to: 1
                   current_page: 1
                   results:
-                  - id: 4
-                    name: 'Nova Cadeira - Restaurado em: 02/02/2024 às 17:37'
-                    created_at: '2024-02-02T17:34:50.000Z'
-                    updated_at: '2024-02-02T17:39:48.000Z'
-                    deleted_at: '2024-02-02T17:39:48.000Z'
-      '404':
+                    - id: 4
+                      name: "Nova Cadeira - Restaurado em: 02/02/2024 às 17:37"
+                      created_at: "2024-02-02T17:34:50.000Z"
+                      updated_at: "2024-02-02T17:39:48.000Z"
+                      deleted_at: "2024-02-02T17:39:48.000Z"
+      "404":
         description: Not Found
         content:
           application/json:
@@ -50,11 +50,11 @@ clinics/{clinic_id}/chairs:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   post:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Criar uma Cadeira
     description: Cria uma nova cadeira na clínica.
     requestBody:
@@ -72,9 +72,9 @@ clinics/{clinic_id}/chairs:
             chair:
               name: Nova Cadeira II
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -84,10 +84,10 @@ clinics/{clinic_id}/chairs:
               id: 4
               clinic_id: 1
               name: Nova Cadeira
-              created_at: '2024-02-02T17:34:50.392Z'
-              updated_at: '2024-02-02T17:34:50.392Z'
+              created_at: "2024-02-02T17:34:50.392Z"
+              updated_at: "2024-02-02T17:34:50.392Z"
               deleted_at: null
-      '422':
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -96,25 +96,25 @@ clinics/{clinic_id}/chairs:
             example:
               errors:
                 name:
-                - Nome já está em uso
+                  - Nome já está em uso
   parameters:
-  - name: clinic_id
-    in: path
-    schema:
-      type: integer
-    required: true
-    description: 'Referência da clínica'
-    example: '1'
+    - name: clinic_id
+      in: path
+      schema:
+        type: integer
+      required: true
+      description: "Referência da clínica"
+      example: "1"
 clinics/{clinic_id}/chairs/{id}:
   get:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Detalhes da Cadeira
     description: Retorna os detalhes de uma cadeira específica.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -123,8 +123,8 @@ clinics/{clinic_id}/chairs/{id}:
             example:
               id: 1
               name: Cadeira Principal
-              created_at: '2023-05-22T22:37:46.000Z'
-              updated_at: '2023-05-22T22:37:46.000Z'
+              created_at: "2023-05-22T22:37:46.000Z"
+              updated_at: "2023-05-22T22:37:46.000Z"
               deleted_at: null
               clinic:
                 id: 1
@@ -132,7 +132,7 @@ clinics/{clinic_id}/chairs/{id}:
               disciplines: []
   put:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Atualizar Cadeira
     requestBody:
       content:
@@ -147,14 +147,14 @@ clinics/{clinic_id}/chairs/{id}:
                     type: string
                     description: Nome da cadeira
                 required:
-                - name
+                  - name
           example:
             chair:
               name: Cadeira Atualizada
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -164,18 +164,18 @@ clinics/{clinic_id}/chairs/{id}:
               id: 3
               clinic_id: 1
               name: Cadeira Atualizada
-              created_at: '2024-02-02T17:16:35.000Z'
-              updated_at: '2024-02-02T17:30:30.000Z'
+              created_at: "2024-02-02T17:16:35.000Z"
+              updated_at: "2024-02-02T17:30:30.000Z"
               deleted_at: null
     description: Atualiza os dados de uma cadeira.
   delete:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Remover uma Cadeira
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
@@ -184,37 +184,37 @@ clinics/{clinic_id}/chairs/{id}:
             example: null
     description: Remove uma cadeira da clínica.
   parameters:
-  - name: clinic_id
-    in: path
-    schema:
-      type: integer
-    required: true
-    description: Referência da Clínica
-    example: '1'
-  - name: id
-    in: path
-    schema:
-      type: integer
-    required: true
-    description: Referência da Cadeira
-    example: '1'
+    - name: clinic_id
+      in: path
+      schema:
+        type: integer
+      required: true
+      description: Referência da Clínica
+      example: "1"
+    - name: id
+      in: path
+      schema:
+        type: integer
+      required: true
+      description: Referência da Cadeira
+      example: "1"
 clinics/{clinic_id}/chairs/restore:
   put:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Restaurar uma Cadeira
     description: Restaura uma cadeira e consequentemente restaura todos os agendamentos que estavam a serem realizados nela.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     parameters:
-    - name: id
-      in: query
-      schema:
-        type: integer
-      description: Referencia da Cadeira
-      example: '3'
+      - name: id
+        in: query
+        schema:
+          type: integer
+        description: Referencia da Cadeira
+        example: "3"
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
@@ -222,43 +222,44 @@ clinics/{clinic_id}/chairs/restore:
               type: string
             example: null
   parameters:
-  - name: clinic_id
-    in: path
-    schema:
-      type: integer
-    required: true
-    description: Referência da Clínica
-    example: '1'
+    - name: clinic_id
+      in: path
+      schema:
+        type: integer
+      required: true
+      description: Referência da Clínica
+      example: "1"
 clinics/{clinic_id}/chairs/work_schedules:
   get:
     tags:
-    - Cadeiras
+      - Cadeiras
     summary: Checkar Escala de Dentistas
     description: Retorna os horários de atendimento em uma cadeira e qual dentista está alocado.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     parameters:
-    - name: dentist_id
-      in: query
-      schema:
-        type: integer
-      description: Filtra apenas por um dentista que tenha horários configurados para a cadeira
-      example: '7'
-    - name: exclude_dentist_id
-      in: query
-      schema:
-        type: integer
-      description: Remove do filtro um dentista caso a cadeira tenha mais de um dentista com horários configurados para a
-        cadeira
-      example: '1'
-    - name: id
-      in: query
-      schema:
-        type: integer
-      description: Referência da cadeira para buscar horários
-      example: '1'
+      - name: dentist_id
+        in: query
+        schema:
+          type: integer
+        description: Filtra apenas por um dentista que tenha horários configurados para a cadeira
+        example: "7"
+      - name: exclude_dentist_id
+        in: query
+        schema:
+          type: integer
+        description:
+          Remove do filtro um dentista caso a cadeira tenha mais de um dentista com horários configurados para a
+          cadeira
+        example: "1"
+      - name: id
+        in: query
+        schema:
+          type: integer
+        description: Referência da cadeira para buscar horários
+        example: "1"
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -268,120 +269,120 @@ clinics/{clinic_id}/chairs/work_schedules:
               example-0:
                 summary: 200 - OK
                 value:
-                - id: 1
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 1
-                  start_time: '2024-02-02T08:00:00.000Z'
-                  end_time: '2024-02-02T12:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 2
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 2
-                  start_time: '2024-02-02T08:00:00.000Z'
-                  end_time: '2024-02-02T12:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 3
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 3
-                  start_time: '2024-02-02T08:00:00.000Z'
-                  end_time: '2024-02-02T12:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 4
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 4
-                  start_time: '2024-02-02T08:00:00.000Z'
-                  end_time: '2024-02-02T12:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 5
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 5
-                  start_time: '2024-02-02T08:00:00.000Z'
-                  end_time: '2024-02-02T12:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 6
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 1
-                  start_time: '2024-02-02T14:00:00.000Z'
-                  end_time: '2024-02-02T18:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 7
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 2
-                  start_time: '2024-02-02T14:00:00.000Z'
-                  end_time: '2024-02-02T18:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 8
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 3
-                  start_time: '2024-02-02T14:00:00.000Z'
-                  end_time: '2024-02-02T18:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 9
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 4
-                  start_time: '2024-02-02T14:00:00.000Z'
-                  end_time: '2024-02-02T18:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
-                - id: 10
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 1
-                  weekday: 5
-                  start_time: '2024-02-02T14:00:00.000Z'
-                  end_time: '2024-02-02T18:00:00.000Z'
-                  created_at: '2023-05-22T22:37:46.000Z'
-                  updated_at: '2023-05-22T22:37:46.000Z'
+                  - id: 1
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 1
+                    start_time: "2024-02-02T08:00:00.000Z"
+                    end_time: "2024-02-02T12:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 2
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 2
+                    start_time: "2024-02-02T08:00:00.000Z"
+                    end_time: "2024-02-02T12:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 3
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 3
+                    start_time: "2024-02-02T08:00:00.000Z"
+                    end_time: "2024-02-02T12:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 4
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 4
+                    start_time: "2024-02-02T08:00:00.000Z"
+                    end_time: "2024-02-02T12:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 5
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 5
+                    start_time: "2024-02-02T08:00:00.000Z"
+                    end_time: "2024-02-02T12:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 6
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 1
+                    start_time: "2024-02-02T14:00:00.000Z"
+                    end_time: "2024-02-02T18:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 7
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 2
+                    start_time: "2024-02-02T14:00:00.000Z"
+                    end_time: "2024-02-02T18:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 8
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 3
+                    start_time: "2024-02-02T14:00:00.000Z"
+                    end_time: "2024-02-02T18:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 9
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 4
+                    start_time: "2024-02-02T14:00:00.000Z"
+                    end_time: "2024-02-02T18:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
+                  - id: 10
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 1
+                    weekday: 5
+                    start_time: "2024-02-02T14:00:00.000Z"
+                    end_time: "2024-02-02T18:00:00.000Z"
+                    created_at: "2023-05-22T22:37:46.000Z"
+                    updated_at: "2023-05-22T22:37:46.000Z"
               example-1:
                 summary: 200 - OK Filtered
                 value:
-                - id: 11
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 7
-                  weekday: 1
-                  start_time: '2024-02-02T20:00:00.000Z'
-                  end_time: '2024-02-02T21:00:00.000Z'
-                  created_at: '2024-02-02T20:57:23.000Z'
-                  updated_at: '2024-02-02T20:57:23.000Z'
-                - id: 12
-                  chair_id: 1
-                  discipline_id: null
-                  dentist_id: 7
-                  weekday: 6
-                  start_time: '2024-02-02T10:00:00.000Z'
-                  end_time: '2024-02-02T12:00:00.000Z'
-                  created_at: '2024-02-02T20:57:23.000Z'
-                  updated_at: '2024-02-02T20:57:23.000Z'
+                  - id: 11
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 7
+                    weekday: 1
+                    start_time: "2024-02-02T20:00:00.000Z"
+                    end_time: "2024-02-02T21:00:00.000Z"
+                    created_at: "2024-02-02T20:57:23.000Z"
+                    updated_at: "2024-02-02T20:57:23.000Z"
+                  - id: 12
+                    chair_id: 1
+                    discipline_id: null
+                    dentist_id: 7
+                    weekday: 6
+                    start_time: "2024-02-02T10:00:00.000Z"
+                    end_time: "2024-02-02T12:00:00.000Z"
+                    created_at: "2024-02-02T20:57:23.000Z"
+                    updated_at: "2024-02-02T20:57:23.000Z"
   parameters:
-  - name: clinic_id
-    in: path
-    schema:
-      type: string
-    required: true
+    - name: clinic_id
+      in: path
+      schema:
+        type: string
+      required: true

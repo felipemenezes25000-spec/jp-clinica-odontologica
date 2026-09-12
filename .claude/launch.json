@@ -4,22 +4,14 @@
     {
       "name": "jp-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
+      "runtimeArgs": ["run", "dev"],
       "port": 8080,
       "autoPort": true
     },
     {
       "name": "apresentacao",
       "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "--prefix",
-        "apresentacao",
-        "run",
-        "dev"
-      ],
+      "runtimeArgs": ["--prefix", "apresentacao", "run", "dev"],
       "port": 5180
     }
   ]

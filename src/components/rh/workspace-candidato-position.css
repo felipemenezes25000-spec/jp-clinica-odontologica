@@ -254,7 +254,10 @@
   background: #ffffff !important;
 }
 
-.rh-admin .rh-gaveta [id$="-painel"] :is(
+.rh-admin
+  .rh-gaveta
+  [id$="-painel"]
+  :is(
     [class~="bg-white/5"],
     [class~="bg-white/10"],
     [class~="bg-white/15"],
@@ -264,7 +267,10 @@
   background: #f5f8f3 !important;
 }
 
-.rh-admin .rh-gaveta [id$="-painel"] :is(
+.rh-admin
+  .rh-gaveta
+  [id$="-painel"]
+  :is(
     [class~="border-white/10"],
     [class~="border-white/15"],
     [class~="border-white/20"],
@@ -274,7 +280,10 @@
   border-color: color-mix(in oklab, var(--forest) 13%, white) !important;
 }
 
-.rh-admin .rh-gaveta [id$="-painel"] :is(
+.rh-admin
+  .rh-gaveta
+  [id$="-painel"]
+  :is(
     [class~="ring-white/10"],
     [class~="ring-white/15"],
     [class~="ring-white/20"],

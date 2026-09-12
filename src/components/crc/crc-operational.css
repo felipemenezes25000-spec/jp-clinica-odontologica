@@ -137,7 +137,10 @@
   border: 1px solid var(--crc-borda);
   border-radius: 12px;
   background: var(--crc-superficie-2);
-  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao), background var(--crc-transicao);
+  transition:
+    border-color var(--crc-transicao),
+    box-shadow var(--crc-transicao),
+    background var(--crc-transicao);
 }
 
 .crc-app .crc-inbox-busca-wrap:focus-within {
@@ -221,7 +224,10 @@
   padding: 10px;
   background: transparent;
   text-align: left;
-  transition: background var(--crc-transicao), box-shadow var(--crc-transicao), transform var(--crc-transicao);
+  transition:
+    background var(--crc-transicao),
+    box-shadow var(--crc-transicao),
+    transform var(--crc-transicao);
 }
 
 .crc-app .crc-conversa-item-v2:hover {
@@ -330,10 +336,13 @@
   min-height: 0;
   overflow: hidden;
   background:
-    linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)),
+    linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72)),
     linear-gradient(rgba(8, 115, 59, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(8, 115, 59, 0.035) 1px, transparent 1px);
-  background-size: auto, 32px 32px, 32px 32px;
+  background-size:
+    auto,
+    32px 32px,
+    32px 32px;
 }
 
 .crc-app .crc-inbox-aviso {

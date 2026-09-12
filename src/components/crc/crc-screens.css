@@ -157,7 +157,9 @@
   padding: 11px 12px;
   margin-inline: -4px;
   border-radius: 12px;
-  transition: background var(--crc-transicao), transform var(--crc-transicao);
+  transition:
+    background var(--crc-transicao),
+    transform var(--crc-transicao);
 }
 
 .crc-app .crc-cartao > ul:not(.crc-porque-lista) > li > .crc-linha:hover,
@@ -210,9 +212,7 @@
 
 .crc-app .crc-painel-duplo > .crc-cartao {
   border-color: rgba(7, 92, 34, 0.13);
-  background:
-    linear-gradient(155deg, rgba(7, 92, 34, 0.035), transparent 52%),
-    #fff;
+  background: linear-gradient(155deg, rgba(7, 92, 34, 0.035), transparent 52%), #fff;
 }
 
 .crc-app .crc-fila {
@@ -315,7 +315,9 @@
   position: relative;
   min-height: 72px;
   padding: 13px 15px;
-  transition: background var(--crc-transicao), box-shadow var(--crc-transicao);
+  transition:
+    background var(--crc-transicao),
+    box-shadow var(--crc-transicao);
 }
 
 .crc-app .crc-conversa-item[aria-selected="true"] {
@@ -330,9 +332,7 @@
 .crc-app .crc-mensagens {
   gap: 10px;
   padding: 20px 18px 26px;
-  background:
-    radial-gradient(circle at 15% 8%, rgba(7, 92, 34, 0.025), transparent 18rem),
-    #fcfdfb;
+  background: radial-gradient(circle at 15% 8%, rgba(7, 92, 34, 0.025), transparent 18rem), #fcfdfb;
 }
 
 .crc-app .crc-balao {
@@ -500,11 +500,18 @@
   border-bottom-color: #edf1ea;
 }
 
-.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao .crc-conversa-item:hover {
+.crc-app
+  .crc-conteudo:has(.crc-conversa-item .crc-numero)
+  section.crc-cartao
+  .crc-conversa-item:hover {
   background: #f7faf5;
 }
 
-.crc-app .crc-conteudo:has(.crc-conversa-item .crc-numero) section.crc-cartao .crc-conversa-item > .crc-numero {
+.crc-app
+  .crc-conteudo:has(.crc-conversa-item .crc-numero)
+  section.crc-cartao
+  .crc-conversa-item
+  > .crc-numero {
   min-width: 4rem !important;
   color: var(--crc-primaria);
   font-family: var(--crc-fonte-dado);
@@ -521,9 +528,7 @@
   padding: 17px;
   border: 1px solid rgba(7, 92, 34, 0.1);
   border-radius: 18px;
-  background:
-    linear-gradient(120deg, rgba(7, 92, 34, 0.035), transparent 55%),
-    #fff;
+  background: linear-gradient(120deg, rgba(7, 92, 34, 0.035), transparent 55%), #fff;
 }
 
 .crc-app #crc-busca-paciente {
@@ -554,9 +559,7 @@
   padding: 20px 22px;
   border: 1px solid rgba(7, 92, 34, 0.11);
   border-radius: 20px;
-  background:
-    radial-gradient(circle at 90% 10%, rgba(86, 168, 5, 0.1), transparent 15rem),
-    #fff;
+  background: radial-gradient(circle at 90% 10%, rgba(86, 168, 5, 0.1), transparent 15rem), #fff;
 }
 
 .crc-app .crc-conteudo:has(#aba-resumo) > header .crc-titulo-pagina {
@@ -590,9 +593,7 @@
 .crc-app .crc-cartao:has([role="img"]) {
   padding: 21px;
   border-color: rgba(7, 92, 34, 0.11);
-  background:
-    linear-gradient(150deg, rgba(7, 92, 34, 0.025), transparent 48%),
-    #fff;
+  background: linear-gradient(150deg, rgba(7, 92, 34, 0.025), transparent 48%), #fff;
 }
 
 .crc-app .crc-cartao:has([role="img"]) [role="img"] {
@@ -620,9 +621,7 @@
   position: relative;
   overflow: hidden;
   padding: 22px;
-  background:
-    radial-gradient(circle at 96% 0%, rgba(86, 168, 5, 0.12), transparent 17rem),
-    #fff;
+  background: radial-gradient(circle at 96% 0%, rgba(86, 168, 5, 0.12), transparent 17rem), #fff;
 }
 
 .crc-app .crc-conteudo:has(#crc-importar-arquivo) > .crc-pilha > .crc-cartao:first-child::before {
@@ -808,9 +807,7 @@
   padding: 34px 24px;
   border: 1px dashed rgba(7, 92, 34, 0.16);
   border-radius: 16px;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(86, 168, 5, 0.06), transparent 10rem),
-    #fafcf9;
+  background: radial-gradient(circle at 50% 0%, rgba(86, 168, 5, 0.06), transparent 10rem), #fafcf9;
 }
 
 .crc-app .crc-vazio strong {
@@ -941,7 +938,6 @@
     width: 100%;
   }
 }
-
 
 /* ==========================================================================
    O guia da tela — o esqueleto
@@ -1083,7 +1079,6 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
-
 
 /* ==========================================================================
    Login — o esqueleto
@@ -1266,7 +1261,6 @@
   }
 }
 
-
 /* ==========================================================================
    Shell — o esqueleto
    ==========================================================================
@@ -1350,7 +1344,6 @@
   font-size: 0.8125rem;
 }
 
-
 /* ==========================================================================
    Menu — seções que abrem e fecham
    ==========================================================================
@@ -1413,7 +1406,6 @@
     transition: none;
   }
 }
-
 
 /* ==========================================================================
    Resposta ao toque
@@ -1528,7 +1520,6 @@
   }
 }
 
-
 /* ==========================================================================
    Seções que abrem e fecham
    ==========================================================================
@@ -1588,7 +1579,6 @@
     transition: none;
   }
 }
-
 
 /* ==========================================================================
    Avatar com foto

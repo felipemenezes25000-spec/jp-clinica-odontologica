@@ -40,7 +40,9 @@
   pointer-events: none;
   background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.16), transparent 78%);
   transform: translateX(-45%);
-  transition: opacity var(--crc-transicao), transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition:
+    opacity var(--crc-transicao),
+    transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .crc-app .crc-botao:hover::after {
@@ -113,7 +115,12 @@
   background: rgba(7, 92, 34, 0.035);
 }
 
-.crc-app .crc-pilha > .crc-cartao:has(> header + ul) > ul > li:has(.crc-etiqueta-perigo) > .crc-linha {
+.crc-app
+  .crc-pilha
+  > .crc-cartao:has(> header + ul)
+  > ul
+  > li:has(.crc-etiqueta-perigo)
+  > .crc-linha {
   background: linear-gradient(90deg, rgba(168, 32, 15, 0.05), transparent 55%);
 }
 
@@ -163,8 +170,7 @@
   gap: 14px;
   background:
     linear-gradient(rgba(7, 92, 34, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(7, 92, 34, 0.018) 1px, transparent 1px),
-    #fbfcfa;
+    linear-gradient(90deg, rgba(7, 92, 34, 0.018) 1px, transparent 1px), #fbfcfa;
   background-size: 26px 26px;
 }
 

@@ -60,12 +60,12 @@ problema antes: `src/start.ts` conviveu bem com um site 100% estático.
 ## Matriz de testes
 
 | `src/start.ts` | server functions | resultado |
-| --- | --- | --- |
-| presente | nenhuma | **200** |
-| presente | uma trivial | 500 |
-| presente | portal completo | 500 |
-| ausente | uma trivial | **200** |
-| ausente | portal completo | 500 |
+| -------------- | ---------------- | --------- |
+| presente       | nenhuma          | **200**   |
+| presente       | uma trivial      | 500       |
+| presente       | portal completo  | 500       |
+| ausente        | uma trivial      | **200**   |
+| ausente        | portal completo  | 500       |
 
 Duas conclusões:
 
@@ -75,19 +75,19 @@ Duas conclusões:
 
 ## O que já foi descartado (testado, não resolveu)
 
-| Tentativa | Resultado |
-| --- | --- |
-| `@tanstack/react-start` 1.168.40 → 1.168.50 | 500 igual, e quebra tipagem em `__root.tsx` |
-| Remover só o `createCsrfMiddleware` do `start.ts` | erro migra para `createMiddleware` |
-| Remover a entrada customizada (`server: { entry: "server" }`) | 500 igual |
-| Acrescentar os pacotes do Start ao `resolve.dedupe` | 500 igual |
-| `manualChunks` agrupando `@tanstack/*` | erro migra para `__exportAll` |
-| `ssr.noExternal` para empacotar o runtime | 500 igual |
-| Tirar `supabase.ts` do grafo do despachante | 500 igual |
-| Trocar o único `export … from` por funções delegadoras | 500 igual |
-| `React.lazy` nas seis abas do painel | 500 igual |
-| Separar as server functions públicas em `api-portal.ts` | 500 igual |
-| Remover `src/start.ts` **e** a entrada customizada | 500 igual (grafo completo) |
+| Tentativa                                                     | Resultado                                   |
+| ------------------------------------------------------------- | ------------------------------------------- |
+| `@tanstack/react-start` 1.168.40 → 1.168.50                   | 500 igual, e quebra tipagem em `__root.tsx` |
+| Remover só o `createCsrfMiddleware` do `start.ts`             | erro migra para `createMiddleware`          |
+| Remover a entrada customizada (`server: { entry: "server" }`) | 500 igual                                   |
+| Acrescentar os pacotes do Start ao `resolve.dedupe`           | 500 igual                                   |
+| `manualChunks` agrupando `@tanstack/*`                        | erro migra para `__exportAll`               |
+| `ssr.noExternal` para empacotar o runtime                     | 500 igual                                   |
+| Tirar `supabase.ts` do grafo do despachante                   | 500 igual                                   |
+| Trocar o único `export … from` por funções delegadoras        | 500 igual                                   |
+| `React.lazy` nas seis abas do painel                          | 500 igual                                   |
+| Separar as server functions públicas em `api-portal.ts`       | 500 igual                                   |
+| Remover `src/start.ts` **e** a entrada customizada            | 500 igual (grafo completo)                  |
 
 ## Duas correções que ficaram, e são certas de qualquer jeito
 
@@ -147,12 +147,12 @@ reprodução mínima acima — o ciclo é entre pedaços que o bundler **deles**
 
 ## Situação da produção
 
-| | |
-| --- | --- |
-| `/` e `/tratamentos/*` | **200** — site institucional no ar |
-| `/carreiras` e `/rh` | 404 — portal fora |
-| 54 candidaturas + currículos | **seguros no Supabase**, independem de deploy |
-| Variáveis de ambiente na Vercel | todas cadastradas |
+|                                 |                                               |
+| ------------------------------- | --------------------------------------------- |
+| `/` e `/tratamentos/*`          | **200** — site institucional no ar            |
+| `/carreiras` e `/rh`            | 404 — portal fora                             |
+| 54 candidaturas + currículos    | **seguros no Supabase**, independem de deploy |
+| Variáveis de ambiente na Vercel | todas cadastradas                             |
 
 O portal está **fora, não quebrado**, e os dados não correm risco: eles vivem no
 Supabase, não no deploy.

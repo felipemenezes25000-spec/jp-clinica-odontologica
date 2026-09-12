@@ -10,26 +10,26 @@ Levantado em **10/09/2026**, `main` em `454a24d`, árvore de trabalho limpa.
 
 ## 1. O que o JP CRC é hoje
 
-| Camada | Arquivos | Linhas |
-| --- | ---: | ---: |
-| `dominio/` — puro, sem I/O | 21 | 6.018 |
-| `aplicacao/` — casos de uso | 25 | 10.857 |
-| `automacao/` — jornadas | 6 | 3.208 |
-| `integracoes/` — adapters | 13 | 4.570 |
-| `servidor/` — infra server-only | 7 | 1.974 |
-| `api.ts` — fronteira React ↔ servidor | 1 | 2.686 |
-| `components/crc/` — as 13 telas | 20 | 8.092 |
+| Camada                                | Arquivos | Linhas |
+| ------------------------------------- | -------: | -----: |
+| `dominio/` — puro, sem I/O            |       21 |  6.018 |
+| `aplicacao/` — casos de uso           |       25 | 10.857 |
+| `automacao/` — jornadas               |        6 |  3.208 |
+| `integracoes/` — adapters             |       13 |  4.570 |
+| `servidor/` — infra server-only       |        7 |  1.974 |
+| `api.ts` — fronteira React ↔ servidor |        1 |  2.686 |
+| `components/crc/` — as 13 telas       |       20 |  8.092 |
 
 **413 testes em 18 arquivos, todos passando.** 8 arquivos SQL em `supabase/`.
 
 ### Baseline de qualidade registrado
 
-| | |
-| --- | --- |
-| `tsc --noEmit` | limpo |
-| `vitest run` | 18 arquivos, **413 testes**, 0 falhas |
-| `eslint` sobre o CRC | 0 erros, 3 avisos |
-| `vite build` | passa |
+|                      |                                       |
+| -------------------- | ------------------------------------- |
+| `tsc --noEmit`       | limpo                                 |
+| `vitest run`         | 18 arquivos, **413 testes**, 0 falhas |
+| `eslint` sobre o CRC | 0 erros, 3 avisos                     |
+| `vite build`         | passa                                 |
 
 `npm run check` roda lint sobre o repositório inteiro e leva mais de dez
 minutos; as partes foram medidas separadamente. Fora do CRC existem erros de
@@ -106,10 +106,10 @@ checkpoint de turno, roteador de modelo, orçamento, trace, replay, avaliação.
 
 Encontradas nesta auditoria, todas verificadas no código:
 
-| Doc diz | Código faz |
-| --- | --- |
-| `ai_autopilot` governa a resposta automática | A flag é lida em `automacao/handlers.ts`; o caminho existe e está correto |
-| Campanhas enviam template | `enviarMensagem` sempre chama `enviarTexto`; `enviarTemplate` existe na porta e nos três adapters e **nada o chama** |
+| Doc diz                                      | Código faz                                                                                                           |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `ai_autopilot` governa a resposta automática | A flag é lida em `automacao/handlers.ts`; o caminho existe e está correto                                            |
+| Campanhas enviam template                    | `enviarMensagem` sempre chama `enviarTexto`; `enviarTemplate` existe na porta e nos três adapters e **nada o chama** |
 
 A segunda é um defeito real e bloqueia produção: fora da janela de 24h a Meta
 recusa texto livre, o que atinge campanhas e todas as automações proativas. A
@@ -144,14 +144,14 @@ Isso não é uma lacuna a preencher com criatividade. É um limite:
 
 ## 6. Riscos identificados
 
-| Risco | Por quê | Mitigação |
-| --- | --- | --- |
-| Duplicar motor de automação | O Deskcomm traz fila, cron e worker próprios | Tool/Workflow compilam para `automacao/motor.ts` |
-| Agente contornar `mensagens.ts` | É o caminho mais curto ao copiar do Deskcomm | Envio só como Tool; before-send obrigatório |
-| Bundle cliente inchar | O AI SDK é server-only | `await import()` dentro do handler, como o resto do CRC |
-| Segredo em log | BYOK entra nesta fase | Envelope encryption; chave nunca logada, nem truncada |
-| Custo de modelo sem teto | Turnos agentic gastam mais que classificação | Budget checado ANTES da chamada, não depois |
-| Tenant vazado no RAG | Filtro de tenant aplicado depois da busca | `organization_id` entra na query, não no filtro |
+| Risco                           | Por quê                                      | Mitigação                                               |
+| ------------------------------- | -------------------------------------------- | ------------------------------------------------------- |
+| Duplicar motor de automação     | O Deskcomm traz fila, cron e worker próprios | Tool/Workflow compilam para `automacao/motor.ts`        |
+| Agente contornar `mensagens.ts` | É o caminho mais curto ao copiar do Deskcomm | Envio só como Tool; before-send obrigatório             |
+| Bundle cliente inchar           | O AI SDK é server-only                       | `await import()` dentro do handler, como o resto do CRC |
+| Segredo em log                  | BYOK entra nesta fase                        | Envelope encryption; chave nunca logada, nem truncada   |
+| Custo de modelo sem teto        | Turnos agentic gastam mais que classificação | Budget checado ANTES da chamada, não depois             |
+| Tenant vazado no RAG            | Filtro de tenant aplicado depois da busca    | `organization_id` entra na query, não no filtro         |
 
 ---
 

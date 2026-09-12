@@ -755,23 +755,21 @@ Formato histórico:
 ```json
 {
   "errors": {
-    "format_error": [
-      "The request must be json."
-    ]
+    "format_error": ["The request must be json."]
   }
 }
 ```
 
 Erros históricos de autenticação:
 
-| HTTP | Código | Significado |
-|---|---|---|
-| 401 | `format_error` | requisição deveria ser JSON |
-| 401 | `request_login_and_password` | login/senha não enviados |
-| 401 | `request_device_register` | device register ausente |
-| 401 | `request_device_platform` | plataforma ausente |
-| 401 | `invalid_login` | e-mail inválido/inexistente |
-| 401 | `invalid_password` | senha inválida |
+| HTTP | Código                       | Significado                 |
+| ---- | ---------------------------- | --------------------------- |
+| 401  | `format_error`               | requisição deveria ser JSON |
+| 401  | `request_login_and_password` | login/senha não enviados    |
+| 401  | `request_device_register`    | device register ausente     |
+| 401  | `request_device_platform`    | plataforma ausente          |
+| 401  | `invalid_login`              | e-mail inválido/inexistente |
+| 401  | `invalid_password`           | senha inválida              |
 
 Para a API atual, trate genericamente:
 
@@ -900,13 +898,13 @@ Payload:
 
 Campos:
 
-| Campo | Obrigatório |
-|---|---|
-| `user` | sim |
-| `user.name` | sim |
-| `user.user_group_id` | sim |
-| `user.email` | sim |
-| `user.password` | não |
+| Campo                | Obrigatório |
+| -------------------- | ----------- |
+| `user`               | sim         |
+| `user.name`          | sim         |
+| `user.user_group_id` | sim         |
+| `user.email`         | sim         |
+| `user.password`      | não         |
 
 Com senha:
 
@@ -975,14 +973,14 @@ Payload mínimo:
 
 Campos:
 
-| Campo | Obrigatório |
-|---|---|
-| `dentist` | sim |
-| `dentist.name` | sim |
-| `dentist.dentist_type` | sim |
-| `dentist.duration` | não |
-| `dentist.semester` | não |
-| `dentist.register_number` | não |
+| Campo                     | Obrigatório |
+| ------------------------- | ----------- |
+| `dentist`                 | sim         |
+| `dentist.name`            | sim         |
+| `dentist.dentist_type`    | sim         |
+| `dentist.duration`        | não         |
+| `dentist.semester`        | não         |
+| `dentist.register_number` | não         |
 
 ## Buscar por ID
 
@@ -1039,22 +1037,22 @@ Exemplo mínimo:
 
 ## Campos documentados
 
-| Campo | Obrigatório |
-|---|---|
-| `customer` | sim |
-| `customer.title` | não |
-| `customer.name` | sim |
-| `customer.record_number` | não |
-| `customer.record_date` | não |
-| `customer.photo` | não |
-| `customer.gender` | não |
-| `customer.birth_date` | não |
-| `customer.birth_place` | não |
-| `customer.marital_status` | não |
-| `customer.dentist_id` | não |
-| `customer.addresses_attributes[]` | não |
-| `customer.contacts_attributes[]` | não |
-| `customer.document_attributes` | não |
+| Campo                             | Obrigatório |
+| --------------------------------- | ----------- |
+| `customer`                        | sim         |
+| `customer.title`                  | não         |
+| `customer.name`                   | sim         |
+| `customer.record_number`          | não         |
+| `customer.record_date`            | não         |
+| `customer.photo`                  | não         |
+| `customer.gender`                 | não         |
+| `customer.birth_date`             | não         |
+| `customer.birth_place`            | não         |
+| `customer.marital_status`         | não         |
+| `customer.dentist_id`             | não         |
+| `customer.addresses_attributes[]` | não         |
+| `customer.contacts_attributes[]`  | não         |
+| `customer.document_attributes`    | não         |
 
 ## Buscar
 
@@ -1086,17 +1084,17 @@ GET /clinics/{clinic_id}/schedules.json
 
 Query parameters:
 
-| Campo | Descrição |
-|---|---|
-| `q` | pesquisa |
-| `page` | página |
-| `clinic_id` | clínica |
-| `chair_id` | cadeira |
-| `dentist_id` | dentista |
-| `start` | período inicial |
-| `end` | período final |
-| `web` | tratamento do retorno |
-| `calendar` | formato calendário/lista |
+| Campo        | Descrição                |
+| ------------ | ------------------------ |
+| `q`          | pesquisa                 |
+| `page`       | página                   |
+| `clinic_id`  | clínica                  |
+| `chair_id`   | cadeira                  |
+| `dentist_id` | dentista                 |
+| `start`      | período inicial          |
+| `end`        | período final            |
+| `web`        | tratamento do retorno    |
+| `calendar`   | formato calendário/lista |
 
 Observação histórica:
 
@@ -1144,24 +1142,24 @@ PUT /clinics/{clinic_id}/schedules/{id}.json
 
 Campos documentados:
 
-| Campo | Obrigatório histórico |
-|---|---|
-| `id` | sim |
-| `schedule` | sim |
-| `schedule.chair_id` | sim |
-| `schedule.dentist_id` | sim |
-| `schedule.customer_id` | não |
-| `schedule.personal` | não |
-| `schedule.description` | não |
-| `schedule.schedule_start` | sim |
-| `schedule.phone` | não |
-| `schedule.cellphone` | não |
-| `schedule.email` | documentado como sim |
-| `schedule.duration` | sim |
-| `schedule.notes` | não |
-| `schedule.schedule_type_id` | não |
-| `schedule.schedule_reason_id` | não |
-| `schedule.schedule_situation_id` | não |
+| Campo                            | Obrigatório histórico |
+| -------------------------------- | --------------------- |
+| `id`                             | sim                   |
+| `schedule`                       | sim                   |
+| `schedule.chair_id`              | sim                   |
+| `schedule.dentist_id`            | sim                   |
+| `schedule.customer_id`           | não                   |
+| `schedule.personal`              | não                   |
+| `schedule.description`           | não                   |
+| `schedule.schedule_start`        | sim                   |
+| `schedule.phone`                 | não                   |
+| `schedule.cellphone`             | não                   |
+| `schedule.email`                 | documentado como sim  |
+| `schedule.duration`              | sim                   |
+| `schedule.notes`                 | não                   |
+| `schedule.schedule_type_id`      | não                   |
+| `schedule.schedule_reason_id`    | não                   |
+| `schedule.schedule_situation_id` | não                   |
 
 ## Excluir
 
@@ -1181,10 +1179,10 @@ GET /clinics/{clinic_id}/schedules/available_hours.json
 
 Query:
 
-| Campo | Padrão | Descrição |
-|---|---|---|
-| `date` | dia atual | data consultada |
-| `dentist_id` | vazio | dentista |
+| Campo        | Padrão    | Descrição       |
+| ------------ | --------- | --------------- |
+| `date`       | dia atual | data consultada |
+| `dentist_id` | vazio     | dentista        |
 
 Resposta:
 
@@ -1235,14 +1233,14 @@ POST /customers/{customer_id}/images.json
 
 Campos:
 
-| Campo | Obrigatório |
-|---|---|
-| `customer_id` | sim |
-| `customer_image` | sim |
-| `customer_image.name` | sim |
-| `customer_image.file` | sim |
-| `customer_image.description` | não |
-| `customer_image.tag_list` | não |
+| Campo                        | Obrigatório |
+| ---------------------------- | ----------- |
+| `customer_id`                | sim         |
+| `customer_image`             | sim         |
+| `customer_image.name`        | sim         |
+| `customer_image.file`        | sim         |
+| `customer_image.description` | não         |
+| `customer_image.tag_list`    | não         |
 
 Arquivo histórico:
 
@@ -1362,17 +1360,17 @@ Exemplo:
 
 Tabela histórica:
 
-| ID | Grupo |
-|---:|---|
-| 1 | Administrador |
-| 2 | Atendente |
-| 3 | Cirurgião Dentista |
-| 4 | Recepcionista |
-| 5 | Secretária |
-| 6 | Gerente Financeiro |
-| 7 | Gerente Geral |
-| 8 | Aluno |
-| 9 | Professor |
+|  ID | Grupo              |
+| --: | ------------------ |
+|   1 | Administrador      |
+|   2 | Atendente          |
+|   3 | Cirurgião Dentista |
+|   4 | Recepcionista      |
+|   5 | Secretária         |
+|   6 | Gerente Financeiro |
+|   7 | Gerente Geral      |
+|   8 | Aluno              |
+|   9 | Professor          |
 
 Esses IDs são históricos.
 
@@ -2070,10 +2068,7 @@ export class DentalOfficeClient {
     return data;
   }
 
-  private async request<T>(
-    path: string,
-    init: RequestInit = {},
-  ): Promise<T> {
+  private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
     if (!this.token) {
       await this.authenticate();
     }
@@ -2096,9 +2091,7 @@ export class DentalOfficeClient {
 
     if (!response.ok) {
       const text = await response.text();
-      throw new Error(
-        `Dental Office ${response.status}: ${text}`
-      );
+      throw new Error(`Dental Office ${response.status}: ${text}`);
     }
 
     if (response.status === 204) {
@@ -2205,16 +2198,16 @@ Nunca considerar um endpoint legado válido hoje sem verificar a referência atu
 
 # Apêndice A — Referência rápida de diferenças
 
-| Item | Atual | Legado |
-|---|---|---|
-| Status | v1.0 operacional | histórico |
-| Auth | client credentials/token | email/senha/device |
-| Header | Bearer | X-User-Token + Email + Device |
-| Host | fornecido ao cliente | `*.api.stage.dentaloffice.com.br` |
-| Sufixo `.json` | não presumir | comum |
-| Update | PATCH/PUT depende do recurso | PUT predominante |
-| Docs | `apidocs.dentaloffice.com.br` | `rhcloud1.com.br/dental/docs` |
-| Uso em novo projeto | sim | não sem validação |
+| Item                | Atual                         | Legado                            |
+| ------------------- | ----------------------------- | --------------------------------- |
+| Status              | v1.0 operacional              | histórico                         |
+| Auth                | client credentials/token      | email/senha/device                |
+| Header              | Bearer                        | X-User-Token + Email + Device     |
+| Host                | fornecido ao cliente          | `*.api.stage.dentaloffice.com.br` |
+| Sufixo `.json`      | não presumir                  | comum                             |
+| Update              | PATCH/PUT depende do recurso  | PUT predominante                  |
+| Docs                | `apidocs.dentaloffice.com.br` | `rhcloud1.com.br/dental/docs`     |
+| Uso em novo projeto | sim                           | não sem validação                 |
 
 ---
 

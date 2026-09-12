@@ -212,15 +212,15 @@ Quem for apertar ou afrouxar a respiração do site mexe só nessa classe. Antes
 
 Isto não é detalhe de implementação. É uma clínica de saúde real e a publicidade odontológica é regulada (**Resolução CFO 196/2019**).
 
-| Elemento                | Origem                                                                      |
-| ----------------------- | --------------------------------------------------------------------------- |
-| Imagens dos ambientes   | **Versões geradas por IA** a partir das fotos reais da clínica — ver abaixo |
-| Texto dos depoimentos   | **Avaliações reais do Google**, com o nome como aparece lá                  |
+| Elemento                | Origem                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| Imagens dos ambientes   | **Versões geradas por IA** a partir das fotos reais da clínica — ver abaixo  |
+| Texto dos depoimentos   | **Avaliações reais do Google**, com o nome como aparece lá                   |
 | Nota e volume           | **4,6★ · 192 avaliações** — vive em `AVALIACOES`, ver [DESIGN.md](DESIGN.md) |
-| Missão                  | **Transcrita do quadro** afixado na parede da clínica                       |
-| 7 dos 8 vídeos          | Acervo da própria clínica                                                   |
-| Vídeo de clareamento    | Pexels (licença livre para uso comercial)                                   |
-| **Retratos de pessoas** | **Fictícios** — ver abaixo                                                  |
+| Missão                  | **Transcrita do quadro** afixado na parede da clínica                        |
+| 7 dos 8 vídeos          | Acervo da própria clínica                                                    |
+| Vídeo de clareamento    | Pexels (licença livre para uso comercial)                                    |
+| **Retratos de pessoas** | **Fictícios** — ver abaixo                                                   |
 
 ### As imagens dos ambientes são recriações por IA
 
@@ -247,11 +247,11 @@ Já não são. Este bloco existiu por meses avisando o contrário, e o aviso fic
 para trás quando os dados chegaram — registro aqui o estado de hoje para ninguém
 "corrigir" de volta.
 
-| Onde          | Situação                                                                |
-| ------------- | ----------------------------------------------------------------------- |
-| `EQUIPE`      | **6 pessoas reais.** Cinco com CROSP conferido, mais a recepção         |
-| `DEPOIMENTOS` | **5 avaliações reais**, transcritas da ficha do Google                  |
-| Fundação      | Jeferson Barbosa e **Dra. Juliana Pelisser Barbosa — CROSP 75.159**     |
+| Onde          | Situação                                                            |
+| ------------- | ------------------------------------------------------------------- |
+| `EQUIPE`      | **6 pessoas reais.** Cinco com CROSP conferido, mais a recepção     |
+| `DEPOIMENTOS` | **5 avaliações reais**, transcritas da ficha do Google              |
+| Fundação      | Jeferson Barbosa e **Dra. Juliana Pelisser Barbosa — CROSP 75.159** |
 
 Os CROs no ar: **177.801, 168.512, 175.851, 75.157, 162.394** e, na responsável
 técnica, **75.159**. A carteira traz o número sem ponto (`SP-162394`); o ponto é
@@ -324,8 +324,8 @@ canal de conversão.
 clínica escrevia um fim de frase que ninguém lia, e o corte caía dentro do nome
 dela.
 
-A ordem é a decisão: quem procura dentista digita *"implante dentário na
-Freguesia do Ó"*, não o nome de uma clínica que ainda não conhece. O
+A ordem é a decisão: quem procura dentista digita _"implante dentário na
+Freguesia do Ó"_, não o nome de uma clínica que ainda não conhece. O
 procedimento e o bairro ocupam o começo; a marca fecha, e **encolhe até caber** —
 "Restaurações" sobra espaço e leva o nome inteiro, "Harmonização orofacial" leva
 o curto.
@@ -335,11 +335,11 @@ o curto.
 `src/lib/dadosEstruturados.ts` monta o JSON-LD **a partir de `jp.ts`**, nunca
 digitado:
 
-| Onde                 | Tipo                             |
-| -------------------- | -------------------------------- |
-| Home                 | `Dentist` + `FAQPage`            |
-| Cada tratamento      | `MedicalWebPage` + `FAQPage`     |
-| Cada vaga            | `JobPosting`                     |
+| Onde            | Tipo                         |
+| --------------- | ---------------------------- |
+| Home            | `Dentist` + `FAQPage`        |
+| Cada tratamento | `MedicalWebPage` + `FAQPage` |
+| Cada vaga       | `JobPosting`                 |
 
 O `Dentist` traz endereço, coordenadas, horário, CNPJ, a responsável técnica com
 CRO e os 8 tratamentos.

@@ -3,8 +3,8 @@
 Este documento descreve o que o site **já é**, não o que ele poderia ser. Cada
 regra aqui está implementada em `src/styles.css` e vale para as 12 rotas.
 
-A pergunta que este arquivo responde: *"posso escrever um valor aqui ou já
-existe um token para isso?"* — quase sempre já existe.
+A pergunta que este arquivo responde: _"posso escrever um valor aqui ou já
+existe um token para isso?"_ — quase sempre já existe.
 
 > **Regra de ouro.** Um valor escrito à mão no JSX é uma decisão que ninguém
 > mais vai encontrar. Quando a clínica pedir "deixa tudo um pouco mais espaçado",
@@ -26,16 +26,16 @@ acento: botão, ícone, número grande — e nunca texto corrido.
 
 | Token           | Valor     | Onde entra                                   |
 | --------------- | --------- | -------------------------------------------- |
-| `--background`  | `#f7f8f2` | o creme que é o fundo padrão do site          |
-| `--card`        | `#ffffff` | superfície elevada sobre o creme              |
-| `--ink`         | `#172018` | texto principal em fundo claro                |
-| `--ink-soft`    | `#5a6b5c` | texto secundário em fundo claro               |
-| `--brand-text`  | `#095902` | o verde da marca **quando é texto** no claro  |
-| `--brand-green` | `#56a805` | o verde vivo — acento, não texto              |
-| `--brand-deep`  | `#032f01` | o verde profundo das seções escuras           |
-| `--lime`        | `#7bd51c` | acento sobre fundo escuro                     |
-| `--border-soft` | `#dce4d6` | divisores e bordas de card                    |
-| `--destructive` | `#b42318` | erro de formulário                            |
+| `--background`  | `#f7f8f2` | o creme que é o fundo padrão do site         |
+| `--card`        | `#ffffff` | superfície elevada sobre o creme             |
+| `--ink`         | `#172018` | texto principal em fundo claro               |
+| `--ink-soft`    | `#5a6b5c` | texto secundário em fundo claro              |
+| `--brand-text`  | `#095902` | o verde da marca **quando é texto** no claro |
+| `--brand-green` | `#56a805` | o verde vivo — acento, não texto             |
+| `--brand-deep`  | `#032f01` | o verde profundo das seções escuras          |
+| `--lime`        | `#7bd51c` | acento sobre fundo escuro                    |
+| `--border-soft` | `#dce4d6` | divisores e bordas de card                   |
+| `--destructive` | `#b42318` | erro de formulário                           |
 
 ### As três regras de contraste
 
@@ -63,11 +63,11 @@ Não são preferência. São WCAG 2.1 AA, com contraste **calculado**, não esti
 
 ### As superfícies escuras
 
-| Classe           | Gradiente                       | Papel                      |
-| ---------------- | ------------------------------- | -------------------------- |
-| `.section-light` | creme                           | seção clara padrão         |
-| `.section-mid`   | `#0b5a02 → #053901 → #032f01`   | verde médio, transição     |
-| `.section-deep`  | `#011600 → #022400 → #032f01`   | o mais escuro — rodapé, hero |
+| Classe           | Gradiente                     | Papel                        |
+| ---------------- | ----------------------------- | ---------------------------- |
+| `.section-light` | creme                         | seção clara padrão           |
+| `.section-mid`   | `#0b5a02 → #053901 → #032f01` | verde médio, transição       |
+| `.section-deep`  | `#011600 → #022400 → #032f01` | o mais escuro — rodapé, hero |
 
 **O ritmo importa.** A home alterna `C e C C C e C e C` (claro/escuro) e **não
 tem nenhum par de seções escuras coladas**. Ao inserir ou mover uma seção,
@@ -79,10 +79,10 @@ confira isso — duas escuras seguidas achatam a leitura.
 
 Duas famílias, **hospedadas neste repositório** (`src/assets/fontes/`):
 
-| Família      | Token            | Onde                          |
-| ------------ | ---------------- | ----------------------------- |
-| **Manrope**  | `--font-display` | títulos, números, botões      |
-| **Inter**    | `--font-sans`    | corpo de texto, rótulos       |
+| Família     | Token            | Onde                     |
+| ----------- | ---------------- | ------------------------ |
+| **Manrope** | `--font-display` | títulos, números, botões |
+| **Inter**   | `--font-sans`    | corpo de texto, rótulos  |
 
 São arquivos variáveis: um por família e subconjunto cobre toda a faixa de peso.
 Só `latin` e `latin-ext` entram — o `unicode-range` faz o navegador baixar só o
@@ -120,8 +120,8 @@ caixa-alta, peso e espaçamento entre letras; não por encolher abaixo do legív
 
 `--jp-gutter` troca em dois breakpoints e **as duas larguras acompanham**:
 
-| Breakpoint | Calha  |
-| ---------- | ------ |
+| Breakpoint | Calha          |
+| ---------- | -------------- |
 | base       | 1,25rem (20px) |
 | ≥ 768px    | 2rem (32px)    |
 | ≥ 1280px   | 2,5rem (40px)  |
@@ -164,16 +164,16 @@ junto.**
 
 Oito degraus, em números redondos:
 
-| Token          | Valor  | Uso                                       |
-| -------------- | ------ | ----------------------------------------- |
-| `--radius-sm`  | `10px` | selo, pílula pequena, detalhe             |
-| `--radius-md`  | `14px` | campo de formulário, chip                 |
-| `--radius-lg`  | `18px` | card pequeno                              |
-| `--radius-xl`  | `22px` | **card padrão — o tier mais usado**       |
-| `--radius-2xl` | `26px` | card elevado, bloco de destaque           |
-| `--radius-3xl` | `32px` | bloco de seção, moldura de mídia          |
-| `--radius-4xl` | `40px` | moldura grande                            |
-| `--radius-5xl` | `48px` | moldura do hero                           |
+| Token          | Valor  | Uso                                 |
+| -------------- | ------ | ----------------------------------- |
+| `--radius-sm`  | `10px` | selo, pílula pequena, detalhe       |
+| `--radius-md`  | `14px` | campo de formulário, chip           |
+| `--radius-lg`  | `18px` | card pequeno                        |
+| `--radius-xl`  | `22px` | **card padrão — o tier mais usado** |
+| `--radius-2xl` | `26px` | card elevado, bloco de destaque     |
+| `--radius-3xl` | `32px` | bloco de seção, moldura de mídia    |
+| `--radius-4xl` | `40px` | moldura grande                      |
+| `--radius-5xl` | `48px` | moldura do hero                     |
 
 > **Por que números redondos, e não uma fórmula.** A escala era derivada de
 > `--radius` com somas em px: 1.15rem dava 18.4, e os degraus saíam 12.4, 14.4,
@@ -192,11 +192,11 @@ distingue de qualquer superfície.
 
 ### Botões
 
-| Classe                | Fundo        | Texto  | Papel                        |
-| --------------------- | ------------ | ------ | ---------------------------- |
-| `.button-primary`     | `--forest`   | branco | **CTA principal**            |
-| `.button-secondary`   | branco       | escuro | ao lado do principal, claro  |
-| `.button-dark`        | `--forest-2` | branco | CTA sobre fundo claro        |
+| Classe                | Fundo        | Texto  | Papel                         |
+| --------------------- | ------------ | ------ | ----------------------------- |
+| `.button-primary`     | `--forest`   | branco | **CTA principal**             |
+| `.button-secondary`   | branco       | escuro | ao lado do principal, claro   |
+| `.button-dark`        | `--forest-2` | branco | CTA sobre fundo claro         |
 | `.button-ghost-light` | transparente | branco | secundário sobre fundo escuro |
 
 Todos medem **exatamente 52px** de altura e `border-radius: 999px`.
@@ -238,11 +238,11 @@ sim insistência.
 
 Não é uma camada aplicada no fim. É parte do sistema.
 
-| Regra                    | Implementação                                          |
-| ------------------------ | ------------------------------------------------------ |
-| **Alvo de toque ≥ 44px** | `.alvo-toque` — `inline-flex` + `min-height: 44px`     |
-| **Foco visível**         | `:focus-visible` global, contorno 3px, `offset` 3px    |
-| **Foco no escuro**       | o contorno vira `--lime` sobre `.section-deep` e afins |
+| Regra                    | Implementação                                           |
+| ------------------------ | ------------------------------------------------------- |
+| **Alvo de toque ≥ 44px** | `.alvo-toque` — `inline-flex` + `min-height: 44px`      |
+| **Foco visível**         | `:focus-visible` global, contorno 3px, `offset` 3px     |
+| **Foco no escuro**       | o contorno vira `--lime` sobre `.section-deep` e afins  |
 | **Movimento reduzido**   | `prefers-reduced-motion` zera transição e animação      |
 | **Um H1 por página**     | verificado nas 12 rotas                                 |
 | **Landmarks**            | 1 `header`, 1 `main`, 1 `footer`, `nav` sempre rotulada |
@@ -291,12 +291,12 @@ implementação: é a clínica dizendo duas coisas diferentes sobre si mesma.
 endereço, horário, CNPJ, CRO da responsável técnica, nota do Google, volume de
 avaliações, tratamentos, FAQ, equipe e depoimentos.
 
-| Constante    | O que guarda                        | Quem consome                        |
-| ------------ | ----------------------------------- | ----------------------------------- |
-| `CLINICA`    | contato, endereço, redes            | cabeçalho, rodapé, contato, JSON-LD |
-| `AVALIACOES` | `nota` e `total`                    | `<GoogleRating/>` e o JSON-LD       |
-| `HISTORIA`   | fundação, anos, bairros             | história, rodapé, carreiras         |
-| `TRATAMENTOS`| as 8 páginas                        | home, `$slug`, JSON-LD, sitemap     |
+| Constante     | O que guarda             | Quem consome                        |
+| ------------- | ------------------------ | ----------------------------------- |
+| `CLINICA`     | contato, endereço, redes | cabeçalho, rodapé, contato, JSON-LD |
+| `AVALIACOES`  | `nota` e `total`         | `<GoogleRating/>` e o JSON-LD       |
+| `HISTORIA`    | fundação, anos, bairros  | história, rodapé, carreiras         |
+| `TRATAMENTOS` | as 8 páginas             | home, `$slug`, JSON-LD, sitemap     |
 
 **O componente `<GoogleRating/>` não aceita número por prop.** Essa é a regra
 inteira: se aceitasse, alguém passaria um valor diferente, e o site voltaria a

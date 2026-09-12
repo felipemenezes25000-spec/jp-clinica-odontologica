@@ -8,24 +8,24 @@
 
 .crc-app .crc-agenda-resumo-v2 {
   display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 11px;
 }
 
 .crc-app .crc-agenda-resumo-card-v2 {
   display: grid;
   min-width: 0;
-  grid-template-columns: 42px minmax(0,1fr);
+  grid-template-columns: 42px minmax(0, 1fr);
   gap: 11px;
   align-items: center;
   padding: 15px;
   border: 1px solid var(--crc-borda);
   border-radius: 18px;
-  background: rgba(255,255,255,.86);
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .crc-app .crc-agenda-resumo-destaque-v2 {
-  background: linear-gradient(145deg,#fffdf7,#fff7e8);
+  background: linear-gradient(145deg, #fffdf7, #fff7e8);
 }
 
 .crc-app .crc-agenda-resumo-card-v2 > span {
@@ -66,7 +66,7 @@
 
 .crc-app .crc-agenda-resumo-card-v2 small {
   color: var(--crc-texto-3);
-  font-size: .69rem;
+  font-size: 0.69rem;
   font-weight: 750;
 }
 
@@ -77,14 +77,14 @@
   font-size: 1.7rem;
   font-weight: 650;
   line-height: 1;
-  letter-spacing: -.045em;
+  letter-spacing: -0.045em;
 }
 
 .crc-app .crc-agenda-resumo-card-v2 em {
   margin-top: 4px;
   overflow: hidden;
   color: var(--crc-texto-3);
-  font-size: .66rem;
+  font-size: 0.66rem;
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -98,7 +98,7 @@
   padding: 13px 15px;
   border: 1px solid var(--crc-borda);
   border-radius: 17px;
-  background: rgba(255,255,255,.78);
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .crc-app .crc-agenda-toolbar-copy {
@@ -125,7 +125,7 @@
 .crc-app .crc-agenda-toolbar-copy strong {
   display: block;
   color: var(--crc-texto);
-  font-size: .79rem;
+  font-size: 0.79rem;
 }
 
 .crc-app .crc-agenda-periodos-v2 {
@@ -143,7 +143,7 @@
   background: transparent;
   color: var(--crc-texto-3);
   font: inherit;
-  font-size: .71rem;
+  font-size: 0.71rem;
   font-weight: 750;
   cursor: pointer;
 }
@@ -164,13 +164,15 @@
   overflow: hidden;
   border: 1px solid var(--crc-borda);
   border-radius: 20px;
-  background: rgba(255,255,255,.9);
-  box-shadow: 0 15px 42px -40px rgba(8,51,31,.48);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 15px 42px -40px rgba(8, 51, 31, 0.48);
 }
 
 .crc-app .crc-agenda-dia-v2[data-hoje="sim"] {
-  border-color: rgba(8,115,59,.2);
-  box-shadow: 0 0 0 1px rgba(8,115,59,.04), 0 18px 48px -42px rgba(8,51,31,.55);
+  border-color: rgba(8, 115, 59, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(8, 115, 59, 0.04),
+    0 18px 48px -42px rgba(8, 51, 31, 0.55);
 }
 
 .crc-app .crc-agenda-dia-topo-v2 {
@@ -180,7 +182,7 @@
   gap: 12px;
   padding: 13px 15px;
   border-bottom: 1px solid var(--crc-borda);
-  background: linear-gradient(180deg,rgba(250,252,249,.95),rgba(247,250,246,.82));
+  background: linear-gradient(180deg, rgba(250, 252, 249, 0.95), rgba(247, 250, 246, 0.82));
 }
 
 .crc-app .crc-agenda-dia-data-v2,
@@ -190,14 +192,14 @@
 
 .crc-app .crc-agenda-dia-data-v2 {
   color: var(--crc-texto);
-  font-size: .84rem;
+  font-size: 0.84rem;
   font-weight: 800;
 }
 
 .crc-app .crc-agenda-dia-topo-v2 small {
   margin-top: 2px;
   color: var(--crc-texto-3);
-  font-size: .66rem;
+  font-size: 0.66rem;
 }
 
 .crc-app .crc-agenda-dia-status-v2 {
@@ -210,7 +212,7 @@
 .crc-app .crc-agenda-dia-status-v2 strong {
   padding: 4px 7px;
   border-radius: 999px;
-  font-size: .65rem;
+  font-size: 0.65rem;
   font-weight: 800;
 }
 
@@ -233,7 +235,7 @@
 .crc-app .crc-agenda-item-v2 {
   display: grid;
   width: 100%;
-  grid-template-columns: 74px minmax(0,1fr) auto;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
   gap: 14px;
   align-items: center;
   min-height: 68px;
@@ -252,7 +254,9 @@
 
 .crc-app .crc-agenda-item-botao-v2 {
   cursor: pointer;
-  transition: background var(--crc-transicao), transform var(--crc-transicao);
+  transition:
+    background var(--crc-transicao),
+    transform var(--crc-transicao);
 }
 
 .crc-app .crc-agenda-item-botao-v2:hover {
@@ -274,7 +278,7 @@
 
 .crc-app .crc-agenda-hora-v2 strong {
   font-family: var(--crc-fonte-dado);
-  font-size: .78rem;
+  font-size: 0.78rem;
 }
 
 .crc-app .crc-agenda-paciente-v2 {
@@ -290,7 +294,7 @@
 .crc-app .crc-agenda-paciente-v2 > strong {
   overflow: hidden;
   color: var(--crc-texto);
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -300,7 +304,7 @@
   margin-top: 2px;
   overflow: hidden;
   color: var(--crc-texto-3);
-  font-size: .68rem;
+  font-size: 0.68rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -311,7 +315,7 @@
   gap: 4px;
   margin-top: 5px;
   color: var(--crc-info);
-  font-size: .63rem;
+  font-size: 0.63rem;
   font-weight: 750;
 }
 
@@ -330,7 +334,7 @@
   width: 14px;
   height: 14px;
   color: var(--crc-texto-3);
-  opacity: .6;
+  opacity: 0.6;
 }
 
 .crc-app .crc-agenda-vazio-v2 {
@@ -339,18 +343,18 @@
   align-content: center;
   border: 1px dashed var(--crc-borda-forte);
   border-radius: 20px;
-  background: rgba(255,255,255,.6);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 @media (max-width: 1050px) {
   .crc-app .crc-agenda-resumo-v2 {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 680px) {
   .crc-app .crc-agenda-resumo-v2 {
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .crc-app .crc-agenda-toolbar-v2 {
@@ -367,7 +371,7 @@
   }
 
   .crc-app .crc-agenda-item-v2 {
-    grid-template-columns: 62px minmax(0,1fr);
+    grid-template-columns: 62px minmax(0, 1fr);
     gap: 10px;
   }
 

@@ -27,8 +27,12 @@
   overflow: hidden;
   border: 1px solid rgba(8, 115, 59, 0.12);
   border-radius: 30px;
-  background:
-    linear-gradient(118deg, rgba(255, 255, 255, 0.985) 0%, rgba(248, 252, 247, 0.96) 64%, rgba(236, 247, 236, 0.92) 100%);
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.985) 0%,
+    rgba(248, 252, 247, 0.96) 64%,
+    rgba(236, 247, 236, 0.92) 100%
+  );
   box-shadow: 0 26px 72px -54px rgba(7, 65, 37, 0.58);
 }
 
@@ -41,7 +45,12 @@
   right: -150px;
   top: -250px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(92, 177, 76, 0.2), rgba(8, 115, 59, 0.05) 46%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(92, 177, 76, 0.2),
+    rgba(8, 115, 59, 0.05) 46%,
+    transparent 70%
+  );
 }
 
 .crc-app .crc-home-hero::after {
@@ -216,7 +225,10 @@
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 12px 30px -28px rgba(8, 51, 31, 0.5);
-  transition: transform var(--crc-transicao), border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+  transition:
+    transform var(--crc-transicao),
+    border-color var(--crc-transicao),
+    box-shadow var(--crc-transicao);
 }
 
 .crc-app .crc-home-metrica:hover {
@@ -547,7 +559,10 @@
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background var(--crc-transicao), color var(--crc-transicao), box-shadow var(--crc-transicao);
+  transition:
+    background var(--crc-transicao),
+    color var(--crc-transicao),
+    box-shadow var(--crc-transicao);
 }
 
 .crc-app .crc-trabalho-filtro:hover {

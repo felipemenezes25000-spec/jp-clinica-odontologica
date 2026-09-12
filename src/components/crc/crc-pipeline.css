@@ -22,7 +22,7 @@
   padding: 14px;
   border: 1px solid var(--crc-borda);
   border-radius: 17px;
-  background: rgba(255,255,255,.86);
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .crc-app .crc-funil-resumo-card-v2 > span {
@@ -63,7 +63,7 @@
 
 .crc-app .crc-funil-resumo-card-v2 small {
   color: var(--crc-texto-3);
-  font-size: .69rem;
+  font-size: 0.69rem;
   font-weight: 750;
 }
 
@@ -74,14 +74,14 @@
   font-size: 1.6rem;
   font-weight: 650;
   line-height: 1;
-  letter-spacing: -.04em;
+  letter-spacing: -0.04em;
 }
 
 .crc-app .crc-funil-resumo-card-v2 em {
   margin-top: 4px;
   overflow: hidden;
   color: var(--crc-texto-3);
-  font-size: .66rem;
+  font-size: 0.66rem;
   font-style: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -91,13 +91,13 @@
   padding: 15px;
   border: 1px solid var(--crc-borda);
   border-radius: 19px;
-  background: rgba(255,255,255,.82);
-  box-shadow: 0 14px 40px -38px rgba(8,51,31,.45);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 40px -38px rgba(8, 51, 31, 0.45);
 }
 
 .crc-app .crc-funil-controles-titulo {
   display: grid;
-  grid-template-columns: 36px minmax(0,1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   margin-bottom: 12px;
@@ -121,7 +121,7 @@
 .crc-app .crc-funil-controles-titulo strong {
   display: block;
   color: var(--crc-texto);
-  font-size: .82rem;
+  font-size: 0.82rem;
 }
 
 .crc-app .crc-funil-controles-titulo em {
@@ -129,14 +129,14 @@
   border-radius: 999px;
   background: var(--crc-info-suave);
   color: var(--crc-info);
-  font-size: .68rem;
+  font-size: 0.68rem;
   font-style: normal;
   font-weight: 750;
 }
 
 .crc-app .crc-funil-filtros-v2 {
   display: grid;
-  grid-template-columns: minmax(180px,.75fr) minmax(180px,.75fr) minmax(220px,1fr);
+  grid-template-columns: minmax(180px, 0.75fr) minmax(180px, 0.75fr) minmax(220px, 1fr);
   gap: 10px;
   align-items: end;
 }
@@ -145,7 +145,7 @@
   display: block;
   margin-bottom: 4px;
   color: var(--crc-texto-3);
-  font-size: .68rem;
+  font-size: 0.68rem;
   font-weight: 750;
 }
 
@@ -163,7 +163,7 @@
   border-radius: 11px;
   background: var(--crc-superficie-2);
   color: var(--crc-texto-2);
-  font-size: .75rem;
+  font-size: 0.75rem;
   font-weight: 650;
   cursor: pointer;
 }
@@ -178,7 +178,7 @@
   align-content: center;
   border: 1px dashed var(--crc-borda-forte);
   border-radius: 20px;
-  background: rgba(255,255,255,.62);
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .crc-app .crc-funil-quadro-v2 {
@@ -197,7 +197,7 @@
   overflow: hidden;
   border: 1px solid var(--crc-borda);
   border-radius: 19px;
-  background: rgba(248,250,247,.9);
+  background: rgba(248, 250, 247, 0.9);
   scroll-snap-align: start;
 }
 
@@ -208,13 +208,13 @@
   gap: 10px;
   padding: 13px 13px 11px;
   border-bottom: 1px solid var(--crc-borda);
-  background: rgba(255,255,255,.74);
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .crc-app .crc-funil-coluna-topo-v2 h2 {
   margin: 0;
   color: var(--crc-texto);
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 800;
 }
 
@@ -222,7 +222,7 @@
   display: block;
   margin-top: 2px;
   color: var(--crc-texto-3);
-  font-size: .65rem;
+  font-size: 0.65rem;
 }
 
 .crc-app .crc-funil-coluna-contadores {
@@ -234,7 +234,7 @@
 .crc-app .crc-funil-coluna-contadores span {
   padding: 3px 6px;
   border-radius: 999px;
-  font-size: .63rem;
+  font-size: 0.63rem;
   font-weight: 800;
 }
 
@@ -251,7 +251,7 @@
   border-radius: 9px;
   background: var(--crc-superficie-3);
   color: var(--crc-texto-2);
-  font-size: .68rem;
+  font-size: 0.68rem;
 }
 
 .crc-app .crc-funil-coluna-corpo-v2 {
@@ -271,7 +271,7 @@
   border: 1px dashed var(--crc-borda);
   border-radius: 13px;
   color: var(--crc-texto-3);
-  font-size: .71rem;
+  font-size: 0.71rem;
   text-align: center;
 }
 
@@ -283,8 +283,11 @@
   border: 1px solid var(--crc-borda);
   border-radius: 15px;
   background: var(--crc-superficie);
-  box-shadow: 0 9px 24px -23px rgba(8,51,31,.52);
-  transition: transform var(--crc-transicao), box-shadow var(--crc-transicao), border-color var(--crc-transicao);
+  box-shadow: 0 9px 24px -23px rgba(8, 51, 31, 0.52);
+  transition:
+    transform var(--crc-transicao),
+    box-shadow var(--crc-transicao),
+    border-color var(--crc-transicao);
 }
 
 .crc-app .crc-funil-card-v2:hover {
@@ -330,7 +333,7 @@
 .crc-app .crc-funil-card-topo-v2 strong {
   overflow: hidden;
   color: var(--crc-texto);
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -339,19 +342,19 @@
 .crc-app .crc-funil-card-topo-v2 > div > span {
   margin-top: 2px;
   color: var(--crc-texto-3);
-  font-size: .66rem;
+  font-size: 0.66rem;
 }
 
 .crc-app .crc-funil-card-motivo-v2 {
   margin: 10px 0 0;
   color: var(--crc-texto-2);
-  font-size: .72rem;
+  font-size: 0.72rem;
   line-height: 1.5;
 }
 
 .crc-app .crc-funil-card-dados-v2 {
   display: grid;
-  grid-template-columns: repeat(2,minmax(0,1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 7px;
   margin-top: 10px;
 }
@@ -371,7 +374,7 @@
 
 .crc-app .crc-funil-card-dados-v2 small {
   color: var(--crc-texto-3);
-  font-size: .61rem;
+  font-size: 0.61rem;
   font-weight: 750;
 }
 
@@ -379,7 +382,7 @@
   margin-top: 2px;
   overflow: hidden;
   color: var(--crc-texto-2);
-  font-size: .69rem;
+  font-size: 0.69rem;
   font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -394,7 +397,7 @@
   border-radius: 9px;
   background: var(--crc-info-suave);
   color: var(--crc-info);
-  font-size: .65rem;
+  font-size: 0.65rem;
   font-weight: 750;
 }
 
@@ -432,16 +435,16 @@
   min-width: 0;
   flex: 1;
   padding-block: 3px;
-  font-size: .68rem;
+  font-size: 0.68rem;
 }
 
 @media (max-width: 1100px) {
   .crc-app .crc-funil-resumo-v2 {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .crc-app .crc-funil-filtros-v2 {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .crc-app .crc-funil-minhas-v2 {
@@ -452,11 +455,11 @@
 @media (max-width: 640px) {
   .crc-app .crc-funil-resumo-v2,
   .crc-app .crc-funil-filtros-v2 {
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .crc-app .crc-funil-controles-titulo {
-    grid-template-columns: 36px minmax(0,1fr);
+    grid-template-columns: 36px minmax(0, 1fr);
   }
 
   .crc-app .crc-funil-controles-titulo em {

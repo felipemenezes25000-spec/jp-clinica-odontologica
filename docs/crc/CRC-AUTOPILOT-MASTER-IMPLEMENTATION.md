@@ -30,13 +30,13 @@ segundo CRM nem segundo repositório. Cada fase entrou **dentro** do CRC que já
 existia, e as decisões mais importantes deste trabalho foram as de onde NÃO
 criar coisa nova:
 
-| Tentação | O que foi feito |
-|---|---|
-| Aba "Briefing" separada | Entrou **dentro** da tela de Gestão, acima dos painéis de resultado |
-| Tabela `crc_radar_*` | O Radar estende `crc_opportunities` com 17 colunas |
-| Tela de "Pré-consulta" | Virou uma seção de **Encaixes**, que já responde "o que está em risco esta semana" |
-| Portal de unidades | Virou um cartão de **Configurações** |
-| Tela de escopo de acesso | Virou um botão no card que já existia em **Equipe** |
+| Tentação                 | O que foi feito                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| Aba "Briefing" separada  | Entrou **dentro** da tela de Gestão, acima dos painéis de resultado                |
+| Tabela `crc_radar_*`     | O Radar estende `crc_opportunities` com 17 colunas                                 |
+| Tela de "Pré-consulta"   | Virou uma seção de **Encaixes**, que já responde "o que está em risco esta semana" |
+| Portal de unidades       | Virou um cartão de **Configurações**                                               |
+| Tela de escopo de acesso | Virou um botão no card que já existia em **Equipe**                                |
 
 O teste é simples: alguém que abre o CRC hoje vê o mesmo sistema, com mais
 coisa dentro. Não vê vinte projetos colados.
@@ -333,13 +333,13 @@ texto, que para elas é correto.
 
 ## 4. Segurança — o que o linter do Supabase apontou, e o que foi feito
 
-| Achado | Severidade | Decisão |
-|---|---|---|
-| `function_search_path_mutable` | WARN | **CORRIGIDO e verificado.** De 28 funções para 1 — ver abaixo |
-| `rls_enabled_no_policy` (~85 tabelas) | INFO | **Não é para corrigir.** Ver abaixo |
-| `extension_in_public` (`pg_trgm`, `vector`) | WARN | **Não é para corrigir.** Ver abaixo |
-| `rh_toca_atualizado_em` com search_path mutável | WARN | **Fora do escopo do CRC.** É do RH |
-| `anon/authenticated_security_definer_function_executable` em `public.rh_proximo_protocolo` | WARN | **Fora do escopo do CRC.** Ver abaixo |
+| Achado                                                                                     | Severidade | Decisão                                                       |
+| ------------------------------------------------------------------------------------------ | ---------- | ------------------------------------------------------------- |
+| `function_search_path_mutable`                                                             | WARN       | **CORRIGIDO e verificado.** De 28 funções para 1 — ver abaixo |
+| `rls_enabled_no_policy` (~85 tabelas)                                                      | INFO       | **Não é para corrigir.** Ver abaixo                           |
+| `extension_in_public` (`pg_trgm`, `vector`)                                                | WARN       | **Não é para corrigir.** Ver abaixo                           |
+| `rh_toca_atualizado_em` com search_path mutável                                            | WARN       | **Fora do escopo do CRC.** É do RH                            |
+| `anon/authenticated_security_definer_function_executable` em `public.rh_proximo_protocolo` | WARN       | **Fora do escopo do CRC.** Ver abaixo                         |
 
 ### A prova de que a 35 funcionou
 
@@ -408,35 +408,35 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 
 ## 5. Decisões que contrariam a letra do prompt (§139)
 
-| O prompt pedia | O que foi feito | Por quê |
-|---|---|---|
-| §13: cinco tabelas de metas | Três (`crc_goals`, `crc_goal_actions`, `crc_goal_metrics`) | As outras duas seriam projeções do que essas três já respondem. Uma tabela que só existe para ser lida de outro jeito é uma segunda verdade esperando divergir |
-| Tela de Radar como produto | Aba dentro do CRC | §1 |
-| Painel gerencial "completo" | Painel que **não age** | Um painel que age é um painel que vai agir sobre a própria métrica |
-| Aviso de escopo vindo do servidor | Recalculado no cliente, pela mesma função do domínio | O aviso do servidor refletiria o escopo **salvo**: a pessoa desmarcaria a última unidade e nada mudaria na tela |
-| §58: wizard de onboarding | Checklist **medido**, sem "marcar como feito" | Um checklist com botão de marcar vira, em duas semanas, um checklist todo marcado e nada feito |
+| O prompt pedia                    | O que foi feito                                            | Por quê                                                                                                                                                        |
+| --------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| §13: cinco tabelas de metas       | Três (`crc_goals`, `crc_goal_actions`, `crc_goal_metrics`) | As outras duas seriam projeções do que essas três já respondem. Uma tabela que só existe para ser lida de outro jeito é uma segunda verdade esperando divergir |
+| Tela de Radar como produto        | Aba dentro do CRC                                          | §1                                                                                                                                                             |
+| Painel gerencial "completo"       | Painel que **não age**                                     | Um painel que age é um painel que vai agir sobre a própria métrica                                                                                             |
+| Aviso de escopo vindo do servidor | Recalculado no cliente, pela mesma função do domínio       | O aviso do servidor refletiria o escopo **salvo**: a pessoa desmarcaria a última unidade e nada mudaria na tela                                                |
+| §58: wizard de onboarding         | Checklist **medido**, sem "marcar como feito"              | Um checklist com botão de marcar vira, em duas semanas, um checklist todo marcado e nada feito                                                                 |
 
 ---
 
 ## 6. O que foi observado, e o que NÃO foi
 
-| Afirmação | Evidência |
-|---|---|
-| 1.658 testes passam | `npx vitest run`, saída colada acima |
-| Typecheck limpo | `npx tsc --noEmit`, sem saída |
-| Lint limpo no escopo do CI | `npx eslint src vite.config.ts eslint.config.js` — 0 erros, 5 warnings pré-existentes |
-| Lint limpo em todo o código-fonte | `npx eslint src scripts e2e` — 414 arquivos, 0 erros |
-| `npm run lint` inteiro volta a funcionar | 0 erros, 5 warnings, **18s** — antes: 10+ min e `RangeError` |
-| `npm run format` não suja mais o repo | `prettier --check` no bundle do tour passou de "code style issues" a ignorado |
-| 71 arquivos fora do padrão do Prettier | Pré-existentes (md/css/yml). Nenhum `.ts`/`.tsx`. Não corrigidos — ver seção 3 |
-| Schema de produção completo | `npm run schema:status` — 39 arquivos, 22 sondas, **0 falhas** |
-| pgvector intacto após a 35 | `POST /rpc/crc_buscar_conhecimento` com vetor de 1536 → `HTTP 200` |
-| Endurecimento da 35 surtiu efeito | Linter do Supabase: `function_search_path_mutable` caiu de 28 funções para 1, e a que sobrou é do RH |
-| RLS habilitada nas 22 tabelas novas | As 22 aparecem em `rls_enabled_no_policy`, o que exige RLS ligada |
-| **CI** | **NÃO OBSERVADO** — nada foi empurrado; o CI não rodou nenhuma vez nesta sequência |
-| **Produção (código)** | **NÃO OBSERVADA** — roda `7c0c692`, pré-auditoria, 18 commits atrás |
-| **Produção (dados)** | 0 pacientes — o schema está pronto e vazio |
-| E2E | 14 testes passando **em ambiente local** com `node-server`; nunca contra produção |
+| Afirmação                                | Evidência                                                                                            |
+| ---------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1.658 testes passam                      | `npx vitest run`, saída colada acima                                                                 |
+| Typecheck limpo                          | `npx tsc --noEmit`, sem saída                                                                        |
+| Lint limpo no escopo do CI               | `npx eslint src vite.config.ts eslint.config.js` — 0 erros, 5 warnings pré-existentes                |
+| Lint limpo em todo o código-fonte        | `npx eslint src scripts e2e` — 414 arquivos, 0 erros                                                 |
+| `npm run lint` inteiro volta a funcionar | 0 erros, 5 warnings, **18s** — antes: 10+ min e `RangeError`                                         |
+| `npm run format` não suja mais o repo    | `prettier --check` no bundle do tour passou de "code style issues" a ignorado                        |
+| 71 arquivos fora do padrão do Prettier   | Pré-existentes (md/css/yml). Nenhum `.ts`/`.tsx`. Não corrigidos — ver seção 3                       |
+| Schema de produção completo              | `npm run schema:status` — 39 arquivos, 22 sondas, **0 falhas**                                       |
+| pgvector intacto após a 35               | `POST /rpc/crc_buscar_conhecimento` com vetor de 1536 → `HTTP 200`                                   |
+| Endurecimento da 35 surtiu efeito        | Linter do Supabase: `function_search_path_mutable` caiu de 28 funções para 1, e a que sobrou é do RH |
+| RLS habilitada nas 22 tabelas novas      | As 22 aparecem em `rls_enabled_no_policy`, o que exige RLS ligada                                    |
+| **CI**                                   | **NÃO OBSERVADO** — nada foi empurrado; o CI não rodou nenhuma vez nesta sequência                   |
+| **Produção (código)**                    | **NÃO OBSERVADA** — roda `7c0c692`, pré-auditoria, 18 commits atrás                                  |
+| **Produção (dados)**                     | 0 pacientes — o schema está pronto e vazio                                                           |
+| E2E                                      | 14 testes passando **em ambiente local** com `node-server`; nunca contra produção                    |
 
 ### Duas leituras que precisam ser ditas em voz alta
 
@@ -454,60 +454,60 @@ Sobraram duas coisas, e nenhuma delas é banco.
 
 ## 7. Matriz de capacidades (§137)
 
-| Capacidade | Status | Observação |
-|---|---|---|
-| Revenue Radar | `DONE` | Schema, domínio, serviço, tela, E2E. Base vazia |
-| Next Best Action | `PARTIAL` | Domínio completo e testado; não ligado à automação |
-| Goal Autopilot | `PARTIAL` | Domínio + migration 34 aplicada; sem tela |
-| Autonomy Center | `PARTIAL` | Motor + API; sem tela |
-| Smart Schedule | `DONE` | Migration 32 aplicada; tela Encaixes |
-| Waitlist | `DONE` | `crc_waitlist_preferences`, convite em levas |
-| No-show risk | `DONE` | Calculado na volta pesada; mostrado em Encaixes |
-| Treatment Acceptance | `DONE` | Migration 33 aplicada; tela Tratamentos |
-| Objection Intelligence | `DONE` | `crc_objections` + RPC de analítica |
-| Voice AI | `BLOCKED_EXTERNAL` | Arquitetura pronta (`crc_calls`); sem provedor |
-| Call Intelligence | `DONE` | Migration 36 aplicada; domínio + linha do tempo |
-| Financial Concierge | `BLOCKED_EXTERNAL` | 37 aplicada; arquitetura pronta. Falta o PROVEDOR, não a tabela |
-| Reputation | `DONE` | Migration 38 aplicada; pesquisa, NPS e roteamento |
-| Referral | `DONE` | Idem — código de indicação ditável, derivado do id |
-| Attribution | `DONE` | Cadeia, funil e gravação de elo |
-| Autonomous Marketing | `NOT_STARTED` | — |
-| Experiments | `DONE` | Migration 38 aplicada; leitura só com amostra suficiente |
-| Learning Engine | `DONE` | Idem — `avaliarAprendizado()` nunca devolve APLICADO |
-| Morning Briefing | `DONE` | Dentro da tela de Gestão |
-| Anomaly Hunter | `DONE` | 4 séries, limiar de 30% |
-| Capacity Optimizer | `DONE` | Por dentista, janela real |
-| Digital Twin | `DONE` | Simulador com premissas visíveis |
-| Benchmarking | `NOT_STARTED` | Exige dado de fora de uma clínica só |
-| Multi-clínica (§55) | `DONE` | Criar, renomear, fechar — com auditoria |
-| Escopo por usuário (§56) | `DONE` | Por pessoa, com aviso de "zero unidades" |
-| Onboarding (§58) | `DONE` | Checklist medido, no topo da Home |
-| Integration Hub (§54) | `PARTIAL` | Tela de Integrações já existia; sem hub unificado |
+| Capacidade               | Status             | Observação                                                      |
+| ------------------------ | ------------------ | --------------------------------------------------------------- |
+| Revenue Radar            | `DONE`             | Schema, domínio, serviço, tela, E2E. Base vazia                 |
+| Next Best Action         | `PARTIAL`          | Domínio completo e testado; não ligado à automação              |
+| Goal Autopilot           | `PARTIAL`          | Domínio + migration 34 aplicada; sem tela                       |
+| Autonomy Center          | `PARTIAL`          | Motor + API; sem tela                                           |
+| Smart Schedule           | `DONE`             | Migration 32 aplicada; tela Encaixes                            |
+| Waitlist                 | `DONE`             | `crc_waitlist_preferences`, convite em levas                    |
+| No-show risk             | `DONE`             | Calculado na volta pesada; mostrado em Encaixes                 |
+| Treatment Acceptance     | `DONE`             | Migration 33 aplicada; tela Tratamentos                         |
+| Objection Intelligence   | `DONE`             | `crc_objections` + RPC de analítica                             |
+| Voice AI                 | `BLOCKED_EXTERNAL` | Arquitetura pronta (`crc_calls`); sem provedor                  |
+| Call Intelligence        | `DONE`             | Migration 36 aplicada; domínio + linha do tempo                 |
+| Financial Concierge      | `BLOCKED_EXTERNAL` | 37 aplicada; arquitetura pronta. Falta o PROVEDOR, não a tabela |
+| Reputation               | `DONE`             | Migration 38 aplicada; pesquisa, NPS e roteamento               |
+| Referral                 | `DONE`             | Idem — código de indicação ditável, derivado do id              |
+| Attribution              | `DONE`             | Cadeia, funil e gravação de elo                                 |
+| Autonomous Marketing     | `NOT_STARTED`      | —                                                               |
+| Experiments              | `DONE`             | Migration 38 aplicada; leitura só com amostra suficiente        |
+| Learning Engine          | `DONE`             | Idem — `avaliarAprendizado()` nunca devolve APLICADO            |
+| Morning Briefing         | `DONE`             | Dentro da tela de Gestão                                        |
+| Anomaly Hunter           | `DONE`             | 4 séries, limiar de 30%                                         |
+| Capacity Optimizer       | `DONE`             | Por dentista, janela real                                       |
+| Digital Twin             | `DONE`             | Simulador com premissas visíveis                                |
+| Benchmarking             | `NOT_STARTED`      | Exige dado de fora de uma clínica só                            |
+| Multi-clínica (§55)      | `DONE`             | Criar, renomear, fechar — com auditoria                         |
+| Escopo por usuário (§56) | `DONE`             | Por pessoa, com aviso de "zero unidades"                        |
+| Onboarding (§58)         | `DONE`             | Checklist medido, no topo da Home                               |
+| Integration Hub (§54)    | `PARTIAL`          | Tela de Integrações já existia; sem hub unificado               |
 
 ---
 
 ## 8. GO / NO-GO (§138)
 
-| Capacidade | Veredito | Por quê |
-|---|---|---|
-| CRC manual | **GO** | Testado. Produção precisa de deploy e de dados |
-| Radar de Receita | **GO** | 30 e 31 aplicadas e sondadas |
-| Agenda inteligente / encaixe | **GO** | 32 aplicada e sondada |
-| Risco de falta | **GO** | Deriva de dado que já existe |
-| Aceitação de tratamento | **GO** | 33 aplicada e sondada |
-| Metas | **NO-GO** | 34 aplicada, mas sem tela: não há como criar meta |
-| Gestão (briefing, anomalia, capacidade, simulador) | **GO** | Derivado; sem migration |
-| Multi-clínica e escopo | **GO** | Tabelas já existiam; testado com injeção de defeito |
-| Onboarding | **GO** | Só leitura |
-| Omnichannel / linha do tempo | **GO** | 36 aplicada e sondada |
-| Financeiro / pré-consulta | **GO** para política e pré-consulta | 37 aplicada e sondada. O pagamento em si segue BLOCKED_EXTERNAL |
-| Reputação / indicação / experimento | **GO** | 38 aplicada e sondada |
-| Endurecimento de `search_path` | **GO** | 35 aplicada; pgvector verificado intacto por chamada real |
-| Voz | **BLOCKED_EXTERNAL** | Sem provedor |
-| Pagamentos | **BLOCKED_EXTERNAL** | Sem provedor |
-| AI resposta / escrita / auto-scheduling | **NO-GO** | Sem avaliação contra modelo real |
-| Marketing autônomo | **NO-GO** | Não implementado |
-| Benchmarking | **NO-GO** | Não implementado |
+| Capacidade                                         | Veredito                            | Por quê                                                         |
+| -------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| CRC manual                                         | **GO**                              | Testado. Produção precisa de deploy e de dados                  |
+| Radar de Receita                                   | **GO**                              | 30 e 31 aplicadas e sondadas                                    |
+| Agenda inteligente / encaixe                       | **GO**                              | 32 aplicada e sondada                                           |
+| Risco de falta                                     | **GO**                              | Deriva de dado que já existe                                    |
+| Aceitação de tratamento                            | **GO**                              | 33 aplicada e sondada                                           |
+| Metas                                              | **NO-GO**                           | 34 aplicada, mas sem tela: não há como criar meta               |
+| Gestão (briefing, anomalia, capacidade, simulador) | **GO**                              | Derivado; sem migration                                         |
+| Multi-clínica e escopo                             | **GO**                              | Tabelas já existiam; testado com injeção de defeito             |
+| Onboarding                                         | **GO**                              | Só leitura                                                      |
+| Omnichannel / linha do tempo                       | **GO**                              | 36 aplicada e sondada                                           |
+| Financeiro / pré-consulta                          | **GO** para política e pré-consulta | 37 aplicada e sondada. O pagamento em si segue BLOCKED_EXTERNAL |
+| Reputação / indicação / experimento                | **GO**                              | 38 aplicada e sondada                                           |
+| Endurecimento de `search_path`                     | **GO**                              | 35 aplicada; pgvector verificado intacto por chamada real       |
+| Voz                                                | **BLOCKED_EXTERNAL**                | Sem provedor                                                    |
+| Pagamentos                                         | **BLOCKED_EXTERNAL**                | Sem provedor                                                    |
+| AI resposta / escrita / auto-scheduling            | **NO-GO**                           | Sem avaliação contra modelo real                                |
+| Marketing autônomo                                 | **NO-GO**                           | Não implementado                                                |
+| Benchmarking                                       | **NO-GO**                           | Não implementado                                                |
 
 ---
 

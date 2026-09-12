@@ -24,12 +24,12 @@ dedupe, duas respostas para "quanto está parado no funil".
 **Então o Radar estende a linha que já existe.** O `supabase/30` acrescenta as
 cinco coisas que a tabela não sabia responder:
 
-| Pergunta | Colunas novas |
-|---|---|
-| De onde isto veio? | `source_type`, `source_id` |
-| Quanto vale de fato? | `confirmed_value` (≠ `potential_value`) |
-| Qual a chance? | `probability`, `confidence` |
-| Quão urgente? | `urgency`, `impact`, `expires_at` |
+| Pergunta                | Colunas novas                             |
+| ----------------------- | ----------------------------------------- |
+| De onde isto veio?      | `source_type`, `source_id`                |
+| Quanto vale de fato?    | `confirmed_value` (≠ `potential_value`)   |
+| Qual a chance?          | `probability`, `confidence`               |
+| Quão urgente?           | `urgency`, `impact`, `expires_at`         |
 | O que aconteceu no fim? | `converted_at`, `lost_at`, `dismissed_em` |
 
 Mais `evidence` (jsonb), `next_best_action` (código), `owner_type`, `aguardando`
@@ -272,15 +272,15 @@ pior fail-open deste sistema.
 
 ## 9. O que está ligado, e o que não está
 
-| | Estado |
-|---|---|
-| Migrations 30 e 31 | 30 aplicada e sondada; **31 pendente** |
-| Varredura do Radar | ligada na volta pesada (1×/dia) |
-| Tela do Radar | em `/crc`, aba "Radar" |
-| Centro de Autonomia | motor e API prontos; **sem tela** |
-| Timeline `crc_ai_activity` | tabela, escrita e leitura prontas; **ninguém escreve ainda** |
-| Next Best Action | domínio pronto e testado; **não ligado ao motor** |
-| Amostra por tipo (`estimarChance`) | sempre `null` — a confiança fica no piso |
+|                                    | Estado                                                       |
+| ---------------------------------- | ------------------------------------------------------------ |
+| Migrations 30 e 31                 | 30 aplicada e sondada; **31 pendente**                       |
+| Varredura do Radar                 | ligada na volta pesada (1×/dia)                              |
+| Tela do Radar                      | em `/crc`, aba "Radar"                                       |
+| Centro de Autonomia                | motor e API prontos; **sem tela**                            |
+| Timeline `crc_ai_activity`         | tabela, escrita e leitura prontas; **ninguém escreve ainda** |
+| Next Best Action                   | domínio pronto e testado; **não ligado ao motor**            |
+| Amostra por tipo (`estimarChance`) | sempre `null` — a confiança fica no piso                     |
 
 Os três "não ligados" são deliberados e estão no relatório
 `CRC-AUTOPILOT-MASTER-IMPLEMENTATION.md` como parciais, não como concluídos.

@@ -1,56 +1,56 @@
 schedule_reasons:
   get:
     tags:
-    - Motivos do Agendamento
+      - Motivos do Agendamento
     summary: Listar
     description: Lista os motivos de agendamento.
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
             schema:
               type: object
             example:
-            - id: 5
-              name: Brasil
-              deleted_at: null
-              created_at: '2025-03-07T19:59:50.000Z'
-              updated_at: '2025-03-07T19:59:50.000Z'
-            - id: 2
-              name: Cirurgia
-              deleted_at: null
-              created_at: '2025-03-07T19:32:51.000Z'
-              updated_at: '2025-03-07T19:32:51.000Z'
-            - id: 4
-              name: Itau
-              deleted_at: null
-              created_at: '2025-03-07T19:49:20.000Z'
-              updated_at: '2025-03-07T19:49:20.000Z'
-            - id: 3
-              name: Profilaxia
-              deleted_at: null
-              created_at: '2025-03-07T19:32:51.000Z'
-              updated_at: '2025-03-07T19:32:51.000Z'
+              - id: 5
+                name: Brasil
+                deleted_at: null
+                created_at: "2025-03-07T19:59:50.000Z"
+                updated_at: "2025-03-07T19:59:50.000Z"
+              - id: 2
+                name: Cirurgia
+                deleted_at: null
+                created_at: "2025-03-07T19:32:51.000Z"
+                updated_at: "2025-03-07T19:32:51.000Z"
+              - id: 4
+                name: Itau
+                deleted_at: null
+                created_at: "2025-03-07T19:49:20.000Z"
+                updated_at: "2025-03-07T19:49:20.000Z"
+              - id: 3
+                name: Profilaxia
+                deleted_at: null
+                created_at: "2025-03-07T19:32:51.000Z"
+                updated_at: "2025-03-07T19:32:51.000Z"
     parameters:
-    - name: q
-      in: query
-      schema:
-        type: string
-      description: Filtro por nome do motivo de agendamento
-    - name: page
-      in: query
-      schema:
-        type: integer
-      description: Número da página para paginação
-    - name: per_page
-      in: query
-      schema:
-        type: integer
-      description: Quantidade de itens por página
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Filtro por nome do motivo de agendamento
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Número da página para paginação
+      - name: per_page
+        in: query
+        schema:
+          type: integer
+        description: Quantidade de itens por página
   post:
     tags:
-    - Motivos do Agendamento
+      - Motivos do Agendamento
     summary: Cadastrar
     requestBody:
       content:
@@ -67,7 +67,7 @@ schedule_reasons:
             schedule_reason:
               name: Itau
     responses:
-      '201':
+      "201":
         description: Created
         content:
           application/json:
@@ -77,9 +77,9 @@ schedule_reasons:
               id: 6
               name: Banco do Brasil
               deleted_at: null
-              created_at: '2025-03-11T13:41:31.164Z'
-              updated_at: '2025-03-11T13:41:31.164Z'
-      '422':
+              created_at: "2025-03-11T13:41:31.164Z"
+              updated_at: "2025-03-11T13:41:31.164Z"
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -87,14 +87,14 @@ schedule_reasons:
               type: object
             example:
               errors:
-              - Nome já está em uso.
+                - Nome já está em uso.
 schedule_reasons/{id}:
   get:
     tags:
-    - Motivos do Agendamento
+      - Motivos do Agendamento
     summary: Show
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -104,9 +104,9 @@ schedule_reasons/{id}:
               id: 6
               name: Bradesco
               deleted_at: null
-              created_at: '2025-03-11T13:41:31.000Z'
-              updated_at: '2025-03-11T13:41:46.000Z'
-      '404':
+              created_at: "2025-03-11T13:41:31.000Z"
+              updated_at: "2025-03-11T13:41:46.000Z"
+      "404":
         description: Not Found
         content:
           application/json:
@@ -116,7 +116,7 @@ schedule_reasons/{id}:
               error: Schedule reason not found
   put:
     tags:
-    - Motivos do Agendamento
+      - Motivos do Agendamento
     summary: Alterar
     requestBody:
       content:
@@ -133,7 +133,7 @@ schedule_reasons/{id}:
             schedule_reason:
               name: Bradesco
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -143,9 +143,9 @@ schedule_reasons/{id}:
               id: 8
               name: Bradesco
               deleted_at: null
-              created_at: '2025-03-11T15:01:39.000Z'
-              updated_at: '2025-03-11T15:01:39.000Z'
-      '404':
+              created_at: "2025-03-11T15:01:39.000Z"
+              updated_at: "2025-03-11T15:01:39.000Z"
+      "404":
         description: Not Found
         content:
           application/json:
@@ -155,10 +155,10 @@ schedule_reasons/{id}:
               error: Schedule reason not found
   delete:
     tags:
-    - Motivos do Agendamento
+      - Motivos do Agendamento
     summary: Remover
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
@@ -166,9 +166,9 @@ schedule_reasons/{id}:
               type: string
             example: null
   parameters:
-  - name: id
-    in: path
-    required: true
-    schema:
-      type: integer
-    description: ID do recurso
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID do recurso

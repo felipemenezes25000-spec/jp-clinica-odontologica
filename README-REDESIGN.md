@@ -9,10 +9,10 @@
 > contraste medidas e tokens conferidos contra o CSS compilado. Este arquivo
 > fica como registro do ponto de partida.
 
-
 Este pacote é a versão consolidada do redesign aprovado na conversa.
 
 ## Sistema visual
+
 - 60% branco/off-white, 30% verde profundo, 10% verde vivo.
 - Verde profundo: `#052D0B`
 - Verde institucional: `#2F6B35`
@@ -24,6 +24,7 @@ Este pacote é a versão consolidada do redesign aprovado na conversa.
 - Texto, menu e botões: Inter 400/500/600/700
 
 ## Estrutura da home
+
 1. Capa clara com foto grande do consultório e CTAs.
 2. Metodologia em verde profundo, com imagem humana e 4 pilares.
 3. História em verde médio/profundo, 23 anos, maçã e área de fundadores.
@@ -39,15 +40,19 @@ Este pacote é a versão consolidada do redesign aprovado na conversa.
 A antiga seção verde “Seu sorriso pede check-up” foi removida.
 
 ## CTA persistente
+
 Depois que o usuário sai da capa, uma barra de agendamento aparece fixa na tela em desktop.
 No mobile, permanece a barra inferior de telefone/WhatsApp. O botão flutuante do WhatsApp continua disponível.
 
 ## Imagens e dados pendentes
+
 O projeto não inventa nomes, CROs ou fotografias profissionais.
+
 - `src/lib/jp.ts`: contém a responsável técnica confirmada e 4 espaços para profissionais ainda não informados.
 - A seção de fundadores está pronta visualmente, mas usa placeholders neutros até as fotos oficiais serem fornecidas.
 - A imagem humana da metodologia é ilustrativa e foi derivada do conceito visual aprovado; não é apresentada como paciente ou profissional identificado da clínica.
 - Para inserir retratos de equipe, use imagens recortadas com fundo transparente e preencha o campo `foto` em `EQUIPE`.
 
 ## Observação de build neste ambiente
+
 O código foi validado por transpile de TypeScript/TSX. O `npm ci` deste ambiente não conclui porque o registry interno não possui um tarball de `zod` referenciado pelo lockfile. Em um registry npm normal, mantenha `package.json` e `package-lock.json` e rode `npm ci && npm run build`.

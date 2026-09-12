@@ -13,16 +13,16 @@ propósito — a seção final lista só o que falta, e nada ali é código.
 O site tem **duas URLs para cada tratamento**, e elas servem a coisas
 diferentes. Usar a errada custa dinheiro.
 
-| Tratamento             | Anúncio manda para       | Busca orgânica indexa                     |
-| ---------------------- | ------------------------ | ----------------------------------------- |
-| Implante               | `/implante-dentario`     | `/tratamentos/implantes-dentarios`        |
-| Clareamento            | `/clareamento-dental`    | `/tratamentos/clareamento-dental`         |
-| Ortodontia / aparelho  | `/ortodontia`            | `/tratamentos/ortodontia`                 |
-| Odontopediatria        | `/odontopediatria`       | `/tratamentos/odontopediatria`            |
-| Prótese                | `/protese-dentaria`      | `/tratamentos/proteses-dentarias`         |
-| Restauração            | `/restauracao-dentaria`  | `/tratamentos/restauracoes`               |
-| Limpeza                | `/limpeza-dental`        | `/tratamentos/limpeza-profilaxia`         |
-| Harmonização orofacial | `/harmonizacao-facial`   | `/tratamentos/harmonizacao-orofacial`     |
+| Tratamento             | Anúncio manda para      | Busca orgânica indexa                 |
+| ---------------------- | ----------------------- | ------------------------------------- |
+| Implante               | `/implante-dentario`    | `/tratamentos/implantes-dentarios`    |
+| Clareamento            | `/clareamento-dental`   | `/tratamentos/clareamento-dental`     |
+| Ortodontia / aparelho  | `/ortodontia`           | `/tratamentos/ortodontia`             |
+| Odontopediatria        | `/odontopediatria`      | `/tratamentos/odontopediatria`        |
+| Prótese                | `/protese-dentaria`     | `/tratamentos/proteses-dentarias`     |
+| Restauração            | `/restauracao-dentaria` | `/tratamentos/restauracoes`           |
+| Limpeza                | `/limpeza-dental`       | `/tratamentos/limpeza-profilaxia`     |
+| Harmonização orofacial | `/harmonizacao-facial`  | `/tratamentos/harmonizacao-orofacial` |
 
 **É a mesma página nas duas URLs.** A diferença é o endereço e o título, que na
 URL de anúncio repetem o termo pesquisado.
@@ -36,7 +36,7 @@ língua da odontologia.
 
 > **Por que isso importa em dinheiro, não em estética.** O Google cobra mais
 > caro por clique quando a página de destino não conversa com o anúncio — é o
-> Índice de Qualidade. Quem pesquisa *"implante dentário freguesia do ó"*, clica
+> Índice de Qualidade. Quem pesquisa _"implante dentário freguesia do ó"_, clica
 > num anúncio com esse título e cai numa página cujo endereço e título dizem
 > outra coisa, volta para a busca. Você pagou o clique e não levou nada.
 >
@@ -66,8 +66,8 @@ container instalado. Assim que houver, tudo começa a chegar sem tocar em códig
 
 1. Crie a propriedade em [analytics.google.com](https://analytics.google.com).
 2. Copie o ID (`G-XXXXXXXXXX`).
-3. No GTM, crie a tag **Google Tag** com esse ID, acionada em *Initialization —
-   All Pages*.
+3. No GTM, crie a tag **Google Tag** com esse ID, acionada em _Initialization —
+   All Pages_.
 
 ### Google Ads
 
@@ -95,19 +95,19 @@ container instalado. Assim que houver, tudo começa a chegar sem tocar em códig
 Todos já existem no código (`src/lib/contato.ts`). Você não precisa pedir para
 criar nenhum — precisa configurá-los no GTM e no Gerenciador da Meta.
 
-| Evento no site        | Quando dispara                        | Vira, na Meta  |
-| --------------------- | ------------------------------------- | -------------- |
-| `whatsapp_click`      | qualquer botão de WhatsApp            | `Contact`      |
-| `schedule_click`      | o CTA "Agendar avaliação"             | `Lead`         |
-| `phone_click`         | clique no telefone                    | `Contact`      |
-| `treatment_view`      | abriu uma página de tratamento ou LP  | `ViewContent`  |
-| `treatment_cta_click` | CTA dentro de uma página de tratamento| `Lead`         |
-| `form_start`          | começou a preencher o formulário      | —              |
-| `form_submit`         | enviou o formulário                   | `Lead`         |
-| `map_click`           | abriu o mapa                          | —              |
-| `review_click`        | abriu as avaliações no Google         | —              |
-| `career_view`         | abriu uma vaga                        | —              |
-| `career_apply`        | enviou candidatura                    | —              |
+| Evento no site        | Quando dispara                         | Vira, na Meta |
+| --------------------- | -------------------------------------- | ------------- |
+| `whatsapp_click`      | qualquer botão de WhatsApp             | `Contact`     |
+| `schedule_click`      | o CTA "Agendar avaliação"              | `Lead`        |
+| `phone_click`         | clique no telefone                     | `Contact`     |
+| `treatment_view`      | abriu uma página de tratamento ou LP   | `ViewContent` |
+| `treatment_cta_click` | CTA dentro de uma página de tratamento | `Lead`        |
+| `form_start`          | começou a preencher o formulário       | —             |
+| `form_submit`         | enviou o formulário                    | `Lead`        |
+| `map_click`           | abriu o mapa                           | —             |
+| `review_click`        | abriu as avaliações no Google          | —             |
+| `career_view`         | abriu uma vaga                         | —             |
+| `career_apply`        | enviou candidatura                     | —             |
 
 **Os quatro últimos não viram conversão de propósito.** Mapa e avaliação são
 navegação, não intenção de marcar. Candidatura é gente procurando emprego —
@@ -127,14 +127,14 @@ intenção e valor diferentes. Implante e prótese valem muito mais que limpeza.
 
 ### Google Ads — Pesquisa
 
-| Grupo           | Palavras (correspondência de frase)                                            | Destino                 |
-| --------------- | ------------------------------------------------------------------------------ | ----------------------- |
-| Implante        | "implante dentário freguesia do ó", "implante dentário zona norte sp"          | `/implante-dentario`    |
-| Ortodontia      | "aparelho nos dentes freguesia do ó", "ortodontista zona norte"                | `/ortodontia`           |
-| Odontopediatria | "dentista infantil freguesia do ó", "odontopediatra zona norte sp"             | `/odontopediatria`      |
-| Clareamento     | "clareamento dental freguesia do ó"                                            | `/clareamento-dental`   |
-| Prótese         | "prótese dentária freguesia do ó", "dentadura fixa zona norte"                 | `/protese-dentaria`     |
-| Marca           | "jp clínica odontológica", "jp clínica freguesia do ó"                         | `/`                     |
+| Grupo           | Palavras (correspondência de frase)                                   | Destino               |
+| --------------- | --------------------------------------------------------------------- | --------------------- |
+| Implante        | "implante dentário freguesia do ó", "implante dentário zona norte sp" | `/implante-dentario`  |
+| Ortodontia      | "aparelho nos dentes freguesia do ó", "ortodontista zona norte"       | `/ortodontia`         |
+| Odontopediatria | "dentista infantil freguesia do ó", "odontopediatra zona norte sp"    | `/odontopediatria`    |
+| Clareamento     | "clareamento dental freguesia do ó"                                   | `/clareamento-dental` |
+| Prótese         | "prótese dentária freguesia do ó", "dentadura fixa zona norte"        | `/protese-dentaria`   |
+| Marca           | "jp clínica odontológica", "jp clínica freguesia do ó"                | `/`                   |
 
 **Negativas desde o primeiro dia**, e elas economizam mais que qualquer ajuste
 de lance: `grátis`, `gratuito`, `sus`, `preço`, `quanto custa`, `barato`,
@@ -191,12 +191,12 @@ convite para agendar uma avaliação.
 Na primeira semana, **não mexa em lance.** Volume baixo faz qualquer número
 parecer tendência, e otimizar em cima de ruído piora.
 
-| Métrica                     | Onde                       | O que significa                                 |
-| --------------------------- | -------------------------- | ----------------------------------------------- |
-| `whatsapp_click` por origem | GA4 → Eventos              | qual página gera contato                        |
-| Custo por `Contact`         | Google Ads / Meta          | o número que decide se a campanha continua      |
-| Termos de pesquisa          | Google Ads → Termos        | de onde saem as próximas negativas              |
-| Índice de Qualidade         | Google Ads → Palavras      | abaixo de 7, revise a correspondência da LP     |
+| Métrica                     | Onde                  | O que significa                             |
+| --------------------------- | --------------------- | ------------------------------------------- |
+| `whatsapp_click` por origem | GA4 → Eventos         | qual página gera contato                    |
+| Custo por `Contact`         | Google Ads / Meta     | o número que decide se a campanha continua  |
+| Termos de pesquisa          | Google Ads → Termos   | de onde saem as próximas negativas          |
+| Índice de Qualidade         | Google Ads → Palavras | abaixo de 7, revise a correspondência da LP |
 
 **O número que importa não está em nenhuma dessas telas:** é quantas pessoas
 sentaram na cadeira. Pergunte na recepção como a pessoa chegou, e cruze com o

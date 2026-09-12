@@ -13,12 +13,12 @@
 Se a situação é "o sistema está fazendo algo errado com pacientes AGORA", não
 investigue primeiro. Pare, e investigue depois.
 
-| Botão | O que ele para | Onde |
-|---|---|---|
-| `kill_envios` | Nenhuma mensagem sai, por nenhum caminho | Configurações → Interruptores |
-| `kill_ia_auto` | A IA para de responder; a recepção continua | Configurações → Interruptores |
-| `kill_escritas_do` | Nada é escrito na agenda do Dental Office | Configurações → Interruptores |
-| `kill_automacoes` | As jornadas param | Configurações → Interruptores |
+| Botão              | O que ele para                              | Onde                          |
+| ------------------ | ------------------------------------------- | ----------------------------- |
+| `kill_envios`      | Nenhuma mensagem sai, por nenhum caminho    | Configurações → Interruptores |
+| `kill_ia_auto`     | A IA para de responder; a recepção continua | Configurações → Interruptores |
+| `kill_escritas_do` | Nada é escrito na agenda do Dental Office   | Configurações → Interruptores |
+| `kill_automacoes`  | As jornadas param                           | Configurações → Interruptores |
 
 **Acionar é barato, e desfazer também.** Um interruptor acionado por engano
 custa alguns minutos de atendimento manual. Um incidente que continua rodando
@@ -178,11 +178,11 @@ Trocar de modelo é a última alternativa, e não a primeira.
 
 Não existe "quanto menor, melhor" aqui. **As duas pontas são ruins:**
 
-| Taxa | O que significa | O que fazer |
-|---|---|---|
-| Abaixo de 2% | O agente está respondendo o que não devia | Revise conversas sobre sintoma, remédio e reclamação |
-| Entre 2% e 50% | Saudável | Nada |
-| Acima de 50% | A recepção ganhou trabalho, não perdeu | Veja qual portão barra mais — costuma ser falta de material escrito |
+| Taxa           | O que significa                           | O que fazer                                                         |
+| -------------- | ----------------------------------------- | ------------------------------------------------------------------- |
+| Abaixo de 2%   | O agente está respondendo o que não devia | Revise conversas sobre sintoma, remédio e reclamação                |
+| Entre 2% e 50% | Saudável                                  | Nada                                                                |
+| Acima de 50%   | A recepção ganhou trabalho, não perdeu    | Veja qual portão barra mais — costuma ser falta de material escrito |
 
 Taxa de handoff alta quase nunca é defeito do agente: é a clínica não ter
 cadastrado o conhecimento que as pessoas perguntam. Estúdio → Conhecimento.
@@ -215,10 +215,10 @@ investigar.
 **Primeiro, entenda o desenho.** O CRC tem DUAS cadências, e elas são coisas
 diferentes:
 
-| | O quê | Quem chama | Com que frequência |
-|---|---|---|---|
-| **Pulso** | eventos, turnos do agente, jornadas vencidas | GitHub Actions + o webhook | ~5 min, e segundos quando a mensagem chega |
-| **Volta diária** | sincronização, campanhas, varreduras | cron da Vercel | 1×/dia, 9h UTC |
+|                  | O quê                                        | Quem chama                 | Com que frequência                         |
+| ---------------- | -------------------------------------------- | -------------------------- | ------------------------------------------ |
+| **Pulso**        | eventos, turnos do agente, jornadas vencidas | GitHub Actions + o webhook | ~5 min, e segundos quando a mensagem chega |
+| **Volta diária** | sincronização, campanhas, varreduras         | cron da Vercel             | 1×/dia, 9h UTC                             |
 
 > Até setembro/2026 **não existia pulso**: tudo rodava na volta diária. Uma
 > mensagem das 14h era respondida às 9h do dia seguinte. A fila sempre foi boa;
@@ -312,5 +312,5 @@ versão publicada.
   contratado, nenhuma mensagem chega a paciente nenhum, em nenhuma configuração.
   Isso não é defeito: é o estado declarado do projeto.
 - **Incidentes do Supabase.** Se o banco está fora, tudo aqui está fora. A página
-  de status do Supabase é o primeiro lugar a olhar quando *nada* funciona.
+  de status do Supabase é o primeiro lugar a olhar quando _nada_ funciona.
 - **Restauração de backup.** É procedimento do Supabase, não deste sistema.

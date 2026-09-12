@@ -50,12 +50,12 @@
 }
 
 .crc-app.crc-app .crc-lateral {
-  scrollbar-color: rgba(255,255,255,.18) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
 
 .crc-app.crc-app .crc-nav-grupo + .crc-nav-grupo {
   padding-top: 2px;
-  border-top: 1px solid rgba(255,255,255,.055);
+  border-top: 1px solid rgba(255, 255, 255, 0.055);
 }
 
 .crc-app.crc-app .crc-nav-item[aria-current="page"] {
@@ -70,7 +70,7 @@
   flex: 0 0 auto;
   border-radius: 50%;
   background: #9fe490;
-  box-shadow: 0 0 0 4px rgba(159,228,144,.09);
+  box-shadow: 0 0 0 4px rgba(159, 228, 144, 0.09);
 }
 
 @media (max-width: 1024px) {

@@ -1,13 +1,13 @@
 users:
   get:
     tags:
-    - Usuários
+      - Usuários
     summary: Listar Usuários
     description: Lista os usuários de acordo com a busca. Sem o envio de parâmetro, lista todos os usuários ativos cadastrados.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -32,52 +32,52 @@ users:
                   to: 1
                   current_page: 1
                   results:
-                  - id: 4
-                    name: Usuário Administrador
-                    email: usuario@dentaloffice.com.br
-                    user_locale: pt-BR
-                    deleted_at: null
-                    invitation_accepted: false
-                    contacts_attributes:
                     - id: 4
-                      contact_type: null
-                      name: null
-                      email: null
-                      phone: (65) 65656-5656
-                      cellphone: null
-                      fax: null
-                      homepage: null
-                      message_phone: null
-                      message_contact: null
-                      created_at: '2023-03-15T14:07:57.000Z'
-                      updated_at: '2023-03-15T14:07:57.000Z'
-                    clinics:
-                    - id: 1
-                      name: Douglas
-                    confirmed_at: '2023-03-10T12:24:39.000Z'
-                    user_group:
-                      id: 1
-                      name: Administrador
-                      permission_type: admin
+                      name: Usuário Administrador
+                      email: usuario@dentaloffice.com.br
+                      user_locale: pt-BR
+                      deleted_at: null
+                      invitation_accepted: false
+                      contacts_attributes:
+                        - id: 4
+                          contact_type: null
+                          name: null
+                          email: null
+                          phone: (65) 65656-5656
+                          cellphone: null
+                          fax: null
+                          homepage: null
+                          message_phone: null
+                          message_contact: null
+                          created_at: "2023-03-15T14:07:57.000Z"
+                          updated_at: "2023-03-15T14:07:57.000Z"
+                      clinics:
+                        - id: 1
+                          name: Douglas
+                      confirmed_at: "2023-03-10T12:24:39.000Z"
+                      user_group:
+                        id: 1
+                        name: Administrador
+                        permission_type: admin
     parameters:
-    - name: q
-      in: query
-      schema:
-        type: string
-      description: Nome do usuário para busca
-    - name: user_group
-      in: query
-      schema:
-        type: integer
-      description: ID do user_group
-    - name: page
-      in: query
-      schema:
-        type: integer
-      description: Página da listagem
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Nome do usuário para busca
+      - name: user_group
+        in: query
+        schema:
+          type: integer
+        description: ID do user_group
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Página da listagem
   post:
     tags:
-    - Usuários
+      - Usuários
     summary: Criar Acesso Usuário
     description: Cria um novo usuário no sistema.
     requestBody:
@@ -100,7 +100,8 @@ users:
                     description: Senha - 8 caracteres, letra maiúscula, caractere especial
                   user_group_id:
                     type: integer
-                    description: Grupo do usuário (1-Administrador, 2-Atendente, 3-Cirurgião Dentista, 4-Recepcionista, 5-Secretária,
+                    description:
+                      Grupo do usuário (1-Administrador, 2-Atendente, 3-Cirurgião Dentista, 4-Recepcionista, 5-Secretária,
                       6-Gerente Financeiro, 7-Gerente Geral, 8-Aluno, 9-Professor)
                   clinic_ids:
                     type: array
@@ -150,30 +151,30 @@ users:
                           description: Celular
                     description: Atributos de contato
                 required:
-                - name
-                - email
-                - password
-                - user_group_id
+                  - name
+                  - email
+                  - password
+                  - user_group_id
           example:
             user:
               name: Usuária
               email: usuaria@dentaloffice.com.br
               user_group_id: 1
-              password: '@Aa1234567'
+              password: "@Aa1234567"
               addresses_attributes:
-              - street: Rua A
-                number: '10'
-                city: Arujá
-                state: São Paulo
-                zipcode: '70000000'
+                - street: Rua A
+                  number: "10"
+                  city: Arujá
+                  state: São Paulo
+                  zipcode: "70000000"
               contacts_attributes:
-              - phone: (65) 65656-5656
-                cellphone: (88)88888-8888
-                fax: (56) 56565-6565
+                - phone: (65) 65656-5656
+                  cellphone: (88)88888-8888
+                  fax: (56) 56565-6565
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -186,61 +187,61 @@ users:
               user_locale: pt-BR
               deleted_at: null
               addresses_attributes:
-              - id: 13
-                address_type: null
-                street: Rua A
-                number: 10
-                complement: null
-                neighborhood: null
-                city: Arujá
-                state: São Paulo
-                zipcode: '70000000'
-                created_at: '2023-03-16T14:28:20.000Z'
-                updated_at: '2023-03-16T14:28:20.000Z'
+                - id: 13
+                  address_type: null
+                  street: Rua A
+                  number: 10
+                  complement: null
+                  neighborhood: null
+                  city: Arujá
+                  state: São Paulo
+                  zipcode: "70000000"
+                  created_at: "2023-03-16T14:28:20.000Z"
+                  updated_at: "2023-03-16T14:28:20.000Z"
               contacts_attributes:
-              - id: 13
-                contact_type: null
-                name: null
-                email: null
-                phone: (65) 65656-5656
-                cellphone: (88)88888-8888
-                fax: (56) 56565-6565
-                homepage: null
-                message_phone: null
-                message_contact: null
-                created_at: '2023-03-16T14:28:20.000Z'
-                updated_at: '2023-03-16T14:28:20.000Z'
+                - id: 13
+                  contact_type: null
+                  name: null
+                  email: null
+                  phone: (65) 65656-5656
+                  cellphone: (88)88888-8888
+                  fax: (56) 56565-6565
+                  homepage: null
+                  message_phone: null
+                  message_contact: null
+                  created_at: "2023-03-16T14:28:20.000Z"
+                  updated_at: "2023-03-16T14:28:20.000Z"
               user_group:
                 id: 1
                 name: Administrador
                 permission_type: admin
               clinic_ids:
-              - 1
+                - 1
               clinics:
-              - id: 1
-                name: Douglas
-                cnpj: null
-                cpf: null
-                document_type: null
-                clm: null
-                iss: null
-                icms: null
-                logo: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
-                created_at: '2015-01-01T01:02:03.000Z'
-                updated_at: '2023-03-15T18:03:29.000Z'
-                country: BRA
-                country_code: '55'
-                cnes: null
-                cr_number: null
-                cr_type: null
-                cr_uf: null
-                subscription_status: on_time
-                blocked: false
-                blocked_at: null
-                logo_url: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
-                ev_cash_enabled: false
-              confirmed_at: '2023-03-16T14:28:19.945Z'
-      '422':
+                - id: 1
+                  name: Douglas
+                  cnpj: null
+                  cpf: null
+                  document_type: null
+                  clm: null
+                  iss: null
+                  icms: null
+                  logo: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
+                  created_at: "2015-01-01T01:02:03.000Z"
+                  updated_at: "2023-03-15T18:03:29.000Z"
+                  country: BRA
+                  country_code: "55"
+                  cnes: null
+                  cr_number: null
+                  cr_type: null
+                  cr_uf: null
+                  subscription_status: on_time
+                  blocked: false
+                  blocked_at: null
+                  logo_url: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
+                  ev_cash_enabled: false
+              confirmed_at: "2023-03-16T14:28:19.945Z"
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -252,14 +253,14 @@ users:
                 value:
                   errors:
                     email:
-                    - E-mail O E-mail informado já está sendo utilizado por outro usuário do Dental Office.
+                      - E-mail O E-mail informado já está sendo utilizado por outro usuário do Dental Office.
               example-1:
                 summary: 422 - Unprocessable Entity
                 value:
                   errors:
                     name:
-                    - Nome já está em uso
-      '500':
+                      - Nome já está em uso
+      "500":
         description: Internal Server Error
         content:
           application/json:
@@ -267,18 +268,18 @@ users:
               type: object
             example:
               errors:
-                'Erro:':
-                - Ocorreu um erro inesperado.
+                "Erro:":
+                  - Ocorreu um erro inesperado.
 users/{id}:
   get:
     tags:
-    - Usuários
+      - Usuários
     summary: Visualizar Usuário
     description: Apresenta os dados de determinado usuário.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -294,63 +295,63 @@ users/{id}:
               deleted_at: null
               send_daily_sms_report: false
               addresses_attributes:
-              - id: 2
-                address_type: null
-                street: null
-                number: null
-                complement: null
-                neighborhood: null
-                city: null
-                state: null
-                zipcode: null
-                created_at: '2023-03-13T11:47:03.000Z'
-                updated_at: '2023-03-13T11:47:03.000Z'
+                - id: 2
+                  address_type: null
+                  street: null
+                  number: null
+                  complement: null
+                  neighborhood: null
+                  city: null
+                  state: null
+                  zipcode: null
+                  created_at: "2023-03-13T11:47:03.000Z"
+                  updated_at: "2023-03-13T11:47:03.000Z"
               contacts_attributes:
-              - id: 2
-                contact_type: null
-                name: null
-                email: null
-                phone: (65) 65656-5656
-                cellphone: (65) 66565-6565
-                fax: (56) 56565-6565
-                homepage: null
-                message_phone: null
-                message_contact: null
-                created_at: '2023-03-13T11:47:03.000Z'
-                updated_at: '2023-03-13T11:47:03.000Z'
+                - id: 2
+                  contact_type: null
+                  name: null
+                  email: null
+                  phone: (65) 65656-5656
+                  cellphone: (65) 66565-6565
+                  fax: (56) 56565-6565
+                  homepage: null
+                  message_phone: null
+                  message_contact: null
+                  created_at: "2023-03-13T11:47:03.000Z"
+                  updated_at: "2023-03-13T11:47:03.000Z"
               user_group:
                 id: 1
                 name: Administrador
                 permission_type: admin
               clinic_ids:
-              - 1
+                - 1
               clinics:
-              - id: 1
-                name: Douglas
-                cnpj: null
-                cpf: null
-                document_type: null
-                clm: null
-                iss: null
-                icms: null
-                logo: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
-                created_at: '2015-01-01T01:02:03.000Z'
-                updated_at: '2023-03-13T15:01:36.000Z'
-                country: BRA
-                country_code: '55'
-                cnes: null
-                cr_number: null
-                cr_type: null
-                cr_uf: null
-                subscription_status: on_time
-                blocked: false
-                blocked_at: null
-                logo_url: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
-                ev_cash_enabled: false
-              confirmed_at: '2023-03-10T12:10:01.000Z'
+                - id: 1
+                  name: Douglas
+                  cnpj: null
+                  cpf: null
+                  document_type: null
+                  clm: null
+                  iss: null
+                  icms: null
+                  logo: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
+                  created_at: "2015-01-01T01:02:03.000Z"
+                  updated_at: "2023-03-13T15:01:36.000Z"
+                  country: BRA
+                  country_code: "55"
+                  cnes: null
+                  cr_number: null
+                  cr_type: null
+                  cr_uf: null
+                  subscription_status: on_time
+                  blocked: false
+                  blocked_at: null
+                  logo_url: https://dentalclouddev.s3.amazonaws.com/assets/images/dental.png
+                  ev_cash_enabled: false
+              confirmed_at: "2023-03-10T12:10:01.000Z"
   patch:
     tags:
-    - Usuários
+      - Usuários
     summary: Alterar Usuário
     description: Atualiza os atributos de usuário, somente necessário enviar os parâmetros alterados.
     requestBody:
@@ -429,9 +430,9 @@ users/{id}:
                 id: 2
                 cellphone: (88)88888-8888
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
@@ -440,13 +441,13 @@ users/{id}:
             example: null
   delete:
     tags:
-    - Usuários
+      - Usuários
     summary: Remover Usuário
     description: Exclui o usuário indicado.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
@@ -454,9 +455,9 @@ users/{id}:
               type: string
             example: null
   parameters:
-  - name: id
-    in: path
-    schema:
-      type: integer
-    required: true
-    example: '1'
+    - name: id
+      in: path
+      schema:
+        type: integer
+      required: true
+      example: "1"

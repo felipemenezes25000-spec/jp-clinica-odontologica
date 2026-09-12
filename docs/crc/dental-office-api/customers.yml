@@ -1,51 +1,51 @@
 customers:
   get:
     tags:
-    - Pacientes
+      - Pacientes
     summary: Pacientes Cadastrados
     description: Lista os pacientes de acordo com a busca. Sem o envio de parâmetro, lista todos os pacientes ativos cadastrados.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     parameters:
-    - name: q
-      in: query
-      schema:
-        type: string
-      description: Nome do paciente para busca
-    - name: page
-      in: query
-      schema:
-        type: integer
-      description: Página da listagem
-    - name: clinic_id
-      in: query
-      schema:
-        type: integer
-      description: Identificador da clínica
-    - name: only_deleted
-      in: query
-      schema:
-        type: boolean
-      description: Por padrão retorna todos os pacientes deletados
-    - name: deleted_start_date
-      in: query
-      schema:
-        type: string
-        format: date
-      description: Filtra o começo da data de exclusão
-    - name: deleted_end_date
-      in: query
-      schema:
-        type: string
-        format: date
-      description: Filtra o limite da data de exclusão
-    - name: active
-      in: query
-      schema:
-        type: string
-      description: 'true: ativos, false: inativos, both: todos'
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Nome do paciente para busca
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Página da listagem
+      - name: clinic_id
+        in: query
+        schema:
+          type: integer
+        description: Identificador da clínica
+      - name: only_deleted
+        in: query
+        schema:
+          type: boolean
+        description: Por padrão retorna todos os pacientes deletados
+      - name: deleted_start_date
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Filtra o começo da data de exclusão
+      - name: deleted_end_date
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Filtra o limite da data de exclusão
+      - name: active
+        in: query
+        schema:
+          type: string
+        description: "true: ativos, false: inativos, both: todos"
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -58,66 +58,66 @@ customers:
               to: 1
               current_page: 1
               results:
-              - id: 2
-                title: null
-                name: Max Cavalera
-                photo: ''
-                record_number: '3213'
-                customer_group_id: null
-                customer_situation_id: null
-                record_date: '2023-01-30'
-                gender: null
-                dental_arcade: null
-                birth_date: null
-                birth_place: null
-                marital_status: null
-                dentist_id: null
-                document_id: null
-                is_holder: true
-                holder_id: null
-                company_id: null
-                department: null
-                profession_id: null
-                father_name: null
-                father_profession_id: null
-                mother_name: null
-                mother_profession_id: null
-                is_sponsor: true
-                sponsor_id: null
-                indicator_id: null
-                indicator_type: null
-                payment_credit: '0.0'
-                father_rg: null
-                father_cpf: null
-                father_phone: null
-                mother_rg: null
-                mother_cpf: null
-                mother_phone: null
-                obs: null
-                active: true
-                asaas_sms_notifications: false
-                created_at: '2023-03-09T11:43:54.000Z'
-                updated_at: '2023-03-09T11:43:54.000Z'
-                contacts_attributes:
                 - id: 2
-                  contact_type: null
-                  name: null
-                  email: max@cavalera.com
-                  phone: '1140028922'
-                  cellphone: '1140028922'
-                  fax: null
-                  homepage: null
-                  message_phone: null
-                  message_contact: null
-                  created_at: '2023-03-09T11:43:54.000Z'
-                  updated_at: '2023-03-09T11:43:54.000Z'
-                photo_url:
-                  thumb: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
-                  medium: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
-                  original: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
+                  title: null
+                  name: Max Cavalera
+                  photo: ""
+                  record_number: "3213"
+                  customer_group_id: null
+                  customer_situation_id: null
+                  record_date: "2023-01-30"
+                  gender: null
+                  dental_arcade: null
+                  birth_date: null
+                  birth_place: null
+                  marital_status: null
+                  dentist_id: null
+                  document_id: null
+                  is_holder: true
+                  holder_id: null
+                  company_id: null
+                  department: null
+                  profession_id: null
+                  father_name: null
+                  father_profession_id: null
+                  mother_name: null
+                  mother_profession_id: null
+                  is_sponsor: true
+                  sponsor_id: null
+                  indicator_id: null
+                  indicator_type: null
+                  payment_credit: "0.0"
+                  father_rg: null
+                  father_cpf: null
+                  father_phone: null
+                  mother_rg: null
+                  mother_cpf: null
+                  mother_phone: null
+                  obs: null
+                  active: true
+                  asaas_sms_notifications: false
+                  created_at: "2023-03-09T11:43:54.000Z"
+                  updated_at: "2023-03-09T11:43:54.000Z"
+                  contacts_attributes:
+                    - id: 2
+                      contact_type: null
+                      name: null
+                      email: max@cavalera.com
+                      phone: "1140028922"
+                      cellphone: "1140028922"
+                      fax: null
+                      homepage: null
+                      message_phone: null
+                      message_contact: null
+                      created_at: "2023-03-09T11:43:54.000Z"
+                      updated_at: "2023-03-09T11:43:54.000Z"
+                  photo_url:
+                    thumb: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
+                    medium: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
+                    original: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
   post:
     tags:
-    - Pacientes
+      - Pacientes
     summary: Criar Paciente
     description: Cria um novo paciente.
     requestBody:
@@ -290,24 +290,24 @@ customers:
                           description: E-mail
                     description: Atributos de contato
                 required:
-                - name
-                - clinic_id
+                  - name
+                  - clinic_id
           example:
             customer:
               name: Max Cavalera
-              record_date: '2023-01-30'
+              record_date: "2023-01-30"
               record_number: 3213
               contacts_attributes:
-              - email: max@cavalera.com
-                phone: '1140028922'
-                cellphone: '1140028922'
+                - email: max@cavalera.com
+                  phone: "1140028922"
+                  cellphone: "1140028922"
               addresses_attributes:
-              - street: Rua x
-                number: '1'
+                - street: Rua x
+                  number: "1"
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -318,10 +318,10 @@ customers:
               title: null
               name: Max Cavalera
               photo: https://app.dentaloffice.com.br/assets/images/no_customer_lg.png
-              record_number: '3213'
+              record_number: "3213"
               customer_group_id: null
               customer_situation_id: null
-              record_date: '2023-01-30'
+              record_date: "2023-01-30"
               gender: null
               dental_arcade: null
               birth_date: null
@@ -342,7 +342,7 @@ customers:
               sponsor_id: null
               indicator_id: null
               indicator_type: null
-              payment_credit: '0.0'
+              payment_credit: "0.0"
               father_rg: null
               father_cpf: null
               father_phone: null
@@ -351,18 +351,18 @@ customers:
               mother_phone: null
               obs: null
               active: true
-              created_at: '2023-03-09T11:43:54.670Z'
-              updated_at: '2023-03-09T11:43:54.670Z'
+              created_at: "2023-03-09T11:43:54.670Z"
+              updated_at: "2023-03-09T11:43:54.670Z"
 customers/{id}:
   get:
     tags:
-    - Pacientes
+      - Pacientes
     summary: Visualizar Paciente
     description: Apresenta os dados de determinado paciente.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -372,14 +372,14 @@ customers/{id}:
               id: 1
               title: Sra.
               name: Ana Silva (paciente exemplo)
-              photo: ''
-              record_number: '1'
+              photo: ""
+              record_number: "1"
               customer_group_id: 1
               customer_situation_id: 1
-              record_date: '2023-03-08'
+              record_date: "2023-03-08"
               gender: 1
               dental_arcade: null
-              birth_date: '1990-01-01'
+              birth_date: "1990-01-01"
               birth_place: Arujá
               marital_status: 1
               dentist_id: 1
@@ -397,7 +397,7 @@ customers/{id}:
               sponsor_id: null
               indicator_id: 2
               indicator_type: null
-              payment_credit: '0.0'
+              payment_credit: "0.0"
               father_rg: null
               father_cpf: null
               father_phone: null
@@ -407,40 +407,40 @@ customers/{id}:
               obs: null
               active: true
               asaas_sms_notifications: false
-              created_at: '2023-03-08T19:50:34.000Z'
-              updated_at: '2023-03-08T19:50:43.000Z'
+              created_at: "2023-03-08T19:50:34.000Z"
+              updated_at: "2023-03-08T19:50:43.000Z"
               addresses_attributes:
-              - id: 1
-                address_type: null
-                street: Estrada Santa Isabel
-                number: 1647
-                complement: sala 31
-                neighborhood: Jardim Limoeiro
-                city: Arujá
-                state: SP
-                zipcode: '07434100'
-                created_at: '2023-03-08T19:50:34.000Z'
-                updated_at: '2023-03-08T19:50:34.000Z'
+                - id: 1
+                  address_type: null
+                  street: Estrada Santa Isabel
+                  number: 1647
+                  complement: sala 31
+                  neighborhood: Jardim Limoeiro
+                  city: Arujá
+                  state: SP
+                  zipcode: "07434100"
+                  created_at: "2023-03-08T19:50:34.000Z"
+                  updated_at: "2023-03-08T19:50:34.000Z"
               contacts_attributes:
-              - id: 1
-                contact_type: null
-                name: null
-                email: ana_silva@dentaloffice.com.br
-                phone: (11) 95092-5252
-                cellphone: (11) 93802-6902
-                fax: (11) 4652-6047
-                homepage: null
-                message_phone: (11) 95092-5252
-                message_contact: Maria
-                created_at: '2023-03-08T19:50:34.000Z'
-                updated_at: '2023-03-08T19:50:34.000Z'
+                - id: 1
+                  contact_type: null
+                  name: null
+                  email: ana_silva@dentaloffice.com.br
+                  phone: (11) 95092-5252
+                  cellphone: (11) 93802-6902
+                  fax: (11) 4652-6047
+                  homepage: null
+                  message_phone: (11) 95092-5252
+                  message_contact: Maria
+                  created_at: "2023-03-08T19:50:34.000Z"
+                  updated_at: "2023-03-08T19:50:34.000Z"
               photo_url:
                 thumb: https://dentalclouddev.s3.amazonaws.com/customers/p9yaln8/1/thumb/customer.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAILTPFT43HI63ZRLA%2F20230309%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230309T114458Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=3559c0aa022cb6fa56758d58423ad07f48ea216098cfca81c62d2a9db8d273b3
                 medium: https://dentalclouddev.s3.amazonaws.com/customers/p9yaln8/1/medium/customer.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAILTPFT43HI63ZRLA%2F20230309%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230309T114458Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=51d87aad7707b7b53302e6f1ac4fe3d6447f7ba1e30067b452b64875fa6f2912
                 original: https://dentalclouddev.s3.amazonaws.com/customers/p9yaln8/1/original/customer.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAILTPFT43HI63ZRLA%2F20230309%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20230309T114458Z&X-Amz-Expires=600&X-Amz-SignedHeaders=host&X-Amz-Signature=c335e4a1a70f019ed569a4495e74df17ed681e08c1cc61607f2912540b8120a9
               document_attributes:
                 id: 1
-                cpf: '46377615655'
+                cpf: "46377615655"
                 rg: 44.888.777.01
                 emitter: SSP
                 dental_insurance_id: 1
@@ -483,8 +483,8 @@ customers/{id}:
                 cnes: null
                 hired_tiss: null
                 cbos: null
-                created_at: '2015-01-01T01:02:03.000Z'
-                updated_at: '2015-01-01T01:02:03.000Z'
+                created_at: "2015-01-01T01:02:03.000Z"
+                updated_at: "2015-01-01T01:02:03.000Z"
               customer_group:
                 id: 1
                 name: Definitivo
@@ -495,15 +495,15 @@ customers/{id}:
                 id: 1
                 name: Clínica teste api
               specialty_ids:
-              - 3
-              - 9
+                - 3
+                - 9
               specialties:
-              - id: 3
-                name: Dentistica
-              - id: 9
-                name: Ortodontia
+                - id: 3
+                  name: Dentistica
+                - id: 9
+                  name: Ortodontia
               have_anamnese_alert: true
-      '404':
+      "404":
         description: Not Found
         content:
           application/json:
@@ -511,11 +511,11 @@ customers/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   patch:
     tags:
-    - Pacientes
+      - Pacientes
     summary: Alterar Paciente
     description: Atualiza os atributos do paciente, somente necessário enviar os parâmetros alterados.
     requestBody:
@@ -700,11 +700,11 @@ customers/{id}:
             customer:
               document_attributes:
                 id: 1
-                cpf: '46377615655'
+                cpf: "46377615655"
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -714,14 +714,14 @@ customers/{id}:
               id: 1
               title: Sra.
               name: Ana Silva (paciente exemplo)
-              photo: ''
-              record_number: '1'
+              photo: ""
+              record_number: "1"
               customer_group_id: 1
               customer_situation_id: 1
-              record_date: '2023-03-08'
+              record_date: "2023-03-08"
               gender: 1
               dental_arcade: null
-              birth_date: '1990-01-01'
+              birth_date: "1990-01-01"
               birth_place: Arujá
               marital_status: 1
               dentist_id: 1
@@ -739,7 +739,7 @@ customers/{id}:
               sponsor_id: null
               indicator_id: 2
               indicator_type: null
-              payment_credit: '0.0'
+              payment_credit: "0.0"
               father_rg: null
               father_cpf: null
               father_phone: null
@@ -749,24 +749,24 @@ customers/{id}:
               obs: null
               active: true
               asaas_sms_notifications: false
-              created_at: '2023-03-08T19:50:34.000Z'
-              updated_at: '2023-03-09T11:45:43.137Z'
+              created_at: "2023-03-08T19:50:34.000Z"
+              updated_at: "2023-03-09T11:45:43.137Z"
   delete:
     tags:
-    - Pacientes
+      - Pacientes
     summary: Remover Paciente
     description: Exclui registro de paciente.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
             schema:
               type: string
             example: null
-      '404':
+      "404":
         description: Not Found
         content:
           application/json:
@@ -774,12 +774,12 @@ customers/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   parameters:
-  - name: id
-    in: path
-    schema:
-      type: integer
-    required: true
-    example: '1'
+    - name: id
+      in: path
+      schema:
+        type: integer
+      required: true
+      example: "1"

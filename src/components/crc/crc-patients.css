@@ -10,21 +10,21 @@
 .crc-app .crc-pacientes-busca-hero-v2 {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0,1fr) minmax(320px,.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
   gap: 22px;
   align-items: center;
   padding: 23px;
   overflow: hidden;
-  border: 1px solid rgba(8,115,59,.12);
+  border: 1px solid rgba(8, 115, 59, 0.12);
   border-radius: 24px;
   background:
-    radial-gradient(circle at 92% 0%, rgba(86,168,5,.1), transparent 220px),
-    rgba(255,255,255,.88);
+    radial-gradient(circle at 92% 0%, rgba(86, 168, 5, 0.1), transparent 220px),
+    rgba(255, 255, 255, 0.88);
 }
 
 .crc-app .crc-pacientes-busca-copy-v2 {
   display: grid;
-  grid-template-columns: 48px minmax(0,1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 14px;
   align-items: center;
 }
@@ -48,23 +48,23 @@
   margin: 0;
   color: var(--crc-texto);
   font-family: var(--crc-fonte-display);
-  font-size: clamp(1.45rem,1.2rem + .8vw,2rem);
+  font-size: clamp(1.45rem, 1.2rem + 0.8vw, 2rem);
   font-weight: 650;
   line-height: 1.08;
-  letter-spacing: -.035em;
+  letter-spacing: -0.035em;
 }
 
 .crc-app .crc-pacientes-busca-copy-v2 p {
   max-width: 65ch;
   margin: 7px 0 0;
   color: var(--crc-texto-2);
-  font-size: .8rem;
+  font-size: 0.8rem;
   line-height: 1.55;
 }
 
 .crc-app .crc-pacientes-busca-campo-v2 {
   display: grid;
-  grid-template-columns: 18px minmax(0,1fr) auto;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
   gap: 9px;
   align-items: center;
   min-height: 50px;
@@ -72,13 +72,15 @@
   border: 1px solid var(--crc-borda);
   border-radius: 15px;
   background: var(--crc-superficie);
-  box-shadow: 0 8px 24px -20px rgba(8,51,31,.5);
-  transition: border-color var(--crc-transicao), box-shadow var(--crc-transicao);
+  box-shadow: 0 8px 24px -20px rgba(8, 51, 31, 0.5);
+  transition:
+    border-color var(--crc-transicao),
+    box-shadow var(--crc-transicao);
 }
 
 .crc-app .crc-pacientes-busca-campo-v2:focus-within {
   border-color: var(--crc-primaria-borda);
-  box-shadow: 0 0 0 4px rgba(8,115,59,.08);
+  box-shadow: 0 0 0 4px rgba(8, 115, 59, 0.08);
 }
 
 .crc-app .crc-pacientes-busca-campo-v2 > svg {
@@ -96,12 +98,12 @@
   background: transparent;
   color: var(--crc-texto);
   font: inherit;
-  font-size: .88rem;
+  font-size: 0.88rem;
 }
 
 .crc-app .crc-pacientes-buscando-v2 {
   color: var(--crc-texto-3);
-  font-size: .68rem;
+  font-size: 0.68rem;
 }
 
 .crc-app .crc-pacientes-inicio-v2 {
@@ -112,7 +114,7 @@
   gap: 12px;
   border: 1px dashed var(--crc-borda-forte);
   border-radius: 22px;
-  background: rgba(255,255,255,.58);
+  background: rgba(255, 255, 255, 0.58);
 }
 
 .crc-app .crc-pacientes-inicio-icone-v2 {
@@ -134,7 +136,7 @@
   overflow: hidden;
   border: 1px solid var(--crc-borda);
   border-radius: 21px;
-  background: rgba(255,255,255,.88);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .crc-app .crc-pacientes-resultados-topo-v2 {
@@ -155,7 +157,7 @@
   border-radius: 999px;
   background: var(--crc-superficie-3);
   color: var(--crc-texto-2);
-  font-size: .7rem;
+  font-size: 0.7rem;
   font-weight: 800;
 }
 
@@ -168,7 +170,7 @@
 .crc-app .crc-paciente-resultado-v2 {
   display: grid;
   width: 100%;
-  grid-template-columns: 42px minmax(0,1fr) 18px;
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
   gap: 12px;
   align-items: center;
   min-height: 76px;
@@ -197,7 +199,7 @@
   border-radius: 14px;
   background: var(--crc-primaria-suave);
   color: var(--crc-primaria);
-  font-size: .74rem;
+  font-size: 0.74rem;
   font-weight: 850;
 }
 
@@ -221,7 +223,7 @@
 .crc-app .crc-paciente-resultado-nome-v2 > strong {
   overflow: hidden;
   color: var(--crc-texto);
-  font-size: .84rem;
+  font-size: 0.84rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -245,7 +247,7 @@
   align-items: center;
   gap: 4px;
   color: var(--crc-texto-3);
-  font-size: .68rem;
+  font-size: 0.68rem;
 }
 
 .crc-app .crc-paciente-resultado-dados-v2 svg {
@@ -257,7 +259,7 @@
   width: 16px;
   height: 16px;
   color: var(--crc-texto-3);
-  opacity: .55;
+  opacity: 0.55;
 }
 
 .crc-app .crc-paciente-voltar-v2 {
@@ -269,7 +271,7 @@
   background: transparent;
   color: var(--crc-texto-2);
   font: inherit;
-  font-size: .73rem;
+  font-size: 0.73rem;
   font-weight: 750;
   cursor: pointer;
 }
@@ -287,17 +289,17 @@
   gap: 20px;
   padding: 22px;
   overflow: hidden;
-  border: 1px solid rgba(8,115,59,.13);
+  border: 1px solid rgba(8, 115, 59, 0.13);
   border-radius: 25px;
   background:
-    radial-gradient(circle at 95% 10%, rgba(86,168,5,.1), transparent 220px),
-    rgba(255,255,255,.9);
+    radial-gradient(circle at 95% 10%, rgba(86, 168, 5, 0.1), transparent 220px),
+    rgba(255, 255, 255, 0.9);
 }
 
 .crc-app .crc-paciente-identidade-principal-v2 {
   display: grid;
   min-width: 0;
-  grid-template-columns: 64px minmax(0,1fr);
+  grid-template-columns: 64px minmax(0, 1fr);
   gap: 15px;
   align-items: center;
 }
@@ -325,10 +327,10 @@
   overflow: hidden;
   color: var(--crc-texto);
   font-family: var(--crc-fonte-display);
-  font-size: clamp(1.8rem,1.45rem + 1vw,2.5rem);
+  font-size: clamp(1.8rem, 1.45rem + 1vw, 2.5rem);
   font-weight: 650;
   line-height: 1.02;
-  letter-spacing: -.045em;
+  letter-spacing: -0.045em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -336,17 +338,17 @@
 .crc-app .crc-paciente-identidade-copy-v2 p {
   margin: 7px 0 0;
   color: var(--crc-texto-3);
-  font-size: .76rem;
+  font-size: 0.76rem;
 }
 
 .crc-app .crc-paciente-automacao-v2 {
   display: grid;
   min-width: 230px;
-  grid-template-columns: 38px minmax(0,1fr);
+  grid-template-columns: 38px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   padding: 12px;
-  border: 1px solid rgba(39,106,145,.14);
+  border: 1px solid rgba(39, 106, 145, 0.14);
   border-radius: 15px;
   background: var(--crc-info-suave);
 }
@@ -374,41 +376,41 @@
 
 .crc-app .crc-paciente-automacao-v2 small {
   color: var(--crc-info);
-  font-size: .63rem;
+  font-size: 0.63rem;
   font-weight: 800;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .crc-app .crc-paciente-automacao-v2 strong {
   margin-top: 2px;
   color: var(--crc-texto);
-  font-size: .74rem;
+  font-size: 0.74rem;
 }
 
 .crc-app .crc-paciente-automacao-v2 em {
   margin-top: 2px;
   color: var(--crc-texto-3);
-  font-size: .64rem;
+  font-size: 0.64rem;
   font-style: normal;
 }
 
 .crc-app .crc-paciente-dados-v2 {
   display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
 .crc-app .crc-paciente-dado-v2 {
   display: grid;
   min-width: 0;
-  grid-template-columns: 36px minmax(0,1fr);
+  grid-template-columns: 36px minmax(0, 1fr);
   gap: 9px;
   align-items: center;
   padding: 11px;
   border: 1px solid var(--crc-borda);
   border-radius: 14px;
-  background: rgba(255,255,255,.82);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .crc-app .crc-paciente-dado-v2 > span {
@@ -433,7 +435,7 @@
 
 .crc-app .crc-paciente-dado-v2 small {
   color: var(--crc-texto-3);
-  font-size: .64rem;
+  font-size: 0.64rem;
   font-weight: 750;
 }
 
@@ -441,7 +443,7 @@
   margin-top: 2px;
   overflow: hidden;
   color: var(--crc-texto-2);
-  font-size: .71rem;
+  font-size: 0.71rem;
   font-weight: 750;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -454,7 +456,7 @@
   padding: 4px;
   border: 1px solid var(--crc-borda);
   border-radius: 15px;
-  background: rgba(255,255,255,.72);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .crc-app .crc-paciente-abas-v2 button {
@@ -469,7 +471,7 @@
   background: transparent;
   color: var(--crc-texto-3);
   font: inherit;
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 750;
   cursor: pointer;
 }
@@ -494,7 +496,7 @@
   border-radius: 999px;
   background: var(--crc-superficie-3);
   color: var(--crc-texto-2);
-  font-size: .61rem;
+  font-size: 0.61rem;
 }
 
 .crc-app .crc-paciente-conteudo-v2 {
@@ -503,7 +505,7 @@
 
 .crc-app .crc-paciente-resumo-grid-v2 {
   display: grid;
-  grid-template-columns: repeat(2,minmax(0,1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -512,17 +514,17 @@
   overflow: hidden;
   border: 1px solid var(--crc-borda);
   border-radius: 19px;
-  background: rgba(255,255,255,.88);
+  background: rgba(255, 255, 255, 0.88);
 }
 
 .crc-app .crc-paciente-painel-v2 > header {
   display: grid;
-  grid-template-columns: 36px minmax(0,1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   gap: 9px;
   align-items: center;
   padding: 12px 13px;
   border-bottom: 1px solid var(--crc-borda);
-  background: rgba(249,251,248,.82);
+  background: rgba(249, 251, 248, 0.82);
 }
 
 .crc-app .crc-paciente-painel-v2 > header > span {
@@ -547,14 +549,14 @@
 
 .crc-app .crc-paciente-painel-v2 > header small {
   color: var(--crc-texto-3);
-  font-size: .61rem;
+  font-size: 0.61rem;
   font-weight: 750;
 }
 
 .crc-app .crc-paciente-painel-v2 > header h2 {
   margin: 1px 0 0;
   color: var(--crc-texto);
-  font-size: .8rem;
+  font-size: 0.8rem;
   font-weight: 800;
 }
 
@@ -567,7 +569,7 @@
   border-radius: 9px;
   background: var(--crc-superficie-3);
   color: var(--crc-texto-2);
-  font-size: .68rem;
+  font-size: 0.68rem;
 }
 
 .crc-app .crc-paciente-painel-corpo-v2 {
@@ -615,7 +617,7 @@
 .crc-app .crc-paciente-trechos-v2 strong,
 .crc-app .crc-paciente-timeline-topo-v2 strong {
   color: var(--crc-texto);
-  font-size: .76rem;
+  font-size: 0.76rem;
   font-weight: 800;
 }
 
@@ -624,7 +626,7 @@
 .crc-app .crc-paciente-trechos-v2 span,
 .crc-app .crc-paciente-timeline-topo-v2 span {
   color: var(--crc-texto-3);
-  font-size: .65rem;
+  font-size: 0.65rem;
 }
 
 .crc-app .crc-paciente-oportunidade-meta-v2,
@@ -640,7 +642,7 @@
   align-items: center;
   gap: 4px;
   color: var(--crc-texto-2);
-  font-size: .66rem;
+  font-size: 0.66rem;
 }
 
 .crc-app .crc-paciente-oportunidade-meta-v2 svg {
@@ -659,20 +661,20 @@
 .crc-app .crc-paciente-timeline-v2 p {
   margin: 5px 0 0;
   color: var(--crc-texto-2);
-  font-size: .68rem;
+  font-size: 0.68rem;
   line-height: 1.45;
 }
 
 .crc-app .crc-paciente-timeline-v2 > li {
   display: grid;
-  grid-template-columns: 14px minmax(0,1fr);
+  grid-template-columns: 14px minmax(0, 1fr);
   gap: 10px;
   padding: 5px 4px 0;
 }
 
 .crc-app .crc-paciente-timeline-trilho-v2 {
   display: grid;
-  grid-template-rows: 12px minmax(20px,1fr);
+  grid-template-rows: 12px minmax(20px, 1fr);
   justify-items: center;
 }
 
@@ -693,11 +695,11 @@
 
 @media (max-width: 1080px) {
   .crc-app .crc-pacientes-busca-hero-v2 {
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .crc-app .crc-paciente-dados-v2 {
-    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -712,7 +714,7 @@
   }
 
   .crc-app .crc-paciente-resumo-grid-v2 {
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -722,7 +724,7 @@
   }
 
   .crc-app .crc-pacientes-busca-copy-v2 {
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .crc-app .crc-pacientes-busca-icone-v2 {
@@ -731,7 +733,7 @@
   }
 
   .crc-app .crc-paciente-resultado-v2 {
-    grid-template-columns: 38px minmax(0,1fr);
+    grid-template-columns: 38px minmax(0, 1fr);
     padding: 12px;
   }
 
@@ -750,7 +752,7 @@
   }
 
   .crc-app .crc-paciente-identidade-principal-v2 {
-    grid-template-columns: 52px minmax(0,1fr);
+    grid-template-columns: 52px minmax(0, 1fr);
   }
 
   .crc-app .crc-paciente-identidade-avatar-v2 {
@@ -763,7 +765,7 @@
   }
 
   .crc-app .crc-paciente-dados-v2 {
-    grid-template-columns: minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .crc-app .crc-paciente-tarefa-v2 {

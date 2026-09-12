@@ -1,13 +1,13 @@
 dentists:
   get:
     tags:
-    - Dentistas
+      - Dentistas
     summary: Listar Dentistas
     description: Lista os dentistas de acordo com a busca. Sem o envio de parâmetro, lista todos os dentistas ativos cadastrados.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -23,107 +23,107 @@ dentists:
                   to: 3
                   current_page: 1
                   results:
-                  - id: 2
-                    name: Dentista
-                    speciality_ids: []
-                    duration: 30
-                    birth_date: null
-                    rg: null
-                    cpf: null
-                    cr_type: null
-                    cr_number: null
-                    cr_uf: null
-                    commission_type: 0
-                    commission_percent: null
-                    commission_prosthetic: false
-                    commission_prosthetic_percent: null
-                    semester: null
-                    register_number: null
-                    dentist_type: dentist
-                    chair_ids:
-                    - 1
-                    gender: null
-                    memed_id: null
-                    user_id: null
-                    deleted_at: null
-                    cnes: null
-                    hired_tiss: null
-                    cbos: null
-                    created_at: '2023-03-15T16:55:49.000Z'
-                    updated_at: '2023-03-15T16:55:49.000Z'
-                    active: true
-                    contacts_attributes: []
-                  - id: 1
-                    name: Dentista 1
-                    speciality_ids: []
-                    duration: 30
-                    birth_date: null
-                    rg: null
-                    cpf: null
-                    cr_type: null
-                    cr_number: null
-                    cr_uf: null
-                    commission_type: 0
-                    commission_percent: '50.0'
-                    commission_prosthetic: true
-                    commission_prosthetic_percent: '1.0'
-                    semester: null
-                    register_number: null
-                    dentist_type: dentist
-                    chair_ids: []
-                    gender: 0
-                    memed_id: null
-                    user_id: null
-                    deleted_at: null
-                    cnes: null
-                    hired_tiss: null
-                    cbos: null
-                    created_at: '2015-01-01T01:02:03.000Z'
-                    updated_at: '2023-03-13T12:24:18.000Z'
-                    active: true
-                    contacts_attributes: []
-                  - id: 3
-                    name: Dentista Clínica Escola
-                    speciality_ids: []
-                    duration: 30
-                    birth_date: null
-                    rg: null
-                    cpf: null
-                    cr_type: null
-                    cr_number: null
-                    cr_uf: null
-                    commission_type: 0
-                    commission_percent: null
-                    commission_prosthetic: false
-                    commission_prosthetic_percent: null
-                    semester: null
-                    register_number: null
-                    dentist_type: teacher
-                    chair_ids:
-                    - 1
-                    gender: null
-                    memed_id: null
-                    user_id: null
-                    deleted_at: null
-                    cnes: null
-                    hired_tiss: null
-                    cbos: null
-                    created_at: '2023-03-15T16:57:55.000Z'
-                    updated_at: '2023-03-15T16:57:55.000Z'
-                    active: true
-                    contacts_attributes:
-                    - id: 9
-                      contact_type: null
-                      name: null
-                      email: null
-                      phone: null
-                      cellphone: (77)77777-7777
-                      fax: null
-                      homepage: null
-                      message_phone: null
-                      message_contact: null
-                      created_at: '2023-03-15T16:57:55.000Z'
-                      updated_at: '2023-03-15T16:57:55.000Z'
+                    - id: 2
+                      name: Dentista
+                      speciality_ids: []
+                      duration: 30
+                      birth_date: null
+                      rg: null
+                      cpf: null
+                      cr_type: null
+                      cr_number: null
+                      cr_uf: null
+                      commission_type: 0
+                      commission_percent: null
+                      commission_prosthetic: false
+                      commission_prosthetic_percent: null
+                      semester: null
+                      register_number: null
+                      dentist_type: dentist
+                      chair_ids:
+                        - 1
+                      gender: null
+                      memed_id: null
+                      user_id: null
+                      deleted_at: null
+                      cnes: null
+                      hired_tiss: null
+                      cbos: null
+                      created_at: "2023-03-15T16:55:49.000Z"
+                      updated_at: "2023-03-15T16:55:49.000Z"
+                      active: true
+                      contacts_attributes: []
+                    - id: 1
+                      name: Dentista 1
+                      speciality_ids: []
+                      duration: 30
+                      birth_date: null
+                      rg: null
+                      cpf: null
+                      cr_type: null
+                      cr_number: null
+                      cr_uf: null
+                      commission_type: 0
+                      commission_percent: "50.0"
+                      commission_prosthetic: true
+                      commission_prosthetic_percent: "1.0"
+                      semester: null
+                      register_number: null
+                      dentist_type: dentist
+                      chair_ids: []
+                      gender: 0
+                      memed_id: null
+                      user_id: null
+                      deleted_at: null
+                      cnes: null
+                      hired_tiss: null
+                      cbos: null
+                      created_at: "2015-01-01T01:02:03.000Z"
+                      updated_at: "2023-03-13T12:24:18.000Z"
+                      active: true
+                      contacts_attributes: []
+                    - id: 3
+                      name: Dentista Clínica Escola
+                      speciality_ids: []
+                      duration: 30
+                      birth_date: null
+                      rg: null
+                      cpf: null
+                      cr_type: null
+                      cr_number: null
+                      cr_uf: null
+                      commission_type: 0
+                      commission_percent: null
+                      commission_prosthetic: false
+                      commission_prosthetic_percent: null
+                      semester: null
+                      register_number: null
+                      dentist_type: teacher
+                      chair_ids:
+                        - 1
+                      gender: null
+                      memed_id: null
+                      user_id: null
+                      deleted_at: null
+                      cnes: null
+                      hired_tiss: null
+                      cbos: null
+                      created_at: "2023-03-15T16:57:55.000Z"
+                      updated_at: "2023-03-15T16:57:55.000Z"
+                      active: true
+                      contacts_attributes:
+                        - id: 9
+                          contact_type: null
+                          name: null
+                          email: null
+                          phone: null
+                          cellphone: (77)77777-7777
+                          fax: null
+                          homepage: null
+                          message_phone: null
+                          message_contact: null
+                          created_at: "2023-03-15T16:57:55.000Z"
+                          updated_at: "2023-03-15T16:57:55.000Z"
               example-1:
                 summary: 200 - OK
                 value:
@@ -134,46 +134,46 @@ dentists:
                   current_page: 1
                   results: []
     parameters:
-    - name: q
-      in: query
-      schema:
-        type: string
-      description: Nome do dentista para busca
-    - name: page
-      in: query
-      schema:
-        type: integer
-      description: Página da listagem
-    - name: chair_id
-      in: query
-      schema:
-        type: integer
-      description: Filtra pelo identificador de cadeira
-    - name: clinic_id
-      in: query
-      schema:
-        type: integer
-      description: Identificador da clínica
-    - name: only_deleted
-      in: query
-      schema:
-        type: boolean
-      description: Por padrão é falso
-    - name: deleted_start_date
-      in: query
-      schema:
-        type: string
-        format: date
-      description: Filtra o começo da data de exclusão
-    - name: deleted_end_date
-      in: query
-      schema:
-        type: string
-        format: date
-      description: Filtra o limite da data de exclusão
+      - name: q
+        in: query
+        schema:
+          type: string
+        description: Nome do dentista para busca
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Página da listagem
+      - name: chair_id
+        in: query
+        schema:
+          type: integer
+        description: Filtra pelo identificador de cadeira
+      - name: clinic_id
+        in: query
+        schema:
+          type: integer
+        description: Identificador da clínica
+      - name: only_deleted
+        in: query
+        schema:
+          type: boolean
+        description: Por padrão é falso
+      - name: deleted_start_date
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Filtra o começo da data de exclusão
+      - name: deleted_end_date
+        in: query
+        schema:
+          type: string
+          format: date
+        description: Filtra o limite da data de exclusão
   post:
     tags:
-    - Dentistas
+      - Dentistas
     summary: Criar Dentista
     description: Cria um novo dentista.
     requestBody:
@@ -223,7 +223,7 @@ dentists:
                     description: Porcentagem do comissionamento
                   commission_prosthetic:
                     type: integer
-                    description: 'Abatimento protético: 0 - Não, 1 - Sim'
+                    description: "Abatimento protético: 0 - Não, 1 - Sim"
                   commission_prosthetic_percent:
                     type: number
                     description: Porcentagem do abatimento protético
@@ -292,20 +292,20 @@ dentists:
                           description: Celular
                     description: Atributos do contato
                 required:
-                - name
+                  - name
           example:
             dentist:
               name: Dentista Clínica Escola
               duration: 30
               chair_ids:
-              - 1
+                - 1
               dentist_type: teacher
               contacts_attributes:
-              - cellphone: (77)77777-7777
+                - cellphone: (77)77777-7777
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -333,14 +333,14 @@ dentists:
                   register_number: null
                   dentist_type: dentist
                   chair_ids:
-                  - 1
+                    - 1
                   gender: null
                   user_id: null
                   deleted_at: null
                   cnes: null
                   cbos: null
-                  created_at: '2023-03-15T16:55:49.667Z'
-                  updated_at: '2023-03-15T16:55:49.667Z'
+                  created_at: "2023-03-15T16:55:49.667Z"
+                  updated_at: "2023-03-15T16:55:49.667Z"
               example-1:
                 summary: 200 - OK
                 value:
@@ -362,15 +362,15 @@ dentists:
                   register_number: null
                   dentist_type: teacher
                   chair_ids:
-                  - 1
+                    - 1
                   gender: null
                   user_id: null
                   deleted_at: null
                   cnes: null
                   cbos: null
-                  created_at: '2023-03-15T16:57:55.768Z'
-                  updated_at: '2023-03-15T16:57:55.768Z'
-      '422':
+                  created_at: "2023-03-15T16:57:55.768Z"
+                  updated_at: "2023-03-15T16:57:55.768Z"
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -379,17 +379,17 @@ dentists:
             example:
               errors:
                 name:
-                - Nome já está em uso
+                  - Nome já está em uso
 dentists/{id}:
   get:
     tags:
-    - Dentistas
+      - Dentistas
     summary: Visualizar Dentista
     description: Apresenta os dados de determinado dentista.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -414,27 +414,27 @@ dentists/{id}:
               register_number: null
               dentist_type: student
               chair_ids:
-              - 1
+                - 1
               gender: null
               user_id: null
               deleted_at: null
               cnes: null
               hired_tiss: null
               cbos: null
-              created_at: '2023-03-09T11:37:15.000Z'
-              updated_at: '2023-03-09T11:37:15.000Z'
+              created_at: "2023-03-09T11:37:15.000Z"
+              updated_at: "2023-03-09T11:37:15.000Z"
               active: true
               addresses_attributes: []
               contacts_attributes: []
               clinic_ids:
-              - 1
+                - 1
               clinics:
-              - id: 1
-                name: Clínica teste api
+                - id: 1
+                  name: Clínica teste api
               chairs:
-              - id: 1
-                name: Cadeira Principal
-      '404':
+                - id: 1
+                  name: Cadeira Principal
+      "404":
         description: Not Found
         content:
           application/json:
@@ -442,11 +442,11 @@ dentists/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   patch:
     tags:
-    - Dentistas
+      - Dentistas
     summary: Alterar Dentista
     description: Altera registro de dentista. Basta enviar apenas o identificador do dentista e o(s) atributo(s) que deseja alterar.
     requestBody:
@@ -496,7 +496,7 @@ dentists/{id}:
                     description: Porcentagem do comissionamento
                   commission_prosthetic:
                     type: integer
-                    description: 'Abatimento protético: 0 - Não, 1 - Sim'
+                    description: "Abatimento protético: 0 - Não, 1 - Sim"
                   commission_prosthetic_percent:
                     type: number
                     description: Porcentagem do abatimento protético
@@ -562,9 +562,9 @@ dentists/{id}:
             dentist:
               name: Dentista 0
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -589,7 +589,7 @@ dentists/{id}:
               register_number: null
               dentist_type: dentist
               chair_ids:
-              - 1
+                - 1
               gender: null
               memed_id: null
               user_id: null
@@ -597,9 +597,9 @@ dentists/{id}:
               cnes: null
               hired_tiss: null
               cbos: null
-              created_at: '2023-03-15T16:55:49.000Z'
-              updated_at: '2023-03-15T17:20:38.169Z'
-      '422':
+              created_at: "2023-03-15T16:55:49.000Z"
+              updated_at: "2023-03-15T17:20:38.169Z"
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -607,17 +607,17 @@ dentists/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - 'A validação falhou: Nome já está em uso'
+                "Erro:":
+                  - "A validação falhou: Nome já está em uso"
   delete:
     tags:
-    - Dentistas
+      - Dentistas
     summary: Remover Dentista
     description: Exclui registro de dentista.
     security:
-    - bearerAuth: []
+      - bearerAuth: []
     responses:
-      '202':
+      "202":
         description: Accepted
         content:
           application/json:
@@ -642,17 +642,17 @@ dentists/{id}:
               register_number: null
               dentist_type: dentist
               chair_ids:
-              - 1
+                - 1
               gender: null
               memed_id: null
               user_id: null
-              deleted_at: '2023-03-16T18:28:01.187Z'
+              deleted_at: "2023-03-16T18:28:01.187Z"
               cnes: null
               hired_tiss: null
               cbos: null
-              created_at: '2023-03-15T16:55:49.000Z'
-              updated_at: '2023-03-16T18:28:01.282Z'
-      '404':
+              created_at: "2023-03-15T16:55:49.000Z"
+              updated_at: "2023-03-16T18:28:01.282Z"
+      "404":
         description: Not Found
         content:
           application/json:
@@ -660,12 +660,12 @@ dentists/{id}:
               type: object
             example:
               errors:
-                'Erro:':
-                - Registro não encontrado.
+                "Erro:":
+                  - Registro não encontrado.
   parameters:
-  - name: id
-    in: path
-    schema:
-      type: integer
-    required: true
-    example: '2'
+    - name: id
+      in: path
+      schema:
+        type: integer
+      required: true
+      example: "2"

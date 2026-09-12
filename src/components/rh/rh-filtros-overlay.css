@@ -39,11 +39,7 @@
   z-index: 80;
 }
 
-.rh-admin
-  main
-  > div.sticky
-  > .jp-container
-  button[aria-controls$="-painel"][aria-expanded="true"] {
+.rh-admin main > div.sticky > .jp-container button[aria-controls$="-painel"][aria-expanded="true"] {
   border-color: color-mix(in oklab, var(--forest) 28%, white) !important;
   background: color-mix(in oklab, var(--mint) 72%, white) !important;
   color: var(--ink) !important;

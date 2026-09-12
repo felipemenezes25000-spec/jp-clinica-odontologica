@@ -1,38 +1,38 @@
 disciplines:
   get:
     tags:
-    - Disciplinas
+      - Disciplinas
     summary: Listar
     description: Lista as disciplinas cadastradas.
     parameters:
-    - name: q
-      in: query
-      schema:
-        type: string
-    - name: page
-      in: query
-      schema:
-        type: string
-    - name: per_page
-      in: query
-      schema:
-        type: string
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: string
+      - name: per_page
+        in: query
+        schema:
+          type: string
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
             schema:
               type: object
             example:
-            - id: 2
-              name: Banco do Brasil
-              created_at: '2025-03-12T20:12:16.000Z'
-              updated_at: '2025-03-12T20:12:16.000Z'
-              deleted_at: null
+              - id: 2
+                name: Banco do Brasil
+                created_at: "2025-03-12T20:12:16.000Z"
+                updated_at: "2025-03-12T20:12:16.000Z"
+                deleted_at: null
   post:
     tags:
-    - Disciplinas
+      - Disciplinas
     summary: Cadastrar
     requestBody:
       content:
@@ -49,7 +49,7 @@ disciplines:
             discipline:
               name: Brasil
     responses:
-      '201':
+      "201":
         description: Created
         content:
           application/json:
@@ -58,10 +58,10 @@ disciplines:
             example:
               id: 3
               name: Brasil
-              created_at: '2025-03-12T20:15:10.538Z'
-              updated_at: '2025-03-12T20:15:10.538Z'
+              created_at: "2025-03-12T20:15:10.538Z"
+              updated_at: "2025-03-12T20:15:10.538Z"
               deleted_at: null
-      '422':
+      "422":
         description: Unprocessable Entity (WebDAV) (RFC 4918)
         content:
           application/json:
@@ -69,31 +69,31 @@ disciplines:
               type: object
             example:
               errors:
-              - Name já está em uso.
+                - Name já está em uso.
 disciplines/{id}:
   get:
     tags:
-    - Disciplinas
+      - Disciplinas
     summary: Show
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
             schema:
               type: object
             example:
-            - id: 2
-              name: Banco do Brasil
-              created_at: '2025-03-12T20:12:16.000Z'
-              updated_at: '2025-03-12T20:12:16.000Z'
-              deleted_at: null
-            - id: 3
-              name: Safra
-              created_at: '2025-03-12T20:15:10.000Z'
-              updated_at: '2025-03-12T20:15:40.000Z'
-              deleted_at: null
-      '404':
+              - id: 2
+                name: Banco do Brasil
+                created_at: "2025-03-12T20:12:16.000Z"
+                updated_at: "2025-03-12T20:12:16.000Z"
+                deleted_at: null
+              - id: 3
+                name: Safra
+                created_at: "2025-03-12T20:15:10.000Z"
+                updated_at: "2025-03-12T20:15:40.000Z"
+                deleted_at: null
+      "404":
         description: Not Found
         content:
           application/json:
@@ -103,7 +103,7 @@ disciplines/{id}:
               error: Discipline not found
   put:
     tags:
-    - Disciplinas
+      - Disciplinas
     summary: Alterar
     requestBody:
       content:
@@ -120,7 +120,7 @@ disciplines/{id}:
             discipline:
               name: Safra
     responses:
-      '200':
+      "200":
         description: OK
         content:
           application/json:
@@ -129,10 +129,10 @@ disciplines/{id}:
             example:
               id: 3
               name: Safra
-              created_at: '2025-03-12T20:15:10.000Z'
-              updated_at: '2025-03-12T20:15:40.127Z'
+              created_at: "2025-03-12T20:15:10.000Z"
+              updated_at: "2025-03-12T20:15:40.127Z"
               deleted_at: null
-      '404':
+      "404":
         description: Not Found
         content:
           application/json:
@@ -142,10 +142,10 @@ disciplines/{id}:
               error: Discipline not found
   delete:
     tags:
-    - Disciplinas
+      - Disciplinas
     summary: Remover
     responses:
-      '204':
+      "204":
         description: No Content
         content:
           text/plain:
@@ -153,9 +153,9 @@ disciplines/{id}:
               type: string
             example: null
   parameters:
-  - name: id
-    in: path
-    required: true
-    schema:
-      type: integer
-    description: ID do recurso
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID do recurso

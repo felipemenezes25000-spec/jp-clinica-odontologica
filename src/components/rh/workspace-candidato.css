@@ -50,7 +50,9 @@
 }
 
 /* Auditoria e arrumação existem, mas não competem com a decisão. */
-.rh-admin .rh-gaveta :is(
+.rh-admin
+  .rh-gaveta
+  :is(
     [data-sanfona-id*="-criterios"],
     [data-sanfona-id*="-sinais"],
     [data-sanfona-id*="-impressao"],
@@ -292,18 +294,12 @@
     box-shadow: 0 22px 48px -40px rgba(3, 47, 1, 0.38);
   }
 
-  .rh-admin
-    .rh-gaveta
-    section[aria-labelledby$="-gestao"]
-    > div[class~="grid"] {
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] > div[class~="grid"] {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 0.68rem !important;
   }
 
-  .rh-admin
-    .rh-gaveta
-    section[aria-labelledby$="-gestao"]
-    p[class~="mt-1.5"][class~="text-xs"] {
+  .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] p[class~="mt-1.5"][class~="text-xs"] {
     display: none;
   }
 
@@ -328,16 +324,16 @@
   }
 
   /* Bloco de ficha de entrevista fica logo após as dúvidas no trilho lateral. */
-  .rh-admin
-    .rh-gaveta
-    > div.rh-scroll
-    > div
-    > section.rh-vidro:has(button[class*="Preparar"]) {
+  .rh-admin .rh-gaveta > div.rh-scroll > div > section.rh-vidro:has(button[class*="Preparar"]) {
     grid-column: 2;
   }
 
   /* IA sempre inaugura a coluna de decisão. */
-  .rh-admin .rh-gaveta > div.rh-scroll > div > section.rh-vidro:has([data-sanfona-id*="-criterios"]) {
+  .rh-admin
+    .rh-gaveta
+    > div.rh-scroll
+    > div
+    > section.rh-vidro:has([data-sanfona-id*="-criterios"]) {
     grid-column: 1;
     grid-row: 1;
   }
@@ -350,7 +346,11 @@
     padding: 1.15rem !important;
     border-color: color-mix(in oklab, var(--forest) 13%, white);
     background:
-      radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--mint) 62%, white), transparent 18rem),
+      radial-gradient(
+        circle at 12% 18%,
+        color-mix(in oklab, var(--mint) 62%, white),
+        transparent 18rem
+      ),
       linear-gradient(145deg, #ffffff 0%, #fbfdf9 58%, #f5faf3 100%);
     box-shadow: 0 24px 54px -46px rgba(3, 47, 1, 0.46);
   }
@@ -491,10 +491,7 @@
      bloco ficava com dois ritmos e três furos.
      Fileira única é o que o cliente desenhou, é o que as outras seções da ficha
      já fazem, e é o único arranjo que não tem estado ragged em largura nenhuma. */
-  .rh-admin
-    .rh-gaveta
-    section.rh-vidro:has([data-sanfona-id*="-criterios"])
-    > div.mt-4.space-y-2 {
+  .rh-admin .rh-gaveta section.rh-vidro:has([data-sanfona-id*="-criterios"]) > div.mt-4.space-y-2 {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr);
     gap: 0.5rem !important;
@@ -550,10 +547,7 @@
     display: none;
   }
 
-  .rh-admin
-    .rh-gaveta
-    section.rh-vidro:has([data-sanfona-id*="-criterios"])
-    > footer {
+  .rh-admin .rh-gaveta section.rh-vidro:has([data-sanfona-id*="-criterios"]) > footer {
     margin-top: 0.75rem !important;
     padding-top: 0.65rem !important;
   }
@@ -578,7 +572,13 @@
   }
 
   /* Dados/currículo: portas compactas e legíveis na coluna principal. */
-  .rh-admin .rh-gaveta > div.rh-scroll > div > [data-rh-sanfona]:not([data-sanfona-id*="-duvidas"]):not([data-sanfona-id*="-etiquetas"]):not([data-sanfona-id*="-origem"]):not([data-sanfona-id*="-anotacoes"]) {
+  .rh-admin
+    .rh-gaveta
+    > div.rh-scroll
+    > div
+    > [data-rh-sanfona]:not([data-sanfona-id*="-duvidas"]):not([data-sanfona-id*="-etiquetas"]):not(
+      [data-sanfona-id*="-origem"]
+    ):not([data-sanfona-id*="-anotacoes"]) {
     grid-column: 1;
   }
 

@@ -28,10 +28,10 @@ SUPABASE_URL=... SUPABASE_SERVICE_ROLE=... npm run schema:status
 Ele imprime uma linha por arquivo de `supabase/`, com duas colunas que **não
 valem o mesmo**:
 
-| Coluna | O que ela responde | Confiança |
-|---|---|---|
+| Coluna     | O que ela responde                             | Confiança             |
+| ---------- | ---------------------------------------------- | --------------------- |
 | `registro` | o que alguém ANOTOU em `crc_schema_migrations` | baixa — é bookkeeping |
-| `sonda` | o objeto que a migração cria EXISTE no banco? | alta — é evidência |
+| `sonda`    | o objeto que a migração cria EXISTE no banco?  | alta — é evidência    |
 
 Quando as duas discordam, **a sonda vence** — e a discordância em si é o alarme.
 O script sai com código 1 se qualquer sonda falhar, então ele serve em CI e em
@@ -87,13 +87,13 @@ que usaria aquele caminho estava desligada.
 
 Sem estas, o sistema não sobe ou não faz nada.
 
-| Variável | Onde | Para quê |
-|---|---|---|
-| `SUPABASE_URL` | Vercel | o banco |
-| `SUPABASE_SERVICE_ROLE` | Vercel | a chave de serviço — **nunca** com prefixo `VITE_` |
-| `CRC_SESSION_SECRET` | Vercel | assina o cookie de sessão. Em produção é exigida; sem ela o login recusa |
-| `CRON_SECRET` | Vercel **e** GitHub | autentica `/api/crc/pulso`, `/api/crc/motor` e `/api/crc/instalar` |
-| `CRC_URL_PUBLICA` | Vercel | o endereço que o webhook usa para tocar o pulso. **Sem ela, `tocarPulso()` volta sem fazer nada, de propósito e sem log** |
+| Variável                | Onde                | Para quê                                                                                                                  |
+| ----------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`          | Vercel              | o banco                                                                                                                   |
+| `SUPABASE_SERVICE_ROLE` | Vercel              | a chave de serviço — **nunca** com prefixo `VITE_`                                                                        |
+| `CRC_SESSION_SECRET`    | Vercel              | assina o cookie de sessão. Em produção é exigida; sem ela o login recusa                                                  |
+| `CRON_SECRET`           | Vercel **e** GitHub | autentica `/api/crc/pulso`, `/api/crc/motor` e `/api/crc/instalar`                                                        |
+| `CRC_URL_PUBLICA`       | Vercel              | o endereço que o webhook usa para tocar o pulso. **Sem ela, `tocarPulso()` volta sem fazer nada, de propósito e sem log** |
 
 O `CRON_SECRET` precisa estar **nos dois lugares, com o mesmo valor**:
 
@@ -106,14 +106,14 @@ gh secret set CRON_SECRET          # no repositório, para o workflow
 
 ## 4. Variáveis opcionais
 
-| Variável | Efeito quando ausente |
-|---|---|
-| `CRC_ADMIN_EMAIL` / `CRC_ADMIN_SENHA` / `CRC_ADMIN_NOME` | a instalação não cria usuário; o resto funciona e o aviso aparece na resposta |
-| `CRC_SEGREDO_CHAVE` | credenciais por clínica não podem ser cifradas — o sistema cai para as variáveis de ambiente |
-| `DENTAL_OFFICE_BASE_URL` / `_CLIENT_ID` / `_SECRET` | sem sincronização e sem agendamento; o painel de Integrações diz exatamente qual falta |
-| `WHATSAPP_PROVEDOR` + credenciais do provedor | sem envio; a automação continua calculando e nada sai |
-| `SUPABASE_REST_PREFIXO` | assume `/rest/v1` (Supabase). Use `/` só para PostgREST puro, em teste |
-| `DENTAL_OFFICE_SANDBOX` / `WHATSAPP_SANDBOX` | ignoradas em produção, por construção |
+| Variável                                                 | Efeito quando ausente                                                                        |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `CRC_ADMIN_EMAIL` / `CRC_ADMIN_SENHA` / `CRC_ADMIN_NOME` | a instalação não cria usuário; o resto funciona e o aviso aparece na resposta                |
+| `CRC_SEGREDO_CHAVE`                                      | credenciais por clínica não podem ser cifradas — o sistema cai para as variáveis de ambiente |
+| `DENTAL_OFFICE_BASE_URL` / `_CLIENT_ID` / `_SECRET`      | sem sincronização e sem agendamento; o painel de Integrações diz exatamente qual falta       |
+| `WHATSAPP_PROVEDOR` + credenciais do provedor            | sem envio; a automação continua calculando e nada sai                                        |
+| `SUPABASE_REST_PREFIXO`                                  | assume `/rest/v1` (Supabase). Use `/` só para PostgREST puro, em teste                       |
+| `DENTAL_OFFICE_SANDBOX` / `WHATSAPP_SANDBOX`             | ignoradas em produção, por construção                                                        |
 
 ### Credenciais por clínica
 
@@ -135,11 +135,11 @@ clínica. É compatibilidade com a instalação legada, e não um modo de opera�
 
 Três workflows:
 
-| Workflow | Quando | O que prova |
-|---|---|---|
-| `quality.yml` | todo push | lint, typecheck, testes e build |
-| `crc-integracao.yml` | push/PR na main | schema do zero, tenant, concorrência, recovery e os E2E de navegador |
-| `crc-pulso.yml` | a cada 5 min (`schedule`) + manual | bate o pulso |
+| Workflow             | Quando                             | O que prova                                                          |
+| -------------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| `quality.yml`        | todo push                          | lint, typecheck, testes e build                                      |
+| `crc-integracao.yml` | push/PR na main                    | schema do zero, tenant, concorrência, recovery e os E2E de navegador |
+| `crc-pulso.yml`      | a cada 5 min (`schedule`) + manual | bate o pulso                                                         |
 
 **O `schedule` do GitHub é best-effort.** Sob carga, cinco minutos viram quinze.
 Isso é aceitável para o papel dele — rede de recuperação —, e não seria para o
@@ -162,10 +162,10 @@ pulso mora no GitHub Actions.
 
 Divisão de trabalho:
 
-| | Quem chama | Frequência | O que faz |
-|---|---|---|---|
-| **Pulso** | webhook + GitHub Actions | minutos | webhooks, eventos, turnos do agente, jornadas, campanhas |
-| **Motor** | cron da Vercel | diário | sincronização do Dental Office, varreduras, prioridades, faxina |
+|           | Quem chama               | Frequência | O que faz                                                       |
+| --------- | ------------------------ | ---------- | --------------------------------------------------------------- |
+| **Pulso** | webhook + GitHub Actions | minutos    | webhooks, eventos, turnos do agente, jornadas, campanhas        |
+| **Motor** | cron da Vercel           | diário     | sincronização do Dental Office, varreduras, prioridades, faxina |
 
 ---
 
@@ -208,10 +208,10 @@ A duplicação é atrito de propósito.
 
 O que a sincronização faz, e em que grão:
 
-| | Grão | Por quê |
-|---|---|---|
-| Pacientes | **organização** | `listarPacientes` devolve a conta inteira; a unidade de cada paciente vem do que ele próprio declara |
-| Dentistas e agenda | **clínica** | cada unidade tem os seus, com `external_id` e cursor próprios |
+|                    | Grão            | Por quê                                                                                              |
+| ------------------ | --------------- | ---------------------------------------------------------------------------------------------------- |
+| Pacientes          | **organização** | `listarPacientes` devolve a conta inteira; a unidade de cada paciente vem do que ele próprio declara |
+| Dentistas e agenda | **clínica**     | cada unidade tem os seus, com `external_id` e cursor próprios                                        |
 
 ---
 
@@ -220,20 +220,20 @@ O que a sincronização faz, e em que grão:
 A tela **Saúde**, dentro do CRC. Ela distingue causas que produzem o mesmo
 sintoma — silêncio:
 
-| Sinal | O que significa |
-|---|---|
-| `pulso_nunca_bateu` | configuração que nunca foi feita: falta `CRON_SECRET` ou `CRC_URL_PUBLICA` |
-| `pulso_parado` | rodava e parou. Atenção acima de 12 min sem sucesso, crítico acima de 30 |
-| `fila_parada` | há paciente esperando. **Quem consome esta fila é o pulso** |
-| `webhook_preso` | mensagem recebida que não foi aplicada |
-| `dead_letters_pendentes` | o que já foi perdido e espera alguém à mão |
-| `provedor_cortado` | disjuntor aberto: o provedor está fora |
-| `teto_estourado` | orçamento de IA atingido |
-| `credencial_ausente` | sem canal de saída — tudo termina em nada |
-| `varredura_parada` | o cursor da varredura não avança há mais de três dias — **crítico** |
-| `ciclo_lento` | ela avança, e a volta pela base não fecha há mais de catorze dias |
-| `schema_atrasado` | o banco não registra a migration que este código espera |
-| `interruptor_*` | alguém desligou de propósito |
+| Sinal                    | O que significa                                                            |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `pulso_nunca_bateu`      | configuração que nunca foi feita: falta `CRON_SECRET` ou `CRC_URL_PUBLICA` |
+| `pulso_parado`           | rodava e parou. Atenção acima de 12 min sem sucesso, crítico acima de 30   |
+| `fila_parada`            | há paciente esperando. **Quem consome esta fila é o pulso**                |
+| `webhook_preso`          | mensagem recebida que não foi aplicada                                     |
+| `dead_letters_pendentes` | o que já foi perdido e espera alguém à mão                                 |
+| `provedor_cortado`       | disjuntor aberto: o provedor está fora                                     |
+| `teto_estourado`         | orçamento de IA atingido                                                   |
+| `credencial_ausente`     | sem canal de saída — tudo termina em nada                                  |
+| `varredura_parada`       | o cursor da varredura não avança há mais de três dias — **crítico**        |
+| `ciclo_lento`            | ela avança, e a volta pela base não fecha há mais de catorze dias          |
+| `schema_atrasado`        | o banco não registra a migration que este código espera                    |
+| `interruptor_*`          | alguém desligou de propósito                                               |
 
 Para destravar a fila agora, sem esperar o agendador:
 
@@ -249,14 +249,14 @@ As flags nascem **todas desligadas**. Cada uma dá um poder a mais para a máqui
 e a ordem importa — ligue de cima para baixo, e só desça um degrau depois de ver
 o resultado do anterior na tela **Inteligência**.
 
-| # | Flag | O que passa a acontecer |
-|---|---|---|
-| 1 | `ai_agente_sombra` | o agente lê, pensa e registra uma resposta candidata. **Nada sai.** |
-| 2 | `ai_supervisor` | uma segunda leitura de cada turno, depois do fato. Também não fala com ninguém |
-| 3 | `ai_agente_envio` | a resposta do agente chega ao paciente |
-| 4 | `ai_autopilot` | ele age sozinho dentro dos guardrails |
-| 5 | `ai_agente_escrita` + `dental_office_writeback` | ele passa a MUDAR estado: registrar oferta, escrever no Dental Office |
-| 6 | `auto_scheduling` | ele marca consulta sem humano no meio |
+| #   | Flag                                            | O que passa a acontecer                                                        |
+| --- | ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| 1   | `ai_agente_sombra`                              | o agente lê, pensa e registra uma resposta candidata. **Nada sai.**            |
+| 2   | `ai_supervisor`                                 | uma segunda leitura de cada turno, depois do fato. Também não fala com ninguém |
+| 3   | `ai_agente_envio`                               | a resposta do agente chega ao paciente                                         |
+| 4   | `ai_autopilot`                                  | ele age sozinho dentro dos guardrails                                          |
+| 5   | `ai_agente_escrita` + `dental_office_writeback` | ele passa a MUDAR estado: registrar oferta, escrever no Dental Office          |
+| 6   | `auto_scheduling`                               | ele marca consulta sem humano no meio                                          |
 
 **O paciente só recebe da IA no degrau 3.** Até lá, tudo que ela escreve fica em
 Inteligência para leitura.
@@ -274,12 +274,12 @@ publicada do agente — é o que o Estúdio exige para publicar.
 
 Em **Integrações**, quatro interruptores:
 
-| Interruptor | Efeito imediato |
-|---|---|
-| `kill_automacoes` | nenhuma jornada avança; as que começaram ficam onde estão |
-| `kill_envios` | nada sai — nem automático, nem manual |
-| `kill_escritas_do` | para de criar e alterar agendamento no Dental Office |
-| `kill_ia_auto` | o que a IA sugerir passa a exigir um atendente |
+| Interruptor        | Efeito imediato                                           |
+| ------------------ | --------------------------------------------------------- |
+| `kill_automacoes`  | nenhuma jornada avança; as que começaram ficam onde estão |
+| `kill_envios`      | nada sai — nem automático, nem manual                     |
+| `kill_escritas_do` | para de criar e alterar agendamento no Dental Office      |
+| `kill_ia_auto`     | o que a IA sugerir passa a exigir um atendente            |
 
 Eles são lidos **sem cache**: um interruptor de emergência que demora meio minuto
 para valer não é interruptor de emergência.
@@ -291,12 +291,12 @@ não pode esperar um diálogo para voltar.
 
 ## 12. Rollback
 
-| Situação | O que fazer |
-|---|---|
-| A IA está respondendo errado | desligue `ai_autopilot`. A leitura continua; o envio para |
-| Uma campanha saiu errada | **Pausar agora** em Integrações (`kill_envios`), depois pause a campanha |
-| O deploy quebrou | `vercel rollback` — o schema é append-only e o código anterior continua compatível |
-| Uma migration quebrou algo | **não reverta o SQL.** Escreva a próxima migration que corrige. Reverter deixa código novo contra schema velho, que é o pior dos dois mundos |
+| Situação                     | O que fazer                                                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| A IA está respondendo errado | desligue `ai_autopilot`. A leitura continua; o envio para                                                                                    |
+| Uma campanha saiu errada     | **Pausar agora** em Integrações (`kill_envios`), depois pause a campanha                                                                     |
+| O deploy quebrou             | `vercel rollback` — o schema é append-only e o código anterior continua compatível                                                           |
+| Uma migration quebrou algo   | **não reverta o SQL.** Escreva a próxima migration que corrige. Reverter deixa código novo contra schema velho, que é o pior dos dois mundos |
 
 O código sobe **antes** do SQL, por decisão deste projeto. Por isso os caminhos
 novos degradam em vez de parar: o retry cercado volta a ser em dois passos sem o

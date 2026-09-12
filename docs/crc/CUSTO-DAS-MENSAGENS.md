@@ -8,11 +8,11 @@ preço depende da categoria. Este documento é a régua que o sistema usa —
 
 ## As três categorias que a clínica usa
 
-| Categoria     | Por mensagem  | O que é                                                            |
-| ------------- | ------------- | ------------------------------------------------------------------ |
-| **Utilidade** | **R$ 0,034**  | Algo já em andamento: consulta marcada, falta, parcela, orçamento  |
-| **Marketing** | **R$ 0,3125** | Convite sem nada em andamento: reativação, recall, aniversário     |
-| **Serviço**   | **R$ 0,034**  | Resposta a quem escreveu primeiro, dentro de 24h                   |
+| Categoria     | Por mensagem  | O que é                                                           |
+| ------------- | ------------- | ----------------------------------------------------------------- |
+| **Utilidade** | **R$ 0,034**  | Algo já em andamento: consulta marcada, falta, parcela, orçamento |
+| **Marketing** | **R$ 0,3125** | Convite sem nada em andamento: reativação, recall, aniversário    |
+| **Serviço**   | **R$ 0,034**  | Resposta a quem escreveu primeiro, dentro de 24h                  |
 
 > **Marketing custa 9 vezes utilidade.** Essa única linha explica quase toda a
 > fatura: uma campanha de reativação de 500 pessoas custa R$ 156, mais que todas
@@ -40,13 +40,13 @@ deve deixar de conversar com paciente por medo da conta.
 
 ## Um mês típico da clínica
 
-| O quê                                        | Categoria | Quanto           |
-| -------------------------------------------- | --------- | ---------------- |
-| 550 confirmações, faltas, cancelamentos      | utilidade | R$ 18,70         |
-| 45 aniversários                              | marketing | R$ 14,07         |
-| 500 pessoas numa campanha de reativação      | marketing | **R$ 156,25**    |
-| Recepção conversando o dia todo              | serviço   | R$ 0 (até 09/26) |
-| **Total**                                    |           | **≈ R$ 190**     |
+| O quê                                   | Categoria | Quanto           |
+| --------------------------------------- | --------- | ---------------- |
+| 550 confirmações, faltas, cancelamentos | utilidade | R$ 18,70         |
+| 45 aniversários                         | marketing | R$ 14,07         |
+| 500 pessoas numa campanha de reativação | marketing | **R$ 156,25**    |
+| Recepção conversando o dia todo         | serviço   | R$ 0 (até 09/26) |
+| **Total**                               |           | **≈ R$ 190**     |
 
 **83% da conta é uma única campanha.** É exatamente por isso que o número
 aparece na tela antes do botão de enviar.

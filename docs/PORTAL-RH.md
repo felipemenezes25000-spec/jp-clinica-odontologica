@@ -15,7 +15,7 @@ Sistema de vagas e triagem de currículos, embutido no site da clínica.
 | ------------------------------- | -------------------------------------------------------------------------- |
 | `/carreiras`                    | Vitrine das vagas abertas, com filtro por área, vínculo e turno            |
 | `/carreiras/<slug>`             | A página da vaga, com JSON-LD de `JobPosting` (aparece no Google for Jobs) |
-| `/trabalhe-conosco?vaga=<slug>` | Candidatura em passo único, com anexo de currículo                        |
+| `/trabalhe-conosco?vaga=<slug>` | Candidatura em passo único, com anexo de currículo                         |
 
 **Para a coordenação**, em `/rh` (senha única, `noindex`):
 
