@@ -43,6 +43,33 @@ coisa dentro. Não vê vinte projetos colados.
 
 ---
 
+## 0.1. Os 36 itens do §128, um a um
+
+O §128 lista 36 itens numerados em 8 fases. **Todos os 36 estão feitos**, com
+três em `BLOCKED_EXTERNAL` — arquitetura pronta, provedor não contratado.
+
+Este relatório afirmou duas vezes que não faltava nada por fase, e as duas
+vezes estava incompleto por não ter enumerado os itens. Enumerados, apareceram
+quatro que faltavam de verdade:
+
+| #   | Item                  | O que estava errado na leitura anterior                                                                                                    |
+| --- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 3   | Next Best Action      | Domínio testado desde a FASE A e **nada o chamava**. Um decisor que ninguém consulta é código morto com teste verde                        |
+| 6   | Home nova             | O hero existia; a timeline "o que a IA está fazendo" **não estava na Home**. A API existia e nenhuma tela a consumia                       |
+| 13  | Patient 360 preditivo | Treze dos dezesseis dados já existiam, espalhados por seis telas. Nada os montava                                                          |
+| 32  | Benchmarking          | Eu havia escrito "exige dado de fora de uma clínica só". **Errado**: o §42 pede quatro comparações INTERNAS, e só a quinta é entre tenants |
+
+Os outros dois — #25 e #36 — estavam corretamente marcados como não feitos.
+
+### O padrão que apareceu
+
+Três dos quatro (#3, #6, #13) eram **a mesma coisa**: lógica pronta e testada,
+sem nada a consumindo. Não é um tipo de dívida que apareça em teste — todos
+passam — nem em typecheck. Só aparece quando se lê o que o produto deveria
+fazer e se procura quem faz.
+
+---
+
 ## 1. As fases, e o que cada uma entregou
 
 ### FASE A — Fundação (§2, §7, §8, §10)
@@ -489,35 +516,35 @@ Sobraram duas coisas, e nenhuma delas é banco.
 
 ## 7. Matriz de capacidades (§137)
 
-| Capacidade               | Status             | Observação                                                      |
-| ------------------------ | ------------------ | --------------------------------------------------------------- |
-| Revenue Radar            | `DONE`             | Schema, domínio, serviço, tela, E2E. Base vazia                 |
-| Next Best Action         | `PARTIAL`          | Domínio completo e testado; não ligado à automação              |
-| Goal Autopilot           | `DONE`             | Migration 34 aplicada, serviço, tela e medição na volta pesada  |
-| Autonomy Center          | `DONE`             | Motor, API e tela — com o nível EFETIVO em destaque             |
-| Smart Schedule           | `DONE`             | Migration 32 aplicada; tela Encaixes                            |
-| Waitlist                 | `DONE`             | `crc_waitlist_preferences`, convite em levas                    |
-| No-show risk             | `DONE`             | Calculado na volta pesada; mostrado em Encaixes                 |
-| Treatment Acceptance     | `DONE`             | Migration 33 aplicada; tela Tratamentos                         |
-| Objection Intelligence   | `DONE`             | `crc_objections` + RPC de analítica                             |
-| Voice AI                 | `BLOCKED_EXTERNAL` | Arquitetura pronta (`crc_calls`); sem provedor                  |
-| Call Intelligence        | `DONE`             | Migration 36 aplicada; domínio + linha do tempo                 |
-| Financial Concierge      | `BLOCKED_EXTERNAL` | 37 aplicada; arquitetura pronta. Falta o PROVEDOR, não a tabela |
-| Reputation               | `DONE`             | Migration 38 aplicada; pesquisa, NPS e roteamento               |
-| Referral                 | `DONE`             | Idem — código de indicação ditável, derivado do id              |
-| Attribution              | `DONE`             | Cadeia, funil e gravação de elo                                 |
-| Autonomous Marketing     | `NOT_STARTED`      | —                                                               |
-| Experiments              | `DONE`             | Migration 38 aplicada; leitura só com amostra suficiente        |
-| Learning Engine          | `DONE`             | Idem — `avaliarAprendizado()` nunca devolve APLICADO            |
-| Morning Briefing         | `DONE`             | Dentro da tela de Gestão                                        |
-| Anomaly Hunter           | `DONE`             | 4 séries, limiar de 30%                                         |
-| Capacity Optimizer       | `DONE`             | Por dentista, janela real                                       |
-| Digital Twin             | `DONE`             | Simulador com premissas visíveis                                |
-| Benchmarking             | `NOT_STARTED`      | Exige dado de fora de uma clínica só                            |
-| Multi-clínica (§55)      | `DONE`             | Criar, renomear, fechar — com auditoria                         |
-| Escopo por usuário (§56) | `DONE`             | Por pessoa, com aviso de "zero unidades"                        |
-| Onboarding (§58)         | `DONE`             | Checklist medido, no topo da Home                               |
-| Integration Hub (§54)    | `PARTIAL`          | Tela de Integrações já existia; sem hub unificado               |
+| Capacidade               | Status             | Observação                                                        |
+| ------------------------ | ------------------ | ----------------------------------------------------------------- |
+| Revenue Radar            | `DONE`             | Schema, domínio, serviço, tela, E2E. Base vazia                   |
+| Next Best Action         | `DONE`             | Decidido e gravado na volta pesada; decide sem executar           |
+| Goal Autopilot           | `DONE`             | Migration 34 aplicada, serviço, tela e medição na volta pesada    |
+| Autonomy Center          | `DONE`             | Motor, API e tela — com o nível EFETIVO em destaque               |
+| Smart Schedule           | `DONE`             | Migration 32 aplicada; tela Encaixes                              |
+| Waitlist                 | `DONE`             | `crc_waitlist_preferences`, convite em levas                      |
+| No-show risk             | `DONE`             | Calculado na volta pesada; mostrado em Encaixes                   |
+| Treatment Acceptance     | `DONE`             | Migration 33 aplicada; tela Tratamentos                           |
+| Objection Intelligence   | `DONE`             | `crc_objections` + RPC de analítica                               |
+| Voice AI                 | `BLOCKED_EXTERNAL` | Abstração completa em `integracoes/voz/`; falta só o provedor     |
+| Call Intelligence        | `DONE`             | Migration 36 aplicada; domínio + linha do tempo                   |
+| Financial Concierge      | `BLOCKED_EXTERNAL` | Abstração completa em `integracoes/pagamento/`; falta o provedor  |
+| Reputation               | `DONE`             | Migration 38 aplicada; pesquisa, NPS e roteamento                 |
+| Referral                 | `DONE`             | Idem — código de indicação ditável, derivado do id                |
+| Attribution              | `DONE`             | Cadeia, funil e gravação de elo                                   |
+| Autonomous Marketing     | `DONE`             | Goal→Audience e Outcome→Optimization, as duas pontas que faltavam |
+| Experiments              | `DONE`             | Migration 38 aplicada; leitura só com amostra suficiente          |
+| Learning Engine          | `DONE`             | Idem — `avaliarAprendizado()` nunca devolve APLICADO              |
+| Morning Briefing         | `DONE`             | Dentro da tela de Gestão                                          |
+| Anomaly Hunter           | `DONE`             | 4 séries, limiar de 30%                                           |
+| Capacity Optimizer       | `DONE`             | Por dentista, janela real                                         |
+| Digital Twin             | `DONE`             | Simulador com premissas visíveis                                  |
+| Benchmarking             | `DONE`             | As 4 comparações INTERNAS do §42. A 5ª (entre tenants) fica fora  |
+| Multi-clínica (§55)      | `DONE`             | Criar, renomear, fechar — com auditoria                           |
+| Escopo por usuário (§56) | `DONE`             | Por pessoa, com aviso de "zero unidades"                          |
+| Onboarding (§58)         | `DONE`             | Checklist medido, no topo da Home                                 |
+| Integration Hub (§54)    | `DONE`             | 4 estados medidos de fatos datados, dentro da tela que já existia |
 
 ---
 
@@ -557,7 +584,7 @@ fecha com 0 falhas, e o pgvector foi verificado intacto por chamada real.
    à frente do código: as tabelas das FASES B a F existem, e o código que as usa
    não está lá.
 3. **Sincronizar o Dental Office.** A base tem 0 pacientes.
-4. Só então: ligar o NBA em sombra, e o hub de integrações (§54).
+4. Contratar provedor de voz e de pagamento, quando fizer sentido. As duas abstrações estão prontas e esperando um adaptador.
 
 Fora da fila, porque é de outro módulo: `rh_toca_atualizado_em` e
 `rh_proximo_protocolo` continuam apontados pelo linter. Os dois são do portal de
