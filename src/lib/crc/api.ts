@@ -5598,3 +5598,384 @@ export const salvarPoliticaDePagamento = createServerFn({ method: "POST" })
       return { ok: true as const };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* FASE G — Gestão                                                            */
+/* -------------------------------------------------------------------------- */
+
+export type AnomaliaNaTela = {
+  chave: string;
+  rotulo: string;
+  variacaoPct: number;
+  direcao: "SUBIU" | "CAIU";
+  gravidade: "INFO" | "ATENCAO" | "ALTA";
+  /**
+   * A frase já montada, com os dois números dentro.
+   *
+   * A tela NÃO remonta esse texto a partir de `recente` e `base`: a frase é
+   * montada no domínio, onde estão as regras de o que conta como variação. Duas
+   * versões da mesma frase divergiriam no dia em que uma delas mudasse.
+   */
+  fato: string;
+};
+
+export type CapacidadeNaTela = {
+  dentistId: string;
+  nome: string;
+  ocupacaoPct: number;
+  horasOciosas: number;
+  situacao: "APERTADO" | "SAUDAVEL" | "OCIOSO";
+};
+
+export type PainelDaGestao = {
+  abertura: string;
+  linhas: { chave: string; texto: string; acionavel: boolean }[];
+  anomalias: AnomaliaNaTela[];
+  capacidades: CapacidadeNaTela[];
+  /** O que o simulador usou como ponto de partida — medido, não digitado. */
+  ocupacaoAtualPct: number;
+  taxaDeFaltaPct: number;
+};
+
+/**
+ * O painel da manhã: briefing, o que mudou, e onde há cadeira vazia.
+ *
+ * TUDO AQUI É LEITURA. Nenhuma destas funções escreve nem dispara mensagem —
+ * é a diferença entre o módulo de gestão e os outros. Um painel que age é um
+ * painel que vai agir sobre a própria métrica.
+ */
+export const carregarGestao = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ painel: PainelDaGestao }>> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { briefingDoDia, lerCapacidades, medirCenario } = await import("./aplicacao/gestao");
+      const { saudacao } = await import("./dominio/formatar");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const agora = new Date(agoraIso());
+
+      const [briefing, capacidades, cenario] = await Promise.all([
+        briefingDoDia(ctx.organizationId, ctx.clinicIds, `${saudacao(agora)}.`, agora),
+        lerCapacidades(ctx.organizationId, ctx.clinicIds, agora),
+        // O valor por hora aqui é só para completar o tipo: a tela do simulador
+        // manda o dela. O que interessa deste cenário são os dois medidos.
+        medirCenario(ctx.organizationId, ctx.clinicIds, 0, agora),
+      ]);
+
+      return {
+        ok: true as const,
+        painel: {
+          abertura: briefing.abertura,
+          linhas: briefing.linhas.map((l) => ({
+            chave: l.chave,
+            texto: l.texto,
+            acionavel: l.acionavel,
+          })),
+          anomalias: briefing.anomalias.map((a) => ({
+            chave: a.chave,
+            rotulo: a.rotulo,
+            variacaoPct: a.variacaoPct,
+            direcao: a.direcao,
+            gravidade: a.gravidade,
+            fato: a.fato,
+          })),
+          capacidades: capacidades.map((c) => ({
+            dentistId: c.dentistId,
+            nome: c.nome,
+            ocupacaoPct: Math.round(c.ocupacao * 100),
+            horasOciosas: c.horasOciosas,
+            situacao: c.situacao,
+          })),
+          ocupacaoAtualPct: Math.round(cenario.ocupacaoAtual * 100),
+          taxaDeFaltaPct: Math.round(cenario.taxaDeFalta * 100),
+        },
+      };
+    }),
+);
+
+export type SimulacaoNaTela = {
+  horasGanhas: number;
+  receitaMes: number;
+  premissas: string[];
+};
+
+/**
+ * O gêmeo digital: "e se eu abrir sábado de manhã?".
+ *
+ * ============================================================================
+ *  SÓ DUAS COISAS VÊM DA TELA: quantas horas a mais, e quanto vale a hora de
+ *  cadeira. A ocupação de hoje e a taxa de falta são MEDIDAS.
+ *
+ *  Deixar a pessoa digitar a ocupação atual transformaria isto num gerador de
+ *  números bonitos — bastaria escrever 95% para o resultado ficar ótimo.
+ *
+ *  `valorPorHora` é exceção porque não está no banco: depende do mix de
+ *  procedimentos, que o CRC não conhece. Ele entra declarado, e volta escrito
+ *  na lista de premissas.
+ * ============================================================================
+ */
+export const simularHorario = createServerFn({ method: "POST" })
+  .inputValidator((dados: { horasAMais: number; valorPorHora: number }) => dados)
+  .handler(async ({ data }): Promise<Resposta<{ simulacao: SimulacaoNaTela }>> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { medirCenario } = await import("./aplicacao/gestao");
+      const { simularMaisHoras } = await import("./dominio/gestao");
+      const { agoraIso } = await import("./servidor/banco");
+
+      /*
+       * OS LIMITES SÃO CONFERIDOS AQUI, e não confiados ao `number` do
+       * formulário. `Number("")` é 0, `Number("abc")` é NaN, e NaN
+       * atravessaria a conta inteira até virar "R$ NaN" na tela.
+       */
+      const horas = Number(data.horasAMais);
+      if (!Number.isFinite(horas) || horas <= 0 || horas > 80) {
+        return {
+          ok: false as const,
+          code: "HORAS_INVALIDAS",
+          message: "Escolha de 1 a 80 horas a mais por semana.",
+        };
+      }
+
+      const valor = Number(data.valorPorHora);
+      if (!Number.isFinite(valor) || valor <= 0 || valor > 100_000) {
+        return {
+          ok: false as const,
+          code: "VALOR_INVALIDO",
+          message: "Informe quanto vale uma hora de cadeira, em reais.",
+        };
+      }
+
+      const agora = new Date(agoraIso());
+      const cenario = await medirCenario(
+        ctx.organizationId,
+        ctx.clinicIds,
+        Math.round(valor),
+        agora,
+      );
+
+      /*
+       * SEM HISTÓRICO, NÃO SIMULA.
+       *
+       * Com ocupação medida em 0%, `ocupacaoNova` é 0 e a resposta seria
+       * "R$ 0,00 por mês" — que parece um resultado, e não é: é a ausência
+       * de dado se passando por previsão.
+       */
+      if (cenario.ocupacaoAtual <= 0) {
+        return {
+          ok: false as const,
+          code: "SEM_HISTORICO",
+          message:
+            "Ainda não há consultas suficientes para medir a ocupação de hoje — sem esse ponto de partida, a simulação seria um chute.",
+        };
+      }
+
+      return {
+        ok: true as const,
+        simulacao: simularMaisHoras(cenario, Math.round(horas)),
+      };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* FASE H — unidades, escopo e primeiros passos                               */
+/* -------------------------------------------------------------------------- */
+
+export type ClinicaDto = {
+  id: string;
+  nome: string;
+  slug: string;
+  fuso: string;
+  ativa: boolean;
+  integrada: boolean;
+  pacientes: number;
+  pessoas: number;
+};
+
+/**
+ * As unidades da organização.
+ *
+ * A permissão é `gerenciar_usuarios` — a mesma da equipe, e não uma nova.
+ * Quem decide quem entra é quem decide onde cada um atende: são a mesma
+ * responsabilidade, e um papel que pudesse mexer numa e não na outra
+ * produziria um gestor capaz de criar unidade e incapaz de dar acesso a ela.
+ */
+export const carregarClinicas = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ clinicas: ClinicaDto[] }>> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { listarClinicas } = await import("./aplicacao/clinicas");
+      return { ok: true as const, clinicas: await listarClinicas(ctx.organizationId) };
+    }),
+);
+
+export const criarUnidade = createServerFn({ method: "POST" })
+  .inputValidator((e: { nome: string; fuso: string; externalId: string | null }) => ({
+    nome: String(e.nome ?? ""),
+    fuso: String(e.fuso ?? "America/Sao_Paulo"),
+    externalId:
+      typeof e.externalId === "string" && e.externalId.trim().length > 0
+        ? e.externalId.trim()
+        : null,
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { criarClinica } = await import("./aplicacao/clinicas");
+
+      const r = await criarClinica({
+        organizationId: ctx.organizationId,
+        nome: data.nome,
+        fuso: data.fuso,
+        externalId: data.externalId,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const editarUnidade = createServerFn({ method: "POST" })
+  .inputValidator((e: { clinicId: string; nome: string; fuso: string }) => ({
+    clinicId: String(e.clinicId ?? ""),
+    nome: String(e.nome ?? ""),
+    fuso: String(e.fuso ?? "America/Sao_Paulo"),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { renomearClinica } = await import("./aplicacao/clinicas");
+
+      const r = await renomearClinica({
+        organizationId: ctx.organizationId,
+        clinicId: data.clinicId,
+        nome: data.nome,
+        fuso: data.fuso,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const mudarSituacaoDaUnidade = createServerFn({ method: "POST" })
+  .inputValidator((e: { clinicId: string; ativa: boolean }) => ({
+    clinicId: String(e.clinicId ?? ""),
+    ativa: e.ativa === true,
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { mudarSituacaoDaClinica } = await import("./aplicacao/clinicas");
+
+      const r = await mudarSituacaoDaClinica({
+        organizationId: ctx.organizationId,
+        clinicId: data.clinicId,
+        ativa: data.ativa,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "REGRA_DE_NEGOCIO", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export type EscopoDto = {
+  papel: string;
+  /** O que está gravado. Para o admin, costuma ser vazio — e está certo. */
+  vinculadas: string[];
+  /** O que a pessoa realmente alcança. Para o admin, todas. */
+  efetivas: string[];
+};
+
+export const carregarEscopoDoMembro = createServerFn({ method: "POST" })
+  .inputValidator((e: { userId: string }) => ({ userId: String(e.userId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ escopo: EscopoDto }>> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { lerEscopo } = await import("./aplicacao/clinicas");
+
+      const e = await lerEscopo(ctx.organizationId, data.userId);
+      if (e === null) {
+        return {
+          ok: false as const,
+          code: "NAO_ENCONTRADO",
+          message: "Pessoa não encontrada.",
+        };
+      }
+
+      return {
+        ok: true as const,
+        escopo: {
+          papel: e.papel,
+          vinculadas: e.vinculadas,
+          efetivas: e.efetivas,
+        },
+      };
+    }),
+  );
+
+export const salvarEscopoDoMembro = createServerFn({ method: "POST" })
+  .inputValidator((e: { userId: string; clinicIds: string[] }) => ({
+    userId: String(e.userId ?? ""),
+    clinicIds: Array.isArray(e.clinicIds) ? e.clinicIds.map((c) => String(c)) : [],
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_usuarios", async (ctx) => {
+      const { definirEscopo } = await import("./aplicacao/clinicas");
+
+      const r = await definirEscopo({
+        organizationId: ctx.organizationId,
+        userId: data.userId,
+        clinicIds: data.clinicIds,
+        autorId: ctx.usuario.id,
+      });
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export type PassoDto = {
+  chave: string;
+  titulo: string;
+  porque: string;
+  feito: boolean;
+  essencial: boolean;
+  aba: string;
+};
+
+/**
+ * O que ainda falta para o CRC funcionar de verdade — item 58.
+ *
+ * ============================================================================
+ *  SEM PERMISSÃO ESPECÍFICA (`null`), e de propósito.
+ *
+ *  Este checklist não mostra dado de paciente, número de receita nem nome de
+ *  ninguém: ele diz se existe clínica, se a integração está ligada, se alguém
+ *  ficou sem unidade. É exatamente o que a recepcionista precisa poder ver
+ *  quando a tela dela está vazia — senão ela liga para o suporte perguntando
+ *  se o sistema quebrou, e a resposta estava atrás de uma permissão que ela
+ *  não tem.
+ *
+ *  Os passos levam a abas que continuam protegidas: ver que falta ligar a
+ *  integração não dá acesso a ligá-la.
+ * ============================================================================
+ */
+export const carregarPrimeirosPassos = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ passos: PassoDto[]; faltam: number }>> =>
+    comContexto(null, async (ctx) => {
+      const { primeirosPassos } = await import("./aplicacao/primeiros-passos");
+      const { faltamEssenciais } = await import("./dominio/clinicas");
+
+      const passos = await primeirosPassos(ctx.organizationId);
+
+      return {
+        ok: true as const,
+        passos: passos.map((p) => ({
+          chave: p.chave,
+          titulo: p.titulo,
+          porque: p.porque,
+          feito: p.feito,
+          essencial: p.essencial,
+          aba: p.aba,
+        })),
+        faltam: faltamEssenciais(passos),
+      };
+    }),
+);

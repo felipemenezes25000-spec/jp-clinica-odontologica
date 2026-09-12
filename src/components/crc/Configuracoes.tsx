@@ -11,6 +11,7 @@ import {
 } from "@/lib/crc/api";
 
 import { Aviso, BarraDeRecado, Botao, Entrada, Interruptor, ListaEsqueleto, useAcao } from "./base";
+import { Unidades } from "./Unidades";
 import "./crc-settings.css";
 
 const DIAS_DA_SEMANA = [
@@ -208,7 +209,20 @@ const FLAGS_INERTES: Readonly<Record<string, { nome: string; explicacao: string 
   },
 };
 
-export function Configuracoes() {
+export function Configuracoes({
+  podeGerenciarUsuarios = false,
+}: {
+  /*
+   * A ABA DE CONFIGURAÇÕES ABRE COM `ver_integracoes`, e unidades exigem
+   * `gerenciar_usuarios` — que é mais restrito.
+   *
+   * Sem esta prop, quem entra aqui com a permissão menor receberia um cartão
+   * de unidades em vermelho dizendo "seu acesso não inclui esta ação": um erro
+   * na cara de quem não fez nada errado. O servidor recusa de qualquer jeito;
+   * isto só evita mostrar a recusa.
+   */
+  podeGerenciarUsuarios?: boolean;
+} = {}) {
   const [cfg, setCfg] = useState<ConfiguracoesDto | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const acao = useAcao();
@@ -259,6 +273,13 @@ export function Configuracoes() {
           <ShieldCheck aria-hidden="true" /> Regras protegidas pelo backend
         </span>
       </section>
+
+      {/*
+        AS UNIDADES VÊM ANTES DOS LIMITES NUMÉRICOS, porque são a estrutura e
+        o resto é ajuste fino: não faz sentido calibrar o teto de mensagens por
+        dia de uma organização que ainda não decidiu quantas clínicas tem.
+      */}
+      {podeGerenciarUsuarios && <Unidades />}
 
       {GRUPOS.map((grupo) => {
         const Icone = grupo.icone;

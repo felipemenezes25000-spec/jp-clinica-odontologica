@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { KeyRound, Plus, ShieldCheck, UserRoundCheck, UserRoundX, UsersRound } from "lucide-react";
+import {
+  Building2,
+  KeyRound,
+  Plus,
+  ShieldCheck,
+  UserRoundCheck,
+  UserRoundX,
+  UsersRound,
+} from "lucide-react";
 
 import {
   carregarEquipe,
@@ -23,6 +31,7 @@ import {
   Modal,
   useAcao,
 } from "./base";
+import { EscopoDoMembro } from "./EscopoDoMembro";
 import "./crc-team.css";
 
 const MIN_SENHA = 10;
@@ -48,6 +57,7 @@ export function Equipe() {
   const [senha, setSenha] = useState("");
   const [papel, setPapel] = useState<Papel>("recepcao");
   const [trocandoSenhaDe, setTrocandoSenhaDe] = useState<MembroDto | null>(null);
+  const [vendoEscopoDe, setVendoEscopoDe] = useState<MembroDto | null>(null);
   const [novaSenha, setNovaSenha] = useState("");
   const acao = useAcao();
 
@@ -195,6 +205,7 @@ export function Equipe() {
               aoTrocarPapel={trocarPapel}
               aoAlternar={alternarAtivacao}
               aoTrocarSenha={setTrocandoSenhaDe}
+              aoVerEscopo={setVendoEscopoDe}
             />
           ))}
         </div>
@@ -222,6 +233,7 @@ export function Equipe() {
                 aoTrocarPapel={trocarPapel}
                 aoAlternar={alternarAtivacao}
                 aoTrocarSenha={setTrocandoSenhaDe}
+                aoVerEscopo={setVendoEscopoDe}
               />
             ))}
           </div>
@@ -347,6 +359,25 @@ export function Equipe() {
           </div>
         </div>
       </Modal>
+
+      {/*
+        O MODAL DE UNIDADES FICA AQUI, e não dentro do card.
+
+        Montado por card, ele existiria doze vezes na tela — e cada abertura
+        dispararia a leitura das clínicas de novo. Aqui é um só, e a pessoa
+        escolhida é estado desta tela.
+      */}
+      {vendoEscopoDe !== null && (
+        <EscopoDoMembro
+          userId={vendoEscopoDe.id}
+          nome={vendoEscopoDe.nome}
+          aberto
+          aoFechar={() => {
+            setVendoEscopoDe(null);
+            void recarregar();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -384,12 +415,14 @@ function MembroCard({
   aoTrocarPapel,
   aoAlternar,
   aoTrocarSenha,
+  aoVerEscopo,
 }: {
   membro: MembroDto;
   ocupado: boolean;
   aoTrocarPapel: (m: MembroDto, papel: Papel) => Promise<void>;
   aoAlternar: (m: MembroDto) => Promise<void>;
   aoTrocarSenha: (m: MembroDto) => void;
+  aoVerEscopo: (m: MembroDto) => void;
 }) {
   const iniciais =
     membro.nome
@@ -441,6 +474,9 @@ function MembroCard({
       <footer>
         <Botao pequeno disabled={ocupado} onClick={() => aoTrocarSenha(membro)}>
           <KeyRound size={14} aria-hidden="true" /> Senha
+        </Botao>
+        <Botao pequeno disabled={ocupado} onClick={() => aoVerEscopo(membro)}>
+          <Building2 size={14} aria-hidden="true" /> Unidades
         </Botao>
         {!membro.souEu && (
           <Botao

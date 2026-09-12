@@ -49,6 +49,7 @@ import { Agenda } from "@/components/crc/Agenda";
 import { Funil } from "@/components/crc/Funil";
 import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
+import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
 import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
@@ -624,6 +625,21 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
     descricao:
       "O painel de quem cobra resultado, separado da Home de propósito: a Home responde \u201co que eu faço agora\u201d, esta responde \u201cquanto isso está trazendo de volta\u201d. Enquanto não houver financeiro integrado, o número grande se chama valor POTENCIAL — e a tela escreve isso, porque chamar potencial de receita seria a mentira mais cara de um painel.",
     acoes: [
+      {
+        faca: "Ler o bloco “Hoje” e “O que mudou”",
+        efeito:
+          "A parte de cima da tela é de hoje; a de baixo acumula meses. “O que mudou” compara os últimos 7 dias com a média das 4 semanas anteriores e só fala quando algo variou mais de 30% — limiar alto de propósito, porque alerta que aparece toda semana deixa de ser lido.",
+      },
+      {
+        faca: "Cadeira por dentista",
+        efeito:
+          "Ocupação medida sobre a janela REAL de atendimento de cada dia — da primeira à última consulta — e não sobre a grade contratada, que o CRC não conhece. Quem tem consulta às 9h e às 17h e nada no meio aparece como ocioso, que é a verdade sobre aquele dia.",
+      },
+      {
+        faca: "E se eu abrisse mais horas?",
+        efeito:
+          "Simula sem deixar você digitar o ponto de partida: ocupação e taxa de falta são medidas. Só as horas a mais e o valor da hora de cadeira são seus. As premissas ficam visíveis embaixo do resultado — inclusive a de que nenhum custo novo entrou na conta.",
+      },
       {
         faca: "Oportunidades / Pacientes / Tarefas",
         efeito:
@@ -1881,7 +1897,26 @@ function PortalCrc() {
           )}
 
           {abaAtual === "home" && (
-            <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
+            <>
+              {/*
+                O CHECKLIST DE INSTALAÇÃO FICA NO TOPO DA HOME, e só enquanto
+                faltar passo essencial — ele some sozinho, sem botão de fechar.
+
+                Aqui em cima porque é a primeira tela de todo mundo, e porque a
+                pergunta que ele responde é a que a pessoa faz olhando uma tela
+                vazia: "o sistema quebrou, ou ainda não terminei de instalar?".
+              */}
+              <PrimeirosPassos
+                aoIrPara={(destino) => {
+                  // A aba só muda se ela existir E a pessoa tiver a permissão:
+                  // mandar alguém para uma aba que ela não pode abrir trocaria
+                  // um checklist por uma tela em branco.
+                  const alvo = permitidas.find((n) => n.aba === destino);
+                  if (alvo !== undefined) setAba(alvo.aba);
+                }}
+              />
+              <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
+            </>
           )}
 
           {abaAtual === "trabalho" && (
@@ -1946,7 +1981,11 @@ function PortalCrc() {
           {abaAtual === "recepcao" && <Recepcao />}
           {abaAtual === "saude" && <Saude />}
           {abaAtual === "equipe" && <Equipe />}
-          {abaAtual === "configuracoes" && <Configuracoes />}
+          {abaAtual === "configuracoes" && (
+            <Configuracoes
+              podeGerenciarUsuarios={usuario.permissoes.includes("gerenciar_usuarios")}
+            />
+          )}
         </main>
       </div>
     </div>

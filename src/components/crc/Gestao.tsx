@@ -15,6 +15,7 @@ import { dinheiro, dinheiroCurto, porcentagem } from "@/lib/crc/dominio/formatar
 import { MOTIVOS_PERDA } from "@/lib/crc/dominio/rotulos";
 
 import { Aviso, BarraDeRecado, Botao, Esqueleto, Vazio, useAcao } from "./base";
+import { Briefing } from "./Briefing";
 import { Investimento } from "./Investimento";
 import "./crc-management.css";
 
@@ -122,6 +123,14 @@ export function Gestao({
           <strong>potenciais</strong>, não receita realizada.
         </Aviso>
       )}
+
+      {/*
+        O BRIEFING VEM ANTES DOS KPIs, e a ordem é a da pergunta que se faz de
+        manhã: primeiro "o que mudou e o que preciso saber hoje", depois "quanto
+        isso já produziu". Os KPIs acumulam meses; o briefing é de hoje, e um
+        número de hoje embaixo de um acumulado de trimestre não é lido.
+      */}
+      <Briefing />
 
       <section className="crc-gestao-kpis-v2" aria-label="Indicadores principais">
         <KpiGestao
