@@ -361,15 +361,32 @@ async function oferecerEncaixesDe(organizationId: string): Promise<number> {
   return resultados.reduce((n, r) => n + r.convidados, 0);
 }
 
-async function organizacoesAtivas(agora = new Date()): Promise<string[]> {
-  const { selecionar } = await import("../servidor/banco");
+async function organizacoesAtivas(agora?: Date): Promise<string[]> {
+  const { agoraIso, selecionar } = await import("../servidor/banco");
+
+  /*
+   * ==========================================================================
+   *  O RELOGIO VEM DO ADAPTADOR, e nao de `new Date()`.
+   *
+   *  Isto era `agora = new Date()`, e o efeito so apareceu as 14:00 UTC de um
+   *  dia qualquer: um teste que semeava uma jornada para "amanha" passou a
+   *  falhar quando o relogio real ultrapassou aquele "amanha". O teste tinha
+   *  prazo de validade, e ninguem sabia.
+   *
+   *  Todo o resto do CRC ja usa `agoraIso()` justamente para `definirRelogio`
+   *  controlar o tempo nos testes. Esta funcao era a excecao — e uma excecao
+   *  num sistema que depende de data e um teste que um dia vira vermelho
+   *  sozinho.
+   * ==========================================================================
+   */
+  const instante = agora ?? new Date(agoraIso());
 
   const [jornadas, campanhas] = await Promise.all([
     selecionar("crc_automation_enrollments", {
       colunas: "organization_id",
       filtros: [
         { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
-        { coluna: "resume_at", op: "lte", valor: agora.toISOString() },
+        { coluna: "resume_at", op: "lte", valor: instante.toISOString() },
       ],
       limite: 1000,
     }),
