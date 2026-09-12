@@ -239,6 +239,50 @@ describe("o painel de saúde", () => {
     expect(sinal?.detalhe).toContain("agent_job");
   });
 
+  it("varredura que não fecha uma volta há dez dias vira sinal", async () => {
+    /*
+     * O NÚMERO EXISTIA E NINGUÉM OLHAVA. `ciclo` só incrementa quando a
+     * varredura chega ao fim da base e recomeça — um ciclo parado significa que
+     * a base cresceu mais que a capacidade de varrê-la, e o relatório diário
+     * continua dizendo "avaliados: 200", que é a cara do defeito que o cursor
+     * veio consertar.
+     */
+    semear("crc_runtime_heartbeats", [
+      { worker: "pulso", ultimo_inicio_em: atras(1), ultimo_sucesso_em: atras(1), metricas: {} },
+    ]);
+    semear("crc_scan_state", [
+      {
+        organization_id: ORG,
+        varredura: "recall",
+        ciclo: 3,
+        atualizado_em: new Date(AGORA.getTime() - 15 * 86_400_000).toISOString(),
+      },
+    ]);
+
+    const p = await panoramaDeSaude(ORG, AGORA);
+    const sinal = p.sinais.find((s) => s.codigo === "varredura_parada");
+
+    expect(sinal?.severidade).toBe("atencao");
+    expect(sinal?.detalhe).toContain("recall");
+  });
+
+  it("varredura andando NÃO vira sinal — dias entre voltas são o desenho", async () => {
+    semear("crc_runtime_heartbeats", [
+      { worker: "pulso", ultimo_inicio_em: atras(1), ultimo_sucesso_em: atras(1), metricas: {} },
+    ]);
+    semear("crc_scan_state", [
+      {
+        organization_id: ORG,
+        varredura: "recall",
+        ciclo: 3,
+        atualizado_em: new Date(AGORA.getTime() - 2 * 86_400_000).toISOString(),
+      },
+    ]);
+
+    const p = await panoramaDeSaude(ORG, AGORA);
+    expect(p.sinais.find((s) => s.codigo === "varredura_parada")).toBeUndefined();
+  });
+
   it("banco sem a migração esperada vira sinal, e não erro no meio de um turno", async () => {
     limparBanco();
     semear("crc_organizations", [{ id: ORG, slug: "jp" }]);

@@ -106,6 +106,7 @@ export async function panoramaDeSaude(
     olharFila,
     olharWebhooks,
     olharDeadLetters,
+    olharVarreduras,
     olharRunsAbertas,
     olharOrcamento,
     olharCredenciais,
@@ -242,6 +243,64 @@ async function olharWebhooks(organizationId: string, agora: Date): Promise<Sinal
       acao: "É o pulso que repesca webhook. Confira o sinal do pulso acima antes de investigar aqui.",
       severidade: minutos > 60 ? "critico" : "atencao",
       detalhe: `A mais antiga chegou há ${String(minutos)} minutos.`,
+    },
+  ];
+}
+
+/**
+ * A varredura esta ANDANDO?
+ *
+ * ========================================================================
+ *  O NUMERO EXISTE E NINGUEM OLHAVA. `crc_scan_state.ciclo` conta as passadas
+ *  COMPLETAS pela base — ele so incrementa quando a varredura chega ao fim e
+ *  recomeca.
+ *
+ *  Um ciclo parado ha uma semana significa que a base cresceu mais rapido que a
+ *  capacidade de varre-la: os pacientes do fim da fila nunca sao avaliados, e o
+ *  relatorio diario continua dizendo "avaliados: 200" — que e exatamente a cara
+ *  do defeito que o cursor veio consertar.
+ *
+ *  Sem este sinal, a correcao do recall seria invisivel do mesmo jeito que o
+ *  defeito era.
+ * ========================================================================
+ *
+ * DEZ DIAS É O LIMIAR, e não dois: a volta pesada roda uma vez por dia, e uma
+ * base grande leva vários dias por ciclo — é o desenho. O que não é desenho é
+ * uma volta inteira que nunca fecha.
+ */
+async function olharVarreduras(organizationId: string, agora: Date): Promise<SinalDeSaude[]> {
+  const { selecionar } = await import("../servidor/banco");
+
+  let linhas: Record<string, unknown>[] = [];
+  try {
+    linhas = await selecionar("crc_scan_state", {
+      colunas: "varredura,ciclo,atualizado_em",
+      filtros: [{ coluna: "organization_id", op: "eq", valor: organizationId }],
+      limite: 20,
+    });
+  } catch {
+    // Banco sem `supabase/26`: o sinal `schema_atrasado` já cobre esse caso, e
+    // repetir a notícia aqui só encheria o painel.
+    return [];
+  }
+
+  const paradas = linhas.filter((l) => {
+    const quando = Date.parse(String(l["atualizado_em"] ?? ""));
+    if (!Number.isFinite(quando)) return false;
+    return agora.getTime() - quando > 10 * 86_400_000;
+  });
+
+  if (paradas.length === 0) return [];
+
+  return [
+    {
+      codigo: "varredura_parada",
+      titulo: "Uma varredura não completa uma volta pela base há mais de dez dias.",
+      acao: "A base pode ter crescido mais que o teto por execução. Aumente o limite da varredura ou rode o motor com ?varrer=1.",
+      severidade: "atencao",
+      detalhe: paradas
+        .map((l) => `${String(l["varredura"] ?? "?")}: ciclo ${String(l["ciclo"] ?? 0)}`)
+        .join(", "),
     },
   ];
 }
