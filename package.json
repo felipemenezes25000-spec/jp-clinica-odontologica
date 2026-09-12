@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "test:integracao": "vitest run --config vitest.integracao.config.ts",
     "schema:aplicar": "node scripts/aplicar-schema.mjs",
+    "schema:status": "node scripts/schema-status.mjs",
     "check": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "dependencies": {

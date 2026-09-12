@@ -141,6 +141,8 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
    */
   crc_sync_state: [{ colunas: ["organization_id", "recurso", "clinic_id"] }],
   crc_scan_state: [{ colunas: ["organization_id", "varredura"] }],
+  crc_runtime_heartbeats: [{ colunas: ["worker"] }],
+  crc_schema_migrations: [{ colunas: ["nome"] }],
   crc_settings: [{ colunas: ["organization_id", "chave"] }],
   crc_feature_flags: [{ colunas: ["organization_id", "chave"] }],
   crc_clinics: [{ colunas: ["organization_id", "slug"] }],
@@ -642,6 +644,39 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
     };
 
   switch (nome) {
+    /*
+     * O BATIMENTO DO WORKER — `supabase/27`.
+     *
+     * O `coalesce` de cada campo e o ponto: um erro NAO pode apagar
+     * `ultimo_sucesso_em`, que e justamente o campo que diz ha quanto tempo o
+     * sistema funciona. Um fake que sobrescrevesse tudo concordaria com um
+     * codigo que perde essa informacao.
+     */
+    case "crc_bater_heartbeat": {
+      const worker = String(argumentos["p_worker"] ?? "");
+      const fase = String(argumentos["p_fase"] ?? "");
+      const agoraIso = new Date(agora).toISOString();
+
+      const linhas = (tabelas["crc_runtime_heartbeats"] ??= []);
+      let linha = linhas.find((l) => l["worker"] === worker);
+      if (linha === undefined) {
+        linha = comPadroes("crc_runtime_heartbeats", { worker, metricas: {} });
+        linhas.push(linha);
+      }
+
+      if (fase === "inicio") linha["ultimo_inicio_em"] = agoraIso;
+      if (fase === "sucesso") linha["ultimo_sucesso_em"] = agoraIso;
+      if (fase === "erro") {
+        linha["ultimo_erro_em"] = agoraIso;
+        linha["ultimo_erro"] = String(argumentos["p_erro"] ?? "").slice(0, 500);
+      }
+      if (argumentos["p_duracao_ms"] != null) linha["duracao_ms"] = argumentos["p_duracao_ms"];
+      if (argumentos["p_metricas"] != null) linha["metricas"] = argumentos["p_metricas"];
+      linha["atualizado_em"] = agoraIso;
+
+      return Promise.resolve([] as T[]);
+    }
+
     /*
      * A PAGINA DO RECALL, com keyset — `supabase/26`.
      *

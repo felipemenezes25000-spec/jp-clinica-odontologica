@@ -64,24 +64,55 @@ jobs:
             exit 1
           fi
 
-          # `--fail-with-body` para o corpo do erro aparecer no log: um 401 sem
-          # corpo manda a gente adivinhar se é segredo errado ou rota errada.
-          # `-sS` cala a barra de progresso e mantém a mensagem de erro.
-          corpo=$(curl -sS --fail-with-body \
+          # O CORPO VAI PARA UM ARQUIVO E O STATUS PARA A VARIÁVEL, em vez de
+          # `--fail-with-body`. O motivo é o diagnóstico: `--fail-with-body`
+          # devolve exit 22 para qualquer 4xx/5xx, e "exit 22" não distingue
+          #
+          #   401  segredo errado ou ausente
+          #   404  rota fora do ar (deploy quebrado, domínio errado)
+          #   500  o pulso subiu e quebrou por dentro
+          #
+          # São três investigações diferentes, e é a primeira pergunta de quem
+          # abre este log. Com `-w '%{http_code}'` o número aparece no título.
+          #
+          # `|| status="000"` cobre o que não chega a ser resposta: DNS, timeout,
+          # conexão recusada. Sem isso, o `set -e` implícito do `run:` mataria o
+          # passo antes de qualquer mensagem útil ser impressa.
+          status=$(curl -sS \
             --max-time 120 \
             --retry 2 --retry-delay 5 --retry-connrefused \
+            -o resposta.json -w '%{http_code}' \
             -X POST "$URL/api/crc/pulso" \
-            -H "Authorization: Bearer $CRON_SECRET") || {
-              echo "::error::O pulso falhou."
-              echo "$corpo"
-              exit 1
-            }
+            -H "Authorization: Bearer $CRON_SECRET") || status="000"
 
+          corpo=$(cat resposta.json 2>/dev/null || true)
+
+          # O SEGREDO NUNCA É IMPRESSO. Ele só existe no cabeçalho acima, que o
+          # curl não ecoa — e por isso não há `-v` aqui nem em falha.
+          if [ "$status" != "200" ]; then
+            echo "::error::O pulso respondeu HTTP $status."
+            printf '%s\n' "$corpo"
+            {
+              echo "### Pulso — FALHOU"
+              echo ""
+              echo "HTTP **$status** em \`$URL/api/crc/pulso\`"
+              echo ""
+              echo '```'
+              printf '%s\n' "$corpo"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "HTTP $status"
           echo "$corpo"
 
           # Resumo legível na página do run, para não precisar abrir o log.
           {
             echo "### Pulso"
+            echo ""
+            echo "HTTP **$status**"
+            echo ""
             echo '```json'
             echo "$corpo"
             echo '```'

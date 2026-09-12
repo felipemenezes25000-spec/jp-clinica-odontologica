@@ -11,7 +11,7 @@
  * próxima ação é ruído — e um painel cheio de ruído é um painel que ninguém
  * abre na segunda vez.
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../servidor/banco", async () => {
   const fake = await import("../testes/banco-memoria");
@@ -46,6 +46,31 @@ beforeEach(() => {
   semear("crc_conversations", [
     { id: CONVERSA, organization_id: ORG, canal: "whatsapp", contato_externo: "5511999998888" },
   ]);
+
+  /*
+   * A LINHA DE BASE SAUDÁVEL, e ela precisa ser montada de propósito.
+   *
+   * Depois que o painel passou a olhar batimento e credencial, "nenhum sinal"
+   * deixou de ser o estado de um banco vazio: um ambiente sem pulso registrado e
+   * sem WhatsApp configurado ESTÁ doente, e dizer o contrário seria o painel
+   * mentindo. Então o cenário-base declara um sistema em funcionamento.
+   */
+  semear("crc_runtime_heartbeats", [
+    {
+      worker: "pulso",
+      ultimo_inicio_em: atras(1),
+      ultimo_sucesso_em: atras(1),
+      metricas: {},
+    },
+  ]);
+  semear("crc_schema_migrations", [{ nome: "27-crc-observabilidade.sql", presumido: false }]);
+  // O sandbox conta como canal configurado — é o provedor de desenvolvimento.
+  vi.stubEnv("NODE_ENV", "test");
+  vi.stubEnv("WHATSAPP_SANDBOX", "1");
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("quando está tudo bem", () => {
@@ -115,9 +140,14 @@ describe("a fila", () => {
     const sinal = p.sinais.find((s) => s.codigo === "fila_parada");
 
     expect(sinal?.severidade).toBe("critico");
-    // A PRIMEIRA COISA A CONFERIR É O CRON, e não o código: na Vercel Hobby ele
-    // é diário, e a fila só anda quando algo a empurra.
-    expect(sinal?.acao).toContain("cron");
+    /*
+     * A AÇÃO PRECISA APONTAR PARA O PULSO. Ela dizia "confira se o cron do motor
+     * está rodando" — o motor é o worker DIÁRIO, que sincroniza o Dental Office;
+     * ele não tem relação nenhuma com turno parado. Mandar olhar o lugar errado
+     * custa mais tempo do que não dizer nada.
+     */
+    expect(sinal?.acao).toContain("pulso");
+    expect(sinal?.acao).not.toContain("motor");
   });
 
   it("espera curta não vira sinal", async () => {

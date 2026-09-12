@@ -57,6 +57,28 @@ export async function rodarVoltaPesada(opcoes: {
   varrerAgora?: boolean;
   agora?: Date;
 }): Promise<ResultadoDaOrganizacao[]> {
+  const { comBatimento, WORKER_MOTOR } = await import("../aplicacao/heartbeat");
+
+  /*
+   * A VOLTA PESADA TAMBEM BATE PONTO — e aqui o alarme util e de DIAS, nao de
+   * minutos: ela roda uma vez ao dia. Sem registro, "o cron da Vercel parou" e
+   * indistinguivel de "nao havia o que sincronizar", e o sintoma aparece
+   * semanas depois como agenda desatualizada.
+   */
+  return await comBatimento(
+    WORKER_MOTOR,
+    () => umaVolta(opcoes),
+    (r) => ({
+      organizacoes: r.length,
+      falhas: r.filter((o) => o.falhou !== undefined).length,
+    }),
+  );
+}
+
+async function umaVolta(opcoes: {
+  varrerAgora?: boolean;
+  agora?: Date;
+}): Promise<ResultadoDaOrganizacao[]> {
   const { selecionar } = await import("../servidor/banco");
 
   const clinicas = await selecionar("crc_clinics", {

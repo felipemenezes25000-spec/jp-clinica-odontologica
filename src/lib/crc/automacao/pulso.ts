@@ -109,6 +109,19 @@ export async function baterPulso(
 ): Promise<ResultadoDoPulso> {
   const comecou = Date.now();
 
+  /*
+   * O BATIMENTO ABRE E FECHA A VOLTA — `aplicacao/heartbeat.ts`.
+   *
+   * Sem ele, "o pulso parou" e indistinguivel de "nao ha trabalho": os dois
+   * produzem silencio. Com ele, o painel de Saude compara `ultimo_sucesso_em`
+   * com o relogio e diz qual dos dois e.
+   *
+   * O `inicio` sozinho nao serve de prova: um worker que comeca e morre no meio
+   * a cada cinco minutos tem `ultimo_inicio_em` sempre fresco.
+   */
+  const { baterHeartbeat, WORKER_PULSO } = await import("../aplicacao/heartbeat");
+  await baterHeartbeat(WORKER_PULSO, "inicio");
+
   const { instalarHandlers } = await import("./handlers");
   // Numa instância fria o módulo carrega do zero; a função é idempotente.
   instalarHandlers();
@@ -167,7 +180,7 @@ export async function baterPulso(
     }
   }
 
-  return {
+  const resultado: ResultadoDoPulso = {
     webhooks: {
       reservados: repescagem.reservados,
       recuperados: repescagem.recuperados,
@@ -186,6 +199,26 @@ export async function baterPulso(
     organizacoes: organizacoes.length,
     duracaoMs: Date.now() - comecou,
   };
+
+  /*
+   * O RESUMO VAI JUNTO, e e ele que responde a pergunta SEGUINTE: "o pulso esta
+   * vivo, entao por que a fila nao anda?". Um pulso vivo com `turnos: 0` e fila
+   * cheia e um problema diferente de um pulso morto — e sem isto os dois tem a
+   * mesma cara no painel.
+   */
+  await baterHeartbeat(WORKER_PULSO, "sucesso", {
+    duracaoMs: resultado.duracaoMs,
+    metricas: {
+      eventos: resultado.eventos.processados,
+      turnos: resultado.turnos.concluidos,
+      webhooks: resultado.webhooks.recuperados,
+      jornadas: resultado.jornadas.reduce((n, j) => n + j.avancadas, 0),
+      campanhas: resultado.campanhas.reduce((n, c) => n + c.enviadas, 0),
+      organizacoes: resultado.organizacoes,
+    },
+  });
+
+  return resultado;
 }
 
 /**

@@ -11,11 +11,28 @@
  *
  * O QUE ELE LÊ, e de onde:
  *
+ *   BATIMENTO       `crc_runtime_heartbeats`. Diz se o PULSO está vivo.
  *   DISJUNTORES     memória do processo. Diz se o provedor está cortado AGORA.
  *   FILA            `crc_agent_jobs`. Diz se há trabalho parado e há quanto tempo.
+ *   WEBHOOKS        `crc_webhook_inbox`. Diz se mensagem do paciente está presa.
+ *   DEAD LETTERS    `crc_dead_letters`. Diz o que já foi perdido e espera gente.
  *   RUNS ABERTAS    `crc_ai_runs` com `RODANDO`. Diz se algum worker morreu.
  *   ORÇAMENTO       `crc_ai_gastos`. Diz se o teto está segurando.
+ *   CREDENCIAIS     as integrações. Diz se falta configuração para funcionar.
+ *   SCHEMA          `crc_schema_migrations`. Diz se o banco tem o que o código espera.
  *   INTERRUPTORES   `crc_feature_flags`. Diz se alguém desligou de propósito.
+ *
+ * ========================================================================
+ *  O SINAL QUE FALTAVA ERA O PRIMEIRO, e a falta dele apontava para o lado
+ *  errado. O caminho rápido do CRC é webhook → `tocarPulso()` → `/api/crc/pulso`,
+ *  com o GitHub Actions como rede. Os dois podem parar em silêncio — segredo
+ *  removido do repositório, `CRC_URL_PUBLICA` não configurada — e o sintoma é
+ *  NADA acontecendo.
+ *
+ *  O painel dizia: "há pacientes esperando há 40 minutos. Confira se o cron do
+ *  motor está rodando." O motor é o worker diário, e não tem relação nenhuma
+ *  com o atraso. Mandar olhar o lugar errado é pior do que não dizer nada.
+ * ========================================================================
  *
  * POR QUE O DISJUNTOR É O ÚNICO QUE NÃO PERSISTE, e por que isso é aceitável:
  * ele vive na instância que está executando. Numa função serverless, cada
@@ -49,6 +66,31 @@ export type PanoramaDeSaude = {
 /** Quanto tempo um job pode esperar antes de virar sinal. */
 const ESPERA_ACEITAVEL_MIN = 15;
 
+/**
+ * Os limiares do batimento do pulso.
+ *
+ * O AGENDADOR PEDE A CADA 5 MINUTOS, E ISSO NÃO É UM SLA. O `schedule` do
+ * GitHub Actions é best-effort: sob carga a fila de Actions atrasa, e cinco
+ * minutos viram quinze. Alertar aos seis minutos produziria um alarme por dia
+ * que não significa nada — e um alarme que não significa nada é o que faz o
+ * próximo, verdadeiro, ser ignorado.
+ *
+ * DOZE MINUTOS para atenção: mais de duas janelas perdidas, o que já não é
+ * atraso normal. TRINTA para crítico: a essa altura o webhook também não está
+ * tocando o pulso, e são duas redes caídas ao mesmo tempo.
+ */
+const PULSO_ATENCAO_MIN = 12;
+const PULSO_CRITICO_MIN = 30;
+
+/**
+ * A migração mais nova que ESTE código precisa.
+ *
+ * Ela sobe junto com o deploy, e o SQL é aplicado à mão — então existe uma
+ * janela em que o código é mais novo que o banco. O sinal a torna visível em
+ * vez de deixá-la aparecer como erro aleatório no meio de um turno.
+ */
+const MIGRACAO_ESPERADA = "27-crc-observabilidade.sql";
+
 /** Uma run aberta além disto significa worker morto, não turno demorado. */
 const RUN_ABERTA_DEMAIS_MIN = 30;
 
@@ -59,10 +101,15 @@ export async function panoramaDeSaude(
   const sinais: SinalDeSaude[] = [];
 
   for (const olhar of [
+    olharPulso,
     olharDisjuntores,
     olharFila,
+    olharWebhooks,
+    olharDeadLetters,
     olharRunsAbertas,
     olharOrcamento,
+    olharCredenciais,
+    olharSchema,
     olharInterruptores,
   ]) {
     try {
@@ -102,6 +149,206 @@ const piorDe = (sinais: readonly SinalDeSaude[]): Severidade =>
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * O pulso bateu?
+ *
+ * ESTE SINAL VEM PRIMEIRO na lista de propósito. Quando o pulso está morto,
+ * todos os outros são consequência: a fila parece parada, os webhooks parecem
+ * presos, as runs parecem penduradas. Mostrá-lo no topo é a diferença entre um
+ * diagnóstico e uma lista de sintomas.
+ */
+async function olharPulso(_organizationId: string, agora: Date): Promise<SinalDeSaude[]> {
+  const { lerHeartbeats, minutosDesdeOSucesso, WORKER_PULSO } = await import("./heartbeat");
+
+  const batimentos = await lerHeartbeats();
+  const pulso = batimentos.find((b) => b.worker === WORKER_PULSO);
+  const minutos = minutosDesdeOSucesso(pulso, agora);
+
+  /*
+   * NUNCA BATEU É DIFERENTE DE PAROU, e as duas conversas são diferentes: a
+   * primeira é configuração que nunca foi feita, a segunda é algo que quebrou.
+   * Juntar as duas num "pulso parado" mandaria quem instalou hoje procurar um
+   * defeito que não existe.
+   */
+  if (minutos === null) {
+    return [
+      {
+        codigo: "pulso_nunca_bateu",
+        titulo: "O pulso nunca rodou neste ambiente.",
+        acao: "Configure CRON_SECRET no repositório e CRC_URL_PUBLICA no servidor. Sem os dois, nada consome a fila.",
+        severidade: "critico",
+        detalhe: "Nenhum registro em crc_runtime_heartbeats para o worker 'pulso'.",
+      },
+    ];
+  }
+
+  if (minutos < PULSO_ATENCAO_MIN) return [];
+
+  return [
+    {
+      codigo: "pulso_parado",
+      titulo: `O pulso não completa uma volta há ${String(minutos)} minutos.`,
+      /*
+       * A AÇÃO APONTA PARA O PULSO, e não para o motor. A versão anterior deste
+       * painel mandava conferir `/api/crc/motor` — o worker diário, sem relação
+       * com o atraso. Mandar olhar o lugar errado custa mais tempo do que não
+       * dizer nada.
+       */
+      acao: "Veja o workflow 'CRC Pulso' no GitHub Actions. Para destravar agora: POST /api/crc/pulso com o CRON_SECRET.",
+      severidade: minutos >= PULSO_CRITICO_MIN ? "critico" : "atencao",
+      detalhe:
+        pulso?.ultimoErro === null || pulso?.ultimoErro === undefined
+          ? `Última volta bem-sucedida às ${String(pulso?.ultimoSucessoEm ?? "—")}.`
+          : `Último erro: ${pulso.ultimoErro}`,
+    },
+  ];
+}
+
+/**
+ * Mensagem de paciente presa na porta de entrada.
+ *
+ * O WEBHOOK É O ÚNICO PONTO EM QUE A PERDA É DEFINITIVA. A Meta já recebeu
+ * `200` — para ela, entregue. Se o envelope não for aplicado aqui, não existe
+ * quem reenvie: a mensagem simplesmente deixou de existir para a clínica.
+ */
+async function olharWebhooks(organizationId: string, agora: Date): Promise<SinalDeSaude[]> {
+  const { selecionar } = await import("../servidor/banco");
+
+  const presos = await selecionar("crc_webhook_inbox", {
+    colunas: "id,status,criado_em,tentativas",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "status", op: "in", valor: ["PENDENTE", "FALHOU", "PROCESSANDO"] },
+    ],
+    ordenar: [{ coluna: "criado_em", ascendente: true }],
+    limite: 200,
+  });
+
+  if (presos.length === 0) return [];
+
+  const maisAntigo = Date.parse(String(presos[0]?.["criado_em"] ?? ""));
+  const minutos = Number.isFinite(maisAntigo)
+    ? Math.round((agora.getTime() - maisAntigo) / 60_000)
+    : 0;
+
+  // Abaixo de dez minutos é a fila funcionando: o envelope acabou de chegar e o
+  // backoff do webhook começa em 15 segundos.
+  if (minutos < 10) return [];
+
+  return [
+    {
+      codigo: "webhook_preso",
+      titulo: `${String(presos.length)} mensagens recebidas ainda não foram aplicadas.`,
+      acao: "É o pulso que repesca webhook. Confira o sinal do pulso acima antes de investigar aqui.",
+      severidade: minutos > 60 ? "critico" : "atencao",
+      detalhe: `A mais antiga chegou há ${String(minutos)} minutos.`,
+    },
+  ];
+}
+
+/** O que já foi perdido e espera alguém. */
+async function olharDeadLetters(organizationId: string): Promise<SinalDeSaude[]> {
+  const { selecionar } = await import("../servidor/banco");
+
+  const mortas = await selecionar("crc_dead_letters", {
+    colunas: "id,origem",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "status", op: "eq", valor: "PENDENTE" },
+    ],
+    limite: 200,
+  });
+
+  if (mortas.length === 0) return [];
+
+  const porOrigem = new Map<string, number>();
+  for (const m of mortas) {
+    const o = String(m["origem"] ?? "?");
+    porOrigem.set(o, (porOrigem.get(o) ?? 0) + 1);
+  }
+
+  return [
+    {
+      codigo: "dead_letters_pendentes",
+      titulo: `${String(mortas.length)} itens na fila de falhas esperando alguém.`,
+      // Cada um destes é uma pessoa que escreveu e não foi respondida. Eles não
+      // saem de lá sozinhos, e é por isso que o sinal é crítico.
+      acao: "Abra a fila de falhas, responda à mão e marque como resolvido.",
+      severidade: "critico",
+      detalhe: [...porOrigem].map(([o, n]) => `${o}: ${String(n)}`).join(", "),
+    },
+  ];
+}
+
+/**
+ * Falta credencial para o sistema fazer o que promete?
+ *
+ * SEPARADO DO DISJUNTOR de propósito: provedor cortado é uma coisa que se
+ * recupera sozinha; credencial ausente não melhora com o tempo, e o painel
+ * precisa dizer qual dos dois é.
+ */
+async function olharCredenciais(organizationId: string): Promise<SinalDeSaude[]> {
+  const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
+
+  const zap = await criarProvedorMensageria(organizationId);
+  if (zap.configurado) return [];
+
+  return [
+    {
+      codigo: "credencial_ausente",
+      titulo: "O WhatsApp não está configurado para esta organização.",
+      acao: `${zap.motivo}${zap.faltando.length > 0 ? ` Falta: ${zap.faltando.join(", ")}.` : ""}`,
+      /*
+       * CRÍTICO, e não atenção: sem canal de saída, tudo que este sistema faz
+       * termina em nada. A automação continua rodando, as jornadas continuam
+       * avançando, e nenhuma mensagem chega a ninguém.
+       */
+      severidade: "critico",
+      detalhe: "Cadastre o canal da clínica ou configure as variáveis do provedor.",
+    },
+  ];
+}
+
+/**
+ * O banco tem o schema que este código espera?
+ *
+ * ========================================================================
+ *  ISTO EXISTE POR CAUSA DO `supabase/23`. O código foi para produção
+ *  esperando uma chave primária que o banco ainda não tinha, e a única razão de
+ *  nada ter quebrado é que a integração que usaria aquele caminho estava
+ *  desligada. Um alarme ali teria custado dois minutos.
+ *
+ *  E ESTE SINAL LÊ BOOKKEEPING, NÃO EVIDÊNCIA. `crc_schema_migrations` diz o
+ *  que alguém registrou, e não o que está no banco. É barato e serve para o
+ *  caso comum — "esqueci de rodar" —, e por isso a ação aponta para
+ *  `npm run schema:status`, que SONDA os objetos de verdade.
+ * ========================================================================
+ */
+async function olharSchema(): Promise<SinalDeSaude[]> {
+  const { selecionarUm } = await import("../servidor/banco");
+
+  try {
+    const linha = await selecionarUm("crc_schema_migrations", {
+      colunas: "nome",
+      filtros: [{ coluna: "nome", op: "eq", valor: MIGRACAO_ESPERADA }],
+    });
+    if (linha !== null) return [];
+  } catch {
+    // A própria tabela não existe: o banco está atrás do `supabase/27`, que é
+    // exatamente o que este sinal quer dizer. Cai no retorno abaixo.
+  }
+
+  return [
+    {
+      codigo: "schema_atrasado",
+      titulo: "O banco não registra a migração que este código espera.",
+      acao: `Rode supabase/${MIGRACAO_ESPERADA} e depois \`npm run schema:status\` para conferir objeto por objeto.`,
+      severidade: "atencao",
+      detalhe: `Esperado: ${MIGRACAO_ESPERADA}.`,
+    },
+  ];
+}
+
 async function olharDisjuntores(organizationId: string, agora: Date): Promise<SinalDeSaude[]> {
   const { disjuntoresAbertos } = await import("../dominio/disjuntor");
 
@@ -131,9 +378,14 @@ async function olharFila(organizationId: string, agora: Date): Promise<SinalDeSa
     sinais.push({
       codigo: "fila_parada",
       titulo: `Há pacientes esperando resposta há ${String(fila.esperaMaisAntigaMin)} minutos.`,
-      // A PRIMEIRA COISA É OLHAR O CRON, e não o código: na Vercel Hobby o cron
-      // é diário, e a fila só anda quando alguém ou algo a empurra.
-      acao: "Confira se o cron do motor está rodando. Se não estiver, chame /api/crc/motor à mão.",
+      /*
+       * QUEM CONSOME A FILA DE TURNOS É O PULSO, e a versão anterior desta
+       * linha mandava conferir `/api/crc/motor` — o worker DIÁRIO, que
+       * sincroniza o Dental Office e roda varreduras. Ele não tem relação
+       * nenhuma com o atraso, e mandar olhar o lugar errado custa mais tempo do
+       * que não dizer nada.
+       */
+      acao: "Quem consome esta fila é o pulso — confira o sinal dele acima. Para destravar agora: POST /api/crc/pulso com o CRON_SECRET.",
       severidade: fila.esperaMaisAntigaMin > 60 ? "critico" : "atencao",
       detalhe: `${String(fila.pendentes)} pendentes, ${String(fila.repetindo)} repetindo.`,
     });
