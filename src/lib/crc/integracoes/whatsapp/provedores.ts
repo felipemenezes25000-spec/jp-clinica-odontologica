@@ -165,7 +165,10 @@ export function provedorEscolhido(): EscolhaProvedor {
  * mentira em produção seria pior do que nenhum — a operação acharia que as
  * mensagens saíram.
  */
-export function criarProvedorMensageria(organizationId: string | null): EstadoMensageria {
+export async function criarProvedorMensageria(
+  organizationId: string | null,
+  clinicId: string | null = null,
+): Promise<EstadoMensageria> {
   const producao = process.env["NODE_ENV"] === "production";
   const pediuSandbox =
     (process.env["WHATSAPP_SANDBOX"] ?? "").trim() === "1" || provedorEscolhido() === "sandbox";
@@ -174,9 +177,171 @@ export function criarProvedorMensageria(organizationId: string | null): EstadoMe
     return { configurado: true, porta: obterSandboxMensageria() };
   }
 
+  /*
+   * O CANAL DA CLÍNICA VEM PRIMEIRO, e o ambiente é o último degrau.
+   *
+   * `crc_canais_whatsapp` existe desde o `supabase/23` e ninguém a lia para
+   * ENVIAR — só para rotear a entrada. O resultado era metade da fronteira: a
+   * mensagem da Clínica B entrava certo e SAÍA pelo número do ambiente, que é o
+   * da A. Do lado do paciente, uma clínica que ele não conhece respondendo.
+   */
+  if (organizationId !== null && organizationId.length > 0) {
+    const { credenciaisWhatsapp, ehCaminhoDoAmbiente } = await import("../credenciais");
+    const r = await credenciaisWhatsapp(organizationId, clinicId);
+
+    if (r.ok) return doCanal(r.credenciais, organizationId);
+    if (!ehCaminhoDoAmbiente(r)) {
+      return { configurado: false, motivo: r.motivo, faltando: r.faltando };
+    }
+  }
+
+  return doAmbiente(organizationId);
+}
+
+/**
+ * O provedor montado a partir do canal cadastrado.
+ *
+ * O `identificador` faz dobradinha: é a chave de ROTEAMENTO na entrada (o
+ * `phone_number_id` que a Meta manda, o número que o Twilio recebeu, a sessão
+ * do WAHA) e é a identidade de ENVIO na saída. Guardar os dois separados abriria
+ * a possibilidade de responder por um número diferente do que recebeu.
+ */
+function doCanal(
+  canal: {
+    provedor: string;
+    identificador: string;
+    segredo: string;
+    config: Readonly<Record<string, unknown>>;
+  },
+  organizationId: string,
+): EstadoMensageria {
+  const texto = (chave: string, padrao = ""): string => {
+    const v = canal.config[chave];
+    return typeof v === "string" && v.trim().length > 0 ? v.trim() : padrao;
+  };
+
+  if (canal.provedor === "meta_cloud" || canal.provedor === "meta") {
+    const appSecret = texto("appSecret");
+    if (appSecret.length === 0) {
+      return {
+        configurado: false,
+        motivo:
+          "O canal da Meta Cloud desta clínica está sem `appSecret` na configuração — sem ele não dá para conferir a assinatura do webhook.",
+        faltando: ["config.appSecret"],
+      };
+    }
+    return {
+      configurado: true,
+      porta: new ProvedorMetaCloud(
+        {
+          token: canal.segredo,
+          phoneId: canal.identificador,
+          appSecret,
+          versao: texto("versao", "v21.0"),
+        },
+        organizationId,
+      ),
+    };
+  }
+
+  if (canal.provedor === "twilio") {
+    const accountSid = texto("accountSid");
+    if (accountSid.length === 0) {
+      return {
+        configurado: false,
+        motivo: "O canal do Twilio desta clínica está sem `accountSid` na configuração.",
+        faltando: ["config.accountSid"],
+      };
+    }
+    const numeroDe = normalizarTelefone(canal.identificador);
+    if (numeroDe === null) {
+      return {
+        configurado: false,
+        motivo: `O identificador do canal Twilio não parece um telefone: "${canal.identificador}".`,
+        faltando: ["identificador"],
+      };
+    }
+    const urlWebhook = texto("urlWebhook");
+    return {
+      configurado: true,
+      porta: new ProvedorTwilio(
+        {
+          accountSid,
+          authToken: canal.segredo,
+          numeroDe,
+          urlWebhook: urlWebhook.length > 0 ? urlWebhook : null,
+        },
+        organizationId,
+      ),
+    };
+  }
+
+  if (canal.provedor === "waha") {
+    // A MESMA TRAVA DUPLA DO AMBIENTE. Cadastrar o canal no banco não pode
+    // virar um atalho para ligar o WAHA sem alguém aceitar o risco — ver
+    // `criarWaha`.
+    if ((process.env["WAHA_EU_ACEITO_O_RISCO"] ?? "").trim() !== "1") {
+      return {
+        configurado: false,
+        motivo:
+          "O canal desta clínica é WAHA, que não é API oficial do WhatsApp. Para usar, defina WAHA_EU_ACEITO_O_RISCO=1.",
+        faltando: ["WAHA_EU_ACEITO_O_RISCO"],
+      };
+    }
+    const url = texto("url");
+    if (url.length === 0) {
+      return {
+        configurado: false,
+        motivo: "O canal WAHA desta clínica está sem `url` na configuração.",
+        faltando: ["config.url"],
+      };
+    }
+    return {
+      configurado: true,
+      porta: new ProvedorWaha(
+        { url, apiKey: canal.segredo, sessao: canal.identificador },
+        organizationId,
+      ),
+    };
+  }
+
+  return {
+    configurado: false,
+    motivo: `Canal de WhatsApp com provedor desconhecido: "${canal.provedor}".`,
+    faltando: [],
+  };
+}
+
+function doAmbiente(organizationId: string | null): EstadoMensageria {
   const escolha = provedorEscolhido();
   if (escolha === "waha") return criarWaha(organizationId);
   return escolha === "meta" ? criarMeta(organizationId) : criarTwilio(organizationId);
+}
+
+/**
+ * O provedor do WEBHOOK DE ENTRADA — e ele é do ambiente de propósito.
+ *
+ * A ROTA DE ENTRADA NÃO SABE DE QUEM É A MENSAGEM ANTES DE LER O CORPO. É
+ * justamente `interpretarWebhook` que extrai o destinatário que depois resolve o
+ * tenant. Pedir a credencial da clínica aqui seria circular.
+ *
+ * E ISSO É ARQUITETURALMENTE CERTO PARA A META: a assinatura do webhook usa o
+ * `app secret`, que é do APLICATIVO, não do número — um aplicativo atende vários
+ * números, de vários tenants. Para o Twilio o token é da conta, e ali a
+ * verificação por ambiente é uma limitação real, registrada no relatório.
+ *
+ * SEPARADO EM FUNÇÃO PRÓPRIA para que ninguém use este caminho por engano no
+ * envio, que é onde a credencial errada escreve no mundo.
+ */
+export function provedorParaWebhook(): EstadoMensageria {
+  const producao = process.env["NODE_ENV"] === "production";
+  const pediuSandbox =
+    (process.env["WHATSAPP_SANDBOX"] ?? "").trim() === "1" || provedorEscolhido() === "sandbox";
+
+  if (pediuSandbox && !producao) {
+    return { configurado: true, porta: obterSandboxMensageria() };
+  }
+  return doAmbiente(null);
 }
 
 /**

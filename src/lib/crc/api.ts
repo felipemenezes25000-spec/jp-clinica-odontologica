@@ -3050,7 +3050,7 @@ export const responderConversa = createServerFn({ method: "POST" })
         };
       }
 
-      const provedor = criarProvedorMensageria(ctx.organizationId);
+      const provedor = await criarProvedorMensageria(ctx.organizationId, conversa.clinicId);
       if (!provedor.configurado) {
         return {
           ok: false as const,
@@ -3567,8 +3567,8 @@ export const carregarIntegracoes = createServerFn({ method: "GET" }).handler(
       const { lerEstadoDeSincronizacao } = await import("./aplicacao/sincronizacao");
       const { lerFlags, lerKillSwitches } = await import("./servidor/configuracao");
 
-      const dental = criarClienteDentalOffice({ organizationId: ctx.organizationId });
-      const zap = criarProvedorMensageria(ctx.organizationId);
+      const dental = await criarClienteDentalOffice({ organizationId: ctx.organizationId });
+      const zap = await criarProvedorMensageria(ctx.organizationId);
       const ia = criarProvedorIa(ctx.organizationId);
 
       return {
@@ -3620,7 +3620,7 @@ export const testarConexaoDentalOffice = createServerFn({ method: "POST" }).hand
     comContexto("gerenciar_integracoes", async (ctx) => {
       const { criarClienteDentalOffice } = await import("./integracoes/dental-office/cliente");
 
-      const cliente = criarClienteDentalOffice({
+      const cliente = await criarClienteDentalOffice({
         organizationId: ctx.organizationId,
         requestId: ctx.requestId,
       });
@@ -3649,7 +3649,7 @@ export const sincronizarAgora = createServerFn({ method: "POST" }).handler(
         await import("./aplicacao/sincronizacao");
       const { selecionarUm } = await import("./servidor/banco");
 
-      const cliente = criarClienteDentalOffice({
+      const cliente = await criarClienteDentalOffice({
         organizationId: ctx.organizationId,
         requestId: ctx.requestId,
       });

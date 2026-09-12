@@ -44,6 +44,88 @@ export type DestinoDaConversa = {
  * distinguir no log: a conversa não existe, ou ela existe sem contato. O segundo
  * acontece de verdade: conversa criada por importação sem telefone.
  */
+/**
+ * De qual UNIDADE é esta conversa — e é a resposta que decide onde a consulta
+ * vai ser marcada.
+ *
+ * ========================================================================
+ *  O DEFEITO QUE ISTO CONSERTA, e ele escrevia no lugar errado.
+ *
+ *  `contextoDeAgendamentoParaJob` recebia `conversationId` e o IGNORAVA. A
+ *  clínica saía de:
+ *
+ *      selecionarUm("crc_clinics", { ativa = true })
+ *
+ *  ou seja, uma clínica ativa QUALQUER da organização — na prática a primeira
+ *  que o banco devolvesse. Com uma unidade, certo por acidente. Com duas:
+ *
+ *      paciente escreve no WhatsApp da Clínica B
+ *        ↓  o webhook roteia certo: organização certa, clínica B, conversa B
+ *        ↓  o agente decide oferecer horário
+ *        ↓  a ferramenta monta o contexto e pega a Clínica A
+ *      o horário oferecido é o da A, e o agendamento é GRAVADO na A
+ *
+ *  O roteamento de entrada tinha sido consertado (`supabase/23`); o de SAÍDA
+ *  não. O paciente recebe o endereço errado, e a agenda de uma unidade ganha
+ *  um paciente que nunca esteve lá.
+ * ========================================================================
+ *
+ * A CONVERSA É A FONTE AUTORITATIVA, e não o job nem o payload: `clinic_id` é
+ * coluna `not null` de `crc_conversations`, escrita por `resolverEscopo()` a
+ * partir do número que RECEBEU a mensagem. É o dado mais próximo do fato.
+ *
+ * FALHA FECHADO. `null` quando a conversa não existe, não é desta organização,
+ * ou a clínica dela não está ativa. Nenhum desses casos tem um segundo melhor
+ * palpite — e escrever no Dental Office com o tenant ambíguo é pior do que não
+ * escrever.
+ */
+export type ClinicaDaConversa = {
+  clinicId: string;
+  /** O id da unidade no Dental Office. Vazio quando ela nunca foi vinculada. */
+  clinicaExternaId: string;
+};
+
+export async function clinicaDaConversa(
+  organizationId: string,
+  conversationId: string,
+): Promise<ClinicaDaConversa | null> {
+  if (organizationId.length === 0 || conversationId.length === 0) return null;
+
+  const conversa = await selecionarUm("crc_conversations", {
+    colunas: "id,clinic_id",
+    filtros: [
+      { coluna: "id", op: "eq", valor: conversationId },
+      // O tenant no filtro, e não conferido depois: um uuid de conversa vazado
+      // não pode devolver a clínica de outra organização.
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+  });
+  if (conversa === null) return null;
+
+  const clinicId = typeof conversa["clinic_id"] === "string" ? conversa["clinic_id"] : "";
+  if (clinicId.length === 0) return null;
+
+  /*
+   * A CLÍNICA PRECISA ESTAR ATIVA, e a checagem é uma segunda ida ao banco de
+   * propósito. Uma unidade desativada ainda tem conversas antigas; deixar o
+   * agente oferecer horário nela marcaria consulta numa sala que fechou.
+   */
+  const clinica = await selecionarUm("crc_clinics", {
+    colunas: "id,external_id",
+    filtros: [
+      { coluna: "id", op: "eq", valor: clinicId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "ativa", op: "eq", valor: true },
+    ],
+  });
+  if (clinica === null) return null;
+
+  return {
+    clinicId,
+    clinicaExternaId: typeof clinica["external_id"] === "string" ? clinica["external_id"] : "",
+  };
+}
+
 export async function destinoDaConversa(
   organizationId: string,
   conversationId: string,

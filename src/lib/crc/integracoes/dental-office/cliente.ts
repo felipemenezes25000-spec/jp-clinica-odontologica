@@ -21,7 +21,8 @@ import { registrar, registrarIntegracao } from "../../servidor/registro";
 import type { SlotDisponivel, StatusAgendamento } from "../../dominio/tipos";
 import { codigoDeStatusAgendamento } from "../../dominio/status";
 
-import { lerCredenciais, invalidarToken, obterToken, type CredenciaisDentalOffice } from "./auth";
+import { invalidarToken, obterToken } from "./auth";
+import { credenciaisDentalOffice, type CredenciaisDentalOffice } from "../credenciais";
 import { criarSandbox } from "./sandbox";
 import {
   interpretarPagina,
@@ -233,6 +234,14 @@ function anotarCota(cabecalhos: Headers, operacao: string, organizationId: strin
 
 export type ContextoCliente = {
   organizationId: string | null;
+  /**
+   * A unidade de quem é este trabalho.
+   *
+   * NULO SIGNIFICA "da organização inteira" — a sincronização de pacientes, por
+   * exemplo, que não tem unidade. Não significa "tanto faz": com mais de uma
+   * conta cadastrada na organização, a resolução recusa em vez de escolher.
+   */
+  clinicId?: string | null;
   requestId?: string;
   /** Deslocamento do fuso da clínica, para datas sem fuso na resposta. */
   fusoOffset?: string;
@@ -243,9 +252,12 @@ class ClienteDentalOffice implements PortaDentalOffice {
 
   private readonly credenciais: CredenciaisDentalOffice;
   private readonly ctx: ContextoCliente;
+  /** A identidade da credencial, para o cache de token. Nunca o segredo. */
+  private readonly chaveDaCredencial: string;
 
-  constructor(credenciais: CredenciaisDentalOffice, ctx: ContextoCliente) {
+  constructor(credenciais: CredenciaisDentalOffice, chave: string, ctx: ContextoCliente) {
     this.credenciais = credenciais;
+    this.chaveDaCredencial = chave;
     this.ctx = ctx;
   }
 
@@ -323,11 +335,23 @@ class ClienteDentalOffice implements PortaDentalOffice {
       }
     };
 
-    let resposta = await executar(await obterToken(this.credenciais, this.ctx.requestId));
+    /*
+     * O TOKEN VEM PELA CHAVE DESTA CREDENCIAL, e o 401 invalida SÓ ELA.
+     *
+     * A versão anterior chamava `invalidarToken()` sem argumento e zerava o
+     * cache do processo inteiro. Com credencial por clínica isso é uma clínica
+     * com segredo vencido derrubando o token de todas as vizinhas — cada uma
+     * reautenticando na chamada seguinte, de graça.
+     */
+    let resposta = await executar(
+      await obterToken(this.chaveDaCredencial, this.credenciais, this.ctx.requestId),
+    );
 
     if (resposta.status === 401) {
-      invalidarToken();
-      resposta = await executar(await obterToken(this.credenciais, this.ctx.requestId));
+      invalidarToken(this.chaveDaCredencial);
+      resposta = await executar(
+        await obterToken(this.chaveDaCredencial, this.credenciais, this.ctx.requestId),
+      );
     }
 
     anotarCota(resposta.cabecalhos, opcoes.operacao, this.ctx.organizationId);
@@ -767,7 +791,7 @@ export type ResultadoCliente =
  * variável é ignorada e a função recusa — "produção nunca deve usar sandbox por
  * engano" não pode depender de alguém lembrar de apagar uma variável.
  */
-export function criarClienteDentalOffice(ctx: ContextoCliente): ResultadoCliente {
+export async function criarClienteDentalOffice(ctx: ContextoCliente): Promise<ResultadoCliente> {
   const producao = process.env["NODE_ENV"] === "production";
   const pediuSandbox = (process.env["DENTAL_OFFICE_SANDBOX"] ?? "").trim() === "1";
 
@@ -777,14 +801,14 @@ export function criarClienteDentalOffice(ctx: ContextoCliente): ResultadoCliente
     return { ok: true, cliente: criarSandbox() };
   }
 
-  const estado = lerCredenciais();
-  if (!estado.configurado) {
-    return {
-      ok: false,
-      motivo: "A integração com o Dental Office ainda não foi configurada.",
-      faltando: estado.faltando,
-    };
-  }
+  /*
+   * ASSÍNCRONA AGORA, E A MUDANÇA É O PONTO. Antes, as credenciais saíam de
+   * `process.env` — uma leitura síncrona, e uma conta para a instalação
+   * inteira. Agora elas saem do banco, por organização e clínica, com o
+   * ambiente como último degrau. Ver `integracoes/credenciais.ts`.
+   */
+  const r = await credenciaisDentalOffice(ctx.organizationId ?? "", ctx.clinicId ?? null);
+  if (!r.ok) return { ok: false, motivo: r.motivo, faltando: r.faltando };
 
-  return { ok: true, cliente: new ClienteDentalOffice(estado.credenciais, ctx) };
+  return { ok: true, cliente: new ClienteDentalOffice(r.credenciais, r.chave, ctx) };
 }

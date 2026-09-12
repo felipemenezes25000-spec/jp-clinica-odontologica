@@ -21,38 +21,19 @@
  */
 import { ErroHttp, pedir } from "../../servidor/http";
 import { campo, ehObjeto, numeroOpcional, textoOpcional } from "../../dominio/validar";
+import type { CredenciaisDentalOffice } from "../credenciais";
 
-export type CredenciaisDentalOffice = {
-  baseUrl: string;
-  clientId: string;
-  secret: string;
-};
-
-export type EstadoCredenciais =
-  | { configurado: true; credenciais: CredenciaisDentalOffice }
-  | { configurado: false; faltando: string[] };
-
-/**
- * Lê as credenciais do ambiente.
+/*
+ * A LEITURA DAS CREDENCIAIS SAIU DAQUI, e foi para `integracoes/credenciais.ts`.
  *
- * Devolve o que falta em vez de lançar: o item 248 manda construir toda a
- * infraestrutura possível e MARCAR claramente a dependência externa, não fingir
- * que funciona. A tela de integrações usa isto para dizer exatamente qual
- * variável ainda não foi cadastrada.
+ * Ela lia `process.env` — uma conta do Dental Office para a instalação inteira.
+ * Num SaaS isso é a Clínica B escrevendo na conta da A, e o ambiente não tem
+ * como dizer de quem é. A resolução agora é: clínica → organização → ambiente,
+ * com o último degrau se desligando sozinho quando existe mais de um tenant.
+ *
+ * Aqui ficou o que é MESMO deste arquivo: trocar credencial por token, e o
+ * cache disso.
  */
-export function lerCredenciais(): EstadoCredenciais {
-  const baseUrl = (process.env["DENTAL_OFFICE_BASE_URL"] ?? "").trim().replace(/\/+$/u, "");
-  const clientId = (process.env["DENTAL_OFFICE_CLIENT_ID"] ?? "").trim();
-  const secret = process.env["DENTAL_OFFICE_SECRET"] ?? "";
-
-  const faltando: string[] = [];
-  if (baseUrl.length === 0) faltando.push("DENTAL_OFFICE_BASE_URL");
-  if (clientId.length === 0) faltando.push("DENTAL_OFFICE_CLIENT_ID");
-  if (secret.length === 0) faltando.push("DENTAL_OFFICE_SECRET");
-
-  if (faltando.length > 0) return { configurado: false, faltando };
-  return { configurado: true, credenciais: { baseUrl, clientId, secret } };
-}
 
 /* -------------------------------------------------------------------------- */
 /* Cache do token                                                             */
@@ -60,15 +41,34 @@ export function lerCredenciais(): EstadoCredenciais {
 
 type TokenEmCache = { token: string; expiraEm: number };
 
-let cache: TokenEmCache | null = null;
 /**
- * A autenticação em voo.
+ * ============================================================================
+ *  O CACHE É POR CREDENCIAL, E ANTES ERA UM SINGLETON.
+ *
+ *  `let cache: TokenEmCache | null` — um token, para o processo inteiro. Isso
+ *  funcionou enquanto existia uma conta de Dental Office por instalação. No
+ *  momento em que a credencial passou a vir do banco, por clínica, o mesmo
+ *  `cache` passaria a servir o token da Clínica A para uma chamada da Clínica
+ *  B — e a chamada não falharia: ela funcionaria, escrevendo na conta errada.
+ *
+ *  É o pior modo de falha possível de um cache: silencioso, correto do ponto
+ *  de vista do HTTP, e errado do ponto de vista do dono do dado.
+ *
+ *  A CHAVE VEM DE `integracoes/credenciais.ts` e carrega base, client id e uma
+ *  IMPRESSÃO do segredo — nunca o segredo. A impressão faz a rotação invalidar
+ *  o cache sozinha.
+ * ============================================================================
+ */
+const cache = new Map<string, TokenEmCache>();
+
+/**
+ * As autenticações em voo, também por credencial.
  *
  * Sem isto, dez chamadas paralelas numa instância fria disparariam dez
  * autenticações simultâneas. Guardar a promessa faz as nove seguintes esperarem
  * a primeira — e é o mesmo padrão de fila que o RH usa no geocodificador.
  */
-let autenticandoAgora: Promise<string> | null = null;
+const emVoo = new Map<string, Promise<string>>();
 
 /** Margem antes do vencimento. Renovar em cima da hora é pedir 401 no meio. */
 const MARGEM_MS = 60_000;
@@ -76,34 +76,47 @@ const MARGEM_MS = 60_000;
 /** Quando a API não informa validade, assume-se uma hora. Conservador. */
 const VALIDADE_PADRAO_MS = 55 * 60 * 1000;
 
-export function invalidarToken(): void {
-  cache = null;
-  autenticandoAgora = null;
+/**
+ * Invalida o token DESTA credencial.
+ *
+ * A chave é obrigatória de propósito. A versão anterior zerava tudo, e num SaaS
+ * isso significa um 401 da Clínica A derrubando o token de todas as outras —
+ * uma credencial vencida virando uma rajada de reautenticação geral.
+ */
+export function invalidarToken(chave: string): void {
+  cache.delete(chave);
+  emVoo.delete(chave);
 }
 
 /** Só para teste: zera tudo entre casos. */
 export function _limparCacheDeToken(): void {
-  invalidarToken();
+  cache.clear();
+  emVoo.clear();
 }
 
 export async function obterToken(
+  chave: string,
   credenciais: CredenciaisDentalOffice,
   requestId?: string,
 ): Promise<string> {
   const agora = Date.now();
-  if (cache !== null && cache.expiraEm - MARGEM_MS > agora) return cache.token;
-  if (autenticandoAgora !== null) return autenticandoAgora;
+  const guardado = cache.get(chave);
+  if (guardado !== undefined && guardado.expiraEm - MARGEM_MS > agora) return guardado.token;
 
-  autenticandoAgora = autenticar(credenciais, requestId)
+  const jaPedindo = emVoo.get(chave);
+  if (jaPedindo !== undefined) return await jaPedindo;
+
+  const pedido = autenticar(credenciais, requestId)
     .then((novo) => {
-      cache = novo;
+      cache.set(chave, novo);
       return novo.token;
     })
     .finally(() => {
-      autenticandoAgora = null;
+      emVoo.delete(chave);
     });
 
-  return autenticandoAgora;
+  emVoo.set(chave, pedido);
+  return await pedido;
 }
 
 async function autenticar(

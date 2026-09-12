@@ -63,13 +63,18 @@ export const Route = createFileRoute("/api/crc/whatsapp")({
 
       POST: async ({ request }) => {
         const { registrar, descreverErro } = await import("@/lib/crc/servidor/registro");
-        const { criarProvedorMensageria } =
-          await import("@/lib/crc/integracoes/whatsapp/provedores");
+        const { provedorParaWebhook } = await import("@/lib/crc/integracoes/whatsapp/provedores");
 
         // O corpo CRU, antes de qualquer parse. Ver o cabeçalho.
         const corpoCru = await request.text();
 
-        const provedor = criarProvedorMensageria(null);
+        /*
+         * O PROVEDOR DE ENTRADA VEM DO AMBIENTE, e tem que ser assim: é este
+         * `interpretarWebhook` que extrai o destinatário de onde sai o tenant.
+         * Pedir a credencial da clínica antes de ler o corpo seria circular.
+         * Ver `provedorParaWebhook`.
+         */
+        const provedor = provedorParaWebhook();
         if (!provedor.configurado) {
           // 503 e não 200: aqui o provedor DEVE reenviar, porque a falha é de
           // configuração nossa e some assim que ela for corrigida.

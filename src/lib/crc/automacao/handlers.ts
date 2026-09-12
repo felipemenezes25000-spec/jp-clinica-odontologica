@@ -295,7 +295,8 @@ export async function aoCriarLead(evento: EventoCrc): Promise<void> {
   if (clinicId === null) return;
 
   const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
-  const provedor = criarProvedorMensageria(evento.organizationId);
+  // O lead já traz a unidade; responder por ela é o mesmo princípio do turno.
+  const provedor = await criarProvedorMensageria(evento.organizationId, clinicId);
   if (!provedor.configurado) return;
 
   const { lerConfiguracao, lerKillSwitches } = await import("../servidor/configuracao");
@@ -480,7 +481,7 @@ export async function aoReceberMensagem(evento: EventoCrc): Promise<void> {
   // trancar a porta da frente e esquecer a dos fundos.
   if (flags["ai_autopilot"] !== true) return;
 
-  const contexto = await contextoDeAgendamento(evento, cfg, flags, interruptores);
+  const contexto = await contextoDeAgendamento(evento, conversationId, cfg, flags, interruptores);
   if (contexto === null) return;
 
   const { aceitarHorario, oferecerHorarios } = await import("../aplicacao/agendamento");
@@ -547,49 +548,87 @@ export async function aoReceberMensagem(evento: EventoCrc): Promise<void> {
  */
 async function contextoDeAgendamento(
   evento: EventoCrc,
+  conversationId: string,
   cfg: ConfiguracaoCrc,
   flags: Readonly<Record<string, boolean>>,
   interruptores: Readonly<Record<string, boolean>>,
 ): Promise<ContextoAgendamento | null> {
-  return contextoDeAgendamentoParaJob(evento.organizationId, "", cfg, flags, interruptores);
+  return contextoDeAgendamentoParaJob(
+    evento.organizationId,
+    conversationId,
+    cfg,
+    flags,
+    interruptores,
+  );
 }
 
 /**
- * O mesmo contexto, montado a partir da organização — Fase B.
+ * O contexto de agendamento do turno — Fase B.
  *
- * O worker da fila não tem um `EventoCrc` em mãos: ele tem um job, que carrega
- * `organization_id` como COLUNA. É a diferença que importa para o isolamento de
- * tenant: o valor vem de uma linha que o sistema escreveu, e não de um payload
- * que passou perto do modelo.
+ * ========================================================================
+ *  A CLÍNICA VEM DA CONVERSA, e antes vinha de `selecionarUm(ativa = true)`.
  *
- * `conversationId` entra na assinatura porque uma versão futura pode precisar
- * dele para escolher a clínica certa numa organização com várias. Hoje não usa,
- * e é honesto dizer isso aqui em vez de fingir que usa.
+ *  A versão anterior recebia `conversationId` e o ignorava, com um comentário
+ *  que assumia isso — "hoje não usa, e é honesto dizer". Honesto e errado: o
+ *  parâmetro não estava sobrando, estava FALTANDO ser usado.
+ *
+ *      organização com Clínica A e Clínica B
+ *        ↓  paciente escreve no número da B
+ *        ↓  o webhook roteia certo — conversa com clinic_id = B
+ *        ↓  o agente resolve oferecer horário
+ *        ↓  este contexto devolve a A
+ *      horário da A oferecido, agendamento GRAVADO na A
+ *
+ *  Consertar o roteamento de entrada (`supabase/23`) e deixar o de saída
+ *  escolhendo pela ordem de cadastro é ter meia fronteira. Ver
+ *  `clinicaDaConversa`.
+ * ========================================================================
+ *
+ * A ORDEM DAS DUAS CHECAGENS IMPORTA: a clínica PRIMEIRO, o cliente depois. É a
+ * clínica que decide qual credencial do Dental Office usar — perguntar pelo
+ * cliente antes seria montar a conexão sem saber de quem ela é.
+ *
+ * `null` EM SILÊNCIO continua sendo o normal para "sem credencial": é o estado
+ * de toda instalação antes de a integração ser ligada, e logar erro a cada
+ * mensagem recebida encheria o diário de um fato já visível no painel.
  */
 export async function contextoDeAgendamentoParaJob(
   organizationId: string,
-  _conversationId: string,
+  conversationId: string,
   cfg: ConfiguracaoCrc,
   flags: Readonly<Record<string, boolean>>,
   interruptores: Readonly<Record<string, boolean>>,
 ): Promise<ContextoAgendamento | null> {
-  const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
-  const cliente = criarClienteDentalOffice({ organizationId });
-  if (!cliente.ok) return null;
+  const { clinicaDaConversa } = await import("../aplicacao/conversas");
+  const clinica = await clinicaDaConversa(organizationId, conversationId);
 
-  const clinica = await selecionarUm("crc_clinics", {
-    colunas: "id,external_id",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "ativa", op: "eq", valor: true },
-    ],
+  /*
+   * FALHA FECHADO, E COM REGISTRO — ao contrário do caso "sem credencial".
+   *
+   * Sem credencial é estado esperado. Uma conversa cuja clínica não dá para
+   * determinar é anomalia: conversa de outro tenant, unidade desativada, ou
+   * chamada sem conversa. Cair calado aqui faria o agente parar de agendar sem
+   * ninguém saber por quê.
+   */
+  if (clinica === null) {
+    registrar("aviso", "Agendamento recusado: não dá para dizer de qual clínica é a conversa.", {
+      organizationId,
+      conversationId,
+    });
+    return null;
+  }
+
+  const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
+  const cliente = await criarClienteDentalOffice({
+    organizationId,
+    clinicId: clinica.clinicId,
   });
-  if (clinica === null) return null;
+  if (!cliente.ok) return null;
 
   return {
     organizationId,
-    clinicId: String(clinica["id"] ?? ""),
-    clinicaExternaId: String(clinica["external_id"] ?? ""),
+    clinicId: clinica.clinicId,
+    clinicaExternaId: clinica.clinicaExternaId,
     cliente: cliente.cliente,
     configuracao: cfg,
     flags,
@@ -622,7 +661,9 @@ async function responderNaConversa(
   const telefone = destino.contato;
 
   const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
-  const provedor = criarProvedorMensageria(evento.organizationId);
+  // Pelo número da unidade DA CONVERSA — a mesma que o contexto de agendamento
+  // usou para consultar a agenda.
+  const provedor = await criarProvedorMensageria(evento.organizationId, contexto.clinicId);
   if (!provedor.configurado) return;
 
   const patientId = destino.patientId;

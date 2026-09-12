@@ -120,7 +120,7 @@ async function umaOrganizacao(
   const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
   const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
 
-  const cliente = criarClienteDentalOffice({ organizationId });
+  const cliente = await criarClienteDentalOffice({ organizationId });
   const referencia = clinicas[0];
 
   /* --- o que é da organização: uma vez ---------------------------------- */
@@ -195,7 +195,7 @@ async function umaOrganizacao(
 
   const configuracao = await lerConfiguracao(organizationId);
   const switches = await lerKillSwitches(organizationId);
-  const provedor = criarProvedorMensageria(organizationId);
+  const provedor = await criarProvedorMensageria(organizationId);
 
   const { rodarCampanhas } = await import("../aplicacao/campanhas");
   const campanhas = await rodarCampanhas({

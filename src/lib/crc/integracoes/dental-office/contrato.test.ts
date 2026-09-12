@@ -74,8 +74,10 @@ function ultimaDeNegocio(): Chamada {
   return ultima;
 }
 
-function clienteDeTeste() {
-  const r = criarClienteDentalOffice({ organizationId: "org-1" });
+async function clienteDeTeste() {
+  // `organizationId` vazio força o caminho do AMBIENTE sem ida ao banco: este
+  // arquivo testa o adapter HTTP, e não a resolução de credencial.
+  const r = await criarClienteDentalOffice({ organizationId: "" });
   if (!r.ok) throw new Error(`cliente não configurado: ${r.motivo}`);
   return r.cliente;
 }
@@ -92,8 +94,8 @@ beforeEach(async () => {
 
   // O token fica em cache no módulo; sem limpar, o segundo teste não veria a
   // chamada de autenticação e a ordem das capturas mudaria.
-  const { invalidarToken } = await import("./auth");
-  invalidarToken();
+  const { _limparCacheDeToken } = await import("./auth");
+  _limparCacheDeToken();
 });
 
 afterEach(() => {
@@ -106,7 +108,7 @@ afterEach(() => {
 describe("a URL base não ganha /v1 duas vezes", () => {
   it("a base já termina em /v1 e o caminho não o repete", async () => {
     interceptar();
-    await clienteDeTeste().listarDentistas("7");
+    await (await clienteDeTeste()).listarDentistas("7");
 
     const { url } = ultimaDeNegocio();
     expect(url).toContain("/v1/dentists");
@@ -119,7 +121,7 @@ describe("a URL base não ganha /v1 duas vezes", () => {
     // quebrada por causa de uma barra.
     vi.stubEnv("DENTAL_OFFICE_BASE_URL", "https://jp.api.app.dentaloffice.com.br");
     interceptar();
-    await clienteDeTeste().listarDentistas("7");
+    await (await clienteDeTeste()).listarDentistas("7");
 
     expect(ultimaDeNegocio().url).toContain("/v1/dentists");
   });
@@ -128,7 +130,7 @@ describe("a URL base não ganha /v1 duas vezes", () => {
 describe("os caminhos são os da especificação", () => {
   it("dentistas ficam na RAIZ, e não sob a clínica", async () => {
     interceptar();
-    await clienteDeTeste().listarDentistas("7");
+    await (await clienteDeTeste()).listarDentistas("7");
 
     const { url } = ultimaDeNegocio();
     expect(url).toContain("/v1/dentists");
@@ -137,7 +139,9 @@ describe("os caminhos são os da especificação", () => {
 
   it("a agenda fica SOB a clínica, e filtra por start/end", async () => {
     interceptar();
-    await clienteDeTeste().listarAgendamentos({
+    await (
+      await clienteDeTeste()
+    ).listarAgendamentos({
       clinicaExternaId: "7",
       de: "2026-09-01T00:00:00.000Z",
       ate: "2026-09-30T00:00:00.000Z",
@@ -153,7 +157,9 @@ describe("os caminhos são os da especificação", () => {
 
   it("horários livres pedem dentist_id e next em DIAS", async () => {
     interceptar([]);
-    await clienteDeTeste().horariosDisponiveis({
+    await (
+      await clienteDeTeste()
+    ).horariosDisponiveis({
       clinicaExternaId: "7",
       dentistaExternoId: "3",
       diasAFrente: 14,
@@ -171,7 +177,7 @@ describe("os caminhos são os da especificação", () => {
 
   it("o teste de conexão usa /status, e não um endpoint inventado", async () => {
     interceptar({ status: "ok" });
-    await clienteDeTeste().testarConexao();
+    await (await clienteDeTeste()).testarConexao();
 
     const { url } = ultimaDeNegocio();
     expect(url).toContain("/v1/status");
@@ -179,7 +185,9 @@ describe("os caminhos são os da especificação", () => {
 
   it("pacientes NÃO recebem filtro de atualização, porque ele não existe", async () => {
     interceptar();
-    await clienteDeTeste().listarPacientes({
+    await (
+      await clienteDeTeste()
+    ).listarPacientes({
       pagina: 2,
       tamanho: 100,
       atualizadosDesde: "2026-09-01T00:00:00.000Z",
@@ -196,7 +204,9 @@ describe("os caminhos são os da especificação", () => {
 describe("a escrita segue o formato deles", () => {
   it("criar consulta aninha o corpo em `schedule` e manda a cadeira", async () => {
     interceptar({ id: 99 });
-    const r = await clienteDeTeste().criarAgendamento({
+    const r = await (
+      await clienteDeTeste()
+    ).criarAgendamento({
       clinicaExternaId: "7",
       pacienteExternoId: "42",
       dentistaExternoId: "3",
@@ -231,7 +241,9 @@ describe("a escrita segue o formato deles", () => {
     // ainda assim não voltaria em `notes` — a etiqueta "marcado pelo CRC"
     // ficaria morta para sempre.
     interceptar({ id: 99 });
-    await clienteDeTeste().criarAgendamento({
+    await (
+      await clienteDeTeste()
+    ).criarAgendamento({
       clinicaExternaId: "7",
       pacienteExternoId: "42",
       dentistaExternoId: "3",
@@ -248,7 +260,7 @@ describe("a escrita segue o formato deles", () => {
 
   it("mudar a situação usa PATCH, e não PUT", async () => {
     interceptar({ id: 99 });
-    await clienteDeTeste().atualizarStatusAgendamento("7", "99", "CANCELLED");
+    await (await clienteDeTeste()).atualizarStatusAgendamento("7", "99", "CANCELLED");
 
     const { url, metodo, corpo } = ultimaDeNegocio();
     expect(url).toContain("/v1/clinics/7/schedules/99");
@@ -262,7 +274,7 @@ describe("a escrita segue o formato deles", () => {
 
   it("quando a clínica informa o id da própria situação, ele é respeitado", async () => {
     interceptar({ id: 99 });
-    await clienteDeTeste().atualizarStatusAgendamento("7", "99", "CANCELLED", 31);
+    await (await clienteDeTeste()).atualizarStatusAgendamento("7", "99", "CANCELLED", 31);
 
     const c = ultimaDeNegocio().corpo as { schedule?: Record<string, unknown> };
     expect(c.schedule?.["schedule_situation_id"]).toBe(31);
@@ -272,7 +284,7 @@ describe("a escrita segue o formato deles", () => {
 describe("a autenticação é a do fluxo documentado", () => {
   it("pede o token com client_id e secret, e usa Bearer depois", async () => {
     interceptar();
-    await clienteDeTeste().listarDentistas("7");
+    await (await clienteDeTeste()).listarDentistas("7");
 
     const token = chamadas.find((c) => c.url.includes("/auth/tokens"));
     expect(token).toBeDefined();

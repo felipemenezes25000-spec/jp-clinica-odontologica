@@ -248,7 +248,7 @@ async function avancarJornadasDe(
     lerKillSwitches(organizationId),
   ]);
 
-  const provedor = criarProvedorMensageria(organizationId);
+  const provedor = await criarProvedorMensageria(organizationId);
 
   const r = await rodarCiclo(
     {

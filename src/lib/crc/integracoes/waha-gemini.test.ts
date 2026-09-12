@@ -44,12 +44,12 @@ beforeEach(() => {
 /* ========================================================================== */
 
 describe("a trava dupla do WAHA", () => {
-  it("escolher waha sem aceitar o risco NÃO configura o provedor", () => {
+  it("escolher waha sem aceitar o risco NÃO configura o provedor", async () => {
     process.env["WHATSAPP_PROVEDOR"] = "waha";
     process.env["WAHA_URL"] = "https://waha.clinica.com.br";
     process.env["WAHA_API_KEY"] = "segredo";
 
-    const estado = criarProvedorMensageria(null);
+    const estado = await criarProvedorMensageria(null);
 
     expect(provedorEscolhido()).toBe("waha");
     expect(estado.configurado).toBe(false);
@@ -69,13 +69,13 @@ describe("a trava dupla do WAHA", () => {
     expect(estado.faltando).toContain("WAHA_EU_ACEITO_O_RISCO");
   });
 
-  it("com o risco aceito e tudo configurado, sobe", () => {
+  it("com o risco aceito e tudo configurado, sobe", async () => {
     process.env["WHATSAPP_PROVEDOR"] = "waha";
     process.env["WAHA_EU_ACEITO_O_RISCO"] = "1";
     process.env["WAHA_URL"] = "https://waha.clinica.com.br";
     process.env["WAHA_API_KEY"] = "segredo";
 
-    const estado = criarProvedorMensageria(null);
+    const estado = await criarProvedorMensageria(null);
 
     expect(estado.configurado).toBe(true);
     if (!estado.configurado) return;
@@ -86,12 +86,12 @@ describe("a trava dupla do WAHA", () => {
     expect(estado.porta.exigeTemplateForaDaJanela).toBe(false);
   });
 
-  it("a chave de API é OBRIGATÓRIA, ao contrário do WAHA original", () => {
+  it("a chave de API é OBRIGATÓRIA, ao contrário do WAHA original", async () => {
     process.env["WHATSAPP_PROVEDOR"] = "waha";
     process.env["WAHA_EU_ACEITO_O_RISCO"] = "1";
     process.env["WAHA_URL"] = "https://waha.clinica.com.br";
 
-    const estado = criarProvedorMensageria(null);
+    const estado = await criarProvedorMensageria(null);
 
     // Sem chave, `verificarAssinatura` recusaria todo webhook. Um canal que
     // recebe mensagem e não consegue provar a origem é pior do que desligado:

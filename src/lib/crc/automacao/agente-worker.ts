@@ -243,7 +243,15 @@ async function executarJob(job: AgentJob, quem: string | null): Promise<Desfecho
   let portaMensageria = null;
   if (podeEnviar) {
     const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
-    const m = criarProvedorMensageria(job.organizationId);
+    /*
+     * O NÚMERO DE SAÍDA É O DA CLÍNICA DA CONVERSA. Sem `clinicId`, uma
+     * organização com duas unidades responderia pelo número de qualquer uma
+     * delas — e o roteamento de entrada, que já está certo, não conserta o de
+     * saída.
+     */
+    const { clinicaDaConversa } = await import("../aplicacao/conversas");
+    const daConversa = await clinicaDaConversa(job.organizationId, job.conversationId);
+    const m = await criarProvedorMensageria(job.organizationId, daConversa?.clinicId ?? null);
     portaMensageria = m.configurado ? m.porta : null;
   }
 
