@@ -26,6 +26,8 @@
  * paciente escreveu, o filtro de tenant deixa de ser higiene e passa a ser a
  * fronteira de segurança.
  */
+import { readFileSync } from "node:fs";
+
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -33,6 +35,7 @@ import {
   limparTudo,
   semearDuasClinicas,
   sql,
+  URL_TESTE,
   CLINICA_A,
   CLINICA_B,
   ORG_A,
@@ -428,5 +431,147 @@ describe("de qual clínica é o webhook", () => {
     // chave primária — ou sobrescreveria a primeira.
     expect(linhas).toHaveLength(2);
     expect(linhas[0]?.cursor).not.toBe(linhas[1]?.cursor);
+  });
+});
+
+/* ========================================================================== */
+/* O cursor de sync, pelo adaptador de PRODUÇÃO                              */
+/* ========================================================================== */
+
+/**
+ * ========================================================================
+ *  O TESTE QUE TERIA PEGADO UM P0 ANTES DE ELE IR PARA PRODUÇÃO.
+ *
+ *  O `supabase/23` trocou a chave primária de `crc_sync_state` e o
+ *  `sincronizacao.ts` continuou fazendo `on_conflict=organization_id,recurso`.
+ *  Essa constraint deixou de existir, e o Postgres passou a responder:
+ *
+ *      ERROR: there is no unique or exclusion constraint matching
+ *             the ON CONFLICT specification
+ *
+ *  Ou seja: **toda sincronização falhava.** Em produção não quebrou por um
+ *  acidente — o Dental Office não tem credencial e o sync é pulado antes de
+ *  chegar na gravação do cursor.
+ *
+ *  E o teste que existia não pegava, porque ele fazia `insert` à mão. Um
+ *  `insert` escrito no teste passa pela chave que o TESTE escolheu; o que
+ *  importa é a chave que o CÓDIGO escolhe.
+ *
+ *  Por isso este teste usa `gravar()` — o mesmo helper do adaptador de
+ *  produção, pelo mesmo PostgREST, com a mesma string de conflito.
+ * ========================================================================
+ */
+describe("o cursor de sync pelo caminho de produção", () => {
+  /**
+   * A string de conflito LIDA DO ARQUIVO DE PRODUÇÃO.
+   *
+   * É a amarra inteira deste bloco. Reescrever `"organization_id,recurso,
+   * clinic_id"` aqui testaria a query do TESTE; lendo do
+   * `sincronizacao.ts`, uma divergência entre código e banco quebra — que é
+   * exatamente o que não aconteceu quando o `supabase/23` trocou a chave.
+   */
+  function conflitoDoCodigo(): string {
+    const fonte = readFileSync("src/lib/crc/aplicacao/sincronizacao.ts", "utf8");
+    const m = /gravar\(\s*"crc_sync_state",[\s\S]*?"([a-z_,]+)",\s*\)/u.exec(fonte);
+    if (m?.[1] === undefined) throw new Error("Não achei o on_conflict em sincronizacao.ts");
+    return m[1];
+  }
+
+  /** O mesmo upsert do adaptador, com a mesma semântica do PostgREST. */
+  async function upsert(linha: Record<string, unknown>): Promise<void> {
+    const chave = process.env["SUPABASE_SERVICE_ROLE"] ?? "";
+    const r = await fetch(
+      `${URL_TESTE}/crc_sync_state?on_conflict=${encodeURIComponent(conflitoDoCodigo())}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: chave,
+          Authorization: `Bearer ${chave}`,
+          Prefer: "resolution=merge-duplicates,return=representation",
+        },
+        body: JSON.stringify([linha]),
+      },
+    );
+
+    if (!r.ok) {
+      // É AQUI QUE O DEFEITO APARECERIA: com a chave do código fora de sincronia
+      // com a do banco, o PostgREST devolve 42P10 e esta mensagem mostra qual.
+      throw new Error(`upsert falhou (${String(r.status)}): ${(await r.text()).slice(0, 300)}`);
+    }
+  }
+
+  beforeEach(async () => {
+    await sql(`delete from public.crc_sync_state`);
+  });
+
+  it("grava e relê o cursor de CADA clínica, sem misturar", async () => {
+    await upsert({
+      organization_id: ORG_A,
+      clinic_id: CLINICA_A,
+      recurso: "agendamentos",
+      cursor: "2026-09-01T00:00:00Z",
+      sync_status: "OK",
+    });
+    await upsert({
+      organization_id: ORG_A,
+      clinic_id: CLINICA_B,
+      recurso: "agendamentos",
+      cursor: "2026-01-01T00:00:00Z",
+      sync_status: "OK",
+    });
+
+    const linhas = await sql<{ clinic_id: string; cursor: string }>(
+      `select clinic_id, cursor from public.crc_sync_state
+        where organization_id = '${ORG_A}' and recurso = 'agendamentos'
+        order by cursor`,
+    );
+
+    expect(linhas).toHaveLength(2);
+    // A segunda unidade tem o SEU cursor. Antes do `clinic_id` na leitura, as
+    // duas liam a mesma linha — e a agenda de uma parava de atualizar.
+    expect(linhas.map((l) => l.cursor)).toEqual(["2026-01-01T00:00:00Z", "2026-09-01T00:00:00Z"]);
+  });
+
+  it("regravar ATUALIZA a linha da clínica, e não cria uma segunda", async () => {
+    for (const cursor of ["2026-09-01T00:00:00Z", "2026-09-02T00:00:00Z"]) {
+      await upsert({
+        organization_id: ORG_A,
+        clinic_id: CLINICA_A,
+        recurso: "customers",
+        cursor,
+        sync_status: "OK",
+      });
+    }
+
+    const linhas = await sql<{ cursor: string }>(
+      `select cursor from public.crc_sync_state
+        where organization_id = '${ORG_A}' and recurso = 'customers'`,
+    );
+
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0]?.cursor).toBe("2026-09-02T00:00:00Z");
+  });
+
+  it("a chave do código é a chave do BANCO", async () => {
+    /*
+     * A asserção mais direta do bloco: a string que o `sincronizacao.ts` manda
+     * tem que corresponder a uma constraint única de verdade. Se não
+     * corresponder, o Postgres recusa com 42P10 — e é isso que estava
+     * acontecendo em silêncio.
+     */
+    const colunas = conflitoDoCodigo().split(",").sort().join(",");
+
+    const [pk] = await sql<{ colunas: string }>(`
+      select string_agg(a.attname, ',' order by a.attname) as colunas
+        from pg_constraint c
+        join unnest(c.conkey) as k(attnum) on true
+        join pg_attribute a on a.attrelid = c.conrelid and a.attnum = k.attnum
+       where c.conrelid = 'public.crc_sync_state'::regclass
+         and c.contype = 'p'
+       group by c.oid
+    `);
+
+    expect(pk?.colunas).toBe(colunas);
   });
 });

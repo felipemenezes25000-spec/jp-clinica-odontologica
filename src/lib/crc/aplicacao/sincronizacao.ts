@@ -112,10 +112,33 @@ async function registrarFalhaIndividual(
 }
 
 /** O cursor entre execuções: até onde chegamos da última vez que deu certo. */
-async function lerCursor(organizationId: string, recurso: string): Promise<string | null> {
+/**
+ * O cursor DESTA clínica, para este recurso.
+ *
+ * ========================================================================
+ *  O `clinicId` NÃO É DETALHE — é o conserto de um P0 que o `supabase/23`
+ *  criou e o `24` terminou.
+ *
+ *  A chave era `(organization_id, recurso)`. Com duas unidades da mesma
+ *  organização, as duas dividiam o cursor de `agendamentos`: a primeira a
+ *  sincronizar o avançava, e a segunda pedia "o que mudou desde então" e
+ *  recebia vazio. **A agenda da segunda unidade parava de atualizar, sem erro
+ *  nenhum** — o pior tipo de falha, porque o relatório volta verde.
+ *
+ *  E a leitura sem clínica é metade do estrago: ela devolveria o cursor da
+ *  unidade errada, fazendo a sincronização pular o período que a outra já
+ *  tinha coberto.
+ * ========================================================================
+ */
+async function lerCursor(
+  organizationId: string,
+  clinicId: string,
+  recurso: string,
+): Promise<string | null> {
   const linha = await selecionarUm("crc_sync_state", {
     filtros: [
       { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "clinic_id", op: "eq", valor: clinicId },
       { coluna: "recurso", op: "eq", valor: recurso },
     ],
   });
@@ -125,6 +148,7 @@ async function lerCursor(organizationId: string, recurso: string): Promise<strin
 
 async function gravarCursor(
   organizationId: string,
+  clinicId: string,
   recurso: string,
   cursor: string | null,
   sucesso: boolean,
@@ -134,6 +158,7 @@ async function gravarCursor(
     "crc_sync_state",
     {
       organization_id: organizationId,
+      clinic_id: clinicId,
       recurso,
       // Cursor só avança quando a execução INTEIRA deu certo. Avançar depois de
       // uma falha parcial pularia justamente os registros que não entraram.
@@ -142,7 +167,14 @@ async function gravarCursor(
       ...(sucesso ? { last_successful_sync: agora } : {}),
       sync_status: sucesso ? "OK" : "FALHOU",
     },
-    "organization_id,recurso",
+    /*
+     * O ALVO DO CONFLITO TEM QUE BATER COM A CHAVE DO BANCO, e foi aqui que o
+     * `supabase/23` quebrou: ele trocou a PK e este texto continuou
+     * `"organization_id,recurso"`. O Postgres responde
+     * "there is no unique or exclusion constraint matching the ON CONFLICT
+     * specification" — e a sincronização inteira morre na primeira gravação.
+     */
+    "organization_id,recurso,clinic_id",
   );
 }
 
@@ -153,7 +185,7 @@ async function gravarCursor(
 export async function sincronizarPacientes(ctx: ContextoSync): Promise<ResumoSync> {
   const comecou = Date.now();
   const recurso = "customers";
-  const cursor = await lerCursor(ctx.organizationId, recurso);
+  const cursor = await lerCursor(ctx.organizationId, ctx.clinicId, recurso);
   const modo = cursor === null ? "FULL" : "INCREMENTAL";
   const syncJobId = await abrirSyncJob(ctx, recurso, modo, cursor);
 
@@ -231,9 +263,55 @@ export async function sincronizarPacientes(ctx: ContextoSync): Promise<ResumoSyn
   };
 
   await fecharSyncJob(syncJobId, resumo);
-  await gravarCursor(ctx.organizationId, recurso, new Date().toISOString(), erroFatal === null);
+  await gravarCursor(
+    ctx.organizationId,
+    ctx.clinicId,
+    recurso,
+    new Date().toISOString(),
+    erroFatal === null,
+  );
 
   return { syncJobId, ...resumo };
+}
+
+/**
+ * O id interno da clínica, a partir do id que o Dental Office usa.
+ *
+ * DEVOLVE `null` QUANDO NÃO SABE, e quem chama decide — não inventa a clínica da
+ * rodada. A diferença importa: `null` significa "não tenho informação", e a
+ * regra de cima usa a clínica JÁ GRAVADA nesse caso, que é mais confiável.
+ *
+ * O cache vive na rodada: são poucas clínicas e a mesma se repete em todas as
+ * páginas de pacientes.
+ */
+const clinicasPorExternoId = new Map<string, string | null>();
+
+async function resolverClinicaExterna(
+  ctx: ContextoSync,
+  externoId: string | null,
+): Promise<string | null> {
+  if (externoId === null || externoId.length === 0) return null;
+
+  const chave = `${ctx.organizationId}:${externoId}`;
+  const emCache = clinicasPorExternoId.get(chave);
+  if (emCache !== undefined) return emCache;
+
+  const linha = await selecionarUm("crc_clinics", {
+    colunas: "id",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+      { coluna: "external_id", op: "eq", valor: externoId },
+    ],
+  });
+
+  const id = typeof linha?.["id"] === "string" ? linha["id"] : null;
+  clinicasPorExternoId.set(chave, id);
+  return id;
+}
+
+/** Só para teste: o cache acima é de módulo e atravessaria casos. */
+export function _limparCacheDeClinicas(): void {
+  clinicasPorExternoId.clear();
 }
 
 /**
@@ -248,7 +326,7 @@ export async function sincronizarPacientes(ctx: ContextoSync): Promise<ResumoSyn
  */
 async function gravarPaciente(ctx: ContextoSync, externo: PacienteExterno): Promise<boolean> {
   const existente = await selecionarUm("crc_patients", {
-    colunas: "id,nome,situacao,ativo,telefone",
+    colunas: "id,nome,situacao,ativo,telefone,clinic_id",
     filtros: [
       { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
       { coluna: "external_source", op: "eq", valor: "dental_office" },
@@ -256,9 +334,43 @@ async function gravarPaciente(ctx: ContextoSync, externo: PacienteExterno): Prom
     ],
   });
 
+  /*
+   * ========================================================================
+   *  O PACIENTE É DA ORGANIZAÇÃO, E A CLÍNICA É ONDE ELE FOI ATENDIDO.
+   *
+   *  Isto gravava `clinic_id: ctx.clinicId` sempre — a clínica da RODADA de
+   *  sincronização, e não a do paciente. Como `listarPacientes` devolve a conta
+   *  inteira (não recebe clínica) e a volta pesada chamava a sincronização uma
+   *  vez por clínica, o efeito com três unidades era:
+   *
+   *      sync da clínica A  →  TODOS os pacientes viram clínica A
+   *      sync da clínica B  →  os MESMOS pacientes viram clínica B
+   *      sync da clínica C  →  os MESMOS pacientes viram clínica C
+   *
+   *  O upsert acha o paciente por `(organização, origem, id externo)` — sem
+   *  clínica —, então cada rodada MOVIA a base inteira de unidade. Ninguém
+   *  percebia: o paciente continuava existindo, com os dados certos, no lugar
+   *  errado.
+   *
+   *  A REGRA AGORA, em ordem de confiança:
+   *
+   *    1. a clínica que o PRÓPRIO paciente declara, quando a API manda;
+   *    2. a que ele já tinha, quando não manda — o que já está gravado é mais
+   *       confiável que o palpite da rodada atual;
+   *    3. a clínica da rodada, só para paciente NOVO sem informação nenhuma.
+   *
+   *  A regra 2 é a que impede o vaivém: sem ela, a segunda unidade a
+   *  sincronizar continuaria levando a base junto.
+   * ========================================================================
+   */
+  const clinicaDoPaciente =
+    (await resolverClinicaExterna(ctx, externo.clinicaExternaId)) ??
+    (typeof existente?.["clinic_id"] === "string" ? existente["clinic_id"] : null) ??
+    ctx.clinicId;
+
   const campos: Linha = {
     organization_id: ctx.organizationId,
-    clinic_id: ctx.clinicId,
+    clinic_id: clinicaDoPaciente,
     external_source: "dental_office",
     external_id: externo.externalId,
     nome: externo.nome,
@@ -582,7 +694,13 @@ export async function sincronizarAgendamentos(
   };
 
   await fecharSyncJob(syncJobId, resumo);
-  await gravarCursor(ctx.organizationId, recurso, new Date().toISOString(), erroFatal === null);
+  await gravarCursor(
+    ctx.organizationId,
+    ctx.clinicId,
+    recurso,
+    new Date().toISOString(),
+    erroFatal === null,
+  );
 
   return { syncJobId, ...resumo };
 }

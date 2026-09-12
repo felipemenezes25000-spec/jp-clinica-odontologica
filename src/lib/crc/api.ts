@@ -234,13 +234,53 @@ export const entrarNoCrc = createServerFn({ method: "POST" })
       return { ok: false, code: "INTEGRACAO_NAO_CONFIGURADA", message: estado.motivo };
     }
 
+    /*
+     * O FREIO VEM ANTES DA SENHA, e a ordem é o ponto: verificar primeiro
+     * gastaria um `scrypt` por tentativa, e é justamente esse custo que uma
+     * rajada de login transforma em lentidão para quem está trabalhando.
+     */
+    const { chaveDoFreio, conferirFreio, registrarFalha, registrarSucesso } =
+      await import("./dominio/forca-bruta");
+    const { getRequest } = await import("@tanstack/react-start/server");
+
+    const pedido = getRequest();
+    const ip =
+      pedido.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      pedido.headers.get("x-real-ip") ??
+      "desconhecido";
+    const chave = chaveDoFreio(ip, data.email);
+
+    const freio = conferirFreio(chave);
+    if (!freio.liberado) {
+      registrar("aviso", "Login bloqueado por tentativas seguidas.", {
+        tentativas: freio.tentativas,
+      });
+      return {
+        ok: false,
+        code: "ENTRADA_INVALIDA",
+        /*
+         * A MENSAGEM NÃO DIZ SE O E-MAIL EXISTE — e ela é a mesma para quem
+         * errou a senha da própria conta e para quem está tentando adivinhar a
+         * dos outros. Dizer "esta conta está bloqueada" confirmaria que a conta
+         * existe, que é a informação que a tela de login passa o tempo todo
+         * tentando não entregar.
+         */
+        message: `Muitas tentativas. Tente de novo em ${String(freio.esperaSegundos)} segundos.`,
+      };
+    }
+
     const resultado = await entrar(data.email, data.senha);
     if (!resultado.ok) {
+      registrarFalha(chave);
       // O e-mail NÃO entra no log em texto claro (item 75); o registro serve
       // para detectar tentativa em massa, e para isso a contagem basta.
       registrar("aviso", "Tentativa de login recusada no CRC.");
       return { ok: false, code: "ENTRADA_INVALIDA", message: resultado.erro };
     }
+
+    // Entrou: o histórico não serve mais, e mantê-lo bloquearia a pessoa certa
+    // na próxima vez que ela errasse uma letra.
+    registrarSucesso(chave);
 
     const sessao =
       await abrirSessao<import("./servidor/sessao").DadosSessaoCrc>(configuracaoSessao());

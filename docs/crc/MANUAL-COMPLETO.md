@@ -1284,9 +1284,14 @@ o paciente faltar de novo no mês seguinte é outro fato.
 
 ### Testes
 
-**310 testes** em 10 arquivos, rodando em ~2 segundos (`npm run test`). O domínio
-inteiro é testável sem banco, sem rede e sem relógio de parede, porque o "agora"
-sempre entra como argumento.
+**1.081 testes unitários** (`npm run test`, ~6 segundos) e **65 de integração**
+contra Postgres real (`npm run test:integracao`). O domínio inteiro é testável
+sem banco, sem rede e sem relógio de parede, porque o "agora" sempre entra como
+argumento.
+
+> Este número envelhece a cada commit, e já esteve errado neste documento — ele
+> dizia 310 quando o repositório tinha mais de mil. Para o valor de agora:
+> `npx vitest run | tail -3`.
 
 ---
 

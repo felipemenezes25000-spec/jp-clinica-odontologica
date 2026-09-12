@@ -675,3 +675,67 @@ describe("o heartbeat e o fencing", () => {
     expect(conteudo("crc_agent_jobs")[0]?.["status"]).toBe("CONCLUIDO");
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("o crash na ÚLTIMA tentativa não some", () => {
+  it("job preso no teto vira FALHOU e DEAD LETTER na mesma volta", async () => {
+    /*
+     * ========================================================================
+     *  O BURACO QUE ISTO FECHA.
+     *
+     *      tentativa 5, worker processando
+     *        ↓ 💥 o processo morre
+     *        ↓ o lease vence
+     *        ↓ a limpeza marca FALHOU
+     *
+     *  E acabava aí. A reserva só aceita `tentativas < 5`, então ele nunca
+     *  voltava; e a dead letter era escrita pelo `catch` do worker — que nunca
+     *  aconteceu, porque o worker morreu.
+     *
+     *  FALHOU, fora da fila, sem registro. Do outro lado tem um paciente que
+     *  escreveu.
+     *
+     *  Por isso o registro sai da FUNÇÃO de limpeza, e não do worker: o worker
+     *  é justamente quem não estava lá.
+     * ========================================================================
+     */
+    await enfileirar();
+    const linha = conteudo("crc_agent_jobs")[0];
+    if (linha !== undefined) {
+      linha["status"] = "RODANDO";
+      linha["tentativas"] = MAX_TENTATIVAS;
+      linha["travado_ate"] = new Date(AGORA.getTime() - 60_000).toISOString();
+    }
+
+    expect(await liberarPresos()).toBe(1);
+    expect(conteudo("crc_agent_jobs")[0]?.["status"]).toBe("FALHOU");
+
+    const mortas = conteudo("crc_dead_letters");
+    expect(mortas).toHaveLength(1);
+    expect(mortas[0]?.["origem"]).toBe("agent_job");
+    expect(mortas[0]?.["status"]).toBe("PENDENTE");
+  });
+
+  it("rodar a limpeza de novo NÃO duplica a dead letter", async () => {
+    /*
+     * A limpeza roda a cada volta do worker. Sem a guarda, um job preso viraria
+     * uma linha nova por volta — até a fila de falhas ter mais ruído que sinal,
+     * que é como ela deixa de ser lida.
+     */
+    await enfileirar();
+    const linha = conteudo("crc_agent_jobs")[0];
+    if (linha !== undefined) {
+      linha["status"] = "RODANDO";
+      linha["tentativas"] = MAX_TENTATIVAS;
+      linha["travado_ate"] = new Date(AGORA.getTime() - 60_000).toISOString();
+    }
+
+    await liberarPresos();
+    // A segunda volta não acha nada preso (o status já é FALHOU), e mesmo que
+    // achasse, a guarda de duplicata seguraria.
+    await liberarPresos();
+
+    expect(conteudo("crc_dead_letters")).toHaveLength(1);
+  });
+});

@@ -133,7 +133,13 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_automations: [{ colunas: ["organization_id", "chave"] }],
   crc_automation_versions: [{ colunas: ["automation_id", "versao"] }],
   crc_opportunity_stages: [{ colunas: ["organization_id", "chave"] }],
-  crc_sync_state: [{ colunas: ["organization_id", "recurso"] }],
+  /*
+   * COM A CLÍNICA, desde `supabase/24`. O índice aqui ficou para trás quando a
+   * chave mudou no banco — e um fake com a chave ANTIGA recusaria o cursor da
+   * segunda unidade como duplicata, escondendo exatamente o comportamento que
+   * a migração veio permitir.
+   */
+  crc_sync_state: [{ colunas: ["organization_id", "recurso", "clinic_id"] }],
   crc_settings: [{ colunas: ["organization_id", "chave"] }],
   crc_feature_flags: [{ colunas: ["organization_id", "chave"] }],
   crc_clinics: [{ colunas: ["organization_id", "slug"] }],
@@ -581,6 +587,37 @@ export function apagar(tabela: string, filtros: readonly Filtro[]): Promise<void
  * `travado_ate` no futuro e some das reservas seguintes. É o que o teste de
  * concorrência exercita — duas chamadas seguidas NÃO devolvem a mesma linha.
  */
+/**
+ * Registra na dead letter, sem duplicar.
+ *
+ * A GUARDA DE DUPLICATA E O PONTO: a limpeza roda a cada volta do worker, e sem
+ * ela um item preso viraria uma linha nova por volta — ate a fila de falhas ter
+ * mais ruido que sinal, que e como ela deixa de ser lida.
+ */
+function anotarMorte(
+  tabelas: Tabelas,
+  origem: string,
+  referencia: unknown,
+  erro: string,
+  organizationId: unknown,
+  payload: Linha,
+): void {
+  const mortas = (tabelas["crc_dead_letters"] ??= []);
+  const jaTem = mortas.some((d) => d["origem"] === origem && d["referencia"] === referencia);
+  if (jaTem) return;
+
+  mortas.push(
+    comPadroes("crc_dead_letters", {
+      organization_id: organizationId ?? null,
+      origem,
+      referencia,
+      erro: erro.length > 0 ? erro : "Esgotou as tentativas com o worker morto.",
+      payload,
+      status: "PENDENTE",
+    }),
+  );
+}
+
 export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[]> {
   // A RPC arma pelo NOME dela, e não pela tabela que toca: do lado de fora é a
   // RPC que falha, e é ela que quem chama tem de saber tratar.
@@ -1154,6 +1191,18 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
         l["status"] = "FALHOU";
         l["travado_ate"] = null;
         l["ultimo_erro"] = l["ultimo_erro"] ?? "O worker nao terminou o webhook e o lease venceu.";
+
+        /*
+         * A DEAD LETTER SAI DAQUI, e nao do worker — porque o worker e
+         * justamente quem nao estava la. Um envelope que esgota as tentativas
+         * com o processo morto nunca passa pelo `catch` que escreveria o
+         * registro, e some: FALHOU, fora da fila, sem nada que alguem leia.
+         */
+        anotarMorte(tabelas, "webhook", l["id"], String(l["ultimo_erro"] ?? ""), null, {
+          provedor: l["provedor"],
+          externalId: l["external_id"],
+          tentativas: l["tentativas"],
+        });
       }
 
       return Promise.resolve([{ crc_liberar_webhooks_presos: presos.length }] as T[]);
@@ -1177,7 +1226,22 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       for (const l of presos) {
         l["status"] = "FALHOU";
         l["terminou_em"] = new Date(agora).toISOString();
+        l["travado_ate"] = null;
         l["ultimo_erro"] = l["ultimo_erro"] ?? "O worker nao terminou o job e o lease venceu.";
+
+        // Mesma razao do webhook: quem morreu nao escreve o proprio obituario.
+        anotarMorte(
+          tabelas,
+          "agent_job",
+          l["id"],
+          String(l["ultimo_erro"] ?? ""),
+          l["organization_id"],
+          {
+            conversationId: l["conversation_id"],
+            eventId: l["event_id"],
+            tentativas: l["tentativas"],
+          },
+        );
       }
 
       return Promise.resolve([{ crc_liberar_agent_jobs_presos: presos.length }] as T[]);

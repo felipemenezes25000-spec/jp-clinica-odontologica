@@ -15,10 +15,24 @@
  * regras, e isso já pegou defeito de verdade — mas reproduzir uma constraint é
  * diferente de executá-la.
  *
- * AS CHAMADAS PASSAM PELO ADAPTADOR DE PRODUÇÃO. Estes testes não abrem conexão
- * própria: usam `servidor/banco.ts`, apontado para um PostgREST de teste. É o
- * mesmo caminho que o app percorre no ar, incluindo serialização, filtros e
- * tratamento de erro — um cliente paralelo testaria outro sistema.
+ * O QUE ESTES TESTES NÃO FAZEM, e o cabeçalho afirmava que sim até 12/09/2026:
+ * eles NÃO passam pelo `servidor/banco.ts`. Falam com o mesmo PostgREST, pelo
+ * mesmo HTTP, mas montando a chamada aqui.
+ *
+ * O MOTIVO É DE ROTA, e é chato: o adaptador prefixa `/rest/v1/`, que é o
+ * caminho do Supabase. O PostgREST puro serve na raiz. Apontar o adaptador para
+ * `http://localhost:3001` produz `/rest/v1/crc_...` e devolve 404.
+ *
+ * POR QUE ISSO IMPORTA, e não é preciosismo: enquanto o cabeçalho afirmava o
+ * contrário, era razoável supor que uma incompatibilidade entre o código e o
+ * schema apareceria aqui. Não apareceria — e não apareceu. O `supabase/23`
+ * trocou a chave primária de `crc_sync_state`, o `sincronizacao.ts` continuou
+ * com o `on_conflict` antigo, e os 62 testes de integração seguiram verdes.
+ *
+ * O QUE FAZER COM ISSO: quando um teste precisar provar que o CÓDIGO e o BANCO
+ * concordam, ele tem que LER a string do arquivo de produção — e não escrevê-la
+ * de novo aqui. Ver `o cursor de sync pelo caminho de produção`, em
+ * `tenant.test.ts`. Um teste que reescreve a query testa a query do teste.
  */
 
 /** O endereço do PostgREST de teste. Sem isto, nada aqui pode rodar. */

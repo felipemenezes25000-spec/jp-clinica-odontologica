@@ -33,7 +33,9 @@ import {
   inserirIgnorandoDuplicata,
   rpc,
   selecionar,
+  type Linha,
 } from "../servidor/banco";
+import { registrar } from "../servidor/registro";
 
 /* -------------------------------------------------------------------------- */
 /* O contrato                                                                 */
@@ -290,8 +292,34 @@ async function encerrarComPosse(
   status: StatusJob,
   erro: string | null,
   duracaoMs: number | null,
+  extras: Linha = {},
 ): Promise<boolean> {
   if (job.leaseToken !== null && job.leaseToken.length > 0) {
+    /*
+     * ========================================================================
+     *  COM TOKEN, SÓ O CAMINHO CERCADO. E a versão anterior tinha uma porta
+     *  dos fundos.
+     *
+     *  Ela caía no `update` cru quando a RPC falhava, com o raciocínio "perder
+     *  o desfecho é pior que perder o fencing". Está errado, e o cenário mostra
+     *  por quê:
+     *
+     *      worker A pega o job
+     *        ↓ o lease de A vence
+     *      worker B assume e RESPONDE o paciente
+     *        ↓ A termina atrasado
+     *        ↓ a RPC cercada falha por uma oscilação
+     *        ↓ fallback: update sem token
+     *      A grava o desfecho DELE por cima do de B
+     *
+     *  O fencing existia e o código o contornava exatamente na hora em que ele
+     *  importava. Uma oscilação de rede virava perda de trabalho alheio.
+     *
+     *  O QUE ACONTECE AGORA quando a RPC falha: nada. O job fica RODANDO com o
+     *  lease vencido, e o reconciliador o devolve à fila ou o manda para a dead
+     *  letter. Um job que volta é recuperável; um desfecho escrito por cima não.
+     * ========================================================================
+     */
     try {
       const linhas = await rpc("crc_encerrar_agent_job", {
         p_job_id: job.id,
@@ -301,12 +329,27 @@ async function encerrarComPosse(
         p_duracao_ms: duracaoMs,
       });
       const linha = linhas[0];
-      if (linha !== undefined) return Object.values(linha)[0] !== false;
-    } catch {
-      // Cai no caminho antigo: perder o desfecho é pior que perder o fencing.
+      const gravou = linha !== undefined && Object.values(linha)[0] !== false;
+
+      // Os campos que a RPC não conhece — `disponivel_em` do backoff. Só depois
+      // de a posse ter sido PROVADA.
+      if (gravou && Object.keys(extras).length > 0) {
+        await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], extras);
+      }
+      return gravou;
+    } catch (falha) {
+      registrar("erro", "Não foi possível encerrar o job com prova de posse.", {
+        organizationId: job.organizationId,
+        detalhe: falha instanceof Error ? falha.message : String(falha),
+      });
+      return false;
     }
   }
 
+  /*
+   * SEM TOKEN, o caminho antigo. É o banco que ainda não aplicou `supabase/22`,
+   * e ali não existe posse para provar — o comportamento é o de antes.
+   */
   await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
     status,
     ...(erro === null ? {} : { ultimo_erro: erro.slice(0, 500) }),
@@ -314,6 +357,7 @@ async function encerrarComPosse(
     terminou_em: agoraIso(),
     travado_ate: null,
     atualizado_em: agoraIso(),
+    ...extras,
   });
   return true;
 }
@@ -325,14 +369,10 @@ async function encerrarComPosse(
  * desligada, o paciente pediu opt-out — nada disso é defeito, e misturar com
  * erro faria a fila de falhas encher de coisa saudável até ninguém mais olhar.
  */
-export async function descartarJob(job: AgentJob, motivo: string): Promise<void> {
-  await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
-    status: "DESCARTADO",
-    ultimo_erro: motivo.slice(0, 500),
-    terminou_em: agoraIso(),
-    travado_ate: null,
-    atualizado_em: agoraIso(),
-  });
+export async function descartarJob(job: AgentJob, motivo: string): Promise<boolean> {
+  // CERCADO como a conclusão, e pelo mesmo motivo: descartar também é um
+  // desfecho, e o worker que perdeu a posse não pode escrevê-lo.
+  return await encerrarComPosse(job, "DESCARTADO", motivo, null);
 }
 
 /**
@@ -346,16 +386,21 @@ export async function falharJob(job: AgentJob, erro: string, agora = new Date())
   const desistiu = job.tentativas >= MAX_TENTATIVAS;
   const detalhe = erro.slice(0, 500);
 
-  await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
-    status: desistiu ? "FALHOU" : "REPETIR",
-    ultimo_erro: detalhe,
-    travado_ate: null,
+  const gravou = await encerrarComPosse(job, desistiu ? "FALHOU" : "REPETIR", detalhe, null, {
     disponivel_em: desistiu
       ? agoraIso()
       : new Date(agora.getTime() + esperaDoRetry(job.tentativas) * 1000).toISOString(),
-    ...(desistiu ? { terminou_em: agoraIso() } : {}),
-    atualizado_em: agoraIso(),
   });
+
+  /*
+   * PERDEU A POSSE: não escreve, e não manda para a dead letter.
+   *
+   * Quem tem a posse agora é outro worker, e ele vai produzir o próprio
+   * desfecho. Registrar a falha DESTE seria contar duas vezes o mesmo job — e
+   * abrir uma dead letter para um trabalho que está sendo feito agora é o tipo
+   * de ruído que faz a fila de falhas deixar de ser lida.
+   */
+  if (!gravou) return;
 
   if (!desistiu) return;
 

@@ -11,37 +11,44 @@
  *                  agora, e são caras. Roda uma vez por dia.
  *
  * ========================================================================
- *  O SEGUNDO DEFEITO QUE ESTE ARQUIVO CONSERTA: **uma clínica só.**
+ *  DOIS ESCOPOS, E CONFUNDI-LOS CUSTA CARO.
  *
- *  `/api/crc/motor` fazia, literalmente:
+ *  Nem tudo aqui é por clínica, e a primeira versão deste arquivo tratava tudo
+ *  como se fosse — iterava clínicas e, dentro do laço, rodava também o que é da
+ *  organização inteira. Com três unidades:
  *
- *      selecionarUm("crc_clinics", { filtros: [ativa = true],
- *                                    ordenar: [criado_em asc] })
+ *    PACIENTES sincronizados 3×. E pior que o desperdício: `listarPacientes`
+ *    devolve a conta INTEIRA (não recebe clínica), e cada rodada regravava
+ *    `clinic_id` com a clínica da vez. A base de pacientes MIGRAVA de unidade a
+ *    cada volta, em silêncio.
  *
- *  Pegava a PRIMEIRA clínica ativa e trabalhava nela. Com uma organização,
- *  correto. Com duas, a segunda nunca tinha a agenda sincronizada, nunca
- *  recebia campanha e nunca era varrida — e o relatório do motor voltava
- *  verde, porque ele fez tudo o que se propôs a fazer: na clínica errada.
+ *    CAMPANHAS disparadas 3×. A idempotência segura a maior parte do estrago,
+ *    e não toda: o teto por hora é consumido três vezes mais rápido, e a
+ *    cadência que alguém configurou deixa de valer.
  *
- *  O laço aqui é o conserto. E ele é por CLÍNICA, não por organização, porque
- *  a sincronização é por clínica: cada uma tem o próprio `external_id` no
- *  Dental Office e o próprio cursor.
+ *    VARREDURAS 3×, recálculo de prioridade 3×.
+ *
+ *  A separação abaixo é por pergunta: **isto é de um lugar, ou da empresa?**
+ *
+ *    POR ORGANIZAÇÃO   pacientes, campanhas, varreduras, prioridades
+ *    POR CLÍNICA       dentistas e agenda — cada unidade tem os seus, com
+ *                      `external_id` próprio e cursor próprio
  * ========================================================================
  */
 import { registrar } from "../servidor/registro";
 
-export type ResultadoDaClinica = {
+export type ResultadoDaOrganizacao = {
   organizationId: string;
-  clinicId: string;
-  sincronizacao: unknown;
+  /** Uma entrada por clínica: só o que é local a ela. */
+  clinicas: { clinicId: string; agenda: unknown; falhou?: string }[];
+  pacientes: unknown;
   campanhas: unknown;
   varreduras: unknown[];
-  /** Preenchido quando esta clínica falhou e as outras seguiram. */
   falhou?: string;
 };
 
 /**
- * Roda a volta pesada em todas as clínicas ativas.
+ * Roda a volta pesada em todas as organizações que têm clínica ativa.
  *
  * `varrerAgora` força as varreduras fora da janela da madrugada — é o que o
  * `?varrer=1` da rota usa para quem está investigando.
@@ -49,47 +56,51 @@ export type ResultadoDaClinica = {
 export async function rodarVoltaPesada(opcoes: {
   varrerAgora?: boolean;
   agora?: Date;
-}): Promise<ResultadoDaClinica[]> {
+}): Promise<ResultadoDaOrganizacao[]> {
   const { selecionar } = await import("../servidor/banco");
 
   const clinicas = await selecionar("crc_clinics", {
     colunas: "id,organization_id,external_id",
     filtros: [{ coluna: "ativa", op: "eq", valor: true }],
     ordenar: [{ coluna: "criado_em", ascendente: true }],
-    limite: 200,
+    limite: 500,
   });
+
+  // Agrupa por organização, preservando a ordem de criação: a primeira clínica
+  // de cada organização é a que serve de referência quando um paciente não diz
+  // a qual unidade pertence.
+  const porOrganizacao = new Map<string, Record<string, unknown>[]>();
+  for (const c of clinicas) {
+    const org = String(c["organization_id"] ?? "");
+    if (org.length === 0) continue;
+    const lista = porOrganizacao.get(org) ?? [];
+    lista.push(c);
+    porOrganizacao.set(org, lista);
+  }
 
   const agora = opcoes.agora ?? new Date();
   // 9h UTC ≈ 6h em São Paulo: as jornadas nascem antes do expediente e esperam
   // a abertura para falar com alguém.
   const naJanela = opcoes.varrerAgora === true || agora.getUTCHours() === 9;
 
-  const resultados: ResultadoDaClinica[] = [];
+  const resultados: ResultadoDaOrganizacao[] = [];
 
-  for (const clinica of clinicas) {
-    const organizationId = String(clinica["organization_id"] ?? "");
-    const clinicId = String(clinica["id"] ?? "");
-    if (organizationId.length === 0 || clinicId.length === 0) continue;
-
+  for (const [organizationId, suas] of porOrganizacao) {
     try {
-      resultados.push(await umaClinica(organizationId, clinica, naJanela));
+      resultados.push(await umaOrganizacao(organizationId, suas, naJanela));
     } catch (erro) {
       /*
-       * ENGOLE E SEGUE, igual ao pulso e pelo mesmo motivo: num SaaS, deixar o
-       * erro subir seria a clínica com credencial vencida impedindo todas as
-       * outras de sincronizar naquele dia. E a que quebra costuma ser a mais
-       * nova — exatamente a que ninguém está olhando ainda.
+       * ENGOLE E SEGUE. Num SaaS, deixar o erro subir seria a organização com
+       * credencial vencida impedindo todas as outras de sincronizar naquele dia
+       * — e a que quebra costuma ser a mais nova, exatamente a que ninguém está
+       * olhando ainda.
        */
       const detalhe = erro instanceof Error ? erro.message : String(erro);
-      registrar("erro", "A volta pesada falhou numa clínica.", {
-        organizationId,
-        clinicId,
-        detalhe,
-      });
+      registrar("erro", "A volta pesada falhou numa organização.", { organizationId, detalhe });
       resultados.push({
         organizationId,
-        clinicId,
-        sincronizacao: null,
+        clinicas: [],
+        pacientes: null,
         campanhas: null,
         varreduras: [],
         falhou: detalhe.slice(0, 300),
@@ -100,15 +111,87 @@ export async function rodarVoltaPesada(opcoes: {
   return resultados;
 }
 
-async function umaClinica(
+async function umaOrganizacao(
   organizationId: string,
-  clinica: Record<string, unknown>,
+  clinicas: readonly Record<string, unknown>[],
   naJanela: boolean,
-): Promise<ResultadoDaClinica> {
+): Promise<ResultadoDaOrganizacao> {
   const { lerConfiguracao, lerKillSwitches } = await import("../servidor/configuracao");
   const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
+  const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
 
-  const sincronizacao = await sincronizar(organizationId, clinica);
+  const cliente = criarClienteDentalOffice({ organizationId });
+  const referencia = clinicas[0];
+
+  /* --- o que é da organização: uma vez ---------------------------------- */
+
+  let pacientes: unknown = { pulada: true, motivo: "Sem clínica de referência." };
+
+  if (cliente.ok && referencia !== undefined) {
+    /*
+     * PACIENTES UMA VEZ SÓ, e com a clínica de referência no contexto.
+     *
+     * `listarPacientes` não recebe clínica — ela devolve a conta inteira. Quem
+     * decide a unidade de cada paciente é `gravarPaciente`, pelo campo que o
+     * próprio paciente traz. A clínica daqui é só o último recurso, para
+     * paciente novo que não diz nada.
+     */
+    const { sincronizarPacientes, _limparCacheDeClinicas } =
+      await import("../aplicacao/sincronizacao");
+    _limparCacheDeClinicas();
+
+    pacientes = await comCaptura(organizationId, "pacientes", () =>
+      sincronizarPacientes({
+        organizationId,
+        clinicId: String(referencia["id"] ?? ""),
+        clinicaExternaId: String(referencia["external_id"] ?? ""),
+        cliente: cliente.cliente,
+      }),
+    );
+  } else if (!cliente.ok) {
+    pacientes = { pulada: true, motivo: cliente.motivo, faltando: cliente.faltando };
+  }
+
+  /* --- o que é de cada clínica ------------------------------------------ */
+
+  const porClinica: ResultadoDaOrganizacao["clinicas"] = [];
+
+  for (const c of clinicas) {
+    const clinicId = String(c["id"] ?? "");
+    if (clinicId.length === 0) continue;
+
+    if (!cliente.ok) {
+      porClinica.push({ clinicId, agenda: { pulada: true, motivo: cliente.motivo } });
+      continue;
+    }
+
+    const ctx = {
+      organizationId,
+      clinicId,
+      clinicaExternaId: String(c["external_id"] ?? ""),
+      cliente: cliente.cliente,
+    };
+
+    try {
+      const { sincronizarAgendamentos, sincronizarDentistas } =
+        await import("../aplicacao/sincronizacao");
+
+      // Dentistas ANTES da agenda: é por eles que se pergunta o horário livre,
+      // e uma oferta com a lista vazia devolve "SEM_DENTISTA".
+      await sincronizarDentistas(ctx);
+      porClinica.push({ clinicId, agenda: await sincronizarAgendamentos(ctx) });
+    } catch (erro) {
+      const detalhe = erro instanceof Error ? erro.message : String(erro);
+      registrar("erro", "A sincronização falhou numa clínica.", {
+        organizationId,
+        clinicId,
+        detalhe,
+      });
+      porClinica.push({ clinicId, agenda: null, falhou: detalhe.slice(0, 300) });
+    }
+  }
+
+  /* --- de novo o que é da organização ------------------------------------ */
 
   const configuracao = await lerConfiguracao(organizationId);
   const switches = await lerKillSwitches(organizationId);
@@ -139,56 +222,88 @@ async function umaClinica(
     const { detectarOportunidadesParadas } = await import("../aplicacao/tarefas");
     varreduras.push({ prioridadesRecalculadas: await recalcularPrioridades(organizationId) });
     varreduras.push({ oportunidadesParadas: await detectarOportunidadesParadas(organizationId) });
+
+    /*
+     * A FAXINA, junto com as varreduras e pelo mesmo motivo: é trabalho de
+     * manutenção, cara, e que ninguém está esperando. Ver `faxina()`.
+     */
+    varreduras.push(await faxina());
   }
 
-  return {
-    organizationId,
-    clinicId: String(clinica["id"] ?? ""),
-    sincronizacao,
-    campanhas,
-    varreduras,
-  };
+  return { organizationId, clinicas: porClinica, pacientes, campanhas, varreduras };
 }
 
-/**
- * Traz o que mudou no Dental Office, ou explica por que não trouxe.
- *
- * SEM CREDENCIAL NÃO É ERRO. Enquanto o Dental Office não liberar o acesso,
- * isto devolve "não configurado" e a volta segue. Tratar ausência de credencial
- * como falha encheria o log de erro todo dia com algo que já se sabe.
- *
- * PACIENTES ANTES DA AGENDA, e dentistas no meio: um agendamento precisa do
- * paciente para existir, e uma oferta de horário com a lista de dentistas vazia
- * devolve "SEM_DENTISTA".
- */
-async function sincronizar(
+/** Roda algo e transforma a exceção em resultado, sem derrubar a volta. */
+async function comCaptura<T>(
   organizationId: string,
-  clinica: Record<string, unknown>,
-): Promise<unknown> {
-  const { criarClienteDentalOffice } = await import("../integracoes/dental-office/cliente");
-  const cliente = criarClienteDentalOffice({ organizationId });
-
-  if (!cliente.ok) return { pulada: true, motivo: cliente.motivo, faltando: cliente.faltando };
-
-  const { sincronizarPacientes, sincronizarAgendamentos, sincronizarDentistas } =
-    await import("../aplicacao/sincronizacao");
-
-  const contexto = {
-    organizationId,
-    clinicId: String(clinica["id"] ?? ""),
-    clinicaExternaId: String(clinica["external_id"] ?? ""),
-    cliente: cliente.cliente,
-  };
-
+  o_que: string,
+  fn: () => Promise<T>,
+): Promise<T | { falhou: true; detalhe: string }> {
   try {
-    const pacientes = await sincronizarPacientes(contexto);
-    await sincronizarDentistas(contexto);
-    const agenda = await sincronizarAgendamentos(contexto);
-    return { pacientes, agenda };
+    return await fn();
   } catch (erro) {
-    const { descreverErro } = await import("../servidor/registro");
-    const detalhe = descreverErro(erro);
-    registrar("erro", "Sincronização falhou na volta pesada.", { organizationId, detalhe });
+    const detalhe = erro instanceof Error ? erro.message : String(erro);
+    registrar("erro", `A sincronização de ${o_que} falhou.`, { organizationId, detalhe });
     return { falhou: true, detalhe };
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Faxina                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type ResultadoDaFaxina = {
+  webhooksApagados: number;
+  jobsApagados: number;
+  runsFechadas: number;
+};
+
+/**
+ * A limpeza periódica das filas.
+ *
+ * ========================================================================
+ *  AS FUNÇÕES DE LIMPEZA EXISTIAM, ERAM TESTADAS, E NINGUÉM AS CHAMAVA.
+ *
+ *  `crc_limpar_webhooks_antigos`, `limparConcluidos` e
+ *  `crc_fechar_ai_runs_abandonadas` estavam escritas e cobertas por teste — e
+ *  sem chamador no runtime. Uma função de limpeza que nunca roda é pior do que
+ *  não existir: ela dá a impressão de que a retenção está resolvida.
+ *
+ *  O QUE ISSO ACUMULA, e é o motivo de a faxina ser aqui e não "quando alguém
+ *  lembrar": um envelope de webhook que esgota as tentativas fica `FALHOU` com
+ *  o payload normalizado dentro — telefone e texto da mensagem do paciente. A
+ *  limpeza de retenção só olhava `PROCESSADO`. Ou seja, o caso de FALHA, que é
+ *  justamente o que ninguém revisita, guardava PII para sempre.
+ * ========================================================================
+ *
+ * NUNCA LANÇA. Faxina é higiene: ela não pode impedir a volta de acontecer.
+ */
+export async function faxina(dias = 30): Promise<ResultadoDaFaxina> {
+  const r: ResultadoDaFaxina = { webhooksApagados: 0, jobsApagados: 0, runsFechadas: 0 };
+
+  try {
+    const { rpc } = await import("../servidor/banco");
+    const linhas = await rpc("crc_limpar_webhooks_antigos", { p_dias: dias });
+    const n = linhas[0];
+    r.webhooksApagados = n === undefined ? 0 : Number(Object.values(n)[0] ?? 0);
+  } catch {
+    // Segue: cada passo é independente.
+  }
+
+  try {
+    const { limparConcluidos } = await import("../aplicacao/agent-jobs");
+    const antes = new Date(Date.now() - dias * 86_400_000);
+    await limparConcluidos(antes);
+  } catch {
+    // idem
+  }
+
+  try {
+    const { fecharRunsAbandonadas } = await import("../aplicacao/agent-jobs");
+    r.runsFechadas = await fecharRunsAbandonadas();
+  } catch {
+    // idem
+  }
+
+  return r;
 }
