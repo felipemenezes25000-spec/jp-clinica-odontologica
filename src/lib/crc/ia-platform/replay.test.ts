@@ -365,3 +365,104 @@ describe("a suíte nasce completa", () => {
     expect(v.bloqueios.some((b) => b.categoria === "tenant")).toBe(true);
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("a suíte distingue um agente seguro de um agente inútil", () => {
+  /*
+   * ========================================================================
+   *  A PROPRIEDADE QUE FALTAVA, e a ausência dela era pior que um caso a menos.
+   *
+   *  Dos doze casos originais, onze afirmavam que algo NÃO deve acontecer.
+   *  Consequência: **um agente que passasse tudo para uma pessoa, sempre,
+   *  passaria em quase toda a suíte** — perfeitamente seguro, perfeitamente
+   *  inútil, e aprovado pela régua que autoriza ligar o envio.
+   *
+   *  É o mesmo defeito do validador que reprova tudo: sem caso de controle, a
+   *  prova mede a coisa errada.
+   * ========================================================================
+   */
+
+  /** O agente que nunca arrisca: passa tudo adiante. */
+  const covarde = () => paraHumano();
+
+  it("o agente que SÓ passa adiante é REPROVADO", async () => {
+    const positivos = CASOS_PADRAO.filter((c) => c.esperado.deveResponder === true);
+
+    // Se este número for zero, a suíte não tem controle nenhum e o resto deste
+    // teste não significa nada.
+    expect(positivos.length).toBeGreaterThan(0);
+
+    const reprovados: string[] = [];
+    for (const [i, c] of positivos.entries()) {
+      const r = await rodarCaso(
+        { ...c, id: `pos-${String(i)}` },
+        { porta: covarde(), agora: AGORA },
+      );
+      if (!r.passou) reprovados.push(c.nome);
+    }
+
+    // TODOS os casos positivos precisam reprová-lo. Um que passasse seria um
+    // caso que não afirma nada.
+    expect(reprovados).toEqual(positivos.map((c) => c.nome));
+  });
+
+  it("e o agente SIMPÁTICO E INÚTIL é reprovado por quem exige uma pessoa", async () => {
+    /*
+     * O outro extremo, e o controle do controle.
+     *
+     * A PRIMEIRA VERSÃO DESTE TESTE ESTAVA ERRADA, e o erro é instrutivo: o
+     * agente ruim que escrevi dizia "pode tomar dipirona sim, custa R$ 200".
+     * Só que esse texto TROPEÇA no portão de conteúdo clínico — e o portão
+     * converte o turno em `humano`. Ou seja, o sistema se defendeu, o desfecho
+     * virou exatamente o que os casos exigiam, e sete deles "passaram".
+     *
+     * O teste media a defesa dos portões, e não a dos casos.
+     *
+     * O agente perigoso de verdade é este: educado, genérico, sem uma palavra
+     * proibida — e por isso atravessa todos os portões e RESPONDE. É contra ele
+     * que `devePassarParaHumano` precisa ter dente.
+     */
+    const simpaticoEInutil = () =>
+      responde("Claro, imagino! Vou dar uma olhadinha aqui e já te retorno, tá bom?");
+
+    const exigemHumano = CASOS_PADRAO.filter((c) => c.esperado.devePassarParaHumano === true);
+    expect(exigemHumano.length).toBeGreaterThan(0);
+
+    const passaram: string[] = [];
+    for (const [i, c] of exigemHumano.entries()) {
+      const r = await rodarCaso(
+        { ...c, id: `neg-${String(i)}` },
+        { porta: simpaticoEInutil(), agora: AGORA },
+      );
+      if (r.passou) passaram.push(c.nome);
+    }
+
+    // NENHUM pode passar: todos exigem que uma pessoa entre na conversa, e ele
+    // respondeu sozinho em todos.
+    expect(passaram).toEqual([]);
+  });
+
+  it("nenhum caso exige responder E passar para humano ao mesmo tempo", () => {
+    // Um caso contraditório é impossível de passar, e a suíte inteira ficaria
+    // reprovada para sempre por um erro de digitação.
+    const contraditorios = CASOS_PADRAO.filter(
+      (c) => c.esperado.deveResponder === true && c.esperado.devePassarParaHumano === true,
+    );
+    expect(contraditorios.map((c) => c.nome)).toEqual([]);
+  });
+
+  it("toda categoria BLOQUEANTE tem mais de um caso", () => {
+    /*
+     * Um caso só numa categoria bloqueante é frágil: ele cobre uma frase, e
+     * quem quer contornar tem que evitar uma frase. `autorizacao` tinha
+     * exatamente um.
+     */
+    const porCategoria = new Map<string, number>();
+    for (const c of CASOS_PADRAO)
+      porCategoria.set(c.categoria, (porCategoria.get(c.categoria) ?? 0) + 1);
+
+    const magras = CATEGORIAS_BLOQUEANTES.filter((c) => (porCategoria.get(c) ?? 0) < 2);
+    expect(magras).toEqual([]);
+  });
+});
