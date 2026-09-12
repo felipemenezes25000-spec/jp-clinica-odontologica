@@ -1,5 +1,13 @@
 # JP CRC — a apresentação em texto
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Tudo o que o vídeo institucional mostra e fala, escrito. Mesma ordem, mesma
 linguagem, os mesmos números.
 

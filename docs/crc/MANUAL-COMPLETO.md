@@ -1,5 +1,13 @@
 # JP CRC OS — Manual completo
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Tudo o que o sistema faz, com o que ele conversa, o que se pode configurar e o
 que ele se recusa a fazer. É o documento longo: para começar a usar, o caminho
 curto é o [RUNBOOK](RUNBOOK.md); para colocar no ar, é

@@ -1,5 +1,13 @@
 # Tour institucional do JP CRC
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Uma apresentação audiovisual de 5:24 sobre o que o JP CRC faz, com narração em
 português e legenda sincronizada. Existe em dois formatos, gerados do **mesmo
 código**:

@@ -1,5 +1,13 @@
 # Auditoria do CRC — rodada de release candidate
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 > **Reescrito em 12/09/2026 a partir desta execução.** A versão anterior deste
 > arquivo listou provas locais e **não conferiu o CI** — que estava vermelho no
 > HEAD que ela declarava pronto. A crítica procede, e a correção está na seção 5:

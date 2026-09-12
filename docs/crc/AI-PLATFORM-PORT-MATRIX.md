@@ -1,5 +1,13 @@
 # Matriz de porte — DeskcommCRM → JP CRC
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 O DeskcommCRM (MIT, Rafael Melgaço, 2026) entra como **fonte de engenharia**:
 comportamento, contratos, invariantes e algoritmos. Não entra como segundo
 produto, segundo frontend nem segundo CRM.

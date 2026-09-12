@@ -1,5 +1,13 @@
 # Roadmap — CRC AI OS
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Ordenado por **dependência**, não por empolgação. Cada fatia é vertical: deixa
 algo verificável funcionando ponta a ponta, atrás de flag, em `SHADOW` por
 padrão.

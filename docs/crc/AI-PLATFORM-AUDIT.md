@@ -1,5 +1,13 @@
 # Auditoria — estado real antes do CRC AI OS
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Fase 0 do plano `CRC AI OS`. Este documento descreve o que **existe**, não o que
 se pretende construir. Onde o código diverge da documentação, o código venceu e
 a divergência está anotada.

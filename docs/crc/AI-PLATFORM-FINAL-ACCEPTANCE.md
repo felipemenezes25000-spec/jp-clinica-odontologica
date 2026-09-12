@@ -1,5 +1,13 @@
 # Matriz de aceite — CRC AI OS
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 > **Este documento não declara o projeto pronto.** Ele diz, item por item, o que
 > está provado e o que não está. Linha sem evidência não recebe `PASS`.
 

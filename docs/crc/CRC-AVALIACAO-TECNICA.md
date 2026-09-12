@@ -33,24 +33,39 @@ Isso muda o que esta seção conclui sobre o resto do documento: onde aparece um
 número, ele passou por inspeção. Onde não deu para inspecionar, está escrito
 que não deu.
 
+**E a regra apanhou o próprio autor.** Ao gerar o mapa do sistema (que é
+derivado do código, e por isso não erra), três números desta avaliação não
+bateram e foram corrigidos:
+
+| Estava escrito           | É de verdade              | Por que errei                                  |
+| ------------------------ | ------------------------- | ---------------------------------------------- |
+| 23.296 linhas de domínio | **14.346**                | o comando somou os arquivos de teste junto     |
+| 91 tabelas               | **88**                    | contei linhas com `crc_`, incluindo comentário |
+| 44 telas                 | **44 arquivos, 42 telas** | dois são componentes compartilhados            |
+
+Os três vieram de `grep` sem conferência — exatamente o erro que a seção
+acima descreve. Ficam registrados porque um documento que só conta o erro dos
+outros não vale nada.
+
 ---
 
 ## 1. O tamanho
 
-| Camada                 | Quantidade                      |
-| ---------------------- | ------------------------------- |
-| Domínio (regras puras) | **49 módulos · 23.296 linhas**  |
-| Serviços (aplicação)   | 54 módulos                      |
-| Automação              | 7 módulos                       |
-| Plataforma de IA       | 11 módulos · ~3.650 linhas      |
-| Integrações            | 18 arquivos · 5 provedores      |
-| Telas                  | 44 componentes · 28 abas ativas |
-| Banco                  | 91 tabelas · 40 migrations      |
-| Testes                 | **107 arquivos · 1.754 testes** |
-| E2E (navegador real)   | 7 suítes                        |
+| Camada                 | Quantidade                       |
+| ---------------------- | -------------------------------- |
+| Domínio (regras puras) | **49 módulos · 14.346 linhas**   |
+| Serviços (aplicação)   | 54 módulos                       |
+| Automação              | 7 módulos                        |
+| Plataforma de IA       | 11 módulos · ~3.650 linhas       |
+| Integrações            | 18 arquivos · 5 provedores       |
+| Telas                  | 44 arquivos · 42 telas · 28 abas |
+| Banco                  | 88 tabelas · 40 migrations       |
+| Testes                 | **107 arquivos · 1.754 testes**  |
+| E2E (navegador real)   | 7 suítes                         |
 
-Para calibrar: são mais linhas de **regra de negócio pura** — sem banco, sem
-rede, sem relógio — do que muitos produtos comerciais têm de código total.
+Para calibrar: catorze mil linhas de **regra de negócio pura** — sem banco, sem
+rede, sem relógio — é mais do que muito produto comercial tem de lógica própria,
+fora framework e biblioteca.
 
 ---
 
@@ -58,7 +73,7 @@ rede, sem relógio — do que muitos produtos comerciais têm de código total.
 
 ### 2.1. A separação de camadas é real, e não aspiracional
 
-As 23.296 linhas de domínio não tocam banco, rede nem relógio. A regra de
+As 14.346 linhas de domínio não tocam banco, rede nem relógio. A regra de
 encaixe, de risco de falta e de aceitação são testáveis sem subir nada.
 
 É o que explica 1.754 testes rodarem em ~30 segundos. Um sistema com a regra
@@ -179,6 +194,35 @@ preocupam. Estes cinco decidem coisa.
 `mensagens.ts` (1.114 linhas) e `sincronizacao.ts` (943) são cobertos de lado
 pelos testes de integração e pelos E2E, o que atenua. Ainda assim, são os dois
 maiores arquivos de serviço do sistema e nenhum tem suíte dedicada.
+
+### 3.4. As escritas confiam na leitura de cima — `check-then-act`
+
+A seção 2.2 elogia o isolamento entre clínicas, e ele é mesmo forte. Mas ela
+mede as **leituras**. Medindo as escritas, o quadro é outro:
+
+```
+100 UPDATE/DELETE analisados
+ 42 sem organization_id no próprio filtro
+```
+
+**Nenhum é explorável hoje.** Inspecionei sete — escolhendo os que mais
+poderiam receber um id vindo de fora — e todos fazem leitura escopada antes.
+O mais exposto (`publicarDefinicao`, que recebe `automationId` do chamador)
+retorna _"Esta automação não existe nesta organização"_ antes de escrever.
+
+O problema não é o hoje, é a forma. **A segurança mora na leitura de cima, e
+não na escrita.** Um refactor que mova o `UPDATE` para um helper, ou que
+reordene o fluxo, remove a garantia — e nada falha: nenhum teste quebra, o
+typecheck passa, e a escrita cruzada só aparece quando alguém reclamar.
+
+A correção é barata e é defesa em profundidade: acrescentar
+`organization_id` ao filtro de cada escrita. O custo é uma linha por lugar; o
+ganho é a escrita passar a se defender sozinha, em vez de depender de quem a
+chama.
+
+> Este achado não estava na primeira versão deste documento porque eu havia
+> auditado só as leituras. Vale como nota de método: "as leituras estão
+> escopadas" não é o mesmo que "o sistema está escopado".
 
 ---
 

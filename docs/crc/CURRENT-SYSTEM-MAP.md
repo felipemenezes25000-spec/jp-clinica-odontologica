@@ -1,5 +1,13 @@
 # CURRENT-SYSTEM-MAP — o que existia antes do JP CRC
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Auditoria feita antes da primeira linha do módulo CRC, como manda o item 6 do
 Contrato de Execução. Serve para duas coisas: decidir o que reaproveitar e
 delimitar o raio de explosão (item 242 — nada de refatorar o que não pediram).

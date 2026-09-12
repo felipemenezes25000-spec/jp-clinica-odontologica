@@ -1,5 +1,13 @@
 # O que o CRC consegue fazer com o Dental Office
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Levantado lendo a especificação OpenAPI 3.0.3 deles inteira — 59 operações em
 14 recursos, guardada em [`dental-office-api/`](dental-office-api/).
 

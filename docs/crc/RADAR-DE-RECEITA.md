@@ -1,5 +1,13 @@
 # Radar de Receita, Next Best Action e Centro de Autonomia
 
+> [!NOTE]
+> **Este documento é um recorte datado.** Ele descreve o sistema como estava
+> quando foi escrito, e vale como registro da decisão daquele momento.
+>
+> Para o que o CRC faz **hoje**, o mapa é
+> [CRC-MAPA-DO-SISTEMA.md](./CRC-MAPA-DO-SISTEMA.md) — gerado do código por
+> `node scripts/mapa-do-sistema.mjs`, então não desatualiza sozinho.
+
 Documento de arquitetura da FASE A do Prompt Mestre (CRC Autopilot / Clinic
 Growth OS). Escrito depois de implementar, e não antes — o que está aqui é o que
 o código faz.
