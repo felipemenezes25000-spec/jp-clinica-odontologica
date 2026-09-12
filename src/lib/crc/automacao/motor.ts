@@ -559,11 +559,14 @@ async function executarPasso(
         return { tipo: "esperar", ate: janela, consomePasso: false, ...NADA };
       }
 
-      const texto = await renderizarTemplate(ctx.organizationId, passo.template, {
-        primeiroNome: primeiroNome(paciente.nome),
-        nome: paciente.nome,
-        clinica: "JP Clínica Integrada Odontológica",
-      });
+      const texto = await renderizarTemplate(
+        ctx.organizationId,
+        passo.template,
+        { primeiroNome: primeiroNome(paciente.nome), nome: paciente.nome },
+        // A unidade DO PACIENTE: numa rede, quem fala é a unidade em que ele é
+        // atendido, e não a holding.
+        paciente.clinicId,
+      );
 
       if (modo !== "EXECUTAR" || ctx.enviosPausados || ctx.porta === null) {
         // MODO SOMBRA (item 96): registra exatamente o que teria sido enviado.

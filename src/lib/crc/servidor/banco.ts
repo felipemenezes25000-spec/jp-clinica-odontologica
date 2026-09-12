@@ -71,6 +71,7 @@ export type Tabela =
   | "crc_sync_falhas"
   | "crc_sync_state"
   | "crc_scan_state"
+  | "crc_settings_clinica"
   | "crc_runtime_heartbeats"
   | "crc_schema_migrations"
   | "crc_budgets"

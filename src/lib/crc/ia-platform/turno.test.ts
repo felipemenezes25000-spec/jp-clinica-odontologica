@@ -433,11 +433,27 @@ describe("o texto do agente vem do Estúdio", () => {
     };
   }
 
-  it("sem versão publicada, usa o texto que vem no código", async () => {
+  it("sem versão publicada, usa o texto do código — com o nome DESTA clínica", async () => {
+    /*
+     * ========================================================================
+     *  A PRIMEIRA LINHA DO PROMPT ERA UM LITERAL: "Você atende pelo WhatsApp da
+     *  JP Clínica Integrada Odontológica." Este teste afirmava exatamente isso —
+     *  ou seja, ele PROTEGIA o defeito.
+     *
+     *  Num SaaS, um nome fixo no prompt é o agente de um cliente se
+     *  apresentando como outro na primeira frase que o paciente lê. E o modelo
+     *  obedece: repete o nome errado com naturalidade, porque foi o que
+     *  mandaram.
+     * ========================================================================
+     */
+    semear("crc_organizations", [{ id: ORG, slug: "alfa", nome: "Clínica Alfa" }]);
+
     const espia = portaEspiando();
     await rodarTurno(pedidoBase(espia.porta));
 
-    expect(espia.instrucoes[0]).toContain("JP Clínica Integrada Odontológica");
+    expect(espia.instrucoes[0]).toContain("Clínica Alfa");
+    expect(espia.instrucoes[0]).not.toContain("{{clinica}}");
+    expect(espia.instrucoes[0]).not.toContain("JP Clínica");
   });
 
   it("com versão publicada, é ELA que vai ao modelo", async () => {
@@ -461,7 +477,7 @@ describe("o texto do agente vem do Estúdio", () => {
 
     expect(espia.instrucoes[0]).toContain("versos de cordel");
     // E o texto de fábrica não vai junto: é substituição, não acréscimo.
-    expect(espia.instrucoes[0]).not.toContain("JP Clínica Integrada Odontológica");
+    expect(espia.instrucoes[0]).not.toContain("Você atende pelo WhatsApp");
   });
 
   it("RASCUNHO publicado não entra: só a versão publicada", async () => {

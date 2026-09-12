@@ -37,24 +37,55 @@ export type ResultadoInstalacao = {
   avisos: string[];
 };
 
-export async function instalar(opcoes: {
-  nomeOrganizacao?: string;
+/**
+ * Cria uma organização inteira, pronta para operar.
+ *
+ * ============================================================================
+ *  ISTO ERA `instalar()`, COM O SLUG "jp" ESCRITO DENTRO.
+ *
+ *      const slugOrg = "jp";
+ *      garantirClinica(..., slug: "matriz")
+ *
+ *  Serve para dar boot na JP e não serve para mais ninguém: a segunda
+ *  organização tentaria nascer com o mesmo slug e cairia no `select` que devolve
+ *  a existente — ou seja, "instalar o cliente B" devolveria silenciosamente o
+ *  cliente A, com o admin do B ganhando acesso à base do A.
+ *
+ *  Não é um erro de digitação: é um bootstrap fazendo as vezes de onboarding.
+ * ============================================================================
+ *
+ * IDEMPOTENTE, e essa parte NÃO muda: rodar duas vezes com o mesmo slug devolve
+ * a mesma organização. É o que permite chamar isto de uma rota sem medo, e o que
+ * faz a instalação sobreviver a um deploy no meio.
+ *
+ * O QUE TODA ORGANIZAÇÃO GANHA: etapas do funil, templates, as automações em
+ * rascunho, uma clínica e, quando as variáveis existem, um administrador.
+ * Nenhum dado fictício — a semente de exemplo é outra função, com outra trava.
+ */
+export async function criarOrganizacao(opcoes: {
+  /** Único no sistema. É por ele que a instalação é idempotente. */
+  slug: string;
+  nome: string;
+  /** O nome da primeira unidade. Quando ausente, o da organização. */
   nomeClinica?: string;
-  clinicaExternaId?: string;
+  /** O slug da primeira unidade. `matriz` é convenção, e não obrigação. */
+  slugClinica?: string;
+  clinicaExternaId?: string | null;
+  admin?: { nome: string; email: string; senha: string } | null;
 }): Promise<ResultadoInstalacao> {
   const avisos: string[] = [];
 
-  const slugOrg = "jp";
-  const organizationId = await garantirOrganizacao(
-    slugOrg,
-    opcoes.nomeOrganizacao ?? "JP Clínica Integrada Odontológica",
-  );
+  const slug = opcoes.slug.trim().toLowerCase();
+  if (slug.length === 0) throw new Error("A organização precisa de um slug.");
 
-  const clinicId = await garantirClinica(
+  const organizationId = await garantirOrganizacao(slug, opcoes.nome);
+
+  const clinicId = await criarClinica({
     organizationId,
-    opcoes.nomeClinica ?? "JP Clínica Integrada Odontológica",
-    opcoes.clinicaExternaId ?? null,
-  );
+    nome: opcoes.nomeClinica ?? opcoes.nome,
+    slug: opcoes.slugClinica ?? "matriz",
+    externalId: opcoes.clinicaExternaId ?? null,
+  });
 
   // As etapas do funil precisam existir antes de qualquer oportunidade: o
   // serviço de oportunidade procura "contato_pendente" para posicionar a nova.
@@ -78,37 +109,94 @@ export async function instalar(opcoes: {
   const automacoes = await semearAutomacoes(organizationId);
 
   let usuarioAdmin = "";
-  const email = (process.env["CRC_ADMIN_EMAIL"] ?? "").trim().toLowerCase();
-  const senha = process.env["CRC_ADMIN_SENHA"] ?? "";
-
-  if (email.length === 0 || senha.length === 0) {
+  if (opcoes.admin === null || opcoes.admin === undefined) {
     // Não é falha da instalação: o resto está pronto e o usuário pode ser
     // criado depois. Mas precisa aparecer, porque sem usuário ninguém entra.
     avisos.push(
-      "Nenhum usuário administrador foi criado: defina CRC_ADMIN_EMAIL e CRC_ADMIN_SENHA no servidor e rode a instalação de novo.",
+      "Nenhum usuário administrador foi criado: informe nome, e-mail e senha do administrador e rode a instalação de novo.",
     );
   } else {
     const r = await criarUsuario({
       organizationId,
-      nome: (process.env["CRC_ADMIN_NOME"] ?? "Administração").trim(),
-      email,
-      senha,
+      nome: opcoes.admin.nome,
+      email: opcoes.admin.email,
+      senha: opcoes.admin.senha,
       papel: "admin",
       clinicIds: [clinicId],
     });
-    if (r.ok) usuarioAdmin = email;
+    if (r.ok) usuarioAdmin = opcoes.admin.email;
     else avisos.push(`Usuário administrador não criado: ${r.motivo}`);
   }
 
-  registrar("info", "Instalação do CRC concluída.", {
+  registrar("info", "Organização criada.", {
     organizationId,
     clinicId,
+    slug,
     etapas,
     templates,
     automacoesCriadas: automacoes.criadas,
   });
 
   return { organizationId, clinicId, etapas, templates, automacoes, usuarioAdmin, avisos };
+}
+
+/**
+ * O bootstrap da JP — o caso particular, escrito como caso particular.
+ *
+ * Ele existe para a rota `/api/crc/instalar` continuar funcionando com um POST
+ * vazio, que é como a JP foi instalada. A diferença em relação a antes é que o
+ * nome e o slug agora são ARGUMENTO, e não uma decisão enterrada três funções
+ * abaixo.
+ *
+ * O ADMIN CONTINUA VINDO DO AMBIENTE, e continua certo: senha em corpo de
+ * requisição fica em log de proxy, e `CRC_ADMIN_SENHA` é lida pelo servidor e
+ * some do processo. O onboarding genérico aceita a senha por argumento porque
+ * ele será chamado de um fluxo autenticado que já tem uma; o bootstrap não tem
+ * de quem recebê-la.
+ */
+export async function instalar(opcoes: {
+  nomeOrganizacao?: string;
+  nomeClinica?: string;
+  clinicaExternaId?: string;
+}): Promise<ResultadoInstalacao> {
+  const email = (process.env["CRC_ADMIN_EMAIL"] ?? "").trim().toLowerCase();
+  const senha = process.env["CRC_ADMIN_SENHA"] ?? "";
+  const nome = (process.env["CRC_ADMIN_NOME"] ?? "Administração").trim();
+
+  const nomeOrganizacao = opcoes.nomeOrganizacao ?? "JP Clínica Integrada Odontológica";
+
+  return await criarOrganizacao({
+    slug: "jp",
+    nome: nomeOrganizacao,
+    nomeClinica: opcoes.nomeClinica ?? nomeOrganizacao,
+    slugClinica: "matriz",
+    clinicaExternaId: opcoes.clinicaExternaId ?? null,
+    admin: email.length > 0 && senha.length > 0 ? { nome, email, senha } : null,
+  });
+}
+
+/**
+ * Mais uma unidade na mesma organização.
+ *
+ * Separada de `criarOrganizacao` porque abrir uma segunda unidade é operação de
+ * rotina de um cliente que já existe — e não pode exigir recriar funil,
+ * templates e automações, que são da ORGANIZAÇÃO e já estão lá.
+ *
+ * IDEMPOTENTE PELO SLUG, dentro da organização: `unique (organization_id, slug)`
+ * no schema.
+ */
+export async function criarClinica(dados: {
+  organizationId: string;
+  nome: string;
+  slug: string;
+  externalId?: string | null;
+}): Promise<string> {
+  return await garantirClinica(
+    dados.organizationId,
+    dados.nome,
+    dados.slug.trim().toLowerCase(),
+    dados.externalId ?? null,
+  );
 }
 
 async function garantirOrganizacao(slug: string, nome: string): Promise<string> {
@@ -127,20 +215,24 @@ async function garantirOrganizacao(slug: string, nome: string): Promise<string> 
 async function garantirClinica(
   organizationId: string,
   nome: string,
+  slug: string,
   externalId: string | null,
 ): Promise<string> {
   const existente = await selecionarUm("crc_clinics", {
     colunas: "id",
     filtros: [
       { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "slug", op: "eq", valor: "matriz" },
+      // O SLUG É ARGUMENTO, e era o literal "matriz". Com ele fixo, a segunda
+      // unidade da mesma organização nunca nascia: o `select` encontrava a
+      // primeira e devolvia o id dela.
+      { coluna: "slug", op: "eq", valor: slug },
     ],
   });
   if (existente !== null) return String(existente["id"] ?? "");
 
   const criadas = await gravar(
     "crc_clinics",
-    { organization_id: organizationId, nome, slug: "matriz", external_id: externalId, ativa: true },
+    { organization_id: organizationId, nome, slug, external_id: externalId, ativa: true },
     "organization_id,slug",
   );
   const id = criadas[0]?.["id"];

@@ -89,7 +89,7 @@ const PULSO_CRITICO_MIN = 30;
  * janela em que o código é mais novo que o banco. O sinal a torna visível em
  * vez de deixá-la aparecer como erro aleatório no meio de um turno.
  */
-const MIGRACAO_ESPERADA = "27-crc-observabilidade.sql";
+const MIGRACAO_ESPERADA = "28-crc-configuracao-por-clinica.sql";
 
 /** Uma run aberta além disto significa worker morto, não turno demorado. */
 const RUN_ABERTA_DEMAIS_MIN = 30;

@@ -22,6 +22,7 @@
  *   quantas pessoas entram no filtro antes de qualquer coisa, e só vira fila
  *   quando uma pessoa agenda. O sistema monta; quem decide é gente.
  */
+import { nomeDaMarca } from "./marca";
 import { cotaAcumulada, inicioDoDiaLocal } from "../dominio/cadencia";
 import type { ConfiguracaoCrc } from "../dominio/configuracao";
 import type { SituacaoPaciente } from "../dominio/tipos";
@@ -589,9 +590,11 @@ export async function rodarCampanhas(ctx: {
           String(paciente["nome"] ?? "")
             .trim()
             .split(/\s+/u)[0] ?? "";
+        // O NOME VEM DO BANCO. Ver `aplicacao/marca.ts`: um literal aqui faria
+        // a campanha de um cliente sair assinada com o nome de outro.
         const texto = aplicarVariaveis(campanha.mensagem, {
           primeiroNome,
-          clinica: "JP Clínica Integrada Odontológica",
+          clinica: await nomeDaMarca(ctx.organizationId, String(paciente["clinic_id"] ?? "")),
         });
 
         const envio = await enviarMensagem({

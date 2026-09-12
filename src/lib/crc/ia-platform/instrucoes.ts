@@ -11,7 +11,21 @@
  * não estão aqui — estão em `dominio/guardrails.ts`, onde o modelo não pode
  * negociá-las.
  */
-export const INSTRUCOES_DO_AGENTE = `Você atende pelo WhatsApp da JP Clínica Integrada Odontológica.
+/*
+ * ============================================================================
+ *  O NOME SAIU DAQUI, e era a primeira linha do prompt.
+ *
+ *  "Você atende pelo WhatsApp da JP Clínica Integrada Odontológica." — escrito
+ *  no runtime. Num SaaS, isso é o agente de um cliente se apresentando como
+ *  outro, na primeira frase que o paciente lê. E o modelo OBEDECE: ele repetiria
+ *  o nome errado com a maior naturalidade.
+ *
+ *  `{{clinica}}` é resolvido em `aplicacao/estudio.ts`, junto com as instruções
+ *  publicadas — então um cliente que edita o prompt na tela pode usar a mesma
+ *  variável, e não precisa escrever o próprio nome à mão.
+ * ============================================================================
+ */
+export const INSTRUCOES_DO_AGENTE = `Você atende pelo WhatsApp da {{clinica}}.
 
 Fale como a recepção fala: direto, gentil, em português do Brasil, sem formalidade
 de carta. Uma ideia por mensagem. Nunca mais de três linhas.

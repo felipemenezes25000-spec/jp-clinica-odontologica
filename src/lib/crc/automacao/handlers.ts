@@ -307,13 +307,17 @@ export async function aoCriarLead(evento: EventoCrc): Promise<void> {
   if (switches["kill_envios"] === true || switches["kill_automacoes"] === true) return;
 
   const { renderizarTemplate } = await import("./templates");
-  const texto = await renderizarTemplate(evento.organizationId, "lead_primeiro_contato", {
-    primeiroNome:
-      String(linha["nome"] ?? "")
-        .trim()
-        .split(/\s+/u)[0] ?? "",
-    clinica: "JP Clínica Integrada Odontológica",
-  });
+  const texto = await renderizarTemplate(
+    evento.organizationId,
+    "lead_primeiro_contato",
+    {
+      primeiroNome:
+        String(linha["nome"] ?? "")
+          .trim()
+          .split(/\s+/u)[0] ?? "",
+    },
+    clinicId,
+  );
 
   const { enviarMensagem } = await import("../aplicacao/mensagens");
   const envio = await enviarMensagem({
@@ -670,11 +674,12 @@ async function responderNaConversa(
   const nome = await primeiroNomeDoPaciente(evento.organizationId, patientId);
 
   const { renderizarTemplate } = await import("./templates");
-  const texto = await renderizarTemplate(evento.organizationId, template, {
-    primeiroNome: nome,
-    clinica: "JP Clínica Integrada Odontológica",
-    ...variaveis,
-  });
+  const texto = await renderizarTemplate(
+    evento.organizationId,
+    template,
+    { primeiroNome: nome, ...variaveis },
+    contexto.clinicId,
+  );
 
   const { enviarMensagem } = await import("../aplicacao/mensagens");
   await enviarMensagem({

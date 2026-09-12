@@ -66,9 +66,28 @@ function interceptar(resposta: unknown = { results: [] }): void {
   );
 }
 
-/** A última chamada que não é a de autenticação. */
+/**
+ * A última chamada AO DENTAL OFFICE que não é a de autenticação.
+ *
+ * ============================================================================
+ *  O FILTRO PELA BASE FOI ACRESCENTADO DEPOIS DE O TESTE FALHAR POR AMBIENTE.
+ *
+ *  O adapter registra cada chamada em `crc_integration_logs`. Sem
+ *  `SUPABASE_URL` no processo, essa gravação estoura e é engolida — então a
+ *  espiã de `fetch` só via as chamadas ao Dental Office. Com a variável
+ *  definida (o shell de quem acabou de rodar os testes de integração, por
+ *  exemplo), a gravação SAI, é capturada, e vira "a última chamada".
+ *
+ *  O sintoma era cinco testes reprovando com uma URL do PostgREST no lugar de
+ *  `/v1/dentists` — e passando de novo quando rodados sozinhos. Teste que
+ *  depende do que está exportado no shell é teste que vai falhar num dia em que
+ *  ninguém mexeu em nada.
+ * ============================================================================
+ */
 function ultimaDeNegocio(): Chamada {
-  const uteis = chamadas.filter((c) => !c.url.includes("/auth/tokens"));
+  const uteis = chamadas.filter(
+    (c) => c.url.includes("dentaloffice.com.br") && !c.url.includes("/auth/tokens"),
+  );
   const ultima = uteis[uteis.length - 1];
   if (ultima === undefined) throw new Error("nenhuma chamada de negócio foi feita");
   return ultima;

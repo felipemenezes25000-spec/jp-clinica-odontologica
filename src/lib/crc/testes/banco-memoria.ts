@@ -144,6 +144,7 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_runtime_heartbeats: [{ colunas: ["worker"] }],
   crc_schema_migrations: [{ colunas: ["nome"] }],
   crc_settings: [{ colunas: ["organization_id", "chave"] }],
+  crc_settings_clinica: [{ colunas: ["organization_id", "clinic_id", "chave"] }],
   crc_feature_flags: [{ colunas: ["organization_id", "chave"] }],
   crc_clinics: [{ colunas: ["organization_id", "slug"] }],
   crc_organizations: [{ colunas: ["slug"] }],

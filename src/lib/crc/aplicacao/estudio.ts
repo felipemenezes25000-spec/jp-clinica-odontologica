@@ -94,8 +94,39 @@ function deLinha(l: Record<string, unknown>): VersaoDoAgente {
  * É a única função que `turno.ts` chama, e o fallback é o que faz a Fatia 10 não
  * quebrar quem nunca abriu o Estúdio: sem versão publicada, vale a constante do
  * código.
+ *
+ * ============================================================================
+ *  `{{clinica}}` É SUBSTITUÍDO AQUI, e isso conserta a primeira linha do prompt.
+ *
+ *  Ela era: "Você atende pelo WhatsApp da JP Clínica Integrada Odontológica." —
+ *  escrita no runtime. Num SaaS é o agente de um cliente se apresentando como
+ *  outro, na primeira frase que o paciente lê. E o modelo obedece: ele repete o
+ *  nome errado com naturalidade, porque foi o que mandaram.
+ *
+ *  A SUBSTITUIÇÃO VALE TAMBÉM PARA A VERSÃO PUBLICADA, de propósito: quem
+ *  reescreve o prompt na tela do Estúdio pode usar `{{clinica}}` em vez de
+ *  digitar o próprio nome — e continua funcionando se a clínica for renomeada.
+ * ============================================================================
  */
 export async function instrucoesEmUso(organizationId: string): Promise<string> {
+  const texto = await instrucoesBrutasEmUso(organizationId);
+
+  const { nomeDaMarca } = await import("./marca");
+  const { aplicarVariaveis } = await import("../automacao/templates");
+
+  return aplicarVariaveis(texto, { clinica: await nomeDaMarca(organizationId) });
+}
+
+/**
+ * O MESMO TEXTO, SEM SUBSTITUIR NADA — para o Estudio.
+ *
+ * A DIFERENCA IMPORTA numa linha so: o rascunho precisa nascer com
+ * `{{clinica}}` dentro, e nao com o nome ja resolvido. Copiar o texto resolvido
+ * congelaria o nome de hoje no prompt de amanha — e a clinica que se renomear
+ * continuaria se apresentando pelo nome antigo, sem ninguem entender de onde
+ * ele sai.
+ */
+export async function instrucoesBrutasEmUso(organizationId: string): Promise<string> {
   const publicada = await versaoPublicada(organizationId);
   return publicada === null ? INSTRUCOES_DO_AGENTE : publicada.instrucoes;
 }
@@ -315,7 +346,8 @@ export async function rascunhoAPartirDoAtual(pedido: {
 
   return salvarRascunho({
     organizationId: pedido.organizationId,
-    instrucoes: await instrucoesEmUso(pedido.organizationId),
+    // BRUTAS: o rascunho guarda `{{clinica}}`, e nao o nome de hoje.
+    instrucoes: await instrucoesBrutasEmUso(pedido.organizationId),
     userId: pedido.userId ?? null,
   });
 }

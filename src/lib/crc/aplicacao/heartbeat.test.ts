@@ -46,7 +46,9 @@ beforeEach(() => {
   limparBanco();
   definirRelogio(AGORA);
   semear("crc_organizations", [{ id: ORG, slug: "jp" }]);
-  semear("crc_schema_migrations", [{ nome: "27-crc-observabilidade.sql", presumido: false }]);
+  semear("crc_schema_migrations", [
+    { nome: "28-crc-configuracao-por-clinica.sql", presumido: false },
+  ]);
   vi.stubEnv("NODE_ENV", "test");
   vi.stubEnv("WHATSAPP_SANDBOX", "1");
 });
@@ -168,7 +170,9 @@ describe("o painel de saúde", () => {
 
     limparBanco();
     semear("crc_organizations", [{ id: ORG, slug: "jp" }]);
-    semear("crc_schema_migrations", [{ nome: "27-crc-observabilidade.sql", presumido: false }]);
+    semear("crc_schema_migrations", [
+      { nome: "28-crc-configuracao-por-clinica.sql", presumido: false },
+    ]);
     semear("crc_runtime_heartbeats", [
       { worker: "pulso", ultimo_inicio_em: atras(45), ultimo_sucesso_em: atras(45), metricas: {} },
     ]);

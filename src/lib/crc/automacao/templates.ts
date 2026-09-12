@@ -66,6 +66,7 @@ export async function renderizarTemplate(
   organizationId: string,
   chave: string,
   variaveis: VariaveisTemplate,
+  clinicId: string | null = null,
 ): Promise<string> {
   const linha = await selecionarUm("crc_templates", {
     filtros: [
@@ -81,7 +82,31 @@ export async function renderizarTemplate(
     TEMPLATES_PADRAO[chave] ??
     "Olá, {{primeiroNome}}! Somos da {{clinica}} e gostaríamos de falar com você.";
 
-  return limpar(aplicarVariaveis(modelo, variaveis));
+  /*
+   * ========================================================================
+   *  O NOME DA CLINICA E PREENCHIDO AQUI, e nao por quem chama.
+   *
+   *  Antes, cada um dos quatro chamadores passava
+   *  `clinica: "JP Clinica Integrada Odontologica"` — um literal, repetido.
+   *  Com um cliente era so feio; com dois, e uma clinica se apresentando com o
+   *  nome de outra, para um paciente que nao faz ideia de quem e a JP. E nao
+   *  daria erro: a mensagem sai, e entregue, e quem descobre e o paciente.
+   *
+   *  RESOLVER AQUI E O QUE IMPEDE O QUINTO CHAMADOR DE ESQUECER. Uma regra
+   *  escrita no chamador protege aquele chamador; escrita no lugar por onde
+   *  todo mundo passa, protege o proximo tambem.
+   * ========================================================================
+   *
+   * Quem passar `clinica` explicitamente continua vencendo — e o preview de
+   * template usa isso para mostrar um exemplo sem ir ao banco.
+   */
+  const { nomeDaMarca } = await import("../aplicacao/marca");
+  const comMarca: VariaveisTemplate = {
+    ...variaveis,
+    clinica: variaveis["clinica"] ?? (await nomeDaMarca(organizationId, clinicId)),
+  };
+
+  return limpar(aplicarVariaveis(modelo, comMarca));
 }
 
 /** Item 104: o preview com dados fictícios. Nenhum dado real sai daqui. */
@@ -90,7 +115,9 @@ export function renderizarComExemplo(modelo: string): string {
     aplicarVariaveis(modelo, {
       primeiroNome: "Maria",
       nome: "Maria Souza",
-      clinica: "JP Clínica Integrada Odontológica",
+      // O PREVIEW É FICTÍCIO INTEIRO — item 104. Um nome de exemplo aqui não
+      // vaza para paciente nenhum, e evita uma ida ao banco numa tela de edição.
+      clinica: "Clínica Exemplo",
       data: "quinta-feira, 11/09",
       hora: "14:30",
       dentista: "Dra. Juliana",

@@ -489,7 +489,26 @@ async function recusarSeAIaPerdeuAConversa(
 }
 
 export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvioMensagem> {
-  const cfg = pedido.configuracao ?? CONFIGURACAO_PADRAO;
+  /*
+   * ========================================================================
+   *  O HORÁRIO É O DA UNIDADE, e é resolvido AQUI — no chokepoint.
+   *
+   *  Todo envio do sistema passa por esta função. Resolver a configuração de
+   *  clínica no chamador protegeria aquele chamador; aqui, protege também o
+   *  próximo — a campanha, o reprocessamento, a tela que ainda vai existir.
+   *  É o mesmo argumento da releitura de dono, algumas linhas abaixo.
+   *
+   *  SEM `clinicId`, NADA MUDA: a configuração que o chamador passou vale como
+   *  sempre valeu, e não há leitura extra. O custo da terceira camada é pago só
+   *  por quem tem mais de uma unidade.
+   * ========================================================================
+   */
+  const { comOverrideDaClinica } = await import("../servidor/configuracao");
+  const cfg = await comOverrideDaClinica(
+    pedido.configuracao ?? CONFIGURACAO_PADRAO,
+    pedido.organizationId,
+    pedido.clinicId,
+  );
 
   /*
    * O DONO É RELIDO AQUI, no último instante antes de gravar — Fase C.

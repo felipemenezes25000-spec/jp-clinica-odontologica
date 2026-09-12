@@ -70,20 +70,42 @@ async function aprovar(versaoId: string | null, quando = AGORA): Promise<void> {
 beforeEach(() => {
   limparBanco();
   definirRelogio(AGORA);
-  semear("crc_organizations", [{ id: ORG, slug: "jp" }]);
+  semear("crc_organizations", [{ id: ORG, slug: "jp", nome: "Clínica Alfa" }]);
 });
 
 /* -------------------------------------------------------------------------- */
 
 describe("o texto em uso", () => {
-  it("sem versão publicada, é o do código", async () => {
-    expect(await instrucoesEmUso(ORG)).toBe(INSTRUCOES_DO_AGENTE);
+  it("sem versão publicada, é o do código — com o nome DESTA clínica", async () => {
+    /*
+     * ========================================================================
+     *  A PRIMEIRA LINHA DO PROMPT ERA UM LITERAL: "Você atende pelo WhatsApp da
+     *  JP Clínica Integrada Odontológica." Num SaaS isso é o agente de um
+     *  cliente se apresentando como outro — e o modelo obedece, repetindo o nome
+     *  errado com naturalidade, porque foi o que mandaram.
+     * ========================================================================
+     */
+    const emUso = await instrucoesEmUso(ORG);
+
+    expect(emUso).toContain("Clínica Alfa");
+    expect(emUso).not.toContain("{{clinica}}");
+    expect(emUso).not.toContain("JP Clínica");
+  });
+
+  it("outra organização recebe o NOME DELA no mesmo texto", async () => {
+    // O teste que prova o isolamento: mesma constante, duas vozes.
+    const OUTRA = "99999999-9999-4999-8999-999999999999";
+    semear("crc_organizations", [{ id: OUTRA, slug: "beta", nome: "Odonto Beta" }]);
+
+    expect(await instrucoesEmUso(OUTRA)).toContain("Odonto Beta");
+    expect(await instrucoesEmUso(OUTRA)).not.toContain("Clínica Alfa");
   });
 
   it("o rascunho NÃO entra em uso", async () => {
     await salvarRascunho({ organizationId: ORG, instrucoes: TEXTO });
     // É a garantia mais importante da fatia: rascunho não fala com paciente.
-    expect(await instrucoesEmUso(ORG)).toBe(INSTRUCOES_DO_AGENTE);
+    expect(await instrucoesEmUso(ORG)).toContain("Clínica Alfa");
+    expect(await instrucoesEmUso(ORG)).not.toContain(TEXTO);
   });
 
   it("publicado, passa a ser o texto do agente", async () => {
@@ -237,7 +259,9 @@ describe("publicar", () => {
     const r = await publicarRascunho({ organizationId: ORG, agora: AGORA });
     expect(r.ok).toBe(false);
     expect(r.codigo).toBe("sem_avaliacao");
-    expect(await instrucoesEmUso(ORG)).toBe(INSTRUCOES_DO_AGENTE);
+    // Continua o texto do código — com o nome desta clínica, e não o publicado.
+    expect(await instrucoesEmUso(ORG)).toContain("Clínica Alfa");
+    expect(await instrucoesEmUso(ORG)).not.toContain(OUTRO);
   });
 });
 
