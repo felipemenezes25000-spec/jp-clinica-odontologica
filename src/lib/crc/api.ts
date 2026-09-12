@@ -4594,3 +4594,275 @@ export const carregarCerebroDoPaciente = createServerFn({ method: "POST" })
       };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Radar de Receita e Centro de Autonomia — supabase/30 e supabase/31          */
+/* -------------------------------------------------------------------------- */
+
+export type LinhaDoRadarUI = {
+  tipo: string;
+  tipoRotulo: string;
+  abertas: number;
+  valorPotencial: number;
+  valorEsperado: number;
+};
+
+export type RadarUI = {
+  linhas: LinhaDoRadarUI[];
+  totalAbertas: number;
+  /** A soma dos potenciais. A tela PRECISA rotular isto como "se tudo fechar". */
+  totalPotencial: number;
+  /** A soma dos esperados. É o único número que pode virar promessa. */
+  totalEsperado: number;
+  /** 0..1. Baixa = o painel ainda está estimando, e a tela tem que dizer. */
+  confiancaMedia: number;
+  totalConfirmado: number;
+  aguardandoHumano: number;
+  naoAvaliadas: number;
+};
+
+export const carregarRadar = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ radar: RadarUI }>> =>
+    comContexto("ver_oportunidade", async (ctx) => {
+      const { resumoDasClinicas } = await import("./aplicacao/radar");
+      const { ROTULO_TIPO_OPORTUNIDADE } = await import("./dominio/rotulos");
+
+      /*
+       * `ctx.clinicIds` E NÃO `null`.
+       *
+       * `null` significa "a organização inteira" na camada de aplicação. Numa
+       * rede, um usuário que só alcança uma unidade veria o dinheiro de todas —
+       * e o vazamento não teria como ser percebido, porque a tela não mostra de
+       * qual clínica cada número veio.
+       */
+      const r = await resumoDasClinicas(ctx.organizationId, ctx.clinicIds);
+
+      return {
+        ok: true as const,
+        radar: {
+          linhas: r.linhas.map((l) => ({
+            tipo: l.tipo,
+            tipoRotulo: ROTULO_TIPO_OPORTUNIDADE[l.tipo],
+            abertas: l.abertas,
+            valorPotencial: l.valorPotencial,
+            valorEsperado: l.valorEsperado,
+          })),
+          totalAbertas: r.totalAbertas,
+          totalPotencial: r.totalPotencial,
+          totalEsperado: r.totalEsperado,
+          confiancaMedia: r.confiancaMedia,
+          totalConfirmado: r.totalConfirmado,
+          aguardandoHumano: r.aguardandoHumano,
+          naoAvaliadas: r.naoAvaliadas,
+        },
+      };
+    }),
+);
+
+export type ItemDoRadarUI = {
+  id: string;
+  patientId: string | null;
+  nome: string;
+  tipo: string;
+  tipoRotulo: string;
+  motivo: string;
+  estado: string;
+  valorPotencial: number;
+  valorEsperado: number;
+  probabilidade: number | null;
+  confianca: number | null;
+  urgencia: number | null;
+  impacto: number | null;
+  proximaAcao: string | null;
+  expiraEm: string | null;
+};
+
+export const listarRadar = createServerFn({ method: "GET" })
+  .inputValidator((dados: { tipo?: string; limite?: number }) => dados)
+  .handler(async ({ data }): Promise<Resposta<{ itens: ItemDoRadarUI[] }>> =>
+    comContexto("ver_oportunidade", async (ctx) => {
+      const { listarDoRadar } = await import("./aplicacao/radar");
+      const { ROTULO_TIPO_OPORTUNIDADE } = await import("./dominio/rotulos");
+      const { TIPOS_OPORTUNIDADE } = await import("./dominio/tipos");
+
+      /*
+       * O TIPO VEM DO NAVEGADOR, e por isso é conferido contra o catálogo em
+       * vez de ir direto para o filtro. Não é injeção — `Filtro` escapa o
+       * valor —, é higiene: um tipo inventado devolveria lista vazia sem
+       * explicação, e alguém passaria a tarde procurando o defeito.
+       */
+      const tipoPedido = data.tipo;
+      const tipo =
+        tipoPedido !== undefined && (TIPOS_OPORTUNIDADE as readonly string[]).includes(tipoPedido)
+          ? (tipoPedido as (typeof TIPOS_OPORTUNIDADE)[number])
+          : undefined;
+
+      const limite = data.limite ?? 50;
+      const itens = await listarDoRadar(
+        ctx.organizationId,
+        ctx.clinicIds,
+        tipo === undefined ? { limite } : { limite, tipo },
+      );
+
+      const nomes = await carregarNomes(
+        ctx.organizationId,
+        itens.map((i) => i.patientId).filter((p): p is string => p !== null),
+      );
+
+      return {
+        ok: true as const,
+        itens: itens.map((i) => ({
+          id: i.id,
+          patientId: i.patientId,
+          nome: (i.patientId === null ? null : nomes.get(i.patientId)) ?? "Paciente sem nome",
+          tipo: i.tipo,
+          tipoRotulo: ROTULO_TIPO_OPORTUNIDADE[i.tipo],
+          motivo: i.motivo ?? "",
+          estado: i.estado,
+          valorPotencial: i.valorPotencial,
+          valorEsperado: i.valorEsperado,
+          probabilidade: i.probabilidade,
+          confianca: i.confianca,
+          urgencia: i.urgencia,
+          impacto: i.impacto,
+          proximaAcao: i.proximaAcao,
+          expiraEm: i.expiraEm,
+        })),
+      };
+    }),
+  );
+
+export type AtividadeUI = {
+  id: string;
+  tipo: string;
+  titulo: string;
+  resumo: string | null;
+  status: string;
+  motivo: string | null;
+  confianca: number | null;
+  criadoEm: string;
+};
+
+export const carregarAtividade = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ recentes: AtividadeUI[]; pendencias: AtividadeUI[] }>> =>
+    comContexto("ver_oportunidade", async (ctx) => {
+      const { lerAtividade, lerPendencias } = await import("./aplicacao/atividade");
+
+      /*
+       * UMA CLÍNICA SÓ NA TIMELINE, quando o usuário alcança uma só.
+       *
+       * Quem alcança várias vê a organização — e isso é correto para ele, que
+       * enxerga todas. `clinicIds.length === 1` é o recorte seguro; acima disso
+       * o próprio contexto já autorizou o conjunto inteiro.
+       */
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+
+      const [recentes, pendencias] = await Promise.all([
+        lerAtividade({ organizationId: ctx.organizationId, clinicId: clinica, limite: 30 }),
+        lerPendencias(ctx.organizationId, clinica, 12),
+      ]);
+
+      const enxugar = (a: {
+        id: string;
+        tipo: string;
+        titulo: string;
+        resumo: string | null;
+        status: string;
+        motivo: string | null;
+        confianca: number | null;
+        criadoEm: string;
+      }): AtividadeUI => ({
+        id: a.id,
+        tipo: a.tipo,
+        titulo: a.titulo,
+        resumo: a.resumo,
+        status: a.status,
+        motivo: a.motivo,
+        confianca: a.confianca,
+        criadoEm: a.criadoEm,
+      });
+
+      return {
+        ok: true as const,
+        recentes: recentes.map(enxugar),
+        pendencias: pendencias.map(enxugar),
+      };
+    }),
+);
+
+export type DominioDaAutonomiaUI = {
+  dominio: string;
+  rotulo: string;
+  explicacao: string;
+  nivel: number;
+  herdado: boolean;
+  tetoChave: string | null;
+  tetoLigado: boolean;
+  efetivo: number;
+  bloqueadoPor: string | null;
+};
+
+export type EscadaUI = { nivel: number; rotulo: string; explicacao: string };
+
+export const carregarAutonomia = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ dominios: DominioDaAutonomiaUI[]; escada: EscadaUI[] }>> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { lerPainel } = await import("./aplicacao/autonomia");
+      const { ESCADA } = await import("./dominio/autonomia");
+
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+      const painel = await lerPainel(ctx.organizationId, clinica);
+
+      return {
+        ok: true as const,
+        dominios: painel.map((p) => ({
+          dominio: p.dominio,
+          rotulo: p.rotulo,
+          explicacao: p.explicacao,
+          nivel: p.nivel,
+          herdado: p.herdado,
+          tetoChave: p.teto?.chave ?? null,
+          tetoLigado: p.teto?.ligada ?? true,
+          efetivo: p.efetivo,
+          bloqueadoPor: p.bloqueadoPor,
+        })),
+        escada: ESCADA.map((e) => ({
+          nivel: e.nivel,
+          rotulo: e.rotulo,
+          explicacao: e.explicacao,
+        })),
+      };
+    }),
+);
+
+export const ajustarAutonomia = createServerFn({ method: "POST" })
+  .inputValidator((dados: { dominio: string; nivel: number }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { definirNivel } = await import("./aplicacao/autonomia");
+      const { CATALOGO } = await import("./dominio/autonomia");
+
+      const conhecido = CATALOGO.find((d) => d.dominio === data.dominio);
+      if (conhecido === undefined) {
+        // Domínio inventado é recusado ALTO. Gravá-lo criaria uma linha que
+        // `lerNiveis()` nunca lê — configuração que o painel jura ter salvo e
+        // que não governa nada.
+        return {
+          ok: false as const,
+          code: "DOMINIO_DESCONHECIDO",
+          message: "Este domínio de autonomia não existe.",
+        };
+      }
+
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+      await definirNivel(
+        ctx.organizationId,
+        clinica,
+        conhecido.dominio,
+        data.nivel,
+        ctx.usuario.id,
+      );
+
+      return { ok: true as const };
+    }),
+  );

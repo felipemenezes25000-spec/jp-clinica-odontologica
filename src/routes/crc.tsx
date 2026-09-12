@@ -23,6 +23,7 @@ import {
   FileUp,
   FlaskConical,
   House,
+  Radar as RadarIcon,
   ImageOff,
   ListTodo,
   LogOut,
@@ -58,6 +59,7 @@ import { Estudio } from "@/components/crc/Estudio";
 import { Ferramentas } from "@/components/crc/Ferramentas";
 import { Playground } from "@/components/crc/Playground";
 import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
+import { Radar } from "@/components/crc/Radar";
 import { Saude } from "@/components/crc/Saude";
 import { Configuracoes } from "@/components/crc/Configuracoes";
 import { Equipe } from "@/components/crc/Equipe";
@@ -99,6 +101,7 @@ export const Route = createFileRoute("/crc")({
 
 type Aba =
   | "home"
+  | "radar"
   | "trabalho"
   | "inbox"
   | "agenda"
@@ -170,6 +173,7 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
     rotulo: "Operação",
     itens: [
       { aba: "home", rotulo: "Início", permissao: "ver_oportunidade", icone: House },
+      { aba: "radar", rotulo: "Radar", permissao: "ver_oportunidade", icone: RadarIcon },
       { aba: "trabalho", rotulo: "Meu trabalho", permissao: "ver_tarefa", icone: ListTodo },
       { aba: "inbox", rotulo: "Conversas", permissao: "ver_conversa", icone: MessageSquareText },
       { aba: "funil", rotulo: "Funil", permissao: "ver_oportunidade", icone: Columns3 },
@@ -331,6 +335,34 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Precisa de você", tom: "perigo" },
       { rotulo: "Automação cuidando", tom: "info" },
       { rotulo: "Em dia", tom: "positiva" },
+    ],
+  },
+  radar: {
+    sobretitulo: "O dinheiro parado",
+    paraQue: "quanto existe para recuperar, e qual a chance",
+    descricao:
+      "Esta tela responde a pergunta do dono, e a Home responde a da recepção. O número em destaque é a RECEITA ESPERADA: o valor de cada oportunidade multiplicado pela chance de ela fechar. Ao lado dele fica o total \u201cse tudo fechar\u201d, que é a soma de tudo que aconteceria no melhor cenário possível — útil para dimensionar, inútil para prometer. Clique numa linha da tabela para ver as oportunidades daquele tipo.",
+    acoes: [
+      {
+        faca: "Clicar numa linha da tabela",
+        efeito:
+          "Filtra a lista de baixo por aquele tipo de oportunidade. Clicar de novo limpa o filtro.",
+      },
+      {
+        faca: "Ler a linha cinza de cada oportunidade",
+        efeito:
+          "Mostra a conta que produziu o valor esperado: o potencial vezes a probabilidade. É o que permite discordar do Radar com o dado na frente.",
+      },
+      {
+        faca: "Observar o aviso de estimativa",
+        efeito:
+          "Enquanto a clínica não tiver desfechos suficientes, as chances vêm de valores de referência e não de medição desta clínica. O aviso some sozinho quando houver histórico.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Esperando você", tom: "alerta" },
+      { rotulo: "Em contato", tom: "info" },
+      { rotulo: "Detectada", tom: "neutra" },
     ],
   },
   trabalho: {
@@ -1802,6 +1834,7 @@ function PortalCrc() {
           {abaAtual === "playground" && <Playground />}
           {abaAtual === "ferramentas" && <Ferramentas />}
           {abaAtual === "proximas" && <ProximasAcoes />}
+          {abaAtual === "radar" && <Radar />}
           {abaAtual === "saude" && <Saude />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
