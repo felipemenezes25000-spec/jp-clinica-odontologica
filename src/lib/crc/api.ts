@@ -4678,7 +4678,7 @@ export type ItemDoRadarUI = {
 };
 
 export const listarRadar = createServerFn({ method: "GET" })
-  .inputValidator((dados: { tipo?: string; limite?: number }) => dados)
+  .validator((dados: { tipo?: string; limite?: number }) => dados)
   .handler(async ({ data }): Promise<Resposta<{ itens: ItemDoRadarUI[] }>> =>
     comContexto("ver_oportunidade", async (ctx) => {
       const { listarDoRadar } = await import("./aplicacao/radar");
@@ -4836,7 +4836,7 @@ export const carregarAutonomia = createServerFn({ method: "GET" }).handler(
 );
 
 export const ajustarAutonomia = createServerFn({ method: "POST" })
-  .inputValidator((dados: { dominio: string; nivel: number }) => dados)
+  .validator((dados: { dominio: string; nivel: number }) => dados)
   .handler(async ({ data }): Promise<RespostaSimples> =>
     comContexto("gerenciar_autopilot", async (ctx) => {
       const { definirNivel } = await import("./aplicacao/autonomia");
@@ -4981,7 +4981,7 @@ export type PreferenciaUI = {
 };
 
 export const carregarPreferenciaDeEspera = createServerFn({ method: "GET" })
-  .inputValidator((dados: { patientId: string }) => dados)
+  .validator((dados: { patientId: string }) => dados)
   .handler(async ({ data }): Promise<Resposta<{ preferencia: PreferenciaUI | null }>> =>
     comContexto("ver_paciente", async (ctx) => {
       const { lerPreferencia } = await import("./aplicacao/agenda-inteligente");
@@ -5006,7 +5006,7 @@ export const carregarPreferenciaDeEspera = createServerFn({ method: "GET" })
   );
 
 export const salvarPreferenciaDeEspera = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     (dados: {
       patientId: string;
       dias: number[];
@@ -5159,9 +5159,7 @@ export const carregarTratamentos = createServerFn({ method: "GET" }).handler(
 );
 
 export const anotarObjecao = createServerFn({ method: "POST" })
-  .inputValidator(
-    (dados: { budgetId: string | null; patientId: string | null; texto: string }) => dados,
-  )
+  .validator((dados: { budgetId: string | null; patientId: string | null; texto: string }) => dados)
   .handler(async ({ data }): Promise<Resposta<{ categoria: string }>> =>
     comContexto("editar_oportunidade", async (ctx) => {
       const { registrarObjecao } = await import("./aplicacao/aceitacao");
@@ -5204,7 +5202,7 @@ export const anotarObjecao = createServerFn({ method: "POST" })
   );
 
 export const corrigirObjecao = createServerFn({ method: "POST" })
-  .inputValidator((dados: { objecaoId: string; categoria: string }) => dados)
+  .validator((dados: { objecaoId: string; categoria: string }) => dados)
   .handler(async ({ data }): Promise<RespostaSimples> =>
     comContexto("editar_oportunidade", async (ctx) => {
       const { revisarObjecao } = await import("./aplicacao/aceitacao");
@@ -5244,7 +5242,7 @@ export type ItemDaLinhaUI = {
 };
 
 export const carregarLinhaDoTempo = createServerFn({ method: "GET" })
-  .inputValidator((dados: { patientId: string }) => dados)
+  .validator((dados: { patientId: string }) => dados)
   .handler(async ({ data }): Promise<Resposta<{ itens: ItemDaLinhaUI[] }>> =>
     comContexto("ver_paciente", async (ctx) => {
       const { linhaDoTempo } = await import("./aplicacao/omnichannel");
@@ -5280,7 +5278,7 @@ export const carregarLinhaDoTempo = createServerFn({ method: "GET" })
   );
 
 export const anotarChamada = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     (dados: {
       patientId: string | null;
       direcao: "ENTRADA" | "SAIDA";
@@ -5350,7 +5348,7 @@ export const anotarChamada = createServerFn({ method: "POST" })
   );
 
 export const anotarConversa = createServerFn({ method: "POST" })
-  .inputValidator((dados: { patientId: string; canal: string; texto: string }) => dados)
+  .validator((dados: { patientId: string; canal: string; texto: string }) => dados)
   .handler(async ({ data }): Promise<RespostaSimples> =>
     comContexto("enviar_mensagem", async (ctx) => {
       const { registrarContato } = await import("./aplicacao/omnichannel");
@@ -5496,7 +5494,7 @@ export const carregarPreConsulta = createServerFn({ method: "GET" }).handler(
 );
 
 export const resolverPendencia = createServerFn({ method: "POST" })
-  .inputValidator((dados: { id: string; dispensar: boolean }) => dados)
+  .validator((dados: { id: string; dispensar: boolean }) => dados)
   .handler(async ({ data }): Promise<RespostaSimples> =>
     comContexto("editar_paciente", async (ctx) => {
       const { fecharPendencia } = await import("./aplicacao/financeiro");
@@ -5535,7 +5533,7 @@ export const carregarPoliticaDePagamento = createServerFn({ method: "GET" }).han
 );
 
 export const salvarPoliticaDePagamento = createServerFn({ method: "POST" })
-  .inputValidator(
+  .validator(
     (dados: {
       nome: string;
       descontoMaxPct: number;
@@ -5714,7 +5712,7 @@ export type SimulacaoNaTela = {
  * ============================================================================
  */
 export const simularHorario = createServerFn({ method: "POST" })
-  .inputValidator((dados: { horasAMais: number; valorPorHora: number }) => dados)
+  .validator((dados: { horasAMais: number; valorPorHora: number }) => dados)
   .handler(async ({ data }): Promise<Resposta<{ simulacao: SimulacaoNaTela }>> =>
     comContexto("ver_analytics_gerencial", async (ctx) => {
       const { medirCenario } = await import("./aplicacao/gestao");
@@ -5807,7 +5805,7 @@ export const carregarClinicas = createServerFn({ method: "GET" }).handler(
 );
 
 export const criarUnidade = createServerFn({ method: "POST" })
-  .inputValidator((e: { nome: string; fuso: string; externalId: string | null }) => ({
+  .validator((e: { nome: string; fuso: string; externalId: string | null }) => ({
     nome: String(e.nome ?? ""),
     fuso: String(e.fuso ?? "America/Sao_Paulo"),
     externalId:
@@ -5833,7 +5831,7 @@ export const criarUnidade = createServerFn({ method: "POST" })
   );
 
 export const editarUnidade = createServerFn({ method: "POST" })
-  .inputValidator((e: { clinicId: string; nome: string; fuso: string }) => ({
+  .validator((e: { clinicId: string; nome: string; fuso: string }) => ({
     clinicId: String(e.clinicId ?? ""),
     nome: String(e.nome ?? ""),
     fuso: String(e.fuso ?? "America/Sao_Paulo"),
@@ -5856,7 +5854,7 @@ export const editarUnidade = createServerFn({ method: "POST" })
   );
 
 export const mudarSituacaoDaUnidade = createServerFn({ method: "POST" })
-  .inputValidator((e: { clinicId: string; ativa: boolean }) => ({
+  .validator((e: { clinicId: string; ativa: boolean }) => ({
     clinicId: String(e.clinicId ?? ""),
     ativa: e.ativa === true,
   }))
@@ -5885,7 +5883,7 @@ export type EscopoDto = {
 };
 
 export const carregarEscopoDoMembro = createServerFn({ method: "POST" })
-  .inputValidator((e: { userId: string }) => ({ userId: String(e.userId ?? "") }))
+  .validator((e: { userId: string }) => ({ userId: String(e.userId ?? "") }))
   .handler(async ({ data }): Promise<Resposta<{ escopo: EscopoDto }>> =>
     comContexto("gerenciar_usuarios", async (ctx) => {
       const { lerEscopo } = await import("./aplicacao/clinicas");
@@ -5911,7 +5909,7 @@ export const carregarEscopoDoMembro = createServerFn({ method: "POST" })
   );
 
 export const salvarEscopoDoMembro = createServerFn({ method: "POST" })
-  .inputValidator((e: { userId: string; clinicIds: string[] }) => ({
+  .validator((e: { userId: string; clinicIds: string[] }) => ({
     userId: String(e.userId ?? ""),
     clinicIds: Array.isArray(e.clinicIds) ? e.clinicIds.map((c) => String(c)) : [],
   }))
@@ -5979,3 +5977,327 @@ export const carregarPrimeirosPassos = createServerFn({ method: "GET" }).handler
       };
     }),
 );
+
+/* -------------------------------------------------------------------------- */
+/* Metas — supabase/34                                                        */
+/* -------------------------------------------------------------------------- */
+
+export type TipoDeMetaUI = {
+  tipo: string;
+  rotulo: string;
+  unidade: string;
+  comoMede: string;
+  menorEhMelhor: boolean;
+  ehAcumulado: boolean;
+};
+
+export type AcaoDaMetaUI = {
+  id: string;
+  modulo: string;
+  titulo: string;
+  descricao: string | null;
+  contribuicaoEstimada: number;
+  confianca: number;
+  alcanceEstimado: number;
+  status: string;
+  versao: number;
+};
+
+export type MetaUI = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  rotuloDoTipo: string;
+  comoMede: string;
+  unidade: string;
+  baseline: number;
+  ehAcumulado: boolean;
+  alvo: number;
+  atual: number | null;
+  prazoEm: string;
+  status: string;
+  maxContatosDia: number;
+  maxAutonomia: number;
+  medidoEm: string | null;
+  progresso: {
+    fracao: number;
+    situacao: string;
+    falta: number;
+    ritmoNecessario: number;
+    resumo: string;
+  } | null;
+  acoes: AcaoDaMetaUI[];
+};
+
+/**
+ * A lista de metas, com o catálogo junto.
+ *
+ * O catálogo vem na MESMA resposta porque a tela precisa dele para montar o
+ * formulário — e uma segunda chamada só para buscar seis constantes seria um
+ * ida-e-volta a mais em toda abertura da aba.
+ */
+export const carregarMetas = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ metas: MetaUI[]; catalogo: TipoDeMetaUI[] }>> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { listarMetas } = await import("./aplicacao/metas");
+      const { CATALOGO_DE_METAS } = await import("./dominio/metas");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const metas = await listarMetas(ctx.organizationId, ctx.clinicIds, new Date(agoraIso()));
+
+      return {
+        ok: true as const,
+        metas: metas.map((m) => ({
+          id: m.id,
+          titulo: m.titulo,
+          tipo: m.tipo,
+          rotuloDoTipo: m.rotuloDoTipo,
+          comoMede: m.comoMede,
+          unidade: m.unidade,
+          baseline: m.baseline,
+          ehAcumulado: m.ehAcumulado,
+          alvo: m.alvo,
+          atual: m.atual,
+          prazoEm: m.prazoEm,
+          status: m.status,
+          maxContatosDia: m.maxContatosDia,
+          maxAutonomia: m.maxAutonomia,
+          medidoEm: m.medidoEm,
+          progresso:
+            m.progresso === null
+              ? null
+              : {
+                  fracao: m.progresso.fracao,
+                  situacao: m.progresso.situacao,
+                  falta: m.progresso.falta,
+                  ritmoNecessario: m.progresso.ritmoNecessario,
+                  resumo: m.progresso.resumo,
+                },
+          acoes: m.acoes,
+        })),
+        catalogo: CATALOGO_DE_METAS.map((c) => ({
+          tipo: c.tipo,
+          rotulo: c.rotulo,
+          unidade: c.unidade,
+          comoMede: c.comoMede,
+          menorEhMelhor: c.menorEhMelhor,
+          ehAcumulado: c.ehAcumulado,
+        })),
+      };
+    }),
+);
+
+/**
+ * Cria a meta, mede o baseline e monta o plano — tudo numa chamada.
+ *
+ * ============================================================================
+ *  A PERMISSÃO É `gerenciar_autopilot`, e não `ver_analytics_gerencial`.
+ *
+ *  Criar meta não é olhar número: ela carrega `max_contatos_dia` e
+ *  `max_autonomia`, que são autorização para o sistema falar com gente. Quem
+ *  pode ler o painel não necessariamente pode autorizar isso.
+ * ============================================================================
+ */
+export const criarMetaNova = createServerFn({ method: "POST" })
+  .validator(
+    (dados: {
+      titulo: string;
+      tipo: string;
+      alvo: number;
+      prazoEm: string;
+      maxContatosDia: number;
+      maxAutonomia: number;
+    }) => dados,
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { criarMeta } = await import("./aplicacao/metas");
+      const { CATALOGO_DE_METAS } = await import("./dominio/metas");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const conhecido = CATALOGO_DE_METAS.find((c) => c.tipo === data.tipo);
+      if (conhecido === undefined) {
+        /*
+         * TIPO INVENTADO É RECUSADO ALTO.
+         *
+         * Gravá-lo criaria uma meta que `medirValor()` não sabe medir — ela
+         * ficaria parada em 0% para sempre, e o dono concluiria que o módulo
+         * está quebrado quando o que está errado é a linha.
+         */
+        return {
+          ok: false as const,
+          code: "TIPO_DESCONHECIDO",
+          message: "Este tipo de meta não existe.",
+        };
+      }
+
+      const alvo = Number(data.alvo);
+      if (!Number.isFinite(alvo) || alvo <= 0) {
+        return {
+          ok: false as const,
+          code: "ALVO_INVALIDO",
+          message: "Informe um alvo maior que zero.",
+        };
+      }
+
+      if (conhecido.unidade === "PERCENTUAL" && alvo > 100) {
+        return {
+          ok: false as const,
+          code: "ALVO_INVALIDO",
+          message: "Uma meta em porcentagem não passa de 100%.",
+        };
+      }
+
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+
+      const r = await criarMeta(
+        {
+          organizationId: ctx.organizationId,
+          clinicIds: ctx.clinicIds,
+          clinicId: clinica,
+          titulo: data.titulo,
+          tipo: conhecido.tipo,
+          alvo,
+          prazoEm: data.prazoEm,
+          maxContatosDia: Number(data.maxContatosDia) || 50,
+          maxAutonomia: Number(data.maxAutonomia) || 0,
+          autorId: ctx.usuario.id,
+        },
+        new Date(agoraIso()),
+      );
+
+      if (!r.ok) return { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const mudarStatusDaMeta = createServerFn({ method: "POST" })
+  .validator((dados: { goalId: string; para: string }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { mudarStatus } = await import("./aplicacao/metas");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const permitidos = ["ATIVA", "PAUSADA", "CANCELADA"] as const;
+      const alvo = permitidos.find((s) => s === data.para);
+      if (alvo === undefined) {
+        /*
+         * A TELA NÃO PODE MARCAR "ATINGIDA" NEM "VENCIDA".
+         *
+         * Esses dois são conclusões da MEDIÇÃO, não decisões de alguém. Deixar
+         * a rota aceitá-los permitiria declarar uma meta batida sem ela ter
+         * sido — e o histórico de metas perderia o sentido inteiro.
+         */
+        return {
+          ok: false as const,
+          code: "ESTADO_INVALIDO",
+          message:
+            "Só dá para ativar, pausar ou cancelar. Atingida e vencida quem decide é a medição.",
+        };
+      }
+
+      const r = await mudarStatus(
+        {
+          organizationId: ctx.organizationId,
+          goalId: data.goalId,
+          para: alvo,
+          autorId: ctx.usuario.id,
+        },
+        new Date(agoraIso()),
+      );
+
+      if (!r.ok) return { ok: false as const, code: "TRANSICAO_INVALIDA", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+/** Mede agora, sem esperar a varredura. É o botão de "atualizar" da tela. */
+export const medirMetaAgora = createServerFn({ method: "POST" })
+  .validator((dados: { goalId: string }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { medirMeta } = await import("./aplicacao/metas");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const r = await medirMeta(
+        ctx.organizationId,
+        ctx.clinicIds,
+        data.goalId,
+        new Date(agoraIso()),
+      );
+
+      if (!r.ok) return { ok: false as const, code: "NAO_ENCONTRADO", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+export const replanejarMeta = createServerFn({ method: "POST" })
+  .validator((dados: { goalId: string }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { replanejar } = await import("./aplicacao/metas");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const r = await replanejar(
+        {
+          organizationId: ctx.organizationId,
+          clinicIds: ctx.clinicIds,
+          goalId: data.goalId,
+          autorId: ctx.usuario.id,
+        },
+        new Date(agoraIso()),
+      );
+
+      if (!r.ok) return { ok: false as const, code: "NAO_ENCONTRADO", message: r.motivo };
+      return { ok: true as const };
+    }),
+  );
+
+/**
+ * Volta a herdar o nível da organização.
+ *
+ * ============================================================================
+ *  "VOLTAR AO PADRÃO" NÃO É O MESMO QUE "DEFINIR 0".
+ *
+ *  O primeiro segue o padrão da organização quando ele mudar; o segundo congela
+ *  no zero. Sem esta rota, o painel mostrava `herdado: false` e não havia
+ *  nenhum caminho de volta pela tela — só apagando a linha no banco à mão.
+ * ============================================================================
+ */
+export const herdarAutonomia = createServerFn({ method: "POST" })
+  .validator((dados: { dominio: string }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { voltarAHerdar } = await import("./aplicacao/autonomia");
+      const { CATALOGO } = await import("./dominio/autonomia");
+
+      const conhecido = CATALOGO.find((d) => d.dominio === data.dominio);
+      if (conhecido === undefined) {
+        return {
+          ok: false as const,
+          code: "DOMINIO_DESCONHECIDO",
+          message: "Este domínio de autonomia não existe.",
+        };
+      }
+
+      /*
+       * SÓ FAZ SENTIDO COM UMA CLÍNICA EM FOCO.
+       *
+       * Herdar é a clínica deixar de ter configuração própria. Quem alcança
+       * várias está vendo o padrão da organização — que é justamente o que se
+       * herda, e não há de quem herdar acima dele.
+       */
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+      if (clinica === null) {
+        return {
+          ok: false as const,
+          code: "SEM_CLINICA_EM_FOCO",
+          message:
+            "Voltar a herdar é uma ação da unidade. Como você alcança mais de uma, o que aparece aqui já é o padrão da organização.",
+        };
+      }
+
+      await voltarAHerdar(ctx.organizationId, clinica, conhecido.dominio, ctx.usuario.id);
+      return { ok: true as const };
+    }),
+  );

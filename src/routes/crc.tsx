@@ -41,6 +41,8 @@ import {
   UsersRound,
   Workflow,
   Wrench,
+  Target,
+  Gauge,
   type LucideIcon,
 } from "lucide-react";
 
@@ -50,6 +52,8 @@ import { Funil } from "@/components/crc/Funil";
 import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
 import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
+import { Metas } from "@/components/crc/Metas";
+import { Autonomia } from "@/components/crc/Autonomia";
 import { Inbox } from "@/components/crc/Inbox";
 import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
@@ -118,6 +122,8 @@ type Aba =
   | "funil"
   | "pacientes"
   | "gestao"
+  | "metas"
+  | "autonomia"
   | "importar"
   | "automacoes"
   | "campanhas"
@@ -206,6 +212,15 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
     rotulo: "Performance",
     itens: [
       { aba: "gestao", rotulo: "Gestão", permissao: "ver_analytics_gerencial", icone: BarChart3 },
+      { aba: "metas", rotulo: "Metas", permissao: "ver_analytics_gerencial", icone: Target },
+      {
+        aba: "autonomia",
+        rotulo: "Autonomia",
+        // A MESMA permissao que liga e desliga a automacao: mexer no nivel de
+        // autonomia e autorizar o sistema a falar com paciente sozinho.
+        permissao: "gerenciar_autopilot",
+        icone: Gauge,
+      },
       {
         aba: "tratamentos",
         rotulo: "Tratamentos",
@@ -358,6 +373,62 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Precisa de você", tom: "perigo" },
       { rotulo: "Automação cuidando", tom: "info" },
       { rotulo: "Em dia", tom: "positiva" },
+    ],
+  },
+  metas: {
+    sobretitulo: "O objetivo virando plano",
+    paraQue: "o que você quer, decomposto no que o CRC sabe executar",
+    descricao:
+      "Uma meta aqui não é anotação: o sistema mede o progresso sozinho, todo dia, contra uma régua que aparece ANTES de você escolher o alvo. Por isso o tipo vem de uma lista fechada — uma meta que o sistema não sabe medir ficaria parada em 0% para sempre, e isso ensinaria que o módulo não funciona. A meta nasce em rascunho, com o plano montado, e não faz nada até alguém aprovar.",
+    acoes: [
+      {
+        faca: "Ler a régua antes de escolher o alvo",
+        efeito:
+          "É o que impede a divergência mais cara: você imagina uma definição de ocupação, o sistema mede por outra, e a diferença só aparece no fim do mês.",
+      },
+      {
+        faca: "Conferir os dois limites antes de aprovar",
+        efeito:
+          "Máximo de contatos por dia e autonomia máxima viajam junto da meta e são conferidos na execução. “Vou encher a agenda” sem teto é licença para disparar mensagem para a base inteira.",
+      },
+      {
+        faca: "Refazer o plano",
+        efeito:
+          "Monta uma versão nova com os recursos de hoje, sem apagar a anterior. A diferença entre o estimado e o realizado é a única fonte de calibração que este módulo tem.",
+      },
+      {
+        faca: "Olhar “período anterior” e “partiu de”",
+        efeito:
+          "Não são a mesma coisa. Ocupação parte de onde a clínica está; contagem começa do zero, e o mês passado é só referência.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Atrasada", tom: "alerta" },
+      { rotulo: "No ritmo", tom: "info" },
+      { rotulo: "À frente", tom: "positiva" },
+    ],
+  },
+  autonomia: {
+    sobretitulo: "Quanto o sistema faz sozinho",
+    paraQue: "subir e descer o nível de cada domínio, com o freio à vista",
+    descricao:
+      "A escada vai de 0 (desligado) a 5 (piloto automático), e o sistema NUNCA sobe um degrau sozinho. O número que importa é o EFETIVO: um domínio configurado no 5 com a chave desligada opera como 0, e mostrar só o 5 é a forma mais rápida de alguém concluir que a automação quebrou quando ela está obedecendo.",
+    acoes: [
+      {
+        faca: "Comparar “em vigor” com “configurado”",
+        efeito:
+          "Quando os dois divergem, a tela diz QUEM está segurando — kill switch acionado ou chave desligada. Nenhum dos dois se resolve aqui, e isso é de propósito.",
+      },
+      {
+        faca: "Voltar ao padrão",
+        efeito:
+          "Não é o mesmo que definir 0: voltar a herdar segue o padrão da organização quando ele mudar; o zero congela. Só aparece em unidade que tem configuração própria.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Nível alto", tom: "alerta" },
+      { rotulo: "Em vigor", tom: "info" },
+      { rotulo: "Desligado", tom: "neutra" },
     ],
   },
   recepcao: {
@@ -1954,6 +2025,12 @@ function PortalCrc() {
               podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
             />
           )}
+
+          {abaAtual === "metas" && (
+            <Metas podeGerenciar={usuario.permissoes.includes("gerenciar_autopilot")} />
+          )}
+
+          {abaAtual === "autonomia" && <Autonomia />}
 
           {abaAtual === "importar" && <Importar />}
 

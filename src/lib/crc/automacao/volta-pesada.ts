@@ -259,6 +259,7 @@ async function umaOrganizacao(
     const { podarTranscricoes } = await import("../aplicacao/omnichannel");
     const { varrerPreConsulta } = await import("../aplicacao/financeiro");
     const { expirarAprendizados, perguntarComoFoi } = await import("../aplicacao/growth");
+    const { medirMetasAtivas } = await import("../aplicacao/metas");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -324,6 +325,21 @@ async function umaOrganizacao(
        */
       await comCaptura(organizationId, "aprendizados vencidos", async () => ({
         aprendizadosExpirados: await expirarAprendizados(organizationId),
+      })),
+      /*
+       * AS METAS SAO MEDIDAS AQUI, e nao so quando alguem abre a tela.
+       *
+       * Uma meta que so anda quando observada nao serve para nada: o dono abre
+       * na sexta, ve 40%, e nao tem como saber se estava em 38% na quarta. A
+       * serie de crc_goal_metrics e o que responde "estavamos atrasados?" — e
+       * ela precisa de um ponto por dia, com o ritmo exigido NAQUELE dia
+       * guardado junto.
+       *
+       * O escopo e null (toda a organizacao) porque a varredura nao tem
+       * usuario: ela nao esta olhando pelos olhos de ninguem.
+       */
+      await comCaptura(organizationId, "metas", async () => ({
+        metasMedidas: await medirMetasAtivas(organizationId, null),
       })),
       /*
        * O FUNIL DE ACEITACAO percorre os orcamentos abertos em paginas, e pula

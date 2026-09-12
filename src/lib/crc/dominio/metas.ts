@@ -50,6 +50,28 @@ export type DescricaoDeMeta = {
   comoMede: string;
   /** `true` quando um valor MENOR é melhor. Muda o cálculo de progresso inteiro. */
   menorEhMelhor: boolean;
+  /**
+   * Estoque ou fluxo — e esta é a distinção que decide de onde o progresso parte.
+   *
+   * ============================================================================
+   *  ESTOQUE (`false`): a clínica JÁ ESTÁ em 61% de ocupação. A meta de chegar a
+   *  90% parte de 61, porque ocupação é um estado que existe agora.
+   *
+   *  FLUXO (`true`): "marcar 30 consultas até dia 12" parte de ZERO. Ninguém
+   *  começa o mês com 20 consultas já marcadas — as 20 do mês passado são
+   *  referência, e não ponto de partida.
+   *
+   *  Confundir os dois quebra o módulo de um jeito silencioso: medindo uma meta
+   *  de contagem contra o total do período anterior, no dia 1 de 30 o acumulado
+   *  é quase zero contra um mês inteiro, e TODA meta de fluxo nasce
+   *  catastroficamente atrasada. O dono conclui que o CRC não funciona.
+   *
+   *  Percentual é sempre estoque; reais e quantidade, sempre fluxo — mas a
+   *  regra fica escrita aqui em vez de deduzida da unidade, porque deduzir da
+   *  unidade é uma coincidência que a próxima meta quebra.
+   * ============================================================================
+   */
+  ehAcumulado: boolean;
 };
 
 /**
@@ -74,6 +96,8 @@ export const CATALOGO_DE_METAS: readonly DescricaoDeMeta[] = [
     comoMede:
       "Horas com consulta marcada dividido pelas horas de atendimento disponíveis, no período da meta.",
     menorEhMelhor: false,
+    // Estoque: a clínica já ESTÁ numa ocupação hoje.
+    ehAcumulado: false,
   },
   {
     tipo: "RECEITA_RECUPERADA",
@@ -82,6 +106,8 @@ export const CATALOGO_DE_METAS: readonly DescricaoDeMeta[] = [
     comoMede:
       "Soma dos eventos de produção com atribuição CONFIRMADA a uma ação do CRC. Não inclui receita provável.",
     menorEhMelhor: false,
+    // Fluxo: o período começa com R$ 0 recuperados.
+    ehAcumulado: true,
   },
   {
     tipo: "AGENDAMENTOS",
@@ -89,6 +115,8 @@ export const CATALOGO_DE_METAS: readonly DescricaoDeMeta[] = [
     unidade: "QUANTIDADE",
     comoMede: "Consultas criadas no período, com status diferente de cancelada.",
     menorEhMelhor: false,
+    // Fluxo: ninguém começa o mês com consultas já marcadas.
+    ehAcumulado: true,
   },
   {
     tipo: "CONVERSAO_ORCAMENTO",
@@ -96,6 +124,8 @@ export const CATALOGO_DE_METAS: readonly DescricaoDeMeta[] = [
     unidade: "PERCENTUAL",
     comoMede: "Orçamentos aceitos dividido pelos orçamentos com desfecho no período.",
     menorEhMelhor: false,
+    // Estoque: a taxa de conversão existe hoje, é um estado.
+    ehAcumulado: false,
   },
   {
     tipo: "REDUZIR_FALTAS",
@@ -105,6 +135,8 @@ export const CATALOGO_DE_METAS: readonly DescricaoDeMeta[] = [
     // O único em que menos é melhor. Ignorar isso faria o progresso ser
     // negativo justamente quando a clínica está melhorando.
     menorEhMelhor: true,
+    // Estoque: a taxa de falta existe hoje.
+    ehAcumulado: false,
   },
   {
     tipo: "REATIVAR_PACIENTES",
@@ -113,6 +145,8 @@ export const CATALOGO_DE_METAS: readonly DescricaoDeMeta[] = [
     comoMede:
       "Pacientes sem consulta há mais de seis meses que voltaram a marcar no período da meta.",
     menorEhMelhor: false,
+    // Fluxo: conta quem voltou DENTRO do período.
+    ehAcumulado: true,
   },
 ] as const;
 
