@@ -199,6 +199,103 @@ describe("crc_reservar_agent_jobs", () => {
     );
     expect(reservados.every((j) => j.organization_id === ORG_A)).toBe(true);
   });
+
+  /* ------------------------------------------------------------------------ */
+
+  /**
+   * O RETRY NÃO PODE TER MEIO-CAMINHO — `supabase/25`.
+   *
+   * `falharJob` gravava o desfecho em duas instruções: a RPC cercada mudava o
+   * status para REPETIR, e um `update` separado escrevia o backoff. Entre as
+   * duas, a linha fica assim no banco:
+   *
+   *     status = 'REPETIR'   disponivel_em = <valor antigo, no passado>
+   *     travado_ate = null
+   *
+   * que é EXATAMENTE o que `crc_reservar_agent_jobs` procura.
+   *
+   * ESTE TESTE SÓ É POSSÍVEL AQUI. No banco em memória não existe "entre as
+   * duas instruções": JavaScript roda uma coisa por vez, e o estado intermediário
+   * nunca é observável. É a diferença entre reproduzir uma constraint e executá-la.
+   */
+  describe("o encerramento com backoff é uma instrução só", () => {
+    async function jobRodandoComToken(): Promise<{ id: string; token: string }> {
+      await semearJobs(1);
+      const [linha] = await sql<{ id: string; lease_token: string }>(
+        `select id, lease_token from public.crc_reservar_agent_jobs(1, 180, 'worker-A')`,
+      );
+      if (linha === undefined) throw new Error("a reserva não devolveu job");
+      return { id: linha.id, token: linha.lease_token };
+    }
+
+    it("o job encerrado com backoff NÃO é reservável no instante seguinte", async () => {
+      const job = await jobRodandoComToken();
+
+      // Falha com retry, backoff de dois minutos, tudo numa chamada.
+      const [r] = await sql<{ crc_encerrar_agent_job: boolean }>(`
+        select public.crc_encerrar_agent_job(
+          '${job.id}'::uuid, '${job.token}'::uuid, 'REPETIR',
+          'o provedor caiu', null, now() + interval '2 minutes'
+        )
+      `);
+      expect(r?.crc_encerrar_agent_job).toBe(true);
+
+      /*
+       * A RESERVA IMEDIATAMENTE DEPOIS. Com a gravação em dois passos, este
+       * `select` — rodando no lugar do segundo worker — encontraria o job.
+       */
+      const roubados = await sql(
+        `select id from public.crc_reservar_agent_jobs(5, 180, 'worker-B')`,
+      );
+      expect(roubados).toHaveLength(0);
+
+      const [depois] = await sql<{ status: string; futuro: boolean }>(
+        `select status, disponivel_em > now() as futuro
+           from public.crc_agent_jobs where id = '${job.id}'`,
+      );
+      expect(depois?.status).toBe("REPETIR");
+      expect(depois?.futuro).toBe(true);
+    });
+
+    it("SEM o backoff junto, o job volta a ser reservável na hora", async () => {
+      /*
+       * A INJEÇÃO DE DEFEITO, ESCRITA COMO TESTE. Chamar a mesma função sem
+       * `p_disponivel_em` é literalmente o primeiro dos dois passos antigos — e
+       * o resultado mostra a janela existindo: o worker B pega o job que acabou
+       * de falhar, antes de qualquer backoff ser escrito.
+       *
+       * Ele documenta o defeito em vez de descrevê-lo, e quebraria se alguém
+       * "consertasse" a função fazendo o backoff sempre, o que também estaria
+       * errado: a conclusão não pode mexer no `disponivel_em`.
+       */
+      const job = await jobRodandoComToken();
+
+      await sql(`
+        select public.crc_encerrar_agent_job(
+          '${job.id}'::uuid, '${job.token}'::uuid, 'REPETIR', 'caiu', null, null
+        )
+      `);
+
+      const pegos = await sql(`select id from public.crc_reservar_agent_jobs(5, 180, 'worker-B')`);
+      expect(pegos).toHaveLength(1);
+    });
+
+    it("quem perdeu a posse não escreve, nem com o backoff certo", async () => {
+      const job = await jobRodandoComToken();
+
+      const [r] = await sql<{ crc_encerrar_agent_job: boolean }>(`
+        select public.crc_encerrar_agent_job(
+          '${job.id}'::uuid, gen_random_uuid(), 'CONCLUIDO', null, 10, null
+        )
+      `);
+      expect(r?.crc_encerrar_agent_job).toBe(false);
+
+      const [depois] = await sql<{ status: string }>(
+        `select status from public.crc_agent_jobs where id = '${job.id}'`,
+      );
+      expect(depois?.status).toBe("RODANDO");
+    });
+  });
 });
 
 /* ========================================================================== */

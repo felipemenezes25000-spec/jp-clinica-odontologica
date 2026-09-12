@@ -30,6 +30,7 @@ import {
   agoraIso,
   apagar,
   atualizar,
+  ErroBanco,
   inserirIgnorandoDuplicata,
   rpc,
   selecionar,
@@ -287,12 +288,43 @@ export async function concluirJob(job: AgentJob, duracaoMs: number): Promise<boo
  * decisão. Sem token, o `update` direto é o comportamento de antes: sem
  * fencing, e funcionando.
  */
+/**
+ * `true` enquanto ninguém provou que a RPC não aceita o backoff.
+ *
+ * O `supabase/25` acrescentou `p_disponivel_em` à função. Neste projeto o
+ * código sobe ANTES de alguém rodar o SQL à mão — então até a migração ser
+ * aplicada, a chamada com seis argumentos não encontra função nenhuma. A
+ * bandeira desce na primeira recusa e o caminho antigo assume: duas instruções,
+ * com a janela que elas têm. Degradar para o comportamento de ontem é aceitável;
+ * parar a fila não é.
+ */
+let rpcAceitaBackoff = true;
+
 async function encerrarComPosse(
   job: AgentJob,
   status: StatusJob,
   erro: string | null,
   duracaoMs: number | null,
-  extras: Linha = {},
+  /**
+   * Quando o desfecho é REPETIR, o instante em que o job volta a ser elegível.
+   *
+   * ======================================================================
+   *  ISTO PRECISA IR NA MESMA INSTRUÇÃO QUE O STATUS, e antes não ia.
+   *
+   *      rpc  → status = 'REPETIR', travado_ate = null
+   *      upd  → disponivel_em = agora + backoff
+   *
+   *  Entre as duas, a linha está REPETIR com o `disponivel_em` ANTIGO — que
+   *  é passado. E é exatamente o que a reserva procura. Outro worker pega o
+   *  job no ato, e o backoff cai em cima de uma reserva alheia.
+   *
+   *  O efeito não é "o retry acontece cedo demais" e pronto: o backoff existe
+   *  porque a maior parte das falhas é provedor fora do ar. Retry imediato
+   *  bate no mesmo provedor caído e queima as cinco tentativas em segundos —
+   *  a dead letter abre antes de o provedor ter tido chance de voltar.
+   * ======================================================================
+   */
+  disponivelEm: string | null = null,
 ): Promise<boolean> {
   if (job.leaseToken !== null && job.leaseToken.length > 0) {
     /*
@@ -321,20 +353,51 @@ async function encerrarComPosse(
      * ========================================================================
      */
     try {
-      const linhas = await rpc("crc_encerrar_agent_job", {
+      const base: Linha = {
         p_job_id: job.id,
         p_lease_token: job.leaseToken,
         p_status: status,
         p_erro: erro,
         p_duracao_ms: duracaoMs,
-      });
+      };
+
+      if (rpcAceitaBackoff) {
+        try {
+          const linhas = await rpc("crc_encerrar_agent_job", {
+            ...base,
+            p_disponivel_em: disponivelEm,
+          });
+          const linha = linhas[0];
+          return linha !== undefined && Object.values(linha)[0] !== false;
+        } catch (recusa) {
+          /*
+           * SÓ "FUNÇÃO NÃO EXISTE" CAI PARA O CAMINHO ANTIGO — e não qualquer
+           * erro. Um `catch` largo aqui transformaria uma falha real de banco
+           * numa gravação sem fencing, que é o contrário do que este arquivo
+           * inteiro protege.
+           */
+          if (!ehAssinaturaDesconhecida(recusa)) throw recusa;
+          rpcAceitaBackoff = false;
+          registrar(
+            "aviso",
+            "O banco ainda não tem supabase/25; o retry volta a ser em dois passos.",
+            {
+              organizationId: job.organizationId,
+            },
+          );
+        }
+      }
+
+      const linhas = await rpc("crc_encerrar_agent_job", base);
       const linha = linhas[0];
       const gravou = linha !== undefined && Object.values(linha)[0] !== false;
 
-      // Os campos que a RPC não conhece — `disponivel_em` do backoff. Só depois
-      // de a posse ter sido PROVADA.
-      if (gravou && Object.keys(extras).length > 0) {
-        await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], extras);
+      // O CAMINHO DE ONTEM, com a janela de ontem. Só depois de a posse ter
+      // sido PROVADA.
+      if (gravou && disponivelEm !== null) {
+        await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
+          disponivel_em: disponivelEm,
+        });
       }
       return gravou;
     } catch (falha) {
@@ -357,9 +420,23 @@ async function encerrarComPosse(
     terminou_em: agoraIso(),
     travado_ate: null,
     atualizado_em: agoraIso(),
-    ...extras,
+    // SEM TOKEN NÃO HÁ FENCING, mas ainda dá para não ter a janela: status e
+    // backoff saem no mesmo `update`.
+    ...(disponivelEm === null ? {} : { disponivel_em: disponivelEm }),
   });
   return true;
+}
+
+/**
+ * A recusa é "essa função com esses argumentos não existe"?
+ *
+ * O PostgREST responde `PGRST202` com 404 quando nenhuma sobrecarga casa com os
+ * nomes enviados. É o sintoma exato de `supabase/25` ainda não aplicado, e é o
+ * único que justifica voltar ao caminho de dois passos.
+ */
+function ehAssinaturaDesconhecida(erro: unknown): boolean {
+  if (!(erro instanceof ErroBanco)) return false;
+  return erro.status === 404 || erro.detalhe.includes("PGRST202");
 }
 
 /**
@@ -386,11 +463,15 @@ export async function falharJob(job: AgentJob, erro: string, agora = new Date())
   const desistiu = job.tentativas >= MAX_TENTATIVAS;
   const detalhe = erro.slice(0, 500);
 
-  const gravou = await encerrarComPosse(job, desistiu ? "FALHOU" : "REPETIR", detalhe, null, {
-    disponivel_em: desistiu
+  const gravou = await encerrarComPosse(
+    job,
+    desistiu ? "FALHOU" : "REPETIR",
+    detalhe,
+    null,
+    desistiu
       ? agoraIso()
       : new Date(agora.getTime() + esperaDoRetry(job.tentativas) * 1000).toISOString(),
-  });
+  );
 
   /*
    * PERDEU A POSSE: não escreve, e não manda para a dead letter.
@@ -510,6 +591,11 @@ export async function panoramaDaFila(
   }
 
   return { pendentes, rodando, repetindo, falhos, esperaMaisAntigaMin: maisAntigo };
+}
+
+/** Só para teste: devolve a bandeira ao estado inicial entre casos. */
+export function _reativarBackoffNaRpc(): void {
+  rpcAceitaBackoff = true;
 }
 
 /** Limpa jobs concluídos antigos. A fila é fila, não histórico. */

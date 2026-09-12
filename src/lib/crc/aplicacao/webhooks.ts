@@ -67,9 +67,27 @@ export async function processarWebhookWhatsapp(
     return resultado;
   }
 
+  /*
+   * O ESCOPO E RESOLVIDO ANTES DA GRAVACAO, e nao depois.
+   *
+   * A ordem anterior — gravar, resolver, aplicar — deixava a linha nascer sem
+   * tenant, e ela ficava sem tenant para sempre: nenhum caminho voltava para
+   * preenche-lo. O efeito aparecia la na frente, na dead letter com
+   * `organization_id = null` (ver `mandarParaDeadLetter`).
+   *
+   * Resolver primeiro nao muda a garantia do inbox pattern: a chave de dedupe
+   * continua sendo gravada antes de qualquer efeito, e `resolverEscopo` e uma
+   * leitura — ela nao aplica nada no mundo.
+   */
+  const escopo = await resolverEscopo(porta.nome, interpretado.destinatario);
+
   const inbox = await inserirIgnorandoDuplicata("crc_webhook_inbox", {
     provedor: porta.nome,
     external_id: chave,
+    // DE QUEM E ESTA MENSAGEM. Nulo quando nao da para saber — e nesse caso a
+    // linha ja nasce a caminho de FALHOU, logo abaixo.
+    organization_id: escopo?.organizationId ?? null,
+    clinic_id: escopo?.clinicId ?? null,
     /*
      * O ENVELOPE JÁ INTERPRETADO, e não o payload cru mascarado.
      *
@@ -97,8 +115,6 @@ export async function processarWebhookWhatsapp(
 
   const inboxId = String(inbox["id"] ?? "");
 
-  // Quem recebeu decide de quem é a mensagem. Ver `resolverEscopo`.
-  const escopo = await resolverEscopo(porta.nome, interpretado.destinatario);
   if (escopo === null) {
     await marcar(inboxId, "FALHOU", "Nenhuma organização configurada.");
     registrar("erro", "Webhook recebido sem organização configurada.");
@@ -167,9 +183,38 @@ async function marcar(
 ): Promise<void> {
   const mudancas: Linha = { status, ultimo_erro: erro };
 
-  if (status === "PROCESSADO") {
+  /*
+   * ========================================================================
+   *  A POLITICA DE RETENCAO, DITA INTEIRA — e faltava metade dela.
+   *
+   *  A versao anterior zerava o payload so em `PROCESSADO`. Ou seja: o
+   *  envelope que ESGOTA as tentativas, e o que e descartado por nao ter
+   *  conteudo aplicavel, guardavam telefone e texto do paciente para sempre —
+   *  numa tabela de fila, com politica de acesso diferente da de
+   *  `crc_messages`. E o caso de falha e justamente o que ninguem revisita.
+   *
+   *  A regra e uma pergunta so: **este envelope ainda pode ser reprocessado?**
+   *
+   *    PENDENTE / PROCESSANDO            pode -> guarda
+   *    FALHOU com tentativa sobrando     pode -> guarda
+   *    ---------------------------------------------------------------
+   *    PROCESSADO                        nao  -> zera
+   *    DESCARTADO                        nao  -> zera
+   *    FALHOU no teto (dead letter)      nao  -> zera
+   *
+   *  A LINHA CONTINUA, e so o conteudo sai: e o `external_id` dela que impede o
+   *  provedor de reentregar o mesmo webhook como se fosse novo.
+   * ========================================================================
+   */
+  const terminal =
+    status === "PROCESSADO" ||
+    status === "DESCARTADO" ||
+    (status === "FALHOU" && tentativas >= MAX_TENTATIVAS_WEBHOOK);
+
+  if (terminal) mudancas["payload"] = {};
+
+  if (status === "PROCESSADO" || status === "DESCARTADO") {
     mudancas["processado_em"] = new Date().toISOString();
-    mudancas["payload"] = {};
     mudancas["travado_ate"] = null;
   } else if (status === "FALHOU") {
     mudancas["travado_ate"] = null;
@@ -399,6 +444,31 @@ export async function repescarWebhooks(
 export const MAX_TENTATIVAS_WEBHOOK = 5;
 
 /**
+ * De quem e a linha do inbox.
+ *
+ * A COLUNA PRIMEIRO, e o envelope como resgate: linha gravada antes do
+ * `supabase/25` nao tem a coluna preenchida, e o `destinatario` que viaja dentro
+ * do envelope normalizado resolve exatamente como resolveu na primeira vez.
+ * `null` so quando as duas fontes falham — e ai e honesto: nao da para saber.
+ */
+async function tenantDaLinha(linha: Linha): Promise<string | null> {
+  const daColuna = typeof linha["organization_id"] === "string" ? linha["organization_id"] : "";
+  if (daColuna.length > 0) return daColuna;
+
+  const payload = linha["payload"];
+  const destinatario =
+    typeof payload === "object" && payload !== null
+      ? (payload as { destinatario?: unknown }).destinatario
+      : null;
+
+  const escopo = await resolverEscopo(
+    String(linha["provedor"] ?? ""),
+    typeof destinatario === "string" ? destinatario : null,
+  );
+  return escopo?.organizationId ?? null;
+}
+
+/**
  * Aplica um envelope guardado.
  *
  * Devolve `false` quando não há nada aplicável — ver o comentário do
@@ -435,6 +505,22 @@ async function aplicarEnvelope(linha: Linha): Promise<boolean> {
     throw new Error("Nenhuma organização configurada para este canal.");
   }
 
+  /*
+   * A REPESCAGEM PREENCHE O TENANT QUE FALTAVA. Uma linha gravada antes do
+   * `supabase/25` chega aqui sem `organization_id`; como acabamos de resolver o
+   * escopo pelo mesmo caminho da primeira vez, vale registrar — senao a proxima
+   * falha dela voltaria a abrir dead letter sem dono.
+   */
+  const semTenant =
+    typeof linha["organization_id"] !== "string" || linha["organization_id"].length === 0;
+  if (semTenant) {
+    await atualizar(
+      "crc_webhook_inbox",
+      [{ coluna: "id", op: "eq", valor: String(linha["id"] ?? "") }],
+      { organization_id: escopo.organizationId, clinic_id: escopo.clinicId },
+    );
+  }
+
   for (const m of mensagens) {
     await receberMensagem(
       escopo.organizationId,
@@ -467,17 +553,47 @@ async function aplicarEnvelope(linha: Linha): Promise<boolean> {
 async function mandarParaDeadLetter(linha: Linha, erro: string): Promise<void> {
   try {
     const { inserir } = await import("../servidor/banco");
-    const escopo = await resolverEscopo(String(linha["provedor"] ?? ""), null);
+
+    /*
+     * ========================================================================
+     *  O TENANT VEM DA LINHA, e a versao anterior fazia isto:
+     *
+     *      resolverEscopo(provedor, null)
+     *                               ^^^^
+     *
+     *  `null` no lugar do destinatario. E `resolverEscopo` sem destinatario cai
+     *  direto no caminho da clinica unica — que, com duas clinicas, devolve
+     *  `null` de proposito. Resultado: dead letter com `organization_id = null`.
+     *
+     *  Com um cliente, certo por acidente. Num SaaS, a fila de falhas vira um
+     *  monte sem dono: nao da para dizer qual cliente perdeu mensagem, nem
+     *  mostrar a ele o que foi perdido, nem separar o problema de um do
+     *  problema de todos.
+     *
+     *  A INFORMACAO NUNCA FALTOU. `resolverEscopo` ja tinha acertado quando o
+     *  envelope chegou; ela so nao era gravada. Agora e coluna, desde o
+     *  `supabase/25`.
+     * ========================================================================
+     */
+    const organizationId = await tenantDaLinha(linha);
 
     await inserir("crc_dead_letters", {
-      organization_id: escopo?.organizationId ?? null,
+      organization_id: organizationId,
       origem: "webhook",
       referencia: String(linha["id"] ?? ""),
       erro: erro.slice(0, 500),
+      /*
+       * SO METADADO, e e deliberado. A dead letter existe para alguem
+       * INVESTIGAR: provedor, id externo, tenant e contagem bastam. Copiar o
+       * texto da mensagem criaria um TERCEIRO lugar com PII e uma terceira
+       * politica de retencao — e a referencia para a linha do inbox ja leva a
+       * tudo enquanto ela existir.
+       */
       payload: {
         provedor: linha["provedor"],
         externalId: linha["external_id"],
         tentativas: linha["tentativas"],
+        clinicId: linha["clinic_id"] ?? null,
       },
       status: "PENDENTE",
     });

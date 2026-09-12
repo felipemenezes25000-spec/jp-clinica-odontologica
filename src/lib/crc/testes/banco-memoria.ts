@@ -1020,6 +1020,18 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       job["status"] = argumentos["p_status"];
       if (argumentos["p_erro"] != null) job["ultimo_erro"] = argumentos["p_erro"];
       if (argumentos["p_duracao_ms"] != null) job["duracao_ms"] = argumentos["p_duracao_ms"];
+      /*
+       * O BACKOFF SAI NA MESMA CHAMADA — `supabase/25`.
+       *
+       * Antes ele vinha num `update` separado, e entre as duas instruções a
+       * linha ficava REPETIR com o `disponivel_em` velho: elegível. Reproduzir
+       * o parâmetro aqui é o que permite ao teste do fake notar se o código
+       * voltar a fazer em dois passos — sem isto, a asserção passaria pelo
+       * segundo `update` e não provaria a atomicidade.
+       */
+      if (argumentos["p_disponivel_em"] != null) {
+        job["disponivel_em"] = argumentos["p_disponivel_em"];
+      }
       job["terminou_em"] = new Date(agora).toISOString();
       job["travado_ate"] = null;
 
