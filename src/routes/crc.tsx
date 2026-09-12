@@ -22,6 +22,7 @@ import {
   Columns3,
   FileUp,
   FlaskConical,
+  CalendarClock,
   House,
   Radar as RadarIcon,
   ImageOff,
@@ -59,6 +60,7 @@ import { Estudio } from "@/components/crc/Estudio";
 import { Ferramentas } from "@/components/crc/Ferramentas";
 import { Playground } from "@/components/crc/Playground";
 import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
+import { Encaixes } from "@/components/crc/Encaixes";
 import { Radar } from "@/components/crc/Radar";
 import { Saude } from "@/components/crc/Saude";
 import { Configuracoes } from "@/components/crc/Configuracoes";
@@ -102,6 +104,7 @@ export const Route = createFileRoute("/crc")({
 type Aba =
   | "home"
   | "radar"
+  | "encaixes"
   | "trabalho"
   | "inbox"
   | "agenda"
@@ -178,6 +181,7 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
       { aba: "inbox", rotulo: "Conversas", permissao: "ver_conversa", icone: MessageSquareText },
       { aba: "funil", rotulo: "Funil", permissao: "ver_oportunidade", icone: Columns3 },
       { aba: "agenda", rotulo: "Agenda", permissao: "ver_paciente", icone: CalendarDays },
+      { aba: "encaixes", rotulo: "Encaixes", permissao: "ver_paciente", icone: CalendarClock },
       { aba: "pacientes", rotulo: "Pacientes", permissao: "ver_paciente", icone: UsersRound },
       {
         aba: "proximas",
@@ -335,6 +339,34 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Precisa de você", tom: "perigo" },
       { rotulo: "Automação cuidando", tom: "info" },
       { rotulo: "Em dia", tom: "positiva" },
+    ],
+  },
+  encaixes: {
+    sobretitulo: "A cadeira que vagou",
+    paraQue: "as horas vagas da semana, e o que fazer com elas",
+    descricao:
+      "Duas listas, e a segunda \u00e9 a que ningu\u00e9m procura sozinho. Em cima, as horas que J\u00c1 vagaram: cancelamentos e v\u00e3os entre consultas do mesmo dentista. Embaixo, as que PROVAVELMENTE v\u00e3o vagar: consultas de risco alto nos pr\u00f3ximos sete dias. O sistema convida em levas de tr\u00eas, com espera entre elas \u2014 nunca a lista inteira de uma vez, porque trinta pessoas ouvindo \u201cj\u00e1 foi preenchido\u201d \u00e9 pior do que a cadeira ter ficado vazia.",
+    acoes: [
+      {
+        faca: "Ler \u201cpessoas convidadas\u201d em cada hora vaga",
+        efeito:
+          "Mostra quantos convites j\u00e1 sa\u00edram para aquela janela. \u00c9 o n\u00famero que impede algu\u00e9m de \u201cajudar\u201d disparando para todo mundo.",
+      },
+      {
+        faca: "Ler os fatores de quem est\u00e1 em risco",
+        efeito:
+          "Diz por que aquela consulta foi marcada como risco alto. Se o motivo n\u00e3o fizer sentido, o crit\u00e9rio est\u00e1 errado \u2014 e discordar \u00e9 como ele melhora.",
+      },
+      {
+        faca: "Preparar o encaixe em vez de ligar mais",
+        efeito:
+          "Insistir com quem vai faltar n\u00e3o faz a pessoa vir. O que recupera a hora \u00e9 ter quem chamar pronto quando a falta acontecer.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Convidando", tom: "info" },
+      { rotulo: "Sem convite ainda", tom: "alerta" },
+      { rotulo: "Risco alto", tom: "perigo" },
     ],
   },
   radar: {
@@ -1835,6 +1867,7 @@ function PortalCrc() {
           {abaAtual === "ferramentas" && <Ferramentas />}
           {abaAtual === "proximas" && <ProximasAcoes />}
           {abaAtual === "radar" && <Radar />}
+          {abaAtual === "encaixes" && <Encaixes />}
           {abaAtual === "saude" && <Saude />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}

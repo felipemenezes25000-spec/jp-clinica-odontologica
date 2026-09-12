@@ -115,7 +115,11 @@ export type Tabela =
   // supabase/30 — Radar de Receita.
   | "crc_attribution_events"
   | "crc_ai_activity"
-  | "crc_autonomia";
+  | "crc_autonomia"
+  // supabase/32 — Agenda Inteligente.
+  | "crc_schedule_gaps"
+  | "crc_gap_offers"
+  | "crc_waitlist_preferences";
 
 export type Linha = Record<string, unknown>;
 

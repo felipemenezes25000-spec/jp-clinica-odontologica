@@ -254,6 +254,7 @@ async function umaOrganizacao(
     const { recalcularPrioridades } = await import("../aplicacao/oportunidades");
     const { detectarOportunidadesParadas } = await import("../aplicacao/tarefas");
     const { varrerRadar } = await import("../aplicacao/radar");
+    const { calcularRiscos, detectarBuracos } = await import("../aplicacao/agenda-inteligente");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -284,6 +285,29 @@ async function umaOrganizacao(
        * amanhã.
        */
       await comCaptura(organizationId, "radar", () => varrerRadar(organizationId)),
+      /*
+       * A AGENDA INTELIGENTE, NESTA ORDEM: detectar, avaliar risco, convidar.
+       *
+       * `detectarBuracos` antes de `trabalharBuracos` porque o segundo so ve o
+       * que o primeiro registrou — inverter atrasaria cada buraco em um dia
+       * inteiro, que e justamente o tempo que ele tinha para ser preenchido.
+       *
+       * E o risco vem no meio de proposito: e ele que diz quais consultas
+       * PROVAVELMENTE vao abrir buraco, e a recepcao precisa disso de manha,
+       * junto com os buracos que ja existem.
+       */
+      await comCaptura(organizationId, "buracos de agenda", () => detectarBuracos(organizationId)),
+      await comCaptura(organizationId, "risco de falta", () => calcularRiscos(organizationId)),
+      /*
+       * OFERECER O ENCAIXE NAO ESTA AQUI, e a ausencia e deliberada.
+       *
+       * Um cancelamento avisado as 9h para as 14h do mesmo dia tem cinco horas
+       * de vida util; a volta pesada roda uma vez ao dia. O convite sairia
+       * depois de a cadeira ja ter ficado vazia.
+       *
+       * Quem oferece e o PULSO — ver `oferecerEncaixesDe` em `pulso.ts`. A
+       * deteccao fica aqui porque depende do sync, que e o passo caro.
+       */
       /*
        * A FAXINA, junto com as varreduras e pelo mesmo motivo: é trabalho de
        * manutenção, cara, e que ninguém está esperando. Ver `faxina()`.

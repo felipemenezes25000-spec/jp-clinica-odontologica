@@ -211,6 +211,15 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
    * em SQL dois NULL não são iguais. Um índice só, com `clinic_id` dentro,
    * deixaria passar quantas linhas de padrão alguém quisesse criar.
    */
+  /*
+   * Os indices do 32 — agenda inteligente.
+   *
+   * `crc_gap_offers` tem o unico NAO parcial: uma oferta por pessoa por buraco,
+   * sempre. E ele que impede a segunda leva de reoferecer para quem ja recebeu.
+   */
+  crc_schedule_gaps: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  crc_gap_offers: [{ colunas: ["gap_id", "patient_id"] }],
+  crc_waitlist_preferences: [{ colunas: ["organization_id", "patient_id"] }],
   crc_autonomia: [
     {
       colunas: ["organization_id", "clinic_id", "dominio"],
@@ -729,6 +738,111 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
      * E `valor_esperado` e `potential_value * coalesce(probability, 0)` LINHA A
      * LINHA, como no SQL. Multiplicar o total por uma media daria outro numero.
      */
+    /*
+     * OS CANDIDATOS A UM BURACO — `supabase/32`.
+     *
+     * ESTE FAKE PRECISA REPETIR AS QUATRO EXCLUSOES DO SQL, e cada uma protege
+     * uma coisa diferente:
+     *
+     *   opt_out          quem pediu silencio nao entra nem no fim da lista;
+     *   consulta futura  quem ja tem hora marcada nao precisa de encaixe;
+     *   ja oferecido     a segunda leva nao reoferece para os mesmos;
+     *   telefone         sem canal nao adianta convidar.
+     *
+     * Um fake que esquecesse qualquer uma concordaria com um codigo que a
+     * esquece — e a primeira seria a que aparece como reclamacao.
+     */
+    case "crc_candidatos_para_buraco": {
+      const org = argumentos["p_organization_id"];
+      const gapId = argumentos["p_gap_id"];
+      const limite = typeof argumentos["p_limite"] === "number" ? argumentos["p_limite"] : 20;
+
+      const buraco = (tabelas["crc_schedule_gaps"] ?? []).find(
+        (g) => g["id"] === gapId && g["organization_id"] === org,
+      );
+      if (buraco === undefined) return Promise.resolve([] as T[]);
+
+      const inicio = new Date(String(buraco["inicio_em"]));
+      // O mesmo `at time zone 'America/Sao_Paulo'` do SQL.
+      const partes = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).formatToParts(inicio);
+      const nomeDia = partes.find((x) => x.type === "weekday")?.value ?? "";
+      const dow = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(nomeDia);
+      const hora = `${partes.find((x) => x.type === "hour")?.value ?? "00"}:${partes.find((x) => x.type === "minute")?.value ?? "00"}`;
+
+      const jaOferecidos = new Set(
+        (tabelas["crc_gap_offers"] ?? [])
+          .filter((o) => o["gap_id"] === gapId)
+          .map((o) => String(o["patient_id"])),
+      );
+
+      const saida: Linha[] = [];
+
+      for (const pac of tabelas["crc_patients"] ?? []) {
+        if (pac["organization_id"] !== org) continue;
+        if (pac["clinic_id"] !== buraco["clinic_id"]) continue;
+        if (pac["arquivado"] === true) continue;
+        if (pac["ativo"] === false) continue;
+        if (pac["opt_out_em"] !== null && pac["opt_out_em"] !== undefined) continue;
+        if (typeof pac["telefone"] !== "string" || pac["telefone"].length === 0) continue;
+        if (jaOferecidos.has(String(pac["id"]))) continue;
+
+        const temFutura = (tabelas["crc_appointments"] ?? []).some(
+          (a) =>
+            a["patient_id"] === pac["id"] &&
+            typeof a["inicio_em"] === "string" &&
+            Date.parse(a["inicio_em"]) > agora &&
+            (a["status"] === "TO_CONFIRM" || a["status"] === "CONFIRMED"),
+        );
+        if (temFutura) continue;
+
+        const w = (tabelas["crc_waitlist_preferences"] ?? []).find(
+          (x) => x["patient_id"] === pac["id"] && x["ativo"] !== false,
+        );
+
+        const dias = Array.isArray(w?.["dias"]) ? (w["dias"] as number[]) : [];
+        const horaInicio = typeof w?.["hora_inicio"] === "string" ? w["hora_inicio"] : null;
+        const horaFim = typeof w?.["hora_fim"] === "string" ? w["hora_fim"] : null;
+
+        saida.push({
+          patient_id: pac["id"],
+          nome: pac["nome"],
+          telefone: pac["telefone"],
+          tem_waitlist: w !== undefined,
+          aceita_encaixe: w === undefined ? true : w["aceita_encaixe"] !== false,
+          dia_bate: w === undefined || dias.length === 0 || dias.includes(dow),
+          hora_bate:
+            w === undefined ||
+            horaInicio === null ||
+            (hora >= horaInicio && hora <= (horaFim ?? "23:59")),
+          dentista_bate:
+            w === undefined ||
+            w["dentist_id"] === null ||
+            w["dentist_id"] === undefined ||
+            w["dentist_id"] === buraco["dentist_id"],
+          ultima_consulta: pac["ultima_consulta_em"] ?? null,
+          consultas_feitas: (tabelas["crc_appointments"] ?? []).filter(
+            (a) => a["patient_id"] === pac["id"] && a["status"] === "COMPLETED",
+          ).length,
+        });
+      }
+
+      // A mesma ordem do SQL: waitlist primeiro, depois quem veio mais recente.
+      saida.sort((a, b) => {
+        if (a["tem_waitlist"] !== b["tem_waitlist"]) return a["tem_waitlist"] === true ? -1 : 1;
+        const ua = typeof a["ultima_consulta"] === "string" ? Date.parse(a["ultima_consulta"]) : -1;
+        const ub = typeof b["ultima_consulta"] === "string" ? Date.parse(b["ultima_consulta"]) : -1;
+        return ub - ua;
+      });
+
+      return Promise.resolve(saida.slice(0, Math.max(1, Math.min(limite, 100))) as T[]);
+    }
+
     case "crc_radar_resumo": {
       const org = argumentos["p_organization_id"];
       const clinica =

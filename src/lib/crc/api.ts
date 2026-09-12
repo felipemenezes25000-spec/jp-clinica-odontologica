@@ -4866,3 +4866,189 @@ export const ajustarAutonomia = createServerFn({ method: "POST" })
       return { ok: true as const };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Agenda Inteligente — supabase/32                                           */
+/* -------------------------------------------------------------------------- */
+
+export type BuracoUI = {
+  id: string;
+  inicioEm: string;
+  duracaoMin: number;
+  status: string;
+  valorEstimado: number;
+  oferecidos: number;
+  dentista: string | null;
+};
+
+export type ConsultaEmRiscoUI = {
+  id: string;
+  patientId: string | null;
+  nome: string;
+  inicioEm: string;
+  confirmada: boolean;
+  nivel: string;
+  fatores: { rotulo: string; pontos: number }[];
+};
+
+export type AgendaInteligenteUI = {
+  buracos: BuracoUI[];
+  emRisco: ConsultaEmRiscoUI[];
+  /** Soma do valor estimado dos buracos abertos. Sempre rotulada "potencial". */
+  valorParado: number;
+};
+
+export const carregarAgendaInteligente = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ agenda: AgendaInteligenteUI }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { listarBuracos } = await import("./aplicacao/agenda-inteligente");
+      const { selecionar } = await import("./servidor/banco");
+
+      const buracos = await listarBuracos(ctx.organizationId, ctx.clinicIds);
+
+      /*
+       * AS CONSULTAS EM RISCO SÃO SÓ AS DE RISCO ALTO, e só as dos próximos
+       * dias. A tela é uma lista de ação, não um relatório: mostrar as 200
+       * consultas do mês com o risco de cada uma é a forma mais rápida de
+       * ninguém olhar nenhuma.
+       */
+      const agora = new Date();
+      const emSeteDias = new Date(agora.getTime() + 7 * 86_400_000);
+
+      const linhas =
+        ctx.clinicIds.length === 0
+          ? []
+          : await selecionar("crc_appointments", {
+              colunas: "id,patient_id,inicio_em,status,risco_falta,risco_fatores",
+              filtros: [
+                { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+                { coluna: "clinic_id", op: "in", valor: [...ctx.clinicIds] },
+                { coluna: "risco_falta", op: "eq", valor: "ALTO" },
+                { coluna: "inicio_em", op: "gt", valor: agora.toISOString() },
+                { coluna: "inicio_em", op: "lte", valor: emSeteDias.toISOString() },
+              ],
+              ordenar: [{ coluna: "inicio_em", ascendente: true }],
+              limite: 30,
+            });
+
+      const nomes = await carregarNomes(
+        ctx.organizationId,
+        linhas.map((l) => l["patient_id"]).filter((p): p is string => typeof p === "string"),
+      );
+
+      return {
+        ok: true as const,
+        agenda: {
+          buracos,
+          valorParado: buracos.reduce((s, b) => s + b.valorEstimado, 0),
+          emRisco: linhas.map((l) => {
+            const pid = typeof l["patient_id"] === "string" ? l["patient_id"] : null;
+            const brutos = l["risco_fatores"];
+
+            return {
+              id: String(l["id"] ?? ""),
+              patientId: pid,
+              nome: (pid === null ? null : nomes.get(pid)) ?? "Paciente sem nome",
+              inicioEm: String(l["inicio_em"] ?? ""),
+              confirmada: l["status"] === "CONFIRMED",
+              nivel: String(l["risco_falta"] ?? "BAIXO"),
+              fatores: Array.isArray(brutos)
+                ? brutos
+                    .filter(
+                      (f): f is { rotulo: string; pontos: number } =>
+                        typeof f === "object" &&
+                        f !== null &&
+                        typeof (f as { rotulo?: unknown }).rotulo === "string",
+                    )
+                    .slice(0, 4)
+                    .map((f) => ({ rotulo: f.rotulo, pontos: Number(f.pontos) || 0 }))
+                : [],
+            };
+          }),
+        },
+      };
+    }),
+);
+
+export type PreferenciaUI = {
+  dias: number[];
+  horaInicio: string | null;
+  horaFim: string | null;
+  aceitaEncaixe: boolean;
+  antecedenciaH: number;
+  outraUnidade: boolean;
+  ativo: boolean;
+};
+
+export const carregarPreferenciaDeEspera = createServerFn({ method: "GET" })
+  .inputValidator((dados: { patientId: string }) => dados)
+  .handler(async ({ data }): Promise<Resposta<{ preferencia: PreferenciaUI | null }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { lerPreferencia } = await import("./aplicacao/agenda-inteligente");
+      const p = await lerPreferencia(ctx.organizationId, data.patientId);
+
+      return {
+        ok: true as const,
+        preferencia:
+          p === null
+            ? null
+            : {
+                dias: p.dias,
+                horaInicio: p.horaInicio,
+                horaFim: p.horaFim,
+                aceitaEncaixe: p.aceitaEncaixe,
+                antecedenciaH: p.antecedenciaH,
+                outraUnidade: p.outraUnidade,
+                ativo: p.ativo,
+              },
+      };
+    }),
+  );
+
+export const salvarPreferenciaDeEspera = createServerFn({ method: "POST" })
+  .inputValidator(
+    (dados: {
+      patientId: string;
+      dias: number[];
+      horaInicio: string | null;
+      horaFim: string | null;
+      aceitaEncaixe: boolean;
+      antecedenciaH: number;
+      outraUnidade: boolean;
+      ativo: boolean;
+    }) => dados,
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("editar_paciente", async (ctx) => {
+      const { salvarPreferencia } = await import("./aplicacao/agenda-inteligente");
+
+      /*
+       * O `clinic_id` SAI DO CONTEXTO, e não do navegador. Aceitar um
+       * `clinicId` do cliente deixaria alguém cadastrar preferência de espera
+       * numa unidade que não alcança — e essa pessoa passaria a ser convidada
+       * para encaixes de lá.
+       */
+      const clinicId = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+
+      // Dia fora de 0..6 é recusado em silêncio: um array vindo do navegador
+      // não define o que "dia da semana" significa.
+      const dias = data.dias.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+
+      await salvarPreferencia(ctx.organizationId, {
+        patientId: data.patientId,
+        clinicId,
+        dias,
+        horaInicio: data.horaInicio,
+        horaFim: data.horaFim,
+        dentistId: null,
+        procedimento: null,
+        aceitaEncaixe: data.aceitaEncaixe,
+        antecedenciaH: Math.max(0, Math.min(data.antecedenciaH, 720)),
+        outraUnidade: data.outraUnidade,
+        ativo: data.ativo,
+        observacao: null,
+      });
+
+      return { ok: true as const };
+    }),
+  );

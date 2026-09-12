@@ -55,6 +55,8 @@ export type ResultadoDoPulso = {
   /** Uma entrada por organização que tinha campanha rodando. Ver `baterPulso`. */
   campanhas: { organizationId: string; enviadas: number; puladas: number }[];
   organizacoes: number;
+  /** Convites de encaixe que sairam nesta volta. Zero e o caso normal. */
+  convitesDeEncaixe: number;
   duracaoMs: number;
 };
 
@@ -157,6 +159,7 @@ export async function baterPulso(
 
   const jornadas: ResultadoDoPulso["jornadas"] = [];
   const campanhas: ResultadoDoPulso["campanhas"] = [];
+  let convites = 0;
   const organizacoes = await organizacoesAtivas();
 
   for (const organizationId of organizacoes) {
@@ -166,6 +169,27 @@ export async function baterPulso(
 
       const c = await avancarCampanhasDe(organizationId, opcoes.limiteCampanha ?? 10);
       if (c !== null) campanhas.push({ organizationId, ...c });
+
+      /*
+       * ========================================================================
+       *  O ENCAIXE ESTA NO PULSO, E NAO NA VOLTA PESADA — e a diferenca decide
+       *  se a feature serve para alguma coisa.
+       *
+       *  Um cancelamento avisado as 9h para as 14h do mesmo dia tem cinco horas
+       *  de vida util. Na volta pesada, que roda uma vez ao dia, o convite sairia
+       *  no dia seguinte — depois de a cadeira ja ter ficado vazia.
+       *
+       *  A DETECCAO fica na volta pesada, e isso e correto: ela depende do sync
+       *  do Dental Office ter trazido o cancelamento, e o sync e o passo caro. O
+       *  pulso trabalha o que ja foi detectado.
+       *
+       *  E o escalonamento entre levas e do dominio (`decidirLeva`), nao da
+       *  cadencia do pulso: rodar a cada cinco minutos nao faz sair uma leva a
+       *  cada cinco minutos. Sai uma quando a espera vence.
+       * ========================================================================
+       */
+      const encaixes = await oferecerEncaixesDe(organizationId);
+      if (encaixes > 0) convites += encaixes;
     } catch (erro) {
       /*
        * ENGOLE E SEGUE, com registro. A alternativa — deixar subir — faria a
@@ -197,6 +221,7 @@ export async function baterPulso(
     jornadas,
     campanhas,
     organizacoes: organizacoes.length,
+    convitesDeEncaixe: convites,
     duracaoMs: Date.now() - comecou,
   };
 
@@ -311,6 +336,31 @@ export async function tocarPulso(): Promise<void> {
  * exatamente a organização que só tem campanha — que é o caso de quem acabou de
  * agendar uma e está olhando a tela esperando ela andar.
  */
+/**
+ * Oferece encaixe nos buracos ja detectados desta organizacao.
+ *
+ * DEVOLVE QUANTOS CONVITES SAIRAM, e zero e o caso normal: na maioria das
+ * voltas nao ha buraco novo, ou a espera entre levas ainda nao venceu.
+ *
+ * A configuracao e lida aqui porque o cooldown entre contatos e da clinica, e
+ * nao do motor — uma que configurou 48h nao pode receber a regra de 24h so
+ * porque o encaixe roda por outro caminho.
+ */
+async function oferecerEncaixesDe(organizationId: string): Promise<number> {
+  const { trabalharBuracos } = await import("../aplicacao/agenda-inteligente");
+  const { lerConfiguracao } = await import("../servidor/configuracao");
+
+  const configuracao = await lerConfiguracao(organizationId);
+  const resultados = await trabalharBuracos(organizationId, {
+    cooldownHoras: configuracao.cooldownHoras,
+    // Teto por volta: o pulso e frequente, e trabalhar dez buracos por vez
+    // cobre qualquer clinica real sem tornar uma volta cara.
+    limite: 10,
+  });
+
+  return resultados.reduce((n, r) => n + r.convidados, 0);
+}
+
 async function organizacoesAtivas(agora = new Date()): Promise<string[]> {
   const { selecionar } = await import("../servidor/banco");
 
