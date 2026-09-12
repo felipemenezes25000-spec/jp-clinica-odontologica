@@ -207,13 +207,53 @@ function cabecalhos(extra: Record<string, string> = {}): Record<string, string> 
  * espera curta resolve sem ninguém ver erro. 4xx é problema nosso e não se
  * repete — insistir só atrasaria a resposta.
  */
+/**
+ * O prefixo do PostgREST.
+ *
+ * ============================================================================
+ *  `/rest/v1` É A ROTA DO SUPABASE, E NÃO A DO POSTGREST.
+ *
+ *  O PostgREST puro serve na RAIZ. A diferença parece cosmética e custou caro:
+ *  é por causa dela que os 68 testes de integração NÃO passam pelo adaptador de
+ *  produção — apontar este arquivo para o PostgREST de teste produz
+ *  `/rest/v1/crc_patients` e devolve 404.
+ *
+ *  O efeito está registrado em `testes/integracao/apoio.ts`: enquanto o
+ *  cabeçalho de lá afirmava o contrário, era razoável supor que uma
+ *  incompatibilidade entre código e schema apareceria nos testes. Não
+ *  apareceria — e não apareceu, quando o `supabase/23` trocou a chave primária
+ *  de `crc_sync_state`.
+ *
+ *  A VARIÁVEL É EXPLÍCITA, E NÃO UMA HEURÍSTICA SOBRE O DOMÍNIO. "Se a URL não
+ *  tem supabase.co, é PostgREST puro" quebraria em Supabase auto-hospedado, que
+ *  tem domínio próprio E precisa do prefixo. Um palpite errado aqui derruba TODA
+ *  leitura do banco em produção; uma variável ausente mantém o padrão de hoje.
+ * ============================================================================
+ */
+function prefixo(): string {
+  const bruto = process.env["SUPABASE_REST_PREFIXO"];
+
+  /*
+   * AUSENTE = O PADRÃO DO SUPABASE. Para servir na raiz, o valor é `"/"` — e
+   * não a string vazia.
+   *
+   * O motivo é do sistema operacional: no Windows, variável de ambiente com
+   * valor vazio é o mesmo que variável ausente. Aceitar `""` como "raiz" daria
+   * um comportamento em Linux e outro em Windows, e o sintoma seria 404 em toda
+   * leitura — na máquina de uma pessoa só.
+   */
+  if (bruto === undefined) return "/rest/v1";
+  return bruto.trim().replace(/\/+$/u, "");
+}
+
 async function chamar(caminho: string, init: RequestInit, tentativas = 3): Promise<Response> {
   const { url } = ambiente();
+  const alvo = url + prefixo() + caminho;
   let ultimoErro = "";
 
   for (let i = 0; i < tentativas; i += 1) {
     try {
-      const r = await fetch(url + caminho, {
+      const r = await fetch(alvo, {
         ...init,
         signal: AbortSignal.timeout(15_000),
       });
@@ -265,7 +305,7 @@ export async function selecionar<T = Linha>(
   const extra: Record<string, string> = {};
   if (opcoes.contarTotal === true) extra["Prefer"] = "count=exact";
 
-  const r = await chamar(`/rest/v1/${tabela}?${params.toString()}`, {
+  const r = await chamar(`/${tabela}?${params.toString()}`, {
     method: "GET",
     headers: cabecalhos(extra),
   });
@@ -288,7 +328,7 @@ export async function contar(tabela: Tabela, filtros: readonly Filtro[] = []): P
   params.set("select", "id");
   aplicarFiltros(params, filtros);
 
-  const r = await chamar(`/rest/v1/${tabela}?${params.toString()}`, {
+  const r = await chamar(`/${tabela}?${params.toString()}`, {
     method: "HEAD",
     headers: cabecalhos({ Prefer: "count=exact", Range: "0-0" }),
   });
@@ -301,7 +341,7 @@ export async function contar(tabela: Tabela, filtros: readonly Filtro[] = []): P
 }
 
 export async function inserir<T = Linha>(tabela: Tabela, linhas: Linha | Linha[]): Promise<T[]> {
-  const r = await chamar(`/rest/v1/${tabela}`, {
+  const r = await chamar(`/${tabela}`, {
     method: "POST",
     headers: cabecalhos({ "content-type": "application/json", Prefer: "return=representation" }),
     body: JSON.stringify(Array.isArray(linhas) ? linhas : [linhas]),
@@ -343,7 +383,7 @@ export async function gravar<T = Linha>(
   conflito: string,
 ): Promise<T[]> {
   const params = new URLSearchParams({ on_conflict: conflito });
-  const r = await chamar(`/rest/v1/${tabela}?${params.toString()}`, {
+  const r = await chamar(`/${tabela}?${params.toString()}`, {
     method: "POST",
     headers: cabecalhos({
       "content-type": "application/json",
@@ -369,7 +409,7 @@ export async function atualizar<T = Linha>(
   const params = new URLSearchParams();
   aplicarFiltros(params, filtros);
 
-  const r = await chamar(`/rest/v1/${tabela}?${params.toString()}`, {
+  const r = await chamar(`/${tabela}?${params.toString()}`, {
     method: "PATCH",
     headers: cabecalhos({ "content-type": "application/json", Prefer: "return=representation" }),
     body: JSON.stringify(mudancas),
@@ -385,7 +425,7 @@ export async function apagar(tabela: Tabela, filtros: readonly Filtro[]): Promis
   const params = new URLSearchParams();
   aplicarFiltros(params, filtros);
 
-  const r = await chamar(`/rest/v1/${tabela}?${params.toString()}`, {
+  const r = await chamar(`/${tabela}?${params.toString()}`, {
     method: "DELETE",
     headers: cabecalhos(),
   });
@@ -400,7 +440,7 @@ export async function apagar(tabela: Tabela, filtros: readonly Filtro[]): Promis
  * sem ele dois workers pegam o mesmo job.
  */
 export async function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[]> {
-  const r = await chamar(`/rest/v1/rpc/${nome}`, {
+  const r = await chamar(`/rpc/${nome}`, {
     method: "POST",
     headers: cabecalhos({ "content-type": "application/json" }),
     body: JSON.stringify(argumentos),

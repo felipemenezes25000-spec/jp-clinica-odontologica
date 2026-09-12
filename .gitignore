@@ -56,3 +56,6 @@ __pycache__/
 # e o Claude Code acharia um arquivo onde espera uma pasta. Recriar com
 # `npx skills add` e mais barato que versionar um link quebrado.
 .claude/skills/
+playwright-report/
+test-results/
+.output/

@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   integracao:
-    name: schema do zero, tenant, concorrência e recovery
+    name: schema do zero, tenant, concorrência, recovery e navegador
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -158,6 +158,39 @@ jobs:
           export SUPABASE_URL="http://localhost:3001"
           export SUPABASE_SERVICE_ROLE="$(node scripts/jwt-de-teste.mjs service_role)"
           npm run test:integracao
+
+      # ----------------------------------------------------------------------
+      # 4. O navegador
+      # ----------------------------------------------------------------------
+      #
+      # POR QUE AQUI, E NÃO NUM WORKFLOW À PARTE: o E2E precisa exatamente do
+      # que este job já montou — Postgres com o schema do zero e PostgREST na
+      # frente. Duplicar isso noutro arquivo seria manter dois ambientes que
+      # divergem no dia em que alguém acrescentar uma migração.
+      #
+      # E O QUE SÓ ELE PROVA é a camada que os 68 testes acima não tocam: o
+      # cookie de sessão, a server fn com o tenant de quem está logado, e uma
+      # configuração salva pela tela virando linha no banco.
+      - name: Instalar o Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E de navegador
+        env:
+          # O servidor de teste sobe com o BUILD de produção e fala com o
+          # PostgREST puro — ver `scripts/servidor-e2e.mjs`.
+          CI: "1"
+        run: |
+          export SUPABASE_URL="http://localhost:3001"
+          export SUPABASE_SERVICE_ROLE="$(node scripts/jwt-de-teste.mjs service_role)"
+          npm run e2e
+
+      - name: Relatório do Playwright (quando falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
       # O log do PostgREST é onde aparece o erro de permissão que, do lado do
       # teste, chega como um 401 sem explicação.
