@@ -197,9 +197,9 @@ endurecimento a tivesse quebrado, a resposta seria
 `operator does not exist: public.vector <=> public.vector`. As 0 linhas são o
 esperado: a base está vazia.
 
-A evidência do endurecimento em si continua externa: o linter do Supabase deve
-deixar de listar as funções `crc_*` em `function_search_path_mutable`. Está
-anotado como verificação de fora, e não como sonda.
+A evidência do endurecimento em si é externa, e **já foi observada**: o linter
+do Supabase passou a listar `function_search_path_mutable` para uma única
+função, `rh_toca_atualizado_em` — que é do RH. Antes eram 28. Ver a seção 4.
 
 ---
 
@@ -335,13 +335,53 @@ texto, que para elas é correto.
 
 | Achado | Severidade | Decisão |
 |---|---|---|
-| `function_search_path_mutable` (28 funções) | WARN | **Corrigido** na migration 35 (pendente de aplicação) |
-| `rls_enabled_no_policy` (~76 tabelas) | INFO | **Não é para corrigir.** Ver abaixo |
+| `function_search_path_mutable` | WARN | **CORRIGIDO e verificado.** De 28 funções para 1 — ver abaixo |
+| `rls_enabled_no_policy` (~85 tabelas) | INFO | **Não é para corrigir.** Ver abaixo |
 | `extension_in_public` (`pg_trgm`, `vector`) | WARN | **Não é para corrigir.** Ver abaixo |
+| `rh_toca_atualizado_em` com search_path mutável | WARN | **Fora do escopo do CRC.** É do RH |
 | `anon/authenticated_security_definer_function_executable` em `public.rh_proximo_protocolo` | WARN | **Fora do escopo do CRC.** Ver abaixo |
 
-**`rls_enabled_no_policy` não é um buraco aqui.** Todas as 73 tabelas que o
-código usa têm RLS **habilitada**, e nenhuma tem policy — que é exatamente a
+### A prova de que a 35 funcionou
+
+O linter rodado **depois** da aplicação lista `function_search_path_mutable`
+para **uma única função**: `public.rh_toca_atualizado_em`. Antes eram 28.
+
+A conta fecha exatamente. A 35 relatou, ao rodar:
+
+```
+25 funcao(oes) com caminho vazio, 2 com public (pgvector)
+```
+
+27 endurecidas + 1 que ela não toca (é `rh_`, e o filtro da 35 é
+`p.proname like 'crc\_%'`) = as 28 originais. **Nenhuma função `crc_*` sobrou
+na lista.**
+
+Esta é a evidência externa que a seção 2 disse ser a única possível para essa
+migration — e ela agora existe, em vez de ser uma promessa.
+
+**A função que sobrou é do RH.** `rh_toca_atualizado_em` é um trigger daquele
+módulo. O conserto é de uma linha, mas fica com quem é dono dele: o escopo deste
+trabalho é o CRC, e endurecer função de outro módulo sem quem o mantém olhar é
+como este relatório acabaria afirmando ter feito algo que ninguém revisou.
+
+### Um efeito colateral útil do linter: ele confirma o RLS das tabelas novas
+
+As 22 tabelas criadas pelas migrations 30 a 38 aparecem **todas** na lista de
+`rls_enabled_no_policy` — `crc_calls`, `crc_contact_log`, `crc_patient_identities`,
+`crc_payment_policies`, `crc_payment_intents`, `crc_previsit_checks`,
+`crc_feedback`, `crc_referrals`, `crc_experiments`, `crc_experiment_variants`,
+`crc_experiment_assignments`, `crc_learnings`, `crc_goals`, `crc_goal_actions`,
+`crc_goal_metrics`, `crc_schedule_gaps`, `crc_gap_offers`,
+`crc_waitlist_preferences`, `crc_objections`, `crc_attribution_events`,
+`crc_ai_activity` e `crc_autonomia`.
+
+Aparecer nessa lista significa **RLS habilitada**. Ou seja: nenhuma das
+migrations esqueceu o `enable row level security`. Um achado INFO virou a
+verificação de um invariante que, de outra forma, só se descobriria quebrado o
+dia em que alguém apontasse o `anon` para a tabela errada.
+
+**`rls_enabled_no_policy` não é um buraco aqui.** Todas as tabelas que o código
+usa têm RLS **habilitada**, e nenhuma tem policy — que é exatamente a
 configuração correta para este sistema: o acesso é 100% via `service_role`, que
 ignora RLS por definição, e o `anon` não deve poder nada. Verificado: requisição
 sem autenticação devolve 401. Criar policies para o `anon` seria abrir o que
@@ -391,6 +431,8 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 | 71 arquivos fora do padrão do Prettier | Pré-existentes (md/css/yml). Nenhum `.ts`/`.tsx`. Não corrigidos — ver seção 3 |
 | Schema de produção completo | `npm run schema:status` — 39 arquivos, 22 sondas, **0 falhas** |
 | pgvector intacto após a 35 | `POST /rpc/crc_buscar_conhecimento` com vetor de 1536 → `HTTP 200` |
+| Endurecimento da 35 surtiu efeito | Linter do Supabase: `function_search_path_mutable` caiu de 28 funções para 1, e a que sobrou é do RH |
+| RLS habilitada nas 22 tabelas novas | As 22 aparecem em `rls_enabled_no_policy`, o que exige RLS ligada |
 | **CI** | **NÃO OBSERVADO** — nada foi empurrado; o CI não rodou nenhuma vez nesta sequência |
 | **Produção (código)** | **NÃO OBSERVADA** — roda `7c0c692`, pré-auditoria, 18 commits atrás |
 | **Produção (dados)** | 0 pacientes — o schema está pronto e vazio |
@@ -480,9 +522,10 @@ fecha com 0 falhas, e o pgvector foi verificado intacto por chamada real.
    à frente do código: as tabelas das FASES B a F existem, e o código que as usa
    não está lá.
 3. **Sincronizar o Dental Office.** A base tem 0 pacientes.
-4. **Conferir o linter do Supabase** — `function_search_path_mutable` deve ter
-   parado de listar funções `crc_*`. É a única evidência possível do
-   endurecimento da 35, e é verificação de fora.
-5. Só então: telas de Metas e do Centro de Autonomia, e ligar o NBA em sombra.
+4. Só então: telas de Metas e do Centro de Autonomia, e ligar o NBA em sombra.
+
+Fora da fila, porque é de outro módulo: `rh_toca_atualizado_em` e
+`rh_proximo_protocolo` continuam apontados pelo linter. Os dois são do portal de
+RH, os consertos são pequenos, e a decisão é de quem mantém aquele módulo.
 
 O passo 3 é o que separa "um sistema testado" de "um sistema em uso".
