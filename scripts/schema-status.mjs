@@ -195,6 +195,49 @@ const SONDAS = {
     argumentos: { p_organization_id: null, p_clinic_id: null },
     exigeOk: true,
   },
+  "34-crc-metas.sql": [
+    { tipo: "tabela", nome: "crc_goals" },
+    { tipo: "tabela", nome: "crc_goal_actions" },
+    { tipo: "tabela", nome: "crc_goal_metrics" },
+  ],
+  /*
+   * A 35 NÃO CRIA NADA — ela só faz `alter function ... set search_path`.
+   *
+   * ============================================================================
+   *  NÃO HÁ SONDA POSSÍVEL PELO POSTGREST, e dizer isso em voz alta vale mais
+   *  do que inventar uma.
+   *
+   *  `search_path` é propriedade da função no catálogo (`pg_proc.proconfig`), e
+   *  o PostgREST não expõe catálogo. Uma função com e sem `search_path` responde
+   *  exatamente igual a uma chamada — que é o ponto: a migration endurece sem
+   *  mudar comportamento.
+   *
+   *  A evidência dela é o linter do Supabase: `function_search_path_mutable`
+   *  deixa de listar as funções `crc_*`. É verificação de fora, e está anotada
+   *  como tal no relatório.
+   * ============================================================================
+   */
+  "36-crc-omnichannel-e-voz.sql": [
+    { tipo: "tabela", nome: "crc_calls" },
+    { tipo: "tabela", nome: "crc_patient_identities" },
+    {
+      tipo: "rpc",
+      nome: "crc_linha_do_tempo",
+      argumentos: { p_organization_id: null, p_patient_id: null, p_limite: null },
+    },
+  ],
+  "37-crc-financeiro-e-pre-consulta.sql": [
+    { tipo: "tabela", nome: "crc_payment_policies" },
+    { tipo: "tabela", nome: "crc_payment_intents" },
+    { tipo: "tabela", nome: "crc_previsit_checks" },
+  ],
+  "38-crc-growth.sql": [
+    { tipo: "tabela", nome: "crc_feedback" },
+    { tipo: "tabela", nome: "crc_referrals" },
+    { tipo: "coluna", nome: "crc_patients", coluna: "codigo_indicacao" },
+    { tipo: "tabela", nome: "crc_experiments" },
+    { tipo: "tabela", nome: "crc_learnings" },
+  ],
 };
 
 async function sondar(sonda) {
