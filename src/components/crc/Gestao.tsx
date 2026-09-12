@@ -15,6 +15,7 @@ import { dinheiro, dinheiroCurto, porcentagem } from "@/lib/crc/dominio/formatar
 import { MOTIVOS_PERDA } from "@/lib/crc/dominio/rotulos";
 
 import { Aviso, BarraDeRecado, Botao, Esqueleto, Vazio, useAcao } from "./base";
+import { Benchmark } from "./Benchmark";
 import { Briefing } from "./Briefing";
 import { Investimento } from "./Investimento";
 import "./crc-management.css";
@@ -215,6 +216,14 @@ export function Gestao({
           <TabelaAtendentes atendentes={p.atendentes} />
         )}
       </Painel>
+
+      {/*
+        O BENCHMARK FECHA A TELA, depois dos números absolutos.
+
+        "Quanto recuperamos" vem antes de "como isso se compara": sem o
+        primeiro, a comparação é entre duas coisas que ninguém sabe o tamanho.
+      */}
+      <Benchmark />
 
       {podeVerFinanceiro && <Investimento />}
     </div>

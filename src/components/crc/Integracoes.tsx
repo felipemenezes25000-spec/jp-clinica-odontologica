@@ -32,6 +32,7 @@ import {
   Modal,
   useAcao,
 } from "./base";
+import { HubDeIntegracoes } from "./HubDeIntegracoes";
 import "./crc-integrations.css";
 
 type Cartao3 = EstadoIntegracoes["dentalOffice"];
@@ -153,6 +154,12 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
   return (
     <div className="crc-int-v2">
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
+
+      {/*
+        O HUB VEM NO TOPO: "está funcionando?" é a pergunta que traz a pessoa
+        a esta tela. "Como configuro?" é a de quem já sabe que não está.
+      */}
+      <HubDeIntegracoes />
 
       <section className="crc-int-command-v2">
         <div>

@@ -6418,3 +6418,117 @@ export const carregarFicha360 = createServerFn({ method: "POST" })
       };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Benchmarking (§42), Hub de integrações (§54) e Growth autônomo (§35)       */
+/* -------------------------------------------------------------------------- */
+
+export type LinhaDoRankingUI = {
+  chave: string;
+  rotulo: string;
+  valor: number;
+  volume: number;
+  posicao: number | null;
+  contraMediana: number;
+  amostraPequena: boolean;
+};
+
+export type RankingUI = {
+  linhas: LinhaDoRankingUI[];
+  mediana: number;
+  comparaveis: number;
+  aviso: string | null;
+};
+
+export type VariacaoUI = {
+  rotulo: string;
+  atual: number;
+  anterior: number;
+  variacaoPct: number | null;
+  melhorou: boolean;
+  frase: string;
+};
+
+export type ComparacoesUI = {
+  clinicas: RankingUI;
+  dentistas: RankingUI;
+  periodo: VariacaoUI[];
+  campanhas: RankingUI;
+};
+
+export const carregarBenchmark = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ comparacoes: ComparacoesUI }>> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { compararTudo } = await import("./aplicacao/benchmark");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const c = await compararTudo(ctx.organizationId, ctx.clinicIds, new Date(agoraIso()));
+      return { ok: true as const, comparacoes: c };
+    }),
+);
+
+export type IntegracaoUI = {
+  chave: string;
+  rotulo: string;
+  seFaltar: string;
+  estado: string;
+  detalhe: string;
+  bloqueadoExterno: boolean;
+};
+
+export const carregarHub = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ integracoes: IntegracaoUI[] }>> =>
+    comContexto("ver_integracoes", async (ctx) => {
+      const { lerHub } = await import("./aplicacao/hub-integracoes");
+      const { agoraIso } = await import("./servidor/banco");
+
+      const integracoes = await lerHub(ctx.organizationId, ctx.clinicIds, new Date(agoraIso()));
+      return { ok: true as const, integracoes };
+    }),
+);
+
+export type PublicoSugeridoUI = {
+  criterio: string;
+  rotulo: string;
+  porque: string;
+  tetoSugerido: number;
+};
+
+/**
+ * O público que uma meta pede — a primeira seta do fluxo do §35.
+ *
+ * ============================================================================
+ *  É UMA SUGESTÃO, E NÃO UMA CRIAÇÃO.
+ *
+ *  A rota devolve o critério e o porquê; ninguém dispara nada. Criar a
+ *  campanha continua sendo um ato humano na tela de Campanhas, com o público
+ *  visível antes de aprovar.
+ *
+ *  Automatizar a criação junto com a sugestão transformaria "o sistema acha
+ *  que este é o público" em "o sistema já mandou" — e a diferença entre as
+ *  duas é a única coisa que separa growth de spam.
+ * ============================================================================
+ */
+export const sugerirPublicoDaMeta = createServerFn({ method: "POST" })
+  .validator((dados: { goalId: string }) => dados)
+  .handler(async ({ data }): Promise<Resposta<{ publico: PublicoSugeridoUI; meta: string }>> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { publicoParaMeta } = await import("./dominio/growth-autonomo");
+      const { selecionarUm } = await import("./servidor/banco");
+
+      const meta = await selecionarUm<{ tipo: string; titulo: string }>("crc_goals", {
+        colunas: "tipo,titulo",
+        filtros: [
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+          { coluna: "id", op: "eq", valor: data.goalId },
+        ],
+      });
+
+      if (meta === null) {
+        return { ok: false as const, code: "NAO_ENCONTRADO", message: "Meta não encontrada." };
+      }
+
+      const p = publicoParaMeta(meta.tipo as import("./dominio/metas").TipoDeMeta);
+      return { ok: true as const, publico: p, meta: meta.titulo };
+    }),
+  );

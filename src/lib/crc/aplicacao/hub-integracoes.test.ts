@@ -23,7 +23,7 @@ vi.mock("../servidor/banco", async () => {
 
 import { definirRelogio, limparBanco, semear } from "../testes/banco-memoria";
 
-import { lerHub } from "./hub-integracoes";
+import { lerHub, type Integracao } from "./hub-integracoes";
 
 const ORG = "aaaa0000-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const CLINICA = "aaaa1111-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -74,7 +74,8 @@ function log(integracao: string, sucesso: boolean, horasAtras: number) {
   ]);
 }
 
-const achar = (lista: { chave: string }[], chave: string) => lista.find((i) => i.chave === chave);
+const achar = (lista: readonly Integracao[], chave: string): Integracao | undefined =>
+  lista.find((i) => i.chave === chave);
 
 beforeEach(() => {
   limparBanco();
