@@ -267,17 +267,37 @@ describe("o envio", () => {
     expect(alvos.every((a) => a["status"] === "ENVIADA")).toBe(true);
   });
 
-  it("respeita a cota do dia", async () => {
+  it("a cota do dia é DISTRIBUÍDA pela janela, e não liberada de uma vez", async () => {
+    /*
+     * ESTE TESTE MUDOU DE CONTRATO, e a mudança é o conserto.
+     *
+     * Antes ele afirmava que a volta manda tudo que cabe no dia. Com a campanha
+     * rodando UMA VEZ POR DIA e lote de 25, "100 por dia" virava 25 por dia; com
+     * a campanha no pulso e sem cadência, viraria 100 mensagens às 8h05 — que é
+     * o padrão que derruba a reputação do número.
+     *
+     * O que vale agora é a cota ACUMULADA: quantas já deveriam ter saído a esta
+     * hora. Às 11h de São Paulo, 30% da janela 08h–18h passou.
+     */
     await campanhaPronta(5, 2);
 
+    // ceil(2 × 0,30) = 1.
     const r = await rodarCampanhas(contexto());
-    expect(r.enviadas).toBe(2);
-    expect(obterSandboxMensageria().listarEnviadas()).toHaveLength(2);
+    expect(r.enviadas).toBe(1);
 
-    // A segunda volta no MESMO dia não manda mais nada: a cota é contada do
-    // que já saiu hoje, e não distribuída por ciclo.
-    const segunda = await rodarCampanhas(contexto());
-    expect(segunda.enviadas).toBe(0);
+    // A segunda volta no MESMO minuto não manda mais nada: a cota daquela hora
+    // já foi consumida.
+    expect((await rodarCampanhas(contexto())).enviadas).toBe(0);
+
+    // Perto do fechamento, o resto sai — e o dia fecha na meta, não acima dela.
+    const fimDoDia = new Date("2026-09-08T20:50:00.000Z");
+    definirRelogio(fimDoDia);
+    const tarde = await rodarCampanhas({ ...contexto(), agora: fimDoDia });
+    expect(tarde.enviadas).toBe(1);
+
+    expect(obterSandboxMensageria().listarEnviadas()).toHaveLength(2);
+    // O terceiro alvo NÃO sai hoje: a meta é 2.
+    expect((await rodarCampanhas({ ...contexto(), agora: fimDoDia })).enviadas).toBe(0);
   });
 
   it("com os envios pausados, não sai nada", async () => {
@@ -312,5 +332,21 @@ describe("o envio", () => {
     await rodarCampanhas(contexto());
 
     expect(conteudo("crc_campaigns")[0]?.["status"]).toBe("CONCLUIDA");
+  });
+
+  it("cota zerada NÃO é campanha concluída", async () => {
+    /*
+     * A ARMADILHA DA CADÊNCIA, e ela apagaria a campanha da tela.
+     *
+     * Com a cota da hora já consumida, a consulta de alvos não devolve nada — e
+     * "nenhum alvo" era, até aqui, a definição de campanha terminada. Sem a
+     * guarda, uma campanha com 800 pendentes seria marcada CONCLUIDA às 8h01.
+     */
+    await campanhaPronta(5, 2);
+    await rodarCampanhas(contexto());
+
+    const segunda = await rodarCampanhas(contexto());
+    expect(segunda.enviadas).toBe(0);
+    expect(conteudo("crc_campaigns")[0]?.["status"]).toBe("RODANDO");
   });
 });

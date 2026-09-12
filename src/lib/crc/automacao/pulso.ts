@@ -52,6 +52,8 @@ export type ResultadoDoPulso = {
   turnos: { reservados: number; concluidos: number; descartados: number; falhados: number };
   /** Uma entrada por organização que teve jornada avançada. */
   jornadas: { organizationId: string; avancadas: number; concluidas: number; falhadas: number }[];
+  /** Uma entrada por organização que tinha campanha rodando. Ver `baterPulso`. */
+  campanhas: { organizationId: string; enviadas: number; puladas: number }[];
   organizacoes: number;
   duracaoMs: number;
 };
@@ -67,8 +69,29 @@ export type ResultadoDoPulso = {
  *
  *   2. TURNOS depois. O paciente que acabou de escrever espera agora.
  *
- *   3. JORNADAS por último. Trabalho de recuperação — importante, e pode ceder
- *      a vez para quem está com uma conversa aberta.
+ *   3. JORNADAS E CAMPANHAS por último. Trabalho proativo — importante, e pode
+ *      ceder a vez para quem está com uma conversa aberta.
+ *
+ * ============================================================================
+ *  POR QUE CAMPANHA ENTROU NO PULSO, se ela é trabalho de base.
+ *
+ *  Porque ela estava na volta pesada, que roda UMA VEZ POR DIA — e o lote era
+ *  de 25. "100 contatos por dia" virava 25 por dia, e a campanha de 964 pessoas
+ *  levava 38 dias em vez de 10. Sem erro, sem alerta: a tela mostrava a
+ *  campanha RODANDO com progresso.
+ *
+ *  O CONSERTO NÃO É UM LOTE DE 100. Cem mensagens às 8h05 derruba a reputação
+ *  do número, e a partir daí nada chega. O que a campanha precisava era de
+ *  MUITAS VOLTAS PEQUENAS — que é exatamente o que o pulso é.
+ *
+ *  Quem decide quantas saem agora é `cotaAcumulada`, em `dominio/cadencia.ts`:
+ *  a cota cresce com a janela comercial e o dia fecha na meta.
+ *
+ *  E ISTO NÃO RECOLOCA O TRABALHO CARO NO CAMINHO QUENTE: campanha é leitura de
+ *  uma tabela pequena e, quando não há campanha RODANDO, a volta custa uma
+ *  consulta que não devolve nada. Sincronização do Dental Office continua na
+ *  volta pesada, onde o argumento de custo vale de verdade.
+ * ============================================================================
  *
  * NUNCA LANÇA. Um erro numa organização não pode impedir as outras de serem
  * atendidas: num SaaS, isso seria uma clínica derrubando o atendimento das
@@ -79,6 +102,8 @@ export async function baterPulso(
     limiteEventos?: number;
     limiteTurnos?: number;
     limiteJornadas?: number;
+    /** Teto de mensagens de campanha por volta. O freio, não a cadência. */
+    limiteCampanha?: number;
     quem?: string;
   } = {},
 ): Promise<ResultadoDoPulso> {
@@ -118,12 +143,16 @@ export async function baterPulso(
   });
 
   const jornadas: ResultadoDoPulso["jornadas"] = [];
+  const campanhas: ResultadoDoPulso["campanhas"] = [];
   const organizacoes = await organizacoesAtivas();
 
   for (const organizationId of organizacoes) {
     try {
       const r = await avancarJornadasDe(organizationId, opcoes.limiteJornadas ?? 30);
       if (r !== null) jornadas.push({ organizationId, ...r });
+
+      const c = await avancarCampanhasDe(organizationId, opcoes.limiteCampanha ?? 10);
+      if (c !== null) campanhas.push({ organizationId, ...c });
     } catch (erro) {
       /*
        * ENGOLE E SEGUE, com registro. A alternativa — deixar subir — faria a
@@ -153,9 +182,43 @@ export async function baterPulso(
       falhados: turnos.falhados,
     },
     jornadas,
+    campanhas,
     organizacoes: organizacoes.length,
     duracaoMs: Date.now() - comecou,
   };
+}
+
+/**
+ * Avança as campanhas de uma organização — o lote pequeno e frequente.
+ *
+ * `null` quando nada saiu, pelo mesmo motivo das jornadas: um relatório com
+ * cinquenta organizações zeradas esconde as duas que fizeram algo.
+ */
+async function avancarCampanhasDe(
+  organizationId: string,
+  limitePorVolta: number,
+): Promise<{ enviadas: number; puladas: number } | null> {
+  const { lerConfiguracao, lerKillSwitches } = await import("../servidor/configuracao");
+  const { criarProvedorMensageria } = await import("../integracoes/whatsapp/provedores");
+  const { rodarCampanhas } = await import("../aplicacao/campanhas");
+
+  const [configuracao, switches] = await Promise.all([
+    lerConfiguracao(organizationId),
+    lerKillSwitches(organizationId),
+  ]);
+
+  const provedor = await criarProvedorMensageria(organizationId);
+
+  const r = await rodarCampanhas({
+    organizationId,
+    porta: provedor.configurado ? provedor.porta : null,
+    configuracao,
+    enviosPausados: switches["kill_envios"] === true || switches["kill_automacoes"] === true,
+    limitePorVolta,
+  });
+
+  if (r.enviadas === 0 && r.puladas === 0) return null;
+  return { enviadas: r.enviadas, puladas: r.puladas };
 }
 
 /**
@@ -205,29 +268,37 @@ export async function tocarPulso(): Promise<void> {
 /**
  * As organizações que o pulso precisa visitar.
  *
- * SÓ AS QUE TÊM JORNADA ESPERANDO, e não todas as cadastradas. A diferença
- * aparece quando a instalação cresce: visitar cinquenta organizações para
- * descobrir que quarenta e oito não têm nada pendente são quarenta e oito idas
- * ao banco por volta, a cada poucos minutos, para nada.
+ * SÓ AS QUE TÊM TRABALHO, e não todas as cadastradas. A diferença aparece
+ * quando a instalação cresce: visitar cinquenta organizações para descobrir que
+ * quarenta e oito não têm nada pendente são quarenta e oito idas ao banco por
+ * volta, a cada poucos minutos, para nada.
  *
- * A consulta olha as inscrições prontas para avançar e devolve os tenants
- * distintos. Uma leitura para saber onde há trabalho, em vez de N para
- * descobrir que não há.
+ * SÃO DUAS PERGUNTAS, E AS DUAS PRECISAM ESTAR AQUI: jornada pronta para
+ * avançar, e campanha RODANDO. Deixar a campanha de fora faria o laço pular
+ * exatamente a organização que só tem campanha — que é o caso de quem acabou de
+ * agendar uma e está olhando a tela esperando ela andar.
  */
 async function organizacoesAtivas(agora = new Date()): Promise<string[]> {
   const { selecionar } = await import("../servidor/banco");
 
-  const linhas = await selecionar("crc_automation_enrollments", {
-    colunas: "organization_id",
-    filtros: [
-      { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
-      { coluna: "resume_at", op: "lte", valor: agora.toISOString() },
-    ],
-    limite: 1000,
-  });
+  const [jornadas, campanhas] = await Promise.all([
+    selecionar("crc_automation_enrollments", {
+      colunas: "organization_id",
+      filtros: [
+        { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
+        { coluna: "resume_at", op: "lte", valor: agora.toISOString() },
+      ],
+      limite: 1000,
+    }),
+    selecionar("crc_campaigns", {
+      colunas: "organization_id",
+      filtros: [{ coluna: "status", op: "eq", valor: "RODANDO" }],
+      limite: 1000,
+    }),
+  ]);
 
   const vistos = new Set<string>();
-  for (const l of linhas) {
+  for (const l of [...jornadas, ...campanhas]) {
     const id = String(l["organization_id"] ?? "");
     if (id.length > 0) vistos.add(id);
   }

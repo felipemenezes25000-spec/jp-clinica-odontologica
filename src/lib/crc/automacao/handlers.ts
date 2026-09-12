@@ -28,7 +28,7 @@ import {
 } from "../aplicacao/oportunidades";
 import { registrarHandler } from "../aplicacao/eventos";
 import { linhaParaPaciente } from "../aplicacao/repositorios";
-import { selecionar, selecionarUm, type Filtro } from "../servidor/banco";
+import { rpc, selecionar, selecionarUm, type Filtro } from "../servidor/banco";
 import { registrar } from "../servidor/registro";
 
 import { carregarAutomacao, inscrever } from "./motor";
@@ -843,15 +843,34 @@ const FILTROS_CONTATAVEL = (organizationId: string): Filtro[] => [
 /**
  * Recall e inatividade — item 52.
  *
- * O FILTRO PESADO É FEITO NO BANCO, e não em memória: `ultima_consulta_em <
- * limite` usa o índice parcial criado no schema. Trazer 20 mil pacientes para o
- * Node e filtrar aqui funcionaria com 500 e estouraria a memória da função com
- * 20 mil — e o item 87 é explícito sobre não carregar a base no processo.
+ * ============================================================================
+ *  A VARREDURA RELIA O COMECO DA BASE, TODO DIA, PARA SEMPRE.
  *
- * O teto por execução existe pelo mesmo motivo do recálculo de prioridade: uma
- * varredura que estoura o tempo da Vercel no meio deixa metade do trabalho
- * feito e nenhuma indicação de onde parou. Com teto, ela processa um lote por
- * dia e converge.
+ *  A versao anterior era:
+ *
+ *      order by ultima_consulta_em asc  limit 200
+ *
+ *  sem cursor. E o comentario dizia, com todas as letras: "ela processa um lote
+ *  por dia e converge". Nao convergia — ela processava O MESMO LOTE por dia.
+ *
+ *  As 200 linhas mais antigas continuam sendo as 200 mais antigas na execucao
+ *  seguinte, porque quem nao respondeu ao recall nao mudou
+ *  `ultima_consulta_em`. O dedupe por ciclo impede o efeito duplicado, e e por
+ *  isso que o defeito e invisivel: nada acontece duas vezes, nada da erro, e o
+ *  relatorio diz "avaliados: 200" todo dia.
+ *
+ *  O que acontece e que os pacientes 201 em diante NUNCA SAO AVALIADOS. Com
+ *  8.000 pacientes, 97,5% da base fica fora do recall — e com 500, tudo
+ *  funciona, que e o motivo de isso nunca ter aparecido.
+ * ============================================================================
+ *
+ * O CURSOR E PERSISTIDO (`crc_scan_state`) porque a funcao e serverless: nao
+ * existe "a proxima execucao lembra". Ele guarda `(ultima_consulta_em, id)` —
+ * a data sozinha nao e unica, e numa base importada dezenas de pacientes
+ * compartilham o mesmo instante.
+ *
+ * QUANDO A PAGINA VEM INCOMPLETA, O CICLO FECHOU: o cursor volta a nulo e
+ * `ciclo` incrementa. E o que faz a varredura ser uma volta, e nao um prefixo.
  */
 export async function varrerRecall(
   organizationId: string,
@@ -861,15 +880,40 @@ export async function varrerRecall(
 ): Promise<ResultadoVarredura> {
   const limiteRecall = new Date(agora.getTime() - cfg.recallDias * 86400_000).toISOString();
 
-  const linhas = await selecionar("crc_patients", {
-    filtros: [
-      ...FILTROS_CONTATAVEL(organizationId),
-      { coluna: "ultima_consulta_em", op: "lt", valor: limiteRecall },
-      { coluna: "ultima_consulta_em", op: "not.is", valor: null },
-    ],
-    ordenar: [{ coluna: "ultima_consulta_em", ascendente: true }],
-    limite,
+  const cursor = await lerCursorDeVarredura(organizationId, "recall");
+
+  const linhas = await rpc("crc_pagina_de_recall", {
+    p_organization_id: organizationId,
+    p_limite_data: limiteRecall,
+    p_cursor_data: cursor.data,
+    p_cursor_id: cursor.id,
+    p_limite: limite,
   });
+
+  /*
+   * O CURSOR AVANCA ANTES DO TRABALHO, e nao depois.
+   *
+   * Se o lote estourar o tempo da Vercel no meio, a proxima execucao continua
+   * de onde este parou em vez de reler as mesmas linhas e estourar de novo no
+   * mesmo lugar. O preco e que os pacientes nao processados esperam o proximo
+   * CICLO — o que e aceitavel para recall (a regra e "sem consulta ha seis
+   * meses", nao "ha seis meses e dois dias") e e infinitamente melhor do que
+   * uma varredura que nunca sai do lugar.
+   */
+  const ultima = linhas[linhas.length - 1];
+  await gravarCursorDeVarredura(
+    organizationId,
+    "recall",
+    // Pagina incompleta = fim da volta. Zerar aqui e o que faz o ciclo fechar.
+    linhas.length < limite || ultima === undefined
+      ? { data: null, id: null, fechouCiclo: true }
+      : {
+          data:
+            typeof ultima["ultima_consulta_em"] === "string" ? ultima["ultima_consulta_em"] : null,
+          id: typeof ultima["id"] === "string" ? ultima["id"] : null,
+          fechouCiclo: false,
+        },
+  );
 
   const automacaoRecall = await carregarAutomacao(organizationId, "recall_seis_meses");
   const automacaoReativacao = await carregarAutomacao(organizationId, "reativacao_inativos");
@@ -935,6 +979,91 @@ export async function varrerRecall(
 }
 
 /**
+ * As datas `MMDD` que contam como "hoje" para aniversario.
+ *
+ * Quase sempre uma so. Duas no dia 28 de fevereiro de ano comum, porque quem
+ * nasceu em 29/02 e felicitado nesse dia — a convencao civil brasileira, ja
+ * decidida e testada em `fazAniversarioHoje`.
+ */
+function datasDeAniversario(hoje: { mes: number; dia: number; ano: number }): number[] {
+  const base = hoje.mes * 100 + hoje.dia;
+  const bissexto = (hoje.ano % 4 === 0 && hoje.ano % 100 !== 0) || hoje.ano % 400 === 0;
+  return hoje.mes === 2 && hoje.dia === 28 && !bissexto ? [base, 229] : [base];
+}
+
+/* -------------------------------------------------------------------------- */
+/* O cursor das varreduras                                                    */
+/* -------------------------------------------------------------------------- */
+
+type CursorDeVarredura = { data: string | null; id: string | null };
+
+/**
+ * Onde a varredura parou.
+ *
+ * NUNCA LANCA: um cursor ilegivel devolve "comece do inicio", que e o
+ * comportamento de antes deste arquivo existir. Derrubar a volta pesada porque
+ * a tabela de estado ficou estranha seria trocar uma varredura imperfeita por
+ * nenhuma.
+ */
+async function lerCursorDeVarredura(
+  organizationId: string,
+  varredura: string,
+): Promise<CursorDeVarredura> {
+  try {
+    const linha = await selecionarUm("crc_scan_state", {
+      colunas: "cursor_data,cursor_id",
+      filtros: [
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+        { coluna: "varredura", op: "eq", valor: varredura },
+      ],
+    });
+    if (linha === null) return { data: null, id: null };
+    return {
+      data: typeof linha["cursor_data"] === "string" ? linha["cursor_data"] : null,
+      id: typeof linha["cursor_id"] === "string" ? linha["cursor_id"] : null,
+    };
+  } catch {
+    return { data: null, id: null };
+  }
+}
+
+async function gravarCursorDeVarredura(
+  organizationId: string,
+  varredura: string,
+  onde: CursorDeVarredura & { fechouCiclo: boolean },
+): Promise<void> {
+  const { gravar } = await import("../servidor/banco");
+
+  const anterior = onde.fechouCiclo
+    ? await selecionarUm("crc_scan_state", {
+        colunas: "ciclo",
+        filtros: [
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+          { coluna: "varredura", op: "eq", valor: varredura },
+        ],
+      })
+    : null;
+
+  const ciclo = typeof anterior?.["ciclo"] === "number" ? anterior["ciclo"] : 0;
+
+  await gravar(
+    "crc_scan_state",
+    {
+      organization_id: organizationId,
+      varredura,
+      cursor_data: onde.data,
+      cursor_id: onde.id,
+      // SO INCREMENTA AO FECHAR A VOLTA. E o numero que responde "a varredura
+      // esta andando?" — um ciclo parado ha uma semana significa que a base
+      // cresceu mais rapido que a capacidade de varre-la.
+      ...(onde.fechouCiclo ? { ciclo: ciclo + 1 } : {}),
+      atualizado_em: new Date().toISOString(),
+    },
+    "organization_id,varredura",
+  );
+}
+
+/**
  * Confirmação de consultas — item 50.
  *
  * Pega o que começa dentro da antecedência configurada e ainda está como "a
@@ -991,30 +1120,42 @@ export async function varrerConfirmacoes(
 /**
  * Aniversariantes — item 53.
  *
- * O mês e o dia são comparados no fuso da clínica, e não no do servidor: às 21h
- * de São Paulo já é o dia seguinte em UTC, e a felicitação sairia um dia
- * adiantada para quem faz aniversário amanhã.
+ * ============================================================================
+ *  A CONTA ESTAVA CERTA E A CONCLUSAO ESTAVA ERRADA.
  *
- * O FILTRO NÃO É FEITO NO BANCO de propósito. `extract(month from nascimento)`
- * exigiria um índice de expressão, e a economia não compensa: com 20 mil
- * pacientes, são ~55 aniversariantes por dia, e o candidato precisa ser lido de
- * qualquer forma. O teto de leitura protege o caso patológico.
+ *  A versao anterior lia `limit 2000` e comparava mes/dia em memoria, com esta
+ *  justificativa no comentario: "com 20 mil pacientes sao ~55 aniversariantes
+ *  por dia, e o candidato precisa ser lido de qualquer forma".
+ *
+ *  Os 55 estao entre os 20 MIL. A consulta lia 2.000 — e sem `order by`, QUAIS
+ *  2.000 e decisao do planejador, que muda. Com 8.000 pacientes, tres em cada
+ *  quatro aniversariantes nao eram vistos, e quais tres mudava a cada execucao.
+ *
+ *  O relatorio dizia "avaliados: 2000" como se fosse a base inteira. Ninguem
+ *  recebia erro. O paciente so nao recebia mensagem.
+ * ============================================================================
+ *
+ * AGORA QUEM PROCURA E O BANCO, por indice de expressao (`supabase/26`). O mes
+ * e o dia continuam calculados no FUSO DA CLINICA: as 21h de Sao Paulo ja e o
+ * dia seguinte em UTC, e a felicitacao sairia adiantada.
+ *
+ * O 29 DE FEVEREIRO CONTINUA SENDO REGRA DE DOMINIO. `datasDeAniversario` monta
+ * a lista que vai ao banco a partir de `fazAniversarioHoje` — a mesma funcao
+ * testada em `dominio/regras.ts`. Ensinar o SQL o que e ano bissexto seria ter
+ * a regra em dois lugares, e um deles sem teste.
  */
 export async function varrerAniversarios(
   organizationId: string,
   cfg: ConfiguracaoCrc = CONFIGURACAO_PADRAO,
-  limite = 2000,
+  limite = 500,
   agora = new Date(),
 ): Promise<ResultadoVarredura> {
   const hoje = partesLocais(agora, cfg.horarioComercial.fuso);
 
-  const linhas = await selecionar("crc_patients", {
-    colunas: "id,clinic_id,nascimento",
-    filtros: [
-      ...FILTROS_CONTATAVEL(organizationId),
-      { coluna: "nascimento", op: "not.is", valor: null },
-    ],
-    limite,
+  const linhas = await rpc("crc_aniversariantes", {
+    p_organization_id: organizationId,
+    p_datas: datasDeAniversario(hoje),
+    p_limite: limite,
   });
 
   const automacao = await carregarAutomacao(organizationId, "aniversario");
@@ -1022,6 +1163,12 @@ export async function varrerAniversarios(
   let inscritos = 0;
 
   for (const linha of linhas) {
+    /*
+     * A CONFERENCIA EM MEMORIA CONTINUA, e nao e redundancia: o banco devolve
+     * quem nasceu em 29/02 junto com quem nasceu em 28/02, e so a regra de
+     * dominio sabe se hoje o 29 conta. Sem isto, num ano BISSEXTO o pessoal do
+     * dia 29 receberia felicitacao no dia 28 tambem.
+     */
     const nascimento = typeof linha["nascimento"] === "string" ? linha["nascimento"] : null;
     if (!fazAniversarioHoje(nascimento, { mes: hoje.mes, dia: hoje.dia, ano: hoje.ano })) continue;
     elegiveis += 1;

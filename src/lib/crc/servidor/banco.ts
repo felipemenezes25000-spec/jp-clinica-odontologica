@@ -70,6 +70,7 @@ export type Tabela =
   | "crc_sync_jobs"
   | "crc_sync_falhas"
   | "crc_sync_state"
+  | "crc_scan_state"
   | "crc_budgets"
   | "crc_budget_items"
   | "crc_charges"

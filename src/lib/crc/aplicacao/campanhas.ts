@@ -22,6 +22,8 @@
  *   quantas pessoas entram no filtro antes de qualquer coisa, e só vira fila
  *   quando uma pessoa agenda. O sistema monta; quem decide é gente.
  */
+import { cotaAcumulada, inicioDoDiaLocal } from "../dominio/cadencia";
+import type { ConfiguracaoCrc } from "../dominio/configuracao";
 import type { SituacaoPaciente } from "../dominio/tipos";
 import { SITUACOES_PACIENTE } from "../dominio/tipos";
 import {
@@ -442,21 +444,42 @@ export type ResultadoCiclo = {
 };
 
 /**
- * Uma volta de envio de campanhas, chamada pelo motor.
+ * Uma volta de envio de campanhas.
  *
- * O TETO DIÁRIO É CONTADO DO QUE JÁ SAIU HOJE, e não distribuído por ciclo: o
- * motor pode rodar dez vezes ou uma só, dependendo do plano da Vercel e do
- * pinger, e um teto por ciclo mandaria dez vezes mais num caso do que no outro.
+ * ============================================================================
+ *  "100 POR DIA" SIGNIFICAVA 25 POR DIA, e a conta e curta:
  *
- * CADA ALVO PASSA POR `enviarMensagem`, que aplica a política inteira. O alvo
- * bloqueado vira PULADA com o motivo — e não some. "312 enviadas de 964" sem
- * explicar os 652 restantes é o tipo de número que faz a equipe desconfiar da
- * ferramenta inteira.
+ *      limite: Math.min(restaHoje, ctx.limitePorVolta ?? 25)
+ *
+ *  com um chamador so — a volta pesada, que roda UMA VEZ POR DIA. A campanha
+ *  configurada para 100 contatos mandava 25, e os 75 esperavam o dia seguinte
+ *  para virar mais 25. Uma campanha de 964 pessoas levaria 38 dias em vez de 10.
+ *
+ *  E ninguem via erro: a tela mostrava a campanha RODANDO, com progresso.
+ * ============================================================================
+ *
+ * A CORRECAO NAO E MANDAR 100 DE UMA VEZ. Cem mensagens as 8h05 e o padrao que
+ * derruba a reputacao do numero, e o cabecalho deste arquivo sempre disse que o
+ * envio e espalhado por dia. O que faltava era a CONTA do espalhado.
+ *
+ * DUAS COISAS MUDARAM:
+ *
+ *   O PULSO TAMBEM CHAMA, a cada poucos minutos. A durabilidade ja estava no
+ *   banco — alvos persistidos, contador do dia lido da tabela — e o que faltava
+ *   era cadencia.
+ *
+ *   A COTA E ACUMULADA, e nao um teto por volta. `cotaAcumulada` responde
+ *   "quantas ja deveriam ter saido a esta hora". A diferenca aparece quando o
+ *   pulso atrasa: com teto por volta a campanha PERDE o que nao saiu; com cota
+ *   acumulada, a volta seguinte recupera e o dia fecha na meta.
+ *
+ * `limitePorVolta` continua existindo como freio de seguranca — nenhuma volta
+ * dispara um lote gigante, mesmo que a cota mande.
  */
 export async function rodarCampanhas(ctx: {
   organizationId: string;
   porta: unknown;
-  configuracao: unknown;
+  configuracao: ConfiguracaoCrc;
   enviosPausados: boolean;
   agora?: Date;
   limitePorVolta?: number;
@@ -477,8 +500,18 @@ export async function rodarCampanhas(ctx: {
 
   const { enviarMensagem } = await import("./mensagens");
   const { aplicarVariaveis } = await import("../automacao/templates");
-  const inicioDoDia = new Date(agora);
-  inicioDoDia.setHours(0, 0, 0, 0);
+
+  /*
+   * O DIA E O DA CLINICA, e nao o do servidor.
+   *
+   * `setHours(0,0,0,0)` usa o fuso do processo. Na Vercel isso e UTC — entao o
+   * contador diario virava as 21h de Sao Paulo, e a partir dali a campanha
+   * "esquecia" tudo que tinha mandado e liberava a cota inteira de novo. Cem
+   * durante o dia, cem de madrugada, e o relatorio mostrando dois dias dentro
+   * da meta.
+   */
+  const horario = ctx.configuracao.horarioComercial;
+  const inicioDoDia = inicioDoDiaLocal(agora, horario.fuso);
 
   for (const linha of campanhas) {
     const campanha = linhaParaCampanha(linha);
@@ -495,11 +528,35 @@ export async function rodarCampanhas(ctx: {
     const restaHoje = Math.max(0, campanha.porDia - jaHoje);
     if (restaHoje === 0) continue;
 
-    const alvos = await selecionar("crc_campaign_targets", {
-      filtros: [...daCampanha, { coluna: "status", op: "eq", valor: "PENDENTE" }],
-      ordenar: [{ coluna: "criado_em", ascendente: true }],
-      limite: Math.min(restaHoje, ctx.limitePorVolta ?? 25),
-    });
+    /*
+     * TRES TETOS, E CADA UM RESPONDE A UMA PERGUNTA DIFERENTE:
+     *
+     *   restaHoje   quanto ainda cabe HOJE          — a meta diaria
+     *   cotaAgora   quanto ja deveria ter saido     — a cadencia
+     *   porVolta    quanto cabe NESTA invocacao     — o freio de seguranca
+     *
+     * O menor vence. Sem o do meio, a campanha dispara a meta inteira na
+     * primeira volta do dia; sem o da direita, um pulso que ficou horas sem
+     * rodar recuperaria o atraso todo de uma vez.
+     */
+    const cotaAgora = Math.max(0, cotaAcumulada(campanha.porDia, agora, horario) - jaHoje);
+    const podeAgora = Math.min(restaHoje, cotaAgora, ctx.limitePorVolta ?? 25);
+
+    const alvos =
+      podeAgora === 0
+        ? []
+        : await selecionar("crc_campaign_targets", {
+            filtros: [...daCampanha, { coluna: "status", op: "eq", valor: "PENDENTE" }],
+            ordenar: [{ coluna: "criado_em", ascendente: true }],
+            limite: podeAgora,
+          });
+
+    /*
+     * COTA ZERADA NAO E CAMPANHA CONCLUIDA. Sem esta guarda, uma campanha com
+     * 800 pendentes seria marcada CONCLUIDA as 8h01 so porque a cadencia ainda
+     * nao liberou nada — e sairia da tela como se tivesse terminado.
+     */
+    if (podeAgora === 0) continue;
 
     if (alvos.length === 0) {
       // Sem pendente: a campanha terminou. Marcar aqui é o que faz a tela

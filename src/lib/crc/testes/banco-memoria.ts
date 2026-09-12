@@ -140,6 +140,7 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
    * a migração veio permitir.
    */
   crc_sync_state: [{ colunas: ["organization_id", "recurso", "clinic_id"] }],
+  crc_scan_state: [{ colunas: ["organization_id", "varredura"] }],
   crc_settings: [{ colunas: ["organization_id", "chave"] }],
   crc_feature_flags: [{ colunas: ["organization_id", "chave"] }],
   crc_clinics: [{ colunas: ["organization_id", "slug"] }],
@@ -641,6 +642,79 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
     };
 
   switch (nome) {
+    /*
+     * A PAGINA DO RECALL, com keyset — `supabase/26`.
+     *
+     * A COMPARACAO DE TUPLA E O PONTO DESTE CASO. Reproduzi-la como
+     * `data > cursor` sozinho faria o fake pular todos os pacientes que
+     * compartilham o mesmo instante depois do primeiro — e base importada tem
+     * dezenas deles, com a data truncada no dia. O fake concordaria com um
+     * codigo errado, que e o unico jeito de um banco de mentira fazer mal.
+     */
+    case "crc_pagina_de_recall": {
+      const org = argumentos["p_organization_id"];
+      const limiteData = String(argumentos["p_limite_data"] ?? "");
+      const cursorData =
+        typeof argumentos["p_cursor_data"] === "string" ? argumentos["p_cursor_data"] : null;
+      const cursorId =
+        typeof argumentos["p_cursor_id"] === "string" ? argumentos["p_cursor_id"] : "";
+      const teto = typeof argumentos["p_limite"] === "number" ? argumentos["p_limite"] : 200;
+
+      const chave = (l: Linha): string =>
+        `${String(l["ultima_consulta_em"] ?? "")}|${String(l["id"] ?? "")}`;
+
+      const elegiveis = (tabelas["crc_patients"] ?? [])
+        .filter(
+          (l) =>
+            l["organization_id"] === org &&
+            l["arquivado"] !== true &&
+            l["ativo"] !== false &&
+            nulo(l["opt_out_em"]) &&
+            !nulo(l["telefone"]) &&
+            typeof l["ultima_consulta_em"] === "string" &&
+            l["ultima_consulta_em"] < limiteData,
+        )
+        .sort((a, b) => (chave(a) < chave(b) ? -1 : chave(a) > chave(b) ? 1 : 0));
+
+      const depoisDoCursor =
+        cursorData === null
+          ? elegiveis
+          : elegiveis.filter((l) => chave(l) > `${cursorData}|${cursorId}`);
+
+      return Promise.resolve(depoisDoCursor.slice(0, teto).map((l) => ({ ...l })) as T[]);
+    }
+
+    /*
+     * OS ANIVERSARIANTES, pelo inteiro `MMDD` — `supabase/26`.
+     *
+     * O fake faz a mesma aritmetica que o indice de expressao do banco. Nao
+     * reproduz o `to_char`, porque o banco tambem nao usa: `to_char` de date e
+     * STABLE e o Postgres recusa em indice.
+     */
+    case "crc_aniversariantes": {
+      const org = argumentos["p_organization_id"];
+      const datas = Array.isArray(argumentos["p_datas"]) ? (argumentos["p_datas"] as number[]) : [];
+      const teto = typeof argumentos["p_limite"] === "number" ? argumentos["p_limite"] : 500;
+
+      const achados = (tabelas["crc_patients"] ?? [])
+        .filter((l) => {
+          if (l["organization_id"] !== org) return false;
+          if (l["arquivado"] === true || l["ativo"] === false) return false;
+          if (!nulo(l["opt_out_em"]) || nulo(l["telefone"])) return false;
+
+          const nascimento = typeof l["nascimento"] === "string" ? l["nascimento"] : "";
+          if (nascimento.length < 10) return false;
+
+          const mmdd =
+            Number.parseInt(nascimento.slice(5, 7), 10) * 100 +
+            Number.parseInt(nascimento.slice(8, 10), 10);
+          return datas.includes(mmdd);
+        })
+        .slice(0, teto);
+
+      return Promise.resolve(achados.map((l) => ({ ...l })) as T[]);
+    }
+
     case "crc_reservar_eventos": {
       const alvo = (tabelas["crc_events"] ?? [])
         .filter((l) => (l["status"] === "PENDENTE" || l["status"] === "FALHOU") && livre(l))
