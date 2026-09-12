@@ -176,13 +176,20 @@ Ordem de ativação:
 1. escolher o provedor (`WHATSAPP_PROVEDOR`: `meta`, `twilio` ou `sandbox`);
 2. cadastrar as credenciais — no ambiente, ou em `crc_canais_whatsapp` por
    clínica;
-3. apontar o webhook do provedor para `POST /api/crc/whatsapp`;
+3. apontar o webhook do provedor para **`POST /api/crc/whatsapp/<id do canal>`**
+   — o `id` é o uuid da linha em `crc_canais_whatsapp`, e é público: ele só diz
+   qual credencial verifica a assinatura;
 4. conferir em **Integrações** que o adapter subiu.
 
 O `identificador` do canal é a chave de roteamento **e** a identidade de envio:
 `phone_number_id` na Meta, o número que recebeu no Twilio, a sessão no WAHA.
 Entrada e saída pelo mesmo número — senão o paciente recebe resposta de uma
 clínica que não é a que ele procurou.
+
+**A rota sem canal (`/api/crc/whatsapp`) continua valendo**, e só sob condição:
+uma organização — ou várias dentro do MESMO Meta App / conta Twilio — e nenhum
+canal com credencial própria cadastrada. Fora disso ela verifica a assinatura com
+a credencial errada. A condição está escrita no cabeçalho do arquivo da rota.
 
 **O WAHA exige duas variáveis** (`WHATSAPP_PROVEDOR=waha` **e**
 `WAHA_EU_ACEITO_O_RISCO=1`). Ele automatiza o WhatsApp Web e viola os termos de
@@ -223,7 +230,8 @@ sintoma — silêncio:
 | `provedor_cortado` | disjuntor aberto: o provedor está fora |
 | `teto_estourado` | orçamento de IA atingido |
 | `credencial_ausente` | sem canal de saída — tudo termina em nada |
-| `varredura_parada` | uma varredura não fecha uma volta pela base há mais de dez dias |
+| `varredura_parada` | o cursor da varredura não avança há mais de três dias — **crítico** |
+| `ciclo_lento` | ela avança, e a volta pela base não fecha há mais de catorze dias |
 | `schema_atrasado` | o banco não registra a migration que este código espera |
 | `interruptor_*` | alguém desligou de propósito |
 

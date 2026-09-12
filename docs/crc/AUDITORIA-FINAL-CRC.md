@@ -1,451 +1,350 @@
-# Auditoria do CRC — 12/09/2026
+# Auditoria do CRC — rodada de release candidate
 
-## 1. O HEAD auditado
+> **Reescrito em 12/09/2026 a partir desta execução.** A versão anterior deste
+> arquivo listou provas locais e **não conferiu o CI** — que estava vermelho no
+> HEAD que ela declarava pronto. A crítica procede, e a correção está na seção 5:
+> nenhuma afirmação aqui é feita sem o comando que a produziu.
+
+## 1. HEAD
 
 | | |
 |---|---|
-| Ponto de partida | `7c0c6925f304a7d8f1dda374f91960413ad89396` |
-| Entregue em | `910c6294fef52f94bdbb78d2f871e8dc0b48ce0f` |
-| Migrations no início | até `24-crc-cursor-por-clinica.sql` |
-| Migrations no fim | até `28-crc-configuracao-por-clinica.sql` |
-
-Sete commits:
+| HEAD entregue | `a1c0c6e262ca25013a3fd32ff224d70d2b45cf20` |
+| Ponto de partida da rodada | `1d5c0da7b1539e4335b2598bd55de44d843cff58` |
+| Migrations | até `29-crc-publico-e-ciclo.sql` (31 arquivos em `supabase/`) |
 
 ```
-fb13a70  crc: o agendamento vai para a clinica da conversa, e a credencial e do tenant
-39179eb  crc: o retry perde a janela, e o inbox de webhook ganha dono
-f9cffb3  crc: as varreduras percorrem a base, e 100 por dia significa 100 por dia
-6f58cb0  crc: o painel para de mandar olhar o lugar errado
-5c314ac  crc: as tres coisas que impediam um segundo cliente de existir
-45df544  crc: dez E2E de navegador, e o prefixo que impedia o adaptador de producao de ser testado
-910c629  crc: a passagem 3 — o que as proprias correcoes quebraram
+add5c29  fix: o lock precisa ser gerado pelo npm que o CI usa
+2772fbc  fix: a campanha para de perder gente, e a varredura para de rastejar
+a1c0c6e  fix: o webhook de entrada passa a ser roteado por canal, antes de confiar no corpo
 ```
 
 ---
 
-## 2. Problemas confirmados
+## 2. Bugs encontrados nesta rodada
 
-### P0-1 · O agendamento ia para a clínica errada
-
-**Severidade:** P0 — dado de paciente atravessando fronteira de unidade.
-
-**Cenário.** Organização com Clínica A e Clínica B. O paciente escreve no
-WhatsApp da B. O webhook roteia certo: organização certa, clínica B, conversa B.
-O agente decide oferecer horário → o contexto devolve a **A**. O horário
-oferecido é o da A, e o agendamento é gravado na A.
-
-**Causa.** `contextoDeAgendamentoParaJob` recebia `conversationId` e o ignorava.
-A clínica saía de `selecionarUm("crc_clinics", { ativa: true })` — a primeira que
-o banco devolvesse. O comentário dizia, com todas as letras: *"hoje não usa, e é
-honesto dizer isso aqui em vez de fingir que usa"*. Honesto e errado: o parâmetro
-não estava sobrando, estava faltando ser usado.
-
-O `supabase/23` consertou o roteamento de **entrada**. O de **saída** ficou. Meia
-fronteira não é fronteira.
-
-**Arquivos.** `automacao/handlers.ts`, `aplicacao/conversas.ts`.
-
-**Correção.** `clinicaDaConversa(organizationId, conversationId)` lê
-`crc_conversations.clinic_id` — coluna `not null`, escrita por quem recebeu a
-mensagem — confere que a clínica está ativa e pertence à organização, e **falha
-fechado**: sem conversa, conversa de outro tenant ou unidade desativada, não há
-segundo melhor palpite.
-
----
-
-### P0-2 · Credenciais externas eram da instalação, e não do tenant
-
-**Severidade:** P0 — a Clínica B escrevendo na conta do Dental Office da A.
-
-**Cenário.** Duas organizações. Ambas usam `process.env["DENTAL_OFFICE_SECRET"]`.
-A B marca consulta, e ela aparece na agenda da A. Nada falha: funciona, no lugar
-errado.
-
-**Causa.** `crc_canais_whatsapp` e `crc_integracoes_clinica` foram criadas no
-`supabase/23` para guardar credencial por tenant. **Nenhuma linha de runtime as
-lia.**
-
-E o cache de token do Dental Office era um singleton — `let cache` — servindo o
-token da primeira credencial para qualquer chamada seguinte.
-
-**Arquivos.** `integracoes/credenciais.ts` (novo),
-`integracoes/dental-office/auth.ts`, `.../cliente.ts`,
-`integracoes/whatsapp/provedores.ts`.
-
-**Correção.** Resolução **clínica → organização → ambiente**, com graus
-diferentes por conta (uma conta do Dental Office atende várias unidades; um
-número de WhatsApp é de uma). O degrau do ambiente **se desliga sozinho** assim
-que a instalação deixa de ser única. O cache virou `Map` com chave que carrega
-base, client id e uma impressão do segredo — nunca o segredo —, e o 401 invalida
-só aquela chave.
-
----
-
-### P1-3 · O retry cercado tinha uma janela
-
-**Severidade:** P1 — backoff virando o contrário do que promete.
-
-**Cenário.** `falharJob` gravava em duas instruções: a RPC mudava o status para
-`REPETIR`, e um `update` separado escrevia o `disponivel_em`. Entre as duas, a
-linha está `REPETIR` com o `disponivel_em` **antigo** — que é passado. É
-exatamente o que a reserva procura.
-
-**Por que importa.** O backoff existe porque a maior parte das falhas é provedor
-fora do ar. Retry imediato bate no mesmo provedor caído, queima uma das cinco
-tentativas, e o job chega ao teto em segundos em vez de em minutos — a dead
-letter abre antes de o provedor ter tido chance de voltar.
-
-**Arquivos.** `supabase/25`, `aplicacao/agent-jobs.ts`.
-
-**Correção.** `crc_encerrar_agent_job` ganhou `p_disponivel_em`; status e backoff
-saem na mesma instrução. O `drop function` veio antes do `create`, porque
-acrescentar parâmetro com default cria **sobrecarga**, e o PostgREST recusaria a
-chamada por ambiguidade.
-
----
-
-### P1-4 · A dead letter de webhook não sabia o tenant
-
-**Severidade:** P1 — fila de falhas sem dono num SaaS.
-
-**Causa.** `mandarParaDeadLetter` chamava `resolverEscopo(provedor, null)` —
-`null` no lugar do destinatário. E `resolverEscopo` sem destinatário cai no
-caminho da clínica única, que com duas clínicas devolve `null` de propósito.
-Resultado: `organization_id = null`. A função SQL do `supabase/24` fazia pior:
-`null` escrito à mão, porque a coluna nem existia.
-
-**Correção.** O escopo passou a ser resolvido **antes** do insert no inbox e
-gravado como coluna (`supabase/25`). Linha antiga sem a coluna ainda acha o dono
-pelo `destinatario` que viaja dentro do envelope normalizado.
-
----
-
-### P1-5 · PII sobrevivia ao fim da fila de webhook
-
-**Severidade:** P1 — telefone e texto do paciente retidos indefinidamente.
-
-**Causa.** `marcar()` zerava o payload só em `PROCESSADO`. O envelope que esgota
-as tentativas ficava `FALHOU` com o conteúdo dentro, para sempre — numa tabela de
-fila, com política de acesso diferente da de `crc_messages`. E o caso de falha é
-justamente o que ninguém revisita.
-
-**Correção.** A regra virou uma pergunta: **este envelope ainda pode ser
-reprocessado?** Pode → guarda. Não pode (`PROCESSADO`, `DESCARTADO`, `FALHOU` no
-teto) → zera. A linha continua, porque é o `external_id` dela que impede o
-provedor de reentregar o mesmo webhook como novo.
-`crc_limpar_webhooks_antigos` virou rede, e não política.
-
----
-
-### P1-6 · O recall relia o começo da base, todo dia, para sempre
-
-**Severidade:** P1 — 97,5% da base fora do recall com 8.000 pacientes.
-
-**Causa.** `order by ultima_consulta_em asc limit 200`, **sem cursor**. As 200
-mais antigas continuam sendo as 200 mais antigas na execução seguinte, porque
-quem não respondeu não mudou `ultima_consulta_em`. O dedupe por ciclo impede o
-efeito duplicado — e é por isso que o defeito é invisível: nada acontece duas
-vezes, nada dá erro, e o relatório diz "avaliados: 200" todo dia.
-
-O comentário afirmava: *"ela processa um lote por dia e converge"*. Não
-convergia: processava **o mesmo lote** por dia.
-
-**Correção.** Keyset persistido em `crc_scan_state`, com cursor de **duas**
-colunas — `ultima_consulta_em` sozinho não é único, e base importada traz a data
-truncada no dia. Página incompleta fecha a volta: cursor zera e `ciclo`
-incrementa.
-
----
-
-### P1-7 · O aniversário lia 2.000 linhas e chamava de base
-
-**Severidade:** P1 — três em cada quatro aniversariantes invisíveis.
-
-**Causa.** `limit 2000` sem `order by`, comparando mês/dia em memória. A
-justificativa no comentário — *"com 20 mil pacientes são ~55 aniversariantes por
-dia"* — estava certa na conta e errada na conclusão: os 55 estão entre os 20 mil,
-e a consulta lia 2.000. Quais 2.000 é decisão do planejador, e ela muda.
-
-**Correção.** RPC `crc_aniversariantes` com índice de expressão
-`mês * 100 + dia`. Não `to_char`, que é `STABLE` e o Postgres recusa em índice.
-O 29 de fevereiro continua sendo regra de domínio: o SQL recebe a lista de datas
-que contam como hoje.
-
----
-
-### P1-8 · "100 por dia" significava 25 por dia
-
-**Severidade:** P1 — campanha de 964 pessoas levando 38 dias em vez de 10.
-
-**Causa.** `limite: Math.min(restaHoje, ctx.limitePorVolta ?? 25)`, com **um**
-chamador: a volta pesada, que roda uma vez por dia.
-
-**Correção, em três partes.**
-
-1. O pulso passou a chamar as campanhas — muitas voltas pequenas, que é o que a
-   campanha precisava.
-2. A cota virou **acumulada** (`dominio/cadencia.ts`): quantas já deveriam ter
-   saído a esta hora. Com teto por volta, um pulso atrasado perde o que não saiu;
-   com cota acumulada, a volta seguinte recupera.
-3. O dia passou a ser o **da clínica**. `setHours(0,0,0,0)` usa o fuso do
-   processo — na Vercel, UTC. O contador diário virava às 21h de São Paulo: a
-   campanha esquecia tudo e liberava a cota inteira de novo.
-
-**E uma folga de 10% na janela**, que nasceu de o teste falhar em 96 de 100: com
-proporção pura, a meta só é alcançada no minuto do fechamento, quando a política
-de contato já recusa. As últimas mensagens do dia não saíam. Todo dia.
-
----
-
-### P1-9 · Não dava para saber se o pulso estava vivo
-
-**Severidade:** P1 — o painel mandava olhar o worker errado.
-
-**Cenário.** `CRON_SECRET` removido do repositório, ou `CRC_URL_PUBLICA` não
-configurada. Os dois param **em silêncio**, e o painel dizia: *"Há pacientes
-esperando há 40 minutos. Confira se o cron do motor está rodando."* O motor é o
-worker diário; não tem relação nenhuma com turno parado.
-
-**Correção.** `crc_runtime_heartbeats` (`supabase/27`) e batimento no pulso e na
-volta pesada. O painel ganhou `pulso_nunca_bateu` (configuração que nunca foi
-feita) separado de `pulso_parado` (algo quebrou) — são conversas diferentes —,
-mais `webhook_preso`, `dead_letters_pendentes`, `credencial_ausente` e
-`schema_atrasado`.
-
----
-
-### P2-10 · O nome da clínica estava escrito no runtime
-
-Seis pontos com `clinica: "JP Clínica Integrada Odontológica"` — templates,
-resposta de agendamento, resposta de lead, passo de jornada, campanha, e a
-primeira linha do prompt do agente. Com dois clientes, é uma clínica se
-apresentando com o nome de outra. E o modelo obedece.
-
-**Correção.** `aplicacao/marca.ts`, com a unidade vencendo a organização, e a
-resolução dentro de `renderizarTemplate` — onde todo mundo passa, e não em cada
-chamador.
-
----
-
-### P2-11 · Instalar o cliente B devolvia o cliente A
-
-`instalar()` tinha `slugOrg = "jp"` e `slug: "matriz"` escritos dentro. A segunda
-instalação caía no `select` por slug, encontrava a primeira, e devolvia o id dela
-— sem erro. O admin do B seria criado dentro do A.
-
-**Correção.** `criarOrganizacao({ slug, nome, admin })` genérico;
-`criarClinica()` para a segunda unidade, que antes era impossível pela API;
-`instalar()` virou o caso particular da JP, escrito como caso particular.
-
----
-
-### P2-12 · Configuração era da empresa, e não da unidade
-
-`crc_settings` tem chave `(organization_id, chave)`. Numa rede, a unidade do
-shopping fecha às 22h e a do centro às 18h — e a rede escolhe entre mandar
-mensagem para quem está dormindo ou calar quem ainda está atendendo.
-
-**Correção.** `crc_settings_clinica` (`supabase/28`), **tabela nova e não coluna
-em `crc_settings`**: mudar chave é mudar contrato, e foi exatamente isso que o
-`supabase/23` fez com `crc_sync_state`. O override é aplicado no chokepoint
-(`enviarMensagem`) **sobre** a configuração recebida, e não relendo tudo — um
-parâmetro que às vezes é obedecido e às vezes não é pior do que um que não
-existe.
-
----
-
-### Regressões que as próprias correções introduziram (passagem 3)
+### B-1 · `npm ci` quebrado — CI não reproduzível
 
 | | |
 |---|---|
-| Uma varredura quebrada abortava as seis seguintes | risco concreto na janela entre deploy e SQL do `supabase/26`. Cada uma passou a ser isolada por `comCaptura` |
-| `crc_scan_state` nasceu com `on_conflict` sem quem conferisse | a mesma forma do P0 do `supabase/23`. Teste de integração que LÊ a string do `handlers.ts` |
-| `contrato.test.ts` dependia do shell | com `SUPABASE_URL` exportada, a gravação em `crc_integration_logs` virava "a última chamada" capturada pela espiã de fetch |
+| **Severidade** | Bloqueador de release |
+| **Cenário** | Todo workflow morria antes de rodar um teste: `Missing: lru-cache@11.5.2 from lock file` |
+| **Causa raiz** | O `npm install -D @playwright/test` rodou aqui com **npm 11** (Node 24); o CI usa Node 22, que traz **npm 10**. Eles resolvem *peer dependency opcional* de forma diferente — `lru-cache@^11.2.6` é peer opcional do `unstorage`, dentro do Nitro. A entrada `node_modules/nitro/node_modules/lru-cache` **existia** no lock verde, e o npm 11 a **removeu** |
+| **Arquivo** | `package-lock.json` |
+| **Correção** | Lock regenerado a partir do último verde, acrescentando só o que faltava: **+46 linhas, 0 remoções** |
+| **Teste** | `npx npm@10.9.2 ci` — apaga `node_modules` e reinstala: 304 pacotes |
+| **Mutation** | — (a prova é o próprio `npm ci`, que reproduz o erro exato) |
+| **Status** | **CORRIGIDO**, CI verde em `add5c29` |
+
+**A primeira tentativa de correção estava errada, e vale registrar.** Regerei o
+lock do zero com `npm@10 --package-lock-only`: −1967 linhas. Fui olhar o que
+sumiu — `lightningcss-linux-x64-gnu`, `lightningcss-linux-arm64-musl`,
+`fsevents`: os binários opcionais das **outras plataformas**, podados por ter
+sido gerado no Windows. Teria passado no `npm ci` local e quebrado o runner
+Linux. Um lock gerado numa plataforma só serve a uma plataforma só.
+
+**Por que o local não pegou:** rodei `npm test`, `build`, integração e E2E.
+Nenhum deles exercita `npm ci` — o passo que quebrou foi o único que não existe
+no fluxo local.
 
 ---
 
-## 3. Problemas refutados
+### B-2 · Campanha truncava o público em 5.000
 
-| Achado do prompt | Veredito |
+| | |
 |---|---|
-| **Workflow do GitHub** — falhar sem `CRON_SECRET`, URL configurável, timeout, `workflow_dispatch`, concurrency, resumo | **Já existia tudo.** O que faltava era o **status HTTP** no erro: `--fail-with-body` devolve exit 22 para qualquer 4xx/5xx, e isso não distingue 401 de 404 de 500. Acrescentado |
-| **"Preserve o mecanismo de `INCERTO` + `conciliarAgendamento`"** | Intacto. Nada foi tocado em `servidor/http.ts` nem no fluxo de reconciliação |
-| **Eventos e agent jobs seriam mono-tenant** | Já eram globais: as RPCs de reserva não filtram organização, e cada linha carrega o `organization_id`. O caminho quente sempre atendeu todas as organizações numa chamada |
-| **`crc_limpar_webhooks_antigos` / `limparConcluidos` / `fecharRunsAbandonadas` sem chamador** | Corrigido antes desta rodada, no `7c0c692` (`faxina()`) |
-| **Cron da Vercel mais frequente** | Impossível no plano Hobby — teto do plano, e agendar mais denso faz o deploy falhar. É por isso que o pulso mora no GitHub Actions |
+| **Severidade** | P0 de dados — pessoas somem sem rastro |
+| **Cenário** | Filtro que casa 8.000 pacientes congela 5.000. As outras 3.000 não existem para ninguém: nem no número da tela, nem num aviso, nem no log |
+| **Causa raiz** | `selecionar(..., { limite: MAX_PUBLICO })` e `publico: pessoas.length`. Um `limite` escrito como proteção, lido como resultado |
+| **Arquivo** | `aplicacao/campanhas.ts` |
+| **Correção** | `contar()` com `count=exact` dá o público real; congelamento por **keyset** em páginas de 500, com `INSERT` em **lote**. Acima do teto (agora 50.000) a operação **recusa e diz o número** |
+| **Teste** | `publico-da-campanha.test.ts` — 100 / 964 / 5.000 / 8.000, duplicatas, opt-out, consulta futura, recusa |
+| **Mutation** | `limite: MAX_PUBLICO` de volta → `expected 5000 to be 8000` |
+| **Status** | **CORRIGIDO** |
+
+É a **terceira** vez que este defeito aparece no sistema: o recall lia 200 e
+chamava de base, o aniversário lia 2.000 e chamava de base, a campanha lia 5.000
+e chamava de público.
+
+**Efeito colateral corrigido junto:** o congelamento fazia um `INSERT` por
+paciente — 8.000 idas ao PostgREST. Agora são dezesseis.
 
 ---
 
-## 4. Migrations novas
+### B-3 · O filtro de campanha escondia valores
 
-| Arquivo | O que faz |
+| | |
 |---|---|
-| `25-crc-retry-atomico-e-tenant-no-inbox.sql` | `p_disponivel_em` no encerramento cercado; `organization_id`/`clinic_id` no inbox de webhook; retenção de PII cobrindo o estado terminal; reconciliador de webhook preso com tenant |
-| `26-crc-varreduras-convergentes.sql` | `crc_scan_state`; `crc_pagina_de_recall` (keyset); índice e `crc_aniversariantes` |
-| `27-crc-observabilidade.sql` | `crc_runtime_heartbeats` + `crc_bater_heartbeat`; `crc_schema_migrations` com backfill marcado `presumido` |
-| `28-crc-configuracao-por-clinica.sql` | `crc_settings_clinica` |
-
-**Todas pendentes de execução em produção.** Depois de cada uma:
-`notify pgrst, 'reload schema';`
+| **Severidade** | P1 — o dado existe e a interface jura que não |
+| **Cenário** | `opcoesDoPublico` lia 5.000 pacientes e fazia `Set` em memória. Especialidade que só existe depois dessa linha some da tela; a pessoa conclui que a clínica não tem o recorte e monta a campanha sem ele |
+| **Causa raiz** | Distinct em memória sobre uma página |
+| **Arquivo** | `aplicacao/campanhas.ts`, `supabase/29` |
+| **Correção** | `crc_opcoes_de_publico` faz o distinct no banco, com índice parcial, e respeita `clinic_id` |
+| **Teste** | especialidade na linha 5.999 é encontrada; a unidade filtra |
+| **Mutation** | não isolada — o teste de 6.000 linhas já reprova a versão antiga por construção |
+| **Status** | **CORRIGIDO** |
 
 ---
 
-## 5. Testes novos
+### B-4 · Recall convergia em quarenta dias
 
-| Arquivo | Casos | O que prende |
+| | |
+|---|---|
+| **Severidade** | P1 de operação |
+| **Cenário** | 200 pacientes por volta pesada, uma por dia → 8.000 em **40 dias**. Recall é justamente a rotina que não pode demorar um mês |
+| **Causa raiz** | Uma página por execução |
+| **Arquivo** | `automacao/handlers.ts` |
+| **Correção** | Laço de páginas até o teto (**1.200**) ou o orçamento de tempo (**20s**). **7 dias** para 8.000 |
+| **Teste** | 500 numa volta; 8.000 em 6–8 voltas; corte por tempo; empate de data; página que falha |
+| **Mutation** | cursor fixo em `null` → `expected 200 to be 500` (rodada anterior, ainda válida) |
+| **Status** | **CORRIGIDO** |
+
+**O cursor passou a avançar DEPOIS do trabalho.** Antes avançava antes, e havia
+lógica: com uma página por volta, um lote que estourasse o tempo seria relido
+para sempre. Com o laço, o corte acontece **entre** páginas — a página ou
+termina e o cursor anda, ou a volta morre no meio e ela é relida. Reler é seguro
+(a chave de dedupe inclui o ciclo); pular não é.
+
+---
+
+### B-5 · O alerta de varredura não media o que prometia
+
+| | |
+|---|---|
+| **Severidade** | P1 — alarme cego, criado por mim na rodada anterior |
+| **Cenário** | O sinal olhava `crc_scan_state.atualizado_em` e dizia "não completa uma volta há dez dias". Mas `atualizado_em` muda **a cada página**: a varredura do B-4, rastejando 200/dia, tinha o campo sempre fresco. Trinta dias sem fechar ciclo, com o painel verde |
+| **Causa raiz** | Uma coluna só não distingue "não anda" de "anda devagar" |
+| **Arquivo** | `aplicacao/saude.ts`, `supabase/29` |
+| **Correção** | `ciclo_iniciado_em` e `ultimo_ciclo_completo_em`. Três estados: **PARADA** (crítico), **CICLO LENTO** (atenção), **SAUDÁVEL** (silêncio). Parada vence lenta — aumentar o teto não conserta falta de progresso |
+| **Teste** | um caso por estado, em `heartbeat.test.ts` |
+| **Mutation** | não atualizar `ultimo_ciclo_completo_em` → `expected null not to be null` |
+| **Status** | **CORRIGIDO** |
+
+---
+
+### B-6 · Webhook de entrada não era multi-tenant
+
+| | |
+|---|---|
+| **Severidade** | P0 arquitetural de SaaS |
+| **Cenário** | Com dois Meta Apps, o segredo de A não valida a assinatura de B — mensagem legítima recusada. E se só A estiver cadastrado, **qualquer corpo assinado por A passa dizendo ser de quem quiser** |
+| **Causa raiz** | `provedorParaWebhook()` monta o adapter do ambiente; a assinatura precisa da credencial *daquele canal*, e descobrir o canal pelo corpo exigiria confiar no corpo |
+| **Arquivo** | `routes/api/crc/whatsapp.$canal.tsx`, `integracoes/credenciais.ts`, `.../whatsapp/provedores.ts` |
+| **Correção** | Rota `/api/crc/whatsapp/:canal`. O `:canal` é um **id público** que só seleciona a linha; a confiança nasce da assinatura verificada com a credencial dela. E o destinatário do payload precisa **conferir** com o canal |
+| **Teste** | `canal-de-entrada.test.ts` — 9 casos |
+| **Mutation** | aceitar canal desativado → `expected {…} to be null` |
+| **Status** | **CORRIGIDO**; rota antiga mantida com as condições escritas no cabeçalho |
+
+---
+
+### B-7 · Upsert de linha inteira zerava o contador de ciclo
+
+| | |
+|---|---|
+| **Severidade** | P1 — defeito que eu introduzi nesta mesma rodada |
+| **Cenário** | `gravar` é upsert com `resolution=merge-duplicates`: coluna ausente do corpo volta ao **DEFAULT**, não ao valor anterior. Na página que não fecha o ciclo eu omitia `ciclo` — zerando o contador a cada página |
+| **Arquivo** | `automacao/handlers.ts` |
+| **Correção** | Toda coluna vai no payload, inclusive as que não mudam |
+| **Teste** | o próprio teste de ciclo reprovou com `expected undefined to be +0` |
+| **Status** | **CORRIGIDO antes de sair daqui** |
+
+---
+
+## 3. Migrations
+
+| Arquivo | Código presente | Testada local | Comprovada em produção |
+|---|:--:|:--:|:--:|
+| `25-crc-retry-atomico-e-tenant-no-inbox.sql` | sim | sim | **NÃO** |
+| `26-crc-varreduras-convergentes.sql` | sim | sim | **NÃO** |
+| `27-crc-observabilidade.sql` | sim | sim | **NÃO** |
+| `28-crc-configuracao-por-clinica.sql` | sim | sim | **NÃO** |
+| `29-crc-publico-e-ciclo.sql` | sim | sim | **NÃO** |
+
+"Testada local" = aplicada em Postgres 16 limpo pelo `aplicar-schema.mjs`, com
+`schema:status` sondando o objeto criado e os 74 testes de integração passando.
+
+**Nenhuma foi aplicada em produção.** Não tenho credencial do Supabase nesta
+sessão; qualquer afirmação sobre o banco real seria invenção.
+
+---
+
+## 4. Testes — comandos e números reais
+
+```
+$ npx npm@10.9.2 ci                        added 304 packages in 23s
+$ npx eslint src vite.config.ts eslint.config.js
+                                           0 erros (5 avisos de fast-refresh, pré-existentes)
+$ npm run typecheck                        limpo
+$ npm test                                 1187 passed
+$ npm run test:integracao                   74 passed   (Postgres 16 + PostgREST, schema do zero)
+$ npm run e2e                               10 passed (27.5s)
+$ npm run build                            ok
+$ npm run schema:status                    30 arquivos · 14 sondados · 0 falhas
+```
+
+### Testes novos nesta rodada
+
+| Arquivo | Casos |
+|---|---|
+| `aplicacao/publico-da-campanha.test.ts` | 12 — escalas 100/964/5.000/8.000, recusa acima do teto, opções do filtro |
+| `automacao/varreduras-convergentes.test.ts` | 13 (reescrito) — 500, 2.500, 8.000, teto por tempo, página que falha, ciclo |
+| `integracoes/canal-de-entrada.test.ts` | 9 — isolamento de entrada por canal |
+| `aplicacao/heartbeat.test.ts` | +1 — os três estados da varredura |
+
+### Mutações verificadas
+
+| Mutação | Detectada por | Sinal |
 |---|---|---|
-| `automacao/clinica-da-conversa.test.ts` | 7 | a clínica vem da conversa; falha fechado |
-| `integracoes/credenciais.test.ts` | 10 | isolamento de credencial; o ambiente se auto-desliga; cache de token por chave |
-| `aplicacao/retry-atomico.test.ts` | 4 | status e backoff numa instrução — contando **escritas**, não o estado final |
-| `aplicacao/webhook-tenant-e-pii.test.ts` | 6 | tenant no inbox e na DLQ; PII sai no terminal e fica enquanto há replay |
-| `automacao/varreduras-convergentes.test.ts` | 7 | três ciclos avaliam 500; aniversariante depois da linha 2.000 |
-| `dominio/cadencia.test.ts` | 10 | a conta da cadência, pura |
-| `aplicacao/cadencia-de-campanha.test.ts` | 5 | 100/dia converge, sem duplicar, sem esvaziar de manhã; pausa e retomada |
-| `aplicacao/heartbeat.test.ts` | 14 | batimento, limiares do painel, ação apontando para o pulso |
-| `aplicacao/saas.test.ts` | 13 | branding, onboarding e configuração por clínica |
-| `testes/integracao/adaptador.test.ts` | 6 | o **adaptador de produção** contra Postgres real |
-| `testes/integracao/concorrencia.test.ts` | +3 | o job encerrado com backoff não é reservável no instante seguinte |
-| `e2e/*.spec.ts` | 10 | navegador: sessão, inbox, configurações, kill switch, estúdio, multi-clínica |
+| `limite: MAX_PUBLICO` de volta | público 8.000 | `expected 5000 to be 8000` |
+| `ultimo_ciclo_completo_em` não atualizado | ciclo fecha | `expected null not to be null` |
+| clínica da conversa → primeira ativa | contexto de agendamento | `expected 'aaaa…' to be 'bbbb…'` |
+| override de clínica ignorado | configuração da unidade | `expected '19:00' to be '22:00'` |
+| canal desativado aceito | canal de entrada | `expected {…} to be null` |
+| `on_conflict` errado em `crc_scan_state` | integração | `42P10` |
+| cache de token com chave fixa | credenciais | `expected 'tok-cli-A' to be 'tok-cli-B'` |
+
+**Duas mutações NÃO foram detectadas por um teste que parecia cobri-las**, e
+isso está registrado porque muda como os testes foram escritos:
+
+- **retry atômico** — o caso "o job não fica elegível" continua verde com o
+  defeito: o estado final é idêntico nas duas versões. Por isso o teste conta
+  **escritas**, e o de integração observa a janela contra Postgres real.
+- **cadência de campanha** — o total do dia continua 100 com o defeito. A
+  asserção que discrimina é sobre a **forma** do dia, não sobre o total.
 
 ---
 
-## 6. Provas
+## 5. CI
 
-```
-npm run lint            0 erros (5 avisos de fast-refresh, pré-existentes)
-npm run typecheck       limpo
-npm test                1157 passando
-npm run test:integracao   74 passando  (Postgres 16 + PostgREST, schema do zero)
-npm run e2e               10 passando  (17s, idempotentes)
-npm run build           ok
-npm run schema:status   29 arquivos · 13 sondados · 0 falhas
-```
+| Workflow | SHA | Resultado |
+|---|---|---|
+| Quality | `add5c29` | **success** |
+| CRC Integração | `add5c29` | **success** — inclui `10 passed (27.0s)` do Playwright no log |
+| CRC Smoke | `add5c29` | **success** |
+| CRC Pulso | `add5c29` | **failure** — `CRON_SECRET` ausente (ver seção 6) |
 
-Schema aplicado **do zero** num banco limpo, com os 29 arquivos.
-
-### Injeção de defeito
-
-Cada correção importante foi revertida, e o teste certo quebrou:
-
-| Defeito injetado | O que quebrou |
-|---|---|
-| voltar a ignorar `conversationId` | `expected 'aaaa…' to be 'bbbb…'` — a clínica A no lugar da B |
-| cache de token com chave fixa | `expected 'tok-cli-A' to be 'tok-cli-B'` — B recebe o token de A |
-| tirar a checagem de ambiguidade | o ambiente volta a atender duas organizações |
-| backoff de volta a um `update` separado | `p_disponivel_em` ausente; a segunda escrita reaparece |
-| `terminal = status === "PROCESSADO"` | o envelope inteiro continua na linha |
-| `resolverEscopo(provedor, null)` | `expected null to be 'bbbb…'` na dead letter |
-| cursor de recall fixo em `null` | `expected 200 to be 500` |
-| aniversário de volta ao `limit 2000` | `expected +0 to be 1` |
-| cota de campanha removida | `expected 50 to be less than or equal to 30` — front-loading |
-| `clinica:` de volta ao literal | a mensagem de um tenant sai assinada com o nome do outro |
-| slug de clínica fixo em `"matriz"` | a segunda unidade não nasce |
-| override de clínica ignorado | `expected '19:00' to be '22:00'` |
-| `on_conflict` de `crc_scan_state` errado | **42P10** — o mesmo erro do `supabase/23`, agora no CI |
-
-Duas observações honestas sobre essas injeções:
-
-- No retry, o caso **"o job não fica elegível"** continuou **verde** com o
-  defeito. É esperado: o estado final é idêntico nas duas versões. Por isso o
-  teste conta escritas — e o integration test mostra a janela existindo.
-- Na campanha, o total do dia também continuou 100 com o defeito. A asserção que
-  discrimina é sobre a **forma** do dia, não sobre o total.
+**O HEAD entregue é `a1c0c6e`, e o CI dele ainda não foi observado.** Os dois
+commits seguintes a `add5c29` foram verificados localmente com a mesma árvore do
+`npm ci`. O resultado do CI de `a1c0c6e` precisa ser conferido depois do push —
+e esta linha existe para que ninguém leia "verde" onde ainda não há evidência.
 
 ---
 
-## 7. Estado dos provedores externos
+## 6. Produção
 
-| Provedor | Estado |
-|---|---|
-| **WhatsApp** | `BLOCKED_EXTERNAL`. Nenhum contrato. Adapters de Meta Cloud, Twilio e WAHA prontos e testados contra fixtures; roteamento de entrada e saída por clínica implementado |
-| **Dental Office** | `BLOCKED_EXTERNAL`. Credenciais não cadastradas. Adapter completo, com contrato testado a partir do OpenAPI, `INCERTO` + reconciliação preservados |
-| **IA** | Configurável por organização (`crc_ai_credentials`). Gateway, orçamento, disjuntor e supervisor prontos. Sem chave cadastrada em produção |
+| | Estado | Por quê |
+|---|---|---|
+| **Supabase** | `NOT_TESTED` | sem credencial nesta sessão. As cinco migrations pendentes não foram aplicadas |
+| **GitHub Pulso** | `FAIL` | `gh secret list` volta **vazio**: `CRON_SECRET` não existe no repositório |
+| **WhatsApp** | `BLOCKED_EXTERNAL` | nenhum contrato. Adapters prontos; entrada e saída roteadas por canal |
+| **Dental Office** | `BLOCKED_EXTERNAL` | credenciais não cadastradas. Adapter completo, `INCERTO` + reconciliação preservados |
+| **IA** | `BLOCKED_EXTERNAL` | sem chave cadastrada. Gateway, orçamento, disjuntor e gate de avaliação prontos |
 
----
-
-## 8. Pendências BLOCKED_EXTERNAL
-
-Comandos exatos para quando as credenciais chegarem:
+**Sobre o `CRON_SECRET`:** não o criei. O valor precisa ser **o mesmo** na Vercel
+e no GitHub — gerar um aqui faria o workflow autenticar contra um segredo que a
+Vercel não conhece, e o sintoma seria 401 em vez de "não configurado", que é pior
+de diagnosticar. É ação externa:
 
 ```bash
-# 1. WhatsApp — só RECEBIMENTO primeiro (degrau 3 do roteiro)
-#    Cadastre no painel da Vercel, aponte o webhook do provedor para
-#    POST /api/crc/whatsapp, e confira em Integrações que o adapter subiu.
-#    Mande uma mensagem de um número seu e veja-a na Inbox.
-
-# 2. Dental Office — leitura primeiro
-#    Integrações → Testar conexão  (autentica e faz um GET; nunca altera dado)
-#    Integrações → Sincronizar agora
-curl -X POST https://SEU-DOMINIO/api/crc/motor -H "Authorization: Bearer $CRON_SECRET"
-
-# 3. Shadow mode
-#    Configurações → ligar SOMENTE ai_agente_sombra.
-#    Deixe rodar alguns dias e leia a tela Inteligência.
-
-# 4. Antes de qualquer envio: a suíte de avaliação
-#    Avaliação → instalar os 22 casos → rodar → publicar a versão no Estúdio
+gh secret set CRON_SECRET       # o mesmo valor que está na Vercel
 ```
 
 ---
 
-## 9. O que pode ser ligado hoje
+## 7. Escala — respostas diretas
 
-| | Pode? | Condição |
-|---|---|---|
-| UI | **SIM** | 10 E2E cobrindo sessão, inbox, configurações, kill switch, estúdio e multi-clínica |
-| Sincronização | **SIM**, depois do SQL | precisa das migrations 25–28 e das credenciais do Dental Office |
-| Campanhas | **SIM**, depois do SQL | a cadência converge; precisa de canal de WhatsApp |
-| Shadow AI | **SIM** | `ai_agente_sombra` não fala com ninguém. Precisa de chave de IA |
-| Envio da IA | **NÃO** | a suíte de avaliação nunca rodou contra o modelo real. É o gate |
-| Agendamento autônomo | **NÃO** | depende do envio, e do Dental Office em escrita |
-| Multi-clínica | **SIM** | roteamento de entrada e saída, credencial, configuração e isolamento na UI — com teste |
-| Multi-tenant SaaS | **QUASE** | ver as duas lacunas abaixo |
+**Campanha de 8.000 perde alguém?**
+Não. Teste com 8.000 congela 8.000, com 8.000 `patient_id` distintos. Acima de
+50.000 a operação recusa e informa o número — nunca corta.
 
-### As duas lacunas de SaaS que restam
+**Quanto demora um ciclo de recall com 8.000?**
+Sete dias. Teto de 1.200 por volta pesada (uma por dia), medido: 6 a 8 voltas
+para fechar o ciclo no teste.
 
-1. **Não há tela para abrir uma segunda unidade.** `criarClinica()` existe e é
-   testada; nenhuma interface a chama. O E2E cria a segunda clínica por insert
-   direto, e isso está dito lá.
-2. **Não há tela para escolher as clínicas de quem se cadastra.** O convite herda
-   as clínicas de quem convida, e o admin alcança todas — então todo convidado
-   nasce com acesso total. A regra de RBAC está certa e testada; falta a
-   interface que a exercita.
+**Qual é o throughput esperado?**
+Recall: 1.200 pacientes/dia, ou o que couber em 20s — o que vier primeiro.
+Campanha: `porDia` da campanha, distribuído pela janela comercial com cota
+acumulada, teto de 10 por volta do pulso.
+Congelamento: páginas de 500, `INSERT` em lote.
 
-Nenhuma das duas é motor faltando: são telas faltando para um motor que existe.
+**Existe truncamento silencioso?**
+Não encontrei nenhum restante nos caminhos de escala. Os `limite:` que sobram são
+de UI (listas de 40–500 numa tela) ou de diagnóstico. Os três que representavam
+"toda a base" — recall 200, aniversário 2.000, campanha 5.000 — foram corrigidos.
+
+**Existe query limitada que represente "toda a base"?**
+Uma, conhecida e documentada: o fallback de `opcoesDoPublico` quando o banco
+ainda não tem o `supabase/29`. Ele é o comportamento antigo, existe só para a
+janela entre deploy e SQL, e o sinal `schema_atrasado` denuncia a janela.
 
 ---
 
-## 10. GO / NO-GO
+## 8. Multi-tenant — respostas diretas
 
-### GO — com condições, e nesta ordem
+| Pergunta | Resposta |
+|---|---|
+| Outbound tenant-safe? | **Sim.** Credencial por clínica → organização → ambiente; o ambiente se desliga sozinho quando há mais de um tenant. Cache de token por credencial |
+| Inbound tenant-safe? | **Sim, pela rota `/:canal`.** A rota antiga continua válida sob condição escrita: um Meta App só, e nenhum canal com credencial própria |
+| Dental Office tenant-safe? | **Sim.** `crc_integracoes_clinica`, com recusa explícita quando ambíguo |
+| Configuração por clínica? | **Sim.** `crc_settings_clinica`, mesclado por campo sobre a configuração da organização |
+| Criação de nova organização? | **Sim**, `criarOrganizacao()`, idempotente por slug |
+| Criação de segunda unidade? | **Motor sim, tela não.** `criarClinica()` existe e é testada; nenhuma interface a chama |
+| Usuário restrito a uma clínica? | **RBAC sim, tela não.** `alcancaClinica` é testado e exercitado no E2E; o convite herda as clínicas de quem convida, e o admin alcança todas — então todo convidado nasce com acesso total |
 
-**1. Rodar as migrations 25, 26, 27 e 28**, cada uma seguida de
-`notify pgrst, 'reload schema';`, e depois `npm run schema:status` sem falhas.
+As duas lacunas são **telas faltando para um motor que existe**, e o E2E as
+contorna por insert direto, dizendo isso no comentário.
 
-Até lá o código degrada em vez de parar — o retry volta a ser em dois passos, o
-override por clínica é ignorado —, mas **o recall e o aniversário param**: eles
-chamam RPCs que só existem no `26`. A varredura vai falhar e reportar
-`{ falhou: true }` sem derrubar as outras.
+---
 
-**2. `gh secret set CRON_SECRET`** e `CRC_URL_PUBLICA` na Vercel. Sem os dois, a
-fila não anda — e agora o painel diz isso, em vez de mandar olhar o motor.
+## 9. GO / NO-GO
 
-**3. Instalar e rodar a suíte de avaliação.** Os 22 casos discriminam — reprovam
-tanto o agente que só cala quanto o que responde tudo —, e **nunca rodaram contra
-o modelo real**. É o único gate que ainda não tem evidência.
+| Capacidade | Veredito | Condição |
+|---|---|---|
+| **CRC manual** (Inbox, funil, agenda, pacientes) | **GO** | depois das migrations 25–29 |
+| **Shadow AI** (`ai_agente_sombra`) | **GO** | precisa de chave de IA. Não fala com ninguém |
+| **AI responder** (`ai_agente_envio`) | **NO-GO** | a suíte de avaliação nunca rodou contra o modelo real |
+| **AI escrever Dental Office** | **NO-GO** | depende do anterior e do Dental Office em escrita |
+| **Auto scheduling** | **NO-GO** | depende dos dois anteriores |
+| **SaaS multi-cliente** | **NO-GO parcial** | o motor está pronto; faltam as duas telas da seção 8 |
 
-### NO-GO para envio automático da IA
+---
 
-Não por defeito conhecido: por ausência de evidência. A suíte existe, o gate
-existe, e a rodada não aconteceu. Ligar `ai_agente_envio` antes disso é decidir
-sem o dado que foi construído para a decisão.
+## 10. Critério de aceite
 
-### Riscos remanescentes
+| | |
+|:--:|---|
+| ☑ | `npm ci` em clone limpo — `npx npm@10.9.2 ci`, 304 pacotes |
+| ☑ | lint verde |
+| ☑ | typecheck verde |
+| ☑ | unit verde — 1187 |
+| ☑ | integração verde — 74 |
+| ☑ | build verde |
+| ☑ | E2E verde — 10 |
+| ☐ | **CI verde NO HEAD entregue** — verde em `add5c29`; `a1c0c6e` ainda não observado |
+| ☑ | nenhuma campanha trunca silenciosamente |
+| ☑ | campanha de 8.000 testada |
+| ☑ | recall de 8.000 testado |
+| ☑ | health diferencia sem progresso de ciclo lento |
+| ☑ | outbound tenant-safe |
+| ☑ | inbound tenant-safe |
+| ☑ | migrations novas testadas (local) |
+| ☑ | schema esperado explícito — `schema:status` + sinal `schema_atrasado` |
+| ☑ | nenhum segredo commitado |
+| ☑ | nenhuma regressão nos P0 já corrigidos — mutações da rodada anterior rerodadas |
+
+**Não escrevo RELEASE CANDIDATE.** Um item da lista está aberto: o CI do HEAD
+entregue. Enquanto ele não for observado verde, a palavra seria exatamente o tipo
+de afirmação que esta rodada existiu para eliminar.
+
+---
+
+## 11. Riscos remanescentes
 
 | Risco | Mitigação |
 |---|---|
-| As migrations não rodarem antes do próximo deploy | `schema:status` no deploy; sinal `schema_atrasado` no painel |
-| Assinatura de webhook do Twilio é por conta, e vem do ambiente | Para a Meta está arquiteturalmente certo (app secret é do aplicativo). Para o Twilio multi-tenant, é limitação conhecida |
-| Rate limit de login é em memória, por instância | Documentado no próprio módulo: **não é defesa distribuída**. A defesa real é na borda (WAF) |
-| A base de 8.000 ainda não foi exercitada com dados reais | As varreduras convergem por construção e têm teste com 500 e 2.500 linhas; o comportamento com 8.000 é extrapolação |
-| A base de 8.000 nunca foi varrida de ponta a ponta em produção | O painel ganhou `varredura_parada`: `crc_scan_state.ciclo` sem avançar há dez dias vira sinal. É o número que responde "a varredura está andando?" |
+| As cinco migrations não rodarem antes do próximo deploy | `schema:status` no deploy; sinal `schema_atrasado`; os caminhos novos degradam em vez de parar — exceto recall e aniversário, que **param** sem o `26` |
+| `@playwright/test` é `^1.62.1` e resolveu 1.63.0 | O lock pina a versão, então `npm ci` é determinístico. O que varia é o binário do navegador, baixado por `playwright install` na mesma versão |
+| Assinatura do Twilio é por conta, e a rota antiga a lê do ambiente | Para a Meta a rota nova resolve; para o Twilio multi-tenant, use a rota `/:canal` com `accountSid` no `config` |
+| Rate limit de login é em memória, por instância | Documentado no módulo: **não é defesa distribuída**. A defesa real é na borda |
+| Teto de recall de 1.200 nunca foi medido contra Postgres real com 8.000 linhas | O número vem da aritmética e do teste no fake. O orçamento de 20s protege o caso em que a conta estiver otimista |
+| Nenhuma tela para abrir a segunda unidade nem para escopar usuário | Registrado na seção 8. É trabalho de UI sobre motor pronto |
