@@ -92,6 +92,7 @@ Arquivos novos desta fase:
 | `dominio/radar.test.ts` | 27 | a honestidade dos números |
 | `dominio/melhor-acao.test.ts` | 30 | a ordem das perguntas = a política de contato |
 | `dominio/autonomia.test.ts` | 14 | a flag como teto do nível |
+| `e2e/radar.spec.ts` | 4 | a tela, com sessão e Postgres de verdade |
 | `aplicacao/radar.test.ts` | 31 | tenant, expiração, cursor, ciclo, atribuição |
 | `aplicacao/autonomia.test.ts` | 16 | herança por domínio, kill switch por domínio |
 | `aplicacao/atividade.test.ts` | 10 | a timeline não derruba quem estava agindo |
@@ -129,15 +130,59 @@ corrigido para não prometer o que ele não prova.
 
 ---
 
+### E2E — a cadeia inteira
+
+`e2e/radar.spec.ts`, 4 testes, contra Postgres + PostgREST locais com as
+migrations 30 e 31 aplicadas:
+
+```
+14 passed (33.1s)     10 que já existiam + 4 do Radar
+```
+
+O que só o E2E prova, e nenhum teste de unidade alcança:
+
+```
+sessão → permissão → server function → ctx.clinicIds → RPC no Postgres
+→ resumo → React → o número na coluna
+```
+
+Os testes de unidade rodam contra o banco em memória. Ele valida nomes de coluna
+contra o SQL — o que é muito — e não prova que `crc_radar_resumo` existe no
+Postgres com esta assinatura, nem que o `numeric` volta como string e sobrevive
+à conversão, nem que a tela sabe desenhar zero.
+
+A asserção central é a **separação dos dois números**. Se algum dia a tela passar
+a mostrar só o potencial — o número grande, o que impressiona — este teste cai.
+
+### As migrations 30 e 31, aplicadas num Postgres real
+
+Aplicadas no banco de teste local por `psql` e sondadas:
+
+```
+30-crc-radar-de-receita.sql      sim      OK (4 sondas)
+31-crc-radar-valor-esperado.sql  sim      OK
+
+32 arquivos · 16 sondados · 0 falha(s)
+```
+
+A sonda da 31 saiu de `FALHOU (42703)` para `OK` exatamente quando o SQL rodou —
+é a prova de que ela detecta, e não decora. E a correção de bookkeeping da 31
+funcionou: `crc_schema_migrations` do banco de teste passou a ter a 25 e a 26
+com `presumido = false`.
+
+---
+
 ## 4. Verificação local
 
 | Comando | Resultado |
 |---|---|
 | `npx tsc --noEmit` | limpo |
-| `npx eslint` nos 19 arquivos tocados | limpo, `--max-warnings=0` |
+| `npx eslint` nos 20 arquivos tocados | limpo, `--max-warnings=0` |
 | `npx vitest run` | 75 arquivos, 1314 testes, 0 falhas |
+| `npx playwright test` | 14 E2E, 0 falhas |
 | `npm run build` | `✔ built`, preset Vercel |
-| `npm run schema:status` | 1 falha, esperada — a 31 |
+| `npm run schema:status` (teste) | 0 falhas |
+| `npm run schema:status` (produção) | 1 falha, esperada — a 31 |
 
 `npm run lint` no repositório inteiro levou mais de 10 minutos e não foi
 esperado até o fim. Os 19 arquivos tocados foram linteados individualmente com
@@ -246,7 +291,7 @@ oportunidade nenhuma para medir.
 | Capacidade | Veredito | Por quê |
 |---|---|---|
 | CRC manual | **GO** | Testado; produção precisa de deploy e de dados |
-| Radar de Receita | **NO-GO até a 31 rodar** | O resumo depende de `valor_esperado` |
+| Radar de Receita | **NO-GO até a 31 rodar em produção** | O resumo depende de `valor_esperado`. Já validado num Postgres real (banco de teste). |
 | Automação (jornadas, campanhas) | **NO-GO até o deploy** | Produção roda código pré-auditoria |
 | AI shadow | **GO** | `ai_agente_sombra` já ligada |
 | AI resposta | **NO-GO** | Sem avaliação contra modelo real |
