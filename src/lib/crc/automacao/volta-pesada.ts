@@ -258,6 +258,7 @@ async function umaOrganizacao(
     const { qualificarOrcamentos } = await import("../aplicacao/aceitacao");
     const { podarTranscricoes } = await import("../aplicacao/omnichannel");
     const { varrerPreConsulta } = await import("../aplicacao/financeiro");
+    const { expirarAprendizados, perguntarComoFoi } = await import("../aplicacao/growth");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -308,6 +309,22 @@ async function umaOrganizacao(
        * so apareceria no dia seguinte.
        */
       await comCaptura(organizationId, "pre-consulta", () => varrerPreConsulta(organizationId)),
+      /*
+       * A PESQUISA PERGUNTA A TODO MUNDO que foi atendido ontem. Filtrar quem
+       * recebe com base na nota esperada e manipular avaliacao (§32) — produz
+       * media alta e uma clinica que nao sabe o que esta errado.
+       */
+      await comCaptura(organizationId, "pesquisa de satisfacao", () =>
+        perguntarComoFoi(organizationId),
+      ),
+      /*
+       * APRENDIZADO VELHO EXPIRA. Uma clinica muda: equipe nova, horario novo,
+       * publico novo. Um aprendizado de um ano atras pode estar descrevendo uma
+       * operacao que nao existe mais — e continuar guiando decisao.
+       */
+      await comCaptura(organizationId, "aprendizados vencidos", async () => ({
+        aprendizadosExpirados: await expirarAprendizados(organizationId),
+      })),
       /*
        * O FUNIL DE ACEITACAO percorre os orcamentos abertos em paginas, e pula
        * o que ja esta na versao corrente da formula — mesmo desenho do Radar.

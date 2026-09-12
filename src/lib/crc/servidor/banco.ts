@@ -133,7 +133,14 @@ export type Tabela =
   // supabase/37 — Financeiro e pre-consulta.
   | "crc_payment_policies"
   | "crc_payment_intents"
-  | "crc_previsit_checks";
+  | "crc_previsit_checks"
+  // supabase/38 — Growth.
+  | "crc_feedback"
+  | "crc_referrals"
+  | "crc_experiments"
+  | "crc_experiment_variants"
+  | "crc_experiment_assignments"
+  | "crc_learnings";
 
 export type Linha = Record<string, unknown>;
 

@@ -224,6 +224,22 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_goal_metrics: [{ colunas: ["organization_id", "chave_dedupe"] }],
   // Os indices do 37.
   crc_payment_intents: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  // Os indices do 38.
+  crc_feedback: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  crc_referrals: [
+    { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+  ],
+  crc_experiments: [{ colunas: ["organization_id", "nome"] }],
+  crc_experiment_variants: [{ colunas: ["experiment_id", "nome"] }],
+  /*
+   * UMA PESSOA, UMA VARIANTE, POR EXPERIMENTO — e este indice e o experimento
+   * inteiro. Sem ele, a mesma pessoa cairia em duas variantes e o resultado nao
+   * mediria nada: nao haveria como dizer qual mensagem produziu a conversao.
+   */
+  crc_experiment_assignments: [{ colunas: ["experiment_id", "patient_id"] }],
+  crc_learnings: [
+    { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+  ],
   /*
    * `crc_previsit_checks` tem a chave em (consulta, item), e e ela que impede a
    * varredura diaria de acumular uma pendencia de confirmacao por dia ate a

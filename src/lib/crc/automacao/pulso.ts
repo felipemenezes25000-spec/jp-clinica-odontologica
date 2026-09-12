@@ -57,6 +57,8 @@ export type ResultadoDoPulso = {
   organizacoes: number;
   /** Convites de encaixe que sairam nesta volta. Zero e o caso normal. */
   convitesDeEncaixe: number;
+  /** Experimentos parados por guardrail. Zero e o caso normal E o desejavel. */
+  experimentosParados: number;
   duracaoMs: number;
 };
 
@@ -160,6 +162,7 @@ export async function baterPulso(
   const jornadas: ResultadoDoPulso["jornadas"] = [];
   const campanhas: ResultadoDoPulso["campanhas"] = [];
   let convites = 0;
+  let experimentosParados = 0;
   const organizacoes = await organizacoesAtivas();
 
   for (const organizationId of organizacoes) {
@@ -190,6 +193,20 @@ export async function baterPulso(
        */
       const encaixes = await oferecerEncaixesDe(organizationId);
       if (encaixes > 0) convites += encaixes;
+
+      /*
+       * ========================================================================
+       *  O GUARDRAIL DE EXPERIMENTO ESTA NO PULSO, e nao na volta pesada.
+       *
+       *  Um guardrail conferido uma vez por dia deixa a variante ruim rodar o
+       *  dia inteiro — e num disparo de campanha isso e a lista inteira. O custo
+       *  de conferir e baixo: sao leituras de contadores ja desnormalizados na
+       *  propria variante.
+       * ========================================================================
+       */
+      const { conferirExperimentos } = await import("../aplicacao/growth");
+      const exp = await conferirExperimentos(organizationId);
+      if (exp.parados > 0) experimentosParados += exp.parados;
     } catch (erro) {
       /*
        * ENGOLE E SEGUE, com registro. A alternativa — deixar subir — faria a
@@ -222,6 +239,7 @@ export async function baterPulso(
     campanhas,
     organizacoes: organizacoes.length,
     convitesDeEncaixe: convites,
+    experimentosParados,
     duracaoMs: Date.now() - comecou,
   };
 
