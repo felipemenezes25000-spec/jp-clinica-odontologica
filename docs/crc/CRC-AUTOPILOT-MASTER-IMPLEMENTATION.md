@@ -126,6 +126,41 @@ digital. **Sem migration**: tudo é derivado do que já existe.
   digitado, porque ele depende do mix de procedimentos. As premissas ficam
   visíveis embaixo do resultado, inclusive a de que nenhum custo novo entrou.
 
+### Metas e Autonomia — as duas telas que faltavam
+
+Não são fase: são as duas capacidades que a matriz marcava como `PARTIAL` com
+a mesma frase — domínio e serviço prontos, **sem tela**.
+
+- **Metas.** A camada de aplicação não existia. `medirValor()` tem uma medição
+  por tipo, e cada uma conta exatamente o que o `comoMede` do catálogo diz na
+  tela — essa correspondência é o contrato, e a tela mostra a régua **antes** de
+  a pessoa escolher o alvo.
+- **Autonomia.** A API já existia inteira. A tela destaca o nível **efetivo**, e
+  não o configurado: um domínio no 5 com a chave desligada opera como 0, e
+  mostrar só o 5 é a forma mais rápida de concluir que a automação quebrou
+  quando ela está obedecendo.
+
+#### O defeito de modelo que o teste encontrou
+
+Eu media o progresso de toda meta contra o baseline. Para ocupação está certo —
+a clínica **já está** em 61%, e chegar a 90% parte dali. Para "marcar 10
+consultas" está errado: o período começa do zero.
+
+Com o baseline como origem, uma meta de contagem com 8 no mês anterior e alvo 10
+calcularia `(4 − 8) / (10 − 8)` = **−200% de progresso** com a clínica tendo
+marcado 4 consultas. Sem erro na tela — só um módulo que parece quebrado.
+
+A distinção virou explícita no catálogo (`ehAcumulado`): ocupação, conversão e
+faltas são **estoque** (partem de onde a clínica está); receita, agendamentos e
+reativação são **fluxo** (o período começa do zero, e o baseline é referência).
+Ela fica escrita no catálogo em vez de deduzida da unidade, porque deduzir de
+"PERCENTUAL vs QUANTIDADE" é uma coincidência que a próxima meta quebra.
+
+Injeção de defeito: voltar `origemDoProgresso` a devolver sempre o baseline
+faz exatamente 1 teste falhar, com `expected -2 to be close to 0.4`.
+
+---
+
 ### FASE H — SaaS (§54 a §58)
 
 Unidades, escopo de acesso e primeiros passos. **Sem migration**: as tabelas
@@ -458,8 +493,8 @@ Sobraram duas coisas, e nenhuma delas é banco.
 | ------------------------ | ------------------ | --------------------------------------------------------------- |
 | Revenue Radar            | `DONE`             | Schema, domínio, serviço, tela, E2E. Base vazia                 |
 | Next Best Action         | `PARTIAL`          | Domínio completo e testado; não ligado à automação              |
-| Goal Autopilot           | `PARTIAL`          | Domínio + migration 34 aplicada; sem tela                       |
-| Autonomy Center          | `PARTIAL`          | Motor + API; sem tela                                           |
+| Goal Autopilot           | `DONE`             | Migration 34 aplicada, serviço, tela e medição na volta pesada  |
+| Autonomy Center          | `DONE`             | Motor, API e tela — com o nível EFETIVO em destaque             |
 | Smart Schedule           | `DONE`             | Migration 32 aplicada; tela Encaixes                            |
 | Waitlist                 | `DONE`             | `crc_waitlist_preferences`, convite em levas                    |
 | No-show risk             | `DONE`             | Calculado na volta pesada; mostrado em Encaixes                 |
@@ -488,26 +523,26 @@ Sobraram duas coisas, e nenhuma delas é banco.
 
 ## 8. GO / NO-GO (§138)
 
-| Capacidade                                         | Veredito                            | Por quê                                                         |
-| -------------------------------------------------- | ----------------------------------- | --------------------------------------------------------------- |
-| CRC manual                                         | **GO**                              | Testado. Produção precisa de deploy e de dados                  |
-| Radar de Receita                                   | **GO**                              | 30 e 31 aplicadas e sondadas                                    |
-| Agenda inteligente / encaixe                       | **GO**                              | 32 aplicada e sondada                                           |
-| Risco de falta                                     | **GO**                              | Deriva de dado que já existe                                    |
-| Aceitação de tratamento                            | **GO**                              | 33 aplicada e sondada                                           |
-| Metas                                              | **NO-GO**                           | 34 aplicada, mas sem tela: não há como criar meta               |
-| Gestão (briefing, anomalia, capacidade, simulador) | **GO**                              | Derivado; sem migration                                         |
-| Multi-clínica e escopo                             | **GO**                              | Tabelas já existiam; testado com injeção de defeito             |
-| Onboarding                                         | **GO**                              | Só leitura                                                      |
-| Omnichannel / linha do tempo                       | **GO**                              | 36 aplicada e sondada                                           |
-| Financeiro / pré-consulta                          | **GO** para política e pré-consulta | 37 aplicada e sondada. O pagamento em si segue BLOCKED_EXTERNAL |
-| Reputação / indicação / experimento                | **GO**                              | 38 aplicada e sondada                                           |
-| Endurecimento de `search_path`                     | **GO**                              | 35 aplicada; pgvector verificado intacto por chamada real       |
-| Voz                                                | **BLOCKED_EXTERNAL**                | Sem provedor                                                    |
-| Pagamentos                                         | **BLOCKED_EXTERNAL**                | Sem provedor                                                    |
-| AI resposta / escrita / auto-scheduling            | **NO-GO**                           | Sem avaliação contra modelo real                                |
-| Marketing autônomo                                 | **NO-GO**                           | Não implementado                                                |
-| Benchmarking                                       | **NO-GO**                           | Não implementado                                                |
+| Capacidade                                         | Veredito                            | Por quê                                                                      |
+| -------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------------- |
+| CRC manual                                         | **GO**                              | Testado. Produção precisa de deploy e de dados                               |
+| Radar de Receita                                   | **GO**                              | 30 e 31 aplicadas e sondadas                                                 |
+| Agenda inteligente / encaixe                       | **GO**                              | 32 aplicada e sondada                                                        |
+| Risco de falta                                     | **GO**                              | Deriva de dado que já existe                                                 |
+| Aceitação de tratamento                            | **GO**                              | 33 aplicada e sondada                                                        |
+| Metas                                              | **GO**                              | 34 aplicada, com tela; a meta nasce em rascunho e não age até alguém aprovar |
+| Gestão (briefing, anomalia, capacidade, simulador) | **GO**                              | Derivado; sem migration                                                      |
+| Multi-clínica e escopo                             | **GO**                              | Tabelas já existiam; testado com injeção de defeito                          |
+| Onboarding                                         | **GO**                              | Só leitura                                                                   |
+| Omnichannel / linha do tempo                       | **GO**                              | 36 aplicada e sondada                                                        |
+| Financeiro / pré-consulta                          | **GO** para política e pré-consulta | 37 aplicada e sondada. O pagamento em si segue BLOCKED_EXTERNAL              |
+| Reputação / indicação / experimento                | **GO**                              | 38 aplicada e sondada                                                        |
+| Endurecimento de `search_path`                     | **GO**                              | 35 aplicada; pgvector verificado intacto por chamada real                    |
+| Voz                                                | **BLOCKED_EXTERNAL**                | Sem provedor                                                                 |
+| Pagamentos                                         | **BLOCKED_EXTERNAL**                | Sem provedor                                                                 |
+| AI resposta / escrita / auto-scheduling            | **NO-GO**                           | Sem avaliação contra modelo real                                             |
+| Marketing autônomo                                 | **NO-GO**                           | Não implementado                                                             |
+| Benchmarking                                       | **NO-GO**                           | Não implementado                                                             |
 
 ---
 
@@ -522,7 +557,7 @@ fecha com 0 falhas, e o pgvector foi verificado intacto por chamada real.
    à frente do código: as tabelas das FASES B a F existem, e o código que as usa
    não está lá.
 3. **Sincronizar o Dental Office.** A base tem 0 pacientes.
-4. Só então: telas de Metas e do Centro de Autonomia, e ligar o NBA em sombra.
+4. Só então: ligar o NBA em sombra, e o hub de integrações (§54).
 
 Fora da fila, porque é de outro módulo: `rh_toca_atualizado_em` e
 `rh_proximo_protocolo` continuam apontados pelo linter. Os dois são do portal de
