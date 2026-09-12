@@ -600,8 +600,61 @@ export function agoraIso(): string {
   return new Date(agoraMs()).toISOString();
 }
 
+/**
+ * Confere os nomes de coluna do lado da LEITURA.
+ *
+ * ============================================================================
+ *  O FAKE JÁ CONFERIA A ESCRITA E NÃO CONFERIA A LEITURA — e foi exatamente
+ *  por esse buraco que quatro colunas inventadas passaram pela suíte inteira.
+ *
+ *  `selecionar<T>()` é genérico: o TypeScript devolve o que o chamador
+ *  prometer, então pedir `expected_value` numa tabela que não tem essa coluna
+ *  compila, passa no lint e passa em todo teste. Em produção o PostgREST
+ *  responde 400 e a varredura inteira cai.
+ *
+ *  São três caminhos, e os três precisam ser conferidos:
+ *    `colunas`  — a projeção  (`select=a,b,c`)
+ *    `filtros`  — o WHERE
+ *    `ordenar`  — o ORDER BY
+ *
+ *  Um `select` com coluna errada quebra igual a um `where` com coluna errada.
+ * ============================================================================
+ *
+ * AS EXCEÇÕES SÃO DUAS, e as duas são deliberadas:
+ *
+ *   `*` e vazio passam — é a projeção "tudo", e não um nome.
+ *
+ *   Tabela desconhecida passa, pelo mesmo motivo da conferência de escrita: o
+ *   portal de RH tem outro estilo, e um verificador que grita sem motivo é
+ *   desligado na primeira semana.
+ */
+function conferirColunasDaLeitura(tabela: string, opcoes: OpcoesSelecao): void {
+  const usadas = new Set<string>();
+
+  const projecao = opcoes.colunas ?? "";
+  if (projecao.length > 0 && projecao !== "*") {
+    for (const bruta of projecao.split(",")) {
+      const nome = bruta.trim();
+      // `tabela(coluna)` é embed do PostgREST, e não uma coluna desta tabela.
+      if (nome.length > 0 && !nome.includes("(")) usadas.add(nome);
+    }
+  }
+
+  for (const f of opcoes.filtros ?? []) usadas.add(f.coluna);
+  for (const o of opcoes.ordenar ?? []) usadas.add(o.coluna);
+
+  const invalidas = [...usadas].filter((c) => !colunaExiste(tabela, c));
+  if (invalidas.length === 0) return;
+
+  throw new Error(
+    `leitura de ${tabela} usou coluna que não existe no SQL: ${invalidas.join(", ")}. ` +
+      `A fonte de verdade é supabase/*.sql — confira o nome lá antes de mudar o teste.`,
+  );
+}
+
 export function selecionar<T = Linha>(tabela: string, opcoes: OpcoesSelecao = {}): Promise<T[]> {
   dispararFalhaArmada(`leitura:${tabela}`);
+  conferirColunasDaLeitura(tabela, opcoes);
   return Promise.resolve(aplicar(tabelas[tabela] ?? [], opcoes).map((l) => ({ ...l })) as T[]);
 }
 

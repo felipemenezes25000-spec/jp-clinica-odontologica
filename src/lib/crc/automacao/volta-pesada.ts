@@ -260,6 +260,7 @@ async function umaOrganizacao(
     const { varrerPreConsulta } = await import("../aplicacao/financeiro");
     const { expirarAprendizados, perguntarComoFoi } = await import("../aplicacao/growth");
     const { medirMetasAtivas } = await import("../aplicacao/metas");
+    const { decidirProximasAcoes } = await import("../aplicacao/melhor-acao");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -341,6 +342,26 @@ async function umaOrganizacao(
       await comCaptura(organizationId, "metas", async () => ({
         metasMedidas: await medirMetasAtivas(organizationId, null),
       })),
+      /*
+       * A PROXIMA MELHOR ACAO E DECIDIDA AQUI, E SO GRAVADA.
+       *
+       * O decisor existe e e testado desde a FASE A, e nada o chamava: a
+       * coluna `next_best_action` ficava nula para sempre. Um decisor que
+       * ninguem consulta e codigo morto com teste verde.
+       *
+       * DECIDIR NAO E EXECUTAR. Esta varredura grava o que FARIA; quem executa
+       * e o pulso, respeitando o Centro de Autonomia. E essa separacao que
+       * permite rodar em sombra: o CRC calcula a melhor acao para a base
+       * inteira sem enviar uma mensagem, e alguem compara com o que a recepcao
+       * fez.
+       */
+      await comCaptura(organizationId, "proxima melhor acao", async () =>
+        decidirProximasAcoes(organizationId, null, {
+          cooldownHoras: configuracao.cooldownHoras,
+          contatosPorDia: configuracao.contatosPorDia,
+          tentativasMaximas: configuracao.tentativasPorJornada,
+        }),
+      ),
       /*
        * O FUNIL DE ACEITACAO percorre os orcamentos abertos em paginas, e pula
        * o que ja esta na versao corrente da formula — mesmo desenho do Radar.
