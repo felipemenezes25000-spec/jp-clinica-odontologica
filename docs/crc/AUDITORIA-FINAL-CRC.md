@@ -153,19 +153,35 @@ termina e o cursor anda, ou a volta morre no meio e ela é relida. Reler é segu
 
 ## 3. Migrations
 
-| Arquivo | Código presente | Testada local | Comprovada em produção |
+| Arquivo | Código presente | Testada local | Aplicada em produção |
 |---|:--:|:--:|:--:|
-| `25-crc-retry-atomico-e-tenant-no-inbox.sql` | sim | sim | **NÃO** |
-| `26-crc-varreduras-convergentes.sql` | sim | sim | **NÃO** |
-| `27-crc-observabilidade.sql` | sim | sim | **NÃO** |
-| `28-crc-configuracao-por-clinica.sql` | sim | sim | **NÃO** |
-| `29-crc-publico-e-ciclo.sql` | sim | sim | **NÃO** |
+| `25-crc-retry-atomico-e-tenant-no-inbox.sql` | sim | sim | **NÃO** — `PGRST202` em `crc_encerrar_agent_job` |
+| `26-crc-varreduras-convergentes.sql` | sim | sim | **NÃO** — `PGRST202` em `crc_aniversariantes` |
+| `27-crc-observabilidade.sql` | sim | sim | **NÃO** — `crc_runtime_heartbeats` não existe |
+| `28-crc-configuracao-por-clinica.sql` | sim | sim | **NÃO** — `crc_settings_clinica` não existe |
+| `29-crc-publico-e-ciclo.sql` | sim | sim | **NÃO** — `PGRST202` em `crc_opcoes_de_publico` |
 
 "Testada local" = aplicada em Postgres 16 limpo pelo `aplicar-schema.mjs`, com
 `schema:status` sondando o objeto criado e os 74 testes de integração passando.
 
-**Nenhuma foi aplicada em produção.** Não tenho credencial do Supabase nesta
-sessão; qualquer afirmação sobre o banco real seria invenção.
+### O estado de produção, MEDIDO
+
+Isto deixou de ser suposição. `npm run schema:status` contra o Supabase real:
+
+```
+30 arquivos · 14 sondados · 5 falha(s)
+Registro: AUSENTE — crc_schema_migrations não existe (rode supabase/27).
+
+02, 09, 14, 17, 20, 21, 22, 23, 24 ....... OK
+25, 26, 27, 28, 29 ....................... FALHOU
+```
+
+**Produção está exatamente na 24.** As nove sondas que existem para as migrations
+anteriores passam; as cinco novas falham, cada uma no objeto que ela cria.
+
+Note que a coluna `registro` está toda em `—`: `crc_schema_migrations` nasce na
+27, então em produção ela ainda não existe. É o desenho funcionando — a **sonda**
+respondeu sem depender de bookkeeping nenhum.
 
 ---
 
@@ -243,11 +259,22 @@ workflow, e não de uma execução local.
 
 | | Estado | Por quê |
 |---|---|---|
-| **Supabase** | `NOT_TESTED` | sem credencial nesta sessão. As cinco migrations pendentes não foram aplicadas |
+| **Supabase** | `FAIL` | **medido**: produção está na migration 24; as cinco novas não estão aplicadas. Ver seção 3 |
 | **GitHub Pulso** | `FAIL` | `gh secret list` volta **vazio**: `CRON_SECRET` não existe no repositório |
 | **WhatsApp** | `BLOCKED_EXTERNAL` | nenhum contrato. Adapters prontos; entrada e saída roteadas por canal |
 | **Dental Office** | `BLOCKED_EXTERNAL` | credenciais não cadastradas. Adapter completo, `INCERTO` + reconciliação preservados |
 | **IA** | `BLOCKED_EXTERNAL` | sem chave cadastrada. Gateway, orçamento, disjuntor e gate de avaliação prontos |
+
+**Por que eu não apliquei as migrations.** O `.env` local tem `SUPABASE_URL` e
+`SUPABASE_SERVICE_ROLE` — que falam com o **PostgREST**, e PostgREST não executa
+DDL. A função `crc_teste_sql`, que executa SQL arbitrário, existe só no banco de
+teste, e o `supabase/99` explica em letras garrafais por quê.
+
+Para aplicar faltaria um destes, e nenhum está presente:
+
+- `DATABASE_URL` (a *connection string* do painel do Supabase) — com ela eu rodo
+  os cinco arquivos por `psql`;
+- `SUPABASE_ACCESS_TOKEN` + senha do banco, para o `supabase` CLI.
 
 **Sobre o `CRON_SECRET`:** não o criei. O valor precisa ser **o mesmo** na Vercel
 e no GitHub — gerar um aqui faria o workflow autenticar contra um segredo que a
