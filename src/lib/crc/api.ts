@@ -6301,3 +6301,120 @@ export const herdarAutonomia = createServerFn({ method: "POST" })
       return { ok: true as const };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Patient 360 preditivo — §20                                                */
+/* -------------------------------------------------------------------------- */
+
+export type FamiliarUI = { patientId: string; nome: string; porque: string; confirmado: boolean };
+
+export type Ficha360UI = {
+  ltv: number;
+  faixaDeValor: string;
+  riscoDeAbandono: {
+    score: number;
+    faixa: string;
+    fatores: { rotulo: string; pontos: number }[];
+    sugestao: string;
+  };
+  household: FamiliarUI[];
+  riscoDeFalta: string | null;
+  valorPotencial: number;
+  oportunidadesAbertas: number;
+  tratamentosPendentes: number;
+  valorEmTratamento: number;
+  objecaoAtual: string | null;
+  canaisPreferidos: string[];
+  horariosPreferidos: string[];
+  acoesDoCrc: number;
+  receitaAtribuida: number;
+  ultimaConsultaEm: string | null;
+  optOut: boolean;
+};
+
+/**
+ * A ficha preditiva de um paciente.
+ *
+ * ============================================================================
+ *  OS NOMES DO HOUSEHOLD SÃO RESOLVIDOS AQUI, e não no serviço.
+ *
+ *  A inferência trabalha com ids — é o que ela precisa para comparar
+ *  identificadores. Buscar o nome de cada familiar lá dentro custaria uma
+ *  consulta por pessoa da casa, dentro de uma função que já lê sete tabelas.
+ *
+ *  Aqui é uma consulta só, com todos os ids de uma vez.
+ * ============================================================================
+ */
+export const carregarFicha360 = createServerFn({ method: "POST" })
+  .validator((dados: { patientId: string }) => dados)
+  .handler(async ({ data }): Promise<Resposta<{ ficha: Ficha360UI }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { montarFicha } = await import("./aplicacao/paciente-360");
+      const { lerConfiguracao } = await import("./servidor/configuracao");
+      const { selecionar, agoraIso } = await import("./servidor/banco");
+
+      const config = await lerConfiguracao(ctx.organizationId);
+
+      const ficha = await montarFicha(
+        ctx.organizationId,
+        ctx.clinicIds,
+        data.patientId,
+        config.recallDias,
+        new Date(agoraIso()),
+      );
+
+      if (ficha === null) {
+        return { ok: false as const, code: "NAO_ENCONTRADO", message: "Paciente não encontrado." };
+      }
+
+      let household: FamiliarUI[] = [];
+      if (ficha.household.length > 0) {
+        const nomes = await selecionar<{ id: string; nome: string }>("crc_patients", {
+          colunas: "id,nome",
+          filtros: [
+            { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+            { coluna: "id", op: "in", valor: ficha.household.map((f) => f.patientId) },
+          ],
+          limite: 50,
+        });
+        const porId = new Map(nomes.map((n) => [n.id, n.nome]));
+
+        household = ficha.household.map((f) => ({
+          patientId: f.patientId,
+          nome: porId.get(f.patientId) ?? "Paciente",
+          porque: f.porque,
+          confirmado: f.confirmado,
+        }));
+      }
+
+      return {
+        ok: true as const,
+        ficha: {
+          ltv: ficha.ltv,
+          faixaDeValor: ficha.faixaDeValor,
+          riscoDeAbandono: {
+            score: ficha.riscoDeAbandono.score,
+            faixa: ficha.riscoDeAbandono.faixa,
+            fatores: ficha.riscoDeAbandono.fatores.map((f) => ({
+              rotulo: f.rotulo,
+              pontos: f.pontos,
+            })),
+            sugestao: ficha.riscoDeAbandono.sugestao,
+          },
+          household,
+          riscoDeFalta: ficha.riscoDeFalta,
+          valorPotencial: ficha.valorPotencial,
+          oportunidadesAbertas: ficha.oportunidadesAbertas,
+          tratamentosPendentes: ficha.tratamentosPendentes,
+          valorEmTratamento: ficha.valorEmTratamento,
+          objecaoAtual: ficha.objecaoAtual,
+          canaisPreferidos: ficha.canaisPreferidos,
+          horariosPreferidos: ficha.horariosPreferidos,
+          acoesDoCrc: ficha.acoesDoCrc,
+          receitaAtribuida: ficha.receitaAtribuida,
+          ultimaConsultaEm: ficha.ultimaConsultaEm,
+          optOut: ficha.optOut,
+        },
+      };
+    }),
+  );

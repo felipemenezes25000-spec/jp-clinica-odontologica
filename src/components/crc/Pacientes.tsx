@@ -34,6 +34,7 @@ import {
 import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 
 import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
+import { Ficha360 } from "./Ficha360";
 import "./crc-patients.css";
 
 export function BuscaPacientes({
@@ -382,18 +383,35 @@ export function CentralDoPaciente({
         aria-labelledby={`aba-${aba}`}
       >
         {aba === "resumo" && (
-          <div className="crc-paciente-resumo-grid-v2">
-            <PainelPaciente
-              titulo="Oportunidades abertas"
-              icone={CircleDollarSign}
-              contador={oportunidadesAbertas.length}
-            >
-              <ListaOportunidades oportunidades={oportunidadesAbertas} />
-            </PainelPaciente>
-            <PainelPaciente titulo="Tarefas" icone={ListTodo} contador={tarefasAbertas.length}>
-              <ListaTarefas tarefas={tarefasAbertas} rodando={acao.rodando} aoConcluir={concluir} />
-            </PainelPaciente>
-          </div>
+          <>
+            {/*
+              A LEITURA PREDITIVA VEM ANTES DAS LISTAS.
+
+              Quem abre esta tela costuma estar com o paciente na linha. As
+              listas de oportunidade e tarefa dizem o que há registrado; o
+              bloco acima diz COM QUEM se está falando — e essa é a pergunta
+              que não espera.
+            */}
+            <div style={{ marginBottom: "var(--crc-e5)" }}>
+              <Ficha360 patientId={ficha.paciente.id} />
+            </div>
+            <div className="crc-paciente-resumo-grid-v2">
+              <PainelPaciente
+                titulo="Oportunidades abertas"
+                icone={CircleDollarSign}
+                contador={oportunidadesAbertas.length}
+              >
+                <ListaOportunidades oportunidades={oportunidadesAbertas} />
+              </PainelPaciente>
+              <PainelPaciente titulo="Tarefas" icone={ListTodo} contador={tarefasAbertas.length}>
+                <ListaTarefas
+                  tarefas={tarefasAbertas}
+                  rodando={acao.rodando}
+                  aoConcluir={concluir}
+                />
+              </PainelPaciente>
+            </div>
+          </>
         )}
 
         {aba === "aberto" && (
