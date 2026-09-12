@@ -3,12 +3,16 @@
 Relatório da implementação da FASE A do Prompt Mestre (Clinic Growth OS).
 
 ```
-HEAD             dc57796f49655e22e98eb6fc4605652a7eecfaf1
-Branch           main
-Commits          9fe4304 · 65990ef · ce69330 · dc57796
-Estado           LOCAL — ainda não empurrado, CI ainda não rodou neste HEAD
-Data             2026-09-12
+Ultimo commit de CODIGO   6591ca4
+Branch                    main
+Commits da fase           9fe4304 · 65990ef · ce69330 · dc57796 · 2a4035d · 6591ca4
+Estado                    LOCAL — ainda nao empurrado, CI ainda nao rodou
+Data                      2026-09-12
 ```
+
+> Um relatorio nao consegue conter o SHA do proprio commit. O que esta acima e o
+> ultimo commit que mexe em CODIGO; este documento e o commit seguinte, e nao
+> altera comportamento nenhum.
 
 > **Nada aqui diz "CI verde" ou "em produção" sem evidência.** As seções 6 e 7
 > separam o que foi observado do que não foi.
@@ -185,7 +189,7 @@ com `presumido = false`.
 | `npm run schema:status` (produção) | 1 falha, esperada — a 31 |
 
 `npm run lint` no repositório inteiro levou mais de 10 minutos e não foi
-esperado até o fim. Os 19 arquivos tocados foram linteados individualmente com
+esperado até o fim. Os 20 arquivos tocados foram linteados individualmente com
 `--max-warnings=0` e passaram. **O lint completo é responsabilidade do CI, e o
 CI ainda não rodou neste HEAD.**
 
