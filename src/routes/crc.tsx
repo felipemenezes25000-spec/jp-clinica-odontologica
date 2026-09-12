@@ -23,6 +23,7 @@ import {
   FileUp,
   FlaskConical,
   CalendarClock,
+  Headset,
   Stethoscope,
   House,
   Radar as RadarIcon,
@@ -62,6 +63,7 @@ import { Ferramentas } from "@/components/crc/Ferramentas";
 import { Playground } from "@/components/crc/Playground";
 import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
 import { Encaixes } from "@/components/crc/Encaixes";
+import { Recepcao } from "@/components/crc/Recepcao";
 import { Tratamentos } from "@/components/crc/Tratamentos";
 import { Radar } from "@/components/crc/Radar";
 import { Saude } from "@/components/crc/Saude";
@@ -108,6 +110,7 @@ type Aba =
   | "radar"
   | "encaixes"
   | "tratamentos"
+  | "recepcao"
   | "trabalho"
   | "inbox"
   | "agenda"
@@ -207,6 +210,12 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
         rotulo: "Tratamentos",
         permissao: "ver_financeiro",
         icone: Stethoscope,
+      },
+      {
+        aba: "recepcao",
+        rotulo: "Recepção",
+        permissao: "ver_analytics_gerencial",
+        icone: Headset,
       },
       { aba: "importar", rotulo: "Importar", permissao: "importar_dados", icone: FileUp },
       { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao", icone: Workflow },
@@ -348,6 +357,34 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Precisa de você", tom: "perigo" },
       { rotulo: "Automação cuidando", tom: "info" },
       { rotulo: "Em dia", tom: "positiva" },
+    ],
+  },
+  recepcao: {
+    sobretitulo: "O atendimento, medido pelo processo",
+    paraQue: "o que o atendimento deixou de fazer, sem apontar dedo",
+    descricao:
+      "Nenhum n\u00famero aqui tem nome ao lado, e isso \u00e9 de prop\u00f3sito: ranking de atendente numa cl\u00ednica pequena faz a pessoa parar de registrar o que correu mal, e a\u00ed o painel fica bonito e cego. O que se mede \u00e9 o PROCESSO \u2014 liga\u00e7\u00f5es que ningu\u00e9m conseguiu atender, conversas que esperaram demais, pessoas que demonstraram interesse e ficaram sem retorno. Cada observa\u00e7\u00e3o termina numa pergunta, porque a resposta quase nunca \u00e9 \u201calgu\u00e9m trabalhou mal\u201d: costuma ser escala, ferramenta ou processo.",
+    acoes: [
+      {
+        faca: "Ler a pergunta de cada observa\u00e7\u00e3o",
+        efeito:
+          "Ela devolve a decis\u00e3o para quem sabe decidir. O banco sabe que 37 liga\u00e7\u00f5es n\u00e3o receberam oferta de hor\u00e1rio; s\u00f3 a equipe sabe se a agenda estava cheia.",
+      },
+      {
+        faca: "Observar a mediana, e n\u00e3o a m\u00e9dia",
+        efeito:
+          "Uma conversa respondida tr\u00eas dias depois destr\u00f3i a m\u00e9dia de um m\u00eas inteiro. A mediana mostra o atendimento t\u00edpico; o caso extremo aparece em \u201cconversas sem resposta\u201d.",
+      },
+      {
+        faca: "Anotar a liga\u00e7\u00e3o depois de desligar",
+        efeito:
+          "N\u00e3o h\u00e1 provedor de voz integrado. O que entra aqui foi anotado por quem atendeu \u2014 e \u00e9 isso que faz a liga\u00e7\u00e3o existir na linha do tempo do paciente.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Alta", tom: "perigo" },
+      { rotulo: "Aten\u00e7\u00e3o", tom: "alerta" },
+      { rotulo: "Dentro do esperado", tom: "positiva" },
     ],
   },
   tratamentos: {
@@ -1906,6 +1943,7 @@ function PortalCrc() {
           {abaAtual === "radar" && <Radar />}
           {abaAtual === "encaixes" && <Encaixes />}
           {abaAtual === "tratamentos" && <Tratamentos />}
+          {abaAtual === "recepcao" && <Recepcao />}
           {abaAtual === "saude" && <Saude />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}

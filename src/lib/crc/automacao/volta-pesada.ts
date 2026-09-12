@@ -256,6 +256,7 @@ async function umaOrganizacao(
     const { varrerRadar } = await import("../aplicacao/radar");
     const { calcularRiscos, detectarBuracos } = await import("../aplicacao/agenda-inteligente");
     const { qualificarOrcamentos } = await import("../aplicacao/aceitacao");
+    const { podarTranscricoes } = await import("../aplicacao/omnichannel");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -338,6 +339,17 @@ async function umaOrganizacao(
        * A FAXINA, junto com as varreduras e pelo mesmo motivo: é trabalho de
        * manutenção, cara, e que ninguém está esperando. Ver `faxina()`.
        */
+      /*
+       * A PODA DE TRANSCRICAO entra na faxina porque e exatamente isso: trabalho
+       * de manutencao, barato, que ninguem esta esperando.
+       *
+       * E ela e OBRIGATORIA, nao opcional: transcricao de ligacao de paciente
+       * carrega conteudo clinico que ninguem pediu para guardar. Guardar para
+       * sempre e o erro padrao de todo sistema de call intelligence.
+       */
+      await comCaptura(organizationId, "retencao de transcricao", async () => ({
+        transcricoesPodadas: await podarTranscricoes(),
+      })),
       await faxina(),
     );
   }

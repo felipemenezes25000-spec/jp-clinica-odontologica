@@ -220,6 +220,18 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   crc_schedule_gaps: [{ colunas: ["organization_id", "chave_dedupe"] }],
   // O indice do 33: parcial, porque objecao sem chave e legitima — uma anotada
   // a mao na conversa nao tem de onde tirar chave.
+  // Os indices do 34 e do 36.
+  crc_goal_metrics: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  crc_calls: [
+    { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+  ],
+  /*
+   * `crc_patient_identities` tem a chave com o PACIENTE dentro, e nao so o
+   * valor: o mesmo telefone em dois pacientes e LEGITIMO (familia). Um indice
+   * sem o paciente recusaria o segundo cadastro e apagaria justamente o caso
+   * que a resolucao de identidade existe para tratar.
+   */
+  crc_patient_identities: [{ colunas: ["organization_id", "patient_id", "tipo", "valor"] }],
   crc_objections: [
     { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
   ],
@@ -958,6 +970,96 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
         .sort((x, y) => y.total - x.total);
 
       return Promise.resolve(saida as T[]);
+    }
+
+    /*
+     * A LINHA DO TEMPO UNICA — `supabase/36`.
+     *
+     * O fake repete o `union all` das cinco fontes E as duas exclusoes que
+     * importam: nota interna nao entra (e conversa da equipe SOBRE o paciente,
+     * e misturar e o caminho mais curto para alguem ler em voz alta para a
+     * pessoa errada), e o tenant recorta tudo.
+     */
+    case "crc_linha_do_tempo": {
+      const org = argumentos["p_organization_id"];
+      const pac = argumentos["p_patient_id"];
+      const limite = typeof argumentos["p_limite"] === "number" ? argumentos["p_limite"] : 40;
+
+      const saida: Linha[] = [];
+
+      for (const m of tabelas["crc_messages"] ?? []) {
+        if (m["organization_id"] !== org || m["patient_id"] !== pac) continue;
+        if (m["nota_interna"] === true) continue;
+
+        const conversa = (tabelas["crc_conversations"] ?? []).find(
+          (c) => c["id"] === m["conversation_id"],
+        );
+
+        saida.push({
+          tipo: "MENSAGEM",
+          ocorrido_em: m["criado_em"],
+          titulo: m["direcao"] === "ENTRADA" ? "Recebida" : "Enviada",
+          detalhe: String(m["conteudo"] ?? "").slice(0, 180),
+          canal: String(conversa?.["canal"] ?? "whatsapp"),
+          referencia: m["id"],
+        });
+      }
+
+      for (const l of tabelas["crc_calls"] ?? []) {
+        if (l["organization_id"] !== org || l["patient_id"] !== pac) continue;
+        saida.push({
+          tipo: "LIGACAO",
+          ocorrido_em: l["iniciada_em"],
+          titulo: l["direcao"] === "ENTRADA" ? "Ligou para a clínica" : "A clínica ligou",
+          detalhe: l["resumo"] ?? l["desfecho"],
+          canal: "voz",
+          referencia: l["id"],
+        });
+      }
+
+      for (const k of tabelas["crc_contact_log"] ?? []) {
+        if (k["organization_id"] !== org || k["patient_id"] !== pac) continue;
+        saida.push({
+          tipo: "CONTATO",
+          ocorrido_em: k["ocorrido_em"],
+          titulo: "Conversa registrada",
+          detalhe: String(k["texto"] ?? "").slice(0, 180),
+          canal: String(k["canal"] ?? "balcao").toLowerCase(),
+          referencia: k["id"],
+        });
+      }
+
+      for (const a of tabelas["crc_appointments"] ?? []) {
+        if (a["organization_id"] !== org || a["patient_id"] !== pac) continue;
+        saida.push({
+          tipo: "CONSULTA",
+          ocorrido_em: a["inicio_em"],
+          titulo: a["status"],
+          detalhe: a["descricao"] ?? a["dentista_nome"] ?? null,
+          canal: "agenda",
+          referencia: a["id"],
+        });
+      }
+
+      for (const b of tabelas["crc_budgets"] ?? []) {
+        if (b["organization_id"] !== org || b["patient_id"] !== pac) continue;
+        saida.push({
+          tipo: "ORCAMENTO",
+          ocorrido_em: b["emitido_em"] ?? b["criado_em"],
+          titulo: `Orçamento ${String(b["status"] ?? "")}`,
+          detalhe: String(b["total_value"] ?? ""),
+          canal: "financeiro",
+          referencia: b["id"],
+        });
+      }
+
+      saida.sort((x, y) => {
+        const a = typeof x["ocorrido_em"] === "string" ? Date.parse(x["ocorrido_em"]) : 0;
+        const b = typeof y["ocorrido_em"] === "string" ? Date.parse(y["ocorrido_em"]) : 0;
+        return b - a;
+      });
+
+      return Promise.resolve(saida.slice(0, Math.max(1, Math.min(limite, 200))) as T[]);
     }
 
     case "crc_radar_resumo": {

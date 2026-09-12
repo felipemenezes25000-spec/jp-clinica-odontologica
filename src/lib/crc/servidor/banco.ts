@@ -121,7 +121,15 @@ export type Tabela =
   | "crc_gap_offers"
   | "crc_waitlist_preferences"
   // supabase/33 — Aceitacao de tratamento.
-  | "crc_objections";
+  | "crc_objections"
+  // supabase/34 — Metas.
+  | "crc_goals"
+  | "crc_goal_actions"
+  | "crc_goal_metrics"
+  // supabase/36 — Omnichannel e voz.
+  | "crc_calls"
+  | "crc_contact_log"
+  | "crc_patient_identities";
 
 export type Linha = Record<string, unknown>;
 

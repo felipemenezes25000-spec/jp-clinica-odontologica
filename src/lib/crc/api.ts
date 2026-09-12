@@ -5229,3 +5229,211 @@ export const corrigirObjecao = createServerFn({ method: "POST" })
       return { ok: true as const };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Omnichannel — supabase/36                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type ItemDaLinhaUI = {
+  tipo: string;
+  ocorridoEm: string;
+  titulo: string;
+  detalhe: string | null;
+  canal: string;
+  referencia: string;
+};
+
+export const carregarLinhaDoTempo = createServerFn({ method: "GET" })
+  .inputValidator((dados: { patientId: string }) => dados)
+  .handler(async ({ data }): Promise<Resposta<{ itens: ItemDaLinhaUI[] }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { linhaDoTempo } = await import("./aplicacao/omnichannel");
+
+      /*
+       * O PACIENTE PRECISA SER DE UMA CLÍNICA QUE ESTE USUÁRIO ALCANÇA.
+       *
+       * A RPC filtra por organização, e isso não basta numa rede: um usuário
+       * da unidade do centro não pode abrir a linha do tempo de um paciente
+       * da unidade do shopping. A conferência é aqui porque é aqui que o
+       * contexto existe.
+       */
+      const { selecionarUm } = await import("./servidor/banco");
+      const p = await selecionarUm("crc_patients", {
+        colunas: "clinic_id",
+        filtros: [
+          { coluna: "id", op: "eq", valor: data.patientId },
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+        ],
+      });
+
+      if (p === null || !ctx.alcanca(String(p["clinic_id"] ?? ""))) {
+        return {
+          ok: false as const,
+          code: "NAO_ENCONTRADO",
+          message: "Não encontramos este paciente.",
+        };
+      }
+
+      const itens = await linhaDoTempo(ctx.organizationId, data.patientId);
+      return { ok: true as const, itens };
+    }),
+  );
+
+export const anotarChamada = createServerFn({ method: "POST" })
+  .inputValidator(
+    (dados: {
+      patientId: string | null;
+      direcao: "ENTRADA" | "SAIDA";
+      atendida: boolean;
+      intencao: string;
+      resumo: string;
+      ofereceuHorario: boolean;
+      marcouConsulta: boolean;
+      deixouProximoPasso: boolean;
+    }) => dados,
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { registrarChamada } = await import("./aplicacao/omnichannel");
+
+      const clinicId = ctx.clinicIds[0];
+      if (clinicId === undefined) {
+        return {
+          ok: false as const,
+          code: "SEM_CLINICA",
+          message: "Este usuário não alcança nenhuma unidade.",
+        };
+      }
+
+      const INTENCOES = [
+        "AGENDAR",
+        "REMARCAR",
+        "CANCELAR",
+        "DUVIDA",
+        "ORCAMENTO",
+        "RECLAMACAO",
+        "ADMINISTRATIVO",
+        "OUTRO",
+      ];
+      const intencao = INTENCOES.includes(data.intencao) ? data.intencao : "OUTRO";
+
+      await registrarChamada({
+        organizationId: ctx.organizationId,
+        clinicId,
+        patientId: data.patientId,
+        direcao: data.direcao,
+        desfecho: data.atendida ? "ATENDIDA" : "NAO_ATENDIDA",
+        intencao: intencao as
+          | "AGENDAR"
+          | "REMARCAR"
+          | "CANCELAR"
+          | "DUVIDA"
+          | "ORCAMENTO"
+          | "RECLAMACAO"
+          | "ADMINISTRATIVO"
+          | "OUTRO",
+        resumo: data.resumo.trim().length > 0 ? data.resumo.trim() : null,
+        ofereceuHorario: data.ofereceuHorario,
+        marcouConsulta: data.marcouConsulta,
+        deixouProximoPasso: data.deixouProximoPasso,
+        userId: ctx.usuario.id,
+        /*
+         * SEM CHAVE DE DEDUPE: é uma anotação manual, feita por quem acabou
+         * de desligar o telefone. Duas ligações parecidas no mesmo dia são
+         * duas ligações, e não uma repetição.
+         */
+        chaveDedupe: null,
+      });
+
+      return { ok: true as const };
+    }),
+  );
+
+export const anotarConversa = createServerFn({ method: "POST" })
+  .inputValidator((dados: { patientId: string; canal: string; texto: string }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("enviar_mensagem", async (ctx) => {
+      const { registrarContato } = await import("./aplicacao/omnichannel");
+
+      const texto = data.texto.trim();
+      if (texto.length < 3) {
+        return {
+          ok: false as const,
+          code: "TEXTO_CURTO",
+          message: "Escreva o que foi conversado.",
+        };
+      }
+
+      const clinicId = ctx.clinicIds[0];
+      if (clinicId === undefined) {
+        return {
+          ok: false as const,
+          code: "SEM_CLINICA",
+          message: "Este usuário não alcança nenhuma unidade.",
+        };
+      }
+
+      const CANAIS = ["BALCAO", "EMAIL", "PRESENCIAL", "OUTRO"];
+      const canal = CANAIS.includes(data.canal) ? data.canal : "BALCAO";
+
+      await registrarContato({
+        organizationId: ctx.organizationId,
+        clinicId,
+        patientId: data.patientId,
+        canal: canal as "BALCAO" | "EMAIL" | "PRESENCIAL" | "OUTRO",
+        texto,
+        userId: ctx.usuario.id,
+      });
+
+      return { ok: true as const };
+    }),
+  );
+
+export type ObservacaoUI = {
+  chave: string;
+  fato: string;
+  pergunta: string;
+  gravidade: string;
+};
+
+export type RecepcaoUI = {
+  chamadas: number;
+  naoAtendidas: number;
+  semOferta: number;
+  marcadas: number;
+  medianaDeResposta: number | null;
+  semResposta: number;
+  leadsParados: number;
+  observacoes: ObservacaoUI[];
+};
+
+export const carregarRecepcao = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ recepcao: RecepcaoUI }>> =>
+    comContexto("ver_analytics_gerencial", async (ctx) => {
+      const { painelDoAtendimento } = await import("./aplicacao/omnichannel");
+
+      // Trinta dias: menos que isso não dá amostra para mediana, e mais que
+      // isso mistura meses com equipes diferentes.
+      const desde = new Date(Date.now() - 30 * 86_400_000).toISOString();
+      const p = await painelDoAtendimento(ctx.organizationId, ctx.clinicIds, desde);
+
+      return {
+        ok: true as const,
+        recepcao: {
+          chamadas: p.numeros.chamadas,
+          naoAtendidas: p.numeros.naoAtendidas,
+          semOferta: p.numeros.semOferta,
+          marcadas: p.numeros.marcadas,
+          medianaDeResposta: p.numeros.medianaDeResposta,
+          semResposta: p.numeros.semResposta,
+          leadsParados: p.numeros.leadsParados,
+          observacoes: p.observacoes.map((o) => ({
+            chave: o.chave,
+            fato: o.fato,
+            pergunta: o.pergunta,
+            gravidade: o.gravidade,
+          })),
+        },
+      };
+    }),
+);
