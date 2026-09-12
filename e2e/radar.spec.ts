@@ -51,9 +51,7 @@ test("com a base vazia, a tela ensina o próximo passo em vez de mostrar nada", 
   await abrirAba(page, "Radar");
 
   await expect(page.getByText("Nenhuma oportunidade aberta", { exact: true })).toBeVisible();
-  await expect(
-    page.getByText(/Quando a sincronização encontrar faltas/u),
-  ).toBeVisible();
+  await expect(page.getByText(/Quando a sincronização encontrar faltas/u)).toBeVisible();
 });
 
 test("avisa que os números são estimativa enquanto não houver histórico", async ({ page }) => {
