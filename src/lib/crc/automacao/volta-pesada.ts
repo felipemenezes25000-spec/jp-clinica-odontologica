@@ -229,27 +229,55 @@ async function umaOrganizacao(
 
   const varreduras: unknown[] = [];
   if (naJanela) {
+    /*
+     * ========================================================================
+     *  CADA VARREDURA É INDEPENDENTE, e antes elas eram uma sequência.
+     *
+     *  Um `await` que lança aqui abortava TODAS as seguintes: recall quebrado
+     *  significava nenhuma confirmação de consulta, nenhum aniversário, nenhum
+     *  recálculo de prioridade e nenhuma faxina — naquele dia, naquela
+     *  organização.
+     *
+     *  O risco deixou de ser teórico quando o recall passou a chamar uma RPC
+     *  (`supabase/26`): entre o deploy do código e a aplicação do SQL à mão,
+     *  existe uma janela em que a função não existe. A falha é legítima; levar
+     *  seis rotinas saudáveis junto não é.
+     *
+     *  `comCaptura` transforma a exceção em resultado. O relatório da volta
+     *  mostra `{ falhou: true, detalhe }` no lugar da varredura que caiu — e o
+     *  que estava certo continua acontecendo.
+     * ========================================================================
+     */
     const { varrerAniversarios, varrerConfirmacoes, varrerRecall } = await import("./handlers");
-    varreduras.push(await varrerRecall(organizationId, configuracao));
-    varreduras.push(await varrerConfirmacoes(organizationId, configuracao));
-    varreduras.push(await varrerAniversarios(organizationId, configuracao));
-
     const { varrerOrcamentosParados } = await import("../aplicacao/orcamentos");
-    varreduras.push(await varrerOrcamentosParados(organizationId, configuracao));
-
     const { varrerCobrancas } = await import("../aplicacao/cobrancas");
-    varreduras.push(await varrerCobrancas(organizationId));
-
     const { recalcularPrioridades } = await import("../aplicacao/oportunidades");
     const { detectarOportunidadesParadas } = await import("../aplicacao/tarefas");
-    varreduras.push({ prioridadesRecalculadas: await recalcularPrioridades(organizationId) });
-    varreduras.push({ oportunidadesParadas: await detectarOportunidadesParadas(organizationId) });
 
-    /*
-     * A FAXINA, junto com as varreduras e pelo mesmo motivo: é trabalho de
-     * manutenção, cara, e que ninguém está esperando. Ver `faxina()`.
-     */
-    varreduras.push(await faxina());
+    varreduras.push(
+      await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
+      await comCaptura(organizationId, "confirmações", () =>
+        varrerConfirmacoes(organizationId, configuracao),
+      ),
+      await comCaptura(organizationId, "aniversários", () =>
+        varrerAniversarios(organizationId, configuracao),
+      ),
+      await comCaptura(organizationId, "orçamentos parados", () =>
+        varrerOrcamentosParados(organizationId, configuracao),
+      ),
+      await comCaptura(organizationId, "cobranças", () => varrerCobrancas(organizationId)),
+      await comCaptura(organizationId, "prioridades", async () => ({
+        prioridadesRecalculadas: await recalcularPrioridades(organizationId),
+      })),
+      await comCaptura(organizationId, "oportunidades paradas", async () => ({
+        oportunidadesParadas: await detectarOportunidadesParadas(organizationId),
+      })),
+      /*
+       * A FAXINA, junto com as varreduras e pelo mesmo motivo: é trabalho de
+       * manutenção, cara, e que ninguém está esperando. Ver `faxina()`.
+       */
+      await faxina(),
+    );
   }
 
   return { organizationId, clinicas: porClinica, pacientes, campanhas, varreduras };
