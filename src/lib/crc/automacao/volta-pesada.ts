@@ -253,6 +253,7 @@ async function umaOrganizacao(
     const { varrerCobrancas } = await import("../aplicacao/cobrancas");
     const { recalcularPrioridades } = await import("../aplicacao/oportunidades");
     const { detectarOportunidadesParadas } = await import("../aplicacao/tarefas");
+    const { varrerRadar } = await import("../aplicacao/radar");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -272,6 +273,17 @@ async function umaOrganizacao(
       await comCaptura(organizationId, "oportunidades paradas", async () => ({
         oportunidadesParadas: await detectarOportunidadesParadas(organizationId),
       })),
+      /*
+       * O RADAR VEM DEPOIS DE TUDO QUE CRIA OPORTUNIDADE, e a ordem é a razão
+       * de ele estar aqui embaixo e não no topo.
+       *
+       * Recall, aniversários, orçamentos parados e oportunidades paradas CRIAM
+       * linhas. Pontuar antes deles deixaria a safra do dia sem probabilidade
+       * até a volta seguinte — e uma oportunidade sem `probability` conta ZERO
+       * na receita esperada da Home. O dinheiro detectado hoje só apareceria
+       * amanhã.
+       */
+      await comCaptura(organizationId, "radar", () => varrerRadar(organizationId)),
       /*
        * A FAXINA, junto com as varreduras e pelo mesmo motivo: é trabalho de
        * manutenção, cara, e que ninguém está esperando. Ver `faxina()`.
