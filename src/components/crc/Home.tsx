@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 
 import { carregarHome, type ItemPrioridade, type ResumoHome } from "@/lib/crc/api";
+
+import { AtividadeDaIA } from "./AtividadeDaIA";
 import {
   dinheiro,
   dinheiroCurto,
@@ -257,6 +259,16 @@ export function Home({
           </Cartao>
         </aside>
       </div>
+
+      {/*
+        A TIMELINE DA IA FECHA A HOME, e não abre.
+
+        Ela responde "o sistema está fazendo alguma coisa?" — uma pergunta
+        importante e que NÃO é a primeira do dia. A primeira é "o que eu faço
+        agora", e é das prioridades acima. Pôr o feed no topo empurraria o
+        trabalho da pessoa para baixo de uma lista do que a máquina fez.
+      */}
+      <AtividadeDaIA />
     </div>
   );
 }

@@ -137,8 +137,16 @@ async function montarContexto(
     inicioDoDia.setUTCHours(0, 0, 0, 0);
 
     [contatosHoje, temConsultaFutura] = await Promise.all([
+      /*
+       * O TETO DE CONTATOS É POR PACIENTE, e o filtro precisa dizer isso.
+       *
+       * Sem `patient_id`, esta contagem devolveria as mensagens da
+       * ORGANIZAÇÃO no dia — e numa clínica movimentada o teto de 3 estouraria
+       * antes do meio-dia para todo mundo, travando a operação inteira.
+       */
       contar("crc_messages", [
         { coluna: "organization_id", op: "eq", valor: organizationId },
+        { coluna: "patient_id", op: "eq", valor: o.patient_id },
         { coluna: "direcao", op: "eq", valor: "SAIDA" },
         { coluna: "criado_em", op: "gte", valor: inicioDoDia.toISOString() },
       ]),
@@ -157,10 +165,18 @@ async function montarContexto(
      * falha silenciosamente do lado deles, e o CRC registraria "enviado" para
      * uma mensagem que ninguém recebeu.
      */
+    /*
+     * DESTE PACIENTE, e não da organização.
+     *
+     * Sem o filtro, a janela de 24h e o "respondeu" se abririam para TODA a
+     * base assim que uma pessoa qualquer escrevesse — e o CRC mandaria texto
+     * livre para quem está fora da janela, que o provedor recusa em silêncio.
+     */
     const entradas = await selecionar<{ criado_em: string }>("crc_messages", {
       colunas: "criado_em",
       filtros: [
         { coluna: "organization_id", op: "eq", valor: organizationId },
+        { coluna: "patient_id", op: "eq", valor: o.patient_id },
         { coluna: "direcao", op: "eq", valor: "ENTRADA" },
       ],
       ordenar: [{ coluna: "criado_em", ascendente: false }],
