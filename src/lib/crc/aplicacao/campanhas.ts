@@ -31,7 +31,8 @@ import {
   atualizar,
   contar,
   inserir,
-  inserirIgnorandoDuplicata,
+  inserirLoteIgnorandoDuplicatas,
+  rpc,
   selecionar,
   selecionarUm,
   type Filtro,
@@ -78,8 +79,48 @@ export const FILTRO_PUBLICO_VAZIO: FiltroPublico = {
   situacao: null,
 };
 
-/** Teto de público por campanha. Acima disso, o recorte está largo demais. */
-export const MAX_PUBLICO = 5000;
+/**
+ * O teto de público por campanha — e ele RECUSA, não corta.
+ *
+ * ============================================================================
+ *  O DEFEITO ERA UM `limite:` NUMA CONSULTA.
+ *
+ *      const pessoas = await selecionar("crc_patients", {
+ *        filtros: filtrosDoPublico(...),
+ *        limite: MAX_PUBLICO,          // 5000
+ *      });
+ *
+ *  Com um filtro que casa 8.000 pessoas, o congelamento gravava 5.000 e as
+ *  outras 3.000 sumiam. Sem erro, sem aviso, sem linha de log. A tela dizia
+ *  "público: 5000" e quem agendou acreditava — porque o número parece um
+ *  número, e não um truncamento.
+ *
+ *  É o mesmo defeito do recall e do aniversário, pela terceira vez: um `limite`
+ *  escrito como proteção, lido como resultado.
+ * ============================================================================
+ *
+ * O TETO CONTINUA EXISTINDO, e agora é honesto. Ele conta o público REAL antes
+ * de congelar, e acima do teto RECUSA a operação dizendo quantas pessoas
+ * casaram. Um recorte que pega 40 mil pacientes quase sempre é um filtro mal
+ * montado — e a resposta certa para isso é "revise o filtro", não "mandei para
+ * os 5.000 primeiros que o banco devolveu".
+ *
+ * O NÚMERO SUBIU de 5.000 para 50.000 porque a razão do 5.000 era técnica (o
+ * tamanho da consulta), e essa razão sumiu com a paginação. O que sobrou é a
+ * razão editorial: existe um tamanho acima do qual isto não é campanha, é
+ * disparo — e ele fica longe da base de 8.000 que o sistema precisa atender.
+ */
+export const MAX_PUBLICO = 50_000;
+
+/**
+ * Quantas pessoas por página no congelamento.
+ *
+ * Quinhentas é o que cabe confortavelmente num INSERT do PostgREST sem estourar
+ * o corpo da requisição, e é pouco o bastante para uma falha no meio custar
+ * pouco trabalho refeito — o congelamento é idempotente por índice único, então
+ * reexecutar só regrava o que faltava.
+ */
+const PAGINA_DO_PUBLICO = 500;
 
 export function lerFiltroPublico(bruto: unknown): FiltroPublico {
   if (typeof bruto !== "object" || bruto === null || Array.isArray(bruto)) {
@@ -185,15 +226,57 @@ export function contarPublico(
  */
 export async function opcoesDoPublico(
   organizationId: string,
+  clinicId: string | null = null,
 ): Promise<{ especialidades: string[]; convenios: string[] }> {
+  /*
+   * ========================================================================
+   *  O DISTINCT É DO BANCO, e antes era um `Set` sobre 5.000 linhas lidas.
+   *
+   *  O comentário antigo dizia: "teto alto e leitura de duas colunas; o
+   *  distinct em memória evita uma RPC só para isso". O teto não era alto: com
+   *  8.000 pacientes, tudo que existisse SÓ depois da linha 5.000 desaparecia
+   *  da tela.
+   *
+   *  E o efeito é pior do que uma lista incompleta: o filtro de especialidade
+   *  não mostra "Endodontia", a pessoa conclui que a clínica não tem esse
+   *  recorte, e monta a campanha sem ele. O dado existe; a interface jura que
+   *  não.
+   *
+   *  `crc_opcoes_de_publico` faz dois `select distinct` com o índice, devolve
+   *  algumas dezenas de linhas e não depende do tamanho da base.
+   * ========================================================================
+   */
+  try {
+    const linhas = await rpc("crc_opcoes_de_publico", {
+      p_organization_id: organizationId,
+      p_clinic_id: clinicId,
+    });
+
+    const especialidades: string[] = [];
+    const convenios: string[] = [];
+    for (const l of linhas) {
+      const tipo = String(l["tipo"] ?? "");
+      const valor = String(l["valor"] ?? "").trim();
+      if (valor.length === 0) continue;
+      if (tipo === "especialidade") especialidades.push(valor);
+      else if (tipo === "convenio") convenios.push(valor);
+    }
+    return { especialidades, convenios };
+  } catch {
+    /*
+     * BANCO SEM `supabase/29`: cai na leitura antiga, que é incompleta e é o
+     * comportamento de ontem. Degradar é melhor do que deixar a tela de
+     * campanha sem filtro nenhum durante a janela entre o deploy e o SQL — e o
+     * sinal `schema_atrasado` já denuncia a janela.
+     */
+  }
+
   const linhas = await selecionar("crc_patients", {
     colunas: "especialidade,convenio",
     filtros: [
       { coluna: "organization_id", op: "eq", valor: organizationId },
       { coluna: "arquivado", op: "eq", valor: false },
     ],
-    // Teto alto e leitura de duas colunas: é uma consulta por abertura de
-    // modal, e o distinct em memória evita uma RPC só para isso.
     limite: 5000,
   });
 
@@ -358,25 +441,54 @@ export async function agendarCampanha(dados: {
     return { ok: false, motivo: "Esta campanha já foi agendada." };
   }
 
-  const pessoas = await selecionar("crc_patients", {
-    colunas: "id",
-    filtros: filtrosDoPublico(dados.organizationId, campanha.filtros, agora),
-    limite: MAX_PUBLICO,
-  });
+  const filtros = filtrosDoPublico(dados.organizationId, campanha.filtros, agora);
 
-  if (pessoas.length === 0) {
+  /*
+   * ========================================================================
+   *  CONTA ANTES DE CONGELAR, e a contagem é do público REAL.
+   *
+   *  A versão anterior selecionava com `limite: MAX_PUBLICO` e usava
+   *  `pessoas.length` como "o público". Com 8.000 candidatos isso devolvia
+   *  5.000, e os outros 3.000 não existiam para ninguém: nem no número da tela,
+   *  nem num aviso, nem no log.
+   *
+   *  `contar()` usa `HEAD` com `count=exact` — ele não traz linha nenhuma, só o
+   *  total. É a diferença entre saber o tamanho do público e saber o tamanho da
+   *  página que coube.
+   * ========================================================================
+   */
+  const total = await contar("crc_patients", filtros);
+
+  if (total === 0) {
     return { ok: false, motivo: "Nenhuma pessoa entra neste filtro hoje." };
   }
 
-  for (const p of pessoas) {
-    // `inserirIgnorandoDuplicata` e não `inserir`: agendar duas vezes por um
-    // clique duplo não pode criar dois alvos para a mesma pessoa. O índice
-    // único é quem garante, e não o cuidado de quem chama.
-    await inserirIgnorandoDuplicata("crc_campaign_targets", {
-      campaign_id: campanha.id,
-      organization_id: dados.organizationId,
-      patient_id: String(p["id"] ?? ""),
-      status: "PENDENTE",
+  if (total > MAX_PUBLICO) {
+    /*
+     * RECUSA, E DIZ O NÚMERO. Cortar em silêncio seria o defeito de volta com
+     * outro nome. Quem lê "casaram 61.204 pessoas" entende na hora que o filtro
+     * está largo demais — e é uma informação que nenhum truncamento dá.
+     */
+    return {
+      ok: false,
+      motivo: `Este filtro casa ${total.toLocaleString("pt-BR")} pacientes, acima do teto de ${MAX_PUBLICO.toLocaleString("pt-BR")} por campanha. Estreite o recorte — por especialidade, convênio ou faixa de tempo sem voltar.`,
+    };
+  }
+
+  const congelados = await congelarPublico(campanha.id, dados.organizationId, filtros);
+
+  if (congelados.lidos !== total) {
+    /*
+     * A PÁGINA FINAL TEM QUE FECHAR A CONTA. Se ela não fecha, ou a base mudou
+     * embaixo do congelamento (paciente arquivado no meio), ou a paginação tem
+     * defeito. Nos dois casos o número que vai para a auditoria é o que
+     * REALMENTE entrou, e não o que a contagem prometeu.
+     */
+    registrar("aviso", "O congelamento leu um número diferente do contado.", {
+      organizationId: dados.organizationId,
+      campanha: campanha.id,
+      contados: total,
+      lidos: congelados.lidos,
     });
   }
 
@@ -400,10 +512,76 @@ export async function agendarCampanha(dados: {
     acao: "campanha.agendada",
     entityType: "campaign",
     entityId: campanha.id,
-    depois: { publico: pessoas.length, porDia: campanha.porDia },
+    depois: { publico: congelados.lidos, novos: congelados.gravados, porDia: campanha.porDia },
   });
 
-  return { ok: true, publico: pessoas.length };
+  return { ok: true, publico: congelados.lidos };
+}
+
+/**
+ * Percorre o público por keyset e grava os alvos em lotes.
+ *
+ * ============================================================================
+ *  DUAS COISAS MUDARAM, E AS DUAS ERAM DE ESCALA.
+ *
+ *  KEYSET, E NÃO UM `limite` GRANDE. Ler 8.000 ids de uma vez cabe na memória;
+ *  ler 50.000 começa a não caber, e a consulta única fica cara o bastante para
+ *  estourar o tempo da função. A paginação por `id` usa a chave primária, é
+ *  estável, e não sofre o problema do `offset` em tabela que muda.
+ *
+ *  LOTE, E NÃO UM INSERT POR PESSOA. O laço anterior fazia uma ida ao
+ *  PostgREST por paciente: 8.000 requisições para congelar uma campanha. Com
+ *  lotes de 500, são dezesseis.
+ * ============================================================================
+ *
+ * A IDEMPOTÊNCIA CONTINUA SENDO DO ÍNDICE, e não do cuidado de quem chama:
+ * `(campaign_id, patient_id)` é único, e o lote usa `ignore-duplicates`. Um
+ * clique duplo em "agendar" regrava o que faltava e ignora o que já estava.
+ */
+async function congelarPublico(
+  campaignId: string,
+  organizationId: string,
+  filtros: readonly Filtro[],
+): Promise<{ lidos: number; gravados: number }> {
+  let cursor: string | null = null;
+  let lidos = 0;
+  let gravados = 0;
+
+  for (;;) {
+    const pagina: Linha[] = await selecionar("crc_patients", {
+      colunas: "id",
+      filtros: cursor === null ? filtros : [...filtros, { coluna: "id", op: "gt", valor: cursor }],
+      // A ORDEM É A DO CURSOR. Sem ela, "o próximo depois do id X" não quer
+      // dizer nada — o banco devolveria qualquer coisa, e a varredura pularia
+      // ou repetiria páginas.
+      ordenar: [{ coluna: "id", ascendente: true }],
+      limite: PAGINA_DO_PUBLICO,
+    });
+
+    if (pagina.length === 0) break;
+
+    const alvos = pagina.map((p) => ({
+      campaign_id: campaignId,
+      organization_id: organizationId,
+      patient_id: String(p["id"] ?? ""),
+      status: "PENDENTE",
+    }));
+
+    gravados += await inserirLoteIgnorandoDuplicatas(
+      "crc_campaign_targets",
+      alvos,
+      "campaign_id,patient_id",
+    );
+    lidos += pagina.length;
+
+    cursor = String(pagina[pagina.length - 1]?.["id"] ?? "");
+    if (cursor.length === 0) break;
+
+    // Página incompleta é o fim: não há o que buscar depois dela.
+    if (pagina.length < PAGINA_DO_PUBLICO) break;
+  }
+
+  return { lidos, gravados };
 }
 
 export async function mudarStatusCampanha(dados: {

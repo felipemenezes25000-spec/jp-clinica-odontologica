@@ -46,9 +46,7 @@ beforeEach(() => {
   limparBanco();
   definirRelogio(AGORA);
   semear("crc_organizations", [{ id: ORG, slug: "jp" }]);
-  semear("crc_schema_migrations", [
-    { nome: "28-crc-configuracao-por-clinica.sql", presumido: false },
-  ]);
+  semear("crc_schema_migrations", [{ nome: "29-crc-publico-e-ciclo.sql", presumido: false }]);
   vi.stubEnv("NODE_ENV", "test");
   vi.stubEnv("WHATSAPP_SANDBOX", "1");
 });
@@ -170,9 +168,7 @@ describe("o painel de saúde", () => {
 
     limparBanco();
     semear("crc_organizations", [{ id: ORG, slug: "jp" }]);
-    semear("crc_schema_migrations", [
-      { nome: "28-crc-configuracao-por-clinica.sql", presumido: false },
-    ]);
+    semear("crc_schema_migrations", [{ nome: "29-crc-publico-e-ciclo.sql", presumido: false }]);
     semear("crc_runtime_heartbeats", [
       { worker: "pulso", ultimo_inicio_em: atras(45), ultimo_sucesso_em: atras(45), metricas: {} },
     ]);
@@ -239,13 +235,19 @@ describe("o painel de saúde", () => {
     expect(sinal?.detalhe).toContain("agent_job");
   });
 
-  it("varredura que não fecha uma volta há dez dias vira sinal", async () => {
+  it("varredura PARADA é crítica — o cursor não anda", async () => {
     /*
-     * O NÚMERO EXISTIA E NINGUÉM OLHAVA. `ciclo` só incrementa quando a
-     * varredura chega ao fim da base e recomeça — um ciclo parado significa que
-     * a base cresceu mais que a capacidade de varrê-la, e o relatório diário
-     * continua dizendo "avaliados: 200", que é a cara do defeito que o cursor
-     * veio consertar.
+     * ========================================================================
+     *  A PRIMEIRA VERSÃO DESTE SINAL MEDIA A COISA ERRADA, e fui eu que a
+     *  escrevi. Ela olhava `atualizado_em` e afirmava "não completa uma volta há
+     *  dez dias" — mas `atualizado_em` muda a cada PÁGINA. Uma varredura
+     *  rastejando 200/dia numa base de 8.000 tinha o campo sempre fresco e
+     *  nunca disparava: trinta dias sem fechar ciclo, com o painel verde.
+     *
+     *  Agora `atualizado_em` responde só à pergunta que ele sabe responder: o
+     *  cursor andou? Não andou → PARADA, e é crítico, porque enquanto ela não
+     *  anda ninguém da base está sendo avaliado.
+     * ========================================================================
      */
     semear("crc_runtime_heartbeats", [
       { worker: "pulso", ultimo_inicio_em: atras(1), ultimo_sucesso_em: atras(1), metricas: {} },
@@ -255,18 +257,28 @@ describe("o painel de saúde", () => {
         organization_id: ORG,
         varredura: "recall",
         ciclo: 3,
-        atualizado_em: new Date(AGORA.getTime() - 15 * 86_400_000).toISOString(),
+        atualizado_em: new Date(AGORA.getTime() - 5 * 86_400_000).toISOString(),
+        ciclo_iniciado_em: new Date(AGORA.getTime() - 5 * 86_400_000).toISOString(),
       },
     ]);
 
     const p = await panoramaDeSaude(ORG, AGORA);
     const sinal = p.sinais.find((s) => s.codigo === "varredura_parada");
 
-    expect(sinal?.severidade).toBe("atencao");
+    expect(sinal?.severidade).toBe("critico");
     expect(sinal?.detalhe).toContain("recall");
+    // E NÃO é relatada como lenta: parada vence lenta, porque aumentar o teto
+    // não conserta nada quando o problema não é capacidade.
+    expect(p.sinais.find((s) => s.codigo === "ciclo_lento")).toBeUndefined();
   });
 
-  it("varredura andando NÃO vira sinal — dias entre voltas são o desenho", async () => {
+  it("CICLO LENTO é atenção — ela anda, e a volta não fecha", async () => {
+    /*
+     * O ESTADO QUE ERA INVISÍVEL. O cursor avançou ontem, então ela não está
+     * parada; e o ciclo está aberto há trinta dias, então ela não está
+     * saudável. Sem `ciclo_iniciado_em`, este caso era indistinguível do
+     * terceiro.
+     */
     semear("crc_runtime_heartbeats", [
       { worker: "pulso", ultimo_inicio_em: atras(1), ultimo_sucesso_em: atras(1), metricas: {} },
     ]);
@@ -275,12 +287,37 @@ describe("o painel de saúde", () => {
         organization_id: ORG,
         varredura: "recall",
         ciclo: 3,
-        atualizado_em: new Date(AGORA.getTime() - 2 * 86_400_000).toISOString(),
+        atualizado_em: atras(60),
+        ciclo_iniciado_em: new Date(AGORA.getTime() - 30 * 86_400_000).toISOString(),
+      },
+    ]);
+
+    const p = await panoramaDeSaude(ORG, AGORA);
+    const sinal = p.sinais.find((s) => s.codigo === "ciclo_lento");
+
+    expect(sinal?.severidade).toBe("atencao");
+    expect(sinal?.detalhe).toContain("recall");
+    expect(p.sinais.find((s) => s.codigo === "varredura_parada")).toBeUndefined();
+  });
+
+  it("SAUDÁVEL não vira sinal — dias entre voltas são o desenho", async () => {
+    semear("crc_runtime_heartbeats", [
+      { worker: "pulso", ultimo_inicio_em: atras(1), ultimo_sucesso_em: atras(1), metricas: {} },
+    ]);
+    semear("crc_scan_state", [
+      {
+        organization_id: ORG,
+        varredura: "recall",
+        ciclo: 3,
+        atualizado_em: atras(60),
+        ciclo_iniciado_em: new Date(AGORA.getTime() - 4 * 86_400_000).toISOString(),
+        ultimo_ciclo_completo_em: new Date(AGORA.getTime() - 4 * 86_400_000).toISOString(),
       },
     ]);
 
     const p = await panoramaDeSaude(ORG, AGORA);
     expect(p.sinais.find((s) => s.codigo === "varredura_parada")).toBeUndefined();
+    expect(p.sinais.find((s) => s.codigo === "ciclo_lento")).toBeUndefined();
   });
 
   it("banco sem a migração esperada vira sinal, e não erro no meio de um turno", async () => {

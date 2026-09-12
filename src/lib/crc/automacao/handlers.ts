@@ -28,7 +28,7 @@ import {
 } from "../aplicacao/oportunidades";
 import { registrarHandler } from "../aplicacao/eventos";
 import { linhaParaPaciente } from "../aplicacao/repositorios";
-import { rpc, selecionar, selecionarUm, type Filtro } from "../servidor/banco";
+import { rpc, selecionar, selecionarUm, type Filtro, type Linha } from "../servidor/banco";
 import { registrar } from "../servidor/registro";
 
 import { carregarAutomacao, inscrever } from "./motor";
@@ -880,48 +880,142 @@ const FILTROS_CONTATAVEL = (organizationId: string): Filtro[] => [
 export async function varrerRecall(
   organizationId: string,
   cfg: ConfiguracaoCrc = CONFIGURACAO_PADRAO,
-  limite = 200,
+  limite = TAMANHO_DA_PAGINA_DE_RECALL,
   agora = new Date(),
+  opcoes: { tetoPorVolta?: number; orcamentoMs?: number } = {},
 ): Promise<ResultadoVarredura> {
   const limiteRecall = new Date(agora.getTime() - cfg.recallDias * 86400_000).toISOString();
 
-  const cursor = await lerCursorDeVarredura(organizationId, "recall");
-
-  const linhas = await rpc("crc_pagina_de_recall", {
-    p_organization_id: organizationId,
-    p_limite_data: limiteRecall,
-    p_cursor_data: cursor.data,
-    p_cursor_id: cursor.id,
-    p_limite: limite,
-  });
-
-  /*
-   * O CURSOR AVANCA ANTES DO TRABALHO, e nao depois.
-   *
-   * Se o lote estourar o tempo da Vercel no meio, a proxima execucao continua
-   * de onde este parou em vez de reler as mesmas linhas e estourar de novo no
-   * mesmo lugar. O preco e que os pacientes nao processados esperam o proximo
-   * CICLO — o que e aceitavel para recall (a regra e "sem consulta ha seis
-   * meses", nao "ha seis meses e dois dias") e e infinitamente melhor do que
-   * uma varredura que nunca sai do lugar.
-   */
-  const ultima = linhas[linhas.length - 1];
-  await gravarCursorDeVarredura(
-    organizationId,
-    "recall",
-    // Pagina incompleta = fim da volta. Zerar aqui e o que faz o ciclo fechar.
-    linhas.length < limite || ultima === undefined
-      ? { data: null, id: null, fechouCiclo: true }
-      : {
-          data:
-            typeof ultima["ultima_consulta_em"] === "string" ? ultima["ultima_consulta_em"] : null,
-          id: typeof ultima["id"] === "string" ? ultima["id"] : null,
-          fechouCiclo: false,
-        },
-  );
+  const teto = opcoes.tetoPorVolta ?? TETO_DE_RECALL_POR_VOLTA;
+  const orcamentoMs = opcoes.orcamentoMs ?? ORCAMENTO_DA_VARREDURA_MS;
+  const comecou = Date.now();
 
   const automacaoRecall = await carregarAutomacao(organizationId, "recall_seis_meses");
   const automacaoReativacao = await carregarAutomacao(organizationId, "reativacao_inativos");
+
+  let avaliados = 0;
+  let elegiveis = 0;
+  let inscritos = 0;
+
+  /*
+   * ========================================================================
+   *  VARIAS PAGINAS POR VOLTA, ATE O TETO OU ATE O TEMPO.
+   *
+   *  Uma pagina de 200 por dia atravessa 8.000 pacientes em QUARENTA DIAS. O
+   *  cursor consertou a convergencia — a varredura deixou de reler o comeco —,
+   *  e sobrou a velocidade: um paciente que sumiu ha seis meses esperava mais
+   *  um mes para ser notado.
+   *
+   *  O teto e por ITENS e por TEMPO, e os dois precisam existir. So por itens,
+   *  uma base com handlers lentos estoura o tempo da funcao; so por tempo, uma
+   *  base rapida dispararia milhares de jornadas numa volta e consumiria o teto
+   *  de contato da clinica inteiro de madrugada.
+   * ========================================================================
+   */
+  for (;;) {
+    const cursor = await lerCursorDeVarredura(organizationId, "recall");
+
+    const linhas = await rpc("crc_pagina_de_recall", {
+      p_organization_id: organizationId,
+      p_limite_data: limiteRecall,
+      p_cursor_data: cursor.data,
+      p_cursor_id: cursor.id,
+      p_limite: limite,
+    });
+
+    const r = await processarPaginaDeRecall(
+      organizationId,
+      linhas,
+      { recall: automacaoRecall, reativacao: automacaoReativacao },
+      cfg,
+      agora,
+    );
+    avaliados += linhas.length;
+    elegiveis += r.elegiveis;
+    inscritos += r.inscritos;
+
+    /*
+     * O CURSOR AVANCA DEPOIS DO TRABALHO, e a versao anterior avancava antes.
+     *
+     * Antes havia um motivo: com UMA pagina por volta, um lote que estourasse o
+     * tempo seria relido para sempre. Com o laco, o corte acontece ENTRE
+     * paginas — entao a pagina ou termina (e o cursor anda) ou a volta morre no
+     * meio dela (e o cursor fica, e ela e relida).
+     *
+     * Reler e seguro: a chave de dedupe inclui o ciclo, entao a oportunidade
+     * nao nasce duas vezes. Pular nao seria.
+     */
+    const ultima = linhas[linhas.length - 1];
+    const fechou = linhas.length < limite || ultima === undefined;
+
+    await gravarCursorDeVarredura(
+      organizationId,
+      "recall",
+      fechou
+        ? { data: null, id: null, fechouCiclo: true }
+        : {
+            data:
+              typeof ultima["ultima_consulta_em"] === "string"
+                ? ultima["ultima_consulta_em"]
+                : null,
+            id: typeof ultima["id"] === "string" ? ultima["id"] : null,
+            fechouCiclo: false,
+          },
+    );
+
+    // A VOLTA FECHOU: parar aqui, e nao recomecar o ciclo na mesma execucao.
+    // Recomecar faria a varredura reprocessar a base inteira de novo, e o teto
+    // por itens seria a unica coisa segurando.
+    if (fechou) break;
+    if (avaliados >= teto) break;
+    if (Date.now() - comecou >= orcamentoMs) break;
+  }
+
+  return { seletor: "RECALL", avaliados, elegiveis, inscritos };
+}
+
+/** Quantos pacientes cabem numa pagina do recall. */
+const TAMANHO_DA_PAGINA_DE_RECALL = 200;
+
+/**
+ * Quantos pacientes uma volta pesada avalia, no maximo.
+ *
+ * MIL E DUZENTOS ATRAVESSA 8.000 EM SETE DIAS — a janela que a operacao de
+ * recuperacao precisa. Com os 200 de antes eram quarenta.
+ *
+ * O numero nao e magico e e o menor que resolve: subir mais aproxima o ciclo de
+ * um dia e faz a volta disparar jornadas suficientes para consumir o teto de
+ * contato da clinica de uma vez — e ai quem segura passa a ser a politica de
+ * envio, na madrugada, sem ninguem decidir isso.
+ */
+const TETO_DE_RECALL_POR_VOLTA = 1200;
+
+/**
+ * Quanto tempo a varredura pode gastar antes de ceder a vez.
+ *
+ * CURTO EM RELACAO AO LIMITE DA PLATAFORMA de proposito. A volta pesada roda
+ * varias varreduras em sequencia; se a primeira consumir o orcamento inteiro da
+ * funcao, as outras nao rodam — e o sintoma seria "o aniversario parou", sem
+ * relacao aparente com o recall.
+ *
+ * Ser cortado aqui nao custa nada: o cursor esta gravado, e a proxima volta
+ * continua do mesmo ponto.
+ */
+const ORCAMENTO_DA_VARREDURA_MS = 20_000;
+
+/** Uma pagina do recall, avaliada e inscrita. */
+async function processarPaginaDeRecall(
+  organizationId: string,
+  linhas: readonly Linha[],
+  automacoes: {
+    recall: Awaited<ReturnType<typeof carregarAutomacao>>;
+    reativacao: Awaited<ReturnType<typeof carregarAutomacao>>;
+  },
+  cfg: ConfiguracaoCrc,
+  agora: Date,
+): Promise<{ elegiveis: number; inscritos: number }> {
+  const automacaoRecall = automacoes.recall;
+  const automacaoReativacao = automacoes.reativacao;
 
   let elegiveis = 0;
   let inscritos = 0;
@@ -980,7 +1074,7 @@ export async function varrerRecall(
     if (inscricao.inscrito) inscritos += 1;
   }
 
-  return { seletor: "RECALL", avaliados: linhas.length, elegiveis, inscritos };
+  return { elegiveis, inscritos };
 }
 
 /**
@@ -1039,18 +1133,40 @@ async function gravarCursorDeVarredura(
 ): Promise<void> {
   const { gravar } = await import("../servidor/banco");
 
-  const anterior = onde.fechouCiclo
-    ? await selecionarUm("crc_scan_state", {
-        colunas: "ciclo",
-        filtros: [
-          { coluna: "organization_id", op: "eq", valor: organizationId },
-          { coluna: "varredura", op: "eq", valor: varredura },
-        ],
-      })
-    : null;
+  const anterior = await selecionarUm("crc_scan_state", {
+    colunas: "ciclo,ciclo_iniciado_em",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "varredura", op: "eq", valor: varredura },
+    ],
+  });
 
   const ciclo = typeof anterior?.["ciclo"] === "number" ? anterior["ciclo"] : 0;
+  const iniciadoEm =
+    typeof anterior?.["ciclo_iniciado_em"] === "string" ? anterior["ciclo_iniciado_em"] : null;
+  const completoEm =
+    typeof anterior?.["ultimo_ciclo_completo_em"] === "string"
+      ? anterior["ultimo_ciclo_completo_em"]
+      : null;
+  const agoraIso = new Date().toISOString();
 
+  /*
+   * ========================================================================
+   *  DUAS DATAS, PORQUE UMA NAO DISTINGUE OS TRES ESTADOS.
+   *
+   *  `atualizado_em` muda a cada pagina. Foi com ele que o alerta do
+   *  `supabase/27` tentou dizer "a varredura nao fecha uma volta ha dez dias" —
+   *  e nao dizia nada: uma varredura rastejando 200/dia numa base de 8.000 tem
+   *  `atualizado_em` sempre fresco e nunca dispara.
+   *
+   *    PARADA        `atualizado_em` antigo             → o cursor nao anda
+   *    CICLO LENTO   `ciclo_iniciado_em` antigo         → anda, e nao fecha
+   *    SAUDAVEL      `ultimo_ciclo_completo_em` recente → fecha na cadencia
+   *
+   *  Sem `ciclo_iniciado_em`, a segunda e a terceira sao indistinguiveis — que
+   *  era exatamente o buraco do alerta anterior.
+   * ========================================================================
+   */
   await gravar(
     "crc_scan_state",
     {
@@ -1058,11 +1174,35 @@ async function gravarCursorDeVarredura(
       varredura,
       cursor_data: onde.data,
       cursor_id: onde.id,
-      // SO INCREMENTA AO FECHAR A VOLTA. E o numero que responde "a varredura
-      // esta andando?" — um ciclo parado ha uma semana significa que a base
-      // cresceu mais rapido que a capacidade de varre-la.
-      ...(onde.fechouCiclo ? { ciclo: ciclo + 1 } : {}),
-      atualizado_em: new Date().toISOString(),
+      ...(onde.fechouCiclo
+        ? {
+            ciclo: ciclo + 1,
+            ultimo_ciclo_completo_em: agoraIso,
+            // O PROXIMO CICLO COMECA AGORA. Deixar nulo faria a volta seguinte
+            // parecer que nunca comecou, e o alerta de ciclo lento nunca
+            // dispararia.
+            ciclo_iniciado_em: agoraIso,
+          }
+        : {
+            /*
+             * TODA COLUNA VAI NO PAYLOAD, INCLUSIVE AS QUE NAO MUDAM.
+             *
+             * `gravar` e um upsert de LINHA INTEIRA no PostgREST
+             * (`resolution=merge-duplicates`): coluna ausente do corpo volta ao
+             * DEFAULT, e nao ao valor anterior. Omitir `ciclo` aqui zeraria o
+             * contador a cada pagina — e o numero que responde "a varredura
+             * esta andando?" ficaria preso em zero para sempre.
+             *
+             * O fake pegou isto antes da producao. Foi o unico motivo.
+             */
+            ciclo,
+            ultimo_ciclo_completo_em: completoEm,
+            // A PRIMEIRA PAGINA DE UMA VOLTA e a que marca o inicio. As
+            // seguintes preservam a marca — senao cada pagina reiniciaria o
+            // relogio e o ciclo lento continuaria invisivel.
+            ciclo_iniciado_em: iniciadoEm ?? agoraIso,
+          }),
+      atualizado_em: agoraIso,
     },
     "organization_id,varredura",
   );

@@ -89,7 +89,7 @@ const PULSO_CRITICO_MIN = 30;
  * janela em que o código é mais novo que o banco. O sinal a torna visível em
  * vez de deixá-la aparecer como erro aleatório no meio de um turno.
  */
-const MIGRACAO_ESPERADA = "28-crc-configuracao-por-clinica.sql";
+const MIGRACAO_ESPERADA = "29-crc-publico-e-ciclo.sql";
 
 /** Uma run aberta além disto significa worker morto, não turno demorado. */
 const RUN_ABERTA_DEMAIS_MIN = 30;
@@ -248,25 +248,31 @@ async function olharWebhooks(organizationId: string, agora: Date): Promise<Sinal
 }
 
 /**
- * A varredura esta ANDANDO?
+ * A varredura está andando, rastejando, ou parada?
  *
- * ========================================================================
- *  O NUMERO EXISTE E NINGUEM OLHAVA. `crc_scan_state.ciclo` conta as passadas
- *  COMPLETAS pela base — ele so incrementa quando a varredura chega ao fim e
- *  recomeca.
+ * ============================================================================
+ *  O ALERTA ANTERIOR NÃO MEDIA O QUE PROMETIA, e fui eu que o escrevi assim.
  *
- *  Um ciclo parado ha uma semana significa que a base cresceu mais rapido que a
- *  capacidade de varre-la: os pacientes do fim da fila nunca sao avaliados, e o
- *  relatorio diario continua dizendo "avaliados: 200" — que e exatamente a cara
- *  do defeito que o cursor veio consertar.
+ *  Ele olhava `crc_scan_state.atualizado_em` e dizia "uma varredura não
+ *  completa uma volta há mais de dez dias". Só que `atualizado_em` muda A CADA
+ *  PÁGINA. Uma varredura avançando 200 pacientes por dia numa base de 8.000
+ *  tem `atualizado_em` sempre fresco — e nunca dispararia nada, nem depois de
+ *  trinta dias sem fechar um ciclo.
  *
- *  Sem este sinal, a correcao do recall seria invisivel do mesmo jeito que o
- *  defeito era.
- * ========================================================================
+ *  O alerta existia justamente para tornar a correção do recall visível, e era
+ *  tão cego quanto o defeito que ela consertou.
+ * ============================================================================
  *
- * DEZ DIAS É O LIMIAR, e não dois: a volta pesada roda uma vez por dia, e uma
- * base grande leva vários dias por ciclo — é o desenho. O que não é desenho é
- * uma volta inteira que nunca fecha.
+ * SÃO TRÊS ESTADOS, e o painel precisa nomear os três porque as ações são
+ * diferentes:
+ *
+ *   PARADA       o cursor não anda. Algo quebrou — a RPC, o banco, a volta
+ *                pesada. É CRÍTICO: ninguém está sendo avaliado.
+ *
+ *   CICLO LENTO  anda, e a volta não fecha. A base cresceu mais que o teto por
+ *                execução. É ATENÇÃO: o trabalho acontece, devagar demais.
+ *
+ *   SAUDÁVEL     fecha na cadência esperada. Silêncio.
  */
 async function olharVarreduras(organizationId: string, agora: Date): Promise<SinalDeSaude[]> {
   const { selecionar } = await import("../servidor/banco");
@@ -274,36 +280,95 @@ async function olharVarreduras(organizationId: string, agora: Date): Promise<Sin
   let linhas: Record<string, unknown>[] = [];
   try {
     linhas = await selecionar("crc_scan_state", {
-      colunas: "varredura,ciclo,atualizado_em",
+      colunas: "varredura,ciclo,atualizado_em,ciclo_iniciado_em,ultimo_ciclo_completo_em",
       filtros: [{ coluna: "organization_id", op: "eq", valor: organizationId }],
       limite: 20,
     });
   } catch {
-    // Banco sem `supabase/26`: o sinal `schema_atrasado` já cobre esse caso, e
-    // repetir a notícia aqui só encheria o painel.
+    // Banco sem `supabase/26`/`29`: o sinal `schema_atrasado` já cobre esse
+    // caso, e repetir a notícia aqui só encheria o painel.
     return [];
   }
 
-  const paradas = linhas.filter((l) => {
-    const quando = Date.parse(String(l["atualizado_em"] ?? ""));
-    if (!Number.isFinite(quando)) return false;
-    return agora.getTime() - quando > 10 * 86_400_000;
-  });
+  const diasDesde = (v: unknown): number | null => {
+    const quando = Date.parse(String(v ?? ""));
+    if (!Number.isFinite(quando)) return null;
+    return (agora.getTime() - quando) / 86_400_000;
+  };
 
-  if (paradas.length === 0) return [];
+  const paradas: string[] = [];
+  const lentas: string[] = [];
 
-  return [
-    {
+  for (const l of linhas) {
+    const nome = String(l["varredura"] ?? "?");
+
+    /*
+     * PARADA VENCE LENTA. Uma varredura que não anda também não fecha ciclo, e
+     * relatá-la como "lenta" mandaria aumentar o teto — que não conserta nada,
+     * porque o problema não é capacidade.
+     */
+    const semProgresso = diasDesde(l["atualizado_em"]);
+    if (semProgresso !== null && semProgresso > DIAS_SEM_PROGRESSO) {
+      paradas.push(`${nome}: sem avançar há ${String(Math.round(semProgresso))} dias`);
+      continue;
+    }
+
+    /*
+     * O CICLO ABERTO É MEDIDO DE `ciclo_iniciado_em`, e não de `atualizado_em`.
+     * É a diferença inteira entre este sinal e o anterior.
+     */
+    const cicloAberto = diasDesde(l["ciclo_iniciado_em"]);
+    if (cicloAberto !== null && cicloAberto > DIAS_DE_CICLO_ACEITAVEL) {
+      lentas.push(
+        `${nome}: ciclo aberto há ${String(Math.round(cicloAberto))} dias (fechou ${String(l["ciclo"] ?? 0)} até agora)`,
+      );
+    }
+  }
+
+  const sinais: SinalDeSaude[] = [];
+
+  if (paradas.length > 0) {
+    sinais.push({
       codigo: "varredura_parada",
-      titulo: "Uma varredura não completa uma volta pela base há mais de dez dias.",
-      acao: "A base pode ter crescido mais que o teto por execução. Aumente o limite da varredura ou rode o motor com ?varrer=1.",
+      titulo: "Uma varredura parou de avançar.",
+      acao: "Confira o sinal do pulso e do schema acima. Para forçar agora: GET /api/crc/motor?varrer=1.",
+      // CRÍTICO, e o anterior era atenção: enquanto ela não anda, NINGUÉM da
+      // base está sendo avaliado para recall.
+      severidade: "critico",
+      detalhe: paradas.join(", "),
+    });
+  }
+
+  if (lentas.length > 0) {
+    sinais.push({
+      codigo: "ciclo_lento",
+      titulo: "Uma varredura está avançando, mas não fecha uma volta pela base.",
+      acao: "A base cresceu mais que o teto por execução. Aumente o teto da varredura ou rode o motor com ?varrer=1 mais de uma vez ao dia.",
       severidade: "atencao",
-      detalhe: paradas
-        .map((l) => `${String(l["varredura"] ?? "?")}: ciclo ${String(l["ciclo"] ?? 0)}`)
-        .join(", "),
-    },
-  ];
+      detalhe: lentas.join(", "),
+    });
+  }
+
+  return sinais;
 }
+
+/**
+ * Quantos dias sem o cursor mexer até virar "parada".
+ *
+ * TRÊS, e não um: a volta pesada roda uma vez por dia e só varre dentro da
+ * janela da madrugada. Um dia sem progresso pode ser um cron atrasado; três é
+ * alguma coisa quebrada.
+ */
+const DIAS_SEM_PROGRESSO = 3;
+
+/**
+ * Quantos dias um ciclo pode ficar aberto antes de virar "lento".
+ *
+ * CATORZE. Com o teto de 1.200 por volta, 8.000 pacientes fecham em sete dias —
+ * então catorze é o dobro do esperado, e não um alarme na primeira variação. É o
+ * ponto em que "a base cresceu" deixa de ser hipótese e vira explicação.
+ */
+const DIAS_DE_CICLO_ACEITAVEL = 14;
 
 /** O que já foi perdido e espera alguém. */
 async function olharDeadLetters(organizationId: string): Promise<SinalDeSaude[]> {

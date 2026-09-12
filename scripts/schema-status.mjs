@@ -130,6 +130,11 @@ const SONDAS = {
   },
   "27-crc-observabilidade.sql": { tipo: "tabela", nome: "crc_runtime_heartbeats" },
   "28-crc-configuracao-por-clinica.sql": { tipo: "tabela", nome: "crc_settings_clinica" },
+  "29-crc-publico-e-ciclo.sql": {
+    tipo: "rpc",
+    nome: "crc_opcoes_de_publico",
+    argumentos: { p_organization_id: null, p_clinic_id: null },
+  },
 };
 
 async function sondar(sonda) {

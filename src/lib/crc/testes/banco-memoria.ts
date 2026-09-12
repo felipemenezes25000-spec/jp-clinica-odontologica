@@ -531,6 +531,38 @@ export async function inserirIgnorandoDuplicata<T = Linha>(
   }
 }
 
+/**
+ * Inserção em LOTE que pula quem já existe — `on conflict do nothing`.
+ *
+ * A DIFERENÇA EM RELAÇÃO A `inserir` É O QUE IMPORTA AQUI: lá, uma duplicata no
+ * meio derruba o lote inteiro e as linhas boas não entram. Reproduzir isso
+ * errado no fake faria o congelamento de campanha parecer completo num teste e
+ * perder gente em produção — que é exatamente a classe de defeito que a
+ * paginação veio consertar.
+ *
+ * Devolve QUANTAS entraram, e não o tamanho do lote.
+ */
+export function inserirLoteIgnorandoDuplicatas(
+  tabela: string,
+  linhas: readonly Linha[],
+  _conflito: string,
+): Promise<number> {
+  dispararFalhaArmada(`escrita:${tabela}`);
+  const alvo = (tabelas[tabela] ??= []);
+  let gravadas = 0;
+
+  for (const bruta of linhas) {
+    conferirColunas(tabela, bruta, "Inserção");
+    const nova = comPadroes(tabela, bruta);
+    // PULA, e não lança: é a semântica do `ignore-duplicates`.
+    if (conflita(tabela, nova)) continue;
+    alvo.push(nova);
+    gravadas += 1;
+  }
+
+  return Promise.resolve(gravadas);
+}
+
 /** Upsert por conflito: substitui quando a chave já existe. */
 export function gravar<T = Linha>(
   tabela: string,
@@ -653,6 +685,39 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
      * sistema funciona. Um fake que sobrescrevesse tudo concordaria com um
      * codigo que perde essa informacao.
      */
+    /*
+     * AS OPCOES DO FILTRO DE CAMPANHA — `supabase/29`.
+     *
+     * O fake faz o mesmo `distinct` que o SQL, e respeita o `p_clinic_id`
+     * opcional. Sem isso, um teste de duas unidades concordaria com um codigo
+     * que mistura as especialidades das duas na mesma tela.
+     */
+    case "crc_opcoes_de_publico": {
+      const org = argumentos["p_organization_id"];
+      const clinica =
+        typeof argumentos["p_clinic_id"] === "string" ? argumentos["p_clinic_id"] : null;
+
+      const especialidades = new Set<string>();
+      const convenios = new Set<string>();
+
+      for (const l of tabelas["crc_patients"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        if (l["arquivado"] === true) continue;
+        if (clinica !== null && l["clinic_id"] !== clinica) continue;
+
+        const e = typeof l["especialidade"] === "string" ? l["especialidade"].trim() : "";
+        const c = typeof l["convenio"] === "string" ? l["convenio"].trim() : "";
+        if (e.length > 0) especialidades.add(e);
+        if (c.length > 0) convenios.add(c);
+      }
+
+      const saida = [
+        ...[...especialidades].sort().map((valor) => ({ tipo: "especialidade", valor })),
+        ...[...convenios].sort().map((valor) => ({ tipo: "convenio", valor })),
+      ];
+      return Promise.resolve(saida as T[]);
+    }
+
     case "crc_bater_heartbeat": {
       const worker = String(argumentos["p_worker"] ?? "");
       const fase = String(argumentos["p_fase"] ?? "");

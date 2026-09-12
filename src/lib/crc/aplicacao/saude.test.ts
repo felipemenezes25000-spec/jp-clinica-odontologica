@@ -63,9 +63,7 @@ beforeEach(() => {
       metricas: {},
     },
   ]);
-  semear("crc_schema_migrations", [
-    { nome: "28-crc-configuracao-por-clinica.sql", presumido: false },
-  ]);
+  semear("crc_schema_migrations", [{ nome: "29-crc-publico-e-ciclo.sql", presumido: false }]);
   // O sandbox conta como canal configurado — é o provedor de desenvolvimento.
   vi.stubEnv("NODE_ENV", "test");
   vi.stubEnv("WHATSAPP_SANDBOX", "1");

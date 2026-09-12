@@ -377,6 +377,48 @@ export async function inserirIgnorandoDuplicata<T = Linha>(
  * transforma "grava" em "cria ou substitui". Sem ele o PostgREST recusa o
  * `resolution=merge-duplicates`.
  */
+/**
+ * Insere um LOTE e ignora quem já existia.
+ *
+ * ============================================================================
+ *  POR QUE `inserirIgnorandoDuplicata` NÃO SERVE PARA LOTE.
+ *
+ *  Ela insere e, se o Postgres recusar por unicidade, devolve `null`. Num lote,
+ *  UMA duplicata derruba a instrução inteira — as outras 499 linhas boas não
+ *  entram. Quem chama não tem como saber quais eram quais, e o caminho de
+ *  sobrevivência vira "insira uma por uma", que é justamente o N+1 que o lote
+ *  existe para matar.
+ *
+ *  `resolution=ignore-duplicates` faz o Postgres pular as que colidem e gravar
+ *  o resto, numa instrução só. É o `on conflict do nothing`.
+ * ============================================================================
+ *
+ * DEVOLVE QUANTAS ENTRARAM DE VERDADE, e não o tamanho do lote: a diferença é
+ * exatamente o que já existia, e quem chama precisa dela para relatar progresso
+ * sem mentir.
+ */
+export async function inserirLoteIgnorandoDuplicatas(
+  tabela: Tabela,
+  linhas: readonly Linha[],
+  conflito: string,
+): Promise<number> {
+  if (linhas.length === 0) return 0;
+
+  const params = new URLSearchParams({ on_conflict: conflito });
+  const r = await chamar(`/${tabela}?${params.toString()}`, {
+    method: "POST",
+    headers: cabecalhos({
+      "content-type": "application/json",
+      Prefer: "resolution=ignore-duplicates,return=representation",
+    }),
+    body: JSON.stringify(linhas),
+  });
+  await exigirOk(r, `Inserção em lote em ${tabela}`);
+
+  const criadas = (await r.json()) as Linha[];
+  return Array.isArray(criadas) ? criadas.length : 0;
+}
+
 export async function gravar<T = Linha>(
   tabela: Tabela,
   linhas: Linha | Linha[],
