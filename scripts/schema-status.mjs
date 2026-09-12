@@ -135,6 +135,41 @@ const SONDAS = {
     nome: "crc_opcoes_de_publico",
     argumentos: { p_organization_id: null, p_clinic_id: null },
   },
+  /*
+   * A 30 PRECISA DE QUATRO SONDAS, e não de uma.
+   *
+   * Ela faz duas coisas de natureza diferente: cria tabelas novas E acrescenta
+   * dezessete colunas a uma tabela que já existia. Uma sonda só na RPC passaria
+   * com as colunas ausentes — e o Radar quebraria na primeira gravação, não na
+   * verificação.
+   *
+   * `probability` é a coluna sondada porque é a que o Radar escreve em toda
+   * oportunidade que pontua; se ela existe, o `alter table` inteiro rodou.
+   */
+  "30-crc-radar-de-receita.sql": [
+    { tipo: "coluna", nome: "crc_opportunities", coluna: "probability" },
+    { tipo: "tabela", nome: "crc_ai_activity" },
+    { tipo: "tabela", nome: "crc_autonomia" },
+    {
+      tipo: "rpc",
+      nome: "crc_radar_resumo",
+      argumentos: { p_organization_id: null, p_clinic_id: null },
+    },
+  ],
+  /*
+   * A 31 TROCA O `returns table` DA MESMA FUNÇÃO, e a assinatura de ARGUMENTOS
+   * não muda — então uma sonda de RPC passaria com a versão antiga no banco.
+   *
+   * A sonda precisa olhar para o que a 31 acrescenta: a coluna `valor_esperado`
+   * no retorno. `select=valor_esperado` sobre a RPC só resolve se a função nova
+   * estiver lá; com a antiga, o PostgREST devolve 400 por coluna inexistente.
+   */
+  "31-crc-radar-valor-esperado.sql": {
+    tipo: "rpc",
+    nome: "crc_radar_resumo?select=valor_esperado",
+    argumentos: { p_organization_id: null, p_clinic_id: null },
+    exigeOk: true,
+  },
 };
 
 async function sondar(sonda) {
@@ -166,6 +201,23 @@ async function sondar(sonda) {
       detalhe: `função ausente ou com outra assinatura: ${(await r.text()).slice(0, 160)}`,
     };
   }
+
+  /*
+   * `exigeOk` PARA QUANDO A ASSINATURA DE ARGUMENTOS NÃO MUDOU.
+   *
+   * O caso é o da `supabase/31`: ela troca o `returns table` de uma função que
+   * já existia, mantendo os mesmos parâmetros. A resolução de assinatura passa
+   * com a versão ANTIGA no banco — a sonda precisa pedir uma coluna que só a
+   * nova devolve, e aí qualquer resposta que não seja 2xx é a prova de que a
+   * migração não rodou.
+   */
+  if (sonda.exigeOk === true && !r.ok) {
+    return {
+      ok: false,
+      detalhe: `função existe, mas com o retorno antigo: HTTP ${String(r.status)} ${(await r.text()).slice(0, 120)}`,
+    };
+  }
+
   return { ok: true };
 }
 
@@ -214,9 +266,20 @@ for (const arquivo of arquivos) {
   let coluna = "sem sonda";
 
   if (sonda !== undefined) {
-    const r = await sondar(sonda);
-    coluna = r.ok ? "OK" : `FALHOU — ${r.detalhe}`;
-    if (!r.ok) falhas += 1;
+    // Uma migração pode precisar de várias sondas — ver o comentário na 30.
+    // A entrada continua aceitando o objeto solto: era o formato de todas as
+    // outras, e reescrevê-las não provaria nada a mais.
+    const lista = Array.isArray(sonda) ? sonda : [sonda];
+    const resultados = [];
+    for (const s of lista) resultados.push({ s, r: await sondar(s) });
+
+    const ruins = resultados.filter((x) => !x.r.ok);
+    if (ruins.length === 0) {
+      coluna = lista.length === 1 ? "OK" : `OK (${String(lista.length)} sondas)`;
+    } else {
+      coluna = `FALHOU — ${ruins[0].s.nome}: ${ruins[0].r.detalhe}`;
+      falhas += 1;
+    }
   } else {
     semSonda += 1;
   }

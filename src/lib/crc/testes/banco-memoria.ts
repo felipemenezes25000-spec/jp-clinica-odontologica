@@ -192,6 +192,32 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
     { colunas: ["organization_id"], onde: (l) => l["status"] === "RASCUNHO" },
   ],
   crc_users: [{ colunas: ["organization_id", "email"] }],
+  /*
+   * Os índices do 30 e do 31 — o Radar.
+   *
+   * `crc_attribution_events` PRECISA do parcial: um elo sem `chave_dedupe` é
+   * legítimo (um `PRODUCAO` lançado à mão não tem de onde tirar chave), e sem o
+   * `onde` o segundo elo sem chave seria recusado como duplicata.
+   */
+  crc_attribution_events: [
+    { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+  ],
+  crc_ai_activity: [
+    { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+  ],
+  /*
+   * OS DOIS ÍNDICES DA AUTONOMIA, e o fake precisa dos dois separados pelo
+   * mesmo motivo que o Postgres: `clinic_id` nulo é o padrão da organização, e
+   * em SQL dois NULL não são iguais. Um índice só, com `clinic_id` dentro,
+   * deixaria passar quantas linhas de padrão alguém quisesse criar.
+   */
+  crc_autonomia: [
+    {
+      colunas: ["organization_id", "clinic_id", "dominio"],
+      onde: (l) => !nulo(l["clinic_id"]),
+    },
+    { colunas: ["organization_id", "dominio"], onde: (l) => nulo(l["clinic_id"]) },
+  ],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.
   crc_saved_views: [{ colunas: ["organization_id", "user_id", "escopo", "nome"] }],
@@ -692,6 +718,85 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
      * opcional. Sem isso, um teste de duas unidades concordaria com um codigo
      * que mistura as especialidades das duas na mesma tela.
      */
+    /*
+     * O RESUMO DO RADAR — `supabase/30` e `supabase/31`.
+     *
+     * ESTE FAKE PRECISA REPETIR AS TRES EXCLUSOES DO SQL: fechada, descartada
+     * e vencida. Um fake que somasse tudo concordaria com um codigo que enche a
+     * Home de dinheiro que nao existe mais — e o teste que verifica "vencida
+     * nao entra no total" passaria contra o fake e falharia contra o Postgres.
+     *
+     * E `valor_esperado` e `potential_value * coalesce(probability, 0)` LINHA A
+     * LINHA, como no SQL. Multiplicar o total por uma media daria outro numero.
+     */
+    case "crc_radar_resumo": {
+      const org = argumentos["p_organization_id"];
+      const clinica =
+        typeof argumentos["p_clinic_id"] === "string" ? argumentos["p_clinic_id"] : null;
+
+      type Acc = {
+        abertas: number;
+        potencial: number;
+        confirmado: number;
+        esperado: number;
+        somaConfianca: number;
+        scoreMax: number;
+        aguardandoHumano: number;
+      };
+      const porTipo = new Map<string, Acc>();
+
+      for (const l of tabelas["crc_opportunities"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        if (clinica !== null && l["clinic_id"] !== clinica) continue;
+        if (l["fechada_em"] !== null && l["fechada_em"] !== undefined) continue;
+        if (l["dismissed_em"] !== null && l["dismissed_em"] !== undefined) continue;
+
+        const expira = l["expires_at"];
+        if (typeof expira === "string" && Date.parse(expira) <= agora) continue;
+
+        const tipo = String(l["tipo"] ?? "MANUAL");
+        const a = porTipo.get(tipo) ?? {
+          abertas: 0,
+          potencial: 0,
+          confirmado: 0,
+          esperado: 0,
+          somaConfianca: 0,
+          scoreMax: 0,
+          aguardandoHumano: 0,
+        };
+
+        const potencial = Number(l["potential_value"] ?? 0) || 0;
+        const prob = Number(l["probability"] ?? 0) || 0;
+        const conf = Number(l["confidence"] ?? 0) || 0;
+        const score = Number(l["priority_score"] ?? 0) || 0;
+
+        a.abertas += 1;
+        a.potencial += potencial;
+        a.confirmado += Number(l["confirmed_value"] ?? 0) || 0;
+        a.esperado += potencial * prob;
+        a.somaConfianca += conf;
+        a.scoreMax = Math.max(a.scoreMax, score);
+        if (l["aguardando"] === "HUMANO") a.aguardandoHumano += 1;
+
+        porTipo.set(tipo, a);
+      }
+
+      const saida = [...porTipo.entries()]
+        .map(([tipo, a]) => ({
+          tipo,
+          abertas: a.abertas,
+          valor_potencial: a.potencial,
+          valor_confirmado: a.confirmado,
+          valor_esperado: a.esperado,
+          confianca_media: a.abertas === 0 ? 0 : a.somaConfianca / a.abertas,
+          score_maximo: a.scoreMax,
+          aguardando_humano: a.aguardandoHumano,
+        }))
+        .sort((x, y) => y.valor_esperado - x.valor_esperado);
+
+      return Promise.resolve(saida as T[]);
+    }
+
     case "crc_opcoes_de_publico": {
       const org = argumentos["p_organization_id"];
       const clinica =

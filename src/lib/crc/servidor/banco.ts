@@ -111,7 +111,11 @@ export type Tabela =
   | "crc_eval_rodadas"
   | "crc_eval_execucoes"
   | "crc_agent_versions"
-  | "crc_agent_jobs";
+  | "crc_agent_jobs"
+  // supabase/30 — Radar de Receita.
+  | "crc_attribution_events"
+  | "crc_ai_activity"
+  | "crc_autonomia";
 
 export type Linha = Record<string, unknown>;
 
