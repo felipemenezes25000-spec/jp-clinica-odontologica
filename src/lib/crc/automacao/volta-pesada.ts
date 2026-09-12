@@ -257,6 +257,7 @@ async function umaOrganizacao(
     const { calcularRiscos, detectarBuracos } = await import("../aplicacao/agenda-inteligente");
     const { qualificarOrcamentos } = await import("../aplicacao/aceitacao");
     const { podarTranscricoes } = await import("../aplicacao/omnichannel");
+    const { varrerPreConsulta } = await import("../aplicacao/financeiro");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -300,6 +301,13 @@ async function umaOrganizacao(
        */
       await comCaptura(organizationId, "buracos de agenda", () => detectarBuracos(organizationId)),
       await comCaptura(organizationId, "risco de falta", () => calcularRiscos(organizationId)),
+      /*
+       * A PRE-CONSULTA VEM DEPOIS DO RISCO, e a ordem importa: uma das
+       * pendencias e "risco alto de falta", e ela so existe se o risco ja
+       * tiver sido calculado. Invertido, a pendencia mais acionavel da lista
+       * so apareceria no dia seguinte.
+       */
+      await comCaptura(organizationId, "pre-consulta", () => varrerPreConsulta(organizationId)),
       /*
        * O FUNIL DE ACEITACAO percorre os orcamentos abertos em paginas, e pula
        * o que ja esta na versao corrente da formula — mesmo desenho do Radar.

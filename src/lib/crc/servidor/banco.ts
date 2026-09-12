@@ -129,7 +129,11 @@ export type Tabela =
   // supabase/36 — Omnichannel e voz.
   | "crc_calls"
   | "crc_contact_log"
-  | "crc_patient_identities";
+  | "crc_patient_identities"
+  // supabase/37 — Financeiro e pre-consulta.
+  | "crc_payment_policies"
+  | "crc_payment_intents"
+  | "crc_previsit_checks";
 
 export type Linha = Record<string, unknown>;
 

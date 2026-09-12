@@ -5437,3 +5437,164 @@ export const carregarRecepcao = createServerFn({ method: "GET" }).handler(
       };
     }),
 );
+
+/* -------------------------------------------------------------------------- */
+/* Financeiro e pré-consulta — supabase/37                                    */
+/* -------------------------------------------------------------------------- */
+
+export type PendenciaUI = {
+  id: string;
+  patientId: string | null;
+  nome: string;
+  item: string;
+  itemRotulo: string;
+  detalhe: string | null;
+  resolveQuem: string;
+  inicioEm: string | null;
+  bloqueia: boolean;
+};
+
+const ROTULO_DO_ITEM: Readonly<Record<string, string>> = {
+  FORMULARIO: "Anamnese não preenchida",
+  DOCUMENTO: "Documento não enviado",
+  CONFIRMACAO: "Sem confirmação",
+  CONVENIO: "Convênio sem autorização",
+  RISCO_FALTA: "Risco alto de falta",
+  PAGAMENTO: "Débito em aberto",
+};
+
+export const carregarPreConsulta = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ pendencias: PendenciaUI[] }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { listarPendencias } = await import("./aplicacao/financeiro");
+
+      const lista = await listarPendencias(ctx.organizationId, ctx.clinicIds);
+
+      const nomes = await carregarNomes(
+        ctx.organizationId,
+        lista.map((p) => p.patientId).filter((p): p is string => p !== null),
+      );
+
+      return {
+        ok: true as const,
+        pendencias: lista.map((p) => ({
+          id: p.id,
+          patientId: p.patientId,
+          nome: (p.patientId === null ? null : nomes.get(p.patientId)) ?? "Paciente sem nome",
+          item: p.item,
+          itemRotulo: ROTULO_DO_ITEM[p.item] ?? p.item,
+          detalhe: p.detalhe,
+          resolveQuem: p.resolveQuem,
+          inicioEm: p.inicioEm,
+          // SÓ O CONVÊNIO BLOQUEIA. Falta de formulário se resolve na recepção
+          // em dois minutos; convênio sem autorização impede a cobrança do
+          // plano depois.
+          bloqueia: p.item === "CONVENIO",
+        })),
+      };
+    }),
+);
+
+export const resolverPendencia = createServerFn({ method: "POST" })
+  .inputValidator((dados: { id: string; dispensar: boolean }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("editar_paciente", async (ctx) => {
+      const { fecharPendencia } = await import("./aplicacao/financeiro");
+
+      await fecharPendencia(
+        ctx.organizationId,
+        data.id,
+        data.dispensar ? "DISPENSADO" : "RESOLVIDO",
+        ctx.usuario.id,
+      );
+
+      return { ok: true as const };
+    }),
+  );
+
+export type PoliticaUI = {
+  nome: string;
+  descontoMaxPct: number;
+  aprovadorPapel: string | null;
+  parcelasMax: number;
+  parcelasSemJuros: number;
+  parcelaMinima: number;
+  textoParaPaciente: string | null;
+};
+
+export const carregarPoliticaDePagamento = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ politica: PoliticaUI }>> =>
+    comContexto("ver_financeiro", async (ctx) => {
+      const { politicaEmVigor } = await import("./aplicacao/financeiro");
+
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+      const p = await politicaEmVigor(ctx.organizationId, clinica);
+
+      return { ok: true as const, politica: p };
+    }),
+);
+
+export const salvarPoliticaDePagamento = createServerFn({ method: "POST" })
+  .inputValidator(
+    (dados: {
+      nome: string;
+      descontoMaxPct: number;
+      aprovadorPapel: string | null;
+      parcelasMax: number;
+      parcelasSemJuros: number;
+      parcelaMinima: number;
+      textoParaPaciente: string | null;
+    }) => dados,
+  )
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_autopilot", async (ctx) => {
+      const { salvarPolitica } = await import("./aplicacao/financeiro");
+
+      /*
+       * OS LIMITES SÃO CONFERIDOS AQUI, e não só no banco.
+       *
+       * O `check` da tabela recusaria 150% de desconto com um erro de
+       * constraint — que chega na tela como "erro ao salvar". Conferir antes
+       * permite dizer o que está errado.
+       */
+      const pct = Number(data.descontoMaxPct);
+      if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
+        return {
+          ok: false as const,
+          code: "DESCONTO_INVALIDO",
+          message: "O teto de desconto precisa ficar entre 0 e 100 por cento.",
+        };
+      }
+
+      const parcelas = Math.max(1, Math.min(Math.trunc(Number(data.parcelasMax) || 1), 60));
+      const semJuros = Math.max(
+        1,
+        Math.min(Math.trunc(Number(data.parcelasSemJuros) || 1), parcelas),
+      );
+
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+
+      await salvarPolitica(
+        ctx.organizationId,
+        clinica,
+        {
+          nome: data.nome.trim().length > 0 ? data.nome.trim() : "Padrão",
+          descontoMaxPct: pct,
+          aprovadorPapel:
+            data.aprovadorPapel === null || data.aprovadorPapel.trim().length === 0
+              ? null
+              : data.aprovadorPapel.trim(),
+          parcelasMax: parcelas,
+          parcelasSemJuros: semJuros,
+          parcelaMinima: Math.max(0, Number(data.parcelaMinima) || 0),
+          textoParaPaciente:
+            data.textoParaPaciente === null || data.textoParaPaciente.trim().length === 0
+              ? null
+              : data.textoParaPaciente.trim(),
+        },
+        ctx.usuario.id,
+      );
+
+      return { ok: true as const };
+    }),
+  );

@@ -20,9 +20,15 @@
  */
 import { useCallback, useEffect, useState } from "react";
 
-import { carregarAgendaInteligente, type AgendaInteligenteUI } from "@/lib/crc/api";
+import {
+  carregarAgendaInteligente,
+  carregarPreConsulta,
+  resolverPendencia,
+  type AgendaInteligenteUI,
+  type PendenciaUI,
+} from "@/lib/crc/api";
 
-import { Aviso, Cartao, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
+import { Aviso, Botao, Cartao, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
 
 export function Encaixes() {
   const [agenda, setAgenda] = useState<AgendaInteligenteUI | null>(null);
@@ -169,7 +175,118 @@ export function Encaixes() {
           </>
         )}
       </Cartao>
+
+      <PreConsulta />
     </>
+  );
+}
+
+/**
+ * O que falta para as consultas dos próximos três dias acontecerem.
+ *
+ * ============================================================================
+ *  ESTA SEÇÃO ESTÁ AQUI, E NÃO NUMA TELA PRÓPRIA, porque é a mesma pergunta
+ *  das duas de cima: **o que está em risco na agenda desta semana?**
+ *
+ *  Hora vaga é risco que já aconteceu. Risco de falta é risco que vai
+ *  acontecer. Pendência de pré-consulta é risco que ninguém chamaria de risco —
+ *  a pessoa vem, e o atendimento atrasa porque falta a autorização do convênio.
+ *
+ *  Em telas separadas, a terceira nunca seria aberta.
+ * ============================================================================
+ */
+function PreConsulta() {
+  const [pendencias, setPendencias] = useState<PendenciaUI[] | null>(null);
+  const [ocupado, setOcupado] = useState<string | null>(null);
+
+  const recarregar = useCallback(async (): Promise<void> => {
+    try {
+      const r = await carregarPreConsulta();
+      if (r.ok) setPendencias(r.pendencias);
+    } catch {
+      setPendencias([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void recarregar();
+  }, [recarregar]);
+
+  const fechar = useCallback(
+    async (id: string, dispensar: boolean): Promise<void> => {
+      setOcupado(id);
+      try {
+        await resolverPendencia({ data: { id, dispensar } });
+        await recarregar();
+      } finally {
+        setOcupado(null);
+      }
+    },
+    [recarregar],
+  );
+
+  if (pendencias === null) return <ListaEsqueleto linhas={3} />;
+
+  const bloqueiam = pendencias.filter((p) => p.bloqueia);
+
+  return (
+    <Cartao titulo="Falta para acontecer">
+      {pendencias.length === 0 ? (
+        <Vazio
+          titulo="Nada pendente nos próximos dias"
+          explicacao="As consultas dos próximos três dias estão com confirmação, documentos e convênio em ordem."
+        />
+      ) : (
+        <>
+          {bloqueiam.length > 0 && (
+            <Aviso tom="perigo">
+              {/*
+                SÓ O CONVÊNIO BLOQUEIA, e por isso ele tem aviso próprio. Falta
+                de formulário se resolve na recepção em dois minutos; convênio
+                sem autorização impede cobrar do plano depois.
+              */}
+              <strong>
+                {bloqueiam.length === 1 ? "Uma consulta" : `${String(bloqueiam.length)} consultas`}{" "}
+                com convênio sem autorização.
+              </strong>{" "}
+              Depende de falar com o plano — o sistema não diz “autorizado” sem prova.
+            </Aviso>
+          )}
+
+          <ul className="crc-pilha">
+            {pendencias.map((p) => (
+              <li key={p.id} className="crc-cartao-compacto">
+                <div className="crc-linha" style={{ gap: "var(--crc-e2)", flexWrap: "wrap" }}>
+                  <strong>{p.nome}</strong>
+                  <Etiqueta tom={p.bloqueia ? "perigo" : "alerta"}>{p.itemRotulo}</Etiqueta>
+                  {/*
+                    QUEM RESOLVE é a informação que separa o que já está sendo
+                    tratado do que espera uma pessoa. Sem ela, a lista parece
+                    toda trabalho manual.
+                  */}
+                  <Etiqueta tom={p.resolveQuem === "automacao" ? "info" : "neutra"}>
+                    {p.resolveQuem === "automacao" ? "o sistema resolve" : "precisa de você"}
+                  </Etiqueta>
+                  {p.inicioEm !== null && <Etiqueta tom="neutra">{quando(p.inicioEm)}</Etiqueta>}
+                  <span className="crc-empurra">
+                    <Botao
+                      variante="discreto"
+                      onClick={() => {
+                        void fechar(p.id, true);
+                      }}
+                      disabled={ocupado === p.id}
+                    >
+                      Já está resolvido
+                    </Botao>
+                  </span>
+                </div>
+                {p.detalhe !== null && <small className="crc-meta">{p.detalhe}</small>}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Cartao>
   );
 }
 

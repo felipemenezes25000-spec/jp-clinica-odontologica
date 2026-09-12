@@ -222,6 +222,21 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   // a mao na conversa nao tem de onde tirar chave.
   // Os indices do 34 e do 36.
   crc_goal_metrics: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  // Os indices do 37.
+  crc_payment_intents: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  /*
+   * `crc_previsit_checks` tem a chave em (consulta, item), e e ela que impede a
+   * varredura diaria de acumular uma pendencia de confirmacao por dia ate a
+   * consulta chegar.
+   */
+  crc_previsit_checks: [{ colunas: ["appointment_id", "item"] }],
+  crc_payment_policies: [
+    {
+      colunas: ["organization_id", "clinic_id", "nome"],
+      onde: (l) => !nulo(l["clinic_id"]),
+    },
+    { colunas: ["organization_id", "nome"], onde: (l) => nulo(l["clinic_id"]) },
+  ],
   crc_calls: [
     { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
   ],
