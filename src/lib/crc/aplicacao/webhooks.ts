@@ -53,9 +53,29 @@ function chaveDoEnvelope(interpretado: {
   return null;
 }
 
+export type EscopoDoWebhook = { organizationId: string; clinicId: string };
+
 export async function processarWebhookWhatsapp(
   porta: PortaMensageria,
   payload: unknown,
+  /**
+   * O tenant, quando quem chama JÁ SABE de quem é.
+   *
+   * ========================================================================
+   *  É A ENTRADA ROTEADA POR CANAL. A rota `/api/crc/whatsapp/:canal` carrega
+   *  o canal na URL, verifica a assinatura com a credencial DELE, e só então
+   *  chega aqui — com o tenant já provado.
+   *
+   *  Resolver de novo por `destinatario` seria pior do que redundante: o
+   *  destinatário vem do CORPO, e o corpo é dado do provedor. O canal veio da
+   *  URL e foi confirmado pela assinatura. Quando os dois discordam, quem manda
+   *  é o que foi verificado — e a rota recusa antes de chegar aqui.
+   *
+   *  Ausente, o comportamento é o de sempre: resolve pelo destinatário. É o
+   *  caminho da rota antiga, que continua valendo enquanto houver um app só.
+   * ========================================================================
+   */
+  escopoConhecido: EscopoDoWebhook | null = null,
 ): Promise<ResultadoWebhook> {
   const interpretado = porta.interpretarWebhook(payload);
   const resultado: ResultadoWebhook = { mensagens: 0, entregas: 0, duplicadas: 0 };
@@ -79,7 +99,7 @@ export async function processarWebhookWhatsapp(
    * continua sendo gravada antes de qualquer efeito, e `resolverEscopo` e uma
    * leitura — ela nao aplica nada no mundo.
    */
-  const escopo = await resolverEscopo(porta.nome, interpretado.destinatario);
+  const escopo = escopoConhecido ?? (await resolverEscopo(porta.nome, interpretado.destinatario));
 
   const inbox = await inserirIgnorandoDuplicata("crc_webhook_inbox", {
     provedor: porta.nome,

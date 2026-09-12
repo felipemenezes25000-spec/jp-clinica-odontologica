@@ -34,6 +34,7 @@ import { Route as ApiCrcPulsoRouteImport } from './routes/api/crc/pulso'
 import { Route as ApiCrcSaudeRouteImport } from './routes/api/crc/saude'
 import { Route as ApiCrcWhatsappRouteImport } from './routes/api/crc/whatsapp'
 import { Route as ApiRhVarrerRouteImport } from './routes/api/rh/varrer'
+import { Route as ApiCrcWhatsappCanalRouteImport } from './routes/api/crc/whatsapp.$canal'
 import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -161,6 +162,11 @@ const ApiRhVarrerRoute = ApiRhVarrerRouteImport.update({
   path: '/api/rh/varrer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrcWhatsappCanalRoute = ApiCrcWhatsappCanalRouteImport.update({
+  id: '/$canal',
+  path: '/$canal',
+  getParentRoute: () => ApiCrcWhatsappRoute,
+} as any)
 const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
   id: '/api/rh/curriculo/$id',
   path: '/api/rh/curriculo/$id',
@@ -191,8 +197,9 @@ export interface FileRoutesByFullPath {
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/pulso': typeof ApiCrcPulsoRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
-  '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
+  '/api/crc/whatsapp': typeof ApiCrcWhatsappRouteWithChildren
   '/api/rh/varrer': typeof ApiRhVarrerRoute
+  '/api/crc/whatsapp/$canal': typeof ApiCrcWhatsappCanalRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRoutesByTo {
@@ -219,8 +226,9 @@ export interface FileRoutesByTo {
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/pulso': typeof ApiCrcPulsoRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
-  '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
+  '/api/crc/whatsapp': typeof ApiCrcWhatsappRouteWithChildren
   '/api/rh/varrer': typeof ApiRhVarrerRoute
+  '/api/crc/whatsapp/$canal': typeof ApiCrcWhatsappCanalRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRoutesById {
@@ -248,8 +256,9 @@ export interface FileRoutesById {
   '/api/crc/motor': typeof ApiCrcMotorRoute
   '/api/crc/pulso': typeof ApiCrcPulsoRoute
   '/api/crc/saude': typeof ApiCrcSaudeRoute
-  '/api/crc/whatsapp': typeof ApiCrcWhatsappRoute
+  '/api/crc/whatsapp': typeof ApiCrcWhatsappRouteWithChildren
   '/api/rh/varrer': typeof ApiRhVarrerRoute
+  '/api/crc/whatsapp/$canal': typeof ApiCrcWhatsappCanalRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
 export interface FileRouteTypes {
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
     | '/api/rh/varrer'
+    | '/api/crc/whatsapp/$canal'
     | '/api/rh/curriculo/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
     | '/api/rh/varrer'
+    | '/api/crc/whatsapp/$canal'
     | '/api/rh/curriculo/$id'
   id:
     | '__root__'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
     | '/api/rh/varrer'
+    | '/api/crc/whatsapp/$canal'
     | '/api/rh/curriculo/$id'
   fileRoutesById: FileRoutesById
 }
@@ -363,7 +375,7 @@ export interface RootRouteChildren {
   ApiCrcMotorRoute: typeof ApiCrcMotorRoute
   ApiCrcPulsoRoute: typeof ApiCrcPulsoRoute
   ApiCrcSaudeRoute: typeof ApiCrcSaudeRoute
-  ApiCrcWhatsappRoute: typeof ApiCrcWhatsappRoute
+  ApiCrcWhatsappRoute: typeof ApiCrcWhatsappRouteWithChildren
   ApiRhVarrerRoute: typeof ApiRhVarrerRoute
   ApiRhCurriculoIdRoute: typeof ApiRhCurriculoIdRoute
 }
@@ -545,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRhVarrerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/crc/whatsapp/$canal': {
+      id: '/api/crc/whatsapp/$canal'
+      path: '/$canal'
+      fullPath: '/api/crc/whatsapp/$canal'
+      preLoaderRoute: typeof ApiCrcWhatsappCanalRouteImport
+      parentRoute: typeof ApiCrcWhatsappRoute
+    }
     '/api/rh/curriculo/$id': {
       id: '/api/rh/curriculo/$id'
       path: '/api/rh/curriculo/$id'
@@ -554,6 +573,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface ApiCrcWhatsappRouteChildren {
+  ApiCrcWhatsappCanalRoute: typeof ApiCrcWhatsappCanalRoute
+}
+
+const ApiCrcWhatsappRouteChildren: ApiCrcWhatsappRouteChildren = {
+  ApiCrcWhatsappCanalRoute: ApiCrcWhatsappCanalRoute,
+}
+
+const ApiCrcWhatsappRouteWithChildren = ApiCrcWhatsappRoute._addFileChildren(
+  ApiCrcWhatsappRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -579,7 +610,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCrcMotorRoute: ApiCrcMotorRoute,
   ApiCrcPulsoRoute: ApiCrcPulsoRoute,
   ApiCrcSaudeRoute: ApiCrcSaudeRoute,
-  ApiCrcWhatsappRoute: ApiCrcWhatsappRoute,
+  ApiCrcWhatsappRoute: ApiCrcWhatsappRouteWithChildren,
   ApiRhVarrerRoute: ApiRhVarrerRoute,
   ApiRhCurriculoIdRoute: ApiRhCurriculoIdRoute,
 }

@@ -319,6 +319,79 @@ function doAmbiente(organizationId: string | null): EstadoMensageria {
 }
 
 /**
+ * O provedor de UM CANAL, para a entrada roteada por tenant.
+ *
+ * ============================================================================
+ *  É O QUE FALTAVA PARA O SAAS SER VERDADEIRO NA ENTRADA.
+ *
+ *  `provedorParaWebhook()` monta o adapter do AMBIENTE. Isso funciona enquanto
+ *  todos os números vivem dentro do mesmo Meta App (ou da mesma conta Twilio) —
+ *  o `app secret` é do aplicativo, e um aplicativo atende vários números.
+ *
+ *  Deixa de funcionar no instante em que dois clientes trazem os PRÓPRIOS
+ *  aplicativos. Aí a assinatura da mensagem do tenant B é calculada com o
+ *  segredo de B, e verificá-la com o segredo de A recusa mensagem legítima —
+ *  ou, se A for o único cadastrado, aceita como B qualquer coisa assinada por A.
+ *
+ *  Aqui o adapter é montado com a credencial DAQUELE canal, e a assinatura é
+ *  conferida com ela.
+ * ============================================================================
+ *
+ * DEVOLVE O CANAL JUNTO, e não só a porta: quem chama precisa do tenant para
+ * conferir que o destinatário do payload é mesmo este canal, e para gravar o
+ * inbox já com organização e clínica.
+ */
+export async function provedorDoCanal(
+  canalId: string,
+): Promise<
+  { ok: true; porta: PortaMensageria; canal: CanalDoWebhook } | { ok: false; motivo: string }
+> {
+  const { canalPorId } = await import("../credenciais");
+  const canal = await canalPorId(canalId);
+
+  if (canal === null) {
+    return { ok: false, motivo: "Canal não encontrado, desativado, ou com segredo ilegível." };
+  }
+
+  const estado = doCanal(
+    {
+      provedor: canal.provedor,
+      identificador: canal.identificador,
+      // O SEGREDO DE ENVIO PODE SER VAZIO. Um canal cadastrado só para rotear a
+      // entrada é legítimo — o que a verificação de assinatura usa é o
+      // `appSecret` do `config`, e não isto.
+      segredo: canal.segredo ?? "",
+      config: canal.config,
+    },
+    canal.organizationId,
+  );
+
+  if (!estado.configurado) return { ok: false, motivo: estado.motivo };
+
+  return {
+    ok: true,
+    porta: estado.porta,
+    canal: {
+      id: canal.id,
+      organizationId: canal.organizationId,
+      clinicId: canal.clinicId,
+      provedor: canal.provedor,
+      identificador: canal.identificador,
+      config: canal.config,
+    },
+  };
+}
+
+export type CanalDoWebhook = {
+  id: string;
+  organizationId: string;
+  clinicId: string;
+  provedor: string;
+  identificador: string;
+  config: Readonly<Record<string, unknown>>;
+};
+
+/**
  * O provedor do WEBHOOK DE ENTRADA — e ele é do ambiente de propósito.
  *
  * A ROTA DE ENTRADA NÃO SABE DE QUEM É A MENSAGEM ANTES DE LER O CORPO. É

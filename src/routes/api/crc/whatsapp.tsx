@@ -1,5 +1,29 @@
 /**
- * Webhook do WhatsApp — `/api/crc/whatsapp`.
+ * Webhook do WhatsApp — `/api/crc/whatsapp`. **A rota de transição.**
+ *
+ * ============================================================================
+ *  PREFIRA `/api/crc/whatsapp/:canal`, e esta aqui só enquanto valer a
+ *  condição abaixo.
+ *
+ *  Esta rota monta o adapter a partir do AMBIENTE e verifica a assinatura com
+ *  ele. Isso é CORRETO enquanto todos os números da instalação vivem dentro do
+ *  mesmo aplicativo do provedor — o `app secret` da Meta é do APLICATIVO, e um
+ *  aplicativo atende vários números.
+ *
+ *  DEIXA DE SER CORRETO no instante em que dois clientes trazem os próprios
+ *  aplicativos: o segredo de A não valida a assinatura de B, e se só A estiver
+ *  cadastrado, qualquer corpo assinado por A passa dizendo ser de quem quiser.
+ *
+ *  QUANDO ELA É PERMITIDA, exatamente:
+ *
+ *    · uma organização, ou várias dentro do MESMO Meta App / conta Twilio;
+ *    · e nenhum canal com credencial própria em `crc_canais_whatsapp`.
+ *
+ *  Fora disso, aponte o webhook do provedor para a rota por canal. O
+ *  `resolverEscopo()` continua roteando o tenant pelo destinatário — o que ele
+ *  NÃO faz é escolher a credencial que confere a assinatura, e é aí que mora a
+ *  diferença.
+ * ============================================================================
  *
  * DUAS RESPONSABILIDADES, E A ORDEM ENTRE ELAS É O QUE IMPORTA:
  *

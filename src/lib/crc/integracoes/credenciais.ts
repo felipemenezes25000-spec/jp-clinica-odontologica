@@ -426,6 +426,87 @@ async function whatsappDoAmbiente(
   return { ok: false, motivo: "AMBIENTE", faltando: [] };
 }
 
+/**
+ * Um canal pelo ID PÚBLICO dele — o caminho de ENTRADA.
+ *
+ * ============================================================================
+ *  POR QUE A ENTRADA PRECISA DISTO, e a saída não precisava.
+ *
+ *  Na saída, o CRC sabe de quem é a mensagem: ele tem a conversa, e a conversa
+ *  tem a clínica. Na ENTRADA não sabe — o corpo do webhook é justamente o que
+ *  diz de quem é, e ele ainda não pode ser confiado, porque a assinatura não
+ *  foi conferida.
+ *
+ *  E a assinatura precisa da credencial DAQUELE canal. Com dois Meta Apps, o
+ *  `app secret` do tenant A não valida a assinatura do tenant B: a mensagem
+ *  legítima da B seria recusada, e — pior — um payload forjado assinado com o
+ *  segredo de A passaria por qualquer um.
+ *
+ *  O ID NA URL QUEBRA A CIRCULARIDADE. Ele não é segredo: é um uuid que só diz
+ *  "qual linha ler". Quem o descobre ainda precisa assinar o corpo com o
+ *  segredo daquele canal — que continua no banco, cifrado.
+ * ============================================================================
+ *
+ * NÃO EXIGE SEGREDO DE ENVIO. Um canal cadastrado só para roteamento —
+ * `segredo_cifrado` nulo — é legítimo, e este caminho o devolve: o `config`
+ * dele pode ter o `appSecret`, que é o que a verificação de assinatura usa.
+ */
+export type CanalPorId = {
+  id: string;
+  organizationId: string;
+  clinicId: string;
+  provedor: string;
+  identificador: string;
+  /** Nulo quando o canal existe só para rotear, sem credencial de envio. */
+  segredo: string | null;
+  config: Readonly<Record<string, unknown>>;
+};
+
+export async function canalPorId(id: string): Promise<CanalPorId | null> {
+  if (id.length === 0) return null;
+
+  const linha = await selecionarUm("crc_canais_whatsapp", {
+    colunas: "id,organization_id,clinic_id,provedor,identificador,segredo_cifrado,config",
+    filtros: [
+      { coluna: "id", op: "eq", valor: id },
+      // CANAL DESATIVADO NÃO RECEBE. É o desligamento de um cliente, e ele tem
+      // que valer na porta de entrada — não adianta parar de enviar e continuar
+      // aceitando mensagem.
+      { coluna: "ativo", op: "eq", valor: true },
+    ],
+  });
+  if (linha === null) return null;
+
+  const cifrado = typeof linha["segredo_cifrado"] === "string" ? linha["segredo_cifrado"] : "";
+  let segredo: string | null = null;
+
+  if (cifrado.length > 0) {
+    segredo = decifrar(cifrado);
+    if (segredo === null) {
+      /*
+       * DECIFRAR FALHOU: o canal existe e não dá para usar. `null` faz a rota
+       * recusar — e recusar é o certo, porque a alternativa seria verificar a
+       * assinatura com outra credencial qualquer.
+       */
+      registrar("erro", "Canal de WhatsApp com segredo que não decifra.", { canal: id });
+      return null;
+    }
+  }
+
+  return {
+    id: String(linha["id"] ?? ""),
+    organizationId: String(linha["organization_id"] ?? ""),
+    clinicId: String(linha["clinic_id"] ?? ""),
+    provedor: String(linha["provedor"] ?? ""),
+    identificador: String(linha["identificador"] ?? ""),
+    segredo,
+    config:
+      typeof linha["config"] === "object" && linha["config"] !== null
+        ? (linha["config"] as Record<string, unknown>)
+        : {},
+  };
+}
+
 /** `true` quando a recusa foi "não há nada no banco; use o ambiente". */
 export function ehCaminhoDoAmbiente(r: Resolucao<CanalWhatsapp>): boolean {
   return !r.ok && r.motivo === "AMBIENTE";
