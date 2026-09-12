@@ -119,7 +119,9 @@ export type Tabela =
   // supabase/32 — Agenda Inteligente.
   | "crc_schedule_gaps"
   | "crc_gap_offers"
-  | "crc_waitlist_preferences";
+  | "crc_waitlist_preferences"
+  // supabase/33 — Aceitacao de tratamento.
+  | "crc_objections";
 
 export type Linha = Record<string, unknown>;
 

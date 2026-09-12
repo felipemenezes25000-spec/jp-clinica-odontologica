@@ -255,6 +255,7 @@ async function umaOrganizacao(
     const { detectarOportunidadesParadas } = await import("../aplicacao/tarefas");
     const { varrerRadar } = await import("../aplicacao/radar");
     const { calcularRiscos, detectarBuracos } = await import("../aplicacao/agenda-inteligente");
+    const { qualificarOrcamentos } = await import("../aplicacao/aceitacao");
 
     varreduras.push(
       await comCaptura(organizationId, "recall", () => varrerRecall(organizationId, configuracao)),
@@ -298,6 +299,31 @@ async function umaOrganizacao(
        */
       await comCaptura(organizationId, "buracos de agenda", () => detectarBuracos(organizationId)),
       await comCaptura(organizationId, "risco de falta", () => calcularRiscos(organizationId)),
+      /*
+       * O FUNIL DE ACEITACAO percorre os orcamentos abertos em paginas, e pula
+       * o que ja esta na versao corrente da formula — mesmo desenho do Radar.
+       *
+       * Uma pagina por volta e deliberado: a base historica de orcamentos e
+       * grande, e a primeira volta depois de um deploy pontua tudo. As
+       * seguintes pontuam so o que nasceu no dia.
+       */
+      await comCaptura(organizationId, "funil de aceitacao", async () => {
+        let cursor: string | null = null;
+        let lidos = 0;
+        let pontuados = 0;
+
+        // Teto de paginas por volta: 20 x 200 = 4.000 orcamentos, que cobre uma
+        // clinica inteira sem tornar a volta cara.
+        for (let pagina = 0; pagina < 20; pagina += 1) {
+          const r = await qualificarOrcamentos(organizationId, cursor);
+          lidos += r.lidos;
+          pontuados += r.pontuados;
+          if (r.fechou) break;
+          cursor = r.ultimoId;
+        }
+
+        return { orcamentosLidos: lidos, orcamentosPontuados: pontuados };
+      }),
       /*
        * OFERECER O ENCAIXE NAO ESTA AQUI, e a ausencia e deliberada.
        *

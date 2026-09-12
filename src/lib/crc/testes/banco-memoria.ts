@@ -218,6 +218,11 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
    * sempre. E ele que impede a segunda leva de reoferecer para quem ja recebeu.
    */
   crc_schedule_gaps: [{ colunas: ["organization_id", "chave_dedupe"] }],
+  // O indice do 33: parcial, porque objecao sem chave e legitima — uma anotada
+  // a mao na conversa nao tem de onde tirar chave.
+  crc_objections: [
+    { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+  ],
   crc_gap_offers: [{ colunas: ["gap_id", "patient_id"] }],
   crc_waitlist_preferences: [{ colunas: ["organization_id", "patient_id"] }],
   crc_autonomia: [
@@ -413,13 +418,46 @@ function aplicar(linhas: Linha[], opcoes: OpcoesSelecao): Linha[] {
       // usa em toda ordenação por data.
       if (x === null || x === undefined) return 1;
       if (y === null || y === undefined) return -1;
-      const cmp = String(x).localeCompare(String(y));
+
+      /*
+       * ======================================================================
+       *  NUMERO COMPARA COMO NUMERO, e este bloco nasceu de um teste que
+       *  falhou por culpa do fake, e nao do codigo.
+       *
+       *  `String(20000).localeCompare(String(400))` e NEGATIVO: em ordem
+       *  lexicografica, "20000" vem antes de "400". Um `order by valor desc`
+       *  devolvia o orcamento de R$ 400 na frente do de R$ 20.000.
+       *
+       *  O efeito e pior que um teste errado: qualquer teste de ordenacao
+       *  numerica passaria a concordar com um codigo que ordena errado, porque
+       *  o fake e o Postgres discordariam em silencio.
+       *
+       *  `numeric` volta do PostgREST como STRING, entao a deteccao precisa
+       *  olhar o conteudo, e nao o tipo. Data ISO da `NaN` em `Number()` e cai
+       *  no caminho de texto — que e o certo, porque ISO ja ordena
+       *  lexicograficamente.
+       * ======================================================================
+       */
+      const cmp = ambosNumericos(x, y) ? Number(x) - Number(y) : String(x).localeCompare(String(y));
       return ordem.ascendente === false ? -cmp : cmp;
     });
   }
 
   const inicio = opcoes.deslocamento ?? 0;
   return saida.slice(inicio, inicio + (opcoes.limite ?? saida.length));
+}
+
+/** Os dois valores sao numeros, ou texto que representa numero? Ver o bloco acima. */
+function ambosNumericos(x: unknown, y: unknown): boolean {
+  return ehNumerico(x) && ehNumerico(y);
+}
+
+function ehNumerico(v: unknown): boolean {
+  if (typeof v === "number") return Number.isFinite(v);
+  if (typeof v !== "string") return false;
+  const t = v.trim();
+  if (t.length === 0) return false;
+  return Number.isFinite(Number(t));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -841,6 +879,85 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       });
 
       return Promise.resolve(saida.slice(0, Math.max(1, Math.min(limite, 100))) as T[]);
+    }
+
+    /*
+     * A ANALITICA DE OBJECOES — `supabase/33`.
+     *
+     * O `sum(distinct b.total_value)` do SQL e reproduzido com um Set: um
+     * orcamento pode ter varias objecoes da mesma categoria ao longo do tempo, e
+     * somar o valor dele duas vezes inflaria o "valor em jogo" — que e o numero
+     * que alguem leva para a reuniao.
+     */
+    case "crc_analitica_de_objecoes": {
+      const org = argumentos["p_organization_id"];
+      const clinica =
+        typeof argumentos["p_clinic_id"] === "string" ? argumentos["p_clinic_id"] : null;
+      const desde =
+        typeof argumentos["p_desde"] === "string" ? Date.parse(argumentos["p_desde"]) : null;
+
+      type AccObj = {
+        total: number;
+        convertidas: number;
+        perdidas: number;
+        semDesfecho: number;
+        revisadas: number;
+        orcamentos: Set<string>;
+      };
+      const porCategoria = new Map<string, AccObj>();
+
+      for (const o of tabelas["crc_objections"] ?? []) {
+        if (o["organization_id"] !== org) continue;
+        if (clinica !== null && o["clinic_id"] !== clinica) continue;
+        if (
+          desde !== null &&
+          typeof o["ocorrido_em"] === "string" &&
+          Date.parse(o["ocorrido_em"]) < desde
+        ) {
+          continue;
+        }
+
+        const cat = String(o["categoria"] ?? "OUTRO");
+        const a = porCategoria.get(cat) ?? {
+          total: 0,
+          convertidas: 0,
+          perdidas: 0,
+          semDesfecho: 0,
+          revisadas: 0,
+          orcamentos: new Set<string>(),
+        };
+
+        a.total += 1;
+        if (o["desfecho"] === "CONVERTEU") a.convertidas += 1;
+        else if (o["desfecho"] === "PERDEU") a.perdidas += 1;
+        else a.semDesfecho += 1;
+
+        if (o["revisada_em"] !== null && o["revisada_em"] !== undefined) a.revisadas += 1;
+        if (typeof o["budget_id"] === "string") a.orcamentos.add(o["budget_id"]);
+
+        porCategoria.set(cat, a);
+      }
+
+      const saida = [...porCategoria.entries()]
+        .map(([categoria, a]) => {
+          let valor = 0;
+          for (const id of a.orcamentos) {
+            const b = (tabelas["crc_budgets"] ?? []).find((x) => x["id"] === id);
+            valor += Number(b?.["total_value"] ?? 0) || 0;
+          }
+          return {
+            categoria,
+            total: a.total,
+            convertidas: a.convertidas,
+            perdidas: a.perdidas,
+            sem_desfecho: a.semDesfecho,
+            valor_em_jogo: valor,
+            revisadas: a.revisadas,
+          };
+        })
+        .sort((x, y) => y.total - x.total);
+
+      return Promise.resolve(saida as T[]);
     }
 
     case "crc_radar_resumo": {

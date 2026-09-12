@@ -5052,3 +5052,180 @@ export const salvarPreferenciaDeEspera = createServerFn({ method: "POST" })
       return { ok: true as const };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Aceitação de tratamento — supabase/33                                      */
+/* -------------------------------------------------------------------------- */
+
+export type ItemDoFunilUI = {
+  id: string;
+  patientId: string | null;
+  nome: string;
+  valor: number;
+  etapa: string;
+  etapaRotulo: string;
+  objecao: string | null;
+  probabilidade: number | null;
+  valorEsperado: number;
+  proximaAcao: string | null;
+  diasParado: number;
+};
+
+export type ObjecaoAnaliticaUI = {
+  categoria: string;
+  total: number;
+  convertidas: number;
+  perdidas: number;
+  semDesfecho: number;
+  valorEmJogo: number;
+  /** `null` = ainda sem amostra para medir. A tela precisa dizer isso. */
+  taxaDeConversao: number | null;
+};
+
+export type TratamentosUI = {
+  funil: ItemDoFunilUI[];
+  objecoes: ObjecaoAnaliticaUI[];
+  /** Soma dos valores esperados. É o único número que pode virar promessa. */
+  esperado: number;
+  /** Soma dos valores totais. "Se tudo fechar". */
+  emJogo: number;
+  /** Quantos estão aceitos e ainda sem data — o caso mais quente do funil. */
+  aceitosSemData: number;
+};
+
+const ROTULO_DA_ETAPA: Readonly<Record<string, string>> = {
+  PROPOSED: "Orçamento apresentado",
+  THINKING: "Pensando",
+  PRICE_OBJECTION: "Achou caro",
+  FEAR_OBJECTION: "Medo do procedimento",
+  TIME_OBJECTION: "Agora não dá",
+  FAMILY_DECISION: "Depende de outra pessoa",
+  PAYMENT_OBJECTION: "Pagamento ou convênio",
+  NO_RESPONSE: "Sem resposta",
+  ACCEPTED: "Aceitou e não marcou",
+  SCHEDULED: "Marcado",
+  STARTED: "Iniciado",
+  LOST: "Perdido",
+};
+
+export const carregarTratamentos = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ tratamentos: TratamentosUI }>> =>
+    comContexto("ver_financeiro", async (ctx) => {
+      const { analiticaDeObjecoes, listarFunil } = await import("./aplicacao/aceitacao");
+
+      const clinica = ctx.clinicIds.length === 1 ? (ctx.clinicIds[0] ?? null) : null;
+
+      const [funil, objecoes] = await Promise.all([
+        listarFunil(ctx.organizationId, ctx.clinicIds),
+        analiticaDeObjecoes(ctx.organizationId, clinica),
+      ]);
+
+      const nomes = await carregarNomes(
+        ctx.organizationId,
+        funil.map((f) => f.patientId).filter((p): p is string => p !== null),
+      );
+
+      return {
+        ok: true as const,
+        tratamentos: {
+          funil: funil.map((f) => ({
+            id: f.id,
+            patientId: f.patientId,
+            nome: (f.patientId === null ? null : nomes.get(f.patientId)) ?? "Paciente sem nome",
+            valor: f.valor,
+            etapa: f.etapa,
+            etapaRotulo: ROTULO_DA_ETAPA[f.etapa] ?? f.etapa,
+            objecao: f.objecao,
+            probabilidade: f.probabilidade,
+            valorEsperado: f.valorEsperado,
+            proximaAcao: f.proximaAcao,
+            diasParado: f.diasParado,
+          })),
+          objecoes: objecoes.map((o) => ({
+            categoria: o.categoria,
+            total: o.total,
+            convertidas: o.convertidas,
+            perdidas: o.perdidas,
+            semDesfecho: o.semDesfecho,
+            valorEmJogo: o.valorEmJogo,
+            taxaDeConversao: o.taxaDeConversao,
+          })),
+          esperado: Number(funil.reduce((s, f) => s + f.valorEsperado, 0).toFixed(2)),
+          emJogo: Number(funil.reduce((s, f) => s + f.valor, 0).toFixed(2)),
+          aceitosSemData: funil.filter((f) => f.etapa === "ACCEPTED").length,
+        },
+      };
+    }),
+);
+
+export const anotarObjecao = createServerFn({ method: "POST" })
+  .inputValidator(
+    (dados: { budgetId: string | null; patientId: string | null; texto: string }) => dados,
+  )
+  .handler(async ({ data }): Promise<Resposta<{ categoria: string }>> =>
+    comContexto("editar_oportunidade", async (ctx) => {
+      const { registrarObjecao } = await import("./aplicacao/aceitacao");
+
+      const texto = data.texto.trim();
+      if (texto.length < 3) {
+        return {
+          ok: false as const,
+          code: "TEXTO_CURTO",
+          message: "Escreva o que a pessoa disse, com as palavras dela.",
+        };
+      }
+
+      const clinicId = ctx.clinicIds[0];
+      if (clinicId === undefined) {
+        return {
+          ok: false as const,
+          code: "SEM_CLINICA",
+          message: "Este usuário não alcança nenhuma unidade.",
+        };
+      }
+
+      const r = await registrarObjecao({
+        organizationId: ctx.organizationId,
+        clinicId,
+        patientId: data.patientId,
+        budgetId: data.budgetId,
+        texto,
+        /*
+         * SEM CHAVE DE DEDUPE: esta é a anotação MANUAL, feita por uma pessoa
+         * que acabou de conversar. Duas anotações parecidas no mesmo dia são
+         * duas conversas, e não uma repetição — o índice é parcial justamente
+         * para isso.
+         */
+        chaveDedupe: null,
+      });
+
+      return { ok: true as const, categoria: r?.categoria ?? "OUTRO" };
+    }),
+  );
+
+export const corrigirObjecao = createServerFn({ method: "POST" })
+  .inputValidator((dados: { objecaoId: string; categoria: string }) => dados)
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("editar_oportunidade", async (ctx) => {
+      const { revisarObjecao } = await import("./aplicacao/aceitacao");
+
+      const VALIDAS = ["PRECO", "TEMPO", "MEDO", "TERCEIRO", "CONVENIO", "CONFIANCA", "OUTRO"];
+      if (!VALIDAS.includes(data.categoria)) {
+        return {
+          ok: false as const,
+          code: "CATEGORIA_INVALIDA",
+          message: "Esta categoria de objeção não existe.",
+        };
+      }
+
+      await revisarObjecao(
+        ctx.organizationId,
+        data.objecaoId,
+        data.categoria as
+          "PRECO" | "TEMPO" | "MEDO" | "TERCEIRO" | "CONVENIO" | "CONFIANCA" | "OUTRO",
+        ctx.usuario.id,
+      );
+
+      return { ok: true as const };
+    }),
+  );

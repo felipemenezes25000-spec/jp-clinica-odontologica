@@ -157,6 +157,31 @@ const SONDAS = {
     },
   ],
   /*
+   * A 32 e a 33 sao sondadas pelas TABELAS e pela RPC que elas criam. O
+   * `alter table` da 33 sobre `crc_budgets` entra como sonda de COLUNA, pelo
+   * mesmo motivo da 30: uma sonda so na tabela nova passaria com as colunas
+   * ausentes, e o funil quebraria na primeira gravacao.
+   */
+  "32-crc-agenda-inteligente.sql": [
+    { tipo: "tabela", nome: "crc_schedule_gaps" },
+    { tipo: "tabela", nome: "crc_waitlist_preferences" },
+    { tipo: "coluna", nome: "crc_appointments", coluna: "risco_falta" },
+    {
+      tipo: "rpc",
+      nome: "crc_candidatos_para_buraco",
+      argumentos: { p_organization_id: null, p_gap_id: null, p_limite: 1 },
+    },
+  ],
+  "33-crc-aceitacao-de-tratamento.sql": [
+    { tipo: "tabela", nome: "crc_objections" },
+    { tipo: "coluna", nome: "crc_budgets", coluna: "funil" },
+    {
+      tipo: "rpc",
+      nome: "crc_analitica_de_objecoes",
+      argumentos: { p_organization_id: null, p_clinic_id: null, p_desde: null },
+    },
+  ],
+  /*
    * A 31 TROCA O `returns table` DA MESMA FUNÇÃO, e a assinatura de ARGUMENTOS
    * não muda — então uma sonda de RPC passaria com a versão antiga no banco.
    *

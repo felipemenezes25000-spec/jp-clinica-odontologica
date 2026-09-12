@@ -23,6 +23,7 @@ import {
   FileUp,
   FlaskConical,
   CalendarClock,
+  Stethoscope,
   House,
   Radar as RadarIcon,
   ImageOff,
@@ -61,6 +62,7 @@ import { Ferramentas } from "@/components/crc/Ferramentas";
 import { Playground } from "@/components/crc/Playground";
 import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
 import { Encaixes } from "@/components/crc/Encaixes";
+import { Tratamentos } from "@/components/crc/Tratamentos";
 import { Radar } from "@/components/crc/Radar";
 import { Saude } from "@/components/crc/Saude";
 import { Configuracoes } from "@/components/crc/Configuracoes";
@@ -105,6 +107,7 @@ type Aba =
   | "home"
   | "radar"
   | "encaixes"
+  | "tratamentos"
   | "trabalho"
   | "inbox"
   | "agenda"
@@ -199,6 +202,12 @@ const GRUPOS_NAVEGACAO: readonly GrupoNav[] = [
     rotulo: "Performance",
     itens: [
       { aba: "gestao", rotulo: "Gestão", permissao: "ver_analytics_gerencial", icone: BarChart3 },
+      {
+        aba: "tratamentos",
+        rotulo: "Tratamentos",
+        permissao: "ver_financeiro",
+        icone: Stethoscope,
+      },
       { aba: "importar", rotulo: "Importar", permissao: "importar_dados", icone: FileUp },
       { aba: "automacoes", rotulo: "Automações", permissao: "ver_automacao", icone: Workflow },
       { aba: "campanhas", rotulo: "Campanhas", permissao: "gerenciar_automacao", icone: Megaphone },
@@ -339,6 +348,34 @@ const GUIA_ABAS: Record<Aba, GuiaAba> = {
       { rotulo: "Precisa de você", tom: "perigo" },
       { rotulo: "Automação cuidando", tom: "info" },
       { rotulo: "Em dia", tom: "positiva" },
+    ],
+  },
+  tratamentos: {
+    sobretitulo: "O or\u00e7amento que n\u00e3o virou tratamento",
+    paraQue: "quanto est\u00e1 aberto, e por que n\u00e3o fecha",
+    descricao:
+      "Num consult\u00f3rio, entre 35% e 55% dos or\u00e7amentos viram tratamento. A outra metade \u00e9 o dinheiro mais barato que existe: o paciente j\u00e1 veio, j\u00e1 foi examinado, j\u00e1 ouviu a proposta. Em cima, a lista em ordem de VALOR \u2014 \u00e9 o que decide onde gastar a pr\u00f3xima hora. Embaixo, a contagem por motivo, com a taxa de convers\u00e3o de cada um quando j\u00e1 h\u00e1 desfecho suficiente para medir.",
+    acoes: [
+      {
+        faca: "Olhar \u201caceitou e n\u00e3o marcou\u201d primeiro",
+        efeito:
+          "\u00c9 a etapa mais quente e a mais f\u00e1cil de perder: no sistema da cl\u00ednica esses or\u00e7amentos constam como aprovados, ent\u00e3o ningu\u00e9m os procura numa lista de pend\u00eancias.",
+      },
+      {
+        faca: "Ler a taxa de convers\u00e3o por motivo",
+        efeito:
+          "Diz o que mudar no m\u00eas que vem. Se pre\u00e7o aparece muito e converte pouco, o problema n\u00e3o \u00e9 treinamento de equipe \u2014 \u00e9 tabela ou forma de pagamento.",
+      },
+      {
+        faca: "Anotar o motivo com as palavras da pessoa",
+        efeito:
+          "A categoria serve para contar; o texto original \u00e9 o que permite entender. \u201cT\u00e1 caro, m\u00eas que vem eu consigo\u201d e \u201ct\u00e1 caro, achei mais barato\u201d s\u00e3o conversas opostas.",
+      },
+    ],
+    legendas: [
+      { rotulo: "Aceitou e n\u00e3o marcou", tom: "alerta" },
+      { rotulo: "Marcado", tom: "positiva" },
+      { rotulo: "Com obje\u00e7\u00e3o", tom: "info" },
     ],
   },
   encaixes: {
@@ -1868,6 +1905,7 @@ function PortalCrc() {
           {abaAtual === "proximas" && <ProximasAcoes />}
           {abaAtual === "radar" && <Radar />}
           {abaAtual === "encaixes" && <Encaixes />}
+          {abaAtual === "tratamentos" && <Tratamentos />}
           {abaAtual === "saude" && <Saude />}
           {abaAtual === "equipe" && <Equipe />}
           {abaAtual === "configuracoes" && <Configuracoes />}
