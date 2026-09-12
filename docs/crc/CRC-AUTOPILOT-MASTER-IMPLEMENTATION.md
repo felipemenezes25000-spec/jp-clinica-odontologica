@@ -185,10 +185,92 @@ de fora, e não como sonda.
 ## 3. Testes
 
 ```
-93 arquivos · 1.658 testes · todos passando
-npx tsc --noEmit    limpo
-npx eslint          limpo (2 warnings pre-existentes de react-refresh)
+npx vitest run                                  93 arquivos · 1.658 testes · passando
+npx tsc --noEmit                                limpo
+npx eslint src vite.config.ts eslint.config.js  0 erros · 5 warnings   <- o comando do CI
+npx eslint src scripts e2e                      414 arquivos · 0 erros · 5 warnings
 ```
+
+Os 5 warnings são todos `react-refresh/only-export-components`, em
+`Visoes.tsx`, `base.tsx`, `PainelDuvidas.tsx`, `Sanfona.tsx` e `CapaVaga.tsx` —
+nenhum deles tocado por este trabalho.
+
+> **O comando está escrito por extenso de propósito.** Uma versão anterior deste
+> relatório dizia só "`npx eslint` limpo, 2 warnings", e as duas coisas estavam
+> erradas por omissão de escopo: os "2" eram de um lint de três caminhos
+> (`src/lib/crc`, `src/components/crc`, `src/routes/crc.tsx`), e não do projeto.
+> A linha do CI é a que decide, e é ela que está acima.
+
+### `npm run lint` estava quebrado — e o CI não percebia
+
+O script do repo é `eslint .`, e ele **morria** antes de imprimir qualquer coisa:
+
+```
+RangeError: Invalid string length
+  at eslint/lib/cli-engine/formatters/stylish.js:84
+```
+
+A causa era `.vercel/` fora da lista de `ignores` do `eslint.config.js`: 85
+bundles minificados, 21 MB, cada linha de mil colunas virando erro de Prettier.
+O formatter monta a saída inteira numa string só e estoura o limite do V8.
+
+Isso passou despercebido porque **o CI não roda `npm run lint`**: o `quality.yml`
+roda `npx eslint src vite.config.ts eslint.config.js`, escopado, que nunca
+encosta em `.vercel`. O script da máquina do desenvolvedor estava quebrado e o CI
+seguia verde — a pior combinação, porque ninguém desconfia do CI.
+
+Corrigido acrescentando `.vercel`, `.tanstack` e `.data` aos `ignores`, alinhando
+a lista com o que o `.gitignore` já trata como artefato de build.
+
+**Esse primeiro conserto estava incompleto,** e só se soube disso porque o run
+foi medido de novo em vez de declarado pronto: ele continuou sem terminar. O que
+sobrava era `public/crc-tour/assets/index-WVEd94Q-.js` — **512 KB em 17 linhas**,
+a build do `apresentacao/` (`outDir: "../public/crc-tour"`). Ela é o caso raro de
+saída de ferramenta que vai **rastreada pelo git**, de propósito, para ser servida
+sem exigir a build do sub-projeto no CI. Ignorar a fonte e lintar a saída dela era
+incoerente, e foi acrescentada à lista com nome próprio.
+
+Depois dos dois:
+
+```
+npm run lint
+  ✖ 5 problems (0 errors, 5 warnings)
+  exit=0   duracao=18s
+```
+
+De dez minutos e um crash para **18 segundos e zero erros**.
+
+### O mesmo buraco no Prettier — esse valia mais que o do eslint
+
+`npm run format` é `prettier --write .`, e ele **acusava** o bundle do tour:
+
+```
+[warn] public/crc-tour/assets/index-WVEd94Q-.js
+[warn] Code style issues found in the above file.
+```
+
+Ou seja: quem rodasse `npm run format` reescreveria 512 KB de bundle minificado
+**versionado**, produzindo um diff que ninguém pediu e ninguém consegue revisar.
+Pior que o problema do eslint, porque aquele só quebrava a ferramenta; este
+sujava o repositório. `public/crc-tour` entrou no `.prettierignore`.
+
+**O que NÃO precisou de conserto:** suspeitei que o mesmo valeria para `.vercel`,
+que também não está no `.prettierignore`. Testado com um arquivo propositalmente
+mal formatado dentro e fora do diretório: o de fora é acusado, o de dentro passa.
+O Prettier ignora `.vercel` por conta própria. Mexer ali teria sido conserto de
+problema inexistente — e a diferença entre os dois casos só apareceu porque cada
+um foi testado, e não deduzido do primeiro.
+
+### Uma condição pré-existente que ficou como está
+
+`npx prettier --check .` acusa **71 arquivos**: 30 `.md`, 23 `.css`, 15 `.yml`,
+1 `.yaml`, 1 `.json`, 1 `.html`. Nenhum `.ts` ou `.tsx` — o código-fonte está
+formatado, porque o `eslint-plugin-prettier` cobre TypeScript e o lint passa.
+
+Dos 71, **exatamente um era deste trabalho**: este relatório. Formatá-lo mudaria
+162 linhas de alinhamento de tabela, sem alterar uma palavra de conteúdo, e o
+deixaria como o único dos 30 markdowns em outro estilo. Ficou como está, e a
+pendência está anotada aqui em vez de meio-resolvida.
 
 ### Injeção de defeito (§96)
 
@@ -281,7 +363,11 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 |---|---|
 | 1.658 testes passam | `npx vitest run`, saída colada acima |
 | Typecheck limpo | `npx tsc --noEmit`, sem saída |
-| Lint limpo | `npx eslint`, 0 erros |
+| Lint limpo no escopo do CI | `npx eslint src vite.config.ts eslint.config.js` — 0 erros, 5 warnings pré-existentes |
+| Lint limpo em todo o código-fonte | `npx eslint src scripts e2e` — 414 arquivos, 0 erros |
+| `npm run lint` inteiro volta a funcionar | 0 erros, 5 warnings, **18s** — antes: 10+ min e `RangeError` |
+| `npm run format` não suja mais o repo | `prettier --check` no bundle do tour passou de "code style issues" a ignorado |
+| 71 arquivos fora do padrão do Prettier | Pré-existentes (md/css/yml). Nenhum `.ts`/`.tsx`. Não corrigidos — ver seção 3 |
 | Migrations 25–34 em produção | `npm run schema:status`, 22 sondas |
 | Migrations 35–38 **não** aplicadas | mesma saída, 3 falhas + 1 sem sonda |
 | **CI** | **NÃO OBSERVADO** — nada foi empurrado; o CI não rodou nenhuma vez nesta sequência |

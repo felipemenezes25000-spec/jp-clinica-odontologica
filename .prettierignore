@@ -7,3 +7,18 @@ package-lock.json
 bun.lock
 routeTree.gen.ts
 apresentacao
+
+# A BUILD DO TOUR, QUE VAI COMMITADA.
+#
+# `public/crc-tour/` e o `outDir` do `apresentacao/vite.config.ts`, e os 18
+# arquivos dele sao RASTREADOS pelo git de proposito: vao commitados para serem
+# servidos sem exigir a build do sub-projeto no CI.
+#
+# Sem esta linha, `npm run format` reescreve `index-WVEd94Q-.js` — 512 KB em 17
+# linhas de bundle minificado — e produz um diff gigante num arquivo versionado,
+# que ninguem pediu e ninguem consegue revisar. Testado: o Prettier ACUSA esse
+# arquivo hoje.
+#
+# `.vercel` nao precisa entrar aqui: o Prettier ja o ignora por conta propria
+# (verificado com um arquivo mal formatado dentro e fora do diretorio).
+public/crc-tour
