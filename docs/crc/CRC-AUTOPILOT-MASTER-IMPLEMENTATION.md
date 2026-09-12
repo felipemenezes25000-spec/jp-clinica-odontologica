@@ -3,10 +3,12 @@
 Relatório da implementação do Prompt Mestre (Clinic Growth OS) no CRC.
 
 ```
-Ultimo commit de CODIGO   6dd5183
+Ultimo commit de CODIGO   e6ebba5
 Branch                    main
-origin/main               25f276d   (16 commits atras)
+origin/main               25f276d   (18 commits atras)
 Estado                    LOCAL — nada empurrado, CI nao rodou nenhuma vez
+Schema de producao        39/39 migrations aplicadas, 22 sondas, 0 falhas
+Dados de producao         0 pacientes
 Data                      2026-09-12
 ```
 
@@ -87,7 +89,7 @@ A linha do tempo única, a ligação e a identidade.
 - `dominio/atendimento.ts` — ligação não atendida é **ausência** de nota, e não
   nota baixa. Cada observação termina numa pergunta, porque a resposta quase
   nunca é "alguém trabalhou mal".
-- Migration **36** — escrita, **não aplicada**.
+- Migration **36**, aplicada e sondada (3 sondas).
 
 ### FASE E — Financeiro (§30, §31, §33)
 
@@ -95,7 +97,7 @@ A política de pagamento e a checagem de pré-consulta.
 
 - `dominio/pagamento.ts` — `POLITICA_PADRAO` nasce toda fechada. Só convênio
   bloqueia atendimento; o resto é pendência, não barreira.
-- Migration **37** — escrita, **não aplicada**. `crc_payment_intents` inclui o
+- Migration **37**, aplicada e sondada (3 sondas). `crc_payment_intents` inclui o
   estado `DESCONHECIDO`, porque uma integração de pagamento que cai no meio
   deixa exatamente esse estado, e fingir que ele não existe o transforma em
   "não pago".
@@ -108,7 +110,7 @@ Reputação, indicação, experimento e aprendizado.
   perguntado: perguntar só a quem provavelmente gostou é fabricar NPS.
   `gerarCodigo()` usa alfabeto ditável (sem 0/O, 1/I). `avaliarAprendizado()`
   nunca devolve `APLICADO` — aplicar é decisão de gente.
-- Migration **38** — escrita, **não aplicada**.
+- Migration **38**, aplicada e sondada (5 sondas).
 
 ### FASE G — Gestão (§38 a §42)
 
@@ -152,33 +154,52 @@ Saída de `npm run schema:status` contra o Supabase de produção, hoje:
 
 ```
 34-crc-metas.sql                    sim      OK (3 sondas)
-35-crc-search-path-das-funcoes.sql  NÃO      sem sonda
-36-crc-omnichannel-e-voz.sql        NÃO      FALHOU — crc_calls: PGRST205
-37-crc-financeiro-e-pre-consulta    NÃO      FALHOU — crc_payment_policies: PGRST205
-38-crc-growth.sql                   NÃO      FALHOU — crc_feedback: PGRST205
+35-crc-search-path-das-funcoes.sql  sim      sem sonda
+36-crc-omnichannel-e-voz.sql        sim      OK (3 sondas)
+37-crc-financeiro-e-pre-consulta    sim      OK (3 sondas)
+38-crc-growth.sql                   sim      OK (5 sondas)
 
-39 arquivos · 22 sondados · 3 falha(s)
+39 arquivos · 22 sondados · 0 falha(s)
 ```
 
-**Aplicadas e provadas em produção:** 25 a 34.
-**Escritas e NÃO aplicadas:** 35, 36, 37, 38.
+**Todas aplicadas.** As 36, 37 e 38 foram rodadas depois da primeira versão deste
+relatório, e a sonda confirma — não o registro.
 
 > A sonda vence o registro. Uma linha em `crc_schema_migrations` diz que alguém
-> anotou; a sonda diz o que está no banco. Foi assim que a 34 passou de
-> "presumida" a provada — e as 36/37/38, de "achei que tinham rodado" a
-> reprovadas.
+> anotou; a sonda diz o que está no banco. Esta distinção não é teórica aqui: a
+> 34 passou de "presumida" a provada por causa dela, e as 36/37/38 estiveram
+> marcadas como aplicadas **enquanto as tabelas não existiam** — a sonda foi o
+> que desmentiu.
 
-### Por que a 35 não tem sonda
+### A 35 não tem sonda, mas tem prova
 
 Ela não cria nada: só faz `alter function ... set search_path`. Isso é
 propriedade da função no catálogo (`pg_proc.proconfig`), e o PostgREST não
 expõe catálogo. Uma função com e sem `search_path` responde **exatamente igual**
 a uma chamada — que é justamente o ponto: a migration endurece sem mudar
-comportamento.
+comportamento. Não há sonda possível.
 
-A evidência dela é externa: o linter do Supabase deve deixar de listar as
-funções `crc_*` em `function_search_path_mutable`. Está anotado como verificação
-de fora, e não como sonda.
+O que **há** é prova do risco específico dela. A primeira versão da 35 punha
+`search_path = ''` em todas as funções e quebrou o pgvector, porque com caminho
+vazio o operador `<=>` e o tipo `vector` também deixam de resolver — e não só
+tabelas. A versão final dá `search_path = public` às funções que dependem de
+vetor. Para verificar que o endurecimento não as quebrou em produção,
+`crc_buscar_conhecimento` foi **chamada de verdade**, com um vetor inerte de
+1536 posições:
+
+```
+POST /rest/v1/rpc/crc_buscar_conhecimento
+HTTP 200 · 0 linhas
+```
+
+`200` prova que o operador `<=>` resolveu e a função executou. Se o
+endurecimento a tivesse quebrado, a resposta seria
+`operator does not exist: public.vector <=> public.vector`. As 0 linhas são o
+esperado: a base está vazia.
+
+A evidência do endurecimento em si continua externa: o linter do Supabase deve
+deixar de listar as funções `crc_*` em `function_search_path_mutable`. Está
+anotado como verificação de fora, e não como sonda.
 
 ---
 
@@ -368,22 +389,24 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 | `npm run lint` inteiro volta a funcionar | 0 erros, 5 warnings, **18s** — antes: 10+ min e `RangeError` |
 | `npm run format` não suja mais o repo | `prettier --check` no bundle do tour passou de "code style issues" a ignorado |
 | 71 arquivos fora do padrão do Prettier | Pré-existentes (md/css/yml). Nenhum `.ts`/`.tsx`. Não corrigidos — ver seção 3 |
-| Migrations 25–34 em produção | `npm run schema:status`, 22 sondas |
-| Migrations 35–38 **não** aplicadas | mesma saída, 3 falhas + 1 sem sonda |
+| Schema de produção completo | `npm run schema:status` — 39 arquivos, 22 sondas, **0 falhas** |
+| pgvector intacto após a 35 | `POST /rpc/crc_buscar_conhecimento` com vetor de 1536 → `HTTP 200` |
 | **CI** | **NÃO OBSERVADO** — nada foi empurrado; o CI não rodou nenhuma vez nesta sequência |
-| **Produção** | **NÃO OBSERVADA** — roda `7c0c692`, código pré-auditoria, com base vazia |
+| **Produção (código)** | **NÃO OBSERVADA** — roda `7c0c692`, pré-auditoria, 18 commits atrás |
+| **Produção (dados)** | 0 pacientes — o schema está pronto e vazio |
 | E2E | 14 testes passando **em ambiente local** com `node-server`; nunca contra produção |
 
-### Três leituras que precisam ser ditas em voz alta
+### Duas leituras que precisam ser ditas em voz alta
 
-1. **A base de produção está vazia** (0 pacientes). Nenhum número deste sistema
-   significa nada até o Dental Office sincronizar. Um Radar sobre base vazia
-   mostra R$ 0,00 e está correto.
-2. **Produção está 16 commits atrás.** Tudo descrito aqui existe apenas no
-   repositório local.
-3. **Quatro migrations não rodaram.** As FASES D, E e F têm código, testes e
-   telas — e nenhuma tabela no banco de produção. Elas quebram na primeira
-   gravação real.
+O schema deixou de ser o gargalo: as 39 migrations estão aplicadas e sondadas.
+Sobraram duas coisas, e nenhuma delas é banco.
+
+1. **Produção roda código de 18 commits atrás.** O banco já tem as tabelas das
+   FASES B a F; o código que as usa não está lá. Tudo descrito aqui existe
+   apenas no repositório local, e o CI nunca rodou nesta sequência.
+2. **A base tem 0 pacientes.** Nenhum número deste sistema significa nada até o
+   Dental Office sincronizar. Um Radar sobre base vazia mostra R$ 0,00 e está
+   correto — o que é diferente de estar funcionando.
 
 ---
 
@@ -401,14 +424,14 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 | Treatment Acceptance | `DONE` | Migration 33 aplicada; tela Tratamentos |
 | Objection Intelligence | `DONE` | `crc_objections` + RPC de analítica |
 | Voice AI | `BLOCKED_EXTERNAL` | Arquitetura pronta (`crc_calls`); sem provedor |
-| Call Intelligence | `PARTIAL` | Domínio pronto; **migration 36 não aplicada** |
-| Financial Concierge | `BLOCKED_EXTERNAL` | `crc_payment_intents` desenhado; **37 não aplicada** |
-| Reputation | `PARTIAL` | Domínio + serviço; **migration 38 não aplicada** |
-| Referral | `PARTIAL` | Idem |
+| Call Intelligence | `DONE` | Migration 36 aplicada; domínio + linha do tempo |
+| Financial Concierge | `BLOCKED_EXTERNAL` | 37 aplicada; arquitetura pronta. Falta o PROVEDOR, não a tabela |
+| Reputation | `DONE` | Migration 38 aplicada; pesquisa, NPS e roteamento |
+| Referral | `DONE` | Idem — código de indicação ditável, derivado do id |
 | Attribution | `DONE` | Cadeia, funil e gravação de elo |
 | Autonomous Marketing | `NOT_STARTED` | — |
-| Experiments | `PARTIAL` | Domínio + serviço; **38 não aplicada** |
-| Learning Engine | `PARTIAL` | Idem |
+| Experiments | `DONE` | Migration 38 aplicada; leitura só com amostra suficiente |
+| Learning Engine | `DONE` | Idem — `avaliarAprendizado()` nunca devolve APLICADO |
 | Morning Briefing | `DONE` | Dentro da tela de Gestão |
 | Anomaly Hunter | `DONE` | 4 séries, limiar de 30% |
 | Capacity Optimizer | `DONE` | Por dentista, janela real |
@@ -434,10 +457,10 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 | Gestão (briefing, anomalia, capacidade, simulador) | **GO** | Derivado; sem migration |
 | Multi-clínica e escopo | **GO** | Tabelas já existiam; testado com injeção de defeito |
 | Onboarding | **GO** | Só leitura |
-| Omnichannel / linha do tempo | **NO-GO até a 36 rodar** | Quebra na primeira gravação |
-| Financeiro / pré-consulta | **NO-GO até a 37 rodar** | Idem |
-| Reputação / indicação / experimento | **NO-GO até a 38 rodar** | Idem |
-| Endurecimento de `search_path` | **NO-GO até a 35 rodar** | Não muda comportamento; é dívida de segurança |
+| Omnichannel / linha do tempo | **GO** | 36 aplicada e sondada |
+| Financeiro / pré-consulta | **GO** para política e pré-consulta | 37 aplicada e sondada. O pagamento em si segue BLOCKED_EXTERNAL |
+| Reputação / indicação / experimento | **GO** | 38 aplicada e sondada |
+| Endurecimento de `search_path` | **GO** | 35 aplicada; pgvector verificado intacto por chamada real |
 | Voz | **BLOCKED_EXTERNAL** | Sem provedor |
 | Pagamentos | **BLOCKED_EXTERNAL** | Sem provedor |
 | AI resposta / escrita / auto-scheduling | **NO-GO** | Sem avaliação contra modelo real |
@@ -448,16 +471,18 @@ de vetor (`prosrc like '%vector%' or '%<=>%'`) e dá a elas `search_path = publi
 
 ## 9. Os próximos passos, em ordem
 
-1. **Rodar `supabase/35`, `36`, `37` e `38`** no SQL Editor, cada uma seguida de
-   `notify pgrst, 'reload schema';`. Depois: `npm run schema:status` precisa
-   fechar com **0 falhas**. Enquanto isso não acontecer, três fases inteiras têm
-   código e nenhuma tabela.
-2. **Conferir o linter do Supabase** — `function_search_path_mutable` deve parar
-   de listar funções `crc_*`. É a única evidência possível da 35.
-3. **Empurrar os 16 commits** e **observar o CI** antes de qualquer outra coisa.
-   Nada neste documento afirma que o CI passa.
-4. **Deploy.** Produção roda `7c0c692`, de antes da auditoria.
-5. **Sincronizar o Dental Office.** A base tem 0 pacientes.
-6. Só então: telas de Metas e do Centro de Autonomia, e ligar o NBA em sombra.
+~~1. Rodar `supabase/35`, `36`, `37` e `38`.~~ **Feito.** `npm run schema:status`
+fecha com 0 falhas, e o pgvector foi verificado intacto por chamada real.
 
-O passo 5 é o que separa "um sistema testado" de "um sistema em uso".
+1. **Empurrar os 18 commits** e **observar o CI** antes de qualquer outra coisa.
+   Nada neste documento afirma que o CI passa — ele nunca rodou nesta sequência.
+2. **Deploy.** Produção roda `7c0c692`, de antes da auditoria. Hoje o banco está
+   à frente do código: as tabelas das FASES B a F existem, e o código que as usa
+   não está lá.
+3. **Sincronizar o Dental Office.** A base tem 0 pacientes.
+4. **Conferir o linter do Supabase** — `function_search_path_mutable` deve ter
+   parado de listar funções `crc_*`. É a única evidência possível do
+   endurecimento da 35, e é verificação de fora.
+5. Só então: telas de Metas e do Centro de Autonomia, e ligar o NBA em sombra.
+
+O passo 3 é o que separa "um sistema testado" de "um sistema em uso".
