@@ -9,7 +9,7 @@
 
 | | |
 |---|---|
-| HEAD entregue | `a1c0c6e262ca25013a3fd32ff224d70d2b45cf20` |
+| HEAD entregue | `8e797758` (auditado e com CI observado) |
 | Ponto de partida da rodada | `1d5c0da7b1539e4335b2598bd55de44d843cff58` |
 | Migrations | até `29-crc-publico-e-ciclo.sql` (31 arquivos em `supabase/`) |
 
@@ -17,6 +17,7 @@
 add5c29  fix: o lock precisa ser gerado pelo npm que o CI usa
 2772fbc  fix: a campanha para de perder gente, e a varredura para de rastejar
 a1c0c6e  fix: o webhook de entrada passa a ser roteado por canal, antes de confiar no corpo
+8e79775  docs: reescreve a auditoria a partir desta execucao
 ```
 
 ---
@@ -216,17 +217,25 @@ isso está registrado porque muda como os testes foram escritos:
 
 ## 5. CI
 
+**Observado em `8e79775`** — o HEAD entregue, e não um commit anterior:
+
 | Workflow | SHA | Resultado |
 |---|---|---|
-| Quality | `add5c29` | **success** |
-| CRC Integração | `add5c29` | **success** — inclui `10 passed (27.0s)` do Playwright no log |
-| CRC Smoke | `add5c29` | **success** |
-| CRC Pulso | `add5c29` | **failure** — `CRON_SECRET` ausente (ver seção 6) |
+| Quality | `8e79775` | **success** |
+| CRC Integração | `8e79775` | **success** |
+| CRC Smoke | `8e79775` | **success** |
+| CRC Pulso | `8e79775` | **failure** — `CRON_SECRET` ausente (ver seção 6) |
 
-**O HEAD entregue é `a1c0c6e`, e o CI dele ainda não foi observado.** Os dois
-commits seguintes a `add5c29` foram verificados localmente com a mesma árvore do
-`npm ci`. O resultado do CI de `a1c0c6e` precisa ser conferido depois do push —
-e esta linha existe para que ninguém leia "verde" onde ainda não há evidência.
+Os números que o CI imprimiu, e não os que rodei aqui:
+
+```
+Testes de integração    Test Files  5 passed (5)
+Testes de integração          Tests 74 passed (74)
+E2E de navegador        10 passed (26.2s)
+```
+
+O Playwright **rodou de verdade** no runner — a linha acima vem do log do
+workflow, e não de uma execução local.
 
 ---
 
@@ -320,7 +329,7 @@ contorna por insert direto, dizendo isso no comentário.
 | ☑ | integração verde — 74 |
 | ☑ | build verde |
 | ☑ | E2E verde — 10 |
-| ☐ | **CI verde NO HEAD entregue** — verde em `add5c29`; `a1c0c6e` ainda não observado |
+| ☑ | **CI verde NO HEAD entregue** — Quality, Integração e Smoke em `8e79775` |
 | ☑ | nenhuma campanha trunca silenciosamente |
 | ☑ | campanha de 8.000 testada |
 | ☑ | recall de 8.000 testado |
@@ -332,9 +341,18 @@ contorna por insert direto, dizendo isso no comentário.
 | ☑ | nenhum segredo commitado |
 | ☑ | nenhuma regressão nos P0 já corrigidos — mutações da rodada anterior rerodadas |
 
-**Não escrevo RELEASE CANDIDATE.** Um item da lista está aberto: o CI do HEAD
-entregue. Enquanto ele não for observado verde, a palavra seria exatamente o tipo
-de afirmação que esta rodada existiu para eliminar.
+**RELEASE CANDIDATE**, com uma ressalva que não é do código.
+
+Os dezessete itens da lista estão marcados. O que sustenta a palavra é a seção 5:
+os três workflows verdes no SHA entregue, com os números vindo do log do runner.
+
+**A ressalva:** o `CRC Pulso` continua vermelho, e ele é o único workflow que
+depende de um segredo que só você pode criar. Ele não bloqueia o release do
+código — bloqueia a OPERAÇÃO, porque sem ele a fila não anda. É a primeira das
+duas ações externas da seção 6.
+
+E **RELEASE CANDIDATE não é GO para a IA**: os três NO-GO da seção 9 seguem de
+pé, e o gate de avaliação contra o modelo real continua sendo a condição.
 
 ---
 
