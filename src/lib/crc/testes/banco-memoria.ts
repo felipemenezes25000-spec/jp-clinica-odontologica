@@ -1146,6 +1146,59 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       return Promise.resolve(saida.slice(0, Math.max(1, Math.min(limite, 200))) as T[]);
     }
 
+    /*
+     * O RESUMO DA HOME — `supabase/40`.
+     *
+     * ESTE FAKE PRECISA REPETIR TRÊS REGRAS DO SQL, e cada uma protege um
+     * número que o dono lê como verdade:
+     *
+     *   ETAPA `consulta_recuperada` só. Somar outras etapas do funil contaria
+     *   duas vezes o mesmo caminho.
+     *
+     *   PACIENTES DISTINTOS, e não a contagem de eventos: quem voltou duas
+     *   vezes no mês continua sendo UMA pessoa reativada.
+     *
+     *   RECEITA `CONFIRMADA` só. O item 63 proíbe somar potencial com recebido
+     *   no mesmo número — um fake que somasse os dois faria o teste concordar
+     *   com um painel que infla receita.
+     *
+     * DEVOLVE NÚMERO, e não texto: é o que o PostgREST faz com `bigint` e
+     * `numeric` desta função, verificado contra o Postgres de verdade. Um fake
+     * que devolvesse string esconderia a conversão que `api.ts` precisa fazer.
+     */
+    case "crc_resumo_da_home": {
+      const org = argumentos["p_organization_id"];
+      const desde =
+        typeof argumentos["p_desde"] === "string" ? Date.parse(argumentos["p_desde"]) : 0;
+
+      const noPeriodo = (l: Linha): boolean => {
+        const q = l["ocorrido_em"];
+        return typeof q === "string" && Date.parse(q) >= desde;
+      };
+      const soma = (linhas: readonly Linha[]): number =>
+        linhas.reduce((t, l) => t + (Number.parseFloat(String(l["valor"] ?? "0")) || 0), 0);
+
+      const recuperadas = (tabelas["crc_funnel_events"] ?? []).filter(
+        (l) => l["organization_id"] === org && l["etapa"] === "consulta_recuperada" && noPeriodo(l),
+      );
+      const receita = (tabelas["crc_revenue_events"] ?? []).filter(
+        (l) => l["organization_id"] === org && l["natureza"] === "CONFIRMADA" && noPeriodo(l),
+      );
+
+      const distintos = new Set(
+        recuperadas.map((l) => String(l["patient_id"] ?? "")).filter((x) => x.length > 0),
+      );
+
+      return Promise.resolve([
+        {
+          consultas_recuperadas: recuperadas.length,
+          pacientes_reativados: distintos.size,
+          valor_potencial: soma(recuperadas),
+          receita_confirmada: soma(receita),
+        },
+      ] as T[]);
+    }
+
     case "crc_radar_resumo": {
       const org = argumentos["p_organization_id"];
       const clinica =

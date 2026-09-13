@@ -63,9 +63,18 @@ export function PrimeirosPassos({ aoIrPara }: { aoIrPara: (aba: string) => void 
   return (
     <Cartao titulo="Para o CRC começar a funcionar">
       <p className="crc-meta" style={{ marginBottom: "var(--crc-e4)" }}>
-        {String(feitos)} de {String(passos.length)} prontos. Este quadro some sozinho quando os{" "}
-        {faltam === 1 ? "passo essencial estiver" : "passos essenciais estiverem"} feito
-        {faltam === 1 ? "" : "s"} — não há nada para marcar.
+        {/*
+          A FRASE INTEIRA TROCA, e não só o plural das palavras.
+          Antes, o artigo "os" ficava fora do condicional e só a palavra
+          seguinte mudava — o que produzia "quando OS PASSO essencial estiver
+          feito" sempre que faltava exatamente um. Concordância em pedaços
+          costuma errar assim: acerta o substantivo e esquece o artigo.
+        */}
+        {String(feitos)} de {String(passos.length)} prontos. Este quadro some sozinho{" "}
+        {faltam === 1
+          ? "quando o último passo essencial estiver feito"
+          : "quando os passos essenciais estiverem feitos"}{" "}
+        — não há nada para marcar.
       </p>
 
       <ul className="crc-pilha">

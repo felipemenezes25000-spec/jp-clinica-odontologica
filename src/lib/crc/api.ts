@@ -313,7 +313,7 @@ export const sairDoCrc = createServerFn({ method: "POST" }).handler(
 export const carregarHome = createServerFn({ method: "GET" }).handler(
   async (): Promise<Resposta<{ resumo: ResumoHome }>> =>
     comContexto("ver_oportunidade", async (ctx) => {
-      const { contar, selecionar } = await import("./servidor/banco");
+      const { contar, rpc, selecionar } = await import("./servidor/banco");
       const { listarOportunidades } = await import("./aplicacao/oportunidades");
       const { faixaDePrioridade } = await import("./dominio/prioridade");
       const { ROTULO_TIPO_OPORTUNIDADE } = await import("./dominio/rotulos");
@@ -353,8 +353,7 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         tarefasHoje,
         conversasEsperando,
         jornadasAtivas,
-        recuperadas,
-        receita,
+        resumoDoMes,
         estadoSync,
         cfg,
       ] = await Promise.all([
@@ -384,26 +383,20 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
           { coluna: "organization_id", op: "eq", valor: org },
           { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
         ]),
-        // Recuperação do mês, medida pelos eventos de funil — que são gravados
-        // no servidor no momento em que o fato acontece, e não recalculados
-        // aqui.
-        selecionar("crc_funnel_events", {
-          colunas: "etapa,valor,patient_id",
-          filtros: [
-            { coluna: "organization_id", op: "eq", valor: org },
-            { coluna: "etapa", op: "eq", valor: "consulta_recuperada" },
-            { coluna: "ocorrido_em", op: "gte", valor: inicioDoMes.toISOString() },
-          ],
-          limite: 2000,
-        }),
-        selecionar("crc_revenue_events", {
-          colunas: "valor,natureza",
-          filtros: [
-            { coluna: "organization_id", op: "eq", valor: org },
-            { coluna: "natureza", op: "eq", valor: "CONFIRMADA" },
-            { coluna: "ocorrido_em", op: "gte", valor: inicioDoMes.toISOString() },
-          ],
-          limite: 2000,
+        /*
+         * A CONTA VAI PARA O BANCO — `supabase/40`.
+         *
+         * Antes, estas duas linhas liam até 2.000 eventos de funil e mais 2.000
+         * de receita, traziam tudo pela rede e contavam em JavaScript, para
+         * produzir três números.
+         *
+         * E O TETO DE 2.000 ERA PIOR QUE LENTO: passando dele, o `limite`
+         * cortava a lista e os números da Home saíam MENORES que a realidade,
+         * sem aviso. Um painel que subnotifica receita é pior que um lento.
+         */
+        rpc("crc_resumo_da_home", {
+          p_organization_id: org,
+          p_desde: inicioDoMes.toISOString(),
         }),
         lerEstadoDeSincronizacao(org),
         lerConfiguracao(org),
@@ -435,6 +428,26 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         temJornadaAtiva: false,
       }));
 
+      /*
+       * A CONVERSÃO NÃO É CERIMÔNIA. Verificado contra o Postgres de verdade:
+       * esta função devolve `bigint` e `numeric` como NÚMERO no JSON. Mas o
+       * PostgREST devolve `numeric` como STRING em outros contextos, e a tela
+       * espera `number` na contagem e string com duas casas no dinheiro.
+       *
+       * Ler direto daria `"12"` onde a tela soma, e a soma de dinheiro viraria
+       * concatenação de texto — o defeito que não quebra nada e mostra
+       * "1200.001500.00" na Home.
+       */
+      const linhaDoMes = resumoDoMes[0] ?? {};
+      const inteiro = (v: unknown): number => {
+        const n = Number.parseInt(String(v ?? "0"), 10);
+        return Number.isFinite(n) ? n : 0;
+      };
+      const dinheiroDoBanco = (v: unknown): string => {
+        const n = Number.parseFloat(String(v ?? "0"));
+        return (Number.isFinite(n) ? n : 0).toFixed(2);
+      };
+
       const maisRecente = estadoSync
         .map((e) => e.ultimaComSucessoEm)
         .filter((x): x is string => x !== null)
@@ -462,18 +475,12 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         emAutomacao: jornadasAtivas,
         tarefasHoje,
         conversasEsperando,
-        consultasRecuperadas: recuperadas.length,
-        pacientesReativados: new Set(
-          recuperadas.map((r) => String(r["patient_id"] ?? "")).filter((x) => x.length > 0),
-        ).size,
+        consultasRecuperadas: inteiro(linhaDoMes["consultas_recuperadas"]),
+        pacientesReativados: inteiro(linhaDoMes["pacientes_reativados"]),
         // Item 63: enquanto não houver integração financeira, este número é
         // POTENCIAL e a tela precisa dizer isso. Ele não é somado ao confirmado.
-        valorPotencialRecuperado: somarDinheiro(
-          recuperadas.map((r) => (typeof r["valor"] === "string" ? r["valor"] : null)),
-        ),
-        receitaConfirmada: somarDinheiro(
-          receita.map((r) => (typeof r["valor"] === "string" ? r["valor"] : null)),
-        ),
+        valorPotencialRecuperado: dinheiroDoBanco(linhaDoMes["valor_potencial"]),
+        receitaConfirmada: dinheiroDoBanco(linhaDoMes["receita_confirmada"]),
         prioridades,
         frescorDados: maisRecente ?? null,
         janelaDeHoje: janela,
