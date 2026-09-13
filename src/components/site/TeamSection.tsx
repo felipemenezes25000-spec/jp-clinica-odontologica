@@ -3,11 +3,21 @@ import { ShieldCheck, UsersRound } from "lucide-react";
 import { EQUIPE } from "@/lib/jp";
 
 /**
- * A seção pública nunca renderiza pessoa marcada como fictícia ou placeholder.
- * A defesa fica aqui, no ponto de exibição: assim um item temporário usado para
- * acertar layout não consegue virar profissional publicado por acidente.
+ * Pessoas que não fazem mais parte da equipe e, portanto, não podem aparecer
+ * na seção pública do site. Mantemos a trava aqui também para evitar que dados
+ * históricos ainda presentes no cadastro voltem ao ar por acidente.
  */
-const EQUIPE_PUBLICA = EQUIPE.filter((pessoa) => !pessoa.ficticio && !pessoa.placeholder);
+const MEMBROS_INATIVOS = new Set(["Dra. Júlia Vargas", "Raphaela"]);
+
+/**
+ * A seção pública nunca renderiza pessoa marcada como fictícia, placeholder ou
+ * membro inativo. A defesa fica aqui, no ponto de exibição: assim um item
+ * temporário ou histórico não consegue virar profissional publicado por acidente.
+ */
+const EQUIPE_PUBLICA = EQUIPE.filter(
+  (pessoa) =>
+    !pessoa.ficticio && !pessoa.placeholder && !MEMBROS_INATIVOS.has(pessoa.nome),
+);
 
 /**
  * A partir de xl a equipe inteira cabe numa linha só. Antes era 20% cravado —
