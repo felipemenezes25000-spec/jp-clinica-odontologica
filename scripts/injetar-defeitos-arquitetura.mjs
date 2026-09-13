@@ -40,8 +40,7 @@ const DEFEITOS = [
   {
     nome: "domínio lendo o relógio global",
     arquivo: "src/lib/crc/dominio/dia-local.ts",
-    aplicar: (fonte) =>
-      `${fonte}\nexport const agoraInjetado = new Date().toISOString();\n`,
+    aplicar: (fonte) => `${fonte}\nexport const agoraInjetado = new Date().toISOString();\n`,
     alvo: "nenhum `new Date()` ou `Date.now()` fora de parâmetro com padrão",
   },
   {

@@ -58,7 +58,10 @@ function arquivos(raiz) {
  * para procurá-lo seria o próprio vazamento.
  */
 const PADROES = [
-  { nome: "JWT do Supabase (service_role ou anon)", regex: /eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\./u },
+  {
+    nome: "JWT do Supabase (service_role ou anon)",
+    regex: /eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}\./u,
+  },
   { nome: "chave da OpenAI", regex: /\bsk-[A-Za-z0-9_-]{20,}/u },
   { nome: "chave da Anthropic", regex: /\bsk-ant-[A-Za-z0-9_-]{20,}/u },
   { nome: "token do WhatsApp Cloud API", regex: /\bEAA[A-Za-z0-9]{40,}/u },
@@ -67,7 +70,8 @@ const PADROES = [
   {
     nome: "variável de ambiente de segredo exposta com valor",
     // `SUPABASE_SERVICE_ROLE:"..."` — o nome seguido de um literal não vazio.
-    regex: /(?:SERVICE_ROLE|CRON_SECRET|WHATSAPP_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY)["']?\s*[:=]\s*["'][^"']{16,}/u,
+    regex:
+      /(?:SERVICE_ROLE|CRON_SECRET|WHATSAPP_TOKEN|OPENAI_API_KEY|ANTHROPIC_API_KEY)["']?\s*[:=]\s*["'][^"']{16,}/u,
   },
 ];
 
