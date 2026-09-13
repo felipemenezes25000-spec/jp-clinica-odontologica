@@ -1533,6 +1533,47 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       );
     }
 
+    /*
+     * MÉTRICAS DOS TURNOS DE IA — `supabase/44`.
+     *
+     * AGRUPA POR (resultado, portão) E NÃO COMPÕE AS TAXAS. A regra de quais
+     * resultados entram no denominador — `rodando` fica de fora, porque é turno
+     * que não terminou — é decisão de produto e vive em `analytics-ia.ts`.
+     * Repeti-la aqui criaria duas fontes de verdade que um dia discordam.
+     */
+    case "crc_metricas_de_ia": {
+      const org = argumentos["p_organization_id"];
+      const de = typeof argumentos["p_de"] === "string" ? Date.parse(argumentos["p_de"]) : 0;
+      const ate =
+        typeof argumentos["p_ate"] === "string"
+          ? Date.parse(argumentos["p_ate"])
+          : Number.MAX_SAFE_INTEGER;
+
+      const grupos = new Map<
+        string,
+        { resultado: string; portao: string; quantidade: number; custo: number }
+      >();
+
+      for (const l of tabelas["crc_ai_runs"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const q = l["criado_em"];
+        if (typeof q !== "string") continue;
+        const t = Date.parse(q);
+        if (!(t >= de && t < ate)) continue;
+
+        const resultado = String(l["resultado"] ?? "");
+        const portao = typeof l["portao_bloqueou"] === "string" ? l["portao_bloqueou"] : "";
+        const chave = `${resultado} ${portao}`;
+
+        const atual = grupos.get(chave) ?? { resultado, portao, quantidade: 0, custo: 0 };
+        atual.quantidade += 1;
+        atual.custo += Number.parseFloat(String(l["custo_estimado"] ?? "0")) || 0;
+        grupos.set(chave, atual);
+      }
+
+      return Promise.resolve([...grupos.values()] as T[]);
+    }
+
     case "crc_radar_resumo": {
       const org = argumentos["p_organization_id"];
       const clinica =

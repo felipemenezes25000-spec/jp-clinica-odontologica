@@ -30,7 +30,7 @@
  *  mais bonito e menos confiável que existe aqui.
  * ========================================================================
  */
-import { contar, selecionar } from "../servidor/banco";
+import { contar, rpc, selecionar } from "../servidor/banco";
 
 export type JanelaDeAnalise = {
   organizationId: string;
@@ -59,16 +59,30 @@ export type MetricasDeIa = {
 };
 
 export async function metricasDeIa(janela: JanelaDeAnalise): Promise<MetricasDeIa> {
-  const linhas = await selecionar("crc_ai_runs", {
-    colunas: "resultado,portao_bloqueou,custo_estimado",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: janela.organizationId },
-      { coluna: "criado_em", op: "gte", valor: janela.de.toISOString() },
-      { coluna: "criado_em", op: "lt", valor: janela.ate.toISOString() },
-    ],
-    // Mil é o teto de leitura de um painel. Acima disso a pergunta deixa de ser
-    // "como foi o mês" e passa a ser um relatório, que tem outro caminho.
-    limite: 1000,
+  /*
+   * ==========================================================================
+   *  LIA 1.000 RUNS E AGREGAVA AQUI. O comentário que estava nesta linha dizia:
+   *
+   *    "Mil é o teto de leitura de um painel. Acima disso a pergunta deixa de
+   *     ser 'como foi o mês' e passa a ser um relatório, que tem outro caminho."
+   *
+   *  A JUSTIFICATIVA ERA RAZOÁVEL E NÃO ERA UMA GARANTIA. Ela descrevia a
+   *  intenção de quem escreveu; não descrevia o que acontecia. O que acontecia,
+   *  a partir da 1.001ª run, é que as TAXAS passavam a ser calculadas sobre as
+   *  1.000 primeiras do período — ou seja, sobre o começo do mês —, o custo
+   *  saía menor, e os portões que só bloquearam depois sumiam da lista.
+   *
+   *  As taxas eram o pior dos três: um painel de segurança calculado sobre a
+   *  primeira semana, apresentado como se fosse o mês inteiro.
+   *
+   *  E mil turnos não é muito: é uma clínica com automação ligada, que é
+   *  exatamente a clínica cujo painel de IA alguém abre.
+   * ==========================================================================
+   */
+  const linhas = await rpc("crc_metricas_de_ia", {
+    p_organization_id: janela.organizationId,
+    p_de: janela.de.toISOString(),
+    p_ate: janela.ate.toISOString(),
   }).catch(() => []);
 
   let entregues = 0;
@@ -80,17 +94,19 @@ export async function metricasDeIa(janela: JanelaDeAnalise): Promise<MetricasDeI
 
   for (const l of linhas) {
     const r = String(l["resultado"] ?? "");
-    if (r === "enviado") entregues += 1;
-    else if (r === "humano") humanos += 1;
-    else if (r === "sem_acao") semAcao += 1;
-    else if (r === "falha_segura") falhas += 1;
+    const quantas = Number.parseInt(String(l["quantidade"] ?? "0"), 10) || 0;
 
-    const custo = Number(l["custo_estimado"] ?? 0);
+    if (r === "enviado") entregues += quantas;
+    else if (r === "humano") humanos += quantas;
+    else if (r === "sem_acao") semAcao += quantas;
+    else if (r === "falha_segura") falhas += quantas;
+
+    const custo = Number.parseFloat(String(l["custo"] ?? "0"));
     if (Number.isFinite(custo)) custoTotal += custo;
 
-    const portao = l["portao_bloqueou"];
-    if (typeof portao === "string" && portao.length > 0) {
-      portoes.set(portao, (portoes.get(portao) ?? 0) + 1);
+    const portao = String(l["portao"] ?? "");
+    if (portao.length > 0) {
+      portoes.set(portao, (portoes.get(portao) ?? 0) + quantas);
     }
   }
 

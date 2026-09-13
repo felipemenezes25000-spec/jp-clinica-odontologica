@@ -40,3 +40,19 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # ----------------------------------------------------------------------
+      # O que foi PARAR no navegador
+      # ----------------------------------------------------------------------
+      #
+      # DEPOIS DO BUILD, e não antes: a pergunta e sobre o arquivo que o
+      # navegador baixa, e nao sobre o codigo-fonte. O Vite substitui
+      # `import.meta.env.X` por um LITERAL em tempo de build — uma variavel
+      # renomeada para `VITE_...` viaja para dentro do JavaScript publicado, e
+      # nada na tela muda.
+      #
+      # O script nao imprime o trecho encontrado, so a posicao e o tamanho:
+      # log de CI e lido por mais gente e guardado por mais tempo do que
+      # qualquer um imagina.
+      - name: Nenhum segredo nem modulo de servidor no bundle
+        run: node scripts/conferir-bundle.mjs
