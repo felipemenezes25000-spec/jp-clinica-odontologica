@@ -7,14 +7,14 @@ de cabeçalho do módulo, escrita por quem o construiu. Módulo que some, some
 daqui; módulo que nasce, aparece sozinho.
 
 ```
-Gerado em          2026-09-12
-Domínio            49 módulos
+Gerado em          2026-09-13
+Domínio            50 módulos
 Serviços           54 módulos
 Automação          7 módulos
 Plataforma de IA   11 módulos
 Telas              42 componentes
 Tabelas            88
-Migrations         40
+Migrations         46
 ```
 
 > A coluna **Teste** diz se existe um arquivo `.test.ts` ao lado do módulo.
@@ -45,7 +45,7 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 | `conhecimento`    | Conhecimento — como um texto se parte, e como os pedaços se reordenam           |    452 |   sim   |
 | `csv`             | Leitor de CSV — a base do importador de orçamentos e de cobranças               |    308 |   sim   |
 | `custo`           | O que cada mensagem custa — e por que isso precisa aparecer na tela             |    320 |   sim   |
-| `dia-local`       | Que dia é hoje para a clínica — Fase D                                          |    109 |   sim   |
+| `dia-local`       | Que dia é hoje para a clínica — Fase D                                          |    157 |   sim   |
 | `direcao`         | A direção de uma mensagem, normalizada num lugar só                             |     85 |   sim   |
 | `disjuntor`       | O disjuntor — Fase F, item 26                                                   |    259 |   sim   |
 | `encaixe`         | O encaixe — quem chamar para a cadeira que vagou, e quantos por vez             |    366 |   sim   |
@@ -56,7 +56,7 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 | `gestao`          | Gestão — o que mudou, o que está apertado, e o que dizer de manhã               |    400 |   sim   |
 | `growth-autonomo` | Growth autônomo                                                                 |    238 |   sim   |
 | `growth`          | Growth — reputação, indicação, experimento e aprendizado                        |    425 |   sim   |
-| `guardrails`      | Os portões que uma mensagem da IA atravessa antes de existir no mundo           |    363 |   sim   |
+| `guardrails`      | Os portões que uma mensagem da IA atravessa antes de existir no mundo           |    451 |   sim   |
 | `identidade`      | Resolução de identidade — este telefone é de quem?                              |    355 |   sim   |
 | `janela-whatsapp` | A janela de 24 horas do WhatsApp — a regra que o CRC estava ignorando           |    103 | **não** |
 | `melhor-acao`     | Next Best Action — a decisão, por oportunidade                                  |    515 |   sim   |
@@ -76,6 +76,7 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 | `rotulos`         | O dicionário: código interno → palavra que a pessoa lê                          |    225 | **não** |
 | `status`          | A ÚNICA porta por onde os códigos numéricos do Dental Office entram             |    165 | **não** |
 | `telefone`        | Telefone brasileiro: forma canônica, forma de tela, e a variação do nono        |    136 | **não** |
+| `texto-externo`   | Texto que veio de fora não pode virar estrutura do prompt                       |    163 | **não** |
 | `tipos`           | O vocabulário do JP CRC                                                         |    654 | **não** |
 | `validar`         | Validação de payload que veio de fora                                           |    233 | **não** |
 | `workflow`        | O Workflow Studio — a parte que pensa                                           |    590 |   sim   |
@@ -87,60 +88,60 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 
 | Módulo               | O que faz                                                                  | Linhas |  Teste  |
 | -------------------- | -------------------------------------------------------------------------- | -----: | :-----: |
-| `aceitacao`          | Aceitação de tratamento — o serviço                                        |    588 |   sim   |
-| `agenda-inteligente` | Agenda Inteligente — a cadeira que vagou, e quem pode ocupá-la             |    830 |   sim   |
-| `agendamento`        | Marcar consulta de verdade — a ponte que faltava                           |    814 |   sim   |
-| `agent-jobs`         | A fila do agente — Fase B                                                  |    608 | **não** |
-| `analytics-ia`       | Analytics de IA — Fase I                                                   |    323 |   sim   |
-| `analytics`          | Analytics do gestor — Milestone 9, itens 32 a 35 e 59 a 63                 |    527 | **não** |
+| `aceitacao`          | Aceitação de tratamento — o serviço                                        |    602 |   sim   |
+| `agenda-inteligente` | Agenda Inteligente — a cadeira que vagou, e quem pode ocupá-la             |    858 |   sim   |
+| `agendamento`        | Marcar consulta de verdade — a ponte que faltava                           |    835 |   sim   |
+| `agent-jobs`         | A fila do agente — Fase B                                                  |    622 | **não** |
+| `analytics-ia`       | Analytics de IA — Fase I                                                   |    339 |   sim   |
+| `analytics`          | Analytics do gestor — Milestone 9, itens 32 a 35 e 59 a 63                 |    609 |   sim   |
 | `atividade`          | "O que a IA está fazendo agora" — a narrativa da operação                  |    250 |   sim   |
 | `autonomia`          | O Centro de Autonomia — a leitura e a decisão, com o banco no meio         |    356 |   sim   |
 | `avaliacao`          | A suíte de avaliação, as rodadas e o gate — Fatia 9                        |    964 | **não** |
 | `benchmark`          | Benchmarking interno                                                       |    201 |   sim   |
 | `busca`              | Busca global — uma caixa, quatro lugares                                   |    330 |   sim   |
-| `campanhas`          | Campanhas — falar com um grupo inteiro sem perder o jeito de falar com um  |    834 |   sim   |
-| `casos`              | Casos humanos e dono da conversa — Fatia 5                                 |    287 |   sim   |
+| `campanhas`          | Campanhas — falar com um grupo inteiro sem perder o jeito de falar com um  |    856 |   sim   |
+| `casos`              | Casos humanos e dono da conversa — Fatia 5                                 |    294 |   sim   |
 | `cerebros`           | Patient Brain e Opportunity Brain — Fase H                                 |    403 |   sim   |
 | `clinicas`           | Clínicas e escopo de acesso — o serviço                                    |    465 |   sim   |
-| `cobrancas`          | Cobrança de pacientes inadimplentes                                        |    863 | **não** |
-| `conhecimento`       | Conhecimento — ingestão e busca. Fatia 7                                   |    385 |   sim   |
+| `cobrancas`          | Cobrança de pacientes inadimplentes                                        |    870 |   sim   |
+| `conhecimento`       | Conhecimento — ingestão e busca. Fatia 7                                   |    392 |   sim   |
 | `conversas`          | Para onde uma resposta vai — resolvido num lugar só                        |    156 | **não** |
 | `equipe`             | Cadastro de equipe — o item 37 ("cada um deve enxergar somente o           |    291 | **não** |
-| `estudio`            | O Estúdio — as versões do texto do agente. Fatia 10                        |    354 |   sim   |
+| `estudio`            | O Estúdio — as versões do texto do agente. Fatia 10                        |    368 |   sim   |
 | `estudios`           | Tool Studio, Agent Studio e editor de Workflow — Fase G, itens 27 a 29     |    583 |   sim   |
-| `eventos`            | O barramento de eventos do CRC — Milestone 3                               |    270 | **não** |
+| `eventos`            | O barramento de eventos do CRC — Milestone 3                               |    278 | **não** |
 | `exportacao`         | Exportação em CSV — item 129                                               |    263 | **não** |
 | `fila-do-dia`        | A fila do dia — a ponte entre a Fase H e a tela                            |    220 | **não** |
 | `financeiro`         | Financeiro e pré-consulta — o serviço                                      |    420 |   sim   |
 | `gestao`             | Gestão — o serviço                                                         |    418 |   sim   |
-| `growth`             | Growth — o serviço                                                         |    634 |   sim   |
+| `growth`             | Growth — o serviço                                                         |    670 |   sim   |
 | `handoff`            | O handoff que não pode falhar em silêncio — Fase C                         |    192 |   sim   |
 | `heartbeat`          | O batimento dos workers — a prova de que alguém está rodando               |    144 |   sim   |
 | `hub-integracoes`    | Integration Hub                                                            |    286 |   sim   |
-| `ia`                 | A camada de inteligência — Milestone 6, itens 41 a 48 e 172 a 177          |    664 |   sim   |
-| `investimento`       | Quanto custou cada paciente que sentou na cadeira                          |    323 | **não** |
+| `ia`                 | A camada de inteligência — Milestone 6, itens 41 a 48 e 172 a 177          |    665 |   sim   |
+| `investimento`       | Quanto custou cada paciente que sentou na cadeira                          |    348 | **não** |
 | `leads`              | Leads — itens 33 (atribuição), 157/158 (speed to lead), 170 (distribuição) |    392 |   sim   |
 | `marca`              | De quem é a voz — o nome que aparece para o paciente                       |     99 | **não** |
 | `melhor-acao`        | Próxima Melhor Ação — o serviço                                            |    426 |   sim   |
-| `memoria`            | A memória, persistida — Fatia 6                                            |    300 |   sim   |
-| `mensagens`          | MessagingService — itens 36 a 41, 120, 163, 167                            |   1115 | **não** |
+| `memoria`            | A memória, persistida — Fatia 6                                            |    303 |   sim   |
+| `mensagens`          | MessagingService — itens 36 a 41, 120, 163, 167                            |   1157 |   sim   |
 | `metas`              | Metas — o serviço                                                          |    851 |   sim   |
 | `modelos`            | Chaves da clínica e rotas de modelo — Fatia 8                              |    321 | **não** |
-| `omnichannel`        | Omnichannel — a linha do tempo única, a ligação e a identidade             |    632 |   sim   |
-| `oportunidades`      | OpportunityService — itens 22, 23, 121, 159, 185                           |    608 | **não** |
+| `omnichannel`        | Omnichannel — a linha do tempo única, a ligação e a identidade             |    642 |   sim   |
+| `oportunidades`      | OpportunityService — itens 22, 23, 121, 159, 185                           |    615 | **não** |
 | `orcamento`          | O orçamento de IA, persistido — Fatia 8                                    |    412 | **não** |
 | `orcamentos`         | Orçamentos — Milestone 8, itens 54 a 58 e 189 a 190                        |    682 | **não** |
 | `paciente-360`       | Patient 360 preditivo — a montagem                                         |    350 |   sim   |
 | `playground`         | O Playground — Fase G, item 30                                             |    309 |   sim   |
 | `primeiros-passos`   | Primeiros passos — o item 58, medido                                       |    112 |   sim   |
-| `radar`              | O Radar de Receita — o serviço                                             |    879 |   sim   |
+| `radar`              | O Radar de Receita — o serviço                                             |    886 |   sim   |
 | `repositorios`       | A tradução entre linha do Postgres e modelo do domínio                     |    545 | **não** |
 | `saude`              | A saúde dos provedores — Fase F                                            |    645 |   sim   |
-| `sincronizacao`      | A sincronização com o Dental Office — Milestone 1, itens 14 a 18           |    944 | **não** |
+| `sincronizacao`      | A sincronização com o Dental Office — Milestone 1, itens 14 a 18           |    958 | **não** |
 | `tarefas`            | TaskService — itens 25, 30 do Mega Prompt, 183 do contrato                 |    291 | **não** |
 | `visoes`             | Visões salvas — item 147                                                   |    264 |   sim   |
 | `webhooks`           | Processamento de webhook — o inbox pattern do item 126 em código           |    626 |   sim   |
-| `workflows`          | O Workflow Studio — a parte que fala com o banco                           |    294 |   sim   |
+| `workflows`          | O Workflow Studio — a parte que fala com o banco                           |    301 |   sim   |
 
 ---
 
@@ -151,7 +152,7 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 | `agente-worker` | O worker do agente — Fase B                              |    329 |   sim   |
 | `catalogo`      | As automações iniciais — Milestone 7                     |    441 | **não** |
 | `handlers`      | Os handlers de evento — item 27                          |   1336 | **não** |
-| `motor`         | O motor de jornadas — Milestone 4                        |    949 | **não** |
+| `motor`         | O motor de jornadas — Milestone 4                        |    986 | **não** |
 | `pulso`         | O pulso — o trabalho que não pode esperar o dia seguinte |    458 |   sim   |
 | `templates`     | Templates de mensagem — itens 103, 104, 105              |    318 | **não** |
 | `volta-pesada`  | A volta pesada — o trabalho de base, uma vez por dia     |    496 | **não** |
@@ -162,17 +163,17 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 
 | Módulo        | O que faz                                                                 | Linhas |  Teste  |
 | ------------- | ------------------------------------------------------------------------- | -----: | :-----: |
-| `contexto`    | O Context Builder — o que o agente sabe, e nada além                      |    328 | **não** |
+| `contexto`    | O Context Builder — o que o agente sabe, e nada além                      |    364 | **não** |
 | `executor`    | O executor de ferramentas                                                 |    894 | **não** |
 | `ferramentas` | O registro de ferramentas — as mãos do agente, e as algemas delas         |    608 |   sim   |
 | `instrucoes`  | As instruções do agente, num lugar só                                     |     46 | **não** |
 | `laco`        | O laço do agente — modelo decide, ferramenta roda, modelo decide de novo  |    295 | **não** |
 | `mcp`         | O gateway MCP — Fase F, item 24. Implementa o ADR-06                      |    251 |   sim   |
-| `replay`      | Replay — roda um caso de avaliação SEM nenhum efeito no mundo             |    368 |   sim   |
+| `replay`      | Replay — roda um caso de avaliação SEM nenhum efeito no mundo             |    371 |   sim   |
 | `supervisor`  | O supervisor — lê o turno DEPOIS que ele aconteceu, e não decide nada     |    368 |   sim   |
 | `tipos`       | Os contratos do runtime agentic. Puro: nenhum I/O, nenhum import de infra |    215 | **não** |
-| `tracing`     | O trace de um turno — quanto cada etapa demorou e quanto custou           |    363 | **não** |
-| `turno`       | O turno do agente — Fatias 1 e 2 do CRC AI OS                             |    748 |   sim   |
+| `tracing`     | O trace de um turno — quanto cada etapa demorou e quanto custou           |    370 | **não** |
+| `turno`       | O turno do agente — Fatias 1 e 2 do CRC AI OS                             |    752 |   sim   |
 
 ---
 
@@ -214,7 +215,7 @@ permite testar a regra de encaixe ou de risco de falta sem subir nada.
 | `Pacientes`           | —                                                                           |    649 |
 | `Paleta`              | Command palette — item 28, e o item 149 (atalhos de teclado)                |    349 |
 | `Playground`          | Playground — testar o agente sem soltá-lo em cima de gente                  |    267 |
-| `PrimeirosPassos`     | Primeiros passos — item 58                                                  |    105 |
+| `PrimeirosPassos`     | Primeiros passos — item 58                                                  |    114 |
 | `ProximasAcoes`       | Próximas ações — com quem falar primeiro hoje                               |    237 |
 | `Radar`               | Radar de Receita — quanto dinheiro está parado, e qual a chance de voltar   |    288 |
 | `Recepcao`            | Recepção — o que o atendimento deixou de fazer                              |    133 |
@@ -235,36 +236,33 @@ contra o SQL real pelo teste de schema.
 
 ### Migrations
 
-`00-papeis.sql` · `01-schema.sql` · `02-crc-schema.sql` · `03-crc-cobranca.sql` · `04-crc-visoes.sql` · `05-crc-investimento.sql` · `06-crc-campanhas.sql` · `07-crc-convenio.sql` · `08-crc-agendamento.sql` · `09-crc-ia-platform.sql` · `10-crc-casos-humanos.sql` · `11-crc-memoria-supervisor.sql` · `12-crc-conhecimento.sql` · `13-crc-modelos-orcamento.sql` · `14-crc-avaliacao.sql` · `15-crc-estudio.sql` · `16-crc-foto-de-perfil.sql` · `17-crc-agent-jobs.sql` · `18-crc-atomicidade.sql` · `19-crc-integridade-tenant.sql` · `20-crc-reclaim-da-run.sql` · `21-crc-webhook-inbox.sql` · `22-crc-heartbeat.sql` · `23-crc-canais-whatsapp.sql` · `24-crc-cursor-por-clinica.sql` · `25-crc-retry-atomico-e-tenant-no-inbox.sql` · `26-crc-varreduras-convergentes.sql` · `27-crc-observabilidade.sql` · `28-crc-configuracao-por-clinica.sql` · `29-crc-publico-e-ciclo.sql` · `30-crc-radar-de-receita.sql` · `31-crc-radar-valor-esperado.sql` · `32-crc-agenda-inteligente.sql` · `33-crc-aceitacao-de-tratamento.sql` · `34-crc-metas.sql` · `35-crc-search-path-das-funcoes.sql` · `36-crc-omnichannel-e-voz.sql` · `37-crc-financeiro-e-pre-consulta.sql` · `38-crc-growth.sql` · `99-teste-apenas.sql`
+`00-papeis.sql` · `01-schema.sql` · `02-crc-schema.sql` · `03-crc-cobranca.sql` · `04-crc-visoes.sql` · `05-crc-investimento.sql` · `06-crc-campanhas.sql` · `07-crc-convenio.sql` · `08-crc-agendamento.sql` · `09-crc-ia-platform.sql` · `10-crc-casos-humanos.sql` · `11-crc-memoria-supervisor.sql` · `12-crc-conhecimento.sql` · `13-crc-modelos-orcamento.sql` · `14-crc-avaliacao.sql` · `15-crc-estudio.sql` · `16-crc-foto-de-perfil.sql` · `17-crc-agent-jobs.sql` · `18-crc-atomicidade.sql` · `19-crc-integridade-tenant.sql` · `20-crc-reclaim-da-run.sql` · `21-crc-webhook-inbox.sql` · `22-crc-heartbeat.sql` · `23-crc-canais-whatsapp.sql` · `24-crc-cursor-por-clinica.sql` · `25-crc-retry-atomico-e-tenant-no-inbox.sql` · `26-crc-varreduras-convergentes.sql` · `27-crc-observabilidade.sql` · `28-crc-configuracao-por-clinica.sql` · `29-crc-publico-e-ciclo.sql` · `30-crc-radar-de-receita.sql` · `31-crc-radar-valor-esperado.sql` · `32-crc-agenda-inteligente.sql` · `33-crc-aceitacao-de-tratamento.sql` · `34-crc-metas.sql` · `35-crc-search-path-das-funcoes.sql` · `36-crc-omnichannel-e-voz.sql` · `37-crc-financeiro-e-pre-consulta.sql` · `38-crc-growth.sql` · `39-crc-indices-de-ordenacao.sql` · `40-crc-resumo-da-home.sql` · `41-crc-analitica-agregada.sql` · `42-crc-analitica-sem-teto.sql` · `43-crc-custo-e-campanha-sem-teto.sql` · `44-crc-metricas-de-ia-sem-teto.sql` · `99-teste-apenas.sql`
 
 ---
 
 ## 7. Onde não há suíte dedicada
 
-36 módulos de domínio e serviço não têm arquivo de teste
+34 módulos de domínio e serviço não têm arquivo de teste
 ao lado. A lista abaixo é o mapa da dívida — ordenada por tamanho, que é a
 melhor aproximação de risco quando não se sabe mais nada.
 
 | Módulo            | O que faz                                                                  | Linhas |
 | ----------------- | -------------------------------------------------------------------------- | -----: |
-| `mensagens`       | MessagingService — itens 36 a 41, 120, 163, 167                            |   1115 |
 | `avaliacao`       | A suíte de avaliação, as rodadas e o gate — Fatia 9                        |    964 |
-| `sincronizacao`   | A sincronização com o Dental Office — Milestone 1, itens 14 a 18           |    944 |
-| `cobrancas`       | Cobrança de pacientes inadimplentes                                        |    863 |
+| `sincronizacao`   | A sincronização com o Dental Office — Milestone 1, itens 14 a 18           |    958 |
 | `orcamentos`      | Orçamentos — Milestone 8, itens 54 a 58 e 189 a 190                        |    682 |
 | `tipos`           | O vocabulário do JP CRC                                                    |    654 |
-| `agent-jobs`      | A fila do agente — Fase B                                                  |    608 |
-| `oportunidades`   | OpportunityService — itens 22, 23, 121, 159, 185                           |    608 |
+| `agent-jobs`      | A fila do agente — Fase B                                                  |    622 |
+| `oportunidades`   | OpportunityService — itens 22, 23, 121, 159, 185                           |    615 |
 | `repositorios`    | A tradução entre linha do Postgres e modelo do domínio                     |    545 |
-| `analytics`       | Analytics do gestor — Milestone 9, itens 32 a 35 e 59 a 63                 |    527 |
 | `orcamento`       | O orçamento de IA, persistido — Fatia 8                                    |    412 |
 | `regras`          | As regras que decidem quem entra em jornada, quem sai, e quem não pode ser |    391 |
-| `investimento`    | Quanto custou cada paciente que sentou na cadeira                          |    323 |
+| `investimento`    | Quanto custou cada paciente que sentou na cadeira                          |    348 |
 | `modelos`         | Chaves da clínica e rotas de modelo — Fatia 8                              |    321 |
 | `configuracao`    | As regras de negócio que a clínica muda sem chamar programador             |    292 |
 | `equipe`          | Cadastro de equipe — o item 37 ("cada um deve enxergar somente o           |    291 |
 | `tarefas`         | TaskService — itens 25, 30 do Mega Prompt, 183 do contrato                 |    291 |
-| `eventos`         | O barramento de eventos do CRC — Milestone 3                               |    270 |
+| `eventos`         | O barramento de eventos do CRC — Milestone 3                               |    278 |
 | `exportacao`      | Exportação em CSV — item 129                                               |    263 |
 | `churn`           | Risco de perder o paciente — Fase H                                        |    234 |
 | `validar`         | Validação de payload que veio de fora                                      |    233 |
@@ -277,6 +275,7 @@ melhor aproximação de risco quando não se sabe mais nada.
 | `atribuicao`      | Atribuição de receita — Fase H                                             |    197 |
 | `formatar`        | Números, datas e dinheiro do jeito que o Brasil lê — itens 219 a 221       |    192 |
 | `status`          | A ÚNICA porta por onde os códigos numéricos do Dental Office entram        |    165 |
+| `texto-externo`   | Texto que veio de fora não pode virar estrutura do prompt                  |    163 |
 | `prioridade`      | O score que decide a ordem da fila do dia                                  |    156 |
 | `conversas`       | Para onde uma resposta vai — resolvido num lugar só                        |    156 |
 | `rbac`            | Quem pode o quê                                                            |    146 |
