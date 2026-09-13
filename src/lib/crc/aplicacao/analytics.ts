@@ -21,17 +21,29 @@
  *      não depender de tracking do navegador — e o evento que mais importa
  *      (o paciente agendou) acontece num worker, sem navegador nenhum.
  *
- * SOBRE O CUSTO DAS CONSULTAS, e o estado é MISTO — vale saber qual é qual.
+ * SOBRE O CUSTO DAS CONSULTAS: NENHUMA AGREGAÇÃO DESTE ARQUIVO TEM TETO.
  *
- * `receitaPorMes` e `funilDoPeriodo` já somam no banco (`supabase/41`): uma ida
- * cada, agrupamento em SQL. A primeira era um laço de seis meses lendo 5.000
- * linhas por volta.
+ * Isto foi conquistado em duas rodadas, e a segunda importa mais que a
+ * primeira:
  *
- * O RESTO AINDA AGREGA EM MEMÓRIA, com teto de 3.000 linhas: `motivosDePerda`,
- * `speedToLead` e `panoramaDoGestor`. Funciona na casa dos milhares e tem o
- * mesmo defeito silencioso das outras: passando do teto, o número sai MENOR que
- * a realidade sem avisar. O caminho é o mesmo já trilhado — função agregada no
- * Postgres — e o formato de saída daqui não muda por causa disso.
+ *   `supabase/41` tirou o teto de `receitaPorMes` e `funilDoPeriodo`.
+ *   `supabase/42` tirou o de `motivosDePerda`, `speedToLead` e dos totais
+ *   próprios de `panoramaDoGestor`.
+ *
+ * O QUE ESSES TETOS FAZIAM NÃO ERA DEIXAR LENTO. Era devolver número MENOR que
+ * a realidade, sem erro, sem aviso e sem linha no log: o PostgREST entregava as
+ * 3.000 primeiras linhas e o código somava o que recebeu. Num painel financeiro
+ * é o pior formato de defeito que existe — invisível enquanto a clínica é
+ * pequena, e mentiroso exatamente a partir do tamanho em que a decisão fica
+ * cara.
+ *
+ * E A MEDIANA DO `speedToLead` ERA PIOR QUE AS SOMAS: soma truncada erra em
+ * proporção; mediana truncada passa a descrever a metade das linhas que o banco
+ * devolveu primeiro, que não é amostra — é o começo de uma ordenação.
+ *
+ * `desempenhoPorAutomacao` e `desempenhoPorAtendente` nunca tiveram teto: os
+ * dois contam com `count(*)` no banco. O custo deles é outro — uma ida por
+ * automação e por pessoa —, e está anotado em cada um.
  */
 import { somarDinheiro } from "../dominio/formatar";
 import { contar, rpc, selecionar, type Filtro, type Linha } from "../servidor/banco";
@@ -265,34 +277,32 @@ export async function motivosDePerda(
   organizationId: string,
   periodo: Periodo,
 ): Promise<MotivoDePerda[]> {
-  const linhas = await selecionar("crc_opportunities", {
-    colunas: "lost_reason,potential_value",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "fechada_em", op: "gte", valor: periodo.de },
-      { coluna: "fechada_em", op: "lt", valor: periodo.ate },
-      { coluna: "lost_reason", op: "not.is", valor: null },
-    ],
-    limite: 3000,
+  /*
+   * LIA 3.000 OPORTUNIDADES E AGRUPAVA AQUI. A partir da 3.001ª, o motivo mais
+   * comum aparecia com quantidade menor do que tem — e, pior, um motivo inteiro
+   * podia sumir da lista se todas as ocorrências dele estivessem depois do
+   * corte. A tela não tinha como saber: "preço" com 400 e "preço" com 900 são
+   * igualmente plausíveis para quem está lendo.
+   *
+   * A ORDEM VEM RESOLVIDA DO SQL, desempatada por nome. Em memória o desempate
+   * era a ordem de chegada das linhas, que o Postgres não promete estável:
+   * dois motivos empatados trocavam de lugar entre dois carregamentos da mesma
+   * tela, sem nada ter mudado.
+   */
+  const linhas = await rpc("crc_motivos_de_perda", {
+    p_organization_id: organizationId,
+    p_de: periodo.de,
+    p_ate: periodo.ate,
   });
 
-  const porMotivo = new Map<string, { quantidade: number; valores: (string | null)[] }>();
-
-  for (const l of linhas) {
-    const motivo = typeof l["lost_reason"] === "string" ? l["lost_reason"] : "OUTRO";
-    const atual = porMotivo.get(motivo) ?? { quantidade: 0, valores: [] };
-    atual.quantidade += 1;
-    atual.valores.push(valorDe(l, "potential_value"));
-    porMotivo.set(motivo, atual);
-  }
-
-  return [...porMotivo.entries()]
-    .map(([motivo, dados]) => ({
-      motivo,
-      quantidade: dados.quantidade,
-      valorPerdido: somarDinheiro(dados.valores),
-    }))
-    .sort((a, b) => b.quantidade - a.quantidade);
+  return linhas.map((l) => ({
+    motivo: String(l["motivo"] ?? "OUTRO"),
+    quantidade: Number.parseInt(String(l["quantidade"] ?? "0"), 10) || 0,
+    // `String(...)` antes do formatador porque o PostgREST devolve `numeric`
+    // ora como número, ora como texto, dependendo do caminho. Sem isso, um dos
+    // dois vira concatenação em vez de soma.
+    valorPerdido: somarDinheiro([String(l["valor_perdido"] ?? "0")]),
+  }));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -468,34 +478,43 @@ export type SpeedToLead = {
  * um problema.
  */
 export async function speedToLead(organizationId: string, periodo: Periodo): Promise<SpeedToLead> {
-  const linhas = await selecionar("crc_leads", {
-    colunas: "criado_em,primeira_resposta_em",
-    filtros: noPeriodo(organizationId, periodo, "criado_em"),
-    limite: 3000,
+  /*
+   * ============================================================================
+   *  ESTE ERA O TETO MAIS PERIGOSO DOS TRÊS, e a razão é a mediana.
+   *
+   *  Uma SOMA truncada erra em proporção: 3.000 de 4.000 linhas dão 75% do
+   *  valor, e quem conhece o teto sabe corrigir de cabeça.
+   *
+   *  Uma MEDIANA truncada não erra em proporção nenhuma. Ela passa a descrever
+   *  a metade dos leads que o banco devolveu PRIMEIRO — que não é uma amostra,
+   *  é o começo de uma ordenação. Basta a ordem de chegada ter qualquer
+   *  correlação com o tempo de resposta (e tem: campanha nova, fim de semana,
+   *  plantão da noite) para o número deixar de ser "um pouco menor" e passar a
+   *  responder outra pergunta.
+   *
+   *  `percentile_cont(0.5)` no Postgres faz exatamente a conta que estava aqui
+   *  — elemento do meio, ou média dos dois do meio —, agora sobre a base
+   *  inteira.
+   * ============================================================================
+   */
+  const linhas = await rpc("crc_speed_to_lead", {
+    p_organization_id: organizationId,
+    p_de: periodo.de,
+    p_ate: periodo.ate,
   });
 
-  const minutos: number[] = [];
-  for (const l of linhas) {
-    const criado = typeof l["criado_em"] === "string" ? Date.parse(l["criado_em"]) : NaN;
-    const respondido =
-      typeof l["primeira_resposta_em"] === "string" ? Date.parse(l["primeira_resposta_em"]) : NaN;
-    if (!Number.isFinite(criado) || !Number.isFinite(respondido)) continue;
-    minutos.push((respondido - criado) / 60_000);
-  }
-
-  minutos.sort((a, b) => a - b);
-  const meio = Math.floor(minutos.length / 2);
+  const l = linhas[0];
+  const inteiro = (v: unknown): number => Number.parseInt(String(v ?? "0"), 10) || 0;
+  const mediana = l?.["mediana_minutos"];
 
   return {
-    leads: linhas.length,
-    respondidos: minutos.length,
+    leads: inteiro(l?.["leads"]),
+    respondidos: inteiro(l?.["respondidos"]),
+    // `null` sobrevive como `null`: "ninguém foi respondido" e "responderam em
+    // zero minuto" são leituras opostas, e a tela precisa poder distinguir.
     medianaMinutos:
-      minutos.length === 0
-        ? null
-        : minutos.length % 2 === 1
-          ? Math.round(minutos[meio] ?? 0)
-          : Math.round(((minutos[meio - 1] ?? 0) + (minutos[meio] ?? 0)) / 2),
-    ateCincoMinutos: minutos.filter((m) => m <= 5).length,
+      mediana === null || mediana === undefined ? null : Number.parseFloat(String(mediana)),
+    ateCincoMinutos: inteiro(l?.["ate_cinco_minutos"]),
   };
 }
 
@@ -547,23 +566,24 @@ export async function panoramaDoGestor(
 
   const doMes = serieReceita[serieReceita.length - 1];
 
-  const abertas = await selecionar("crc_opportunities", {
-    colunas: "potential_value",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "fechada_em", op: "is", valor: null },
-    ],
-    limite: 3000,
+  /*
+   * DUAS LEITURAS COM TETO DE 3.000 VIRARAM UMA IDA SOMADA NO BANCO.
+   *
+   * A das ABERTAS era a mais exposta das duas, e por um motivo estrutural: ela
+   * não tem recorte de período — é o acumulado da clínica inteira. As outras
+   * consultas se renovam todo mês e voltam para debaixo do teto sozinhas; esta
+   * só cresce. O "valor em aberto" era, portanto, o primeiro número do painel
+   * destinado a parar de bater — e a parar de bater PARA MENOS, que é a direção
+   * em que ninguém desconfia.
+   */
+  const totais = await rpc("crc_panorama_totais", {
+    p_organization_id: organizationId,
+    p_de: atual.de,
+    p_ate: atual.ate,
   });
 
-  const recuperadas = await selecionar("crc_funnel_events", {
-    colunas: "patient_id",
-    filtros: [
-      ...noPeriodo(organizationId, atual),
-      { coluna: "etapa", op: "eq", valor: "consulta_recuperada" },
-    ],
-    limite: 3000,
-  });
+  const t = totais[0];
+  const inteiro = (v: unknown): number => Number.parseInt(String(v ?? "0"), 10) || 0;
 
   const confirmada = doMes?.confirmada ?? "0.00";
 
@@ -574,12 +594,10 @@ export async function panoramaDoGestor(
     // A tela usa isto para escolher o RÓTULO do número grande. Item 63: sem
     // financeiro confirmado, ele não pode se chamar "receita".
     semFinanceiroConfirmado: Number.parseFloat(confirmada) <= 0,
-    consultasRecuperadas: recuperadas.length,
-    pacientesReativados: new Set(
-      recuperadas.map((r) => String(r["patient_id"] ?? "")).filter((x) => x.length > 0),
-    ).size,
-    oportunidadesAbertas: abertas.length,
-    valorEmAberto: somarDinheiro(abertas.map((o) => valorDe(o, "potential_value"))),
+    consultasRecuperadas: inteiro(t?.["consultas_recuperadas"]),
+    pacientesReativados: inteiro(t?.["pacientes_reativados"]),
+    oportunidadesAbertas: inteiro(t?.["oportunidades_abertas"]),
+    valorEmAberto: somarDinheiro([String(t?.["valor_em_aberto"] ?? "0")]),
     serieReceita,
     funil,
     perdas,

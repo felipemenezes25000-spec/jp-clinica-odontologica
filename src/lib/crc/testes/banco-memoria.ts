@@ -1286,6 +1286,164 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       );
     }
 
+    /*
+     * MOTIVOS DE PERDA — `supabase/42`.
+     *
+     * DUAS REGRAS DO SQL QUE O FAKE PRECISA REPETIR:
+     *
+     *   SÓ FECHADA COM MOTIVO. `lost_reason is not null` é o que separa "perdi
+     *   e sei por quê" de "ainda está aberta". Um fake que trouxesse as abertas
+     *   concordaria com um relatório que conta oportunidade viva como perda.
+     *
+     *   DESEMPATE PELO NOME. No SQL o `order by` é `count desc, lost_reason` —
+     *   em memória, antes, o desempate era a ordem de chegada das linhas, que
+     *   o Postgres não promete estável. Dois motivos empatados trocavam de
+     *   lugar entre dois carregamentos da mesma tela.
+     */
+    case "crc_motivos_de_perda": {
+      const org = argumentos["p_organization_id"];
+      const de = typeof argumentos["p_de"] === "string" ? Date.parse(argumentos["p_de"]) : 0;
+      const ate =
+        typeof argumentos["p_ate"] === "string"
+          ? Date.parse(argumentos["p_ate"])
+          : Number.MAX_SAFE_INTEGER;
+
+      const porMotivo = new Map<string, { quantidade: number; valor: number }>();
+
+      for (const l of tabelas["crc_opportunities"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const motivo = l["lost_reason"];
+        if (typeof motivo !== "string" || motivo.length === 0) continue;
+        const fechada = l["fechada_em"];
+        if (typeof fechada !== "string") continue;
+        const t = Date.parse(fechada);
+        if (!(t >= de && t < ate)) continue;
+
+        const atual = porMotivo.get(motivo) ?? { quantidade: 0, valor: 0 };
+        atual.quantidade += 1;
+        atual.valor += Number.parseFloat(String(l["potential_value"] ?? "0")) || 0;
+        porMotivo.set(motivo, atual);
+      }
+
+      return Promise.resolve(
+        [...porMotivo]
+          .map(([motivo, d]) => ({
+            motivo,
+            quantidade: d.quantidade,
+            valor_perdido: d.valor,
+          }))
+          .sort((a, b) => b.quantidade - a.quantidade || a.motivo.localeCompare(b.motivo)) as T[],
+      );
+    }
+
+    /*
+     * SPEED TO LEAD — `supabase/42`.
+     *
+     * A MEDIANA É O MOTIVO DESTA FUNÇÃO EXISTIR, e vale repetir por quê: uma
+     * SOMA truncada erra proporcionalmente, mas uma MEDIANA truncada passa a
+     * descrever a metade das linhas que o banco devolveu primeiro — que não é
+     * amostra, é o começo de uma ordenação.
+     *
+     * `percentile_cont(0.5)` interpola linearmente, o que para 0,5 devolve o
+     * elemento do meio (n ímpar) ou a média dos dois do meio (n par). É a mesma
+     * conta abaixo. `Math.round` e `round()` do Postgres só divergem em
+     * negativo terminado em ,5 — o que aqui significaria resposta ANTES da
+     * criação do lead, e está fora do domínio.
+     */
+    case "crc_speed_to_lead": {
+      const org = argumentos["p_organization_id"];
+      const de = typeof argumentos["p_de"] === "string" ? Date.parse(argumentos["p_de"]) : 0;
+      const ate =
+        typeof argumentos["p_ate"] === "string"
+          ? Date.parse(argumentos["p_ate"])
+          : Number.MAX_SAFE_INTEGER;
+
+      let leads = 0;
+      const minutos: number[] = [];
+
+      for (const l of tabelas["crc_leads"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const criado = l["criado_em"];
+        if (typeof criado !== "string") continue;
+        const t = Date.parse(criado);
+        if (!(t >= de && t < ate)) continue;
+
+        leads += 1;
+
+        const resposta = l["primeira_resposta_em"];
+        if (typeof resposta !== "string") continue;
+        const r = Date.parse(resposta);
+        if (!Number.isFinite(r)) continue;
+        minutos.push((r - t) / 60_000);
+      }
+
+      minutos.sort((a, b) => a - b);
+      const meio = Math.floor(minutos.length / 2);
+
+      return Promise.resolve([
+        {
+          leads,
+          respondidos: minutos.length,
+          mediana_minutos:
+            minutos.length === 0
+              ? null
+              : minutos.length % 2 === 1
+                ? Math.round(minutos[meio] ?? 0)
+                : Math.round(((minutos[meio - 1] ?? 0) + (minutos[meio] ?? 0)) / 2),
+          ate_cinco_minutos: minutos.filter((m) => m <= 5).length,
+        },
+      ] as T[]);
+    }
+
+    /*
+     * OS TOTAIS PRÓPRIOS DO PANORAMA — `supabase/42`.
+     *
+     * ABERTAS NÃO TÊM PERÍODO, e o fake precisa errar junto com o SQL ou não
+     * serve para nada: uma oportunidade aberta há oito meses continua sendo
+     * dinheiro parado hoje. Recortá-la por mês esconderia justamente a que mais
+     * precisa de atenção.
+     *
+     * REATIVADOS É `count(distinct patient_id)`: quem voltou duas vezes no mês
+     * continua sendo UMA pessoa.
+     */
+    case "crc_panorama_totais": {
+      const org = argumentos["p_organization_id"];
+      const de = typeof argumentos["p_de"] === "string" ? Date.parse(argumentos["p_de"]) : 0;
+      const ate =
+        typeof argumentos["p_ate"] === "string"
+          ? Date.parse(argumentos["p_ate"])
+          : Number.MAX_SAFE_INTEGER;
+
+      const abertas = (tabelas["crc_opportunities"] ?? []).filter(
+        (l) =>
+          l["organization_id"] === org &&
+          (l["fechada_em"] === null || l["fechada_em"] === undefined),
+      );
+
+      const recuperadas = (tabelas["crc_funnel_events"] ?? []).filter((l) => {
+        if (l["organization_id"] !== org) return false;
+        if (l["etapa"] !== "consulta_recuperada") return false;
+        const q = l["ocorrido_em"];
+        if (typeof q !== "string") return false;
+        const t = Date.parse(q);
+        return t >= de && t < ate;
+      });
+
+      return Promise.resolve([
+        {
+          oportunidades_abertas: abertas.length,
+          valor_em_aberto: abertas.reduce(
+            (t, l) => t + (Number.parseFloat(String(l["potential_value"] ?? "0")) || 0),
+            0,
+          ),
+          consultas_recuperadas: recuperadas.length,
+          pacientes_reativados: new Set(
+            recuperadas.map((l) => String(l["patient_id"] ?? "")).filter((x) => x.length > 0),
+          ).size,
+        },
+      ] as T[]);
+    }
+
     case "crc_radar_resumo": {
       const org = argumentos["p_organization_id"];
       const clinica =
