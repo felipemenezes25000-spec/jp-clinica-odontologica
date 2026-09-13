@@ -21,14 +21,20 @@
  *      não depender de tracking do navegador — e o evento que mais importa
  *      (o paciente agendou) acontece num worker, sem navegador nenhum.
  *
- * SOBRE O CUSTO DAS CONSULTAS: cada função aqui é uma leitura com filtro de
- * período e um agrupamento em memória. Isso funciona bem até a casa das
- * dezenas de milhares de eventos. Passando disso, o caminho é uma view
- * materializada no Postgres — e o formato de saída aqui não muda por causa
- * disso, que é o motivo de a agregação estar isolada nestas funções.
+ * SOBRE O CUSTO DAS CONSULTAS, e o estado é MISTO — vale saber qual é qual.
+ *
+ * `receitaPorMes` e `funilDoPeriodo` já somam no banco (`supabase/41`): uma ida
+ * cada, agrupamento em SQL. A primeira era um laço de seis meses lendo 5.000
+ * linhas por volta.
+ *
+ * O RESTO AINDA AGREGA EM MEMÓRIA, com teto de 3.000 linhas: `motivosDePerda`,
+ * `speedToLead` e `panoramaDoGestor`. Funciona na casa dos milhares e tem o
+ * mesmo defeito silencioso das outras: passando do teto, o número sai MENOR que
+ * a realidade sem avisar. O caminho é o mesmo já trilhado — função agregada no
+ * Postgres — e o formato de saída daqui não muda por causa disso.
  */
 import { somarDinheiro } from "../dominio/formatar";
-import { contar, selecionar, type Filtro, type Linha } from "../servidor/banco";
+import { contar, rpc, selecionar, type Filtro, type Linha } from "../servidor/banco";
 
 /* -------------------------------------------------------------------------- */
 /* Período                                                                    */
@@ -39,11 +45,16 @@ export type Periodo = { de: string; ate: string; rotulo: string };
 /**
  * Os últimos N meses, incluindo o corrente.
  *
- * O primeiro dia do mês é calculado em UTC. A clínica opera em -03, então o
- * "mês" do relatório começa às 21h do último dia do mês anterior no horário
- * local. Para um relatório mensal isso é irrelevante — e resolver com fuso
- * completo exigiria trazer a agregação para dentro do Postgres, que é o
- * caminho quando o volume justificar.
+ * ATENÇÃO AO FUSO, porque esta função e a série de receita já não concordam.
+ *
+ * Aqui o primeiro dia do mês é calculado em UTC — 21h do último dia do mês
+ * anterior em São Paulo. `receitaPorMes` deixou de usar isto e passou a somar
+ * pelo `supabase/41`, que agrupa no fuso da clínica.
+ *
+ * O que sobrou usando esta função são janelas de período que vão para um
+ * `where` de intervalo, onde três horas de borda não mudam a leitura. Se algum
+ * chamador novo precisar do MÊS como conceito, use `inicioDoMesLocal` de
+ * `dominio/dia-local` — senão o número dele vai discordar do relatório.
  */
 export function ultimosMeses(quantidade: number, agora = new Date()): Periodo[] {
   const meses: Periodo[] = [];
@@ -91,39 +102,70 @@ export type ReceitaDoMes = {
 };
 
 /**
- * A série mensal de receita.
+ * O rótulo curto do mês — "set/26".
  *
- * As duas naturezas vêm SEPARADAS até a tela, e a tela as mostra separadas.
- * Somá-las aqui seria o jeito mais fácil de produzir um número grande e falso.
+ * A data vem do banco como `YYYY-MM-DD` já no fuso da clínica. Lê-la com
+ * `new Date("2026-09-01")` daria meia-noite UTC e, formatada em pt-BR, poderia
+ * voltar um dia — e "ago/26" apareceria onde o banco disse setembro. Por isso
+ * o mês é montado a partir dos números da string, sem passar por instante.
+ */
+function rotuloDoMes(diaIso: string): string {
+  const [ano, mes] = diaIso.split("-");
+  const n = Number.parseInt(mes ?? "1", 10);
+  const curto = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
+  return `${curto[n - 1] ?? "?"}/${(ano ?? "").slice(2)}`;
+}
+
+/**
+ * Receita por mês.
+ *
+ * ============================================================================
+ *  ISTO ERA UM LAÇO DE SEIS MESES LENDO 5.000 LINHAS POR VOLTA.
+ *
+ *  Até trinta mil linhas atravessando a rede, em seis idas ao banco, para
+ *  produzir seis pares de soma. E o teto de 5.000 não era só lento: um mês com
+ *  mais eventos teria a lista cortada e a receita sairia MENOR que a real, sem
+ *  aviso nenhum.
+ *
+ *  Agora é uma ida, e a soma acontece onde os dados estão. O ganho de fuso vem
+ *  junto: o `supabase/41` agrupa por `America/Sao_Paulo`, então o mês do
+ *  relatório é o mês que a clínica viveu — e não o mês do servidor, que começa
+ *  às 21h do dia anterior.
+ * ============================================================================
  */
 export async function receitaPorMes(
   organizationId: string,
   meses = 6,
   agora = new Date(),
 ): Promise<ReceitaDoMes[]> {
-  const periodos = ultimosMeses(meses, agora);
-  const saida: ReceitaDoMes[] = [];
+  const linhas = await rpc("crc_receita_por_mes", {
+    p_organization_id: organizationId,
+    p_meses: meses,
+    p_agora: agora.toISOString(),
+  });
 
-  for (const p of periodos) {
-    const linhas = await selecionar("crc_revenue_events", {
-      colunas: "valor,natureza",
-      filtros: noPeriodo(organizationId, p),
-      limite: 5000,
-    });
-
-    saida.push({
-      rotulo: p.rotulo,
-      confirmada: somarDinheiro(
-        linhas.filter((l) => l["natureza"] === "CONFIRMADA").map((l) => valorDe(l)),
-      ),
-      potencial: somarDinheiro(
-        linhas.filter((l) => l["natureza"] !== "CONFIRMADA").map((l) => valorDe(l)),
-      ),
-      eventos: linhas.length,
-    });
-  }
-
-  return saida;
+  return linhas.map((l) => ({
+    rotulo: rotuloDoMes(String(l["mes"] ?? "")),
+    // O Postgres devolve `numeric` como número neste caminho e como string em
+    // outros. `String(...)` normaliza os dois antes de o formatador de dinheiro
+    // ver o valor — sem isso, um deles vira concatenação de texto.
+    confirmada: somarDinheiro([String(l["confirmada"] ?? "0")]),
+    potencial: somarDinheiro([String(l["potencial"] ?? "0")]),
+    eventos: Number.parseInt(String(l["eventos"] ?? "0"), 10) || 0,
+  }));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -159,14 +201,36 @@ export async function funilDoPeriodo(
   organizationId: string,
   periodo: Periodo,
 ): Promise<EtapaDoFunil[]> {
+  /*
+   * UMA IDA, E NÃO SEIS. Antes eram seis `count(*)` sequenciais — seis viagens
+   * ao banco para seis números que uma consulta agrupada devolve de uma vez.
+   *
+   * A ORDEM CONTINUA AQUI, no código, e isso é deliberado: a conversão de cada
+   * etapa é medida contra a ANTERIOR, e essa sequência é decisão de produto.
+   * Duplicá-la no SQL criaria duas fontes de verdade que um dia discordam em
+   * silêncio.
+   */
+  const agrupado = await rpc("crc_funil_do_periodo", {
+    p_organization_id: organizationId,
+    p_de: periodo.de,
+    p_ate: periodo.ate,
+  });
+
+  const porEtapa = new Map<string, number>(
+    agrupado.map((l) => [
+      String(l["etapa"] ?? ""),
+      Number.parseInt(String(l["quantidade"] ?? "0"), 10) || 0,
+    ]),
+  );
+
   const saida: EtapaDoFunil[] = [];
   let anterior: number | null = null;
 
   for (const etapa of ETAPAS_FUNIL) {
-    const quantidade = await contar("crc_funnel_events", [
-      ...noPeriodo(organizationId, periodo),
-      { coluna: "etapa", op: "eq", valor: etapa.chave },
-    ]);
+    // Etapa sem nenhum evento não volta do `group by` — e precisa aparecer como
+    // zero, senão o funil pula um degrau e a conversão do seguinte é medida
+    // contra a etapa errada.
+    const quantidade = porEtapa.get(etapa.chave) ?? 0;
 
     saida.push({
       chave: etapa.chave,

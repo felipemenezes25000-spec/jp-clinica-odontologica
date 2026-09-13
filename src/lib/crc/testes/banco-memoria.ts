@@ -1199,6 +1199,93 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       ] as T[]);
     }
 
+    /*
+     * RECEITA POR MÊS — `supabase/41`.
+     *
+     * O FAKE PRECISA REPETIR DUAS COISAS, e cada uma protege um número:
+     *
+     *   A GRADE VEM DOS MESES, e não dos dados. Um mês sem evento aparece com
+     *   zero. Um fake que devolvesse só os meses com movimento concordaria com
+     *   um gráfico que salta por cima do mês vazio como se o tempo não tivesse
+     *   passado.
+     *
+     *   "POTENCIAL" É PELA NEGATIVA (`!== "CONFIRMADA"`), igual ao SQL: uma
+     *   natureza nova cai no potencial, que é o lado conservador. Listar por
+     *   nome faria a nova sumir dos dois números.
+     *
+     * O FUSO NÃO É REPRODUZIDO AQUI, e isto é uma limitação declarada: o fake
+     * agrupa por mês UTC. Um teste que dependa da borda de 21h precisa ir para
+     * `integracao/`, contra o Postgres de verdade.
+     */
+    case "crc_receita_por_mes": {
+      const org = argumentos["p_organization_id"];
+      const quantos = typeof argumentos["p_meses"] === "number" ? argumentos["p_meses"] : 6;
+      const base =
+        typeof argumentos["p_agora"] === "string"
+          ? new Date(argumentos["p_agora"])
+          : new Date(agora);
+
+      const chaveDoMes = (d: Date): string => d.toISOString().slice(0, 7);
+      const grade: string[] = [];
+      for (let i = quantos - 1; i >= 0; i -= 1) {
+        grade.push(
+          chaveDoMes(new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() - i, 1))),
+        );
+      }
+
+      const eventos = (tabelas["crc_revenue_events"] ?? []).filter(
+        (l) => l["organization_id"] === org && typeof l["ocorrido_em"] === "string",
+      );
+
+      return Promise.resolve(
+        grade.map((mes) => {
+          const doMes = eventos.filter((l) => String(l["ocorrido_em"]).slice(0, 7) === mes);
+          const somar = (f: (l: Linha) => boolean): number =>
+            doMes
+              .filter(f)
+              .reduce((t, l) => t + (Number.parseFloat(String(l["valor"] ?? "0")) || 0), 0);
+          return {
+            mes: `${mes}-01`,
+            confirmada: somar((l) => l["natureza"] === "CONFIRMADA"),
+            potencial: somar((l) => l["natureza"] !== "CONFIRMADA"),
+            eventos: doMes.length,
+          };
+        }) as T[],
+      );
+    }
+
+    /*
+     * FUNIL DO PERÍODO — `supabase/41`.
+     *
+     * DEVOLVE SÓ AS ETAPAS QUE TÊM EVENTO, exatamente como um `group by` faz.
+     * É o comportamento que obriga o chamador a tratar a etapa ausente como
+     * zero — e um fake que devolvesse todas as etapas esconderia esse buraco,
+     * fazendo o teste passar contra um código que quebra no Postgres.
+     */
+    case "crc_funil_do_periodo": {
+      const org = argumentos["p_organization_id"];
+      const de = typeof argumentos["p_de"] === "string" ? Date.parse(argumentos["p_de"]) : 0;
+      const ate =
+        typeof argumentos["p_ate"] === "string"
+          ? Date.parse(argumentos["p_ate"])
+          : Number.MAX_SAFE_INTEGER;
+
+      const porEtapa = new Map<string, number>();
+      for (const l of tabelas["crc_funnel_events"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const q = l["ocorrido_em"];
+        if (typeof q !== "string") continue;
+        const t = Date.parse(q);
+        if (!(t >= de && t < ate)) continue;
+        const etapa = String(l["etapa"] ?? "");
+        porEtapa.set(etapa, (porEtapa.get(etapa) ?? 0) + 1);
+      }
+
+      return Promise.resolve(
+        [...porEtapa].map(([etapa, quantidade]) => ({ etapa, quantidade })) as T[],
+      );
+    }
+
     case "crc_radar_resumo": {
       const org = argumentos["p_organization_id"];
       const clinica =
