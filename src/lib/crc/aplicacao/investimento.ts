@@ -22,7 +22,7 @@
  *   Um custo por paciente calculado sobre investimento zero seria R$ 0,00, que
  *   é a leitura mais perigosa possível.
  */
-import { contar, gravar, selecionar, type Filtro } from "../servidor/banco";
+import { contar, gravar, rpc, selecionar, type Filtro, type Linha } from "../servidor/banco";
 import { auditar } from "../servidor/registro";
 
 import type { Periodo } from "./analytics";
@@ -236,13 +236,35 @@ export async function panoramaDeInvestimento(
     investidoPorCampanha.set(campanha, (investidoPorCampanha.get(campanha) ?? 0) + v);
   }
 
-  const leads = await selecionar("crc_leads", {
-    colunas: "id,utm_campaign,primeira_resposta_em",
-    filtros: noPeriodo(organizationId, periodo, "criado_em"),
-    limite: 5000,
+  /*
+   * ==========================================================================
+   *  LIA ATÉ 5.000 LEADS E CONTAVA AQUI — e o erro ia para o lado contrário
+   *  do erro do custo de IA, o que vale entender.
+   *
+   *  `custoUnitario` divide o investido pela quantidade de leads. Truncar a
+   *  quantidade encolhe o DENOMINADOR, então o custo por lead sai MAIOR do que
+   *  é. A campanha aparece pior do que foi, e alguém desliga um anúncio que
+   *  estava funcionando.
+   *
+   *  Por isso "está plausível" nunca foi argumento contra este defeito: ele
+   *  produz números plausíveis nos dois sentidos, dependendo de qual lado da
+   *  divisão foi cortado.
+   * ==========================================================================
+   */
+  const porCampanha = await rpc("crc_leads_por_campanha", {
+    p_organization_id: organizationId,
+    p_de: periodo.de,
+    p_ate: periodo.ate,
   });
 
-  const responderam = leads.filter((l) => typeof l["primeira_resposta_em"] === "string").length;
+  const inteiro = (v: unknown): number => Number.parseInt(String(v ?? "0"), 10) || 0;
+
+  const leadsPorCampanha = new Map<string, number>(
+    porCampanha.map((l: Linha) => [String(l["campanha"] ?? "geral"), inteiro(l["quantidade"])]),
+  );
+
+  const totalDeLeads = [...leadsPorCampanha.values()].reduce((t, n) => t + n, 0);
+  const responderam = porCampanha.reduce((t: number, l: Linha) => t + inteiro(l["responderam"]), 0);
 
   // Agendaram e compareceram vêm do funil, que é contado no momento em que o
   // fato acontece — e não recalculado depois a partir do estado atual.
@@ -261,8 +283,8 @@ export async function panoramaDeInvestimento(
     {
       chave: "contatos",
       rotulo: "Viraram contato",
-      quantidade: leads.length,
-      custoUnitario: dividir(investido, leads.length),
+      quantidade: totalDeLeads,
+      custoUnitario: dividir(investido, totalDeLeads),
     },
     {
       chave: "responderam",
@@ -284,14 +306,17 @@ export async function panoramaDeInvestimento(
     },
   ];
 
-  // Por campanha, o comparecimento é atribuído pelo lead que o originou. Um
-  // lead sem `utm_campaign` cai em "geral", junto com o gasto sem campanha.
-  const leadsPorCampanha = new Map<string, number>();
-  for (const l of leads) {
-    const c = normalizarCampanha(String(l["utm_campaign"] ?? ""));
-    leadsPorCampanha.set(c, (leadsPorCampanha.get(c) ?? 0) + 1);
-  }
-
+  /*
+   * Por campanha, o comparecimento é atribuído pelo lead que o originou. Um
+   * lead sem `utm_campaign` cai em "geral", junto com o gasto sem campanha.
+   *
+   * O AGRUPAMENTO AGORA ACONTECE NO SQL, e a normalização de lá tem de ser a
+   * mesma de `normalizarCampanha` — minúsculas, espaços colapsados, aparado,
+   * 120 caracteres. O gasto (`crc_ad_spend.campanha`) já é gravado assim, e a
+   * junção entre gasto e leads é PELO NOME: uma normalização diferente faria
+   * "Black Friday" não casar com "black friday", produzindo custo por paciente
+   * infinito numa linha e zero na outra, com o total certo.
+   */
   const nomes = new Set([...investidoPorCampanha.keys(), ...leadsPorCampanha.keys()]);
   const campanhas: CustoPorCampanha[] = [...nomes]
     .map((campanha) => {
@@ -301,7 +326,7 @@ export async function panoramaDeInvestimento(
       // ligar cada `consulta_recuperada` ao lead exigiria carregar a cadeia
       // oportunidade→lead de cada evento, e o ganho de precisão não paga o
       // custo. A tela chama isso de estimativa — e o total, não.
-      const proporcao = leads.length > 0 ? qtdLeads / leads.length : 0;
+      const proporcao = totalDeLeads > 0 ? qtdLeads / totalDeLeads : 0;
       const compareceramNaCampanha = Math.round(compareceram * proporcao);
       return {
         campanha,

@@ -1444,6 +1444,95 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
       ] as T[]);
     }
 
+    /*
+     * O GASTO DE IA — `supabase/43`.
+     *
+     * O número que este fake precisa acertar é `custo_total`, e a razão é que
+     * ele alimenta o TETO DE GASTO. Um teto lendo gasto subnotificado não falha
+     * aberto nem fechado: falha exatamente quando a clínica está gastando
+     * muito, que é quando ele precisaria funcionar.
+     */
+    case "crc_gasto_de_ia": {
+      const org = argumentos["p_organization_id"];
+      const desde =
+        typeof argumentos["p_desde"] === "string" ? Date.parse(argumentos["p_desde"]) : 0;
+
+      let chamadas = 0;
+      let falhas = 0;
+      let custo = 0;
+      let entrada = 0;
+      let saida = 0;
+
+      for (const l of tabelas["crc_ai_calls"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const q = l["criado_em"];
+        if (typeof q !== "string" || Date.parse(q) < desde) continue;
+
+        chamadas += 1;
+        if (l["sucesso"] === false) falhas += 1;
+        custo += Number.parseFloat(String(l["custo_estimado"] ?? "0")) || 0;
+        if (typeof l["input_tokens"] === "number") entrada += l["input_tokens"];
+        if (typeof l["output_tokens"] === "number") saida += l["output_tokens"];
+      }
+
+      return Promise.resolve([
+        {
+          chamadas,
+          falhas,
+          custo_total: custo,
+          tokens_entrada: entrada,
+          tokens_saida: saida,
+        },
+      ] as T[]);
+    }
+
+    /*
+     * LEADS POR CAMPANHA — `supabase/43`.
+     *
+     * A NORMALIZAÇÃO PRECISA SER A MESMA DE `normalizarCampanha`, e é o ponto
+     * inteiro deste caso: o gasto é gravado normalizado, e a tela junta gasto e
+     * leads PELO NOME. Uma normalização diferente faria "Black Friday" não
+     * casar com "black friday" — custo por paciente infinito numa linha e zero
+     * na outra, com o total certo.
+     */
+    case "crc_leads_por_campanha": {
+      const org = argumentos["p_organization_id"];
+      const de = typeof argumentos["p_de"] === "string" ? Date.parse(argumentos["p_de"]) : 0;
+      const ate =
+        typeof argumentos["p_ate"] === "string"
+          ? Date.parse(argumentos["p_ate"])
+          : Number.MAX_SAFE_INTEGER;
+
+      const normalizar = (bruto: string): string => {
+        const limpo = bruto.trim().toLowerCase().replace(/\s+/gu, " ").slice(0, 120);
+        return limpo.length === 0 ? "geral" : limpo;
+      };
+
+      const porCampanha = new Map<string, { quantidade: number; responderam: number }>();
+
+      for (const l of tabelas["crc_leads"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const q = l["criado_em"];
+        if (typeof q !== "string") continue;
+        const t = Date.parse(q);
+        if (!(t >= de && t < ate)) continue;
+
+        const campanha = normalizar(String(l["utm_campaign"] ?? ""));
+        const atual = porCampanha.get(campanha) ?? { quantidade: 0, responderam: 0 };
+        atual.quantidade += 1;
+        if (typeof l["primeira_resposta_em"] === "string") atual.responderam += 1;
+        porCampanha.set(campanha, atual);
+      }
+
+      return Promise.resolve(
+        [...porCampanha]
+          .map(([campanha, d]) => ({ campanha, ...d }))
+          .sort(
+            (a, b) => b.quantidade - a.quantidade || a.campanha.localeCompare(b.campanha),
+          ) as T[],
+      );
+    }
+
     case "crc_radar_resumo": {
       const org = argumentos["p_organization_id"];
       const clinica =

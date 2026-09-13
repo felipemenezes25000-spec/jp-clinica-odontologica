@@ -369,3 +369,132 @@ describe("o search_path das funções novas", () => {
     }
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("crc_gasto_de_ia", () => {
+  it("12.000 chamadas: o custo sai inteiro, e o teto antigo dava 42% dele", async () => {
+    await sql(`
+      insert into public.crc_ai_calls
+        (organization_id, feature, prompt_versao, modelo, custo_estimado,
+         input_tokens, output_tokens, sucesso, criado_em)
+      select '${ORG_A}', 'classificacao', 'v1', 'teste', 0.005000, 10, 5,
+             i % 100 <> 0,
+             timestamptz '2026-06-01 12:00:00-03'
+        from generate_series(1, 12000) i
+    `);
+
+    const [linha] = await sql<{
+      chamadas: number;
+      falhas: number;
+      custo_total: string;
+      tokens_entrada: number;
+      tokens_saida: number;
+    }>(`
+      select * from public.crc_gasto_de_ia('${ORG_A}'::uuid, '${DE}'::timestamptz)
+    `);
+
+    expect(Number(linha?.chamadas)).toBe(12_000);
+    // Com o teto de 5.000: 25,00. A clínica teria gasto 60,00.
+    expect(Number(linha?.custo_total)).toBe(60);
+    expect(Number(linha?.falhas)).toBe(120);
+    expect(Number(linha?.tokens_entrada)).toBe(120_000);
+  });
+
+  it("soma em `numeric`, e não em ponto flutuante", async () => {
+    /*
+     * `custo_estimado` é `numeric(10,6)` — seis casas. Somar mil valores de
+     * 0,000001 em `double precision` acumula erro justamente na casa onde o
+     * custo por chamada mora. Este teste prende o tipo, e não só o número.
+     */
+    await sql(`
+      insert into public.crc_ai_calls
+        (organization_id, feature, prompt_versao, modelo, custo_estimado, criado_em)
+      select '${ORG_A}', 'classificacao', 'v1', 'teste', 0.000001,
+             timestamptz '2026-06-01 12:00:00-03'
+        from generate_series(1, 1000) i
+    `);
+
+    const [linha] = await sql<{ custo_total: string }>(`
+      select * from public.crc_gasto_de_ia('${ORG_A}'::uuid, '${DE}'::timestamptz)
+    `);
+
+    /*
+     * A MESMA SOMA EM `float8` DÁ 0,0010000000000000152 — medido neste banco:
+     *
+     *   select sum(0.000001::float8)  ->  0.0010000000000000152
+     *   select sum(0.000001::numeric) ->  0.001000
+     *
+     * O erro aparece na 16ª casa, que parece inofensivo até alguém comparar
+     * dois totais ou testar `= 0.001`.
+     */
+    expect(Number(linha?.custo_total)).toBe(0.001);
+    expect(String(linha?.custo_total)).not.toContain("0.0010000000");
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe("crc_leads_por_campanha", () => {
+  it("normaliza igual ao `normalizarCampanha` do TypeScript", async () => {
+    /*
+     * ========================================================================
+     *  O GASTO É GRAVADO NORMALIZADO, e a tela junta gasto e leads PELO NOME.
+     *
+     *  Se o SQL agrupasse pelo `utm_campaign` cru, "Black Friday" viraria uma
+     *  campanha sem gasto e "black friday" um gasto sem leads — custo por
+     *  paciente infinito numa linha e zero na outra, com o total certo.
+     *
+     *  As quatro grafias abaixo são as que `normalizarCampanha` colapsa:
+     *  maiúscula, espaço duplo, espaço nas pontas e tabulação.
+     * ========================================================================
+     */
+    await sql(`
+      insert into public.crc_leads (organization_id, nome, origem, utm_campaign, criado_em)
+      values
+        ('${ORG_A}', 'A', 'SITE', 'Black Friday',    timestamptz '2026-06-10 10:00:00-03'),
+        ('${ORG_A}', 'B', 'SITE', 'black  friday',   timestamptz '2026-06-10 10:00:00-03'),
+        ('${ORG_A}', 'C', 'SITE', '  BLACK FRIDAY ', timestamptz '2026-06-10 10:00:00-03'),
+        ('${ORG_A}', 'D', 'SITE', E'black\tfriday',  timestamptz '2026-06-10 10:00:00-03'),
+        ('${ORG_A}', 'E', 'SITE', '',                timestamptz '2026-06-10 10:00:00-03'),
+        ('${ORG_A}', 'F', 'SITE', null,              timestamptz '2026-06-10 10:00:00-03')
+    `);
+
+    const linhas = await sql<{ campanha: string; quantidade: number }>(`
+      select * from public.crc_leads_por_campanha(
+        '${ORG_A}'::uuid, '${DE}'::timestamptz, '${ATE}'::timestamptz)
+    `);
+
+    const porNome = new Map(linhas.map((l) => [l.campanha, Number(l.quantidade)]));
+
+    expect([...porNome.keys()].sort()).toEqual(["black friday", "geral"]);
+    expect(porNome.get("black friday")).toBe(4);
+    // Vazio e nulo são a mesma coisa para quem lê a tela.
+    expect(porNome.get("geral")).toBe(2);
+  });
+
+  it("10.000 leads em duas campanhas: nenhuma é cortada", async () => {
+    await sql(`
+      insert into public.crc_leads
+        (organization_id, nome, origem, utm_campaign, criado_em, primeira_resposta_em)
+      select '${ORG_A}', 'Lead ' || i, 'SITE',
+             case when i <= 7000 then 'a' else 'b' end,
+             timestamptz '2026-06-10 10:00:00-03',
+             case when i % 2 = 0 then timestamptz '2026-06-10 10:05:00-03' else null end
+        from generate_series(1, 10000) i
+    `);
+
+    const linhas = await sql<{ campanha: string; quantidade: number; responderam: number }>(`
+      select * from public.crc_leads_por_campanha(
+        '${ORG_A}'::uuid, '${DE}'::timestamptz, '${ATE}'::timestamptz)
+    `);
+
+    const porNome = new Map(linhas.map((l) => [l.campanha, l]));
+
+    expect(Number(porNome.get("a")?.quantidade)).toBe(7000);
+    // Com teto de 5.000, "b" apareceria com zero: ela só existe depois da
+    // 7.000ª linha.
+    expect(Number(porNome.get("b")?.quantidade)).toBe(3000);
+    expect(Number(porNome.get("a")?.responderam)).toBe(3500);
+  });
+});

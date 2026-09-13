@@ -39,7 +39,7 @@ import type {
 import { ACOES_IA, INTENCOES, TEMPERATURAS } from "../dominio/tipos";
 import { numeroEntre, umDe } from "../dominio/validar";
 import type { PortaIa } from "../integracoes/ia/porta";
-import { atualizar, inserir, selecionar, selecionarUm } from "../servidor/banco";
+import { atualizar, inserir, rpc, selecionar, selecionarUm } from "../servidor/banco";
 import { descreverErro, registrar } from "../servidor/registro";
 
 import { linhaParaMensagem, linhaParaPaciente } from "./repositorios";
@@ -630,34 +630,35 @@ export async function resumoDeCustoIa(
   tokensEntrada: number;
   tokensSaida: number;
 }> {
-  const linhas = await selecionar("crc_ai_calls", {
-    colunas: "sucesso,custo_estimado,input_tokens,output_tokens",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "criado_em", op: "gte", valor: desde.toISOString() },
-    ],
-    limite: 5000,
+  /*
+   * ==========================================================================
+   *  LIA ATÉ 5.000 CHAMADAS E SOMAVA AQUI. Passando disso, a conta de IA saía
+   *  MENOR do que a que a clínica vai pagar — e este é justamente o número que
+   *  existe para segurar o teto de gasto.
+   *
+   *  O teto de gasto lendo um gasto subnotificado é o pior arranjo possível:
+   *  ele não falha aberto nem fechado, ele falha exatamente quando a clínica
+   *  está gastando muito, que é quando ele precisaria funcionar.
+   *
+   *  5.000 chamadas num mês é uma clínica com automação ligada de verdade —
+   *  não é um cenário remoto.
+   * ==========================================================================
+   */
+  const linhas = await rpc("crc_gasto_de_ia", {
+    p_organization_id: organizationId,
+    p_desde: desde.toISOString(),
   });
 
-  let custoTotal = 0;
-  let tokensEntrada = 0;
-  let tokensSaida = 0;
-  let falhas = 0;
-
-  for (const l of linhas) {
-    if (l["sucesso"] === false) falhas += 1;
-    const custo = l["custo_estimado"];
-    if (typeof custo === "string") custoTotal += Number.parseFloat(custo) || 0;
-    else if (typeof custo === "number") custoTotal += custo;
-    if (typeof l["input_tokens"] === "number") tokensEntrada += l["input_tokens"];
-    if (typeof l["output_tokens"] === "number") tokensSaida += l["output_tokens"];
-  }
+  const l = linhas[0];
+  const inteiro = (v: unknown): number => Number.parseInt(String(v ?? "0"), 10) || 0;
 
   return {
-    chamadas: linhas.length,
-    falhas,
-    custoTotal: Number(custoTotal.toFixed(4)),
-    tokensEntrada,
-    tokensSaida,
+    chamadas: inteiro(l?.["chamadas"]),
+    falhas: inteiro(l?.["falhas"]),
+    // Quatro casas porque o custo por chamada mora nelas — `numeric(10,6)` no
+    // banco, e a soma volta como `numeric`.
+    custoTotal: Number((Number.parseFloat(String(l?.["custo_total"] ?? "0")) || 0).toFixed(4)),
+    tokensEntrada: inteiro(l?.["tokens_entrada"]),
+    tokensSaida: inteiro(l?.["tokens_saida"]),
   };
 }
