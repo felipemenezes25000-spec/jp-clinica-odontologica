@@ -5,7 +5,7 @@
  * negócio continuam nos módulos de `src/lib/crc` e nas telas específicas.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   BookOpenText,
@@ -46,39 +46,101 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { Automacoes } from "@/components/crc/Automacoes";
-import { Agenda } from "@/components/crc/Agenda";
-import { Funil } from "@/components/crc/Funil";
-import { Gestao } from "@/components/crc/Gestao";
 import { Home } from "@/components/crc/Home";
 import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
-import { Metas } from "@/components/crc/Metas";
-import { Autonomia } from "@/components/crc/Autonomia";
-import { Inbox } from "@/components/crc/Inbox";
-import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
 
-import { Campanhas } from "@/components/crc/Campanhas";
-import { Inteligencia } from "@/components/crc/Inteligencia";
-import { Conhecimento } from "@/components/crc/Conhecimento";
-import { ModelosECusto } from "@/components/crc/ModelosECusto";
-import { Avaliacao } from "@/components/crc/Avaliacao";
-import { Estudio } from "@/components/crc/Estudio";
-import { Ferramentas } from "@/components/crc/Ferramentas";
-import { Playground } from "@/components/crc/Playground";
-import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
-import { Encaixes } from "@/components/crc/Encaixes";
-import { Recepcao } from "@/components/crc/Recepcao";
-import { Tratamentos } from "@/components/crc/Tratamentos";
-import { Radar } from "@/components/crc/Radar";
-import { Saude } from "@/components/crc/Saude";
-import { Configuracoes } from "@/components/crc/Configuracoes";
-import { Equipe } from "@/components/crc/Equipe";
-import { Importar } from "@/components/crc/Importar";
-import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
-import { BuscaPacientes, CentralDoPaciente } from "@/components/crc/Pacientes";
+/*
+ * ============================================================================
+ *  AS TELAS ENTRAM SOB DEMANDA, E A CONTA QUE JUSTIFICA ISSO:
+ *
+ *  as telas do CRC somam 533 KB de fonte e a Home precisa de 44 KB. Com todas
+ *  importadas de forma estática, QUEM ABRIA A TELA DE LOGIN baixava o Estúdio,
+ *  o Playground, o Editor de Jornada e o Editor de Campanhas antes de digitar a
+ *  senha — 92% de código que aquela tela nunca usa. Num celular em rede móvel
+ *  isso é a diferença entre a página aparecer e a página demorar.
+ *
+ *  `Home` e `PrimeirosPassos` FICAM ESTÁTICAS de propósito. São a primeira tela
+ *  de todo mundo depois do login; em `lazy` elas trocariam um download grande
+ *  por uma espera nova exatamente onde ela mais incomoda — logo depois de a
+ *  pessoa entrar.
+ *
+ *  O `.then` que renomeia para `default` existe porque `lazy` só aceita export
+ *  default, e aqui tudo é export nomeado. `BuscaPacientes` e `CentralDoPaciente`
+ *  saem do mesmo arquivo: viram um pedaço só, e o segundo `import` resolve do
+ *  cache do navegador.
+ * ============================================================================
+ */
+const Agenda = lazy(() => import("@/components/crc/Agenda").then((m) => ({ default: m.Agenda })));
+const Automacoes = lazy(() =>
+  import("@/components/crc/Automacoes").then((m) => ({ default: m.Automacoes })),
+);
+const Autonomia = lazy(() =>
+  import("@/components/crc/Autonomia").then((m) => ({ default: m.Autonomia })),
+);
+const Avaliacao = lazy(() =>
+  import("@/components/crc/Avaliacao").then((m) => ({ default: m.Avaliacao })),
+);
+const BuscaPacientes = lazy(() =>
+  import("@/components/crc/Pacientes").then((m) => ({ default: m.BuscaPacientes })),
+);
+const Campanhas = lazy(() =>
+  import("@/components/crc/Campanhas").then((m) => ({ default: m.Campanhas })),
+);
+const CentralDoPaciente = lazy(() =>
+  import("@/components/crc/Pacientes").then((m) => ({ default: m.CentralDoPaciente })),
+);
+const Configuracoes = lazy(() =>
+  import("@/components/crc/Configuracoes").then((m) => ({ default: m.Configuracoes })),
+);
+const Conhecimento = lazy(() =>
+  import("@/components/crc/Conhecimento").then((m) => ({ default: m.Conhecimento })),
+);
+const Encaixes = lazy(() =>
+  import("@/components/crc/Encaixes").then((m) => ({ default: m.Encaixes })),
+);
+const Equipe = lazy(() => import("@/components/crc/Equipe").then((m) => ({ default: m.Equipe })));
+const Estudio = lazy(() =>
+  import("@/components/crc/Estudio").then((m) => ({ default: m.Estudio })),
+);
+const Ferramentas = lazy(() =>
+  import("@/components/crc/Ferramentas").then((m) => ({ default: m.Ferramentas })),
+);
+const Funil = lazy(() => import("@/components/crc/Funil").then((m) => ({ default: m.Funil })));
+const Gestao = lazy(() => import("@/components/crc/Gestao").then((m) => ({ default: m.Gestao })));
+const Importar = lazy(() =>
+  import("@/components/crc/Importar").then((m) => ({ default: m.Importar })),
+);
+const Inbox = lazy(() => import("@/components/crc/Inbox").then((m) => ({ default: m.Inbox })));
+const Integracoes = lazy(() =>
+  import("@/components/crc/Integracoes").then((m) => ({ default: m.Integracoes })),
+);
+const Inteligencia = lazy(() =>
+  import("@/components/crc/Inteligencia").then((m) => ({ default: m.Inteligencia })),
+);
+const Metas = lazy(() => import("@/components/crc/Metas").then((m) => ({ default: m.Metas })));
+const MeuTrabalho = lazy(() =>
+  import("@/components/crc/MeuTrabalho").then((m) => ({ default: m.MeuTrabalho })),
+);
+const ModelosECusto = lazy(() =>
+  import("@/components/crc/ModelosECusto").then((m) => ({ default: m.ModelosECusto })),
+);
+const Playground = lazy(() =>
+  import("@/components/crc/Playground").then((m) => ({ default: m.Playground })),
+);
+const ProximasAcoes = lazy(() =>
+  import("@/components/crc/ProximasAcoes").then((m) => ({ default: m.ProximasAcoes })),
+);
+const Radar = lazy(() => import("@/components/crc/Radar").then((m) => ({ default: m.Radar })));
+const Recepcao = lazy(() =>
+  import("@/components/crc/Recepcao").then((m) => ({ default: m.Recepcao })),
+);
+const Saude = lazy(() => import("@/components/crc/Saude").then((m) => ({ default: m.Saude })));
+const Tratamentos = lazy(() =>
+  import("@/components/crc/Tratamentos").then((m) => ({ default: m.Tratamentos })),
+);
 import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
-import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
+import { Aviso, Botao, Campo, Entrada, ListaEsqueleto, useAcao } from "@/components/crc/base";
 import "@/components/crc/crc.css";
 import "@/components/crc/crc-premium.css";
 import {
@@ -1967,9 +2029,17 @@ function PortalCrc() {
             />
           )}
 
-          {abaAtual === "home" && (
-            <>
-              {/*
+          {/*
+            UM LIMITE SÓ PARA TODAS AS ABAS.
+            A troca de aba é sempre uma tela de cada vez, então não há ganho em
+            espalhar `Suspense` por tela — e o esqueleto aqui é o mesmo que as
+            telas já usam enquanto buscam dados, o que faz o carregamento do
+            código e o da informação parecerem a mesma espera para quem olha.
+          */}
+          <Suspense fallback={<ListaEsqueleto />}>
+            {abaAtual === "home" && (
+              <>
+                {/*
                 O CHECKLIST DE INSTALAÇÃO FICA NO TOPO DA HOME, e só enquanto
                 faltar passo essencial — ele some sozinho, sem botão de fechar.
 
@@ -1977,92 +2047,93 @@ function PortalCrc() {
                 pergunta que ele responde é a que a pessoa faz olhando uma tela
                 vazia: "o sistema quebrou, ou ainda não terminei de instalar?".
               */}
-              <PrimeirosPassos
-                aoIrPara={(destino) => {
-                  // A aba só muda se ela existir E a pessoa tiver a permissão:
-                  // mandar alguém para uma aba que ela não pode abrir trocaria
-                  // um checklist por uma tela em branco.
-                  const alvo = permitidas.find((n) => n.aba === destino);
-                  if (alvo !== undefined) setAba(alvo.aba);
+                <PrimeirosPassos
+                  aoIrPara={(destino) => {
+                    // A aba só muda se ela existir E a pessoa tiver a permissão:
+                    // mandar alguém para uma aba que ela não pode abrir trocaria
+                    // um checklist por uma tela em branco.
+                    const alvo = permitidas.find((n) => n.aba === destino);
+                    if (alvo !== undefined) setAba(alvo.aba);
+                  }}
+                />
+                <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
+              </>
+            )}
+
+            {abaAtual === "trabalho" && (
+              <MeuTrabalho usuarioId={usuario.id} aoAbrirPaciente={abrirPaciente} />
+            )}
+
+            {abaAtual === "inbox" && (
+              <Inbox
+                aoAbrirPaciente={abrirPaciente}
+                conversaInicial={conversaAberta}
+                aoConsumirInicial={() => {
+                  setConversaAberta(null);
                 }}
               />
-              <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
-            </>
-          )}
+            )}
 
-          {abaAtual === "trabalho" && (
-            <MeuTrabalho usuarioId={usuario.id} aoAbrirPaciente={abrirPaciente} />
-          )}
+            {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
+            {abaAtual === "agenda" && <Agenda aoAbrirPaciente={abrirPaciente} />}
 
-          {abaAtual === "inbox" && (
-            <Inbox
-              aoAbrirPaciente={abrirPaciente}
-              conversaInicial={conversaAberta}
-              aoConsumirInicial={() => {
-                setConversaAberta(null);
-              }}
-            />
-          )}
+            {abaAtual === "pacientes" &&
+              (pacienteAberto === null ? (
+                <BuscaPacientes aoAbrirPaciente={abrirPaciente} />
+              ) : (
+                <CentralDoPaciente
+                  patientId={pacienteAberto}
+                  aoVoltar={() => {
+                    setPacienteAberto(null);
+                  }}
+                />
+              ))}
 
-          {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
-          {abaAtual === "agenda" && <Agenda aoAbrirPaciente={abrirPaciente} />}
-
-          {abaAtual === "pacientes" &&
-            (pacienteAberto === null ? (
-              <BuscaPacientes aoAbrirPaciente={abrirPaciente} />
-            ) : (
-              <CentralDoPaciente
-                patientId={pacienteAberto}
-                aoVoltar={() => {
-                  setPacienteAberto(null);
-                }}
+            {abaAtual === "gestao" && (
+              <Gestao
+                podeExportar={usuario.permissoes.includes("exportar_dados")}
+                podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
               />
-            ))}
+            )}
 
-          {abaAtual === "gestao" && (
-            <Gestao
-              podeExportar={usuario.permissoes.includes("exportar_dados")}
-              podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
-            />
-          )}
+            {abaAtual === "metas" && (
+              <Metas podeGerenciar={usuario.permissoes.includes("gerenciar_autopilot")} />
+            )}
 
-          {abaAtual === "metas" && (
-            <Metas podeGerenciar={usuario.permissoes.includes("gerenciar_autopilot")} />
-          )}
+            {abaAtual === "autonomia" && <Autonomia />}
 
-          {abaAtual === "autonomia" && <Autonomia />}
+            {abaAtual === "importar" && <Importar />}
 
-          {abaAtual === "importar" && <Importar />}
+            {abaAtual === "automacoes" && (
+              <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
+            )}
 
-          {abaAtual === "automacoes" && (
-            <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
-          )}
+            {abaAtual === "integracoes" && (
+              <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
+            )}
 
-          {abaAtual === "integracoes" && (
-            <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
-          )}
+            {abaAtual === "campanhas" && <Campanhas />}
 
-          {abaAtual === "campanhas" && <Campanhas />}
-
-          {abaAtual === "inteligencia" && <Inteligencia />}
-          {abaAtual === "conhecimento" && <Conhecimento />}
-          {abaAtual === "modelos" && <ModelosECusto />}
-          {abaAtual === "avaliacao" && <Avaliacao />}
-          {abaAtual === "estudio" && <Estudio />}
-          {abaAtual === "playground" && <Playground />}
-          {abaAtual === "ferramentas" && <Ferramentas />}
-          {abaAtual === "proximas" && <ProximasAcoes />}
-          {abaAtual === "radar" && <Radar />}
-          {abaAtual === "encaixes" && <Encaixes />}
-          {abaAtual === "tratamentos" && <Tratamentos />}
-          {abaAtual === "recepcao" && <Recepcao />}
-          {abaAtual === "saude" && <Saude />}
-          {abaAtual === "equipe" && <Equipe />}
-          {abaAtual === "configuracoes" && (
-            <Configuracoes
-              podeGerenciarUsuarios={usuario.permissoes.includes("gerenciar_usuarios")}
-            />
-          )}
+            {abaAtual === "inteligencia" && <Inteligencia />}
+            {abaAtual === "conhecimento" && <Conhecimento />}
+            {abaAtual === "modelos" && <ModelosECusto />}
+            {abaAtual === "avaliacao" && <Avaliacao />}
+            {abaAtual === "estudio" && <Estudio />}
+            {abaAtual === "playground" && <Playground />}
+            {abaAtual === "ferramentas" && <Ferramentas />}
+            {abaAtual === "proximas" && <ProximasAcoes />}
+            {abaAtual === "radar" && <Radar />}
+            {abaAtual === "encaixes" && <Encaixes />}
+            {abaAtual === "tratamentos" && <Tratamentos />}
+            {abaAtual === "recepcao" && <Recepcao />}
+            {abaAtual === "saude" && <Saude />}
+            {abaAtual === "equipe" && <Equipe />}
+            {abaAtual === "configuracoes" && (
+              <Configuracoes
+                podeGerenciarUsuarios={usuario.permissoes.includes("gerenciar_usuarios")}
+              />
+            )}
+          </Suspense>
         </main>
       </div>
     </div>
