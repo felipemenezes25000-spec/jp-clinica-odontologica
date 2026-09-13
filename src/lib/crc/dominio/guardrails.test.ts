@@ -28,6 +28,10 @@ const BASE: ContextoPortao = {
   janelaAberta: true,
   enviadosRecentes: [],
   pediuHumano: false,
+  // O texto-base FALA DE HORARIO — entao, neste cenario, a agenda foi
+  // consultada. Deixar isto vazio faria o `portaoHorario` (com razao) reprovar
+  // a mensagem que este arquivo usa como exemplo do caso bom.
+  horariosOferecidos: ["2026-09-17T14:00:00.000Z"],
 };
 
 const ctx = (mudancas: Partial<ContextoPortao>): ContextoPortao => ({ ...BASE, ...mudancas });

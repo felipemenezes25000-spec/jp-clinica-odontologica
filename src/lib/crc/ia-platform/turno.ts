@@ -436,6 +436,10 @@ async function decidirEEntregar(
       // das checagens deste arquivo.
       temOptOut: false,
       ultimaEntrada: ultimaEntradaTexto(ctx),
+      // O QUE O SISTEMA REALMENTE OFERECEU, e nao o que o texto do turno diz
+      // ter oferecido. E a diferenca inteira do `portaoHorario`: este campo vem
+      // do banco, fora do alcance de qualquer coisa que o paciente escreva.
+      horariosOferecidos: ctx.oferta?.opcoes.map((o) => o.inicioEm) ?? [],
       // O ESTADO REAL, e não "ia" fixo. É o que faz a IA calar quando um
       // atendente assumiu — e é a razão de a Fatia 5 existir.
       dono,

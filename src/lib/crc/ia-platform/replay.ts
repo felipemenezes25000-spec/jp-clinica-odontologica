@@ -314,6 +314,9 @@ function observarDesfecho(
     janelaAberta: caso.janelaAberta !== false,
     enviadosRecentes: ctx.mensagens.filter((m) => m.direcao === "enviada").map((m) => m.texto),
     pediuHumano: resultado.precisaHumano,
+    // O replay tem de rodar o MESMO portao do turno real, com a mesma fonte de
+    // verdade — senao ele avalia um agente que nao existe.
+    horariosOferecidos: ctx.oferta?.opcoes.map((o) => o.inicioEm) ?? [],
   };
 
   const veredicto = avaliarAntesDeEnviar(ctxPortao);
