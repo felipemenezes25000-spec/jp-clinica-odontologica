@@ -252,10 +252,17 @@ export async function publicarDefinicao(pedido: {
   }
 
   const { atualizar } = await import("../servidor/banco");
-  await atualizar("crc_automations", [{ coluna: "id", op: "eq", valor: pedido.automationId }], {
-    versao_ativa: proxima,
-    atualizado_em: new Date().toISOString(),
-  });
+  await atualizar(
+    "crc_automations",
+    [
+      { coluna: "id", op: "eq", valor: pedido.automationId },
+      { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+    ],
+    {
+      versao_ativa: proxima,
+      atualizado_em: new Date().toISOString(),
+    },
+  );
 
   return { ok: true, versao: proxima };
 }

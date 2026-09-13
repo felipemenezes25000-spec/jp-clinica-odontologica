@@ -162,12 +162,19 @@ export async function revisarObjecao(
       ? atual["categoria_original"]
       : String(atual["categoria"] ?? "");
 
-  await atualizar("crc_objections", [{ coluna: "id", op: "eq", valor: objecaoId }], {
-    categoria: categoriaCorreta,
-    categoria_original: original,
-    revisada_por: userId,
-    revisada_em: agoraIso(),
-  });
+  await atualizar(
+    "crc_objections",
+    [
+      { coluna: "id", op: "eq", valor: objecaoId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      categoria: categoriaCorreta,
+      categoria_original: original,
+      revisada_por: userId,
+      revisada_em: agoraIso(),
+    },
+  );
 
   await auditar({
     organizationId,
@@ -332,18 +339,25 @@ export async function qualificarOrcamentos(
     });
 
     try {
-      await atualizar("crc_budgets", [{ coluna: "id", op: "eq", valor: l.id }], {
-        funil: etapa,
-        conversao_prob: chance.probabilidade,
-        conversao_conf: chance.confianca,
-        conversao_versao: VERSAO_DA_ACEITACAO,
-        proxima_acao: plano.acao,
-        proxima_acao_em:
-          plano.emDias === null
-            ? agora.toISOString()
-            : new Date(agora.getTime() + plano.emDias * 86_400_000).toISOString(),
-        atualizado_em: agora.toISOString(),
-      });
+      await atualizar(
+        "crc_budgets",
+        [
+          { coluna: "id", op: "eq", valor: l.id },
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+        ],
+        {
+          funil: etapa,
+          conversao_prob: chance.probabilidade,
+          conversao_conf: chance.confianca,
+          conversao_versao: VERSAO_DA_ACEITACAO,
+          proxima_acao: plano.acao,
+          proxima_acao_em:
+            plano.emDias === null
+              ? agora.toISOString()
+              : new Date(agora.getTime() + plano.emDias * 86_400_000).toISOString(),
+          atualizado_em: agora.toISOString(),
+        },
+      );
       pontuados += 1;
     } catch (erro) {
       registrar("erro", "Falha ao pontuar orçamento no funil de aceitação.", {

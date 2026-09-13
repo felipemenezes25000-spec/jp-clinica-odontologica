@@ -740,10 +740,17 @@ export async function rodarCampanhas(ctx: {
     if (alvos.length === 0) {
       // Sem pendente: a campanha terminou. Marcar aqui é o que faz a tela
       // parar de mostrá-la como ativa sem ninguém precisar conferir.
-      await atualizar("crc_campaigns", [{ coluna: "id", op: "eq", valor: campanha.id }], {
-        status: "CONCLUIDA",
-        atualizado_em: agora.toISOString(),
-      });
+      await atualizar(
+        "crc_campaigns",
+        [
+          { coluna: "id", op: "eq", valor: campanha.id },
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+        ],
+        {
+          status: "CONCLUIDA",
+          atualizado_em: agora.toISOString(),
+        },
+      );
       continue;
     }
 
@@ -759,7 +766,7 @@ export async function rodarCampanhas(ctx: {
 
         const telefone = typeof paciente?.["telefone"] === "string" ? paciente["telefone"] : "";
         if (paciente === null || telefone.length === 0) {
-          await marcarAlvo(alvoId, "PULADA", "sem_telefone", null, agora);
+          await marcarAlvo(ctx.organizationId, alvoId, "PULADA", "sem_telefone", null, agora);
           resultado.puladas += 1;
           continue;
         }
@@ -791,10 +798,17 @@ export async function rodarCampanhas(ctx: {
         });
 
         if (envio.ok) {
-          await marcarAlvo(alvoId, "ENVIADA", null, envio.mensagemId, agora);
+          await marcarAlvo(ctx.organizationId, alvoId, "ENVIADA", null, envio.mensagemId, agora);
           resultado.enviadas += 1;
         } else if (envio.permanente) {
-          await marcarAlvo(alvoId, "PULADA", envio.codigo.toLowerCase(), null, agora);
+          await marcarAlvo(
+            ctx.organizationId,
+            alvoId,
+            "PULADA",
+            envio.codigo.toLowerCase(),
+            null,
+            agora,
+          );
           resultado.puladas += 1;
         } else {
           // Bloqueio adiável — teto por hora, cooldown, fora do horário. O alvo
@@ -808,7 +822,7 @@ export async function rodarCampanhas(ctx: {
           campanha: campanha.id,
           detalhe: descreverErro(erro),
         });
-        await marcarAlvo(alvoId, "PULADA", "erro", null, agora);
+        await marcarAlvo(ctx.organizationId, alvoId, "PULADA", "erro", null, agora);
         resultado.puladas += 1;
       }
     }
@@ -818,16 +832,24 @@ export async function rodarCampanhas(ctx: {
 }
 
 async function marcarAlvo(
+  organizationId: string,
   id: string,
   status: "ENVIADA" | "PULADA",
   motivo: string | null,
   messageId: string | null,
   agora: Date,
 ): Promise<void> {
-  await atualizar("crc_campaign_targets", [{ coluna: "id", op: "eq", valor: id }], {
-    status,
-    motivo,
-    message_id: messageId,
-    processado_em: agora.toISOString(),
-  });
+  await atualizar(
+    "crc_campaign_targets",
+    [
+      { coluna: "id", op: "eq", valor: id },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status,
+      motivo,
+      message_id: messageId,
+      processado_em: agora.toISOString(),
+    },
+  );
 }

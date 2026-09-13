@@ -93,14 +93,21 @@ export async function salvarFonte(pedido: {
     if (antes === corpo) return { id, mudou: false };
 
     const versao = Number(existente["versao"] ?? 1);
-    await atualizar("crc_knowledge_sources", [{ coluna: "id", op: "eq", valor: id }], {
-      corpo,
-      tipo: pedido.tipo,
-      // Ver o cabeçalho desta função.
-      status: "RASCUNHO",
-      versao: (Number.isFinite(versao) ? versao : 1) + 1,
-      atualizado_em: agoraIso(),
-    });
+    await atualizar(
+      "crc_knowledge_sources",
+      [
+        { coluna: "id", op: "eq", valor: id },
+        { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+      ],
+      {
+        corpo,
+        tipo: pedido.tipo,
+        // Ver o cabeçalho desta função.
+        status: "RASCUNHO",
+        versao: (Number.isFinite(versao) ? versao : 1) + 1,
+        atualizado_em: agoraIso(),
+      },
+    );
     return { id, mudou: true };
   }
 

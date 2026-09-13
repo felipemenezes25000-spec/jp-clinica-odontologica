@@ -350,15 +350,22 @@ export async function qualificarPagina(
     const valor = valorDoRadar(num(l.potential_value), chance, urgencia);
 
     try {
-      await atualizar("crc_opportunities", [{ coluna: "id", op: "eq", valor: l.id }], {
-        probability: chance.probabilidade,
-        confidence: chance.confianca,
-        urgency: urgencia,
-        impact: valor.impacto,
-        score_version: VERSAO_DO_SCORE,
-        evidence: chance.fatores,
-        atualizado_em: agora.toISOString(),
-      });
+      await atualizar(
+        "crc_opportunities",
+        [
+          { coluna: "id", op: "eq", valor: l.id },
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+        ],
+        {
+          probability: chance.probabilidade,
+          confidence: chance.confianca,
+          urgency: urgencia,
+          impact: valor.impacto,
+          score_version: VERSAO_DO_SCORE,
+          evidence: chance.fatores,
+          atualizado_em: agora.toISOString(),
+        },
+      );
       pontuadas += 1;
     } catch (erro) {
       /*

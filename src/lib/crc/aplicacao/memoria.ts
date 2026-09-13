@@ -104,7 +104,10 @@ export async function registrarMemorias(pedido: {
       const confianca = Math.max(Number.isFinite(antes) ? antes : 0, m.confianca);
       await atualizar(
         "crc_ai_memories",
-        [{ coluna: "id", op: "eq", valor: String(existente["id"] ?? "") }],
+        [
+          { coluna: "id", op: "eq", valor: String(existente["id"] ?? "") },
+          { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+        ],
         {
           confianca,
           // Repetir estica o prazo. Uma preferência confirmada de novo hoje não

@@ -317,9 +317,16 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
   const usuario = await carregarUsuario(organizationId, userId);
   if (usuario === null) return generico;
 
-  await atualizar("crc_users", [{ coluna: "id", op: "eq", valor: userId }], {
-    ultimo_acesso: new Date().toISOString(),
-  });
+  await atualizar(
+    "crc_users",
+    [
+      { coluna: "id", op: "eq", valor: userId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      ultimo_acesso: new Date().toISOString(),
+    },
+  );
 
   return {
     ok: true,

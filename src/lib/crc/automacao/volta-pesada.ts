@@ -410,7 +410,7 @@ async function umaOrganizacao(
        * sempre e o erro padrao de todo sistema de call intelligence.
        */
       await comCaptura(organizationId, "retencao de transcricao", async () => ({
-        transcricoesPodadas: await podarTranscricoes(),
+        transcricoesPodadas: await podarTranscricoes(organizationId),
       })),
       await faxina(),
     );

@@ -182,19 +182,26 @@ export async function registrarResposta(
     tarefaId = criado[0]?.id ?? null;
   }
 
-  await atualizar("crc_feedback", [{ coluna: "id", op: "eq", valor: feedbackId }], {
-    nota,
-    comentario,
-    status:
-      d.destino === "CONVIDAR"
-        ? "CONVIDADO_A_AVALIAR"
-        : d.destino === "RECUPERAR"
-          ? "RECUPERACAO"
-          : "RESPONDEU",
-    tarefa_id: tarefaId,
-    respondido_em: agora.toISOString(),
-    atualizado_em: agora.toISOString(),
-  });
+  await atualizar(
+    "crc_feedback",
+    [
+      { coluna: "id", op: "eq", valor: feedbackId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      nota,
+      comentario,
+      status:
+        d.destino === "CONVIDAR"
+          ? "CONVIDADO_A_AVALIAR"
+          : d.destino === "RECUPERAR"
+            ? "RECUPERACAO"
+            : "RESPONDEU",
+      tarefa_id: tarefaId,
+      respondido_em: agora.toISOString(),
+      atualizado_em: agora.toISOString(),
+    },
+  );
 
   return { destino: d.destino, porque: d.porque, tarefaId };
 }
@@ -270,10 +277,17 @@ export async function codigoDoPaciente(
   if (typeof existente === "string" && existente.length > 0) return existente;
 
   const codigo = gerarCodigo(patientId);
-  await atualizar("crc_patients", [{ coluna: "id", op: "eq", valor: patientId }], {
-    codigo_indicacao: codigo,
-    atualizado_em: agoraIso(),
-  });
+  await atualizar(
+    "crc_patients",
+    [
+      { coluna: "id", op: "eq", valor: patientId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      codigo_indicacao: codigo,
+      atualizado_em: agoraIso(),
+    },
+  );
 
   return codigo;
 }
@@ -325,16 +339,23 @@ export async function avancarIndicacao(
   const de = String(atual["status"] ?? "REGISTRADA") as EtapaDaIndicacao;
   if (!podeAvancar(de, para)) return false;
 
-  await atualizar("crc_referrals", [{ coluna: "id", op: "eq", valor: referralId }], {
-    status: para,
-    /*
-     * O VALOR SÓ ENTRA EM `CONVERTEU`, e a regra é a mesma da cadeia de
-     * atribuição: valor que não aconteceu não se soma com valor que
-     * aconteceu.
-     */
-    ...(para === "CONVERTEU" && valorGerado !== null ? { valor_gerado: valorGerado } : {}),
-    atualizado_em: agoraIso(),
-  });
+  await atualizar(
+    "crc_referrals",
+    [
+      { coluna: "id", op: "eq", valor: referralId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status: para,
+      /*
+       * O VALOR SÓ ENTRA EM `CONVERTEU`, e a regra é a mesma da cadeia de
+       * atribuição: valor que não aconteceu não se soma com valor que
+       * aconteceu.
+       */
+      ...(para === "CONVERTEU" && valorGerado !== null ? { valor_gerado: valorGerado } : {}),
+      atualizado_em: agoraIso(),
+    },
+  );
 
   return true;
 }
@@ -462,16 +483,24 @@ export async function conferirExperimentos(
       [
         { coluna: "experiment_id", op: "eq", valor: e.id },
         { coluna: "nome", op: "eq", valor: v.variante },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
       ],
       { status: "PARADA", atualizado_em: agora.toISOString() },
     );
 
-    await atualizar("crc_experiments", [{ coluna: "id", op: "eq", valor: e.id }], {
-      status: "PARADO_POR_GUARDRAIL",
-      parado_motivo: v.motivo,
-      encerrado_em: agora.toISOString(),
-      atualizado_em: agora.toISOString(),
-    });
+    await atualizar(
+      "crc_experiments",
+      [
+        { coluna: "id", op: "eq", valor: e.id },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        status: "PARADO_POR_GUARDRAIL",
+        parado_motivo: v.motivo,
+        encerrado_em: agora.toISOString(),
+        atualizado_em: agora.toISOString(),
+      },
+    );
 
     // Aviso: um experimento parado por guardrail é um evento notável, e precisa
     // aparecer no mesmo filtro dos kill switches.
@@ -622,10 +651,17 @@ export async function expirarAprendizados(
   for (const l of linhas) {
     if (!expirou(l.decidido_em, agora)) continue;
 
-    await atualizar("crc_learnings", [{ coluna: "id", op: "eq", valor: l.id }], {
-      status: "EXPIRADO",
-      atualizado_em: agora.toISOString(),
-    });
+    await atualizar(
+      "crc_learnings",
+      [
+        { coluna: "id", op: "eq", valor: l.id },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        status: "EXPIRADO",
+        atualizado_em: agora.toISOString(),
+      },
+    );
     expirados += 1;
   }
 

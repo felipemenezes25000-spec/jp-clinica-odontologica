@@ -179,7 +179,7 @@ export async function processarEventos(
       // Evento sem handler não é erro: nem todo tipo tem automação hoje.
       // DESCARTADO em vez de PROCESSADO deixa isso legível na auditoria.
       resultado.semHandler += 1;
-      await marcar(evento.id, "DESCARTADO", null);
+      await marcar(evento.organizationId, evento.id, "DESCARTADO", null);
       continue;
     }
 
@@ -189,7 +189,7 @@ export async function processarEventos(
       // segunda leria o estado antes de a primeira gravar.
       for (const handler of meus) await handler(evento, agora);
 
-      await marcar(evento.id, "PROCESSADO", null);
+      await marcar(evento.organizationId, evento.id, "PROCESSADO", null);
       resultado.processados += 1;
     } catch (erro) {
       resultado.falhados += 1;
@@ -203,7 +203,7 @@ export async function processarEventos(
       });
 
       if (evento.tentativas >= MAX_TENTATIVAS) {
-        await marcar(evento.id, "FALHOU", detalhe, true);
+        await marcar(evento.organizationId, evento.id, "FALHOU", detalhe, true);
         await mandarParaDeadLetter({
           organizationId: evento.organizationId,
           origem: `evento:${evento.tipo}`,
@@ -213,7 +213,7 @@ export async function processarEventos(
         });
       } else {
         // Volta para a fila. `travado_ate` no passado libera na próxima volta.
-        await marcar(evento.id, "FALHOU", detalhe);
+        await marcar(evento.organizationId, evento.id, "FALHOU", detalhe);
       }
     }
   }
@@ -222,6 +222,7 @@ export async function processarEventos(
 }
 
 async function marcar(
+  organizationId: string,
   id: string,
   status: EventoCrc["status"],
   erro: string | null,
@@ -241,7 +242,14 @@ async function marcar(
     mudancas["tentativas"] = MAX_TENTATIVAS + 1;
   }
 
-  await atualizar("crc_events", [{ coluna: "id", op: "eq", valor: id }], mudancas);
+  await atualizar(
+    "crc_events",
+    [
+      { coluna: "id", op: "eq", valor: id },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    mudancas,
+  );
 }
 
 /**

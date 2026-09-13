@@ -152,9 +152,16 @@ export async function abrirCaso(
     const id = typeof existente["id"] === "string" ? existente["id"] : null;
     const antes = typeof existente["motivo"] === "string" ? existente["motivo"] : "";
     if (id !== null && !antes.includes(pedido.motivo)) {
-      await atualizar("crc_human_cases", [{ coluna: "id", op: "eq", valor: id }], {
-        motivo: `${antes}\n${pedido.motivo}`.slice(0, 800),
-      });
+      await atualizar(
+        "crc_human_cases",
+        [
+          { coluna: "id", op: "eq", valor: id },
+          { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+        ],
+        {
+          motivo: `${antes}\n${pedido.motivo}`.slice(0, 800),
+        },
+      );
     }
     return { criado: false, id };
   }

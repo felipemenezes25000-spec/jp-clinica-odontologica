@@ -366,7 +366,7 @@ async function trabalharUm(
   );
 
   if (!previa.chamar) {
-    if (horasAte <= 0) await fecharBuraco(b.id, "EXPIRADO", agora);
+    if (horasAte <= 0) await fecharBuraco(organizationId, b.id, "EXPIRADO", agora);
     return { gapId: b.id, ofertou: false, convidados: 0, motivo: previa.motivo };
   }
 
@@ -417,12 +417,19 @@ async function trabalharUm(
   const leva = elegiveis.slice(0, decisao.quantos);
   const convidados = await registrarOfertas(organizationId, b.id, leva);
 
-  await atualizar("crc_schedule_gaps", [{ coluna: "id", op: "eq", valor: b.id }], {
-    status: "OFERECENDO",
-    oferecidos: b.oferecidos + convidados,
-    ofertado_em: agora.toISOString(),
-    atualizado_em: agora.toISOString(),
-  });
+  await atualizar(
+    "crc_schedule_gaps",
+    [
+      { coluna: "id", op: "eq", valor: b.id },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status: "OFERECENDO",
+      oferecidos: b.oferecidos + convidados,
+      ofertado_em: agora.toISOString(),
+      atualizado_em: agora.toISOString(),
+    },
+  );
 
   return { gapId: b.id, ofertou: convidados > 0, convidados, motivo: decisao.motivo };
 }
@@ -458,11 +465,23 @@ async function registrarOfertas(
   return entraram;
 }
 
-async function fecharBuraco(gapId: string, status: string, agora: Date): Promise<void> {
-  await atualizar("crc_schedule_gaps", [{ coluna: "id", op: "eq", valor: gapId }], {
-    status,
-    atualizado_em: agora.toISOString(),
-  });
+async function fecharBuraco(
+  organizationId: string,
+  gapId: string,
+  status: string,
+  agora: Date,
+): Promise<void> {
+  await atualizar(
+    "crc_schedule_gaps",
+    [
+      { coluna: "id", op: "eq", valor: gapId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status,
+      atualizado_em: agora.toISOString(),
+    },
+  );
 }
 
 /**
@@ -491,6 +510,7 @@ export async function aceitarEncaixe(
     [
       { coluna: "gap_id", op: "eq", valor: gapId },
       { coluna: "patient_id", op: "eq", valor: patientId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
     ],
     { status: "ACEITOU", respondida_em: iso },
   );
@@ -503,6 +523,7 @@ export async function aceitarEncaixe(
       { coluna: "gap_id", op: "eq", valor: gapId },
       { coluna: "patient_id", op: "neq", valor: patientId },
       { coluna: "status", op: "eq", valor: "ENVIADA" },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
     ],
     { status: "CANCELADA", respondida_em: iso },
   );
@@ -612,11 +633,18 @@ export async function calcularRiscos(
 
     const r = calcularRiscoDeFalta(ctx, agora);
 
-    await atualizar("crc_appointments", [{ coluna: "id", op: "eq", valor: f.id }], {
-      risco_falta: r.nivel,
-      risco_fatores: r.fatores,
-      risco_calculado_em: agora.toISOString(),
-    });
+    await atualizar(
+      "crc_appointments",
+      [
+        { coluna: "id", op: "eq", valor: f.id },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        risco_falta: r.nivel,
+        risco_fatores: r.fatores,
+        risco_calculado_em: agora.toISOString(),
+      },
+    );
 
     avaliadas += 1;
     if (r.nivel === "ALTO") altos += 1;

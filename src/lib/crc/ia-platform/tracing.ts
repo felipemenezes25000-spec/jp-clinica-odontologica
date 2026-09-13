@@ -306,7 +306,14 @@ export function abrirTrace(organizationId: string, conversationId: string): Trac
         let runId = idDaRun;
 
         if (runId !== null && runId.length > 0) {
-          await atualizar("crc_ai_runs", [{ coluna: "id", op: "eq", valor: runId }], desfecho);
+          await atualizar(
+            "crc_ai_runs",
+            [
+              { coluna: "id", op: "eq", valor: runId },
+              { coluna: "organization_id", op: "eq", valor: organizationId },
+            ],
+            desfecho,
+          );
         } else {
           const criada = await inserirIgnorandoDuplicata("crc_ai_runs", {
             organization_id: organizationId,

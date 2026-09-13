@@ -165,12 +165,19 @@ export async function salvarRascunho(pedido: {
 
   const aberto = await rascunhoDoAgente(pedido.organizationId);
   if (aberto !== null) {
-    await atualizar("crc_agent_versions", [{ coluna: "id", op: "eq", valor: aberto.id }], {
-      instrucoes,
-      // Mexer no texto invalida a avaliação que aprovou o texto anterior. Sem
-      // isto, editar depois de avaliar liberaria publicar o que ninguém testou.
-      rodada_id: null,
-    });
+    await atualizar(
+      "crc_agent_versions",
+      [
+        { coluna: "id", op: "eq", valor: aberto.id },
+        { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+      ],
+      {
+        instrucoes,
+        // Mexer no texto invalida a avaliação que aprovou o texto anterior. Sem
+        // isto, editar depois de avaliar liberaria publicar o que ninguém testou.
+        rodada_id: null,
+      },
+    );
     return { ok: true, id: aberto.id, versao: aberto.versao };
   }
 
@@ -325,9 +332,16 @@ export async function registrarAvaliacaoDaVersao(
 export async function descartarRascunho(organizationId: string): Promise<void> {
   const rascunho = await rascunhoDoAgente(organizationId);
   if (rascunho === null) return;
-  await atualizar("crc_agent_versions", [{ coluna: "id", op: "eq", valor: rascunho.id }], {
-    status: "ARQUIVADA",
-  });
+  await atualizar(
+    "crc_agent_versions",
+    [
+      { coluna: "id", op: "eq", valor: rascunho.id },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status: "ARQUIVADA",
+    },
+  );
 }
 
 /**

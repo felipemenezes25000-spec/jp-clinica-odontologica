@@ -227,9 +227,16 @@ export async function receberMensagem(
   // A conversa volta a ser "aberta" quando o paciente escreve: uma conversa
   // marcada como resolvida que recebe resposta não pode sumir da Inbox.
   if (conversa.status === "RESOLVIDA") {
-    await atualizar("crc_conversations", [{ coluna: "id", op: "eq", valor: conversa.id }], {
-      status: "ABERTA",
-    });
+    await atualizar(
+      "crc_conversations",
+      [
+        { coluna: "id", op: "eq", valor: conversa.id },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        status: "ABERTA",
+      },
+    );
   }
 
   if (pedeDescadastro(dados.texto) && conversa.patientId !== null) {
@@ -631,10 +638,17 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
     : ({ forma: "texto" } as const);
 
   if (forma.forma === "recusado") {
-    await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
-      status_entrega: "FAILED",
-      erro: `${forma.codigo}: ${forma.motivo}`,
-    });
+    await atualizar(
+      "crc_messages",
+      [
+        { coluna: "id", op: "eq", valor: mensagemId },
+        { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+      ],
+      {
+        status_entrega: "FAILED",
+        erro: `${forma.codigo}: ${forma.motivo}`,
+      },
+    );
     return {
       ok: false,
       codigo: forma.codigo,
@@ -673,10 +687,17 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
      */
     const incerta = resultado.classe === "incerta";
 
-    await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
-      status_entrega: incerta ? "DESCONHECIDO" : "FAILED",
-      erro: `${resultado.codigo}: ${resultado.detalhe}`,
-    });
+    await atualizar(
+      "crc_messages",
+      [
+        { coluna: "id", op: "eq", valor: mensagemId },
+        { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+      ],
+      {
+        status_entrega: incerta ? "DESCONHECIDO" : "FAILED",
+        erro: `${resultado.codigo}: ${resultado.detalhe}`,
+      },
+    );
 
     /*
      * SÓ A FALHA TRANSITÓRIA LIBERA A CHAVE DE DEDUPE, e a palavra "só" é o
@@ -697,9 +718,16 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
      * é por isso que ela é de gente.
      */
     if (resultado.classe === "transitoria") {
-      await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
-        chave_dedupe: null,
-      });
+      await atualizar(
+        "crc_messages",
+        [
+          { coluna: "id", op: "eq", valor: mensagemId },
+          { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+        ],
+        {
+          chave_dedupe: null,
+        },
+      );
     }
 
     registrar(incerta ? "erro" : "aviso", "Envio de mensagem falhou.", {
@@ -724,18 +752,32 @@ export async function enviarMensagem(pedido: PedidoEnvio): Promise<ResultadoEnvi
   }
 
   const agora = new Date().toISOString();
-  await atualizar("crc_messages", [{ coluna: "id", op: "eq", valor: mensagemId }], {
-    status_entrega: "SENT",
-    provider_message_id: resultado.providerMessageId,
-    enviado_em: agora,
-  });
+  await atualizar(
+    "crc_messages",
+    [
+      { coluna: "id", op: "eq", valor: mensagemId },
+      { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+    ],
+    {
+      status_entrega: "SENT",
+      provider_message_id: resultado.providerMessageId,
+      enviado_em: agora,
+    },
+  );
 
-  await atualizar("crc_conversations", [{ coluna: "id", op: "eq", valor: conversationId }], {
-    ultima_mensagem_em: agora,
-    ultima_mensagem_trecho: truncar(pedido.texto, 120),
-    status: pedido.proativo ? "AGUARDANDO" : "ABERTA",
-    atualizado_em: agora,
-  });
+  await atualizar(
+    "crc_conversations",
+    [
+      { coluna: "id", op: "eq", valor: conversationId },
+      { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+    ],
+    {
+      ultima_mensagem_em: agora,
+      ultima_mensagem_trecho: truncar(pedido.texto, 120),
+      status: pedido.proativo ? "AGUARDANDO" : "ABERTA",
+      atualizado_em: agora,
+    },
+  );
 
   // ITEM 158: o relógio do speed to lead para aqui, na PRIMEIRA resposta.
   // A função só grava se o campo ainda estiver vazio, então chamá-la em todo

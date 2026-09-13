@@ -395,9 +395,16 @@ async function encerrarComPosse(
       // O CAMINHO DE ONTEM, com a janela de ontem. Só depois de a posse ter
       // sido PROVADA.
       if (gravou && disponivelEm !== null) {
-        await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
-          disponivel_em: disponivelEm,
-        });
+        await atualizar(
+          "crc_agent_jobs",
+          [
+            { coluna: "id", op: "eq", valor: job.id },
+            { coluna: "organization_id", op: "eq", valor: job.organizationId },
+          ],
+          {
+            disponivel_em: disponivelEm,
+          },
+        );
       }
       return gravou;
     } catch (falha) {
@@ -413,17 +420,24 @@ async function encerrarComPosse(
    * SEM TOKEN, o caminho antigo. É o banco que ainda não aplicou `supabase/22`,
    * e ali não existe posse para provar — o comportamento é o de antes.
    */
-  await atualizar("crc_agent_jobs", [{ coluna: "id", op: "eq", valor: job.id }], {
-    status,
-    ...(erro === null ? {} : { ultimo_erro: erro.slice(0, 500) }),
-    ...(duracaoMs === null ? {} : { duracao_ms: duracaoMs }),
-    terminou_em: agoraIso(),
-    travado_ate: null,
-    atualizado_em: agoraIso(),
-    // SEM TOKEN NÃO HÁ FENCING, mas ainda dá para não ter a janela: status e
-    // backoff saem no mesmo `update`.
-    ...(disponivelEm === null ? {} : { disponivel_em: disponivelEm }),
-  });
+  await atualizar(
+    "crc_agent_jobs",
+    [
+      { coluna: "id", op: "eq", valor: job.id },
+      { coluna: "organization_id", op: "eq", valor: job.organizationId },
+    ],
+    {
+      status,
+      ...(erro === null ? {} : { ultimo_erro: erro.slice(0, 500) }),
+      ...(duracaoMs === null ? {} : { duracao_ms: duracaoMs }),
+      terminou_em: agoraIso(),
+      travado_ate: null,
+      atualizado_em: agoraIso(),
+      // SEM TOKEN NÃO HÁ FENCING, mas ainda dá para não ter a janela: status e
+      // backoff saem no mesmo `update`.
+      ...(disponivelEm === null ? {} : { disponivel_em: disponivelEm }),
+    },
+  );
   return true;
 }
 

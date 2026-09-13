@@ -501,11 +501,18 @@ export async function recalcularPrioridades(organizationId: string, limite = 300
         criadoEm: String(linha["criado_em"] ?? new Date().toISOString()),
       });
 
-      await atualizar("crc_opportunities", [{ coluna: "id", op: "eq", valor: id }], {
-        priority_score: prioridade.score,
-        priority_fatores: prioridade.fatores,
-        atualizado_em: new Date().toISOString(),
-      });
+      await atualizar(
+        "crc_opportunities",
+        [
+          { coluna: "id", op: "eq", valor: id },
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+        ],
+        {
+          priority_score: prioridade.score,
+          priority_fatores: prioridade.fatores,
+          atualizado_em: new Date().toISOString(),
+        },
+      );
       atualizadas += 1;
     } catch (erro) {
       // Uma oportunidade que falha não pode parar o recálculo das outras.

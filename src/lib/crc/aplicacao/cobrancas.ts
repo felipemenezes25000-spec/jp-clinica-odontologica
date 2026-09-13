@@ -632,10 +632,17 @@ export async function reagirARespostaDeCobranca(
 
   const agora = new Date().toISOString();
   for (const linha of abertas) {
-    await atualizar("crc_charges", [{ coluna: "id", op: "eq", valor: String(linha["id"] ?? "") }], {
-      negociacao_humana: true,
-      atualizado_em: agora,
-    });
+    await atualizar(
+      "crc_charges",
+      [
+        { coluna: "id", op: "eq", valor: String(linha["id"] ?? "") },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        negociacao_humana: true,
+        atualizado_em: agora,
+      },
+    );
   }
 
   const primeira = abertas[0];

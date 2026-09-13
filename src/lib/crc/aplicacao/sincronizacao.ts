@@ -86,17 +86,28 @@ async function abrirSyncJob(
   return String(linhas[0]?.["id"] ?? "");
 }
 
-async function fecharSyncJob(id: string, resumo: Omit<ResumoSync, "syncJobId">): Promise<void> {
-  await atualizar("crc_sync_jobs", [{ coluna: "id", op: "eq", valor: id }], {
-    status: resumo.erro === null ? "CONCLUIDO" : "FALHOU",
-    paginas: resumo.paginas,
-    processados: resumo.processados,
-    criados: resumo.criados,
-    atualizados: resumo.atualizados,
-    falhados: resumo.falhados,
-    ultimo_erro: resumo.erro,
-    terminado_em: new Date().toISOString(),
-  });
+async function fecharSyncJob(
+  organizationId: string,
+  id: string,
+  resumo: Omit<ResumoSync, "syncJobId">,
+): Promise<void> {
+  await atualizar(
+    "crc_sync_jobs",
+    [
+      { coluna: "id", op: "eq", valor: id },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status: resumo.erro === null ? "CONCLUIDO" : "FALHOU",
+      paginas: resumo.paginas,
+      processados: resumo.processados,
+      criados: resumo.criados,
+      atualizados: resumo.atualizados,
+      falhados: resumo.falhados,
+      ultimo_erro: resumo.erro,
+      terminado_em: new Date().toISOString(),
+    },
+  );
 }
 
 async function registrarFalhaIndividual(
@@ -262,7 +273,7 @@ export async function sincronizarPacientes(ctx: ContextoSync): Promise<ResumoSyn
     erro: erroFatal,
   };
 
-  await fecharSyncJob(syncJobId, resumo);
+  await fecharSyncJob(ctx.organizationId, syncJobId, resumo);
   await gravarCursor(
     ctx.organizationId,
     ctx.clinicId,
@@ -555,7 +566,10 @@ export async function sincronizarDentistas(ctx: ContextoSync): Promise<ResumoSyn
         if (vistos.has(id)) continue;
         await atualizar(
           "crc_dentists",
-          [{ coluna: "id", op: "eq", valor: String(linha["id"] ?? "") }],
+          [
+            { coluna: "id", op: "eq", valor: String(linha["id"] ?? "") },
+            { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+          ],
           { ativo: false, atualizado_em: new Date().toISOString() },
         );
         atualizados += 1;
@@ -580,7 +594,7 @@ export async function sincronizarDentistas(ctx: ContextoSync): Promise<ResumoSyn
     duracaoMs: Date.now() - comecou,
     erro,
   };
-  await fecharSyncJob(syncJobId, resumo);
+  await fecharSyncJob(ctx.organizationId, syncJobId, resumo);
   return { syncJobId, ...resumo };
 }
 
@@ -693,7 +707,7 @@ export async function sincronizarAgendamentos(
     erro: erroFatal,
   };
 
-  await fecharSyncJob(syncJobId, resumo);
+  await fecharSyncJob(ctx.organizationId, syncJobId, resumo);
   await gravarCursor(
     ctx.organizationId,
     ctx.clinicId,

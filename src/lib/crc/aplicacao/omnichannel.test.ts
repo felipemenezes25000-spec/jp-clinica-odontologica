@@ -269,7 +269,7 @@ describe("as chamadas", () => {
     });
 
     const depois = new Date(AGORA.getTime() + (RETENCAO_DA_TRANSCRICAO_DIAS + 1) * 86_400_000);
-    const podadas = await podarTranscricoes(depois);
+    const podadas = await podarTranscricoes(ORG, depois);
 
     expect(podadas).toBe(1);
 
@@ -287,7 +287,7 @@ describe("as chamadas", () => {
       chaveDedupe: "c1",
     });
 
-    expect(await podarTranscricoes(AGORA)).toBe(0);
+    expect(await podarTranscricoes(ORG, AGORA)).toBe(0);
     expect(conteudo("crc_calls")[0]?.["transcricao"]).toBe("conversa");
   });
 });

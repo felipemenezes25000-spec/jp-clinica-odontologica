@@ -571,9 +571,16 @@ async function reservar(
   // `proxima_consulta_em` é o que sustenta o peso −20 da fila. Sem atualizar
   // aqui, o paciente que acabou de marcar continuaria sendo oferecido.
   if (dados.patientId !== null) {
-    await atualizar("crc_patients", [{ coluna: "id", op: "eq", valor: dados.patientId }], {
-      proxima_consulta_em: opcao.inicioEm,
-    });
+    await atualizar(
+      "crc_patients",
+      [
+        { coluna: "id", op: "eq", valor: dados.patientId },
+        { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+      ],
+      {
+        proxima_consulta_em: opcao.inicioEm,
+      },
+    );
   }
 
   await emitir({
@@ -684,10 +691,17 @@ export async function cancelarConsulta(
   );
   if (!resposta.ok) return { ok: false, motivo: resposta.detalhe };
 
-  await atualizar("crc_appointments", [{ coluna: "id", op: "eq", valor: appointmentId }], {
-    status: "CANCELLED",
-    atualizado_em: ctx.agora.toISOString(),
-  });
+  await atualizar(
+    "crc_appointments",
+    [
+      { coluna: "id", op: "eq", valor: appointmentId },
+      { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+    ],
+    {
+      status: "CANCELLED",
+      atualizado_em: ctx.agora.toISOString(),
+    },
+  );
 
   await auditar({
     organizationId: ctx.organizationId,
@@ -738,12 +752,19 @@ async function fecharOferta(
   aceitoEm: string | null,
 ): Promise<void> {
   if (offerId.length === 0) return;
-  await atualizar("crc_scheduling_offers", [{ coluna: "id", op: "eq", valor: offerId }], {
-    status,
-    appointment_id: appointmentId,
-    aceito_em: aceitoEm,
-    atualizado_em: ctx.agora.toISOString(),
-  });
+  await atualizar(
+    "crc_scheduling_offers",
+    [
+      { coluna: "id", op: "eq", valor: offerId },
+      { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+    ],
+    {
+      status,
+      appointment_id: appointmentId,
+      aceito_em: aceitoEm,
+      atualizado_em: ctx.agora.toISOString(),
+    },
+  );
 }
 
 async function tarefaParaMarcarNaMao(

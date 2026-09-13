@@ -379,7 +379,7 @@ async function avancarJornada(
   );
 
   if (automacao === null) {
-    await encerrar(jornadaInicial.id, "FAILED", "definicao_ausente");
+    await encerrar(jornadaInicial.organizationId, jornadaInicial.id, "FAILED", "definicao_ausente");
     await anotar(jornadaInicial.id, null, "erro", "A versão desta automação não foi encontrada.");
     return saida;
   }
@@ -387,7 +387,12 @@ async function avancarJornada(
   // Pausar a automação para as jornadas em voo também — item 100 (o humano
   // sempre pode pausar). Elas não são canceladas: voltam se ela for religada.
   if (automacao.status === "PAUSADA") {
-    await adiar(jornadaInicial.id, new Date(agora.getTime() + 6 * 3_600_000), "PAUSED");
+    await adiar(
+      jornadaInicial.organizationId,
+      jornadaInicial.id,
+      new Date(agora.getTime() + 6 * 3_600_000),
+      "PAUSED",
+    );
     await anotar(
       jornadaInicial.id,
       jornadaInicial.passoAtual,
@@ -403,7 +408,7 @@ async function avancarJornada(
   for (let volta = 0; volta < MAX_PASSOS_POR_CICLO; volta += 1) {
     const paciente = await carregarPaciente(ctx.organizationId, jornada.patientId ?? "");
     if (paciente === null) {
-      await encerrar(jornada.id, "FAILED", "paciente_ausente");
+      await encerrar(jornada.organizationId, jornada.id, "FAILED", "paciente_ausente");
       await anotar(jornada.id, jornada.passoAtual, "erro", "Paciente não encontrado.");
       return saida;
     }
@@ -421,7 +426,7 @@ async function avancarJornada(
     // ITEM 33: saídas ANTES do passo. O mundo mudou durante a espera.
     const motivoSaida = primeiraSaidaSatisfeita(automacao.definicao, contextoCondicao);
     if (motivoSaida !== null) {
-      await encerrar(jornada.id, "EXITED", motivoSaida);
+      await encerrar(jornada.organizationId, jornada.id, "EXITED", motivoSaida);
       await anotar(jornada.id, jornada.passoAtual, "saida", `Jornada encerrada: ${motivoSaida}.`);
       saida.terminou = "EXITED";
       return saida;
@@ -429,7 +434,7 @@ async function avancarJornada(
 
     const passo = passos[jornada.passoAtual];
     if (passo === undefined) {
-      await encerrar(jornada.id, "COMPLETED", "fim_dos_passos");
+      await encerrar(jornada.organizationId, jornada.id, "COMPLETED", "fim_dos_passos");
       await anotar(jornada.id, jornada.passoAtual, "saida", "Jornada concluída.");
       saida.terminou = "COMPLETED";
       return saida;
@@ -450,12 +455,18 @@ async function avancarJornada(
     saida.simuladas += r.simuladas;
 
     if (r.tipo === "esperar") {
-      await adiar(jornada.id, r.ate, "WAITING", jornada.passoAtual + (r.consomePasso ? 1 : 0));
+      await adiar(
+        jornada.organizationId,
+        jornada.id,
+        r.ate,
+        "WAITING",
+        jornada.passoAtual + (r.consomePasso ? 1 : 0),
+      );
       return saida;
     }
 
     if (r.tipo === "sair") {
-      await encerrar(jornada.id, "EXITED", r.motivo);
+      await encerrar(jornada.organizationId, jornada.id, "EXITED", r.motivo);
       await anotar(jornada.id, jornada.passoAtual, "saida", `Jornada encerrada: ${r.motivo}.`);
       saida.terminou = "EXITED";
       return saida;
@@ -465,17 +476,24 @@ async function avancarJornada(
     // instantâneos (mover etapa, definir próxima ação) não precisam esperar o
     // próximo minuto do cron.
     jornada = { ...jornada, passoAtual: jornada.passoAtual + 1 };
-    await atualizar("crc_automation_enrollments", [{ coluna: "id", op: "eq", valor: jornada.id }], {
-      passo_atual: jornada.passoAtual,
-      status: "ACTIVE",
-      tentativas: 0,
-      ultimo_erro: null,
-      atualizado_em: agora.toISOString(),
-    });
+    await atualizar(
+      "crc_automation_enrollments",
+      [
+        { coluna: "id", op: "eq", valor: jornada.id },
+        { coluna: "organization_id", op: "eq", valor: jornada.organizationId },
+      ],
+      {
+        passo_atual: jornada.passoAtual,
+        status: "ACTIVE",
+        tentativas: 0,
+        ultimo_erro: null,
+        atualizado_em: agora.toISOString(),
+      },
+    );
   }
 
   // Bateu no teto sem terminar: volta daqui a pouco em vez de girar.
-  await adiar(jornada.id, new Date(agora.getTime() + 60_000), "ACTIVE");
+  await adiar(jornada.organizationId, jornada.id, new Date(agora.getTime() + 60_000), "ACTIVE");
   return saida;
 }
 
@@ -791,6 +809,7 @@ async function pacienteRespondeuDepoisDe(
 /* -------------------------------------------------------------------------- */
 
 async function adiar(
+  organizationId: string,
   enrollmentId: string,
   ate: Date,
   status: "ACTIVE" | "WAITING" | "PAUSED",
@@ -809,24 +828,35 @@ async function adiar(
 
   await atualizar(
     "crc_automation_enrollments",
-    [{ coluna: "id", op: "eq", valor: enrollmentId }],
+    [
+      { coluna: "id", op: "eq", valor: enrollmentId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
     mudancas,
   );
 }
 
 async function encerrar(
+  organizationId: string,
   enrollmentId: string,
   status: "COMPLETED" | "EXITED" | "FAILED" | "CANCELLED",
   motivo: string,
 ): Promise<void> {
-  await atualizar("crc_automation_enrollments", [{ coluna: "id", op: "eq", valor: enrollmentId }], {
-    status,
-    saiu_por: motivo,
-    resume_at: null,
-    travado_ate: null,
-    concluido_em: new Date().toISOString(),
-    atualizado_em: new Date().toISOString(),
-  });
+  await atualizar(
+    "crc_automation_enrollments",
+    [
+      { coluna: "id", op: "eq", valor: enrollmentId },
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+    ],
+    {
+      status,
+      saiu_por: motivo,
+      resume_at: null,
+      travado_ate: null,
+      concluido_em: new Date().toISOString(),
+      atualizado_em: new Date().toISOString(),
+    },
+  );
 }
 
 /**
@@ -850,7 +880,7 @@ async function tratarFalhaDeJornada(jornada: Jornada, erro: unknown): Promise<vo
   await anotar(jornada.id, jornada.passoAtual, "erro", detalhe);
 
   if (tentativas >= MAX_TENTATIVAS_JORNADA) {
-    await encerrar(jornada.id, "FAILED", "erros_repetidos");
+    await encerrar(jornada.organizationId, jornada.id, "FAILED", "erros_repetidos");
     await mandarParaDeadLetter({
       organizationId: jornada.organizationId,
       origem: "jornada",
@@ -861,12 +891,19 @@ async function tratarFalhaDeJornada(jornada: Jornada, erro: unknown): Promise<vo
     return;
   }
 
-  await atualizar("crc_automation_enrollments", [{ coluna: "id", op: "eq", valor: jornada.id }], {
-    tentativas,
-    ultimo_erro: detalhe.slice(0, 1000),
-    travado_ate: null,
-    resume_at: new Date(Date.now() + Math.pow(3, tentativas) * 60_000).toISOString(),
-  });
+  await atualizar(
+    "crc_automation_enrollments",
+    [
+      { coluna: "id", op: "eq", valor: jornada.id },
+      { coluna: "organization_id", op: "eq", valor: jornada.organizationId },
+    ],
+    {
+      tentativas,
+      ultimo_erro: detalhe.slice(0, 1000),
+      travado_ate: null,
+      resume_at: new Date(Date.now() + Math.pow(3, tentativas) * 60_000).toISOString(),
+    },
+  );
 }
 
 /* -------------------------------------------------------------------------- */

@@ -201,7 +201,10 @@ export async function registrarChamada(c: NovaChamada): Promise<string | null> {
  * resumo, a duração e o desfecho — some só o conteúdo bruto, que era o que
  * exigia base legal para existir.
  */
-export async function podarTranscricoes(agora: Date = new Date()): Promise<number> {
+export async function podarTranscricoes(
+  organizationId: string,
+  agora: Date = new Date(),
+): Promise<number> {
   const { atualizar } = await import("../servidor/banco");
 
   const vencidas = await selecionar<{ id: string }>("crc_calls", {
@@ -215,11 +218,18 @@ export async function podarTranscricoes(agora: Date = new Date()): Promise<numbe
 
   let podadas = 0;
   for (const v of vencidas) {
-    await atualizar("crc_calls", [{ coluna: "id", op: "eq", valor: v.id }], {
-      transcricao: null,
-      transcricao_expira_em: null,
-      atualizado_em: agora.toISOString(),
-    });
+    await atualizar(
+      "crc_calls",
+      [
+        { coluna: "id", op: "eq", valor: v.id },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        transcricao: null,
+        transcricao_expira_em: null,
+        atualizado_em: agora.toISOString(),
+      },
+    );
     podadas += 1;
   }
 
