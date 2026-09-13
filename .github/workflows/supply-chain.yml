@@ -1,0 +1,130 @@
+name: Cadeia de suprimentos
+
+# ============================================================================
+#  O QUE ESTE WORKFLOW COBRE, E O QUE ELE EXPLICITAMENTE NÃO COBRE.
+#
+#  COBRE: código nosso com padrão de vulnerabilidade (CodeQL), dependência
+#  com CVE conhecido (npm audit), e dependência NOVA entrando por PR
+#  (dependency-review).
+#
+#  NÃO COBRE, e é honesto dizer: pacote legítimo que vira malicioso numa
+#  versão futura. Nenhuma ferramenta desta lista pega isso no dia em que
+#  acontece. O que reduz esse risco é o `package-lock.json` versionado com
+#  `integrity` por pacote e o `npm ci` no CI — as duas coisas já existem aqui,
+#  e são o motivo de este workflow não fingir cobrir o que não cobre.
+#
+#  SÓ AÇÕES DA PRÓPRIA GITHUB são usadas. Uma ação de terceiro para checar a
+#  cadeia de suprimentos é, ela mesma, um elo novo na cadeia — e roda com o
+#  token do repositório.
+# ============================================================================
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # CVE novo aparece sem ninguém commitar nada. Sem o agendado, uma
+    # vulnerabilidade publicada numa segunda só seria vista no próximo push.
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Iniciar o CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          # `security-and-quality` traz, além de segurança, os padrões de
+          # qualidade que o eslint não cobre — fluxo de dados entre arquivos.
+          queries: security-and-quality
+
+      - name: Analisar
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:javascript-typescript"
+
+  dependencias:
+    name: dependências com CVE conhecido
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      # ----------------------------------------------------------------------
+      # O PORTÃO É `high`, E O MOTIVO ESTÁ ESCRITO PARA NÃO VIRAR ESQUECIMENTO.
+      #
+      # Em 13/09/2026 o repositório tem 2 vulnerabilidades `moderate`, as duas
+      # no `vitest` (path traversal no mocker de teste). Elas são reais e não
+      # são alcançáveis em produção: o mocker não existe no bundle publicado,
+      # e a correção exige subir o vitest de 3 para 5 — uma major, no meio de
+      # uma auditoria, sem nenhuma vantagem de segurança real.
+      #
+      # Então o portão para em `high`, e o `moderate` aparece no log sem
+      # travar. No dia em que o vitest 5 entrar por outro motivo, baixe para
+      # `moderate` e apague este comentário.
+      # ----------------------------------------------------------------------
+      - name: npm audit (informativo)
+        run: npm audit || true
+
+      - name: npm audit (portão, high e critical)
+        run: npm audit --audit-level=high
+
+      # ----------------------------------------------------------------------
+      # A LISTA DE MATERIAIS.
+      #
+      # Guardada como artefato de cada build para que, no dia de um incidente
+      # com um pacote qualquer, a pergunta "essa versão chegou a ir ao ar?"
+      # tenha resposta em vez de reconstrução.
+      # ----------------------------------------------------------------------
+      - name: Gerar SBOM
+        run: npm sbom --sbom-format cyclonedx --omit dev > sbom.json
+
+      - name: Guardar o SBOM
+        uses: actions/upload-artifact@v5
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 90
+
+  dependencia-nova:
+    name: dependência nova no PR
+    runs-on: ubuntu-latest
+    # Só em PR: o `dependency-review` compara a base com o topo, e num push
+    # direto não existe base para comparar.
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Revisar o que mudou de dependência
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          # Licença viral numa clínica é problema jurídico, não técnico — e é
+          # muito mais barato barrar na entrada do que descobrir depois.
+          deny-licenses: AGPL-3.0, AGPL-3.0-only, AGPL-3.0-or-later

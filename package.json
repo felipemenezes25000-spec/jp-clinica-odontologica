@@ -1,5 +1,6 @@
 {
   "name": "jp-clinica-odontologica-award-final",
+  "version": "1.0.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
