@@ -321,11 +321,28 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
       const { lerEstadoDeSincronizacao } = await import("./aplicacao/sincronizacao");
       const { lerConfiguracao } = await import("./servidor/configuracao");
       const { dentroDoHorario, partesLocais } = await import("./dominio/configuracao");
+      /*
+       * O FUSO PADRÃO, e não o da configuração — de propósito, e com limite
+       * conhecido: o `supabase/41` também escreve `America/Sao_Paulo` no SQL.
+       * Enquanto os dois assumem o mesmo fuso, Home e relatório concordam. Uma
+       * clínica em outro fuso precisa mudar os DOIS, e é por isso que isto está
+       * escrito aqui em vez de ficar implícito.
+       */
+      const { inicioDoMesLocal } = await import("./dominio/dia-local");
 
       const org = ctx.organizationId;
-      const inicioDoMes = new Date();
-      inicioDoMes.setUTCDate(1);
-      inicioDoMes.setUTCHours(0, 0, 0, 0);
+      /*
+       * O MÊS É O DA CLÍNICA, e não o do servidor.
+       *
+       * `setUTCDate(1)` dava meia-noite UTC — 21h do último dia do mês anterior
+       * em São Paulo. Três horas de outro mês entravam na conta, e o número
+       * ficava plausível demais para alguém desconfiar.
+       *
+       * Desde o `supabase/41` a analítica agrupa pelo fuso da clínica; manter
+       * a Home em UTC faria as duas telas discordarem, cada uma certa pela sua
+       * própria conta.
+       */
+      const inicioDoMes = inicioDoMesLocal(new Date());
 
       // As oportunidades que competem por atenção humana HOJE: abertas, sem
       // jornada ativa cuidando delas. É o número que o item 15 do Mega Prompt

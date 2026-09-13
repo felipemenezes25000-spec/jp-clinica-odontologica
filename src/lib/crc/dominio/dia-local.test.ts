@@ -12,6 +12,8 @@ import {
   diaLocal,
   diasLocaisEntre,
   FUSO_PADRAO,
+  inicioDoDiaLocal,
+  inicioDoMesLocal,
   primeiroDiaDoMesLocal,
   proximaViradaDeDia,
 } from "./dia-local";
@@ -116,5 +118,37 @@ describe("diasLocaisEntre", () => {
     const b = new Date("2026-10-11T15:00:00.000Z");
     expect(diasLocaisEntre(a, b, FUSO_PADRAO)).toBe(30);
     expect(diasLocaisEntre(b, a, FUSO_PADRAO)).toBe(-30);
+  });
+});
+
+describe("inicioDoDiaLocal e inicioDoMesLocal", () => {
+  it("meia-noite em São Paulo são 3h UTC, e não 0h", () => {
+    // É a diferença inteira: `new Date("2026-09-01T00:00:00Z")` é 21h do dia 31
+    // na clínica, e três horas de agosto entrariam no número de setembro.
+    expect(inicioDoDiaLocal("2026-09-01").toISOString()).toBe("2026-09-01T03:00:00.000Z");
+  });
+
+  it("o mês local começa depois do mês UTC", () => {
+    const instante = new Date("2026-09-15T12:00:00.000Z");
+    expect(inicioDoMesLocal(instante).toISOString()).toBe("2026-09-01T03:00:00.000Z");
+  });
+
+  it("21h do último dia do mês ainda é o mês que está acabando", () => {
+    /*
+     * O CASO QUE MOTIVOU O HELPER. Este instante é 31/08 às 22h em São Paulo —
+     * agosto para quem está na clínica, setembro para o `setUTCDate(1)`.
+     *
+     * Se ele for MENOR que o início de setembro, o evento fica em agosto, que é
+     * o certo. Com o cálculo antigo ele era maior, e a receita de agosto
+     * aparecia em setembro.
+     */
+    const evento = new Date("2026-09-01T01:00:00.000Z");
+    const setembro = inicioDoMesLocal(new Date("2026-09-15T12:00:00.000Z"));
+    expect(evento.getTime()).toBeLessThan(setembro.getTime());
+    expect(diaLocal(evento, FUSO_PADRAO)).toBe("2026-08-31");
+  });
+
+  it("dia inválido não derruba — devolve data inválida em vez de lançar", () => {
+    expect(Number.isNaN(inicioDoDiaLocal("nem-data").getTime())).toBe(true);
   });
 });

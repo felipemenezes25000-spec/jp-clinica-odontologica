@@ -63,6 +63,54 @@ export const primeiroDiaDoMesLocal = (instante: Date, fuso: string = FUSO_PADRAO
   `${diaLocal(instante, fuso).slice(0, 7)}-01`;
 
 /**
+ * O INSTANTE em que um dia local começa — não a string, o momento.
+ *
+ * ============================================================================
+ *  POR QUE ISTO PRECISOU EXISTIR, com o defeito que ele corrige.
+ *
+ *  A Home somava a receita "do mês" a partir de `setUTCDate(1)`, que é
+ *  meia-noite UTC — 21h do último dia do mês ANTERIOR em São Paulo. Todo
+ *  evento entre 21h e meia-noite daquele dia entrava no mês errado.
+ *
+ *  Ninguém percebe isso olhando a tela: o número fica plausível, só está
+ *  contando três horas de outro mês. E quando o `supabase/41` passou a agrupar
+ *  a analítica pelo fuso da clínica, as duas telas começaram a discordar — a
+ *  Home dizendo um valor e o relatório mensal dizendo outro, ambos "certos"
+ *  pelas suas próprias contas.
+ * ============================================================================
+ *
+ * COMO: pega a meia-noite UTC do dia pedido e corrige pelo deslocamento que
+ * aquele fuso tinha NAQUELE instante — e não pelo deslocamento de hoje, que é
+ * o erro clássico de quem guarda `-3` numa constante.
+ *
+ * O Brasil não tem horário de verão desde 2019, mas o cálculo não depende
+ * disso: ele pergunta o deslocamento em vez de assumir.
+ */
+export function inicioDoDiaLocal(diaISO: string, fuso: string = FUSO_PADRAO): Date {
+  const meiaNoiteUtc = new Date(`${diaISO}T00:00:00.000Z`);
+  if (!Number.isFinite(meiaNoiteUtc.getTime())) return new Date(Number.NaN);
+
+  try {
+    /*
+     * `toLocaleString` com `en-US` devolve uma data que o `Date` sabe reler. A
+     * diferença entre lê-la como UTC e lê-la como local é exatamente o
+     * deslocamento do fuso naquele instante.
+     */
+    const noFuso = new Date(meiaNoiteUtc.toLocaleString("en-US", { timeZone: fuso }));
+    const emUtc = new Date(meiaNoiteUtc.toLocaleString("en-US", { timeZone: "UTC" }));
+    return new Date(meiaNoiteUtc.getTime() + (emUtc.getTime() - noFuso.getTime()));
+  } catch {
+    // Runtime sem base de fusos: meia-noite UTC é o melhor palpite, e é melhor
+    // do que lançar no meio de um relatório.
+    return meiaNoiteUtc;
+  }
+}
+
+/** O instante em que o mês local começou. É a janela dos números do mês. */
+export const inicioDoMesLocal = (instante: Date, fuso: string = FUSO_PADRAO): Date =>
+  inicioDoDiaLocal(primeiroDiaDoMesLocal(instante, fuso), fuso);
+
+/**
  * O instante em que o dia local seguinte começa.
  *
  * Serve para agendamento: "rode isto quando virar o dia da clínica" não é
