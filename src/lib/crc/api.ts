@@ -330,20 +330,84 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
       // As oportunidades que competem por atenção humana HOJE: abertas, sem
       // jornada ativa cuidando delas. É o número que o item 15 do Mega Prompt
       // pede no topo da tela.
-      const abertas = await listarOportunidades({
-        organizationId: org,
-        clinicIds: ctx.clinicIds,
-        limite: 60,
-      });
-
-      const emJornada = await selecionar("crc_automation_enrollments", {
-        colunas: "opportunity_id",
-        filtros: [
+      /*
+       * ============================================================
+       *  TUDO QUE NÃO DEPENDE DE NADA VAI JUNTO — e a razão é geográfica.
+       *
+       *  A função roda na Vercel e o Postgres está em São Paulo. Cada `await`
+       *  separado é uma ida e volta inteira pela rede: nove `await`
+       *  sequenciais custavam nove vezes a latência ANTES de qualquer consulta
+       *  começar a rodar. Numa região distante do banco isso sozinho passava
+       *  de um segundo, e era a tela inteira esperando.
+       *
+       *  Só `carregarNomes` fica de fora, porque ela precisa da lista que sai
+       *  daqui. São duas ondas onde havia nove.
+       *
+       *  O CUSTO NO BANCO É O MESMO: as consultas não mudaram, só deixaram de
+       *  esperar umas pelas outras.
+       * ============================================================
+       */
+      const [
+        abertas,
+        emJornada,
+        tarefasHoje,
+        conversasEsperando,
+        jornadasAtivas,
+        recuperadas,
+        receita,
+        estadoSync,
+        cfg,
+      ] = await Promise.all([
+        listarOportunidades({
+          organizationId: org,
+          clinicIds: ctx.clinicIds,
+          limite: 60,
+        }),
+        selecionar("crc_automation_enrollments", {
+          colunas: "opportunity_id",
+          filtros: [
+            { coluna: "organization_id", op: "eq", valor: org },
+            { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
+          ],
+          limite: 1000,
+        }),
+        contar("crc_tasks", [
+          { coluna: "organization_id", op: "eq", valor: org },
+          { coluna: "assigned_to", op: "eq", valor: ctx.usuario.id },
+          { coluna: "status", op: "in", valor: ["OPEN", "IN_PROGRESS"] },
+        ]),
+        contar("crc_conversations", [
+          { coluna: "organization_id", op: "eq", valor: org },
+          { coluna: "nao_lidas", op: "gt", valor: 0 },
+        ]),
+        contar("crc_automation_enrollments", [
           { coluna: "organization_id", op: "eq", valor: org },
           { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
-        ],
-        limite: 1000,
-      });
+        ]),
+        // Recuperação do mês, medida pelos eventos de funil — que são gravados
+        // no servidor no momento em que o fato acontece, e não recalculados
+        // aqui.
+        selecionar("crc_funnel_events", {
+          colunas: "etapa,valor,patient_id",
+          filtros: [
+            { coluna: "organization_id", op: "eq", valor: org },
+            { coluna: "etapa", op: "eq", valor: "consulta_recuperada" },
+            { coluna: "ocorrido_em", op: "gte", valor: inicioDoMes.toISOString() },
+          ],
+          limite: 2000,
+        }),
+        selecionar("crc_revenue_events", {
+          colunas: "valor,natureza",
+          filtros: [
+            { coluna: "organization_id", op: "eq", valor: org },
+            { coluna: "natureza", op: "eq", valor: "CONFIRMADA" },
+            { coluna: "ocorrido_em", op: "gte", valor: inicioDoMes.toISOString() },
+          ],
+          limite: 2000,
+        }),
+        lerEstadoDeSincronizacao(org),
+        lerConfiguracao(org),
+      ]);
       const comJornada = new Set(
         emJornada.map((l) => String(l["opportunity_id"] ?? "")).filter((x) => x.length > 0),
       );
@@ -371,45 +435,6 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         temJornadaAtiva: false,
       }));
 
-      const [tarefasHoje, conversasEsperando, jornadasAtivas] = await Promise.all([
-        contar("crc_tasks", [
-          { coluna: "organization_id", op: "eq", valor: org },
-          { coluna: "assigned_to", op: "eq", valor: ctx.usuario.id },
-          { coluna: "status", op: "in", valor: ["OPEN", "IN_PROGRESS"] },
-        ]),
-        contar("crc_conversations", [
-          { coluna: "organization_id", op: "eq", valor: org },
-          { coluna: "nao_lidas", op: "gt", valor: 0 },
-        ]),
-        contar("crc_automation_enrollments", [
-          { coluna: "organization_id", op: "eq", valor: org },
-          { coluna: "status", op: "in", valor: ["ACTIVE", "WAITING"] },
-        ]),
-      ]);
-
-      // Recuperação do mês, medida pelos eventos de funil — que são gravados no
-      // servidor no momento em que o fato acontece, e não recalculados aqui.
-      const recuperadas = await selecionar("crc_funnel_events", {
-        colunas: "etapa,valor,patient_id",
-        filtros: [
-          { coluna: "organization_id", op: "eq", valor: org },
-          { coluna: "etapa", op: "eq", valor: "consulta_recuperada" },
-          { coluna: "ocorrido_em", op: "gte", valor: inicioDoMes.toISOString() },
-        ],
-        limite: 2000,
-      });
-
-      const receita = await selecionar("crc_revenue_events", {
-        colunas: "valor,natureza",
-        filtros: [
-          { coluna: "organization_id", op: "eq", valor: org },
-          { coluna: "natureza", op: "eq", valor: "CONFIRMADA" },
-          { coluna: "ocorrido_em", op: "gte", valor: inicioDoMes.toISOString() },
-        ],
-        limite: 2000,
-      });
-
-      const estadoSync = await lerEstadoDeSincronizacao(org);
       const maisRecente = estadoSync
         .map((e) => e.ultimaComSucessoEm)
         .filter((x): x is string => x !== null)
@@ -424,7 +449,6 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
        * terça em São Paulo o servidor já acha que é quarta. Ler o dia errado
        * aqui desenharia a janela de sábado num sábado que ainda não chegou.
        */
-      const cfg = await lerConfiguracao(org);
       const horario = cfg.horarioComercial;
       const agoraNaClinica = new Date();
       const diaLocal = partesLocais(agoraNaClinica, horario.fuso).diaSemana;
