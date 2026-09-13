@@ -15,8 +15,7 @@ const MEMBROS_INATIVOS = new Set(["Dra. Júlia Vargas", "Raphaela"]);
  * temporário ou histórico não consegue virar profissional publicado por acidente.
  */
 const EQUIPE_PUBLICA = EQUIPE.filter(
-  (pessoa) =>
-    !pessoa.ficticio && !pessoa.placeholder && !MEMBROS_INATIVOS.has(pessoa.nome),
+  (pessoa) => !pessoa.ficticio && !pessoa.placeholder && !MEMBROS_INATIVOS.has(pessoa.nome),
 );
 
 /**
