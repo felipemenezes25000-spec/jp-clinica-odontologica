@@ -5,7 +5,15 @@
  * negócio continuam nos módulos de `src/lib/crc` e nas telas específicas.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import {
   BarChart3,
   BookOpenText,
@@ -46,41 +54,119 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import { Automacoes } from "@/components/crc/Automacoes";
-import { Agenda } from "@/components/crc/Agenda";
-import { Funil } from "@/components/crc/Funil";
-import { Gestao } from "@/components/crc/Gestao";
-import { Home } from "@/components/crc/Home";
-import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
-import { Metas } from "@/components/crc/Metas";
-import { Autonomia } from "@/components/crc/Autonomia";
-import { Inbox } from "@/components/crc/Inbox";
-import { Integracoes } from "@/components/crc/Integracoes";
 import { Logo } from "@/components/site/Logo";
 
-import { Campanhas } from "@/components/crc/Campanhas";
-import { Inteligencia } from "@/components/crc/Inteligencia";
-import { Conhecimento } from "@/components/crc/Conhecimento";
-import { ModelosECusto } from "@/components/crc/ModelosECusto";
-import { Avaliacao } from "@/components/crc/Avaliacao";
-import { Estudio } from "@/components/crc/Estudio";
-import { Ferramentas } from "@/components/crc/Ferramentas";
-import { Playground } from "@/components/crc/Playground";
-import { ProximasAcoes } from "@/components/crc/ProximasAcoes";
-import { Encaixes } from "@/components/crc/Encaixes";
-import { Recepcao } from "@/components/crc/Recepcao";
-import { Tratamentos } from "@/components/crc/Tratamentos";
-import { Radar } from "@/components/crc/Radar";
-import { Saude } from "@/components/crc/Saude";
-import { Configuracoes } from "@/components/crc/Configuracoes";
-import { Equipe } from "@/components/crc/Equipe";
-import { Importar } from "@/components/crc/Importar";
-import { MeuTrabalho } from "@/components/crc/MeuTrabalho";
-import { BuscaPacientes, CentralDoPaciente } from "@/components/crc/Pacientes";
+/*
+ * ============================================================================
+ *  A HOME É ESTÁTICA. TODO O RESTO CHEGA QUANDO FOR ABERTO.
+ *
+ *  O QUE ESTAVA ACONTECENDO, medido na produção em 13/09/2026 com a aba de
+ *  rede aberta na TELA DE LOGIN:
+ *
+ *    65 arquivos JavaScript, 281 kB comprimidos, 788 kB descomprimidos —
+ *    incluindo Agenda, Autonomia, Campanhas, Encaixes, Equipe, Funil, Inbox,
+ *    Metas, MeuTrabalho, Radar e Saúde.
+ *
+ *  Ou seja: a recepcionista baixava as 43 telas do CRC antes de digitar a
+ *  senha, e 42 delas ela talvez não abrisse no dia inteiro.
+ *
+ *  ==========================================================================
+ *   JÁ HOUVE UMA TENTATIVA DISTO, E ELA QUEBROU A PÁGINA (revertida em
+ *   `158c77d`). O erro não foi o `lazy`: foi a FRONTEIRA DO `Suspense`.
+ *
+ *   Com o `Suspense` acima do layout, trocar de aba desmontava a casca
+ *   inteira — barra lateral, cabeçalho, contexto — e a tela piscava em branco
+ *   a cada clique. Aqui a fronteira fica DENTRO do `<main>`, em volta apenas
+ *   do bloco de telas: a casca nunca sai do ar.
+ *
+ *   E a HOME continua estática. Ela é a primeira tela de todo mundo; deixá-la
+ *   preguiçosa trocaria "carregar rápido" por "piscar no login", que é o
+ *   momento em que a impressão de lentidão se forma.
+ *  ==========================================================================
+ * ============================================================================
+ */
+import { Home } from "@/components/crc/Home";
+import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
 import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
 import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
 import "@/components/crc/crc.css";
 import "@/components/crc/crc-premium.css";
+
+/**
+ * `React.lazy` com export nomeado.
+ *
+ * O `lazy` só aceita um módulo cujo `default` seja o componente, e nenhuma tela
+ * do CRC tem export default — o estilo da casa é nomear. Este ajudante faz a
+ * ponte num lugar só, em vez de trinta `.then(m => ({ default: m.X }))`
+ * espalhados, cada um uma chance de trocar o nome e descobrir em produção.
+ */
+function tela<M extends Record<string, unknown>, N extends keyof M & string>(
+  carregar: () => Promise<M>,
+  nome: N,
+): M[N] {
+  /*
+   * A CONVERSÃO DE TIPO É DELIBERADA, E ESTREITA.
+   *
+   * `lazy` devolve `LazyExoticComponent<T>`, que o JSX aceita mas cujos tipos
+   * de prop o TypeScript relaxa. Devolver `M[N]` — o tipo do componente
+   * ORIGINAL — mantém a conferência de props exata em cada uso: passar
+   * `patientId` para uma tela que não o recebe continua sendo erro de
+   * compilação.
+   *
+   * `Pacientes` é o caso que obrigou esta forma: o módulo exporta dois
+   * componentes com props diferentes, e qualquer assinatura que amarrasse os
+   * dois ao mesmo tipo de prop quebra num dos dois.
+   */
+  return lazy(() =>
+    carregar().then((m) => ({ default: m[nome] as ComponentType<Record<string, unknown>> })),
+  ) as unknown as M[N];
+}
+
+const Agenda = tela(() => import("@/components/crc/Agenda"), "Agenda");
+const Automacoes = tela(() => import("@/components/crc/Automacoes"), "Automacoes");
+const Autonomia = tela(() => import("@/components/crc/Autonomia"), "Autonomia");
+const Avaliacao = tela(() => import("@/components/crc/Avaliacao"), "Avaliacao");
+const Campanhas = tela(() => import("@/components/crc/Campanhas"), "Campanhas");
+const Configuracoes = tela(() => import("@/components/crc/Configuracoes"), "Configuracoes");
+const Conhecimento = tela(() => import("@/components/crc/Conhecimento"), "Conhecimento");
+const Encaixes = tela(() => import("@/components/crc/Encaixes"), "Encaixes");
+const Equipe = tela(() => import("@/components/crc/Equipe"), "Equipe");
+const Estudio = tela(() => import("@/components/crc/Estudio"), "Estudio");
+const Ferramentas = tela(() => import("@/components/crc/Ferramentas"), "Ferramentas");
+const Funil = tela(() => import("@/components/crc/Funil"), "Funil");
+const Gestao = tela(() => import("@/components/crc/Gestao"), "Gestao");
+const Importar = tela(() => import("@/components/crc/Importar"), "Importar");
+const Inbox = tela(() => import("@/components/crc/Inbox"), "Inbox");
+const Integracoes = tela(() => import("@/components/crc/Integracoes"), "Integracoes");
+const Inteligencia = tela(() => import("@/components/crc/Inteligencia"), "Inteligencia");
+const Metas = tela(() => import("@/components/crc/Metas"), "Metas");
+const MeuTrabalho = tela(() => import("@/components/crc/MeuTrabalho"), "MeuTrabalho");
+const ModelosECusto = tela(() => import("@/components/crc/ModelosECusto"), "ModelosECusto");
+const Playground = tela(() => import("@/components/crc/Playground"), "Playground");
+const ProximasAcoes = tela(() => import("@/components/crc/ProximasAcoes"), "ProximasAcoes");
+const Radar = tela(() => import("@/components/crc/Radar"), "Radar");
+const Recepcao = tela(() => import("@/components/crc/Recepcao"), "Recepcao");
+const Saude = tela(() => import("@/components/crc/Saude"), "Saude");
+const Tratamentos = tela(() => import("@/components/crc/Tratamentos"), "Tratamentos");
+const BuscaPacientes = tela(() => import("@/components/crc/Pacientes"), "BuscaPacientes");
+const CentralDoPaciente = tela(() => import("@/components/crc/Pacientes"), "CentralDoPaciente");
+
+/**
+ * As telas que a recepção abre logo depois da Home.
+ *
+ * PRÉ-CARREGADAS NA OCIOSIDADE, e não no carregamento: a diferença é que
+ * `requestIdleCallback` só roda quando o navegador não tem nada melhor a fazer,
+ * então o ganho da Home continua inteiro e a primeira troca de aba já encontra
+ * o arquivo em cache.
+ *
+ * TRÊS, E NÃO TRINTA. Pré-carregar tudo é o mesmo que não ter dividido nada —
+ * só que com mais código.
+ */
+const PRIMEIRAS_DA_FILA = [
+  () => import("@/components/crc/Inbox"),
+  () => import("@/components/crc/MeuTrabalho"),
+  () => import("@/components/crc/Pacientes"),
+];
 import {
   entrarNoCrc,
   estadoSessaoCrc,
@@ -1651,6 +1737,51 @@ function PortalCrc() {
     void carregarSessao();
   }, [carregarSessao]);
 
+  /*
+   * ==========================================================================
+   *  AS TRÊS PRÓXIMAS TELAS CHEGAM NA OCIOSIDADE — depois do login, e não antes.
+   *
+   *  DEPOIS: `sessao?.autenticado` na guarda. Pré-carregar tela do CRC na tela
+   *  de LOGIN desfaria exatamente o que a divisão do pacote foi feita para
+   *  resolver — e o visitante que só abriu a URL pagaria pelo download.
+   *
+   *  NA OCIOSIDADE: `requestIdleCallback` só roda quando o navegador não tem
+   *  nada melhor a fazer. O carregamento da Home continua inteiro, e a primeira
+   *  troca de aba já encontra o arquivo em cache.
+   *
+   *  `setTimeout` de reserva porque o Safari só ganhou `requestIdleCallback` em
+   *  2022 e ainda há iPad de recepção mais velho que isso. Sem o fallback,
+   *  nesses aparelhos o pré-carregamento simplesmente não aconteceria — em
+   *  silêncio, que é o pior jeito de uma otimização não funcionar.
+   *
+   *  FALHA É IGNORADA DE PROPÓSITO: isto é adiantamento, não carregamento. Se
+   *  a rede cair aqui, o `lazy` tenta de novo na hora do clique, que é quando
+   *  a pessoa realmente precisa.
+   * ==========================================================================
+   */
+  useEffect(() => {
+    if (sessao?.autenticado !== true) return;
+
+    const adiantar = (): void => {
+      for (const carregar of PRIMEIRAS_DA_FILA) void carregar().catch(() => undefined);
+    };
+
+    const ocioso = (globalThis as { requestIdleCallback?: (cb: () => void) => number })
+      .requestIdleCallback;
+
+    if (typeof ocioso === "function") {
+      const id = ocioso(adiantar);
+      return () => {
+        (globalThis as { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(id);
+      };
+    }
+
+    const id = setTimeout(adiantar, 1200);
+    return () => {
+      clearTimeout(id);
+    };
+  }, [sessao?.autenticado]);
+
   const abrirPaciente = useCallback((patientId: string) => {
     setPacienteAberto(patientId);
     setAba("pacientes");
@@ -1967,9 +2098,23 @@ function PortalCrc() {
             />
           )}
 
-          {abaAtual === "home" && (
-            <>
-              {/*
+          {/*
+            ============================================================
+             A FRONTEIRA DO `Suspense` FICA AQUI, E NÃO UMA LINHA ACIMA.
+
+             Acima do `<main>` ela desmontaria a casca — barra lateral,
+             cabeçalho, barra de contexto — a cada troca de aba, e a tela
+             piscaria em branco a cada clique. Foi exatamente isso que
+             derrubou a tentativa anterior de dividir o pacote.
+
+             Aqui dentro, quem some por um instante é só o conteúdo da
+             aba. A pessoa continua vendo onde está.
+            ============================================================
+          */}
+          <Suspense fallback={<TelaCarregando rotulo={itemAtual.rotulo} />}>
+            {abaAtual === "home" && (
+              <>
+                {/*
                 O CHECKLIST DE INSTALAÇÃO FICA NO TOPO DA HOME, e só enquanto
                 faltar passo essencial — ele some sozinho, sem botão de fechar.
 
@@ -1977,94 +2122,128 @@ function PortalCrc() {
                 pergunta que ele responde é a que a pessoa faz olhando uma tela
                 vazia: "o sistema quebrou, ou ainda não terminei de instalar?".
               */}
-              <PrimeirosPassos
-                aoIrPara={(destino) => {
-                  // A aba só muda se ela existir E a pessoa tiver a permissão:
-                  // mandar alguém para uma aba que ela não pode abrir trocaria
-                  // um checklist por uma tela em branco.
-                  const alvo = permitidas.find((n) => n.aba === destino);
-                  if (alvo !== undefined) setAba(alvo.aba);
+                <PrimeirosPassos
+                  aoIrPara={(destino) => {
+                    // A aba só muda se ela existir E a pessoa tiver a permissão:
+                    // mandar alguém para uma aba que ela não pode abrir trocaria
+                    // um checklist por uma tela em branco.
+                    const alvo = permitidas.find((n) => n.aba === destino);
+                    if (alvo !== undefined) setAba(alvo.aba);
+                  }}
+                />
+                <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
+              </>
+            )}
+
+            {abaAtual === "trabalho" && (
+              <MeuTrabalho usuarioId={usuario.id} aoAbrirPaciente={abrirPaciente} />
+            )}
+
+            {abaAtual === "inbox" && (
+              <Inbox
+                aoAbrirPaciente={abrirPaciente}
+                conversaInicial={conversaAberta}
+                aoConsumirInicial={() => {
+                  setConversaAberta(null);
                 }}
               />
-              <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
-            </>
-          )}
+            )}
 
-          {abaAtual === "trabalho" && (
-            <MeuTrabalho usuarioId={usuario.id} aoAbrirPaciente={abrirPaciente} />
-          )}
+            {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
+            {abaAtual === "agenda" && <Agenda aoAbrirPaciente={abrirPaciente} />}
 
-          {abaAtual === "inbox" && (
-            <Inbox
-              aoAbrirPaciente={abrirPaciente}
-              conversaInicial={conversaAberta}
-              aoConsumirInicial={() => {
-                setConversaAberta(null);
-              }}
-            />
-          )}
+            {abaAtual === "pacientes" &&
+              (pacienteAberto === null ? (
+                <BuscaPacientes aoAbrirPaciente={abrirPaciente} />
+              ) : (
+                <CentralDoPaciente
+                  patientId={pacienteAberto}
+                  aoVoltar={() => {
+                    setPacienteAberto(null);
+                  }}
+                />
+              ))}
 
-          {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
-          {abaAtual === "agenda" && <Agenda aoAbrirPaciente={abrirPaciente} />}
-
-          {abaAtual === "pacientes" &&
-            (pacienteAberto === null ? (
-              <BuscaPacientes aoAbrirPaciente={abrirPaciente} />
-            ) : (
-              <CentralDoPaciente
-                patientId={pacienteAberto}
-                aoVoltar={() => {
-                  setPacienteAberto(null);
-                }}
+            {abaAtual === "gestao" && (
+              <Gestao
+                podeExportar={usuario.permissoes.includes("exportar_dados")}
+                podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
               />
-            ))}
+            )}
 
-          {abaAtual === "gestao" && (
-            <Gestao
-              podeExportar={usuario.permissoes.includes("exportar_dados")}
-              podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
-            />
-          )}
+            {abaAtual === "metas" && (
+              <Metas podeGerenciar={usuario.permissoes.includes("gerenciar_autopilot")} />
+            )}
 
-          {abaAtual === "metas" && (
-            <Metas podeGerenciar={usuario.permissoes.includes("gerenciar_autopilot")} />
-          )}
+            {abaAtual === "autonomia" && <Autonomia />}
 
-          {abaAtual === "autonomia" && <Autonomia />}
+            {abaAtual === "importar" && <Importar />}
 
-          {abaAtual === "importar" && <Importar />}
+            {abaAtual === "automacoes" && (
+              <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
+            )}
 
-          {abaAtual === "automacoes" && (
-            <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
-          )}
+            {abaAtual === "integracoes" && (
+              <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
+            )}
 
-          {abaAtual === "integracoes" && (
-            <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
-          )}
+            {abaAtual === "campanhas" && <Campanhas />}
 
-          {abaAtual === "campanhas" && <Campanhas />}
-
-          {abaAtual === "inteligencia" && <Inteligencia />}
-          {abaAtual === "conhecimento" && <Conhecimento />}
-          {abaAtual === "modelos" && <ModelosECusto />}
-          {abaAtual === "avaliacao" && <Avaliacao />}
-          {abaAtual === "estudio" && <Estudio />}
-          {abaAtual === "playground" && <Playground />}
-          {abaAtual === "ferramentas" && <Ferramentas />}
-          {abaAtual === "proximas" && <ProximasAcoes />}
-          {abaAtual === "radar" && <Radar />}
-          {abaAtual === "encaixes" && <Encaixes />}
-          {abaAtual === "tratamentos" && <Tratamentos />}
-          {abaAtual === "recepcao" && <Recepcao />}
-          {abaAtual === "saude" && <Saude />}
-          {abaAtual === "equipe" && <Equipe />}
-          {abaAtual === "configuracoes" && (
-            <Configuracoes
-              podeGerenciarUsuarios={usuario.permissoes.includes("gerenciar_usuarios")}
-            />
-          )}
+            {abaAtual === "inteligencia" && <Inteligencia />}
+            {abaAtual === "conhecimento" && <Conhecimento />}
+            {abaAtual === "modelos" && <ModelosECusto />}
+            {abaAtual === "avaliacao" && <Avaliacao />}
+            {abaAtual === "estudio" && <Estudio />}
+            {abaAtual === "playground" && <Playground />}
+            {abaAtual === "ferramentas" && <Ferramentas />}
+            {abaAtual === "proximas" && <ProximasAcoes />}
+            {abaAtual === "radar" && <Radar />}
+            {abaAtual === "encaixes" && <Encaixes />}
+            {abaAtual === "tratamentos" && <Tratamentos />}
+            {abaAtual === "recepcao" && <Recepcao />}
+            {abaAtual === "saude" && <Saude />}
+            {abaAtual === "equipe" && <Equipe />}
+            {abaAtual === "configuracoes" && (
+              <Configuracoes
+                podeGerenciarUsuarios={usuario.permissoes.includes("gerenciar_usuarios")}
+              />
+            )}
+          </Suspense>
         </main>
       </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* O intervalo entre clicar na aba e a tela existir                           */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O que aparece enquanto o arquivo da tela chega.
+ *
+ * TRÊS DECISÕES, e cada uma corrige um jeito de isto ficar ruim:
+ *
+ *   TEM ALTURA. Um fallback de altura zero faz a página encolher e voltar, e o
+ *   salto é mais desagradável do que a espera.
+ *
+ *   DIZ O NOME DA TELA. "Carregando…" sozinho não informa nada que a pessoa já
+ *   não saiba; "Abrindo Inbox" confirma que o clique foi registrado, que é a
+ *   dúvida real de quem clicou e não viu nada mudar.
+ *
+ *   `aria-busy` E `role="status"`. Para quem usa leitor de tela, um conteúdo
+ *   que some sem anúncio é a tela tendo quebrado.
+ */
+function TelaCarregando({ rotulo }: { rotulo: string }) {
+  return (
+    <div
+      className="crc-tela-carregando"
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+      style={{ minHeight: "60vh", display: "grid", placeItems: "center" }}
+    >
+      <p className="crc-vazio-texto">Abrindo {rotulo}…</p>
     </div>
   );
 }

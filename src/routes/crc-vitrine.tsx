@@ -23,9 +23,29 @@
  *  nada toca sessão: as telas nem chegam a perguntar quem é o usuário.
  * ============================================================================
  *
- * EM PRODUÇÃO ESTA ROTA NÃO EXISTE — ela devolve 404 fora de desenvolvimento, e
- * o `import()` das telas fica atrás dessa checagem, então nada disto entra no
- * pacote que o paciente baixa.
+ * ============================================================================
+ *  O QUE ACONTECE EM PRODUÇÃO — conferido, e não suposto.
+ *
+ *  Esta linha dizia "EM PRODUÇÃO ESTA ROTA NÃO EXISTE — ela devolve 404". Foi
+ *  medido em 13/09/2026, contra o site no ar:
+ *
+ *      GET https://www.jpclinicaodontologica.com.br/crc-vitrine  →  200
+ *
+ *  A ROTA EXISTE E RESPONDE. O que ela devolve fora de desenvolvimento é o
+ *  aviso de "disponível só em desenvolvimento" — não 404.
+ *
+ *  O QUE A MEDIÇÃO CONFIRMOU, e é o que de fato importava:
+ *
+ *    o corpo da vitrine É removido pelo tree-shaking (`import.meta.env.DEV` é
+ *    substituído por literal em build), então nenhum dado de mentira e nenhuma
+ *    tela do CRC entram no pacote que o paciente baixa;
+ *
+ *    o que sobrevive é o CAMINHO registrado na árvore de rotas.
+ *
+ *  A diferença entre "404" e "200 com aviso" não muda o risco — muda o que
+ *  alguém vai acreditar daqui a seis meses ao ler este comentário e decidir
+ *  não conferir.
+ * ============================================================================
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useState, type ReactElement } from "react";
