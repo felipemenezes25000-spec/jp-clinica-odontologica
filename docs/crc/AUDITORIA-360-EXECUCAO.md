@@ -19,10 +19,10 @@ comando reexecutável que o demonstra; um item medido mas não corrigido é
 | ----------------------------------- | --------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------- |
 | **HEAD da `main`**                  | `Quality` vermelho em `1362da1` (prettier)                | verde                                       | `npx eslint src` → 0 erros; 1961 testes                     | —                                                                          |
 | **Portão de release**               | check exigido com nome que ninguém reporta                | teste compara workflow × lista versionada   | injeção: renomear o job reprova o caso dele                 | `enforce_admins` continua `false` — **não alterei**, ver `RELEASE-GATE.md` |
-| **Analítica truncada**              | 3.000 linhas em 4 leituras; mediana sobre o começo do mês | agregado no Postgres                        | 18 testes unitários + 14 de integração contra Postgres real | as 5 funções SQL **ainda não rodaram em produção**                         |
-| **Custo de IA**                     | 5.000 chamadas; conta **menor** que a real                | `crc_gasto_de_ia`                           | 11 testes; soma em `numeric`, medida contra `float8`        | idem — depende do `supabase/43`                                            |
-| **Custo por lead**                  | 5.000 leads; custo por lead **maior** que o real          | `crc_leads_por_campanha`                    | 4 grafias de campanha colapsando numa só, nos dois lados    | idem                                                                       |
-| **Métricas de IA**                  | 1.000 runs; taxas medindo a 1ª semana do mês              | `crc_metricas_de_ia`                        | fake + wiring; 1961 testes verdes                           | depende do `supabase/44`                                                   |
+| **Analítica truncada**              | 3.000 linhas em 4 leituras; mediana sobre o começo do mês | agregado no Postgres                        | 18 testes unitários + 14 de integração contra Postgres real | —                                                                          |
+| **Custo de IA**                     | 5.000 chamadas; conta **menor** que a real                | `crc_gasto_de_ia`                           | 11 testes; soma em `numeric`, medida contra `float8`        | —                                                                          |
+| **Custo por lead**                  | 5.000 leads; custo por lead **maior** que o real          | `crc_leads_por_campanha`                    | 4 grafias de campanha colapsando numa só, nos dois lados    | —                                                                          |
+| **Métricas de IA**                  | 1.000 runs; taxas medindo a 1ª semana do mês              | `crc_metricas_de_ia`                        | fake + wiring; 1961 testes verdes                           | —                                                                          |
 | **Invariantes arquiteturais**       | nenhuma                                                   | 4 classes viram CI vermelho                 | injeção 4/4                                                 | 3 tetos marcados `PENDENTE DE CORREÇÃO` na lista auditada                  |
 | **Segredo no bundle**               | nunca verificado                                          | varredura no CI depois do build             | 122 arquivos, 0 achados; JWT falso injetado → detectado     | cobre formato conhecido de credencial, não segredo em formato novo         |
 | **Prompt injection**                | **funcionava** — paciente forjava seção do sistema        | neutralização + `portaoHorario`             | 46 casos adversariais; injeção 6/6                          | injeção não tem lista fechada; a garantia é o portão, não o filtro         |
@@ -35,21 +35,43 @@ comando reexecutável que o demonstra; um item medido mas não corrigido é
 
 ## Sondas contra o banco de produção
 
-Feitas pela interface, com sessão real, em 13/09/2026 — porque as credenciais
-de produção não passam por esta sessão.
+Rodadas com `npm run schema:status`, que pergunta ao PostgREST de produção pelo
+objeto que cada migração cria. **A sonda vence o registro**: uma linha em
+`crc_schema_migrations` diz que alguém anotou; a sonda diz o que está no banco.
 
-| Migração                  | Estado            | Como foi sondada                                                                     |
-| ------------------------- | ----------------- | ------------------------------------------------------------------------------------ |
-| `39` índices de ordenação | **NÃO OBSERVADO** | índice ausente não muda resultado, só velocidade. Uma sonda pela tela não distingue. |
-| `40` resumo da Home       | **aplicada**      | a Home renderiza os números sem erro; sem a função, o PostgREST devolveria 404.      |
-| `41` analítica agregada   | **aplicada**      | Gestão mostra `jul/26 · ago/26 · set/26` e as 6 etapas do funil.                     |
-| `42` analítica sem teto   | **NÃO APLICADA**  | nenhuma das 3 funções existe lá ainda.                                               |
-| `43` custo e campanha     | **NÃO APLICADA**  | idem.                                                                                |
-| `44` métricas de IA       | **NÃO APLICADA**  | idem.                                                                                |
+| Migração                  | Sonda             | Registro em `crc_schema_migrations` |
+| ------------------------- | ----------------- | ----------------------------------- |
+| `39` índices de ordenação | **NÃO OBSERVADO** | pendente                            |
+| `40` resumo da Home       | **OK**            | pendente                            |
+| `41` analítica agregada   | **OK** (2 sondas) | pendente                            |
+| `42` analítica sem teto   | **OK** (3 sondas) | pendente                            |
+| `43` custo e campanha     | **OK** (2 sondas) | pendente                            |
+| `44` métricas de IA       | **OK**            | pendente                            |
 
-> **Isto é bloqueante para publicar.** O código no `main` local já chama as cinco
-> funções de `42`–`44`. Subir sem rodar o SQL antes derruba Gestão, Investimento
-> e o painel de IA — com erro, e não em silêncio.
+O `insert` de registro foi acrescentado aos seis arquivos, mas **as linhas ainda
+não existem no banco** — elas só aparecem quando o `insert` rodar lá. Enquanto
+isso, o relatório mostra sonda `OK` com registro `NÃO`, que é a discordância
+certa: o objeto está no banco e o caderninho não sabe.
+
+45 arquivos · 27 sondados · **0 falhas** (13/09/2026).
+
+A `39` continua sem sonda pelo mesmo motivo da `35`, e vale dizer em voz alta em
+vez de inventar uma: ela cria índices, índice é objeto de catálogo, e o
+PostgREST não expõe catálogo. Pior — uma consulta responde **exatamente igual**
+com e sem índice, só mais devagar. A evidência dela é `explain` no editor do
+Supabase, e é verificação de fora.
+
+### Duas coisas que esta rodada revelou
+
+**O `schema-status` não sondava nada depois da `38`.** Seis migrações — todas as
+da onda de analítica — passavam pelo relatório como "sem sonda". Agora cada
+função tem sonda própria, e não uma por arquivo: as três da `42` nascem juntas,
+mas nada garante que continuem juntas quando alguém cola metade do arquivo no
+editor.
+
+**Seis migrações tinham parado de se registrar.** Da `30` à `38`, todo arquivo
+terminava com um `insert into crc_schema_migrations`. Da `39` à `44` o hábito se
+perdeu — e três dessas são minhas. Corrigido nos seis arquivos.
 
 ---
 

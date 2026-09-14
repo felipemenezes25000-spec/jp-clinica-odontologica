@@ -105,3 +105,22 @@ create index if not exists crc_revenue_events_periodo
 
 create index if not exists crc_funnel_events_periodo
   on public.crc_funnel_events (organization_id, ocorrido_em desc);
+
+-- ----------------------------------------------------------------------------
+-- O registro
+-- ----------------------------------------------------------------------------
+--
+--  A LINHA ABAIXO NAO E PROVA, e o `schema-status` sabe disso: ela diz que
+--  alguem ANOTOU, e a sonda diz o que esta no banco. Quando as duas discordam,
+--  a sonda vence.
+--
+--  Ela existe porque a DISCORDANCIA e o alarme. Sem o registro, um arquivo que
+--  nunca rodou e um arquivo que rodou ficam com a mesma aparencia — e o
+--  relatorio perde a unica linha que faz alguem parar e conferir.
+--
+--  Da 30 a 38 todo arquivo se registrava. Da 39 a 44 o habito se perdeu, e o
+--  relatorio de 13/09/2026 mostrou as seis como NAO anotadas com a sonda OK.
+
+insert into public.crc_schema_migrations (nome, presumido)
+values ('41-crc-analitica-agregada.sql', false)
+on conflict (nome) do update set presumido = false, aplicado_em = now();

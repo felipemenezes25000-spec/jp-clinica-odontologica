@@ -238,6 +238,88 @@ const SONDAS = {
     { tipo: "tabela", nome: "crc_experiments" },
     { tipo: "tabela", nome: "crc_learnings" },
   ],
+
+  /*
+   * ==========================================================================
+   *  A 39 NÃO TEM SONDA, pelo mesmo motivo da 35 — e dizer isso vale mais do
+   *  que inventar uma.
+   *
+   *  Ela cria quatro índices. Índice é objeto de catálogo (`pg_indexes`), e o
+   *  PostgREST não expõe catálogo. Pior: uma consulta responde EXATAMENTE IGUAL
+   *  com e sem índice — só mais devagar. Qualquer "sonda" que eu escrevesse
+   *  aqui estaria medindo outra coisa e devolvendo confiança falsa.
+   *
+   *  A evidência dela é o `explain` no editor do Supabase, ou a latência da
+   *  lista de pacientes ordenada por nome. Fica anotada como verificação de
+   *  fora, e não como linha verde.
+   * ==========================================================================
+   */
+
+  "40-crc-resumo-da-home.sql": {
+    tipo: "rpc",
+    nome: "crc_resumo_da_home",
+    argumentos: { p_organization_id: null, p_desde: null },
+  },
+
+  "41-crc-analitica-agregada.sql": [
+    {
+      tipo: "rpc",
+      nome: "crc_receita_por_mes",
+      argumentos: { p_organization_id: null, p_meses: 1, p_agora: null },
+    },
+    {
+      tipo: "rpc",
+      nome: "crc_funil_do_periodo",
+      argumentos: { p_organization_id: null, p_de: null, p_ate: null },
+    },
+  ],
+
+  /*
+   * DA 42 EM DIANTE, CADA FUNÇÃO TEM SONDA PRÓPRIA — e não uma por arquivo.
+   *
+   * As três da 42 nascem juntas, mas nada garante que continuem juntas: um
+   * `create or replace` rodado pela metade, um erro no meio do arquivo, um
+   * copiar-colar parcial no editor do Supabase. Sondar só a primeira daria
+   * verde com as outras duas faltando — e o sintoma seria a tela do gestor
+   * quebrando em produção, que é exatamente o que estas sondas existem para
+   * antecipar.
+   */
+  "42-crc-analitica-sem-teto.sql": [
+    {
+      tipo: "rpc",
+      nome: "crc_motivos_de_perda",
+      argumentos: { p_organization_id: null, p_de: null, p_ate: null },
+    },
+    {
+      tipo: "rpc",
+      nome: "crc_speed_to_lead",
+      argumentos: { p_organization_id: null, p_de: null, p_ate: null },
+    },
+    {
+      tipo: "rpc",
+      nome: "crc_panorama_totais",
+      argumentos: { p_organization_id: null, p_de: null, p_ate: null },
+    },
+  ],
+
+  "43-crc-custo-e-campanha-sem-teto.sql": [
+    {
+      tipo: "rpc",
+      nome: "crc_gasto_de_ia",
+      argumentos: { p_organization_id: null, p_desde: null },
+    },
+    {
+      tipo: "rpc",
+      nome: "crc_leads_por_campanha",
+      argumentos: { p_organization_id: null, p_de: null, p_ate: null },
+    },
+  ],
+
+  "44-crc-metricas-de-ia-sem-teto.sql": {
+    tipo: "rpc",
+    nome: "crc_metricas_de_ia",
+    argumentos: { p_organization_id: null, p_de: null, p_ate: null },
+  },
 };
 
 async function sondar(sonda) {
