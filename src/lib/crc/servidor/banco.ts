@@ -353,8 +353,37 @@ export async function selecionarUm<T = Linha>(
 
 /** Conta sem trazer as linhas. Usa `HEAD` + `Content-Range`, que é barato. */
 export async function contar(tabela: Tabela, filtros: readonly Filtro[] = []): Promise<number> {
+  /*
+   * ==========================================================================
+   *  AQUI HAVIA UM `params.set("select", "id")`, E ELE QUEBRAVA UMA TELA.
+   *
+   *  A intenção era boa: pedir uma coluna só, em vez da linha inteira. Só que
+   *  numa requisição `HEAD` o corpo não volta de jeito nenhum — o `select` não
+   *  economizava nada — e ele criava uma dependência que ninguém declarou:
+   *  **a tabela precisa ter uma coluna chamada `id`**.
+   *
+   *  `crc_user_clinics` é uma tabela de ligação com chave composta
+   *  `(user_id, clinic_id)` e nenhuma coluna `id`. Medido contra o banco de
+   *  produção em 14/09/2026:
+   *
+   *      HEAD /crc_user_clinics?select=id   ->  400
+   *      {"code":"42703","message":"column crc_user_clinics.id does not exist"}
+   *
+   *      HEAD /crc_user_clinics             ->  200  content-range: 0-0/1
+   *
+   *  O efeito: `listarClinicas` conta as pessoas de cada unidade com
+   *  `contar("crc_user_clinics", ...)`, dentro de um `Promise.all`. A contagem
+   *  lançava, e a TELA DE UNIDADES inteira falhava — não o número, a tela.
+   *
+   *  Doze tabelas do CRC não têm `id` (ligação, estado por chave composta,
+   *  configuração). Hoje só esta era contada; a correção vale para as doze.
+   *
+   *  SEM `select`, o PostgREST conta as linhas do mesmo jeito — e passa a
+   *  funcionar em qualquer tabela, que é o contrato que uma função chamada
+   *  `contar` deveria ter desde o começo.
+   * ==========================================================================
+   */
   const params = new URLSearchParams();
-  params.set("select", "id");
   aplicarFiltros(params, filtros);
 
   const r = await chamar(`/${tabela}?${params.toString()}`, {

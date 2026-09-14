@@ -69,14 +69,38 @@ const DEFEITOS = [
   },
   {
     nome: "speed to lead lê 3.000 leads",
-    de: `      for (const l of tabelas["crc_leads"] ?? []) {`,
-    para: `      for (const l of (tabelas["crc_leads"] ?? []).slice(0, ${TETO})) {`,
+    /*
+     * A ÂNCORA INCLUI AS DUAS LINHAS SEGUINTES porque `crc_leads` passou a ser
+     * varrido em DOIS lugares do fake: aqui e em `crc_leads_por_campanha`.
+     *
+     * O script se RECUSOU a patchear — "âncora ambígua" — em vez de acertar o
+     * lugar errado. É o comportamento certo, e foi ele que denunciou: o
+     * resultado caiu de 6/6 para 4/6 e disse exatamente por quê.
+     */
+    de: `      for (const l of tabelas["crc_leads"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const criado = l["criado_em"];`,
+    para: `      for (const l of (tabelas["crc_leads"] ?? []).slice(0, ${TETO})) {
+        if (l["organization_id"] !== org) continue;
+        const criado = l["criado_em"];`,
     alvo: 'a mediana truncada não é "quase a mediana" — 10.000 leads provam',
   },
   {
     nome: "speed to lead: a mediana passa a descrever os primeiros 3.000",
-    de: `      for (const l of tabelas["crc_leads"] ?? []) {`,
-    para: `      for (const l of (tabelas["crc_leads"] ?? []).slice(0, ${TETO})) {`,
+    /*
+     * A ÂNCORA INCLUI AS DUAS LINHAS SEGUINTES porque `crc_leads` passou a ser
+     * varrido em DOIS lugares do fake: aqui e em `crc_leads_por_campanha`.
+     *
+     * O script se RECUSOU a patchear — "âncora ambígua" — em vez de acertar o
+     * lugar errado. É o comportamento certo, e foi ele que denunciou: o
+     * resultado caiu de 6/6 para 4/6 e disse exatamente por quê.
+     */
+    de: `      for (const l of tabelas["crc_leads"] ?? []) {
+        if (l["organization_id"] !== org) continue;
+        const criado = l["criado_em"];`,
+    para: `      for (const l of (tabelas["crc_leads"] ?? []).slice(0, ${TETO})) {
+        if (l["organization_id"] !== org) continue;
+        const criado = l["criado_em"];`,
     alvo: "25.000 leads: nada depende do tamanho da base",
   },
   {

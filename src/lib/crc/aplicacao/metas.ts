@@ -41,6 +41,15 @@ import {
 } from "../servidor/banco";
 import { auditar } from "../servidor/registro";
 
+/**
+ * O tamanho da página ao varrer as ações das metas.
+ *
+ * 500, como o público da campanha: grande o bastante para a base inteira caber
+ * em poucas idas, pequeno o bastante para uma página nunca virar um payload que
+ * o PostgREST demore a montar.
+ */
+const PAGINA_DE_ACOES = 500;
+
 export type StatusDaMeta = "RASCUNHO" | "ATIVA" | "PAUSADA" | "ATINGIDA" | "VENCIDA" | "CANCELADA";
 
 export type Resultado = { ok: true } | { ok: false; motivo: string };
@@ -340,14 +349,50 @@ export async function listarMetas(
   if (linhas.length === 0) return [];
 
   const ids = linhas.map((l) => String(l["id"] ?? "")).filter((i) => i.length > 0);
-  const acoes = await selecionar("crc_goal_actions", {
-    filtros: [
+
+  /*
+   * ==========================================================================
+   *  ISTO LIA 1.000 AÇÕES E PARAVA, PARA ATÉ 100 METAS.
+   *
+   *  O corte não aparecia como erro: a meta simplesmente mostrava menos ações
+   *  do que tem. E como a ordem era por `ordem` — o campo que diz a sequência
+   *  DENTRO de cada meta, e que se repete entre metas —, o que sobrava era
+   *  arbitrário: pedaços do começo de cada uma, misturados.
+   *
+   *  Quem olhasse veria um plano incompleto sem nada dizendo que está
+   *  incompleto. Numa tela cujo trabalho é dizer "o que fazer", faltar item é
+   *  pior do que a tela não existir.
+   *
+   *  Agora pagina por `id` até a base acabar. A ordenação por `ordem` volta
+   *  aqui, depois de ter tudo — o cursor precisa de uma coluna única, e `ordem`
+   *  não é.
+   * ==========================================================================
+   */
+  const acoes: Linha[] = [];
+  let cursor: string | null = null;
+
+  for (;;) {
+    const base: Filtro[] = [
       { coluna: "organization_id", op: "eq", valor: organizationId },
       { coluna: "goal_id", op: "in", valor: ids },
-    ],
-    ordenar: [{ coluna: "ordem", ascendente: true }],
-    limite: 1000,
-  });
+    ];
+
+    const pagina: Linha[] = await selecionar("crc_goal_actions", {
+      filtros: cursor === null ? base : [...base, { coluna: "id", op: "gt", valor: cursor }],
+      ordenar: [{ coluna: "id", ascendente: true }],
+      limite: PAGINA_DE_ACOES,
+    });
+
+    if (pagina.length === 0) break;
+    acoes.push(...pagina);
+
+    if (pagina.length < PAGINA_DE_ACOES) break;
+
+    cursor = String(pagina[pagina.length - 1]?.["id"] ?? "");
+    if (cursor.length === 0) break;
+  }
+
+  acoes.sort((a, b) => Number(a["ordem"] ?? 0) - Number(b["ordem"] ?? 0));
 
   const porMeta = new Map<string, AcaoNaLista[]>();
   for (const a of acoes) {

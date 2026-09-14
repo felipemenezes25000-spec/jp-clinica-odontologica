@@ -271,22 +271,59 @@ export async function opcoesDoPublico(
      */
   }
 
-  const linhas = await selecionar("crc_patients", {
-    colunas: "especialidade,convenio",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "arquivado", op: "eq", valor: false },
-    ],
-    limite: 5000,
-  });
-
+  /*
+   * ==========================================================================
+   *  ESTE CAMINHO LIA 5.000 PACIENTES E PARAVA. Com mais que isso, uma
+   *  especialidade inteira sumia do seletor — e o que some de um FILTRO não
+   *  deixa rastro: a pessoa não vê uma lista curta, vê uma lista plausível sem
+   *  a opção que ela procurava. O segmento fica inalcançável em campanha, e a
+   *  conclusão natural é "a clínica não atende isso".
+   *
+   *  Ele é o degrau de baixo — o caminho normal lê os valores já agregados do
+   *  `supabase/29`, e só cai aqui quando aquele schema ainda não subiu. Mas um
+   *  degrau de baixo que mente é pior do que um que avisa: o `schema_atrasado`
+   *  já denuncia a janela, e o filtro não precisava estar errado também.
+   *
+   *  Agora ele PAGINA com cursor, como `congelarPublico` faz logo abaixo, e
+   *  percorre a base inteira. O custo é uma ida a cada 500 pacientes, numa tela
+   *  que abre uma vez — e só no dia em que o `29` não estiver aplicado.
+   * ==========================================================================
+   */
   const especialidades = new Set<string>();
   const convenios = new Set<string>();
-  for (const l of linhas) {
-    const e = typeof l["especialidade"] === "string" ? l["especialidade"].trim() : "";
-    const c = typeof l["convenio"] === "string" ? l["convenio"].trim() : "";
-    if (e.length > 0) especialidades.add(e);
-    if (c.length > 0) convenios.add(c);
+  let cursorDoFiltro: string | null = null;
+
+  for (;;) {
+    const base: Filtro[] = [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "arquivado", op: "eq", valor: false },
+    ];
+
+    const pagina: Linha[] = await selecionar("crc_patients", {
+      colunas: "id,especialidade,convenio",
+      filtros:
+        cursorDoFiltro === null
+          ? base
+          : [...base, { coluna: "id", op: "gt", valor: cursorDoFiltro }],
+      // A ORDEM É A DO CURSOR. Sem ela, "o próximo depois do id X" não quer
+      // dizer nada, e a varredura pula ou repete páginas.
+      ordenar: [{ coluna: "id", ascendente: true }],
+      limite: PAGINA_DO_PUBLICO,
+    });
+
+    if (pagina.length === 0) break;
+
+    for (const l of pagina) {
+      const e = typeof l["especialidade"] === "string" ? l["especialidade"].trim() : "";
+      const c = typeof l["convenio"] === "string" ? l["convenio"].trim() : "";
+      if (e.length > 0) especialidades.add(e);
+      if (c.length > 0) convenios.add(c);
+    }
+
+    if (pagina.length < PAGINA_DO_PUBLICO) break;
+
+    cursorDoFiltro = String(pagina[pagina.length - 1]?.["id"] ?? "");
+    if (cursorDoFiltro.length === 0) break;
   }
 
   const ordenar = (s: Set<string>): string[] => [...s].sort((a, b) => a.localeCompare(b, "pt-BR"));

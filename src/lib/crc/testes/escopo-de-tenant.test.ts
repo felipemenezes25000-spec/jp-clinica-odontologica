@@ -135,7 +135,10 @@ const EXCECOES: readonly string[] = [
    * exigiria varrer organização por organização para apagar lixo que não é de
    * ninguém, e a fila voltaria a crescer sem limite se uma delas falhasse.
    */
-  "src/lib/crc/aplicacao/agent-jobs.ts:617  apagar crc_agent_jobs",
+  // 617 -> 634 em 14/09/2026: `panoramaDaFila` deixou de ler 500 jobs e passou
+  // a contar no banco, e o trecho cresceu. A exceção é a MESMA chamada —
+  // `limparConcluidos`, que varre a fila de todas as organizações de propósito.
+  "src/lib/crc/aplicacao/agent-jobs.ts:634  apagar crc_agent_jobs",
 
   /*
    * `crc_webhook_inbox` É ANTERIOR AO TENANT. Um envelope chega num endpoint só,

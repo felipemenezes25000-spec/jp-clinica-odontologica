@@ -33,6 +33,7 @@ import {
   limparTudo,
   semearDuasClinicas,
   sql,
+  URL_TESTE,
   CLINICA_A,
   CLINICA_B,
   ORG_A,
@@ -215,5 +216,86 @@ describe("as RPCs novas, pelo adaptador", () => {
     // É o campo que o painel lê para dizer "há quanto tempo isto funciona".
     expect(linha?.["ultimo_sucesso_em"]).not.toBeNull();
     expect(linha?.["ultimo_erro"]).toBe("credencial vencida");
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+
+describe("contar funciona em tabela sem coluna `id`", () => {
+  /*
+   * ==========================================================================
+   *  DOZE TABELAS DO CRC NÃO TÊM `id`: ligação, estado por chave composta,
+   *  configuração. `contar` fixava `select=id`, e contra qualquer uma delas o
+   *  PostgREST devolvia 400 — `column ... does not exist`.
+   *
+   *  A que estava sendo contada de verdade era `crc_user_clinics`, na tela de
+   *  unidades. A contagem lançava dentro de um `Promise.all`, e a TELA inteira
+   *  falhava — não o número.
+   *
+   *  Este teste percorre as doze, e não só a que quebrou: a próxima tabela de
+   *  ligação que alguém contar tem de funcionar sem ninguém lembrar disto.
+   * ==========================================================================
+   */
+  const SEM_ID = [
+    "crc_ai_gastos",
+    "crc_ai_orcamentos",
+    "crc_feature_flags",
+    "crc_patient_tags",
+    "crc_runtime_heartbeats",
+    "crc_scan_state",
+    "crc_schema_migrations",
+    "crc_settings",
+    "crc_settings_clinica",
+    "crc_sync_state",
+    "crc_user_clinics",
+  ] as const;
+
+  it("a lista está atualizada — nenhuma tabela sem `id` ficou de fora", async () => {
+    /*
+     * CONTROLE POSITIVO. Sem ele, uma lista que envelhecesse deixaria a tabela
+     * nova sem cobertura, e o teste abaixo continuaria verde sobre as antigas.
+     */
+    const doBanco = await sql<{ tablename: string }>(`
+      select t.tablename
+        from pg_tables t
+       where t.schemaname = 'public'
+         and t.tablename like 'crc' || chr(95) || '%'
+         and t.tablename <> 'crc_banco_de_teste'
+         and not exists (
+           select 1 from information_schema.columns c
+            where c.table_name = t.tablename and c.column_name = 'id')
+       order by 1
+    `);
+
+    expect(doBanco.map((l) => l.tablename)).toEqual([...SEM_ID]);
+  });
+
+  it.each(SEM_ID)("conta %s pelo `contar` de produção", async (tabela) => {
+    /*
+     * ========================================================================
+     *  A PRIMEIRA VERSÃO DESTE TESTE MONTAVA O `fetch` À MÃO — e passava com o
+     *  defeito dentro.
+     *
+     *  Ela provava que o PostgREST sabe contar. Não provava nada sobre
+     *  `contar()`, que era quem estava errado. Reinjetei o `select=id` e o
+     *  teste continuou verde: um teste que reescreve a consulta testa a
+     *  consulta do teste.
+     *
+     *  O cabeçalho de `apoio.ts` já avisava isso em letras garrafais, e eu
+     *  repeti o erro assim mesmo. Agora ele chama a FUNÇÃO DE PRODUÇÃO.
+     *
+     *  `SUPABASE_REST_PREFIXO` existe para isto: o adaptador prefixa
+     *  `/rest/v1`, que é a rota do Supabase, e o PostgREST puro serve na raiz.
+     * ========================================================================
+     */
+    const anterior = process.env["SUPABASE_REST_PREFIXO"];
+    process.env["SUPABASE_REST_PREFIXO"] = "/";
+    try {
+      const { contar } = await import("../../servidor/banco");
+      await expect(contar(tabela)).resolves.toBeTypeOf("number");
+    } finally {
+      if (anterior === undefined) delete process.env["SUPABASE_REST_PREFIXO"];
+      else process.env["SUPABASE_REST_PREFIXO"] = anterior;
+    }
   });
 });

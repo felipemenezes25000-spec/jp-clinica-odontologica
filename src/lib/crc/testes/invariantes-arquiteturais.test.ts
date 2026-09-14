@@ -127,7 +127,19 @@ function lerTetosAgregados(): Achado[] {
 
       let variavel: string | null = null;
       for (let j = i; j >= Math.max(0, i - 25); j -= 1) {
-        const d = /const\s+(\w+)\s*=\s*await\s+(?:selecionar|rpc)\(/u.exec(linhas[j] ?? "");
+        /*
+         * O `(?::[^=]+)?` COBRE A DECLARAÇÃO COM TIPO, e a primeira versão
+         * desta regex não o tinha.
+         *
+         * `const pagina: Linha[] = await selecionar(` passava batido — e é
+         * exatamente assim que toda varredura paginada deste repositório
+         * declara a página. O detector estava cego para a forma mais comum de
+         * leitura grande que existe aqui, e eu só descobri ao corrigir três
+         * tetos e ver que ele parou de acusá-los pelo motivo errado.
+         */
+        const d = /const\s+(\w+)\s*(?::[^=]+)?=\s*await\s+(?:selecionar|rpc)\(/u.exec(
+          linhas[j] ?? "",
+        );
         if (d?.[1] !== undefined) {
           variavel = d[1];
           break;
@@ -135,7 +147,35 @@ function lerTetosAgregados(): Achado[] {
       }
       if (variavel === null) return;
 
-      const sinais = sinaisDeAgregacao(linhas.slice(i, i + 60).join("\n"), variavel);
+      const janela = linhas.slice(i, i + 60).join("\n");
+
+      /*
+       * A JANELA DA PAGINAÇÃO OLHA PARA OS DOIS LADOS, e a de agregação só
+       * para a frente. Não é descuido: o `op: "gt"` do cursor fica no `filtros`
+       * ACIMA do `limite`, e o consumo do resultado fica ABAIXO. Uma janela só
+       * para a frente acusou três varreduras paginadas corretas — o padrão
+       * certo sendo reprovado é o jeito mais rápido de a regra ser desligada.
+       */
+      const redor = linhas.slice(Math.max(0, i - 25), i + 60).join("\n");
+
+      /*
+       * ======================================================================
+       *  PAGINAÇÃO NÃO É TRUNCAMENTO, e a diferença é se o laço AVANÇA.
+       *
+       *  Uma leitura com teto dentro de um laço que move um cursor percorre a
+       *  base inteira: o teto é o tamanho da PÁGINA, e não do universo. Tratar
+       *  as duas como a mesma coisa encheria a lista de exceções com o padrão
+       *  CERTO — e uma lista cheia de casos corretos é uma lista que ninguém
+       *  lê, o que devolve o problema pela outra ponta.
+       *
+       *  O sinal é a dupla `cursor` + `op: "gt"`: a volta seguinte pede o que
+       *  vem DEPOIS do último id da anterior. Sem as duas, o laço não avança e
+       *  a leitura volta a ser um teto.
+       * ======================================================================
+       */
+      if (/cursor/u.test(redor) && /op:\s*"gt"/u.test(redor)) return;
+
+      const sinais = sinaisDeAgregacao(janela, variavel);
       if (sinais.length > 0) {
         achados.push({
           local: `${comBarras(caminho)}:${String(i + 1)}`,
@@ -166,26 +206,11 @@ const TETOS_CONHECIDOS: readonly { local: string; porque: string }[] = [
       "genérico e nada some. Uma clínica com mais de 100 dentistas é outro produto.",
   },
   {
-    local: "src/lib/crc/aplicacao/agent-jobs.ts",
-    porque:
-      "crc_agent_jobs, teto 500. Painel da fila: com mais de 500 jobs a contagem " +
-      "sai menor — e fila cheia é exatamente quando o número importa. " +
-      "PENDENTE DE CORREÇÃO, e não aceito para sempre.",
-  },
-  {
     local: "src/lib/crc/aplicacao/avaliacao.ts",
     porque:
       "crc_eval_casos, teto 200. Instalação idempotente dos casos padrão. " +
       "Acima de 200 casos existentes, um nome padrão além do corte seria " +
       "reinserido. A lista padrão é fixa e pequena.",
-  },
-  {
-    local: "src/lib/crc/aplicacao/campanhas.ts",
-    porque:
-      "crc_patients, teto 5000. Monta as opções de especialidade e convênio do " +
-      "filtro. Numa base maior, uma especialidade inteira some do seletor e o " +
-      "segmento fica inalcançável. PENDENTE DE CORREÇÃO — é o mais provável " +
-      "desta lista, porque 5.000 pacientes é uma clínica comum.",
   },
   {
     local: "src/lib/crc/aplicacao/conhecimento.ts",
@@ -212,12 +237,6 @@ const TETOS_CONHECIDOS: readonly { local: string; porque: string }[] = [
     porque:
       "crc_ad_spend, teto 200. Uma linha por (mês, campanha), digitada à mão. " +
       "200 campanhas num mês só acontece em conta gerida por agência.",
-  },
-  {
-    local: "src/lib/crc/aplicacao/metas.ts",
-    porque:
-      "crc_goal_actions, teto 1000, para as metas da página. Acima disso uma " +
-      "meta perderia ações na tela. PENDENTE DE CORREÇÃO.",
   },
   {
     local: "src/lib/crc/aplicacao/repositorios.ts",

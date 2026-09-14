@@ -30,10 +30,12 @@ import {
   agoraIso,
   apagar,
   atualizar,
+  contar,
   ErroBanco,
   inserirIgnorandoDuplicata,
   rpc,
   selecionar,
+  type Filtro,
   type Linha,
 } from "../servidor/banco";
 import { registrar } from "../servidor/registro";
@@ -578,31 +580,46 @@ export async function panoramaDaFila(
   organizationId: string,
   agora = new Date(),
 ): Promise<PanoramaDaFila> {
-  const linhas = await selecionar("crc_agent_jobs", {
-    colunas: "status,criado_em",
-    filtros: [{ coluna: "organization_id", op: "eq", valor: organizationId }],
-    ordenar: [{ coluna: "criado_em", ascendente: true }],
-    limite: 500,
-  });
+  /*
+   * ==========================================================================
+   *  ISTO LIA 500 JOBS E CONTAVA EM MEMÓRIA — e o teto mordia exatamente no
+   *  cenário que o painel existe para mostrar.
+   *
+   *  Uma fila com mais de 500 jobs é uma fila ENTUPIDA. É o único momento em
+   *  que alguém abre esta tela — e era justamente aí que os quatro números
+   *  paravam de crescer, empatados em 500 somados. O painel dizia "500 jobs" com
+   *  cinco mil na fila, e quem lesse concluiria que a situação estava estável.
+   *
+   *  A ESPERA MAIS ANTIGA ERRAVA JUNTO, e pior: a leitura vinha ordenada por
+   *  `criado_em` ascendente, então os 500 primeiros eram os mais VELHOS. Se
+   *  nenhum deles estivesse pendente, o número saía nulo — "nada esperando" —
+   *  com a fila cheia de pendentes logo depois do corte.
+   *
+   *  Agora são quatro `count(*)` no banco, sem teto, mais UMA linha para a
+   *  espera. Cinco idas em vez de uma, e todas baratas: `contar` é `HEAD`, não
+   *  traz corpo, e o índice de fila já existe.
+   * ==========================================================================
+   */
+  const daOrg: Filtro = { coluna: "organization_id", op: "eq", valor: organizationId };
 
-  let pendentes = 0;
-  let rodando = 0;
-  let repetindo = 0;
-  let falhos = 0;
-  let maisAntigo: number | null = null;
+  const [pendentes, rodando, repetindo, falhos, esperando] = await Promise.all([
+    contar("crc_agent_jobs", [daOrg, { coluna: "status", op: "eq", valor: "PENDENTE" }]),
+    contar("crc_agent_jobs", [daOrg, { coluna: "status", op: "eq", valor: "RODANDO" }]),
+    contar("crc_agent_jobs", [daOrg, { coluna: "status", op: "eq", valor: "REPETIR" }]),
+    contar("crc_agent_jobs", [daOrg, { coluna: "status", op: "eq", valor: "FALHOU" }]),
+    // O mais antigo que ainda espera: uma linha, ordenada no banco.
+    selecionar("crc_agent_jobs", {
+      colunas: "criado_em",
+      filtros: [daOrg, { coluna: "status", op: "in", valor: ["PENDENTE", "REPETIR"] }],
+      ordenar: [{ coluna: "criado_em", ascendente: true }],
+      limite: 1,
+    }),
+  ]);
 
-  for (const l of linhas) {
-    const status = String(l["status"] ?? "");
-    if (status === "PENDENTE") pendentes += 1;
-    else if (status === "RODANDO") rodando += 1;
-    else if (status === "REPETIR") repetindo += 1;
-    else if (status === "FALHOU") falhos += 1;
-
-    if ((status === "PENDENTE" || status === "REPETIR") && maisAntigo === null) {
-      const quando = Date.parse(String(l["criado_em"] ?? ""));
-      if (Number.isFinite(quando)) maisAntigo = Math.round((agora.getTime() - quando) / 60_000);
-    }
-  }
+  const quando = Date.parse(String(esperando[0]?.["criado_em"] ?? ""));
+  const maisAntigo = Number.isFinite(quando)
+    ? Math.round((agora.getTime() - quando) / 60_000)
+    : null;
 
   return { pendentes, rodando, repetindo, falhos, esperaMaisAntigaMin: maisAntigo };
 }

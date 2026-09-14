@@ -125,20 +125,64 @@ Nenhum destes foi iniciado pela metade: ou está inteiro, ou não está.
 
 ## Achados abertos que valem anotar
 
-**`crc_user_clinics` devolve 400 no E2E.** Apareceu no log do servidor durante o
-E2E (`Contagem de crc_user_clinics falhou (400)`). Os 18 specs passam, então não
-bloqueia — mas é um 400 que ninguém está vendo. Não investiguei.
+Todos os desta lista foram **fechados em 14/09/2026**. Ficam registrados porque
+o que cada um ensinou vale mais do que a correção.
 
-**Três tetos ainda marcados pendentes** em `invariantes-arquiteturais.test.ts`,
-por ordem de probabilidade:
+### `contar()` quebrava a tela de unidades — e ninguém sabia
 
-1. `campanhas.ts` — lê 5.000 pacientes para montar o seletor de especialidade e
-   convênio. Numa base maior, uma especialidade inteira some do filtro e o
-   segmento fica inalcançável em campanha. **5.000 pacientes é uma clínica
-   comum.**
-2. `agent-jobs.ts` — painel da fila com teto de 500. Fila cheia é exatamente
-   quando o número importa.
-3. `metas.ts` — 1.000 ações; acima disso uma meta perde ações na tela.
+`contar()` fixava `select=id` na requisição. `crc_user_clinics` é tabela de
+ligação com chave composta e **não tem coluna `id`**. Medido contra produção:
+
+```
+HEAD /crc_user_clinics?select=id   ->  400
+{"code":"42703","message":"column crc_user_clinics.id does not exist"}
+
+HEAD /crc_user_clinics             ->  200   content-range: 0-0/1
+```
+
+`listarClinicas` conta as pessoas de cada unidade dentro de um `Promise.all`. A
+contagem lançava, e a **tela de unidades inteira falhava** — não o número.
+
+Doze tabelas do CRC não têm `id`. O `select` não economizava nada num `HEAD`
+(o corpo não volta de jeito nenhum) e criava uma dependência que ninguém
+declarou. Removido. Teste de integração cobre as onze tabelas, pela função de
+produção.
+
+> **E o primeiro teste que escrevi para isso passava com o defeito dentro.** Ele
+> montava o `fetch` à mão e provava que o PostgREST sabe contar — não provava
+> nada sobre `contar()`. O cabeçalho de `apoio.ts` já avisa exatamente isso em
+> letras garrafais, e eu repeti o erro assim mesmo. Reescrito para chamar a
+> função de produção: com o defeito, 11 casos reprovam.
+
+### Os três tetos pendentes
+
+| Onde            | Era                                  | Virou                      |
+| --------------- | ------------------------------------ | -------------------------- |
+| `agent-jobs.ts` | lia 500 jobs e contava em memória    | quatro `count(*)` sem teto |
+| `metas.ts`      | 1.000 ações para até 100 metas       | paginação por cursor       |
+| `campanhas.ts`  | 5.000 pacientes no seletor de filtro | paginação por cursor       |
+
+Nenhum precisou de SQL novo — o deploy não dependeu de ninguém rodar migração.
+
+O de `agent-jobs` mordia justamente no cenário que o painel existe para mostrar:
+uma fila com mais de 500 jobs é uma fila entupida, e era exatamente aí que os
+quatro números paravam de crescer. Pior, a espera mais antiga vinha ordenada por
+`criado_em` ascendente — se nenhum dos 500 mais velhos estivesse pendente, o
+painel dizia "nada esperando" com a fila cheia.
+
+### O detector estava cego para a forma mais comum de leitura grande
+
+Ao tirar os três da lista de exceções, eles deixaram de ser acusados — e pelo
+motivo errado. A regex pedia `const x = await selecionar(`, e toda varredura
+paginada deste repositório escreve `const pagina: Linha[] = await selecionar(`.
+**A anotação de tipo apagava o achado.**
+
+Corrigido, o detector passou a acusar três paginações corretas — então ele
+aprendeu também a diferença entre paginar e truncar: `cursor` mais `op: "gt"`
+numa janela que olha para os dois lados do `limite`, porque o cursor fica acima
+e o consumo abaixo.
+
+Exceções auditadas: de 14 para **11**, nenhuma marcada como pendente.
 
 ---
 
