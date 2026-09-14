@@ -16,11 +16,16 @@ import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 import type { StatusAgendamento } from "@/lib/crc/dominio/tipos";
 
 import { Aviso, Botao, Etiqueta, ListaEsqueleto, Vazio, type TomEtiqueta } from "./base";
-import "./crc-screens.css";
-import "./crc-polish.css";
-import "./crc-qa.css";
+/*
+ * SÓ A FOLHA DESTA TELA.
+ *
+ * Aqui moravam também `crc-screens.css`, `crc-polish.css`, `crc-qa.css` e
+ * `crc-shell-harmony.css` — 83 kB de estilo GLOBAL do CRC, incluindo o layout
+ * da tela de login. Funcionava enquanto a Agenda era importada estaticamente
+ * pela rota; no dia em que ela virou preguiçosa, a casca e o login perderam o
+ * CSS. As quatro foram para `routes/crc.tsx`, que é quem sempre carrega.
+ */
 import "./crc-agenda.css";
-import "./crc-shell-harmony.css";
 
 const TOM: Readonly<Record<StatusAgendamento, TomEtiqueta>> = {
   TO_CONFIRM: "alerta",

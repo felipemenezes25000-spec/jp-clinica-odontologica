@@ -124,6 +124,81 @@ for (const caminho of doNavegador) {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* O CSS global do CRC chega ANTES de alguém abrir uma aba                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * ============================================================================
+ *  ESTA VERIFICAÇÃO NASCEU DE UMA REGRESSÃO QUE FOI AO AR — 14/09/2026.
+ *
+ *  Quatro folhas GLOBAIS do CRC eram importadas por `Agenda.tsx`:
+ *  `crc-screens.css` (57 kB, que declara o layout da tela de LOGIN),
+ *  `crc-polish.css`, `crc-qa.css` e `crc-shell-harmony.css`.
+ *
+ *  Enquanto a Agenda era importada estaticamente pela rota, elas chegavam
+ *  junto e tudo funcionava POR ACIDENTE. Ao torná-la preguiçosa, 83 kB de
+ *  estilo global passaram a só carregar quando alguém abrisse a aba Agenda —
+ *  e a tela de login foi ao ar com o texto empilhado em cima de si mesmo.
+ *
+ *  O QUE NÃO PEGOU: quatro casos de E2E em navegador de verdade, com login de
+ *  verdade. Eles afirmam sobre TEXTO e COMPORTAMENTO. Uma página sem CSS passa
+ *  em todos eles.
+ *
+ *  O QUE PEGA: comparar os seletores que as folhas globais DECLARAM com o que
+ *  a folha carregada ANTES de qualquer navegação de fato contém. É estático,
+ *  é barato, e não depende de ninguém lembrar de olhar a tela.
+ * ============================================================================
+ */
+const FOLHAS_GLOBAIS = [
+  "crc.css",
+  "crc-premium.css",
+  "crc-screens.css",
+  "crc-polish.css",
+  "crc-qa.css",
+  "crc-shell-harmony.css",
+];
+
+const fonteDasFolhas = "src/components/crc";
+
+if (FOLHAS_GLOBAIS.every((f) => existsSync(join(fonteDasFolhas, f)))) {
+  const esperados = new Set();
+  for (const folha of FOLHAS_GLOBAIS) {
+    const texto = readFileSync(join(fonteDasFolhas, folha), "utf8");
+    for (const m of texto.matchAll(/\.(crc-[a-z0-9-]+)/gu)) esperados.add(m[1]);
+  }
+
+  /*
+   * A FOLHA `index-*.css` É A QUE O NAVEGADOR BAIXA SEM PEDIR NADA. Se um
+   * seletor global não está nela, ele está pendurado num pedaço preguiçoso —
+   * que é exatamente o defeito.
+   */
+  const eager = doNavegador.filter((c) => /[/\\]index-[^/\\]*\.css$/u.test(c));
+
+  if (eager.length === 0) {
+    problemas.push(
+      "Não achei a folha `index-*.css`. O CSS global do CRC pode estar em pedaço preguiçoso.",
+    );
+  } else {
+    const conteudo = eager.map((c) => readFileSync(c, "utf8")).join("\n");
+    const faltando = [...esperados].filter((s) => !conteudo.includes(s));
+
+    if (faltando.length > 0) {
+      problemas.push(
+        `${String(faltando.length)} de ${String(esperados.size)} seletores globais do CRC NÃO estão ` +
+          `na folha carregada de imediato — eles chegam só quando alguém abre alguma aba.\n` +
+          `    Exemplos: ${faltando.slice(0, 10).join(", ")}\n` +
+          `    Quase sempre a causa é uma folha global importada por uma tela preguiçosa.\n` +
+          `    O lugar dela é src/routes/crc.tsx.`,
+      );
+    } else {
+      console.log(
+        `✓ Os ${String(esperados.size)} seletores globais do CRC estão na folha que carrega de imediato.`,
+      );
+    }
+  }
+}
+
 if (problemas.length === 0) {
   console.log("✓ Nenhum segredo e nenhum módulo de servidor no bundle do navegador.");
   process.exit(0);

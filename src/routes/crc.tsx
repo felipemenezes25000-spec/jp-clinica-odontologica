@@ -89,8 +89,43 @@ import { Home } from "@/components/crc/Home";
 import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
 import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
 import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
+/*
+ * ============================================================================
+ *  AS SEIS CAMADAS DE ESTILO DO CRC, NA ORDEM EM QUE PRECISAM SER APLICADAS.
+ *
+ *  QUATRO DELAS MORAVAM DENTRO DE `Agenda.tsx`, e isso quebrou a interface no
+ *  dia em que a Agenda virou tela preguiçosa.
+ *
+ *  `crc-screens.css` tem 57 kB e declara, entre muita outra coisa, o layout do
+ *  LOGIN — `.crc-app .crc-login { display: grid }`. `crc-polish`, `crc-qa` e
+ *  `crc-shell-harmony` são camadas de correção que os próprios cabeçalhos
+ *  descrevem como globais ("assume que crc.css + crc-premium.css +
+ *  crc-screens.css já foram carregados", "harmonia do shell").
+ *
+ *  Enquanto a Agenda era importada estaticamente, elas chegavam junto e tudo
+ *  funcionava por acidente. Ao torná-la preguiçosa, 83 kB de estilo global
+ *  passaram a só carregar quando alguém abria a aba Agenda — e a tela de login
+ *  e a casca do portal ficaram sem layout, com o texto empilhado em cima de si
+ *  mesmo.
+ *
+ *  O QUE NÃO PEGOU ISSO: os quatro casos de E2E que escrevi para a divisão do
+ *  pacote afirmam sobre TEXTO e sobre COMPORTAMENTO — a casca continua montada,
+ *  a tela carrega, o módulo não é rebaixado. Nenhum deles olha para ESTILO
+ *  CALCULADO. Uma página sem CSS passa em todos eles.
+ *
+ *  A ORDEM É CASCATA, e não gosto: `crc.css` é a base, `crc-premium` o tema,
+ *  `crc-screens` o layout das telas, e `polish`/`qa`/`shell-harmony` são
+ *  correções que dependem de vir depois. Trocar a ordem muda o resultado.
+ *
+ *  `crc-agenda.css` continua em `Agenda.tsx`: essa é de fato da tela.
+ * ============================================================================
+ */
 import "@/components/crc/crc.css";
 import "@/components/crc/crc-premium.css";
+import "@/components/crc/crc-screens.css";
+import "@/components/crc/crc-polish.css";
+import "@/components/crc/crc-qa.css";
+import "@/components/crc/crc-shell-harmony.css";
 
 /**
  * `React.lazy` com export nomeado.
