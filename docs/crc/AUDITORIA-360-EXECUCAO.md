@@ -61,6 +61,38 @@ PostgREST não expõe catálogo. Pior — uma consulta responde **exatamente igu
 com e sem índice, só mais devagar. A evidência dela é `explain` no editor do
 Supabase, e é verificação de fora.
 
+### A prova mais forte da auditoria, medida em produção
+
+Depois do deploy de 14/09/2026, as nove funções de analítica foram chamadas
+contra o banco de produção com a organização real e o mês corrente. **9/9
+responderam**, e três delas concordam entre si sobre o mesmo fato:
+
+| Fonte                  | consultas recuperadas | pacientes reativados |
+| ---------------------- | --------------------- | -------------------- |
+| `crc_resumo_da_home`   | 12                    | 8                    |
+| `crc_panorama_totais`  | 12                    | 8                    |
+| `crc_funil_do_periodo` | 12                    | —                    |
+
+Três funções independentes, escritas em arquivos diferentes, chegando ao mesmo
+número. É o tipo de concordância que um erro de agregação quebraria.
+
+**E o bug de fuso apareceu com valor.** A mesma função, com o mês começando à
+meia-noite UTC e à meia-noite de São Paulo:
+
+```
+Home com mês a meia-noite UTC     receita_confirmada = R$ 8.499
+Home com mês a meia-noite LOCAL   receita_confirmada = R$ 5.400
+crc_receita_por_mes, setembro     confirmada         = R$ 5.400
+```
+
+**R$ 3.099 de agosto estavam sendo contados em setembro** — as três horas entre
+21h do dia 31 e a meia-noite UTC. Com a correção (`inicioDoMesLocal`, no ar), a
+Home e o relatório mensal passam a dizer o mesmo número.
+
+> **Atenção ao ler esses valores:** `valor_em_aberto` está em R$ 1.034.457, e a
+> maior parte disso são as ~530 linhas de teste semeadas na base. Os números de
+> Radar e Gestão continuam inflados por elas até a limpeza.
+
 ### Duas coisas que esta rodada revelou
 
 **O `schema-status` não sondava nada depois da `38`.** Seis migrações — todas as
