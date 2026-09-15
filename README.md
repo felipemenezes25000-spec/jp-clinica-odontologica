@@ -118,7 +118,23 @@ odontológica não permite.
 
 As **oito** rotas curtas de anúncio (`/implante-dentario`, `/ortodontia`, …) são
 a **mesma página** do tratamento correspondente, sob a URL que casa com o termo
-pesquisado, com `canonical` apontando para a orgânica. O conteúdo vive em
+pesquisado, com `canonical` apontando para a orgânica — e em `modo="anuncio"`,
+que é a mesma página lida com outra intenção.
+
+| O que muda no `modo="anuncio"`                       | Por quê                                                                 |
+| ---------------------------------------------------- | ----------------------------------------------------------------------- |
+| H1 vira `<tratamento>` + `na Freguesia do Ó`         | as duas coisas que a pessoa digitou na busca                            |
+| CTA do hero vira `Agendar avaliação de <tratamento>` | a palavra pesquisada reaparece no botão — ver [DESIGN.md](DESIGN.md) §4 |
+| A localização abre a página                          | quem pesquisou o bairro precisa reencontrá-lo sem rolar                 |
+| Sai o cross-sell "Outros caminhos de cuidado"        | a maior saída de uma LP paga                                            |
+| Sai o link "Todos os tratamentos" do hero            | a primeira saída, no canto superior esquerdo                            |
+| Sai a navegação do cabeçalho                         | seis âncoras da home, antes do primeiro parágrafo                       |
+
+**O que o modo NÃO muda**, e a lista é a parte que importa: marca, telefone,
+endereço, horário, rodapé, CRO da responsável técnica, prova social, política de
+privacidade, `SkipLink` e o menu do celular — que abaixo de `xl` é o único
+caminho para telefone e WhatsApp. Nada que sirva à confiança ou à conformidade
+com o CFO sai por causa de conversão. O conteúdo vive em
 `components/site/PaginaDeTratamento.tsx`, e as rotas são finas — uma correção de
 conteúdo vale para as **16 URLs** (8 orgânicas + 8 LPs) de uma vez.
 

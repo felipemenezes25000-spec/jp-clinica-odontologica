@@ -8,7 +8,31 @@ import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { tituloDaRota } from "@/lib/analytics/rotas";
 import "./visual-fixes.css";
 
-export function Header() {
+/**
+ * O cabeçalho do site.
+ *
+ * `enxuto` é o cabeçalho da LANDING PAGA. A navegação some; a marca, o telefone,
+ * o endereço, o CTA e o menu do celular ficam.
+ *
+ * ============================================================================
+ *  POR QUE ESCONDER A NAVEGAÇÃO NUMA PÁGINA, E NÃO EM TODAS.
+ *
+ *  Os seis itens do menu levam para âncoras da HOME — `/#clinica`,
+ *  `/#tratamentos`, `/#equipe`… Numa página orgânica isso é serviço: quem
+ *  chegou pela busca pode estar conhecendo a clínica.
+ *
+ *  Numa LP de implante, são seis saídas no alto da tela, antes do primeiro
+ *  parágrafo, para uma pessoa cujo clique a clínica pagou. Ela não veio
+ *  conhecer a estrutura; veio saber se resolvem o dente que falta.
+ *
+ *  O QUE NÃO SAI, E NÃO SAI POR REGRA: a marca (identificação), o telefone
+ *  (acesso), o endereço e o horário da barra de cima (confiança e CFO), o CTA,
+ *  o `SkipLink` que vem antes dele e o menu do celular — que, abaixo de `xl`, é
+ *  o ÚNICO caminho para telefone e WhatsApp. Esconder a navegação do celular
+ *  seria trocar conversão por conversão.
+ * ============================================================================
+ */
+export function Header({ enxuto = false }: { enxuto?: boolean }) {
   const location = useLocation();
   const [aberto, setAberto] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -203,31 +227,40 @@ export function Header() {
             />
           </a>
 
-          <nav
-            className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
-            aria-label="Navegação principal"
-          >
-            <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(14px,1.25vw,28px)]">
-              {NAV.map((item) => {
-                const ativo = itemAtivo(item.href);
-                return (
-                  <li key={item.href} className="shrink-0">
-                    <a
-                      href={item.href}
-                      aria-current={
-                        ativo ? (item.href.includes("#") ? "location" : "page") : undefined
-                      }
-                      className={`relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 focus-visible:text-forest-2 hover:after:w-full focus-visible:after:w-full ${
-                        ativo ? "text-forest-2 after:w-full" : "text-brand-text after:w-0"
-                      }`}
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+          {/* NO ENXUTO A NAV NÃO É ESCONDIDA — ela não é montada.
+              `display:none` tiraria da tela e da ordem de foco, mas deixaria os
+              seis links no HTML servido; o robô do Google Ads que avalia a
+              landing lê o HTML. Um `<div>` vazio ocupa o lugar dela porque é o
+              `flex-1` que empurra o CTA para a direita. */}
+          {enxuto ? (
+            <div className="hidden min-w-0 flex-1 xl:block" />
+          ) : (
+            <nav
+              className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
+              aria-label="Navegação principal"
+            >
+              <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(14px,1.25vw,28px)]">
+                {NAV.map((item) => {
+                  const ativo = itemAtivo(item.href);
+                  return (
+                    <li key={item.href} className="shrink-0">
+                      <a
+                        href={item.href}
+                        aria-current={
+                          ativo ? (item.href.includes("#") ? "location" : "page") : undefined
+                        }
+                        className={`relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 focus-visible:text-forest-2 hover:after:w-full focus-visible:after:w-full ${
+                          ativo ? "text-forest-2 after:w-full" : "text-brand-text after:w-0"
+                        }`}
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          )}
 
           <div className="hidden shrink-0 items-center gap-3 xl:flex">
             <a

@@ -68,10 +68,14 @@ procurou implante quer ver implante na primeira tela.
 
 ---
 
-## 2. O que falta instalar — e é só isto
+## 2. Como instalar cada container — o passo a passo
 
 O site **já dispara os eventos, já captura a campanha e já pede consentimento**.
 O que falta são credenciais externas — e nenhuma delas exige tocar em código.
+
+> Esta seção é o **como**, com o detalhe de cada painel. A **lista para marcar**,
+> na ordem de execução, está na [seção 8](#8-o-que-felipe-ainda-precisa-configurar).
+> Se você já sabe o caminho das contas, pule para lá.
 
 ### Google Tag Manager
 
@@ -238,6 +242,12 @@ ninguém o consome, e ele não atrapalha nada.
 
 ### O defeito que existia aqui, e como ele custava dinheiro
 
+> ⛔ **EVENTOS ANTIGOS / NÃO USAR.** Os três nomes citados nesta seção —
+> `whatsapp_click`, `schedule_click` e `treatment_cta_click` — **não existem
+> mais no código**. Não crie gatilho, conversão, público ou relatório com eles:
+> não vão disparar nunca. Estão aqui só para explicar por que a semântica atual é
+> o que é. A lista válida é a tabela acima.
+
 Até 15/09/2026, um clique em "Agendar avaliação" dentro de uma página de
 tratamento disparava **três** eventos: `whatsapp_click`, `schedule_click` e
 `treatment_cta_click`. Traduzidos para a Meta, viravam **um `Contact` e dois
@@ -278,13 +288,47 @@ intenção e valor diferentes. Implante e prótese valem muito mais que limpeza.
 | Prótese         | "prótese dentária freguesia do ó", "dentadura fixa zona norte"        | `/protese-dentaria`   |
 | Marca           | "jp clínica odontológica", "jp clínica freguesia do ó"                | `/`                   |
 
-**Negativas desde o primeiro dia**, e elas economizam mais que qualquer ajuste
-de lance: `grátis`, `gratuito`, `sus`, `preço`, `quanto custa`, `barato`,
-`curso`, `faculdade`, `emprego`, `vaga`, `salário`, `concurso`.
+### Negativas desde o primeiro dia
+
+Estas economizam mais que qualquer ajuste de lance, e nenhuma delas tem chance
+de ser um paciente:
+
+```
+grátis · gratuito · sus · curso · faculdade · apostila
+emprego · vaga · salário · concurso
+como fazer · caseiro · DIY · passo a passo
+```
 
 > **`emprego`, `vaga` e `salário` não são teoria.** O site tem portal de vagas
 > em `/carreiras`, e sem essas negativas você paga clique de gente procurando
 > trabalho.
+
+### `preço` e `quanto custa` NÃO entram nessa lista
+
+Esta orientação mudou, e vale explicar por quê: quem pesquisa **"quanto custa
+implante dentário"** está decidindo, não passeando. É uma das consultas de maior
+intenção comercial do setor — a pessoa já aceitou que vai fazer e está
+orçando.
+
+Negativar isso no primeiro dia é recusar, sem dado nenhum, o pesquisador mais
+perto de fechar.
+
+**O que fazer em vez disso:** deixe rodar, e decida pelo **relatório de termos de
+pesquisa** depois de 30 dias ou 20 contatos. Se `preço` trouxer contato que não
+agenda, negative _aquele termo específico_ — com número na mão.
+
+`barato` merece o mesmo tratamento, com uma ressalva: ele costuma sinalizar
+sensibilidade a preço que não combina com o ticket de implante. Analise
+separadamente, mas também **não bloqueie sem dado**.
+
+> **A regra geral:** negative o que não pode virar paciente (emprego, curso, SUS).
+> Não negative o que pode virar paciente caro (preço, valor, quanto custa,
+> parcelamento) só porque a palavra incomoda.
+>
+> Cuidado com o outro lado: a página **não pode responder** a essa busca com
+> preço. A Resolução CFO 196/2019 veda preço como atrativo — ver a seção 5. Você
+> compra o clique de quem pergunta o preço e responde com avaliação, não com
+> tabela.
 
 **Extensões**: local (vinculando o Perfil da Empresa), chamada com o telefone
 da clínica, e sitelinks para os outros tratamentos.
@@ -295,8 +339,23 @@ Público de tráfego frio, **raio de 5 km** em volta da Vila Bruna — a clínic
 atende quem mora perto; anunciar para a cidade inteira é pagar por gente que
 não vai atravessar São Paulo.
 
-Público de remarketing: quem visitou uma LP e **não** disparou `Contact` em 30
-dias. É o mais barato que existe, porque a pessoa já demonstrou interesse.
+Público de remarketing: quem visitou uma LP e **não** disparou `generate_lead`
+em 30 dias. É o mais barato que existe, porque a pessoa já demonstrou interesse.
+
+> **Três limites, e eles não são burocracia.**
+>
+> **Só alcança quem consentiu.** Sem aceite no aviso de cookies o Pixel não
+> envia evento, então o público de remarketing é menor que o total de visitas —
+> e isso é o correto, não um defeito de implementação.
+>
+> **Nada de inferir condição clínica.** O `treatment` do evento diz de que
+> PÁGINA a pessoa veio, que é contexto de campanha. Ele não é, e não pode virar,
+> um diagnóstico: montar público de "pessoas que precisam de implante" ou
+> "pessoas sem dentes" é exatamente o que as políticas de saúde da Meta proíbem,
+> e é o tipo de coisa que derruba uma conta inteira.
+>
+> **O anúncio de remarketing segue o CFO** igual ao resto — sem antes e depois,
+> sem promessa, sem preço como atrativo.
 
 Criativo: **foto real da clínica**. O site inteiro é fotografado na clínica, e
 banco de imagem genérico destoa do que a pessoa encontra ao clicar — o que
@@ -333,16 +392,52 @@ convite para agendar uma avaliação.
 Na primeira semana, **não mexa em lance.** Volume baixo faz qualquer número
 parecer tendência, e otimizar em cima de ruído piora.
 
-| Métrica                       | Onde                   | O que significa                             |
-| ----------------------------- | ---------------------- | ------------------------------------------- |
-| `whatsapp_click` por `pagina` | GA4 → Eventos          | qual página gera contato                    |
-| Custo por `Contact`           | Google Ads / Meta      | o número que decide se a campanha continua  |
-| Termos de pesquisa            | Google Ads → Termos    | de onde saem as próximas negativas          |
-| Índice de Qualidade           | Google Ads → Palavras  | abaixo de 7, revise a correspondência da LP |
-| **Custo por paciente**        | **CRC → Investimento** | **o único número que fecha a conta**        |
+### A hierarquia, de cima para baixo
 
-Repare que a primeira linha diz **`pagina`**, e não `tratamento`: nas LPs o campo
-`tratamento` não existe — ver o aviso na seção 3.
+```
+generate_lead  ←  a métrica digital desta fase
+      ↓
+agendamento
+      ↓
+comparecimento
+      ↓
+paciente fechado
+      ↓
+receita
+```
+
+**Nesta fase, sem CRC operacional, a métrica principal é o custo por
+`generate_lead`** — em linguagem de negócio, **custo por contato qualificado de
+WhatsApp**. Os três degraus abaixo dele existem na recepção, não no painel.
+
+| Métrica                            | Onde                  | O que significa                                |
+| ---------------------------------- | --------------------- | ---------------------------------------------- |
+| **Custo por `generate_lead`**      | Google Ads / Meta     | **o número que decide se a campanha continua** |
+| `generate_lead` por `treatment`    | GA4 → Eventos         | qual procedimento puxa contato                 |
+| `generate_lead` por `utm_campaign` | GA4 → Eventos         | qual campanha puxa contato                     |
+| `treatment_view` → `generate_lead` | GA4 → Eventos         | a taxa de conversão da landing                 |
+| Termos de pesquisa                 | Google Ads → Termos   | de onde saem as próximas negativas             |
+| Índice de Qualidade                | Google Ads → Palavras | abaixo de 7, revise a correspondência da LP    |
+
+**Agrupe por `treatment`, não por `pagina`.** As duas URLs do mesmo procedimento
+— `/implante-dentario` e `/tratamentos/implantes-dentarios` — produzem o MESMO
+valor, `implantes-dentarios`. É isso que impede o relatório de rachar em duas
+linhas para o mesmo tratamento só porque metade do tráfego veio pago.
+
+`pagina` continua no evento e serve para separar **pago de orgânico** dentro do
+mesmo tratamento, que é outra pergunta.
+
+### Quando o CRC entrar
+
+Aí a conta passa a fechar sozinha, e a métrica sobe um degrau:
+
+```
+Custo por paciente comparecido
+Custo por paciente fechado
+CAC
+Receita
+ROAS real
+```
 
 ### O número que importa tem tela própria agora
 
@@ -371,42 +466,102 @@ Clique não é paciente — mas agora há onde comparar os dois.
 
 ---
 
-## 7. Só isto depende de você
+## 7. O que já está pronto no código
+
+Nada desta lista precisa de você. Está no ar desde 15/09/2026, coberto por 58
+testes de unidade e 48 E2E que rodam no CI a cada push.
+
+| Pronto                                       | O quê                                                                                |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **8 landing pages de anúncio**               | uma por tratamento, com `canonical` para a orgânica                                  |
+| **Modo anúncio**                             | H1 com procedimento + bairro, CTA específico, sem cross-sell e sem navegação de fuga |
+| **UTM**                                      | `source`, `medium`, `campaign`, `content`, `term`                                    |
+| **`gclid` · `fbclid` · `gbraid` · `wbraid`** | capturados e guardados pela sessão                                                   |
+| **Atribuição first-touch**                   | a campanha da primeira entrada não é apagada por navegação interna                   |
+| **Referência de campanha**                   | `Ref.: IMP-G-A01` na mensagem do WhatsApp, para a recepção                           |
+| **`generate_lead`**                          | a conversão única, com tratamento, canal e campanha juntos                           |
+| **Tradução para a Meta**                     | `Lead`, `Contact`, `ViewContent` — um evento por ação                                |
+| **`event_id`**                               | o gancho de deduplicação para uma Conversion API futura (server-side)                |
+| **Consentimento**                            | Consent Mode v2, banner, e revisão pelo rodapé                                       |
+| **GTM e Pixel**                              | opcionais, por variável de ambiente, validados antes de entrar no `<script>`         |
+| **E2E do funil pago**                        | desktop e celular, sem banco, sem CRC e sem container                                |
+
+---
+
+## 8. O que Felipe ainda precisa configurar
 
 Tudo abaixo exige conta, credencial ou decisão comercial. **Nada exige código.**
+O detalhe de cada painel está na [seção 2](#2-como-instalar-cada-container--o-passo-a-passo);
+aqui é a ordem e o que marcar.
 
-- [ ] Criar o container do **Google Tag Manager** e cadastrar `VITE_GTM_ID` na Vercel
-- [ ] Criar a propriedade do **GA4** e ligá-la pelo GTM
-- [ ] Criar o **Pixel da Meta** e cadastrar `VITE_META_PIXEL_ID` na Vercel
-- [ ] **Refazer o deploy** depois de cadastrar as duas — sem isso elas não existem no site
-- [ ] No Google Ads, marcar como conversão primária **apenas `generate_lead`**
-- [ ] Ligar o **tagueamento automático** do Google Ads (para o `gclid`)
-- [ ] **Confirmar quem é o profissional responsável por implantes** — a LP não nomeia
-      ninguém, e o repositório não tem esse dado. Só entra com nome, CRO conferido e
-      retrato real; inventar um é infração ao CFO.
+### A sequência que liga a medição
+
+1. [ ] Criar o container do **Google Tag Manager**
+2. [ ] Criar a propriedade do **GA4**
+3. [ ] **Vincular o GA4 ao Google Ads** (Ferramentas → Contas vinculadas)
+4. [ ] Criar a ação de conversão e marcar **somente `generate_lead`** como primária
+5. [ ] Ligar o **tagueamento automático** no Google Ads (é o que traz o `gclid`)
+6. [ ] Criar o **Pixel da Meta**
+7. [ ] Cadastrar `VITE_GTM_ID` e `VITE_META_PIXEL_ID` na **Vercel**
+8. [ ] **Fazer um novo deploy** — sem rebuild as variáveis não existem no site
+9. [ ] Testar no **GTM Preview**
+10. [ ] Testar no **GA4 DebugView**
+11. [ ] Testar no **Gerenciador de Eventos da Meta**
+
+> Para os passos 9 a 11, use a URL de campanha da seção 1 e clique no CTA uma
+> vez. O esperado é **um** `generate_lead` e **um** `Lead` — nunca dois, nunca um
+> `Contact` junto.
+
+### As decisões que não são técnicas
+
+- [ ] **Definir o orçamento diário.** Abaixo de ~R$ 3.000/mês o lance automático
+      do Google fica sem as 15 a 30 conversões/mês de que precisa para aprender.
+- [ ] **Combinar quem responde o WhatsApp, e em quanto tempo.** É o maior fator
+      isolado de conversão desta operação, e custa zero de mídia.
+- [ ] **Rodar o anúncio só no horário da recepção.** Contato que espera não vira
+      paciente, e o clique foi pago igual.
+- [ ] **Confirmar o profissional responsável por implantes** — nome, CRO
+      conferido e retrato. O repositório não tem esse dado, e a LP não nomeia
+      ninguém de propósito: inventar registro é infração à Resolução CFO
+      196/2019.
 - [ ] **Vincular o site ao Perfil da Empresa no Google** — hoje a ficha mostra
       "Adicionar website". É tráfego local, gratuito e qualificado sendo perdido,
       e é o de maior retorno desta lista inteira.
-- [ ] Definir orçamento diário por campanha
-- [ ] **Corrigir o texto da ficha do Google**, que diz "Há 25 anos" — a clínica
-      confirmou em 11/09/2026 que são **24**, fundada em 17/08/2002. O site já
-      diz 24. Anúncio e ficha contando idades diferentes é o tipo de detalhe que
-      derruba confiança de quem compara.
-- [ ] **Conferir "8 especialistas"** no mesmo texto: desde 13/09/2026 o site
-      publica **4 dentistas**, todos com CROSP conferido — a Dra. Júlia Vargas e
-      a Raphaela saíram da grade quando deixaram a equipe. A distância entre 8 e
-      4 ficou grande demais para conviver. Ou faltam profissionais no site (nome,
-      especialidade e **CRO conferido** de cada um), ou o texto da ficha é que
-      precisa mudar — e ele é a primeira coisa que alguém lê ao comparar clínicas.
-- [ ] **Ligar o tagueamento automático do Google Ads** (Configurações da conta).
-      É o que faz o `gclid` chegar no lead sem depender de UTM digitada certa.
+- [ ] **Corrigir "Há 25 anos" na ficha do Google** — a clínica confirmou em
+      11/09/2026 que são **24**, fundada em 17/08/2002. O site já diz 24.
+- [ ] **Conferir "8 especialistas" na mesma ficha** — o site publica **4
+      dentistas**, todos com CROSP conferido. Ou faltam profissionais no site,
+      ou o texto da ficha precisa mudar.
 - [ ] **Padronizar as UTMs antes da primeira campanha** — `utm_source=google` ou
-      `meta`, `utm_medium=cpc`, `utm_campaign=<tratamento>-<bairro>`.
-      Maiúsculas e espaços o CRC resolve sozinho (ele apara, colapsa espaço e
-      baixa a caixa antes de agrupar: `Implantes`, `implantes ` e `IMPLANTES` são
-      a mesma campanha). **Acento, não** — `implante-dentário` e
-      `implante-dentario` viram duas linhas no relatório, com o gasto numa e os
-      leads na outra.
+      `meta`, `utm_medium=cpc`, `utm_campaign=<tratamento>-<bairro>`. Maiúsculas
+      e espaços o CRC resolve sozinho; **acento, não** — `implante-dentário` e
+      `implante-dentario` viram duas linhas no relatório.
+
+---
+
+## 9. O CRC não é pré-requisito
+
+Vale repetir porque é a pergunta que mais trava projeto de tráfego:
+
+> **CRC NÃO É PRÉ-REQUISITO PARA COMEÇAR GOOGLE ADS OU META ADS.**
+
+O fluxo da primeira fase é inteiro sem ele:
+
+```
+Google Ads  →  LP de implante  →  WhatsApp  →  recepção humana
+Instagram   →  WhatsApp  (ou  →  LP  →  WhatsApp)
+```
+
+A atribuição chega à recepção pela `Ref.:` dentro da mensagem, e a medição
+digital chega ao Google e à Meta pelo `generate_lead`. Nenhum dos dois caminhos
+passa pelo CRC.
+
+**Verificado, não suposto:** a suíte `npm run e2e:site` sobe um servidor sem
+Postgres, sem CRC, sem GTM e sem Pixel, e prova que o CTA de WhatsApp continua
+funcionando — inclusive com o consentimento recusado. Ela roda no CI a cada push.
+
+Quando o CRC entrar, ele **acrescenta** o outro lado da conta (comparecimento,
+fechamento, custo por paciente). Não substitui nada do que está acima.
 
 ---
 

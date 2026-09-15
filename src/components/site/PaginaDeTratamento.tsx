@@ -21,6 +21,7 @@ import {
   CalendarCheck,
   Check,
   ChevronDown,
+  MapPin,
   MessageCircle,
   Sparkles,
   Star,
@@ -61,7 +62,7 @@ import videoOrtodontia from "@/assets/video-ortodontia.mp4?url";
 import posterOrtodontia from "@/assets/video-ortodontia-poster.webp";
 import videoProtese from "@/assets/video-protese.mp4?url";
 import posterProtese from "@/assets/video-protese-poster.webp";
-import { CLINICA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { CLINICA, HISTORIA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { GoogleRating } from "@/components/site/GoogleRating";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
@@ -166,7 +167,7 @@ export function PaginaDeTratamento({
     return (
       <div className="min-h-dvh bg-brand-deep text-white">
         <SkipLink />
-        <Header />
+        <Header enxuto={modo === "anuncio"} />
         <main
           id="conteudo"
           className="jp-container flex min-h-[70vh] flex-col justify-center pt-12"
@@ -198,7 +199,10 @@ export function PaginaDeTratamento({
     <div className="min-h-dvh bg-cream">
       <CinematicMotion />
       <SkipLink />
-      <Header />
+      {/* No modo anúncio o cabeçalho perde os links de navegação — são seis
+          caminhos de fuga no topo de uma página que a clínica pagou para a
+          pessoa abrir. Marca, telefone e CTA continuam. Ver `Header`. */}
+      <Header enxuto={modo === "anuncio"} />
 
       <main id="conteudo">
         <section className="treatment-hero hero-noise relative isolate overflow-hidden bg-brand-deep pb-12 pt-12 text-white sm:pb-14 sm:pt-14 lg:pb-18 lg:pt-16">
@@ -216,34 +220,83 @@ export function PaginaDeTratamento({
           <div className="jp-container relative z-10 grid gap-12 lg:grid-cols-[1.08fr_.92fr] lg:items-center">
             <div>
               <Reveal>
-                <a
-                  href="/#tratamentos"
-                  className="eyebrow text-lime transition-opacity hover:opacity-70"
-                >
-                  <ArrowLeft className="h-4 w-4" /> Todos os tratamentos
-                </a>
+                {/* A PRIMEIRA COISA DA PÁGINA MUDA COM O MODO.
+                    Na orgânica é a volta para a lista — quem chegou pela busca
+                    pode estar comparando procedimentos.
+                    Na paga é a LOCALIZAÇÃO. Quem clicou em "implante dentário
+                    freguesia do ó" precisa saber, antes de qualquer outra coisa,
+                    que a clínica fica perto dele; e "Todos os tratamentos" no
+                    canto superior esquerdo é a primeira saída de uma página que
+                    a clínica pagou para a pessoa abrir. */}
+                {modo === "anuncio" ? (
+                  <p className="eyebrow text-lime">
+                    <MapPin className="h-4 w-4" aria-hidden="true" /> {CLINICA.local.bairro}
+                    <span aria-hidden="true">•</span> {HISTORIA.regiaoAtual}
+                    <span aria-hidden="true">•</span> {CLINICA.local.cidade}
+                  </p>
+                ) : (
+                  <a
+                    href="/#tratamentos"
+                    className="eyebrow text-lime transition-opacity hover:opacity-70"
+                  >
+                    <ArrowLeft className="h-4 w-4" /> Todos os tratamentos
+                  </a>
+                )}
                 <p className="mt-8 text-micro font-black uppercase tracking-[.2em] text-white/80">
-                  0{index + 1} / 08 • JP Clínica Integrada Odontológica
+                  {modo === "anuncio"
+                    ? CLINICA.nome
+                    : `0${String(index + 1)} / 08 • ${CLINICA.nome}`}
                 </p>
                 {/* Tracking capped at -.04em: at this size -.085em pulled the second
                     glyph over narrow first letters (the "I" in IMPLANTES vanished). */}
+                {/* O H1 É A CORRESPONDÊNCIA COM A BUSCA, e ela muda com o modo.
+                    Orgânica: "Implantes" / "para voltar a mastigar com
+                    tranquilidade" — a promessa da página.
+                    Paga: "Implantes dentários" / "na Freguesia do Ó" — as duas
+                    coisas que a pessoa digitou. O Índice de Qualidade do Google
+                    cobra, no custo por clique, quando o anúncio e a primeira
+                    dobra dizem coisas diferentes; e quem pesquisou o bairro
+                    precisa reencontrá-lo sem rolar. */}
                 <h1 className="mt-4 max-w-5xl font-display text-[clamp(2.6rem,5.4vw,4.5rem)] font-extrabold leading-[.82] tracking-[-.04em] [overflow-wrap:anywhere]">
-                  {treatment.short}{" "}
+                  {modo === "anuncio" ? treatment.titulo : treatment.short}{" "}
                   {/* O espaço acima não é enfeite: sem ele o leitor de tela
                       anuncia "Implantespara voltar a mastigar tranquilo" numa
                       palavra só. O `block` separa visualmente, mas a árvore de
                       acessibilidade concatena texto adjacente sem espaço. */}
-                  <span className="block text-lime">{treatment.headline}</span>
+                  <span className="block text-lime">
+                    {modo === "anuncio" ? `na ${HISTORIA.regiaoAtual}` : treatment.headline}
+                  </span>
                 </h1>
-                <p className="mt-7 max-w-2xl font-display text-2xl font-bold leading-[1.02] text-white/82 sm:text-3xl">
-                  {treatment.kicker}
-                </p>
-                <p className="mt-5 max-w-xl text-base font-medium leading-relaxed text-white/58 sm:text-lg">
+                {/* O `kicker` é a frase de conceito ("Reabilitação é recuperar
+                    presença, função e confiança"). Ela serve à leitura orgânica
+                    e atrasa, na paga, a informação que responde à busca — por
+                    isso o modo anúncio promove a `desc`, que é factual e já diz
+                    o que o procedimento é. Nenhum texto novo foi inventado: os
+                    dois vêm de `jp.ts`. */}
+                {modo === "organico" && (
+                  <p className="mt-7 max-w-2xl font-display text-2xl font-bold leading-[1.02] text-white/82 sm:text-3xl">
+                    {treatment.kicker}
+                  </p>
+                )}
+                <p
+                  className={`max-w-xl font-medium leading-relaxed text-white/58 ${
+                    modo === "anuncio" ? "mt-7 text-lg sm:text-xl" : "mt-5 text-base sm:text-lg"
+                  }`}
+                >
                   {treatment.desc}
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <a href={wa} target="_blank" rel="noopener noreferrer" className="button-primary">
-                    <MessageCircle className="h-5 w-5" /> Agendar avaliação{" "}
+                    <MessageCircle className="h-5 w-5" />
+                    {/* O RÓTULO DO CTA PRIMÁRIO É UM SÓ NO SITE — e o modo
+                        anúncio abre a única exceção, documentada em DESIGN.md §4.
+                        A regra nasceu de quatro rótulos DIFERENTES convivendo na
+                        mesma navegação, o que faz o CTA parecer insistência. Aqui
+                        é um só padrão, derivado do dado, igual nas oito LPs: quem
+                        pesquisou "implante" reencontra a palavra no botão. */}
+                    {modo === "anuncio"
+                      ? `Agendar avaliação de ${treatment.short.toLowerCase()}`
+                      : "Agendar avaliação"}{" "}
                     <ArrowUpRight className="h-4 w-4" />
                   </a>
                   <a href="#entenda" className="button-ghost-light">

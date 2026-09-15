@@ -798,6 +798,22 @@ export const TRATAMENTOS: Tratamento[] = [
         texto: "A fase protética e os retornos de acompanhamento completam o cuidado.",
       },
     ],
+    /**
+     * O FAQ MAIS LONGO DAS OITO PÁGINAS, e o motivo é comercial.
+     *
+     * Implante é o tratamento de maior ticket e o primeiro a receber tráfego
+     * pago. Quem chega por anúncio traz perguntas específicas — falta um dente
+     * só, uso prótese, tenho osso, quanto tempo leva — e cada uma respondida na
+     * página é uma dúvida que não vira um "vou pensar".
+     *
+     * AS RESPOSTAS NÃO PROMETEM E NÃO DIAGNOSTICAM. Todas terminam onde a
+     * Resolução CFO 196/2019 exige que terminem: na avaliação individual. É a
+     * diferença entre informar e prescrever pela internet — e uma LP paga é
+     * exatamente onde a tentação de prescrever aparece.
+     *
+     * Elas também alimentam o `FAQPage` do JSON-LD desta rota, sem cópia: o
+     * mesmo array serve a tela e ao dado estruturado.
+     */
     faq: [
       {
         q: "Implante serve para qualquer pessoa?",
@@ -806,6 +822,30 @@ export const TRATAMENTOS: Tratamento[] = [
       {
         q: "Preciso fazer exames antes?",
         a: "Em muitos casos, exames de imagem e outras avaliações ajudam no planejamento. A equipe orienta o que é necessário.",
+      },
+      {
+        q: "Falta só um dente. Ainda assim é caso de implante?",
+        a: "Pode ser. Repor um dente isolado é uma das situações mais comuns, e a vantagem é não depender dos dentes vizinhos. A conduta é definida na avaliação.",
+      },
+      {
+        q: "Quem usa prótese removível pode avaliar implantes?",
+        a: "Sim, pode avaliar. Existem alternativas que usam implantes para dar mais estabilidade à prótese, e o que é possível depende do caso e das condições ósseas.",
+      },
+      {
+        q: "Preciso ter osso suficiente?",
+        a: "O volume ósseo é um dos fatores analisados. Quando ele não é suficiente, existem condutas para preparar a região — o que se aplica ao seu caso só o exame mostra.",
+      },
+      {
+        q: "Quanto tempo leva o tratamento?",
+        a: "Varia conforme o caso. O implante passa por um período de integração ao osso antes de receber a coroa, e esse prazo é individual. O cronograma é explicado no planejamento.",
+      },
+      {
+        q: "Como funciona a avaliação?",
+        a: "É uma consulta para examinar a região, conversar sobre o seu histórico e indicar quais exames ajudam no planejamento. A partir dela a equipe explica as possibilidades para o seu caso.",
+      },
+      {
+        q: "Onde fica a clínica?",
+        a: `A ${CLINICA.nome} fica na ${CLINICA.local.logradouro} — ${CLINICA.local.bairro}, região da ${HISTORIA.regiaoAtual}, em ${CLINICA.local.cidade}. Atendemos ${CLINICA.horario.toLowerCase()}.`,
       },
     ],
     destaque: "Um plano para voltar a sorrir com estrutura.",

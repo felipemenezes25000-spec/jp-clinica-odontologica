@@ -56,3 +56,45 @@ jobs:
       # qualquer um imagina.
       - name: Nenhum segredo nem modulo de servidor no bundle
         run: node scripts/conferir-bundle.mjs
+
+      # ----------------------------------------------------------------------
+      # O FUNIL DE TRAFEGO PAGO, NO NAVEGADOR
+      # ----------------------------------------------------------------------
+      #
+      # POR ULTIMO, E DEPOIS DO BUILD, por dois motivos tecnicos:
+      #
+      #   `scripts/servidor-site-e2e.mjs` reconstroi com NITRO_PRESET=node-server
+      #   (o preset `vercel` gera funcoes serverless, que `node` nao executa), e
+      #   nao faz sentido pagar esse build antes de o build normal ter passado.
+      #
+      #   E porque tudo o que vem antes e mais barato: um `tsc` quebrado nao
+      #   precisa esperar o Chromium baixar para ficar vermelho.
+      #
+      # O QUE ELE PROTEGE, e a razao de estar aqui e nao so na maquina de quem
+      # implementou: o site ja teve uma regressao em que UM clique virava TRES
+      # eventos -- um `Contact` e dois `Lead` na Meta -- e outra em que
+      # `/implante-dentario`, a rota que a clinica paga para trazer gente, nao
+      # disparava `treatment_view`. Nenhuma das duas quebra o build, nenhuma
+      # aparece na tela, e as duas custam dinheiro todo dia em que ficam no ar.
+      #
+      # SEM CREDENCIAL NENHUMA. O servidor deste E2E sobe sem Postgres, sem CRC,
+      # sem GTM e sem Pixel -- de proposito: esse e o ambiente que a campanha
+      # encontra na primeira fase, e o teste prova que o CTA de WhatsApp funciona
+      # nele.
+      - name: Navegador do E2E publico
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E do trafego pago (sem banco, sem CRC, sem container)
+        run: npm run e2e:site
+
+      # O rastro so do que falhou. `if: failure()` porque o relatorio de uma
+      # execucao verde e lixo de artefato.
+      - name: Relatorio do E2E que falhou
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-publico
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

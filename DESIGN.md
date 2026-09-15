@@ -347,6 +347,22 @@ O rótulo do primário é **um só** em todo o site. Quatro variações convivia
 "Fale no WhatsApp") — e CTA que muda de nome a cada seção não parece opção, e
 sim insistência.
 
+> **A única exceção, e ela é do hero da landing paga.** Em `modo="anuncio"`, o
+> CTA do hero é `Agendar avaliação de <tratamento>` — "Agendar avaliação de
+> implantes". Fora dali, inclusive no cabeçalho e no CTA flutuante da mesma
+> página, continua "Agendar avaliação".
+>
+> **Por que isso não reabre o defeito que a regra fechou.** O problema eram
+> quatro rótulos ARBITRÁRIOS disputando a mesma navegação. Aqui é um padrão só,
+> derivado de `TRATAMENTOS[].short`, idêntico nas oito LPs, e num lugar só da
+> página. Ninguém digita a variação: ela sai do dado.
+>
+> **O que ela compra.** Quem pesquisou "implante dentário" reencontra a palavra
+> no botão — é a mesma correspondência de mensagem que o `<h1>` e o `<title>` da
+> LP já fazem, e que o Índice de Qualidade do Google cobra no custo por clique.
+> Coberto por E2E: `e2e/publico/trafego-pago.spec.ts`, "o CTA do hero é
+> específico do tratamento".
+
 ---
 
 ## 5. Acessibilidade

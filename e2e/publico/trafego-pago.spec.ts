@@ -165,6 +165,137 @@ test.describe("a landing page de anúncio", () => {
   });
 });
 
+/**
+ * O MODO ANÚNCIO — o que a primeira dobra precisa dizer.
+ *
+ * Cada asserção aqui corresponde a uma pergunta que a pessoa que clicou no
+ * anúncio faz nos primeiros segundos: "é disso que eu preciso?", "é perto de
+ * mim?", "dá para confiar?", "como falo com eles?". Se a resposta não estiver
+ * na primeira dobra, o clique já foi pago e a pessoa volta para a busca.
+ */
+test.describe("o modo anúncio da landing de implante", () => {
+  test("o H1 comunica o procedimento E o bairro", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+
+    const h1 = page.locator("h1");
+    await expect(h1).toHaveCount(1);
+    const texto = ((await h1.textContent()) ?? "").toLowerCase();
+
+    // As duas coisas que a pessoa digitou na busca.
+    expect(texto).toContain("implante");
+    expect(texto).toContain("freguesia do ó");
+  });
+
+  test("o H1 sai no HTML SERVIDO — o robô do Google Ads não hidrata", async ({ page }) => {
+    const html = await (await page.request.get(URL_ANUNCIO)).text();
+    const h1 = /<h1[^>]*>([\s\S]*?)<\/h1>/u.exec(html)?.[1] ?? "";
+    const limpo = h1.replace(/<[^>]*>/gu, " ").toLowerCase();
+
+    expect(limpo).toContain("implante");
+    expect(limpo).toContain("freguesia do ó");
+  });
+
+  test("a orgânica NÃO usa o H1 de anúncio — o modo é o que muda", async ({ page }) => {
+    await page.goto("/tratamentos/implantes-dentarios");
+    const texto = ((await page.locator("h1").textContent()) ?? "").toLowerCase();
+
+    expect(texto).toContain("implante");
+    // A orgânica abre com a promessa do tratamento, não com o bairro.
+    expect(texto).not.toContain("freguesia do ó");
+  });
+
+  test("o CTA do hero é específico do tratamento", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+
+    /*
+     * O CTA DO HERO, e nao `ctaWhatsApp` — que devolve o primeiro link visivel
+     * e no desktop e o do CABECALHO. O do cabecalho e generico de proposito:
+     * ele acompanha a pessoa pelo site inteiro e nao pertence a uma pagina.
+     * O especifico e o da primeira dobra, dentro do `main`.
+     */
+    const heroCta = page.locator('main a.button-primary[href*="wa.me"]').first();
+    await expect(heroCta).toBeVisible();
+    expect(((await heroCta.textContent()) ?? "").toLowerCase()).toContain("implante");
+
+    // E a mensagem que ele abre continua falando do tratamento e da campanha.
+    const msg = decodeURIComponent(
+      ((await heroCta.getAttribute("href")) ?? "").split("text=")[1] ?? "",
+    );
+    expect(msg.toLowerCase()).toContain("implante");
+  });
+
+  test("a localização aparece na primeira dobra, fora do rodapé", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+
+    const main = page.locator("main");
+    await expect(main.getByText("Vila Bruna", { exact: false }).first()).toBeVisible();
+    await expect(main.getByText("Freguesia do Ó", { exact: false }).first()).toBeVisible();
+  });
+
+  test("a prova social real continua acima da dobra", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+
+    // Vem de `AVALIACOES` em jp.ts — nenhum número é digitado na página.
+    const selo = page.locator("main").getByText("4,6", { exact: false }).first();
+    await expect(selo).toBeVisible();
+    await expect(page.locator("main").getByText("192", { exact: false }).first()).toBeVisible();
+  });
+
+  test("não há saída para 'Todos os tratamentos' na LP paga", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+    await expect(page.getByRole("link", { name: /todos os tratamentos/iu })).toHaveCount(0);
+
+    // Na orgânica ela continua: quem chegou pela busca pode estar comparando.
+    await page.goto("/tratamentos/implantes-dentarios");
+    await expect(page.getByRole("link", { name: /todos os tratamentos/iu })).toHaveCount(1);
+  });
+
+  test("o cabeçalho da LP paga não serve os seis caminhos de fuga", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+    /*
+     * `locator`, e nao `getByRole`: no celular a nav do desktop existe no DOM
+     * com `display:none`, e `getByRole` so enxerga a arvore de acessibilidade —
+     * ela devolveria 0 nas duas paginas e o teste passaria sem testar nada.
+     * Aqui a pergunta e se os links ESTAO NO HTML, que e o que o robo do Google
+     * Ads le e o que uma pessoa alcanca ao ampliar a janela.
+     */
+    await expect(page.locator('nav[aria-label="Navegação principal"]')).toHaveCount(0);
+
+    // E o que NÃO pode sair continua: marca, telefone e o CTA.
+    await expect(page.locator("header").getByRole("link", { name: /JP/iu }).first()).toBeVisible();
+    // Mais de um: a barra de cima tem o telefone e o menu do celular repete.
+    // O que importa e que exista pelo menos um caminho, nao quantos.
+    expect(await page.locator('header a[href^="tel:"]').count()).toBeGreaterThan(0);
+    expect(await page.locator('header a[href*="wa.me"]').count()).toBeGreaterThan(0);
+  });
+
+  test("a home e a orgânica continuam com a navegação completa", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator('nav[aria-label="Navegação principal"]')).toHaveCount(1);
+
+    await page.goto("/tratamentos/implantes-dentarios");
+    await expect(page.locator('nav[aria-label="Navegação principal"]')).toHaveCount(1);
+  });
+
+  test("nenhuma promessa de resultado entrou na LP", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+    const texto = ((await page.locator("main").textContent()) ?? "").toLowerCase();
+
+    // Resolução CFO 196/2019 — e a tentação de escrever isto numa LP é grande.
+    for (const proibido of [
+      "resultado garantido",
+      "sem dor",
+      "indolor",
+      "últimas vagas",
+      "promoção",
+      "melhor clínica",
+      "sorriso perfeito",
+    ]) {
+      expect(texto).not.toContain(proibido);
+    }
+  });
+});
+
 test.describe("a atribuição da campanha", () => {
   test("captura UTM e gclid, e guarda pela sessão", async ({ page }) => {
     await page.goto(URL_ANUNCIO);
