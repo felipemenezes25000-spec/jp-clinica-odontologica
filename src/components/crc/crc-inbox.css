@@ -1,0 +1,15 @@
+/* O contato embaixo do nome: é ele que separa duas conversas da mesma pessoa. */
+
+/*
+ * O contato embaixo do nome.
+ *
+ * É ele que separa duas conversas da MESMA pessoa — uma por número. Sem esta
+ * linha a lista mostrava três "Maria Aparecida de Souza Nascimento Filha"
+ * idênticas, e quem atende tinha de abrir as três para descobrir qual era qual.
+ */
+.crc-app .crc-inbox-item-contato {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--crc-texto-3, #8a978f);
+  font-variant-numeric: tabular-nums;
+}

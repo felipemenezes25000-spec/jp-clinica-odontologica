@@ -82,7 +82,21 @@
 .crc-app .crc-inbox-layout-v2 {
   display: grid;
   min-width: 0;
-  grid-template-columns: minmax(255px, 0.75fr) minmax(420px, 1.6fr) minmax(250px, 0.68fr);
+  /*
+   * AS LATERAIS TÊM TETO; A CONVERSA FICA COM O RESTO.
+   *
+   * Com frações (`0.75fr` / `1.6fr` / `0.68fr`) as três colunas crescem juntas:
+   * num monitor de 1875 px a lista ia a 464 px e o contexto a 421 px — espaço
+   * que não serve a nenhuma das duas (a lista é de itens curtos, o contexto é
+   * de campos) e que faltava justamente onde se lê a conversa.
+   *
+   * `clamp` põe piso e TETO: a lista para em 380 px, o contexto em 360 px, e
+   * cada pixel além disso vai para a mensagem — que é o que a pessoa lê.
+   */
+  grid-template-columns:
+    clamp(280px, 26%, 380px)
+    minmax(0, 1fr)
+    clamp(280px, 22%, 360px);
   gap: 12px;
   height: calc(100dvh - 220px);
   min-height: 610px;

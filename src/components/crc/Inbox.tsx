@@ -645,6 +645,38 @@ function ContextoDado({
 function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | null }) {
   const titulo = nome ?? telefoneParaTela(conversa.contatoExterno);
 
+  /*
+   * ==========================================================================
+   *  O CONTATO APARECE QUANDO O TÍTULO É O NOME.
+   *
+   *  Uma conversa é única por (organização, canal, contato). Uma pessoa com dois
+   *  celulares tem, corretamente, duas conversas — e a lista mostrava as duas
+   *  com o mesmo nome, a mesma inicial e o mesmo horário relativo. Na base atual
+   *  isso dá três "Maria Aparecida de Souza Nascimento Filha" idênticas, e mais
+   *  dezessete pacientes repetidos.
+   *
+   *  Não é bug de agrupamento: são conversas distintas. O defeito é a lista não
+   *  dizer o que as separa. Com o número embaixo, três linhas iguais viram três
+   *  linhas diferentes — e quem atende sabe qual abrir.
+   *
+   *  Quando o título JÁ É o telefone (paciente desconhecido), repetir embaixo
+   *  seria ruído.
+   * ==========================================================================
+   */
+  const contato = nome === null ? null : telefoneParaTela(conversa.contatoExterno);
+  const canalOutro = conversa.canal !== "whatsapp" ? conversa.canal : null;
+
+  /*
+   * "SEM MENSAGENS" SÓ QUANDO NÃO HÁ MENSAGEM NENHUMA.
+   *
+   *  A linha dizia "Sem mensagens" sempre que o trecho estava vazio — inclusive
+   *  em conversa COM data de última mensagem, que é contradição na mesma linha:
+   *  "anteontem · Sem mensagens". O trecho é preenchido pelos caminhos de
+   *  entrada e de envio; conversa semeada por fora não passa por nenhum dos
+   *  dois, e aí o que falta é a PRÉVIA, não a mensagem.
+   */
+  const semMensagemNenhuma = conversa.ultimaMensagemEm === null;
+
   return (
     <div className="crc-inbox-item-grid">
       <span className="crc-inbox-item-avatar" aria-hidden="true">
@@ -657,10 +689,18 @@ function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | n
             <span>{tempoRelativo(conversa.ultimaMensagemEm)}</span>
           )}
         </div>
+        {(contato !== null || canalOutro !== null) && (
+          <p className="crc-inbox-item-contato">
+            {contato}
+            {canalOutro !== null && <> · {canalOutro}</>}
+          </p>
+        )}
         <p className="crc-truncar">
-          {conversa.ultimaMensagemTrecho === null
-            ? "Sem mensagens"
-            : truncar(conversa.ultimaMensagemTrecho, 72)}
+          {conversa.ultimaMensagemTrecho !== null
+            ? truncar(conversa.ultimaMensagemTrecho, 72)
+            : semMensagemNenhuma
+              ? "Sem mensagens"
+              : "Abra para ler a conversa"}
         </p>
         <div className="crc-inbox-item-tags">
           {conversa.naoLidas > 0 && (
