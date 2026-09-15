@@ -1,221 +1,230 @@
-# Como anunciar — Google Ads e Meta Ads
+# Como anunciar — JP Clínica Odontológica
 
-Guia operacional para rodar tráfego pago para a JP. Escrito para quem vai abrir
-o Gerenciador e configurar, não para quem vai programar.
+Guia operacional para Google Ads e Meta Ads da JP Clínica, com foco inicial em **implantes dentários**.
 
-**O que já está pronto no site** e o que **depende de você** estão separados de
-propósito — a seção final lista só o que falta, e nada ali é código.
+Este documento separa três coisas que não devem ser misturadas:
 
----
+1. o que já está implementado no site;
+2. o que precisa ser configurado nas plataformas de mídia;
+3. o que depende da operação humana da clínica.
 
-## 1. Para onde mandar o tráfego
-
-O site tem **duas URLs para cada tratamento**, e elas servem a coisas
-diferentes. Usar a errada custa dinheiro.
-
-| Tratamento             | Anúncio manda para      | Busca orgânica indexa                 |
-| ---------------------- | ----------------------- | ------------------------------------- |
-| Implante               | `/implante-dentario`    | `/tratamentos/implantes-dentarios`    |
-| Clareamento            | `/clareamento-dental`   | `/tratamentos/clareamento-dental`     |
-| Ortodontia / aparelho  | `/ortodontia`           | `/tratamentos/ortodontia`             |
-| Odontopediatria        | `/odontopediatria`      | `/tratamentos/odontopediatria`        |
-| Prótese                | `/protese-dentaria`     | `/tratamentos/proteses-dentarias`     |
-| Restauração            | `/restauracao-dentaria` | `/tratamentos/restauracoes`           |
-| Limpeza                | `/limpeza-dental`       | `/tratamentos/limpeza-profilaxia`     |
-| Harmonização orofacial | `/harmonizacao-facial`  | `/tratamentos/harmonizacao-orofacial` |
-
-**É a mesma página nas duas URLs.** A diferença é o endereço e o título, que na
-URL de anúncio repetem o termo pesquisado.
-
-O título de cada LP, lido do HTML servido em 14/09/2026 — **use estas palavras
-no anúncio**, porque é o que a pessoa vai reencontrar ao clicar:
-
-| LP                      | Título publicado                                              |
-| ----------------------- | ------------------------------------------------------------- |
-| `/implante-dentario`    | Implante dentário na Freguesia do Ó \| JP Clínica             |
-| `/ortodontia`           | Aparelho e ortodontia na Freguesia do Ó \| JP Clínica         |
-| `/odontopediatria`      | Dentista infantil na Freguesia do Ó \| JP Clínica             |
-| `/clareamento-dental`   | Clareamento dental na Freguesia do Ó \| JP Clínica            |
-| `/protese-dentaria`     | Prótese dentária na Freguesia do Ó \| JP Clínica Odontológica |
-| `/restauracao-dentaria` | Restauração dentária na Freguesia do Ó \| JP Clínica          |
-| `/limpeza-dental`       | Limpeza dental na Freguesia do Ó \| JP Clínica Odontológica   |
-| `/harmonizacao-facial`  | Harmonização orofacial na Freguesia do Ó \| JP Clínica        |
-
-Repare que a marca **encolhe até caber**: "Prótese dentária" sobra espaço e leva
-o nome inteiro; "Implante dentário" leva o médio. Nenhum passa de 60 caracteres,
-que é onde o Google corta — a regra está em `src/lib/seo.ts`, e o título não é
-digitado em lugar nenhum.
-
-Repare em duas escolhas de URL que não são descuido: `/odontopediatria` tem o
-título **"Dentista infantil na Freguesia do Ó"**, porque mãe procurando dentista
-para o filho não digita o nome técnico; e a harmonização é `/harmonizacao-facial`,
-sem o "oro", porque é assim que se busca. O título mantém "orofacial", que é o
-nome correto do procedimento — a URL fala a língua da busca, o título fala a
-língua da odontologia.
-
-> **Por que isso importa em dinheiro, não em estética.** O Google cobra mais
-> caro por clique quando a página de destino não conversa com o anúncio — é o
-> Índice de Qualidade. Quem pesquisa _"implante dentário freguesia do ó"_, clica
-> num anúncio com esse título e cai numa página cujo endereço e título dizem
-> outra coisa, volta para a busca. Você pagou o clique e não levou nada.
->
-> As LPs têm `canonical` apontando para a página orgânica: as duas servem o mesmo
-> conteúdo, e sem isso elas competiriam entre si no índice do Google. **Não mexa
-> nisso** — anúncio manda tráfego para a LP, o Google indexa a orgânica.
-
-**Nunca mande anúncio de tratamento para a home.** A home fala de tudo; quem
-procurou implante quer ver implante na primeira tela.
+A campanha inicial **não depende do CRC**.
 
 ---
 
-## 2. Como instalar cada container — o passo a passo
+## 1. Fluxo inicial recomendado
 
-O site **já dispara os eventos, já captura a campanha e já pede consentimento**.
-O que falta são credenciais externas — e nenhuma delas exige tocar em código.
+### Google Search
 
-> Esta seção é o **como**, com o detalhe de cada painel. A **lista para marcar**,
-> na ordem de execução, está na [seção 8](#8-o-que-felipe-ainda-precisa-configurar).
-> Se você já sabe o caminho das contas, pule para lá.
-
-### Google Tag Manager
-
-1. Crie o container em [tagmanager.google.com](https://tagmanager.google.com) —
-   tipo **Web**, para `jpclinicaodontologica.com.br`.
-2. Copie o ID (`GTM-XXXXXXX`).
-3. Cadastre na Vercel como **`VITE_GTM_ID`** (Settings → Environment Variables)
-   e faça um novo deploy. Só isso: não há linha de código a escrever.
-
-> **Por que precisa de deploy:** o Vite troca a variável por um literal em tempo
-> de build. Cadastrar sem reconstruir não muda nada na tela — e é o tipo de coisa
-> que faz alguém passar uma tarde procurando defeito onde não há.
->
-> **Como conferir se pegou**, sem depender do painel do Google: abra a LP,
-> `Ctrl+U` para ver o código-fonte servido, e procure por `GTM-`. Se o ID
-> aparecer ali, está no HTML que o navegador recebe — que é onde ele precisa
-> estar. Se só aparecer depois, no inspetor, alguma coisa está errada.
-
-### Google Analytics 4
-
-1. Crie a propriedade em [analytics.google.com](https://analytics.google.com).
-2. Copie o ID (`G-XXXXXXXXXX`).
-3. No GTM, crie a tag **Google Tag** com esse ID, acionada em _Initialization —
-   All Pages_.
-4. Crie um **gatilho de evento personalizado** para cada evento da seção 3 que
-   você quiser ver no GA4, começando por `generate_lead`.
-
-### Google Ads
-
-1. Em **Ferramentas → Conversões**, crie uma ação de conversão do tipo **Site**.
-2. **Marque como conversão primária SOMENTE `generate_lead`.** Não marque
-   `contact_click`, `phone_click`, `treatment_view`, `form_submit` nem
-   `page_view` — a seção 3 explica por que cada um deles inflaria a contagem.
-3. Vincule o Google Ads ao GA4 (**Ferramentas → Contas vinculadas**).
-4. Ligue o **tagueamento automático** (Configurações da conta) — é o que faz o
-   `gclid` chegar mesmo quando a UTM vem digitada errada.
-
-### Meta Pixel
-
-1. Crie o Pixel em [business.facebook.com](https://business.facebook.com) →
-   **Gerenciador de Eventos**.
-2. Copie o ID (15 a 16 dígitos).
-3. Cadastre na Vercel como **`VITE_META_PIXEL_ID`** e faça um novo deploy.
-4. No Gerenciador de Eventos, use **`Lead`** como evento de otimização. O site já
-   traduz `generate_lead` → `Lead`, `contact_click` → `Contact` e
-   `treatment_view` → `ViewContent`.
-
-> **Nada quebra enquanto isso não existe.** Sem os IDs, nenhum script é pedido à
-> rede e a camada de eventos continua empurrando para `window.dataLayer`, que sem
-> GTM é só um array na memória da aba. Verificado por E2E: a suíte de tráfego
-> pago roda contra um servidor **sem GTM, sem Pixel e sem CRC**, e o CTA de
-> WhatsApp continua funcionando em todos os casos.
-
-### Consentimento — já está pronto, e vem antes de tudo
-
-O site implementa **Google Consent Mode v2**. A ordem no `<head>` é fixa e
-importa: `dataLayer` → `consent default` com os quatro sinais **negados** → a
-escolha já guardada, se houver → só então o GTM.
-
-Você não precisa configurar nada para isso funcionar, mas precisa saber de duas
-consequências no relatório:
-
-- **Antes de alguém aceitar, o Google recebe a visita sem cookies** (modelagem de
-  conversão). Os números do GA4 vão ser menores que os do painel de anúncios, e
-  isso é esperado, não defeito.
-- **Quem recusa não é medido**, e o WhatsApp dele funciona igual. Isso também é
-  proposital: medição não pode ser condição para um paciente falar com a clínica.
-
-O visitante pode rever a escolha pelo link no rodapé e na política de
-privacidade.
-
-### A atribuição da campanha — funciona sem nenhum container
-
-Independentemente de GTM, GA4 ou Pixel, o site captura na primeira entrada:
-
-`utm_source` · `utm_medium` · `utm_campaign` · `utm_content` · `utm_term` ·
-`gclid` · `fbclid` · `gbraid` · `wbraid` · página de entrada
-
-Guarda pela sessão (**first-touch**: navegar dentro do site não apaga a
-campanha), manda junto em todo `generate_lead`, e resume numa **referência
-curta** que vai na mensagem do WhatsApp — `Ref.: IMP-G-A01`, detalhada na
-seção 3.
-
-Basta marcar as URLs das campanhas:
-
+```text
+Google Ads
+  → /implante-dentario
+  → WhatsApp
+  → recepção humana
+  → avaliação
+  → comparecimento
+  → fechamento
 ```
+
+### Meta / Instagram
+
+```text
+Instagram / Facebook
+  → WhatsApp direto
+```
+
+ou, quando fizer sentido:
+
+```text
+Instagram / Facebook
+  → /implante-dentario
+  → WhatsApp
+```
+
+O CRC pode entrar depois para fechar comparecimento, fechamento, receita e CAC. Ele não é condição para começar mídia.
+
+---
+
+## 2. URLs de anúncio
+
+Cada tratamento possui uma rota curta para mídia paga e uma rota orgânica.
+
+| Tratamento | URL de anúncio | URL orgânica |
+| --- | --- | --- |
+| Implante | `/implante-dentario` | `/tratamentos/implantes-dentarios` |
+| Clareamento | `/clareamento-dental` | `/tratamentos/clareamento-dental` |
+| Ortodontia | `/ortodontia` | `/tratamentos/ortodontia` |
+| Odontopediatria | `/odontopediatria` | `/tratamentos/odontopediatria` |
+| Prótese | `/protese-dentaria` | `/tratamentos/proteses-dentarias` |
+| Restauração | `/restauracao-dentaria` | `/tratamentos/restauracoes` |
+| Limpeza | `/limpeza-dental` | `/tratamentos/limpeza-profilaxia` |
+| Harmonização orofacial | `/harmonizacao-facial` | `/tratamentos/harmonizacao-orofacial` |
+
+### Regra
+
+**Anúncio de tratamento não deve mandar para a home.**
+
+Quem pesquisou implante deve cair diretamente em `/implante-dentario`.
+
+A rota paga reutiliza o mesmo conteúdo clínico da orgânica, mas entra em `modo="anuncio"`, com menos distrações e maior correspondência com a busca.
+
+No modo anúncio:
+
+- H1 contém procedimento + região;
+- localização aparece na primeira dobra;
+- CTA menciona o tratamento;
+- não existe link “Todos os tratamentos” no hero;
+- não existe cross-sell de outros tratamentos no fim;
+- o cabeçalho desktop não monta a navegação da home;
+- o menu móvel também não monta os links da home/carreiras;
+- telefone e WhatsApp permanecem disponíveis;
+- canonical continua apontando para a rota orgânica correspondente.
+
+---
+
+## 3. Landing page principal de implante
+
+Destino inicial:
+
+```text
+https://www.jpclinicaodontologica.com.br/implante-dentario
+```
+
+A primeira dobra deve responder rapidamente:
+
+- o que é: implantes dentários;
+- onde: Freguesia do Ó / Vila Bruna;
+- quem é a clínica;
+- prova social real;
+- como falar com a recepção;
+- que a indicação depende de avaliação individual.
+
+### CTA principal
+
+```text
+Agendar avaliação de implantes
+```
+
+O WhatsApp recebe o contexto do tratamento e, quando houver campanha, uma referência curta de atribuição.
+
+Exemplo:
+
+```text
+Ref.: IMP-G-A01
+```
+
+IDs brutos como `gclid` e `fbclid` não devem aparecer na mensagem enviada pelo paciente.
+
+---
+
+## 4. Atribuição já implementada no site
+
+A camada pública captura:
+
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+- `utm_content`
+- `utm_term`
+- `gclid`
+- `fbclid`
+- `gbraid`
+- `wbraid`
+- página de entrada
+
+A atribuição é mantida na sessão como **first-touch**.
+
+Navegar para outra página do site não apaga a campanha que trouxe a pessoa.
+
+### Exemplo de URL Google
+
+```text
 https://www.jpclinicaodontologica.com.br/implante-dentario?utm_source=google&utm_medium=cpc&utm_campaign=implante_search&utm_content=a01&utm_term={keyword}
 ```
 
-> **O que ela nunca guarda:** telefone, nome, e-mail, texto livre, nada de saúde
-> — e nem a querystring inteira, só os campos conhecidos, um a um. É a diferença
-> entre guardar "veio da campanha de implante" e guardar, sem querer, o telefone
-> que alguém pôs num parâmetro.
+### Exemplo Meta
 
-### E o CRC, quando estiver no ar
+```text
+https://www.jpclinicaodontologica.com.br/implante-dentario?utm_source=meta&utm_medium=cpc&utm_campaign=implante_meta&utm_content=video01
+```
 
-Com o CRC ativo, o formulário do site também grava o lead com a mesma atribuição
-no banco, e a tela **Investimento** passa a dar custo por paciente que
-compareceu. **Isso é um ganho, não um pré-requisito:** com o CRC fora, o
-endpoint responde 503, o formulário pede para tentar de novo ou ligar, e o botão
-de WhatsApp continua abrindo normalmente. Ver
-[crc/ATIVACAO-EM-PRODUCAO.md](crc/ATIVACAO-EM-PRODUCAO.md).
+### Padrão recomendado de nomes
+
+Use minúsculas, sem espaços e sem acentos.
+
+```text
+utm_source=google
+utm_medium=cpc
+utm_campaign=implante_freguesia_search
+utm_content=a01
+```
+
+Não use variações como:
+
+```text
+Implante Dentário
+implante-dentário
+Implante_Search
+```
+
+se a mesma campanha também aparece como:
+
+```text
+implante_dentario
+implante_search
+```
+
+Isso fragmenta relatórios.
 
 ---
 
-## 3. Os eventos que o site dispara
+## 5. Eventos válidos
 
-Todos já existem no código (`src/lib/analytics/eventos.ts` decide qual, e
-`components/site/RastreioDeContato.tsx` escuta). Você não precisa pedir para
-criar nenhum — precisa configurá-los no GTM e no Gerenciador da Meta.
+### Regra absoluta
 
-### A REGRA, e ela é curta
+**`generate_lead` é a única conversão primária desta fase.**
 
-**`generate_lead` é a ÚNICA conversão.** Não marque mais nada como conversão no
-Google Ads nem como evento de otimização na Meta. Tudo o mais nesta lista existe
-para ler o funil, não para o algoritmo aprender.
+| Evento | Uso | Conversão primária? |
+| --- | --- | --- |
+| `generate_lead` | agendamento/contato com intenção de avaliação | **SIM** |
+| `contact_click` | contato genérico | não |
+| `phone_click` | clique em telefone | não |
+| `treatment_view` | visualização de tratamento | não |
+| `form_start` | início do formulário | não |
+| `form_submit` | envio do formulário | não |
+| `map_click` | abertura do mapa | não |
+| `review_click` | avaliações | não |
+| eventos de carreira | recrutamento | não |
 
-| Evento no site   | Quando dispara                                            | Nas LPs? | Vira, na Meta | Conversão? |
-| ---------------- | --------------------------------------------------------- | -------- | ------------- | ---------- |
-| `generate_lead`  | CTA de WhatsApp pedindo avaliação, ou envio do formulário | **sim**  | `Lead`        | **SIM**    |
-| `contact_click`  | WhatsApp sem pedido de agendamento (dúvida)               | sim      | `Contact`     | não        |
-| `phone_click`    | clique no telefone                                        | sim      | `Contact`     | não        |
-| `treatment_view` | abriu página de tratamento — orgânica **ou LP**           | **sim**  | `ViewContent` | não        |
-| `form_start`     | começou a preencher o formulário                          | sim      | —             | não        |
-| `form_submit`    | enviou o formulário                                       | sim      | —             | não        |
-| `map_click`      | abriu o mapa                                              | sim      | —             | não        |
-| `review_click`   | abriu as avaliações no Google                             | sim      | —             | não        |
-| `career_view`    | abriu `/carreiras` ou uma vaga                            | —        | —             | não        |
-| `career_apply`   | clicou para se candidatar, e ao enviar                    | —        | —             | não        |
+### Eventos antigos
 
-**Mapa, avaliação e carreira ficam fora de propósito.** Mapa e avaliação são
-navegação, não intenção de marcar. Candidatura é gente procurando emprego —
-mandá-la como conversão ensinaria o algoritmo a buscar candidato, não paciente,
-e você pagaria por isso.
+Não configurar gatilhos, conversões ou públicos com:
 
-`form_submit` sai junto com `generate_lead` no envio do formulário, e é o único
-caso de dois eventos numa ação só. Um é leitura de funil, o outro é a conversão;
-**não marque `form_submit`**, ou o mesmo envio conta duas vezes.
+```text
+whatsapp_click
+schedule_click
+treatment_cta_click
+```
 
-### O que cada `generate_lead` carrega
+Esses nomes pertencem à semântica antiga e não devem ser usados.
+
+### Por que existe essa regra
+
+Antes, uma única ação podia representar múltiplos sinais de conversão e inflar o aprendizado das plataformas.
+
+Agora:
+
+```text
+1 clique de agendamento
+  = 1 generate_lead
+  = no máximo 1 Lead na Meta
+```
+
+`form_submit` pode existir junto de `generate_lead` apenas como leitura de funil. **Não transforme `form_submit` em conversão.**
+
+---
+
+## 6. Exemplo de evento
 
 ```json
 {
@@ -233,352 +242,563 @@ caso de dois eventos numa ação só. Um é leitura de funil, o outro é a conve
 }
 ```
 
-`treatment` é o mesmo slug nas duas URLs do procedimento — a orgânica e a de
-anúncio. É por ele que se agrupa o relatório, e não por `pagina`.
+### Privacidade
 
-`event_id` existe para o dia em que houver Conversion API: sem um identificador
-comum, a Meta contaria o evento do navegador e o do servidor como dois. Hoje
-ninguém o consome, e ele não atrapalha nada.
+Eventos de analytics não devem receber:
 
-### O defeito que existia aqui, e como ele custava dinheiro
+- nome;
+- telefone;
+- e-mail;
+- mensagem livre;
+- diagnóstico;
+- sintomas;
+- condição clínica;
+- texto de prontuário.
 
-> ⛔ **EVENTOS ANTIGOS / NÃO USAR.** Os três nomes citados nesta seção —
-> `whatsapp_click`, `schedule_click` e `treatment_cta_click` — **não existem
-> mais no código**. Não crie gatilho, conversão, público ou relatório com eles:
-> não vão disparar nunca. Estão aqui só para explicar por que a semântica atual é
-> o que é. A lista válida é a tabela acima.
-
-Até 15/09/2026, um clique em "Agendar avaliação" dentro de uma página de
-tratamento disparava **três** eventos: `whatsapp_click`, `schedule_click` e
-`treatment_cta_click`. Traduzidos para a Meta, viravam **um `Contact` e dois
-`Lead`**.
-
-Isso não era imprecisão de relatório. Era o Google Ads e a Meta aprendendo que
-aquele clique valeu três conversões e subindo o lance para comprar mais cliques
-iguais — a clínica pagando mais caro por uma contagem que ela mesma inflou.
-
-E a outra metade: `/implante-dentario` — a única rota que a clínica vai pagar
-para trazer gente — **não disparava `treatment_view`**, porque o ouvinte
-perguntava `pathname.startsWith("/tratamentos/")`. Medido em 14/09/2026, com o
-site rodando: o `dataLayer` da LP ficava vazio.
-
-Os dois estão corrigidos e cobertos por teste:
-
-- `src/lib/analytics/eventos.test.ts` — um clique, um evento. 21 casos.
-- `src/lib/analytics/rotas.test.ts` — as oito LPs reconhecidas. 19 casos.
-- `e2e/publico/trafego-pago.spec.ts` — o caminho inteiro no navegador, desktop e
-  celular. 24 casos por plataforma, incluindo a contagem de `generate_lead`
-  depois de um clique real.
+`treatment="implantes-dentarios"` descreve o contexto da página/campanha. Não é diagnóstico do visitante.
 
 ---
 
-## 4. Campanhas sugeridas
+## 7. GTM
 
-Estrutura enxuta: **um grupo de anúncios por tratamento**, porque cada um tem
-intenção e valor diferentes. Implante e prótese valem muito mais que limpeza.
+O site aceita:
 
-### Google Ads — Pesquisa
-
-| Grupo           | Palavras (correspondência de frase)                                   | Destino               |
-| --------------- | --------------------------------------------------------------------- | --------------------- |
-| Implante        | "implante dentário freguesia do ó", "implante dentário zona norte sp" | `/implante-dentario`  |
-| Ortodontia      | "aparelho nos dentes freguesia do ó", "ortodontista zona norte"       | `/ortodontia`         |
-| Odontopediatria | "dentista infantil freguesia do ó", "odontopediatra zona norte sp"    | `/odontopediatria`    |
-| Clareamento     | "clareamento dental freguesia do ó"                                   | `/clareamento-dental` |
-| Prótese         | "prótese dentária freguesia do ó", "dentadura fixa zona norte"        | `/protese-dentaria`   |
-| Marca           | "jp clínica odontológica", "jp clínica freguesia do ó"                | `/`                   |
-
-### Negativas desde o primeiro dia
-
-Estas economizam mais que qualquer ajuste de lance, e nenhuma delas tem chance
-de ser um paciente:
-
-```
-grátis · gratuito · sus · curso · faculdade · apostila
-emprego · vaga · salário · concurso
-como fazer · caseiro · DIY · passo a passo
+```text
+VITE_GTM_ID=GTM-XXXXXXX
 ```
 
-> **`emprego`, `vaga` e `salário` não são teoria.** O site tem portal de vagas
-> em `/carreiras`, e sem essas negativas você paga clique de gente procurando
-> trabalho.
+### Configuração
 
-### `preço` e `quanto custa` NÃO entram nessa lista
+1. Criar container Web no Google Tag Manager.
+2. Cadastrar `VITE_GTM_ID` na Vercel.
+3. Fazer novo deploy.
+4. Abrir GTM Preview.
+5. Confirmar os eventos do `dataLayer`.
 
-Esta orientação mudou, e vale explicar por quê: quem pesquisa **"quanto custa
-implante dentário"** está decidindo, não passeando. É uma das consultas de maior
-intenção comercial do setor — a pessoa já aceitou que vai fazer e está
-orçando.
-
-Negativar isso no primeiro dia é recusar, sem dado nenhum, o pesquisador mais
-perto de fechar.
-
-**O que fazer em vez disso:** deixe rodar, e decida pelo **relatório de termos de
-pesquisa** depois de 30 dias ou 20 contatos. Se `preço` trouxer contato que não
-agenda, negative _aquele termo específico_ — com número na mão.
-
-`barato` merece o mesmo tratamento, com uma ressalva: ele costuma sinalizar
-sensibilidade a preço que não combina com o ticket de implante. Analise
-separadamente, mas também **não bloqueie sem dado**.
-
-> **A regra geral:** negative o que não pode virar paciente (emprego, curso, SUS).
-> Não negative o que pode virar paciente caro (preço, valor, quanto custa,
-> parcelamento) só porque a palavra incomoda.
->
-> Cuidado com o outro lado: a página **não pode responder** a essa busca com
-> preço. A Resolução CFO 196/2019 veda preço como atrativo — ver a seção 5. Você
-> compra o clique de quem pergunta o preço e responde com avaliação, não com
-> tabela.
-
-**Extensões**: local (vinculando o Perfil da Empresa), chamada com o telefone
-da clínica, e sitelinks para os outros tratamentos.
-
-### Meta Ads
-
-Público de tráfego frio, **raio de 5 km** em volta da Vila Bruna — a clínica
-atende quem mora perto; anunciar para a cidade inteira é pagar por gente que
-não vai atravessar São Paulo.
-
-Público de remarketing: quem visitou uma LP e **não** disparou `generate_lead`
-em 30 dias. É o mais barato que existe, porque a pessoa já demonstrou interesse.
-
-> **Três limites, e eles não são burocracia.**
->
-> **Só alcança quem consentiu.** Sem aceite no aviso de cookies o Pixel não
-> envia evento, então o público de remarketing é menor que o total de visitas —
-> e isso é o correto, não um defeito de implementação.
->
-> **Nada de inferir condição clínica.** O `treatment` do evento diz de que
-> PÁGINA a pessoa veio, que é contexto de campanha. Ele não é, e não pode virar,
-> um diagnóstico: montar público de "pessoas que precisam de implante" ou
-> "pessoas sem dentes" é exatamente o que as políticas de saúde da Meta proíbem,
-> e é o tipo de coisa que derruba uma conta inteira.
->
-> **O anúncio de remarketing segue o CFO** igual ao resto — sem antes e depois,
-> sem promessa, sem preço como atrativo.
-
-Criativo: **foto real da clínica**. O site inteiro é fotografado na clínica, e
-banco de imagem genérico destoa do que a pessoa encontra ao clicar — o que
-derruba conversão exatamente como o descasamento de mensagem no Google.
+Não colocar IDs diretamente em componentes do React.
 
 ---
 
-## 5. O que a publicidade odontológica não permite
+## 8. GA4
 
-Isto não é recomendação de marketing. É a **Resolução CFO 196/2019**, e vale
-para o anúncio tanto quanto para o site.
+No GTM:
 
-**Não pode:**
+1. criar a Google Tag da propriedade GA4;
+2. configurar os eventos necessários;
+3. manter `generate_lead` como key event/conversão principal da aquisição;
+4. usar os demais eventos apenas para análise de funil.
 
-- **Antes e depois.** Vedado, inclusive em foto de anúncio.
-- **Preço, promoção, desconto, parcelamento** como atrativo.
-- **Promessa de resultado** — "sorriso perfeito", "resultado garantido".
-- **"Sem dor", "indolor"**.
-- **Superlativo sobre a clínica** — "a melhor", "a mais moderna", "referência".
-- **Sorteio, brinde ou concurso.**
+Dimensões úteis:
 
-**Pode, e é o que converte de verdade:** a especialidade, o endereço, o horário,
-a nota real do Google, o nome dos profissionais **com CRO**, a estrutura, e o
-convite para agendar uma avaliação.
-
-> Todo anúncio precisa trazer o nome da clínica e **o CRO da responsável
-> técnica**. Está em `src/lib/jp.ts`, em `RESPONSAVEL_TECNICA` — copie de lá, não
-> de memória.
+- `treatment`
+- `channel`
+- `origem`
+- `pagina`
+- `utm_source`
+- `utm_medium`
+- `utm_campaign`
+- `utm_content`
 
 ---
 
-## 6. O que olhar depois que rodar
+## 9. Google Ads
 
-Na primeira semana, **não mexa em lance.** Volume baixo faz qualquer número
-parecer tendência, e otimizar em cima de ruído piora.
+### Conversão
 
-### A hierarquia, de cima para baixo
+Criar uma ação de conversão para o lead digital e usar **somente `generate_lead` como primária**.
 
+Não marcar como primária:
+
+- `contact_click`;
+- `phone_click`;
+- `treatment_view`;
+- `form_submit`;
+- `page_view`.
+
+Ativar o auto-tagging para preservar `gclid`.
+
+### Primeira campanha
+
+Começar com Search de alta intenção para implante.
+
+Exemplos de termos iniciais em frase/exata:
+
+```text
+"implante dentário"
+"implante dentário freguesia do ó"
+"implante dentário zona norte sp"
+"dentista implante freguesia do ó"
+"clínica de implante dentário"
+"implante dentário perto de mim"
+"prótese sobre implante"
+"dentadura fixa"
+"protocolo dentário"
 ```
-generate_lead  ←  a métrica digital desta fase
-      ↓
-agendamento
-      ↓
-comparecimento
-      ↓
-paciente fechado
-      ↓
+
+Usar “especialista em implante” somente se existir profissional cuja especialidade/titulação possa ser comprovada.
+
+### Negativas iniciais
+
+```text
+grátis
+gratuito
+sus
+curso
+faculdade
+apostila
+emprego
+vaga
+salário
+concurso
+como fazer
+caseiro
+DIY
+passo a passo
+```
+
+### Não negativar automaticamente
+
+```text
+preço
+valor
+quanto custa
+parcelamento
+barato
+```
+
+Esses termos podem carregar intenção comercial real.
+
+A decisão deve vir de termos de pesquisa + geração de lead + comparecimento/fechamento.
+
+---
+
+## 10. Segmentação geográfica
+
+Começar local.
+
+Prioridade:
+
+- Freguesia do Ó;
+- Vila Bruna;
+- Pirituba;
+- Limão;
+- Brasilândia;
+- bairros próximos com deslocamento viável.
+
+Uma referência inicial de teste é aproximadamente 4–6 km da clínica, ajustada conforme dados reais de lead, comparecimento e fechamento.
+
+Não abrir São Paulo inteiro no início sem necessidade.
+
+---
+
+## 11. Meta / Instagram
+
+Para a primeira fase, priorizar:
+
+- geografia local;
+- criativos reais da clínica;
+- vídeos curtos da estrutura/equipe;
+- convite para avaliação;
+- WhatsApp humano.
+
+Evitar texto que atribua uma condição pessoal ao usuário.
+
+Ruim:
+
+```text
+Você perdeu dentes e está sofrendo para mastigar?
+```
+
+Preferível:
+
+```text
+Implantes dentários com planejamento individual na Freguesia do Ó.
+Converse com a equipe da JP para entender como funciona a avaliação.
+```
+
+---
+
+## 12. Remarketing e saúde — regra conservadora
+
+Implantes envolvem tratamento odontológico e procedimento invasivo. Para mídia, trate esse contexto como **saúde/sensível**.
+
+### Google Ads
+
+A política de publicidade personalizada do Google restringe públicos organizados pelo anunciante em categorias de interesse sensíveis de saúde.
+
+Portanto, **não crie segmento de dados/remarketing do Google baseado em pessoas que visitaram `/implante-dentario` ou outra página de tratamento**.
+
+Não usar, para esse fim:
+
+- Customer Match/lista de clientes;
+- “seus segmentos de dados” baseados em visita a tratamento;
+- públicos semelhantes/expansões que dependam desse sinal sensível.
+
+Pode-se trabalhar com recursos permitidos pelo Google, como intenção/contexto, localização e públicos predefinidos elegíveis, sempre revisando a política atual da conta antes de ativar.
+
+Fonte oficial:
+
+- https://support.google.com/adspolicy/answer/16701855?hl=pt-BR
+
+### Meta
+
+Não transforme visita a uma página de tratamento em afirmação de diagnóstico ou condição clínica.
+
+Na primeira fase, **não dependa de remarketing por página de tratamento**. Trabalhe com aquisição local ampla e intenção do anúncio. Qualquer estratégia de Custom Audience envolvendo comportamento em páginas clínicas deve ser validada contra a política vigente da Meta e a base legal aplicável antes de ser ativada.
+
+Essa cautela evita que a campanha dependa de um mecanismo de público que possa ser incompatível com dados de saúde/sensíveis.
+
+---
+
+## 13. Consentimento — implementação correta
+
+O site implementa Google Consent Mode v2 com estados iniciais negados e atualização após a escolha do visitante.
+
+Os sinais relevantes são:
+
+```text
+ad_storage
+ad_user_data
+ad_personalization
+analytics_storage
+```
+
+### Importante: é Consent Mode avançado
+
+Como a Google Tag/GTM pode carregar com consentimento padrão `denied`, a implementação é do tipo **advanced consent mode**.
+
+Quando armazenamento é negado:
+
+- cookies de publicidade/analytics não são gravados/lidos de acordo com o sinal negado;
+- personalização fica desativada quando `ad_personalization=denied`;
+- dados pessoais para publicidade ficam desativados quando `ad_user_data=denied`;
+- tags compatíveis podem enviar **pings/medições sem cookies** para modelagem.
+
+Portanto, não documentar como “quem recusa não é medido de forma alguma”.
+
+A formulação correta é:
+
+> Quem recusa não recebe cookies de publicidade/analytics nem entra em personalização/remarketing permitido pelo consentimento; tags Google compatíveis podem enviar sinais sem cookies para modelagem agregada, conforme o Consent Mode avançado.
+
+O WhatsApp deve continuar funcionando independentemente da escolha de consentimento.
+
+Fontes oficiais:
+
+- https://developers.google.com/tag-platform/security/concepts/consent-mode
+- https://support.google.com/tagmanager/answer/13802165
+
+---
+
+## 14. Meta Pixel
+
+O site aceita:
+
+```text
+VITE_META_PIXEL_ID=123456789012345
+```
+
+Configurar o Pixel e validar no Gerenciador de Eventos.
+
+Mapeamento esperado:
+
+```text
+generate_lead  → Lead
+contact_click   → Contact
+treatment_view  → ViewContent
+```
+
+### Regra
+
+Um CTA primário de agendamento não deve gerar simultaneamente:
+
+```text
+Lead + Lead
+```
+
+nem:
+
+```text
+Contact + Lead
+```
+
+como se fossem duas conversões primárias.
+
+---
+
+## 15. `event_id` e CAPI futura
+
+Os eventos já carregam `event_id` para permitir deduplicação futura entre navegador e servidor.
+
+Quando Conversion API for implementada:
+
+```text
+browser event_id = servidor event_id
+```
+
+A CAPI não deve ser adicionada apenas para “mandar tudo de novo”. Sem deduplicação, o mesmo lead pode ser contado duas vezes.
+
+---
+
+## 16. WhatsApp
+
+A campanha inicial usa recepção humana.
+
+Não existe exigência de chatbot para começar.
+
+O contexto enviado ao WhatsApp deve informar o tratamento de origem, por exemplo:
+
+```text
+Olá! Vim pelo site da JP e gostaria de agendar uma avaliação de implantes.
+Ref.: IMP-G-A01
+```
+
+A referência curta ajuda a operação sem expor IDs técnicos ao paciente.
+
+---
+
+## 17. Métricas
+
+Não otimizar olhando CPC isoladamente.
+
+Hierarquia de negócio:
+
+```text
 receita
+  ↑
+paciente fechado
+  ↑
+comparecimento
+  ↑
+agendamento
+  ↑
+generate_lead
+  ↑
+visualização da LP
+  ↑
+clique
 ```
 
-**Nesta fase, sem CRC operacional, a métrica principal é o custo por
-`generate_lead`** — em linguagem de negócio, **custo por contato qualificado de
-WhatsApp**. Os três degraus abaixo dele existem na recepção, não no painel.
+### Enquanto o CRC não estiver operacional
 
-| Métrica                            | Onde                  | O que significa                                |
-| ---------------------------------- | --------------------- | ---------------------------------------------- |
-| **Custo por `generate_lead`**      | Google Ads / Meta     | **o número que decide se a campanha continua** |
-| `generate_lead` por `treatment`    | GA4 → Eventos         | qual procedimento puxa contato                 |
-| `generate_lead` por `utm_campaign` | GA4 → Eventos         | qual campanha puxa contato                     |
-| `treatment_view` → `generate_lead` | GA4 → Eventos         | a taxa de conversão da landing                 |
-| Termos de pesquisa                 | Google Ads → Termos   | de onde saem as próximas negativas             |
-| Índice de Qualidade                | Google Ads → Palavras | abaixo de 7, revise a correspondência da LP    |
+Principal métrica digital:
 
-**Agrupe por `treatment`, não por `pagina`.** As duas URLs do mesmo procedimento
-— `/implante-dentario` e `/tratamentos/implantes-dentarios` — produzem o MESMO
-valor, `implantes-dentarios`. É isso que impede o relatório de rachar em duas
-linhas para o mesmo tratamento só porque metade do tráfego veio pago.
+```text
+custo por generate_lead
+```
 
-`pagina` continua no evento e serve para separar **pago de orgânico** dentro do
-mesmo tratamento, que é outra pergunta.
+A recepção precisa registrar manualmente:
+
+- origem/ref.;
+- tratamento;
+- agendou?;
+- compareceu?;
+- fechou?;
+- receita, quando aplicável.
 
 ### Quando o CRC entrar
 
-Aí a conta passa a fechar sozinha, e a métrica sobe um degrau:
+Subir a otimização para:
 
-```
-Custo por paciente comparecido
-Custo por paciente fechado
+```text
+custo por comparecimento
+custo por paciente fechado
 CAC
-Receita
+receita
 ROAS real
 ```
 
-### O número que importa tem tela própria agora
+---
 
-Ele não está no GA4 nem no Gerenciador: é **quantas pessoas sentaram na
-cadeira**. Quem responde isso é a tela **Investimento** do CRC, que junta as duas
-metades — a atribuição que o site já captura de cada lead e o gasto que alguém
-precisa lançar lá, por mês, campanha e canal.
+## 18. Operação da recepção
 
-A conta que ela entrega em destaque é **custo por paciente que compareceu**, e
-não custo por lead, porque só a primeira enxerga a diferença entre um anúncio que
-traz cem contatos baratos e nenhum comparecimento e um que traz dez caros e cinco
-na cadeira.
+A mídia perde valor se ninguém responder rápido.
 
-Duas honestidades que a tela mantém, e que você vai precisar explicar para quem
-ler o relatório:
+Antes de aumentar orçamento, definir:
 
-- **Sem gasto lançado, ela não inventa custo.** Mostra "—", não R$ 0,00 — um
-  custo por paciente calculado sobre investimento zero é a leitura mais perigosa
-  possível.
-- **O corte é por mês de chegada do lead.** Quem chegou em março e compareceu em
-  abril conta em março. É a única regra que não muda de resposta dependendo de
-  quando se olha, e o rateio por campanha é chamado de estimativa na própria tela.
+- quem atende o WhatsApp;
+- horário de cobertura;
+- tempo-alvo de primeira resposta;
+- como identificar a referência da campanha;
+- como registrar agendamento;
+- como registrar comparecimento;
+- como registrar fechamento.
 
-Continue perguntando na recepção como a pessoa chegou, e cruze com o painel.
-Clique não é paciente — mas agora há onde comparar os dois.
+No começo, não é necessário automatizar isso.
 
 ---
 
-## 7. O que já está pronto no código
+## 19. Publicidade odontológica
 
-Nada desta lista precisa de você. Está no ar desde 15/09/2026, coberto por 58
-testes de unidade e 48 E2E que rodam no CI a cada push.
+Usar comunicação informativa, verificável e prudente.
 
-| Pronto                                       | O quê                                                                                |
-| -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **8 landing pages de anúncio**               | uma por tratamento, com `canonical` para a orgânica                                  |
-| **Modo anúncio**                             | H1 com procedimento + bairro, CTA específico, sem cross-sell e sem navegação de fuga |
-| **UTM**                                      | `source`, `medium`, `campaign`, `content`, `term`                                    |
-| **`gclid` · `fbclid` · `gbraid` · `wbraid`** | capturados e guardados pela sessão                                                   |
-| **Atribuição first-touch**                   | a campanha da primeira entrada não é apagada por navegação interna                   |
-| **Referência de campanha**                   | `Ref.: IMP-G-A01` na mensagem do WhatsApp, para a recepção                           |
-| **`generate_lead`**                          | a conversão única, com tratamento, canal e campanha juntos                           |
-| **Tradução para a Meta**                     | `Lead`, `Contact`, `ViewContent` — um evento por ação                                |
-| **`event_id`**                               | o gancho de deduplicação para uma Conversion API futura (server-side)                |
-| **Consentimento**                            | Consent Mode v2, banner, e revisão pelo rodapé                                       |
-| **GTM e Pixel**                              | opcionais, por variável de ambiente, validados antes de entrar no `<script>`         |
-| **E2E do funil pago**                        | desktop e celular, sem banco, sem CRC e sem container                                |
+Evitar:
 
----
+- promessa de resultado;
+- “resultado garantido”;
+- “sem dor” / “indolor”;
+- “melhor clínica” / “a mais moderna”;
+- preço como chamariz;
+- promoções agressivas;
+- antes/depois da clínica como mecanismo de anúncio sem revisão específica das regras aplicáveis;
+- profissional, CRO ou especialidade inventados.
 
-## 8. O que Felipe ainda precisa configurar
+Pode usar:
 
-Tudo abaixo exige conta, credencial ou decisão comercial. **Nada exige código.**
-O detalhe de cada painel está na [seção 2](#2-como-instalar-cada-container--o-passo-a-passo);
-aqui é a ordem e o que marcar.
+- endereço;
+- horário;
+- estrutura real;
+- avaliações reais;
+- tempo de atuação correto;
+- profissionais reais e identificados;
+- convite para avaliação individual.
 
-### A sequência que liga a medição
+O site mantém a responsável técnica em `src/lib/jp.ts`.
 
-1. [ ] Criar o container do **Google Tag Manager**
-2. [ ] Criar a propriedade do **GA4**
-3. [ ] **Vincular o GA4 ao Google Ads** (Ferramentas → Contas vinculadas)
-4. [ ] Criar a ação de conversão e marcar **somente `generate_lead`** como primária
-5. [ ] Ligar o **tagueamento automático** no Google Ads (é o que traz o `gclid`)
-6. [ ] Criar o **Pixel da Meta**
-7. [ ] Cadastrar `VITE_GTM_ID` e `VITE_META_PIXEL_ID` na **Vercel**
-8. [ ] **Fazer um novo deploy** — sem rebuild as variáveis não existem no site
-9. [ ] Testar no **GTM Preview**
-10. [ ] Testar no **GA4 DebugView**
-11. [ ] Testar no **Gerenciador de Eventos da Meta**
-
-> Para os passos 9 a 11, use a URL de campanha da seção 1 e clique no CTA uma
-> vez. O esperado é **um** `generate_lead` e **um** `Lead` — nunca dois, nunca um
-> `Contact` junto.
-
-### As decisões que não são técnicas
-
-- [ ] **Definir o orçamento diário.** Abaixo de ~R$ 3.000/mês o lance automático
-      do Google fica sem as 15 a 30 conversões/mês de que precisa para aprender.
-- [ ] **Combinar quem responde o WhatsApp, e em quanto tempo.** É o maior fator
-      isolado de conversão desta operação, e custa zero de mídia.
-- [ ] **Rodar o anúncio só no horário da recepção.** Contato que espera não vira
-      paciente, e o clique foi pago igual.
-- [ ] **Confirmar o profissional responsável por implantes** — nome, CRO
-      conferido e retrato. O repositório não tem esse dado, e a LP não nomeia
-      ninguém de propósito: inventar registro é infração à Resolução CFO
-      196/2019.
-- [ ] **Vincular o site ao Perfil da Empresa no Google** — hoje a ficha mostra
-      "Adicionar website". É tráfego local, gratuito e qualificado sendo perdido,
-      e é o de maior retorno desta lista inteira.
-- [ ] **Corrigir "Há 25 anos" na ficha do Google** — a clínica confirmou em
-      11/09/2026 que são **24**, fundada em 17/08/2002. O site já diz 24.
-- [ ] **Conferir "8 especialistas" na mesma ficha** — o site publica **4
-      dentistas**, todos com CROSP conferido. Ou faltam profissionais no site,
-      ou o texto da ficha precisa mudar.
-- [ ] **Padronizar as UTMs antes da primeira campanha** — `utm_source=google` ou
-      `meta`, `utm_medium=cpc`, `utm_campaign=<tratamento>-<bairro>`. Maiúsculas
-      e espaços o CRC resolve sozinho; **acento, não** — `implante-dentário` e
-      `implante-dentario` viram duas linhas no relatório.
+Não inventar profissional responsável por implantes. Só publicar nome, CRO, foto e qualificação depois de confirmação documental.
 
 ---
 
-## 9. O CRC não é pré-requisito
+## 20. O que já está protegido pelo CI
 
-Vale repetir porque é a pergunta que mais trava projeto de tráfego:
+O workflow de qualidade executa, entre outras verificações:
 
-> **CRC NÃO É PRÉ-REQUISITO PARA COMEÇAR GOOGLE ADS OU META ADS.**
+- lint;
+- typecheck;
+- testes de unidade;
+- build de produção;
+- varredura do bundle;
+- Playwright público;
+- E2E de tráfego pago em desktop e mobile.
 
-O fluxo da primeira fase é inteiro sem ele:
+A suíte pública cobre o caminho real da aquisição sem exigir banco, CRC, GTM ou Pixel.
 
+Ela verifica, entre outros:
+
+- SSR da LP;
+- H1 de anúncio;
+- contexto do implante;
+- localização;
+- prova social;
+- ausência de cross-sell na LP paga;
+- ausência da navegação desktop da home;
+- ausência dos links de fuga também no menu móvel pago;
+- preservação de telefone e WhatsApp;
+- UTM + `gclid`;
+- first-touch;
+- referência curta no WhatsApp;
+- ausência de IDs brutos na mensagem;
+- um único `generate_lead` por ação;
+- `treatment_view` na rota paga;
+- ausência de PII no evento;
+- funcionamento com consentimento recusado;
+- funcionamento sem CRC;
+- as oito rotas pagas.
+
+**Não colocar números fixos de testes neste documento.** A suíte cresce e o CI é a fonte atual do total.
+
+---
+
+## 21. Checklist antes de gastar o primeiro real
+
+### Site
+
+- [x] LP de implante dedicada
+- [x] modo anúncio
+- [x] CTA específico
+- [x] tracking sem dupla contagem
+- [x] atribuição UTM/click IDs
+- [x] consentimento
+- [x] funcionamento sem CRC
+- [x] E2E desktop/mobile no CI
+- [x] menu mobile pago sem links de fuga
+
+### Google
+
+- [ ] criar GTM
+- [ ] criar GA4
+- [ ] cadastrar `VITE_GTM_ID`
+- [ ] vincular GA4 e Google Ads
+- [ ] ativar auto-tagging
+- [ ] configurar somente `generate_lead` como conversão primária
+- [ ] validar no GTM Preview
+- [ ] validar no GA4 DebugView
+- [ ] criar campanha Search de implante
+- [ ] configurar negativas iniciais
+- [ ] revisar termos de pesquisa continuamente
+- [ ] não criar remarketing Google baseado em visita a páginas de tratamento
+
+### Meta
+
+- [ ] criar Pixel
+- [ ] cadastrar `VITE_META_PIXEL_ID`
+- [ ] validar `Lead` no Gerenciador de Eventos
+- [ ] começar por aquisição local ampla/WhatsApp
+- [ ] revisar qualquer Custom Audience clínica contra a política vigente antes de ativar
+
+### Clínica
+
+- [ ] confirmar profissional responsável por implantes, se for publicado
+- [ ] definir orçamento
+- [ ] definir responsável pelo WhatsApp
+- [ ] definir SLA de resposta
+- [ ] registrar agendamento, comparecimento e fechamento
+- [ ] manter dados do Perfil da Empresa consistentes com o site
+
+---
+
+## 22. Prioridade de lançamento
+
+Se o orçamento ainda é limitado, não pulverizar em oito tratamentos.
+
+Começar por:
+
+```text
+1. Google Search — Implantes
+2. Meta/Instagram — Implantes / WhatsApp
+3. Ajuste de LP, termos e criativos com dados reais
+4. Prótese como segunda frente
+5. Outros tratamentos depois
 ```
-Google Ads  →  LP de implante  →  WhatsApp  →  recepção humana
-Instagram   →  WhatsApp  (ou  →  LP  →  WhatsApp)
+
+Implante é o produto principal de aquisição desta fase.
+
+---
+
+## 23. Arquivos importantes
+
+```text
+src/components/site/PaginaDeTratamento.tsx
+src/components/site/Header.tsx
+src/components/site/FloatingCTA.tsx
+src/components/site/RastreioDeContato.tsx
+src/components/site/useContatoWhatsApp.ts
+src/lib/analytics/eventos.ts
+src/lib/analytics/atribuicao.ts
+src/lib/analytics/rotas.ts
+src/lib/contato.ts
+src/lib/jp.ts
+src/lib/seo.ts
+e2e/publico/trafego-pago.spec.ts
+e2e/publico/lp-mobile-enxuta.spec.ts
+.github/workflows/quality.yml
 ```
 
-A atribuição chega à recepção pela `Ref.:` dentro da mensagem, e a medição
-digital chega ao Google e à Meta pelo `generate_lead`. Nenhum dos dois caminhos
-passa pelo CRC.
+---
 
-**Verificado, não suposto:** a suíte `npm run e2e:site` sobe um servidor sem
-Postgres, sem CRC, sem GTM e sem Pixel, e prova que o CTA de WhatsApp continua
-funcionando — inclusive com o consentimento recusado. Ela roda no CI a cada push.
+## 24. Regra final
 
-Quando o CRC entrar, ele **acrescenta** o outro lado da conta (comparecimento,
-fechamento, custo por paciente). Não substitui nada do que está acima.
+A campanha não deve ser julgada por “quantos cliques baratos conseguiu”.
+
+Ela deve caminhar para responder:
+
+```text
+Quanto custou colocar um paciente de implante na cadeira?
+Quanto custou fechar um paciente?
+Quanto de receita voltou por real investido?
+```
+
+Até essa maturidade chegar, `generate_lead` é o proxy digital — não o objetivo final do negócio.
 
 ---
 
-## Onde mais olhar
-
-- [README.md](../README.md) — arquitetura, rotas, SEO, decisões do projeto
-- [DESIGN.md](../DESIGN.md) — o sistema visual e as regras de acessibilidade
-- `src/lib/contato.ts` — as mensagens de WhatsApp e a tradução dos eventos
-- `src/components/site/RastreioDeContato.tsx` — **quando** cada evento dispara
-- `src/lib/crc/aplicacao/leads.ts` — a leitura de UTM, `gclid` e `fbclid`
-- `src/lib/crc/aplicacao/investimento.ts` — a conta de custo por paciente
-- `src/lib/jp.ts` — telefone, endereço, CRO, horário: a fonte de tudo
-
----
-
-_Conferido contra o código em 14/09/2026. O que mudou desde a versão anterior: a
-tabela de eventos passou a dizer quais deles não disparam nas LPs (medido), a
-atribuição de lead por UTM/`gclid`/`fbclid` entrou como algo que já funciona sem
-container nenhum, o custo por paciente ganhou tela no CRC, e o site publica
-4 dentistas, não 6._
+_Última revisão técnica: 15/09/2026. Conferido contra a arquitetura atual do repositório e políticas oficiais do Google consultadas na mesma data._
