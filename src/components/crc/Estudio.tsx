@@ -139,6 +139,7 @@ export function Estudio() {
                 },
               );
             }}
+            variante="primario"
           >
             Salvar rascunho
           </Botao>

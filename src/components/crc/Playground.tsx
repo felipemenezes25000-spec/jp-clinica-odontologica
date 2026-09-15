@@ -184,6 +184,14 @@ export function Playground() {
 
             <Botao
               onClick={rodar}
+              variante="primario"
+              title={
+                conversaId.length === 0
+                  ? "Escolha uma conversa antes de rodar o turno."
+                  : mensagem.trim().length === 0
+                    ? "Escreva a mensagem do paciente para o agente responder."
+                    : undefined
+              }
               disabled={acao.rodando || mensagem.trim().length === 0 || conversaId.length === 0}
             >
               <Play size={14} /> {acao.rodando ? "Rodando…" : "Rodar o turno"}

@@ -779,8 +779,24 @@
   color: var(--crc-texto-2);
 }
 
+/*
+ * ==========================================================================
+ *  `.crc-app select` ENTROU AQUI PORQUE A CLASSE SOZINHA NÃO PEGAVA NINGUÉM.
+ *
+ *  `.crc-selecao` existia neste arquivo desde sempre, estilizada lado a lado
+ *  com o campo de texto — e uma varredura pelos 25 `<select>` do CRC achou
+ *  ZERO usando a classe. Eles eram controles nativos crus, em Autonomia,
+ *  Equipe, Configurações, Campanhas, Funil, Metas e mais seis telas: altura
+ *  diferente do campo ao lado, borda do sistema operacional, fonte do sistema.
+ *
+ *  Marcar os 25 à mão consertaria os 25 de hoje. O seletor de elemento
+ *  conserta também o vigésimo sexto, que alguém vai escrever na semana que vem
+ *  sem saber que a classe existe.
+ * ==========================================================================
+ */
 .crc-app .crc-entrada,
 .crc-app .crc-selecao,
+.crc-app select,
 .crc-app .crc-area {
   width: 100%;
   background: var(--crc-superficie);
@@ -808,10 +824,53 @@
 
 .crc-app .crc-entrada:focus,
 .crc-app .crc-selecao:focus,
+.crc-app select:focus,
 .crc-app .crc-area:focus {
   outline: none;
   border-color: var(--crc-primaria);
   box-shadow: 0 0 0 3px var(--crc-primaria-suave);
+}
+
+/*
+ * O acabamento que só o select precisa.
+ *
+ * A SETA É DESENHADA AQUI porque `appearance: none` apaga a nativa — e sem
+ * desenhar outra o controle vira uma caixa de texto que não se pode digitar.
+ * `background-image` em vez de um ícone em JSX: o seletor pega os 25 de uma
+ * vez, e um elemento a mais dentro do rótulo estragaria o clique do label.
+ */
+.crc-app select {
+  appearance: none;
+  cursor: pointer;
+  /* Espaço para a seta, e não só padding: sem isto o texto da opção mais longa
+     passa por baixo dela. */
+  padding-right: calc(var(--crc-e3) * 2 + 10px);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    right calc(var(--crc-e3) + 5px) center,
+    right var(--crc-e3) center;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+}
+
+.crc-app select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/*
+ * A LISTA ABERTA CONTINUA NATIVA, de propósito. Trocar o `<select>` por um
+ * `listbox` de JavaScript custaria o teclado, o leitor de tela, a busca por
+ * digitação e a roda nativa do celular — e devolveria aparência. A troca não
+ * compensa num sistema que a recepção usa no telefone.
+ */
+.crc-app select option {
+  color: var(--crc-texto);
+  background: var(--crc-superficie);
 }
 
 .crc-app .crc-entrada::placeholder,

@@ -132,6 +132,21 @@ export function Avaliacao() {
 
         <div className="crc-linha" style={{ marginTop: "var(--crc-e4)", gap: "var(--crc-e3)" }}>
           <Botao
+            variante="primario"
+            /*
+             * O PORQUÊ DO BOTÃO APAGADO.
+             *
+             * Ele ficava desabilitado por dois motivos legítimos — sem provedor
+             * de IA, ou sem caso escrito — e não dizia nenhum dos dois. Quem
+             * chegava na tela via um botão morto e ia procurar defeito.
+             */
+            title={
+              !painel.provedorConfigurado
+                ? "Configure um provedor de IA em Integrações para rodar a prova."
+                : painel.casos.length === 0
+                  ? "Escreva ao menos um caso de prova antes de rodar."
+                  : undefined
+            }
             disabled={acao.rodando || !painel.provedorConfigurado || painel.casos.length === 0}
             onClick={() => {
               void acao.executar(

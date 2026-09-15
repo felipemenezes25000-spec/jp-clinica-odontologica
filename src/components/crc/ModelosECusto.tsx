@@ -300,6 +300,7 @@ function FormularioDeOrcamento({
 
       <div className="crc-linha" style={{ marginTop: "var(--crc-e4)" }}>
         <Botao
+          variante="primario"
           disabled={rodando}
           onClick={() => {
             aoSalvar({ tetoDiaReais: numero(dia), tetoMesReais: numero(mes), abrirCaso });
