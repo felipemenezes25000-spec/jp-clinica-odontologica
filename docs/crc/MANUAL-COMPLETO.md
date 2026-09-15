@@ -1352,13 +1352,29 @@ E os interruptores de emergência, e o rollback.
 
 ### Dental Office
 
+As quatro primeiras são pedidas por e-mail — o texto pronto está em
+[`EMAIL-DENTAL-OFFICE.md`](EMAIL-DENTAL-OFFICE.md).
+
 | Variável                  | Estado                             |
 | ------------------------- | ---------------------------------- |
 | `DENTAL_OFFICE_BASE_URL`  | ⏳ pendente                        |
 | `DENTAL_OFFICE_CLIENT_ID` | ⏳ pendente                        |
 | `DENTAL_OFFICE_SECRET`    | ⏳ pendente                        |
-| `DENTAL_OFFICE_CLINIC_ID` | opcional                           |
+| `DENTAL_OFFICE_CLINIC_ID` | ⏳ pendente — **não é opcional**   |
 | `DENTAL_OFFICE_SANDBOX`   | `1` para usar o adapter de exemplo |
+
+> [!WARNING]
+> Esta tabela marcava `DENTAL_OFFICE_CLINIC_ID` como **opcional**. Não é.
+>
+> Ele é parâmetro de caminho em `/clinics/{clinic_id}/schedules`, e sem ele
+> `listarAgendamentos` lança na hora — `"DENTAL_OFFICE_CLINIC_ID ausente."`. Ou
+> seja: sem essa variável, a autenticação funciona, a lista de pacientes
+> funciona, e **a agenda inteira não** — que é a metade da qual dependem falta,
+> cancelamento, confirmação e agendamento automático.
+>
+> Pior: nenhum endpoint da API lista as clínicas da conta, então o valor não tem
+> como ser descoberto. Ele precisa vir junto da credencial, e é por isso que
+> está pedido explicitamente no e-mail.
 
 ### WhatsApp
 

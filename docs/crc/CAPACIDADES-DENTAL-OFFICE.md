@@ -227,3 +227,7 @@ Nada deve ser implementado contra um endpoint que não esteja nos arquivos de
 
 Foi exatamente por deduzir que o adapter nasceu falando com uma API que não
 existe, e passou em 378 testes fazendo isso.
+
+As perguntas que hoje estão de pé com eles — dezessete, cada uma ligada ao trecho de
+código que depende da resposta — estão em
+[`EMAIL-DENTAL-OFFICE.md`](EMAIL-DENTAL-OFFICE.md), prontas para enviar.

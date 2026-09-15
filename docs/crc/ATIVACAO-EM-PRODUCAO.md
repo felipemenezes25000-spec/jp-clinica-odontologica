@@ -200,6 +200,17 @@ A duplicação é atrito de propósito.
 
 ## 8. Dental Office
 
+**Antes de qualquer passo: a credencial precisa ser pedida.** O corpo do e-mail
+está pronto em [`EMAIL-DENTAL-OFFICE.md`](EMAIL-DENTAL-OFFICE.md), endereçado a
+api@dentaloffice.com.br, com [`Perguntas-Dental-Office.pdf`](Perguntas-Dental-Office.pdf)
+em anexo. Ele pede os quatro valores — incluindo o **`clinic_id`**, que não tem
+como ser descoberto pela API, porque nenhum endpoint lista as clínicas da conta
+— e as dezessete dúvidas de contrato que a especificação pública não responde.
+
+A JP tem **uma** unidade, então é um `clinic_id` só. O sistema suporta mais de
+uma (`crc_integracoes_clinica`, uma linha por clínica), e é disso que fala a
+tabela de grão logo abaixo — não do estado de hoje.
+
 1. `DENTAL_OFFICE_BASE_URL`, `_CLIENT_ID`, `_SECRET` (ou a linha em
    `crc_integracoes_clinica`);
 2. **Integrações → Testar conexão** — autentica e faz um GET pequeno, nunca

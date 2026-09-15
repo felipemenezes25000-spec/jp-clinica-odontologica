@@ -16,6 +16,11 @@
 > orçamento nem webhooks. Existir no produto Dental Office não é existir na
 > API, e foi por confundir os dois que o adapter nasceu falando com endpoints
 > que não existem.
+>
+> E o que **nem a especificação responde** — o período do rate limit, quem
+> traduz `customer_situation_id` e `dental_insurance_id`, se `per_page` vale nos
+> dois endpoints que paginamos em volume — está em
+> [EMAIL-DENTAL-OFFICE](EMAIL-DENTAL-OFFICE.md), pronto para perguntar.
 
 O Dental Office continua sendo o sistema clínico. O JP CRC transforma o que
 acontece lá — faltas, cancelamentos, silêncios longos — em **oportunidades**,

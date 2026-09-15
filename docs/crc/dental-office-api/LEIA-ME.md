@@ -42,6 +42,20 @@ São **59 operações**, sendo **33 de escrita**.
 **1. A URL base já termina em `/v1`.** Ela é exclusiva por cliente e vem por
 e-mail. Concatenar `/v1` no código produz `/v1/v1/...` e 404 em tudo.
 
+> [!WARNING]
+> **Esta regra já foi quebrada uma vez, e em silêncio.** `cliente.ts` a
+> respeitava; `auth.ts` não, e montava `/v1/v1/auth/tokens`. Como autenticar é a
+> PRIMEIRA chamada de qualquer fluxo, a integração inteira morreria no primeiro
+> passo, no primeiro dia — sem chegar a tentar nada.
+>
+> Nenhum teste viu: o bloco que confere `/v1/v1` olha a "última chamada de
+> negócio", que exclui `/auth/tokens` por construção, e o teste que olhava a
+> autenticação conferia método e corpo, nunca a URL.
+>
+> A regra agora é **uma função só** — [`base-url.ts`](../../../src/lib/crc/integracoes/dental-office/base-url.ts) —
+> usada pelos dois arquivos, porque duas cópias da mesma regra é exatamente como
+> uma delas fica para trás. Quem for montar URL nova: chame `raizDaApi()`.
+
 **2. O verbo de atualização varia por recurso.** Conferido um a um:
 
 | `PUT`                                     | `PATCH`                                                         |
@@ -66,6 +80,29 @@ webhooks**. O produto Dental Office tem tudo isso; a API pública v1.0, não.
 Existir no produto não é existir no contrato — e nada deve ser implementado
 contra um endpoint que não esteja nestes arquivos. Se surgir a necessidade, o
 caminho é perguntar a **api@dentaloffice.com.br**, não deduzir.
+
+## O que a especificação não responde
+
+Coisas que a leitura destes arquivos **não** resolve, e que dependem do suporte
+deles. As doze estão escritas, com o trecho de código que depende de cada uma,
+em [`../EMAIL-DENTAL-OFFICE.md`](../EMAIL-DENTAL-OFFICE.md).
+
+As três que mais custam:
+
+**O período do rate limit.** A introdução diz "limite de **5.000 requisições**
+por período" e nunca diz qual é o período. Não há `RateLimit-Reset`. Por hora é
+folga larga; por dia cabe apertado; por mês inviabiliza sincronização frequente.
+
+**`per_page` nos dois endpoints que importam.** A introdução manda usar `page` e
+`per_page`, mas a lista de parâmetros só declara `per_page` em
+`customer-evolutions`, `disciplines`, `schedule-reasons` e `schedule-situations`
+— **não** em `/customers` nem em `/clinics/{id}/schedules`, que são os dois que
+o CRC pagina em volume. Se ele for ignorado ali, o tamanho de página é o que o
+servidor decidir, e a conta de requisições muda.
+
+**Quem lista as situações de paciente e os convênios.** `customer_situation_id`
+e `dental_insurance_id` vêm como número, e não há endpoint que traduza nenhum
+dos dois.
 
 ## Documentação antiga
 

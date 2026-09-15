@@ -174,18 +174,29 @@ sugerirem um controle que não existe.
 
 Nenhuma delas depende de programação.
 
-| O que falta                                                                    | Quem resolve                                         | O que destrava                                                                                                                                     |
-| ------------------------------------------------------------------------------ | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rodar `02-crc-schema.sql`, `03-crc-cobranca.sql`, `04-crc-visoes.sql`          | Você, no SQL Editor                                  | **Tudo.** É o único passo manual.                                                                                                                  |
-| `DENTAL_OFFICE_BASE_URL` / `CLIENT_ID` / `SECRET` / **`CLINIC_ID`**            | Dental Office (**exige plano Avançado ou Completo**) | Sincronização real, agenda, agendamento                                                                                                            |
-| Twilio (`TWILIO_ACCOUNT_SID`, `AUTH_TOKEN`, `WHATSAPP_FROM`) **ou** Meta Cloud | Contratação                                          | Envio e recebimento reais                                                                                                                          |
-| Aprovação de templates                                                         | Meta (mesmo via Twilio)                              | Mensagem fora da janela de 24h                                                                                                                     |
-| Exportação de orçamentos e de parcelas em aberto                               | Você, no sistema da clínica                          | A tela **Importar** já existe e aceita o CSV                                                                                                       |
-| Integração financeira                                                          | Dental Office                                        | Trocar "valor potencial" por receita conciliada. **A API v1.0 não expõe financeiro** — está fora do contrato público, não é questão de credencial. |
+| O que falta                                                                    | Quem resolve                                                                 | O que destrava                                                                                                                                     |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rodar `02-crc-schema.sql`, `03-crc-cobranca.sql`, `04-crc-visoes.sql`          | Você, no SQL Editor                                                          | **Tudo.** É o único passo manual.                                                                                                                  |
+| `DENTAL_OFFICE_BASE_URL` / `CLIENT_ID` / `SECRET` / **`CLINIC_ID`**            | Dental Office — [pedir com `EMAIL-DENTAL-OFFICE.md`](EMAIL-DENTAL-OFFICE.md) | Sincronização real, agenda, agendamento                                                                                                            |
+| Twilio (`TWILIO_ACCOUNT_SID`, `AUTH_TOKEN`, `WHATSAPP_FROM`) **ou** Meta Cloud | Contratação                                                                  | Envio e recebimento reais                                                                                                                          |
+| Aprovação de templates                                                         | Meta (mesmo via Twilio)                                                      | Mensagem fora da janela de 24h                                                                                                                     |
+| Exportação de orçamentos e de parcelas em aberto                               | Você, no sistema da clínica                                                  | A tela **Importar** já existe e aceita o CSV                                                                                                       |
+| Integração financeira                                                          | Dental Office                                                                | Trocar "valor potencial" por receita conciliada. **A API v1.0 não expõe financeiro** — está fora do contrato público, não é questão de credencial. |
 
 O provedor de WhatsApp é escolhido por `WHATSAPP_PROVEDOR=twilio|meta`. Os dois
 adapters existem atrás da mesma porta; trocar de um para o outro é uma variável
 de ambiente, não uma reescrita.
+
+> [!NOTE]
+> Esta tabela dizia que o Dental Office **"exige plano Avançado ou Completo"**.
+> A afirmação não tem fonte em lugar nenhum deste repositório — não está na
+> especificação OpenAPI, nem no guia técnico, nem em e-mail arquivado — e foi
+> retirada por isso. Pode ser verdade; simplesmente não foi verificada, e uma
+> linha dessas numa tabela de aceitação vira fato para quem ler depois.
+>
+> A pergunta ("existe requisito de plano para liberar a API?") é o item 1 do
+> [`EMAIL-DENTAL-OFFICE.md`](EMAIL-DENTAL-OFFICE.md). Quando a resposta vier,
+> ela volta para cá — com a fonte.
 
 ---
 
