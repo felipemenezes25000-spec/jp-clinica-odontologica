@@ -1573,13 +1573,33 @@ function gravarGruposFechados(ids: string[]): void {
   }
 }
 
+/**
+ * ============================================================================
+ *  O GUIA COMECA FECHADO — e antes comecava aberto.
+ *
+ *  A intencao original era boa: "falhar para o lado de explicar demais e o lado
+ *  certo". O efeito medido, num notebook de 1280x800, era outro:
+ *
+ *      hero 237px + guia 393px = 630px antes do primeiro dado
+ *      o primeiro elemento acionavel da tela Metas ficava em y=886
+ *      ou seja, 86px ABAIXO DA DOBRA
+ *
+ *  Quem abria Metas via o titulo, via a explicacao, e via o fim da tela. A
+ *  auditoria descreveu essa tela como "hero e nada" — e estava descrevendo
+ *  exatamente isto, porque o conteudo existia e estava fora de vista.
+ *
+ *  O guia nao foi removido: ele continua a um clique, e a escolha continua
+ *  gravada por pessoa. O que mudou e quem paga o custo por padrao — agora e
+ *  quem QUER ler, e nao quem quer trabalhar.
+ * ============================================================================
+ */
 function lerPreferenciaDoGuia(): boolean {
   try {
-    return window.localStorage.getItem(CHAVE_GUIA) !== "0";
+    return window.localStorage.getItem(CHAVE_GUIA) === "1";
   } catch {
-    // Navegador com armazenamento bloqueado, aba anônima, iframe restrito: o
-    // guia aparece. Falhar para o lado de explicar demais é o lado certo.
-    return true;
+    // Sem armazenamento, o guia fica fechado: e o estado que garante que o
+    // dado aparece, e o botao de abrir continua visivel para quem precisar.
+    return false;
   }
 }
 
@@ -1697,7 +1717,7 @@ function PortalCrc() {
     "Carregando…". Não há render de servidor para divergir na hidratação.
   */
   const [guiaAberto, setGuiaAberto] = useState<boolean>(() =>
-    typeof window === "undefined" ? true : lerPreferenciaDoGuia(),
+    typeof window === "undefined" ? false : lerPreferenciaDoGuia(),
   );
 
   const [gruposFechados, setGruposFechados] = useState<readonly string[]>(() =>

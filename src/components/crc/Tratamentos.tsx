@@ -30,6 +30,30 @@ import { carregarTratamentos, type TratamentosUI } from "@/lib/crc/api";
 
 import { Aviso, Cartao, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
 
+/**
+ * ============================================================================
+ *  R$ 0 E "NÃO MEDIMOS" SÃO COISAS DIFERENTES, e a tela dizia a primeira
+ *  quando a verdade era a segunda.
+ *
+ *  Todo orçamento desta tela vinha com `valor: 0`, e a linha saía como
+ *  "R$ 0 × 57% = R$ 0". Para quem lê, isso comunica "não há dinheiro neste
+ *  funil" — e a conclusão natural é que a clínica não tem o que recuperar.
+ *
+ *  A verdade é outra: o valor do orçamento não está no sistema. A API pública
+ *  do Dental Office não expõe financeiro, e a planilha de orçamentos ainda não
+ *  foi importada. Ninguém mediu — e nada mede zero.
+ *
+ *  Um orçamento REAL nunca vale R$ 0. Então zero aqui só pode significar
+ *  ausência, e o traço com explicação é a leitura honesta.
+ * ============================================================================
+ */
+const FALTA_VALOR =
+  "O valor do orçamento ainda não está no sistema. Importe a planilha de orçamentos em Importar, ou aguarde a integração financeira.";
+
+function reaisOuTraco(v: number): string {
+  return v > 0 ? reais(v) : "—";
+}
+
 export function Tratamentos() {
   const [dados, setDados] = useState<TratamentosUI | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -60,14 +84,18 @@ export function Tratamentos() {
       <div className="crc-grade" style={{ marginBottom: "var(--crc-e6)" }}>
         <Kpi
           rotulo="Esperado do funil"
-          valor={reais(dados.esperado)}
+          valor={reaisOuTraco(dados.esperado)}
           destaque={dados.esperado > 0 ? "foco" : "calmo"}
-          nota="valor × chance de fechar"
+          nota={dados.esperado > 0 ? "valor × chance de fechar" : FALTA_VALOR}
         />
         <Kpi
           rotulo="Se tudo fechar"
-          valor={reais(dados.emJogo)}
-          nota={`${String(dados.funil.length)} orçamentos abertos`}
+          valor={reaisOuTraco(dados.emJogo)}
+          nota={
+            dados.emJogo > 0
+              ? `${String(dados.funil.length)} orçamentos abertos`
+              : `${String(dados.funil.length)} orçamentos abertos, sem valor registrado`
+          }
         />
         <Kpi
           rotulo="Aceitou e não marcou"
@@ -113,14 +141,23 @@ export function Tratamentos() {
                   )}
                 </div>
                 <small className="crc-meta">
-                  {reais(f.valor)}
-                  {f.probabilidade !== null && (
+                  <span title={f.valor > 0 ? undefined : FALTA_VALOR}>{reaisOuTraco(f.valor)}</span>
+                  {/*
+                    A CONTA SÓ APARECE QUANDO HÁ CONTA. "— × 57% = —" é pior do
+                    que não mostrar nada: parece defeito da tela, e faz a pessoa
+                    procurar um erro que não existe. Sem valor, a probabilidade
+                    aparece sozinha, que é a informação que de fato existe.
+                  */}
+                  {f.probabilidade !== null && f.valor > 0 && (
                     <>
                       {" × "}
                       {pct(f.probabilidade)}
                       {" = "}
-                      <strong>{reais(f.valorEsperado)}</strong>
+                      <strong>{reaisOuTraco(f.valorEsperado)}</strong>
                     </>
+                  )}
+                  {f.probabilidade !== null && f.valor <= 0 && (
+                    <> · {pct(f.probabilidade)} de chance</>
                   )}
                   {f.proximaAcao !== null && <> · {rotuloDaAcao(f.proximaAcao)}</>}
                 </small>
@@ -172,7 +209,7 @@ export function Tratamentos() {
                       )}
                     </td>
                     <td style={{ textAlign: "right", color: "var(--crc-texto-3)" }}>
-                      {reais(o.valorEmJogo)}
+                      {reaisOuTraco(o.valorEmJogo)}
                     </td>
                   </tr>
                 ))}

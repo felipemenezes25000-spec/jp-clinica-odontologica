@@ -11,7 +11,24 @@ import { expect, type Page } from "@playwright/test";
 
 import { ADMIN_EMAIL, ADMIN_SENHA } from "./ambiente";
 
-export async function entrarNoCrc(page: Page): Promise<void> {
+export async function entrarNoCrc(
+  page: Page,
+  opcoes: {
+    /**
+     * Deixe `false` para medir a tela COMO ELA CHEGA a quem entra pela primeira
+     * vez.
+     *
+     * Por padrão o guia é fechado, porque com ele aberto todo clique na lateral
+     * bate no overlay. Mas um teste que SEMPRE o fecha nunca consegue observar
+     * o custo de ele estar aberto — e foi assim que um teste de "o conteúdo
+     * aparece acima da dobra" passou com o defeito reinjetado: ele media uma
+     * tela que o próprio helper já tinha limpado.
+     *
+     * Quem passar `false` deve navegar por URL, e não por clique.
+     */
+    fecharGuia?: boolean;
+  } = {},
+): Promise<void> {
   await page.goto("/crc");
 
   // O formulário só aparece quando a sessão foi conferida e não existe.
@@ -25,7 +42,7 @@ export async function entrarNoCrc(page: Page): Promise<void> {
   // O painel carregou: a navegação lateral só existe com sessão.
   await expect(navegacao(page, "Conversas")).toBeVisible();
 
-  await fecharOGuia(page);
+  if (opcoes.fecharGuia !== false) await fecharOGuia(page);
 }
 
 /**

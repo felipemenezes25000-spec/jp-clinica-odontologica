@@ -174,3 +174,69 @@ test.describe("CRC responsivo", () => {
     expect(Math.abs(offsets[0] - offsets[1])).toBeLessThanOrEqual(1);
   });
 });
+
+/**
+ * ============================================================================
+ *  O TEXTO EXPLICATIVO NAO PODE EMPURRAR O DADO PARA FORA DA TELA.
+ *
+ *  Medido num notebook comum, 1280x800, antes do conserto:
+ *
+ *      hero  237 px
+ *      guia  393 px
+ *      primeiro elemento acionavel da tela Metas em y = 886
+ *      ou seja, 86 px ABAIXO da dobra
+ *
+ *  Quem abria a tela via o titulo, via a explicacao, e via o fim da tela. A
+ *  auditoria descreveu Metas como "hero e nada" — e estava descrevendo isto:
+ *  o conteudo existia e estava fora de vista.
+ *
+ *  O guia agora comeca fechado. Este teste existe para que ele nao volte a
+ *  comecar aberto sem que alguem perceba o custo.
+ * ============================================================================
+ */
+test.describe("o primeiro dado aparece sem rolar", () => {
+  const TELAS = [
+    { caminho: "/crc/metas", marca: /Nenhuma meta ainda|Criar a primeira meta|Metas ativas/u },
+    { caminho: "/crc/radar", marca: /Recuperavel|Recuperável|Esperado|Nenhum/u },
+    { caminho: "/crc/tratamentos", marca: /orçamento|Esperado|Nenhum/iu },
+  ];
+
+  for (const tela of TELAS) {
+    test(`${tela.caminho}: o conteudo comeca acima da dobra em 1280x800`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 800 });
+
+      /*
+       * `fecharGuia: false` E O PONTO DESTE TESTE.
+       *
+       * A primeira versao dele chamava `entrarNoCrc(page)` puro — e o helper
+       * fecha o guia no login. Resultado: o teste passou com o defeito
+       * REINJETADO, porque media uma tela que o proprio helper ja tinha
+       * limpado. Um teste que nao consegue falhar e pior que teste nenhum.
+       *
+       * Aqui a tela e medida como ela chega a quem entra pela primeira vez.
+       * A navegacao e por URL porque com o guia aberto o clique na lateral
+       * bate no overlay — e agora cada tela tem endereco proprio.
+       */
+      await entrarNoCrc(page, { fecharGuia: false });
+      await page.goto(tela.caminho);
+      await esperarLayout(page);
+
+      const alvo = page.getByRole("main").getByText(tela.marca).first();
+      await expect(alvo).toBeVisible({ timeout: 15_000 });
+
+      const caixa = await alvo.boundingBox();
+      expect(caixa, `${tela.caminho}: nao achei o conteudo para medir`).not.toBeNull();
+
+      /*
+       * `toBeVisible` do Playwright NAO basta: ele considera visivel um
+       * elemento que existe e nao esta escondido, mesmo fora da area visivel.
+       * A dobra e uma medida de pixel, e so a geometria responde.
+       */
+      expect(
+        Math.round(caixa?.y ?? 0),
+        `${tela.caminho}: o primeiro conteudo comeca em y=${String(Math.round(caixa?.y ?? 0))}, ` +
+          "abaixo da dobra de 800 px. Algum bloco explicativo voltou a abrir por padrao.",
+      ).toBeLessThan(800);
+    });
+  }
+});
