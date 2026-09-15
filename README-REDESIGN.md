@@ -1,58 +1,35 @@
-# JP Clínica Integrada Odontológica — redesign aplicado
+# Redesign do site — registro histórico
 
-> **📌 DOCUMENTO HISTÓRICO.** Registra a proposta aprovada em conversa, do
-> redesign original. **Não descreve mais o site de hoje** — o verde `#2F6B35`
-> saiu, a clínica tem 24 anos (não 23) e a ordem da home mudou: tratamentos
-> subiram para a terceira posição e a história desceu para a quinta.
+> **Status: concluído / histórico. Revisão de classificação: 15/09/2026.**
 >
-> **O sistema visual vigente está em [DESIGN.md](DESIGN.md)**, com razões de
-> contraste medidas e tokens conferidos contra o CSS compilado. Este arquivo
-> fica como registro do ponto de partida.
+> Este arquivo não é mais a especificação visual do site. Ele existiu para orientar a etapa de redesign e é mantido apenas como registro da intenção daquele trabalho.
 
-Este pacote é a versão consolidada do redesign aprovado na conversa.
+A fonte atual do sistema visual é:
 
-## Sistema visual
+- [`DESIGN.md`](DESIGN.md) — regras vivas de design, acessibilidade e `modo="anuncio"`;
+- `src/styles.css` — tokens e estilos executáveis;
+- `src/components/site/` — componentes atuais;
+- [`docs/marca/LEIA-ME.md`](docs/marca/LEIA-ME.md) — origem dos ativos e cores da marca.
 
-- 60% branco/off-white, 30% verde profundo, 10% verde vivo.
-- Verde profundo: `#052D0B`
-- Verde institucional: `#2F6B35`
-- Verde de destaque: `#7BD51C`
-- Off-white: `#F7F8F2`
-- Grafite: `#172018`
-- Cinza de texto: `#667168`
-- Títulos: Manrope 700/800
-- Texto, menu e botões: Inter 400/500/600/700
+## O que permanece válido do redesign
 
-## Estrutura da home
+- identidade baseada nos materiais reais da JP;
+- uso de fotografia/estrutura real da clínica;
+- hierarquia visual forte e responsiva;
+- CTA de WhatsApp como ação principal;
+- contraste medido em vez de escolha “no olho”;
+- componentes reutilizáveis em vez de páginas duplicadas;
+- preservação de CRO, endereço, horário, políticas e confiança.
 
-1. Capa clara com foto grande do consultório e CTAs.
-2. Metodologia em verde profundo, com imagem humana e 4 pilares.
-3. História em verde médio/profundo, 23 anos, maçã e área de fundadores.
-4. Especialidades em fundo claro, 8 cards com imagem.
-5. Para toda a família em fundo escuro.
-6. Avaliações em fundo claro.
-7. Equipe em fundo claro, com 5 cards preparados para retratos.
-8. Estrutura em carrossel de foto grande.
-9. FAQ escuro com imagem de pessoa sorrindo ao fundo.
-10. Contato/agendamento claro com formulário + Google Maps.
-11. Rodapé verde profundo.
+## O que mudou depois
 
-A antiga seção verde “Seu sorriso pede check-up” foi removida.
+O site evoluiu após o redesign original. Em especial:
 
-## CTA persistente
+- a equipe pública passou a ser filtrada por estado real/placeholder;
+- existem oito páginas orgânicas de tratamento e oito rotas curtas de mídia;
+- `PaginaDeTratamento` ganhou `modo="anuncio"`;
+- a LP paga remove cross-sell e navegação de fuga em desktop e mobile;
+- analytics, Consent Mode, GTM opcional, Meta Pixel opcional e atribuição de campanha foram adicionados;
+- RH e CRC cresceram como produtos separados dentro do repositório.
 
-Depois que o usuário sai da capa, uma barra de agendamento aparece fixa na tela em desktop.
-No mobile, permanece a barra inferior de telefone/WhatsApp. O botão flutuante do WhatsApp continua disponível.
-
-## Imagens e dados pendentes
-
-O projeto não inventa nomes, CROs ou fotografias profissionais.
-
-- `src/lib/jp.ts`: contém a responsável técnica confirmada e 4 espaços para profissionais ainda não informados.
-- A seção de fundadores está pronta visualmente, mas usa placeholders neutros até as fotos oficiais serem fornecidas.
-- A imagem humana da metodologia é ilustrativa e foi derivada do conceito visual aprovado; não é apresentada como paciente ou profissional identificado da clínica.
-- Para inserir retratos de equipe, use imagens recortadas com fundo transparente e preencha o campo `foto` em `EQUIPE`.
-
-## Observação de build neste ambiente
-
-O código foi validado por transpile de TypeScript/TSX. O `npm ci` deste ambiente não conclui porque o registry interno não possui um tarball de `zod` referenciado pelo lockfile. Em um registry npm normal, mantenha `package.json` e `package-lock.json` e rode `npm ci && npm run build`.
+Não use números antigos de cards, ordem de seções ou screenshots deste documento para tomar decisão atual. Consulte o código e `DESIGN.md`.
