@@ -33,6 +33,7 @@ import {
   useAcao,
 } from "./base";
 import { HubDeIntegracoes } from "./HubDeIntegracoes";
+import { MetaAnalytics } from "./MetaAnalytics";
 import { MetaIntegracao } from "./MetaIntegracao";
 import "./crc-integrations.css";
 
@@ -156,10 +157,6 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
     <div className="crc-int-v2">
       <BarraDeRecado recado={acao.recado} aoFechar={acao.limpar} />
 
-      {/*
-        O HUB VEM NO TOPO: "está funcionando?" é a pergunta que traz a pessoa
-        a esta tela. "Como configuro?" é a de quem já sabe que não está.
-      */}
       <HubDeIntegracoes />
 
       <section className="crc-int-command-v2">
@@ -194,23 +191,8 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
         </Aviso>
       )}
 
-      {/*
-        A META VEM ANTES DA GRADE DOS TRES CARTOES, e a posicao e uma decisao.
-
-        ========================================================================
-         `IntegracaoCard` cabe para uma integracao que tem UM estado e duas
-         acoes. A Meta tem quatro produtos, N contas, oito sinais medidos, a URL
-         do webhook, os campos a assinar e as regras de comentario.
-
-         Espremer isso num cartao da grade produziria um cartao tres vezes mais
-         alto que os vizinhos — ou, pior, esconderia os sinais atras de um
-         "ver detalhes" que ninguem clica. E os sinais sao o §39 inteiro.
-
-         Ela vem ANTES porque e a integracao que esta sendo ativada agora: e
-         nela que alguem vai olhar ao abrir esta tela nas proximas semanas.
-        ========================================================================
-      */}
       <MetaIntegracao podeGerenciar={podeGerenciar} />
+      <MetaAnalytics />
 
       <section className="crc-int-grid-v2">
         <IntegracaoCard
@@ -294,8 +276,7 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
                     <small>{s.recurso === "customers" ? "Pacientes" : "Agenda"}</small>
                     <strong>{s.status === "OK" ? "Em dia" : "Falhou"}</strong>
                     <em>
-                      Última tentativa {frescor(s.ultimaEm)} · sucesso{" "}
-                      {frescor(s.ultimaComSucessoEm)}
+                      Última tentativa {frescor(s.ultimaEm)} · sucesso {frescor(s.ultimaComSucessoEm)}
                     </em>
                   </div>
                 </article>

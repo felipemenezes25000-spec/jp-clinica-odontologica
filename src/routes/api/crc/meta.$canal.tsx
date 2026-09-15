@@ -1,46 +1,9 @@
 /**
- * Webhook da Meta POR CANAL — `/api/crc/meta/:canal`. §11.
+ * Entrada HTTP da Meta.
  *
- * ============================================================================
- *  UMA ENTRADA, QUATRO PRODUTOS — e é assim que a Meta funciona.
- *
- *  Instagram Direct, Messenger, comentários e Lead Ads chegam TODOS no mesmo
- *  POST, no mesmo app, com a mesma assinatura. Quatro rotas seriam quatro
- *  verificações de assinatura idênticas e quatro chances de uma divergir.
- *
- *  A discriminação é do normalizador (`integracoes/meta/normalizar.ts`), que lê
- *  `object` e `field` e devolve eventos tipados.
- * ============================================================================
- *
- * ============================================================================
- *  SÓ EXISTE A ROTA POR CANAL, e não há a versão "sem canal".
- *
- *  O WhatsApp tem as duas — `/api/crc/whatsapp` e `/api/crc/whatsapp/:canal` —
- *  porque a primeira já estava em produção quando a tabela de canais nasceu, e
- *  derrubá-la interromperia o recebimento da JP.
- *
- *  AQUI NADA ESTÁ EM PRODUÇÃO AINDA. Uma rota de transição sem instalação para
- *  não quebrar é só uma porta a mais para manter — e a porta sem canal é
- *  exatamente a que não sabe qual `appSecret` usar quando aparece o segundo
- *  app. Ver o cabeçalho de `/api/crc/whatsapp/:canal`.
- * ============================================================================
- *
- * A CIRCULARIDADE, E COMO ELA É QUEBRADA — a mesma do WhatsApp:
- *
- *     RAW BODY
- *       ↓  canal da URL   (não confiável; só seleciona a linha)
- *       ↓  carrega crc_canais_meta
- *       ↓  pega o appSecret DAQUELE canal
- *       ↓  verifica a assinatura sobre o RAW BODY     ← aqui nasce a confiança
- *       ↓  normaliza
- *       ↓  confere que as contas do payload SÃO deste canal
- *       ↓  grava o inbox com o tenant já provado
- *       ↓  processa
- *
- * A PENÚLTIMA LINHA É A QUE FECHA O BURACO. A assinatura prova que o corpo é
- * autêntico — não que ele é DESTE canal. Sem a conferência, alguém com acesso
- * ao segredo do próprio app poderia mandar um corpo dizendo ser de outra
- * Página: assinatura válida, tenant errado.
+ * `/api/crc/meta/:canal` continua sendo o webhook por conta. Dois pseudo-canais
+ * reservados fecham funções do próprio aplicativo sem criar outra árvore de
+ * rotas: `analytics` (sessão + RBAC) e `data-deletion` (signed_request Meta).
  */
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -51,19 +14,169 @@ function texto(corpo: string, status: number): Response {
   });
 }
 
+function json(corpo: unknown, status = 200): Response {
+  return new Response(JSON.stringify(corpo), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
+async function contextoAnalytics(): Promise<
+  | {
+      ok: true;
+      organizationId: string;
+      clinicIds: string[] | null;
+    }
+  | { ok: false; status: number; code: string; message: string }
+> {
+  const { useSession: abrirSessao } = await import("@tanstack/react-start/server");
+  const { autorizar, configuracaoSessao, sessaoConfigurada } =
+    await import("@/lib/crc/servidor/sessao");
+  const { novoRequestId } = await import("@/lib/crc/servidor/registro");
+
+  const configurada = sessaoConfigurada();
+  if (!configurada.ok) {
+    return {
+      ok: false,
+      status: 503,
+      code: "INTEGRACAO_NAO_CONFIGURADA",
+      message: configurada.motivo,
+    };
+  }
+
+  const sessao = await abrirSessao<{
+    userId: string;
+    organizationId: string;
+    entrouEm: string;
+  }>(configuracaoSessao());
+  const dados = sessao.data;
+  const segura =
+    typeof dados.userId === "string" &&
+    dados.userId.length > 0 &&
+    typeof dados.organizationId === "string" &&
+    dados.organizationId.length > 0
+      ? {
+          userId: dados.userId,
+          organizationId: dados.organizationId,
+          entrouEm: typeof dados.entrouEm === "string" ? dados.entrouEm : "",
+        }
+      : null;
+
+  const autorizacao = await autorizar(segura, novoRequestId(), "ver_analytics_gerencial");
+  if (!autorizacao.ok) {
+    return {
+      ok: false,
+      status: autorizacao.codigo === "NAO_AUTENTICADO" ? 401 : 403,
+      code: autorizacao.codigo,
+      message: autorizacao.motivo,
+    };
+  }
+
+  const papel = autorizacao.ctx.usuario.papel;
+  return {
+    ok: true,
+    organizationId: autorizacao.ctx.organizationId,
+    // Admin e marketing têm visão organizacional. Outros papéis continuam
+    // limitados às unidades que o ContextoCrc já autorizou.
+    clinicIds: papel === "admin" || papel === "marketing" ? null : autorizacao.ctx.clinicIds,
+  };
+}
+
+function signedRequestDoCorpo(corpo: string, contentType: string): string {
+  if (contentType.includes("application/json")) {
+    try {
+      const valor: unknown = JSON.parse(corpo);
+      if (typeof valor === "object" && valor !== null && !Array.isArray(valor)) {
+        const signed = (valor as Record<string, unknown>)["signed_request"];
+        return typeof signed === "string" ? signed : "";
+      }
+    } catch {
+      return "";
+    }
+    return "";
+  }
+
+  return new URLSearchParams(corpo).get("signed_request") ?? "";
+}
+
+async function analytics(request: Request): Promise<Response> {
+  const contexto = await contextoAnalytics();
+  if (!contexto.ok) {
+    return json({ ok: false, code: contexto.code, message: contexto.message }, contexto.status);
+  }
+
+  const url = new URL(request.url);
+  const pedido = Number(url.searchParams.get("dias") ?? "30");
+  const dias = Number.isFinite(pedido) ? Math.max(1, Math.min(365, Math.trunc(pedido))) : 30;
+
+  const { rpc } = await import("@/lib/crc/servidor/banco");
+  const linhas = await rpc<Record<string, unknown>>("crc_meta_analytics", {
+    p_organization_id: contexto.organizationId,
+    p_clinic_ids: contexto.clinicIds,
+    p_dias: dias,
+  });
+
+  return json({ ok: true, painel: linhas[0] ?? {} });
+}
+
+async function statusDeExclusao(request: Request): Promise<Response> {
+  const codigo = new URL(request.url).searchParams.get("code")?.trim() ?? "";
+  if (codigo.length < 16) return json({ ok: false, status: "NAO_ENCONTRADO" }, 404);
+
+  const { rpc } = await import("@/lib/crc/servidor/banco");
+  const linhas = await rpc<Record<string, unknown>>("crc_meta_status_exclusao", {
+    p_confirmation_code: codigo,
+  });
+  const estado = linhas[0] ?? { ok: false, status: "NAO_ENCONTRADO" };
+  return estado["ok"] === true ? json(estado) : json(estado, 404);
+}
+
+async function receberExclusao(request: Request): Promise<Response> {
+  const corpo = await request.text();
+  const signedRequest = signedRequestDoCorpo(
+    corpo,
+    request.headers.get("content-type")?.toLowerCase() ?? "",
+  );
+  if (signedRequest.length === 0) {
+    return json({ ok: false, message: "signed_request ausente." }, 400);
+  }
+
+  const { appSecretDoAmbiente } = await import("@/lib/crc/integracoes/meta/config");
+  const { verificarSignedRequestMeta } = await import(
+    "@/lib/crc/integracoes/meta/data-deletion"
+  );
+  const verificado = verificarSignedRequestMeta(signedRequest, appSecretDoAmbiente());
+  if (!verificado.ok) {
+    const status = verificado.motivo === "sem_segredo" ? 503 : 401;
+    return json({ ok: false, message: "Pedido de exclusão inválido." }, status);
+  }
+
+  const { randomBytes } = await import("node:crypto");
+  const confirmationCode = randomBytes(24).toString("hex");
+  const { rpc } = await import("@/lib/crc/servidor/banco");
+
+  await rpc("crc_meta_registrar_exclusao", {
+    p_confirmation_code: confirmationCode,
+    p_meta_user_id: verificado.userId,
+  });
+  await rpc("crc_meta_processar_exclusao", { p_confirmation_code: confirmationCode });
+
+  const configurada = (process.env["CRC_URL_PUBLICA"] ?? "").trim().replace(/\/+$/u, "");
+  const origem = configurada.length > 0 ? configurada : new URL(request.url).origin;
+  const statusUrl = `${origem}/api/crc/meta/data-deletion?code=${encodeURIComponent(confirmationCode)}`;
+
+  // Contrato esperado pela Meta: URL consultável + confirmation_code.
+  return json({ url: statusUrl, confirmation_code: confirmationCode });
+}
+
 export const Route = createFileRoute("/api/crc/meta/$canal")({
   server: {
     handlers: {
-      /**
-       * O handshake de verificação, por canal.
-       *
-       * O token sai do `config` do canal quando existe e cai no do ambiente
-       * quando não — é o mesmo degrau de compatibilidade das credenciais. A
-       * comparação é em tempo constante: ver `responderDesafio`.
-       */
       GET: async ({ request, params }) => {
-        const url = new URL(request.url);
+        if (params.canal === "analytics") return analytics(request);
+        if (params.canal === "data-deletion") return statusDeExclusao(request);
 
+        const url = new URL(request.url);
         const { canalMetaPorId, verifyTokenDoCanal } =
           await import("@/lib/crc/integracoes/meta/canais");
         const canal = await canalMetaPorId(params.canal);
@@ -77,32 +190,20 @@ export const Route = createFileRoute("/api/crc/meta/$canal")({
           esperado: verifyTokenDoCanal(canal),
         });
 
-        // O DESAFIO VOLTA COMO TEXTO PURO. A Meta compara byte a byte; JSON com
-        // aspas falha com "The URL couldn't be validated".
         return r.ok ? texto(r.resposta, 200) : texto(r.motivo, r.status);
       },
 
       POST: async ({ request, params }) => {
-        const { registrar, descreverErro } = await import("@/lib/crc/servidor/registro");
+        if (params.canal === "data-deletion") return receberExclusao(request);
+        if (params.canal === "analytics") return json({ ok: false, message: "Método não permitido." }, 405);
 
-        // O CORPO CRU, antes de qualquer parse. A assinatura é HMAC sobre os
-        // bytes exatos: `JSON.parse` + `stringify` muda ordem de chave e
-        // espaçamento, e a conferência falharia SEMPRE.
+        const { registrar, descreverErro } = await import("@/lib/crc/servidor/registro");
         const corpoCru = await request.text();
 
         const { canalMetaPorId, appSecretDoCanal } =
           await import("@/lib/crc/integracoes/meta/canais");
         const canal = await canalMetaPorId(params.canal);
-
         if (canal === null) {
-          /*
-           * 404 E NÃO 503. Canal inexistente ou desativado não é falha de
-           * configuração que se resolve sozinha — é uma URL que não corresponde
-           * a nada, e 503 faria a Meta reenviar para sempre.
-           *
-           * E a mensagem não distingue "não existe" de "desativado": as duas
-           * respostas juntas contariam, para quem sonda, quais uuids existem.
-           */
           registrar("aviso", "Webhook da Meta para canal desconhecido ou inativo.", {
             canal: params.canal,
           });
@@ -119,24 +220,13 @@ export const Route = createFileRoute("/api/crc/meta/$canal")({
           registrar("aviso", "Webhook da Meta com assinatura inválida foi recusado.", {
             canal: canal.id,
             organizationId: canal.organizationId,
-            // O MOTIVO VAI SÓ PARA O LOG. A resposta é sempre a mesma frase —
-            // ver `ResultadoDaAssinatura.motivo`.
             motivo: assinatura.motivo,
           });
-          /*
-           * 503 QUANDO FALTA O SEGREDO, 401 no resto.
-           *
-           * "Não há appSecret configurado" é falha NOSSA, e ela desaparece
-           * quando alguém configura — a Meta deve reenviar. "A assinatura não
-           * confere" é recusa definitiva daquele corpo.
-           */
           return assinatura.motivo === "sem_segredo"
             ? texto("Canal sem app secret configurado.", 503)
             : texto("Assinatura inválida.", 401);
         }
 
-        // Daqui para baixo o corpo é confiável: ele foi assinado com o segredo
-        // do app deste canal.
         let payload: unknown;
         try {
           payload = JSON.parse(corpoCru);
@@ -146,21 +236,6 @@ export const Route = createFileRoute("/api/crc/meta/$canal")({
 
         const { interpretarWebhookMeta } = await import("@/lib/crc/integracoes/meta/normalizar");
         const envelope = interpretarWebhookMeta(payload);
-
-        /*
-         * AS CONTAS DO PAYLOAD TÊM QUE SER DESTE CANAL.
-         *
-         * ====================================================================
-         *  A assinatura prova que o corpo é autêntico — não que ele é DESTA
-         *  Página. Um tenant com acesso ao próprio app secret poderia assinar
-         *  um corpo dizendo ser de outra conta, e sem esta conferência o direct
-         *  entraria na Inbox do vizinho.
-         *
-         *  `contas` VAZIO É ACEITO: é o webhook de mudança de configuração, que
-         *  não tem `entry` e não tem nada a rotear. O que não é aceito é uma
-         *  conta existir e APONTAR PARA OUTRA.
-         * ====================================================================
-         */
         const conhecidas = new Set(
           [canal.pageId, canal.instagramAccountId].filter((c): c is string => c !== null),
         );
@@ -183,22 +258,6 @@ export const Route = createFileRoute("/api/crc/meta/$canal")({
             clinicId: canal.clinicId,
           });
 
-          /*
-           * O TOQUE NO PULSO, só quando chegou MENSAGEM ou LEAD.
-           *
-           * ==================================================================
-           *  SÃO OS DOIS QUE TÊM ALGUÉM ESPERANDO.
-           *
-           *  Mensagem: uma pessoa escreveu e está olhando a tela.
-           *  Lead: o §21 mede o speed-to-lead em SEGUNDOS, e sem o toque o lead
-           *        esperaria a próxima volta do agendador — que, com o cron
-           *        diário deste projeto, quer dizer no dia seguinte.
-           *
-           *  Status de entrega e comentário não entram: ninguém está esperando
-           *  resposta, e tocar neles multiplicaria as chamadas sem nada em
-           *  troca.
-           * ==================================================================
-           */
           if (resultado.mensagens > 0 || resultado.leads > 0) {
             const { tocarPulso } = await import("@/lib/crc/automacao/pulso");
             await tocarPulso();
@@ -206,11 +265,8 @@ export const Route = createFileRoute("/api/crc/meta/$canal")({
 
           return texto("ok", 200);
         } catch (erro) {
-          /*
-           * 200 MESMO EM FALHA. Um 500 faz a Meta reenviar, e reenviar não
-           * conserta um defeito nosso — só multiplica o efeito dele. O que
-           * falhou ficou em `crc_webhook_inbox` e é repescado pelo pulso.
-           */
+          // O envelope já foi persistido em `crc_webhook_inbox`; a repescagem é
+          // nossa. Responder 500 aqui só faria a Meta multiplicar a entrega.
           registrar("erro", "Falha ao processar webhook da Meta.", {
             canal: canal.id,
             organizationId: canal.organizationId,
