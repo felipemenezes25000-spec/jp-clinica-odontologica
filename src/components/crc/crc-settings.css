@@ -274,8 +274,30 @@
   font-size: 0.61rem;
   line-height: 1.4;
 }
+/*
+ * SEM `opacity` AQUI — e o numero e medido, nao estetico.
+ *
+ * Era `opacity: 0.65` no `<article>` inteiro, e a conta nao fecha: a etiqueta
+ * "Disponivel no banco, sem comportamento conectado" e `--crc-texto-3`
+ * (#2b3b31) sobre `--crc-superficie-3` (#eef2eb), que da 10.46:1 — folgado.
+ * Com a opacidade a cor efetiva vira #757f78 sobre #f3f6f1 e a razao cai para
+ * 3.80:1, abaixo dos 4.5 que texto pequeno exige. O axe-core pegou em
+ * `e2e/acessibilidade.spec.ts`.
+ *
+ * O MESMO ERRO JA TINHA ACONTECIDO em `crc-integrations.css`
+ * (`.crc-int-command-status-v2 small`, 5.76 caindo para 3.45). Opacidade
+ * parcial sobre texto e uma multiplicacao escondida no contraste: ela nao
+ * aparece em nenhum token, e quem for conferir o CSS a mao vai medir o par
+ * certo e nao entender a reprovacao.
+ *
+ * O "esta aqui mas nao faz nada" continua dito de tres jeitos, e nenhum deles
+ * e a opacidade: a borda tracejada, o interruptor desabilitado, e a frase
+ * escrita na propria etiqueta — que e a unica que funciona para quem le por
+ * audio.
+ */
 .crc-app .crc-settings-flag-inerte-v2 {
-  opacity: 0.65;
+  border-style: dashed;
+  border-color: var(--crc-borda-forte);
 }
 .crc-app .crc-settings-flag-inerte-v2 > div > span {
   display: inline-flex;

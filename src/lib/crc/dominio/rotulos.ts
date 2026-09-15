@@ -222,3 +222,55 @@ export const ETAPAS_PADRAO = [
   { chave: "perdido", nome: "Perdido", ordem: 9, categoria: "PERDIDA" },
   { chave: "reativar_depois", nome: "Reativar depois", ordem: 10, categoria: "ABERTA" },
 ] as const;
+
+/* -------------------------------------------------------------------------- */
+/* A origem de uma oportunidade ou lead — §42                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `instagram:comentario` vira "Instagram · comentário".
+ *
+ * ============================================================================
+ *  A ORIGEM É TEXTO LIVRE NO BANCO, e isso é deliberado — `crc_leads.origem` e
+ *  `crc_opportunities.origem` são `text`, e já carregam valores de três
+ *  gerações do sistema: `GOOGLE`, `SITE`, `meta_lead_ads`,
+ *  `instagram:comentario`.
+ *
+ *  Uma união fechada obrigaria uma migração de dados a cada canal novo, e o
+ *  valor antigo que não estivesse nela apareceria como vazio na tela.
+ *
+ *  AQUI A TRADUÇÃO É TOLERANTE: o que está no mapa vira frase bonita; o que
+ *  não está aparece como veio, limpo de underscore. Nunca vazio — um card sem
+ *  origem é melhor que um card com origem em branco, e o chamador decide isso
+ *  antes de chamar.
+ * ============================================================================
+ */
+const ROTULO_DE_ORIGEM: Readonly<Record<string, string>> = {
+  GOOGLE: "Google Ads",
+  META: "Meta",
+  INSTAGRAM: "Instagram",
+  WHATSAPP: "WhatsApp",
+  SITE: "Site",
+  INDICACAO: "Indicação",
+  ORGANICO: "Orgânico",
+  BASE_EXISTENTE: "Base existente",
+  DESCONHECIDA: "Origem desconhecida",
+  meta_lead_ads: "Meta Lead Ads",
+  "instagram:comentario": "Instagram · comentário",
+  "facebook:comentario": "Facebook · comentário",
+  "instagram:direct": "Instagram · direct",
+  "messenger:direct": "Messenger",
+};
+
+export function rotuloDeOrigem(bruta: string): string {
+  const v = bruta.trim();
+  if (v.length === 0) return "";
+
+  const direto = ROTULO_DE_ORIGEM[v];
+  if (direto !== undefined) return direto;
+
+  // Sem tradução: devolve legível em vez de devolver a chave crua. Underscore e
+  // dois-pontos viram separador, e a primeira letra sobe.
+  const limpo = v.replace(/[_:]+/gu, " · ").replace(/\s+/gu, " ").trim();
+  return limpo.charAt(0).toUpperCase() + limpo.slice(1);
+}

@@ -1,0 +1,338 @@
+/*
+ * O canal na tela — §22, §24, §50, §51.
+ *
+ * ============================================================================
+ *  O §22 SUGERE EMOJI COLORIDO:
+ *
+ *      🟢 WhatsApp   🟣 Instagram   🔵 Messenger
+ *
+ *  E ele mesmo escreve a linha seguinte: "Não dependa apenas de cor. Usar
+ *  ícone + texto/aria-label."
+ *
+ *  AQUI A SEGUNDA FRASE VENCEU A PRIMEIRA, e por duas razões concretas:
+ *
+ *  A PALETA DO CRC É FECHADA. `crc.css` declara cinco semânticas e diz
+ *  "nenhuma a mais (item 45: nada de 12 cores)", com um significado fixo por
+ *  cor em todo o produto. Roxo de Instagram e azul de Messenger seriam a sexta
+ *  e a sétima — e `--crc-info` (azul) já significa "informativo". Um selo de
+ *  Messenger azul passaria a competir com o significado do azul.
+ *
+ *  EMOJI NÃO É ÍCONE. `🟣` é lido por leitor de tela como "círculo roxo
+ *  grande", o que não informa nada, e renderiza diferente em cada sistema.
+ *
+ *  O QUE FICOU: ícone da plataforma (que É reconhecível, e é o desenho oficial
+ *  dela) + o nome escrito + `aria-label` com a frase inteira. Três canais
+ *  distinguíveis sem depender de cor nenhuma — que é literalmente o que o §22
+ *  pede na segunda frase.
+ * ============================================================================
+ */
+
+/* -------------------------------------------------------------------------- */
+/* O selo de canal                                                           */
+/* -------------------------------------------------------------------------- */
+
+.crc-app .crc-canal-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  padding: 1px 6px 1px 5px;
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-pilula);
+  background: var(--crc-superficie-3);
+  color: var(--crc-texto-2);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.crc-app .crc-canal-selo svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+}
+
+/*
+ * O CANAL PADRÃO GANHA A TINTA DA MARCA, e só ele.
+ *
+ * WhatsApp é a origem de quase toda conversa da clínica, e `--crc-primaria-suave`
+ * já existe na paleta com o significado "fundo de destaque suave". Ele não
+ * concorre com nenhuma semântica.
+ *
+ * Instagram e Messenger ficam NEUTROS de propósito: a distinção deles é o ícone
+ * e o nome. Se um dia a paleta ganhar tokens de canal, é aqui que eles entram —
+ * e o resto da tela não muda.
+ */
+.crc-app .crc-canal-selo[data-canal="whatsapp"] {
+  border-color: var(--crc-primaria-borda);
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+/* Na lista, o selo é discreto: o nome do paciente é o que importa. */
+.crc-app .crc-inbox-item-titulo .crc-canal-selo {
+  font-size: 0.6rem;
+  padding: 0 5px 0 4px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* A linha de filtros por canal                                              */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * OS FILTROS ROLAM NA HORIZONTAL NO CELULAR, e não quebram em duas linhas.
+ *
+ * O §50 exige zero scroll horizontal DO DOCUMENTO — e este contêiner é o
+ * próprio scroller, com `overflow-x: auto`. Sete filtros empilhados em duas
+ * linhas empurrariam a lista de conversas para baixo da dobra, que é o que
+ * ninguém quer numa tela de atendimento.
+ */
+.crc-app .crc-canal-filtros {
+  display: flex;
+  gap: 4px;
+  margin: 0 12px 7px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.crc-app .crc-canal-filtros::-webkit-scrollbar {
+  display: none;
+}
+
+.crc-app .crc-canal-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-pilula);
+  padding: 4px 9px;
+  background: var(--crc-superficie);
+  color: var(--crc-texto-3);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.crc-app .crc-canal-filtro svg {
+  width: 12px;
+  height: 12px;
+}
+
+.crc-app .crc-canal-filtro:hover {
+  border-color: var(--crc-borda-forte);
+  color: var(--crc-texto-2);
+}
+
+/*
+ * O ESTADO LIGADO NÃO É SÓ COR — §51.
+ *
+ * `aria-pressed` carrega o estado para o leitor de tela, e a borda mais forte
+ * mais o peso do texto dão a diferença visual para quem não distingue a tinta.
+ */
+.crc-app .crc-canal-filtro[aria-pressed="true"] {
+  border-color: var(--crc-primaria);
+  background: var(--crc-primaria-suave);
+  color: var(--crc-primaria);
+}
+
+.crc-app .crc-canal-filtro:focus-visible {
+  outline: 2px solid var(--crc-primaria);
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Os canais conhecidos na ficha do paciente — §24                           */
+/* -------------------------------------------------------------------------- */
+
+.crc-app .crc-canais-do-paciente {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crc-app .crc-canal-linha {
+  display: flex;
+  align-items: center;
+  gap: var(--crc-e2);
+  padding: 7px var(--crc-e2);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-campo);
+  background: var(--crc-superficie);
+}
+
+.crc-app .crc-canal-linha > div {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.crc-app .crc-canal-linha strong {
+  display: block;
+  font-size: 0.78rem;
+  /* O contato pode ser um `@usuario` longo. Cortar é melhor que estourar a
+     largura da ficha, que no celular ocupa a tela inteira. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crc-app .crc-canal-linha small {
+  display: block;
+  color: var(--crc-texto-3);
+  font-size: 0.68rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/* A origem no card do funil — §42                                           */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * UMA LINHA, E NÃO UMA ÁRVORE DE NATAL — §42, literal.
+ *
+ * O card já mostra nome, tipo e tempo. A origem entra como UMA linha discreta
+ * com o canal e a campanha, e nada mais: "Meta Lead Ads · Implante Setembro".
+ * Anúncio, conjunto e formulário existem no dado e ficam na ficha — no card
+ * eles empurrariam a próxima ação para fora da vista, que é a única informação
+ * pela qual alguém olha um funil.
+ */
+.crc-app .crc-card-origem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-top: 3px;
+  color: var(--crc-texto-3);
+  font-size: 0.68rem;
+}
+
+.crc-app .crc-card-origem svg {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+}
+
+.crc-app .crc-card-origem span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* -------------------------------------------------------------------------- */
+/* O cartão da Meta em Integrações — §31                                     */
+/* -------------------------------------------------------------------------- */
+
+.crc-app .crc-meta-sinais {
+  display: grid;
+  /* `auto-fit` com mínimo: três colunas no desktop, uma no celular, sem
+     media query e sem largura mínima maior que a tela (§50). */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--crc-e2);
+  margin-top: var(--crc-e3);
+}
+
+.crc-app .crc-meta-sinal {
+  padding: var(--crc-e2) var(--crc-e3);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-campo);
+  background: var(--crc-superficie);
+}
+
+.crc-app .crc-meta-sinal[data-alerta="sim"] {
+  border-color: var(--crc-alerta);
+  background: var(--crc-alerta-suave);
+}
+
+.crc-app .crc-meta-sinal small {
+  display: block;
+  color: var(--crc-texto-3);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.crc-app .crc-meta-sinal strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  /* Valores como "a Meta não informou (é o caso de token de System User…)"
+     precisam quebrar. Sem isto, o texto estoura o cartão. */
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-meta-canal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--crc-e2);
+  padding: var(--crc-e3);
+  border: 1px solid var(--crc-borda);
+  border-radius: var(--crc-r-campo);
+  background: var(--crc-superficie);
+}
+
+.crc-app .crc-meta-canal-copy {
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.crc-app .crc-meta-canal-copy strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-meta-canal-copy code {
+  font-size: 0.68rem;
+  color: var(--crc-texto-3);
+  overflow-wrap: anywhere;
+}
+
+.crc-app .crc-meta-produtos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Mobile — §50                                                              */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 720px) {
+  /*
+   * NO CELULAR O SELO PERDE O TEXTO, e mantém o `aria-label`.
+   *
+   * ==========================================================================
+   *  ESTA É A ÚNICA CONCESSÃO À REGRA "ícone + texto", e ela é deliberada.
+   *
+   *  A linha da lista no celular tem o nome do paciente, o horário e o selo. Com
+   *  o nome do canal escrito, "Maria Aparecida de Souza" vira "Maria Apareci…" —
+   *  e o §22 pede que o canal continue VISÍVEL, não que ele roube a identidade
+   *  da pessoa.
+   *
+   *  O que garante a acessibilidade é o `aria-label` no selo, que permanece com
+   *  a frase inteira ("conversa por direct do Instagram"). Para quem vê, o
+   *  ícone da plataforma é reconhecível sem legenda; para quem não vê, nada
+   *  mudou.
+   *
+   *  VALE SÓ DENTRO DA LISTA. No cabeçalho da conversa e na ficha, onde há
+   *  espaço, o texto continua.
+   * ==========================================================================
+   */
+  .crc-app .crc-inbox-item-titulo .crc-canal-selo span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .crc-app .crc-inbox-item-titulo .crc-canal-selo {
+    padding: 0 3px;
+  }
+}

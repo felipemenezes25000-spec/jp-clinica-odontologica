@@ -14,7 +14,7 @@ import { carregarPanorama, exportarCsv, type PanoramaDto } from "@/lib/crc/api";
 import { dinheiro, dinheiroCurto, porcentagem } from "@/lib/crc/dominio/formatar";
 import { MOTIVOS_PERDA } from "@/lib/crc/dominio/rotulos";
 
-import { Aviso, BarraDeRecado, Botao, Esqueleto, Vazio, useAcao } from "./base";
+import { Aviso, BarraDeRecado, Botao, Esqueleto, TabelaRolavel, Vazio, useAcao } from "./base";
 import { Benchmark } from "./Benchmark";
 import { Briefing } from "./Briefing";
 import { Investimento } from "./Investimento";
@@ -371,7 +371,7 @@ const ROTULO_PERDA = new Map<string, string>(MOTIVOS_PERDA.map((m) => [m.chave, 
 function Perdas({ perdas }: { perdas: PanoramaDto["perdas"] }) {
   const total = perdas.reduce((s, p) => s + p.quantidade, 0);
   return (
-    <div className="crc-tabela-caixa">
+    <TabelaRolavel rotulo="Perdas por motivo">
       <table className="crc-tabela">
         <thead>
           <tr>
@@ -392,13 +392,13 @@ function Perdas({ perdas }: { perdas: PanoramaDto["perdas"] }) {
           ))}
         </tbody>
       </table>
-    </div>
+    </TabelaRolavel>
   );
 }
 
 function TabelaAutomacoes({ automacoes }: { automacoes: PanoramaDto["automacoes"] }) {
   return (
-    <div className="crc-tabela-caixa">
+    <TabelaRolavel rotulo="Desempenho por automação">
       <table className="crc-tabela">
         <thead>
           <tr>
@@ -425,7 +425,7 @@ function TabelaAutomacoes({ automacoes }: { automacoes: PanoramaDto["automacoes"
           ))}
         </tbody>
       </table>
-    </div>
+    </TabelaRolavel>
   );
 }
 
@@ -436,7 +436,7 @@ function TabelaAtendentes({ atendentes }: { atendentes: PanoramaDto["atendentes"
         Carga e distribuição do período. Não é ranking: volume de tarefa concluída não mede sozinho
         paciente recuperado.
       </p>
-      <div className="crc-tabela-caixa">
+      <TabelaRolavel rotulo="Carga por pessoa da equipe">
         <table className="crc-tabela">
           <thead>
             <tr>
@@ -457,7 +457,7 @@ function TabelaAtendentes({ atendentes }: { atendentes: PanoramaDto["atendentes"
             ))}
           </tbody>
         </table>
-      </div>
+      </TabelaRolavel>
     </>
   );
 }

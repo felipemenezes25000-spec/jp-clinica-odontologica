@@ -4,6 +4,9 @@ import {
   CirclePause,
   ArrowUpRight,
   Bot,
+  Facebook,
+  Instagram,
+  MessageCircle,
   MessageSquareText,
   NotebookPen,
   Phone,
@@ -16,19 +19,217 @@ import {
 import {
   abrirConversa,
   assumirConversaDaIa,
+  buscarPacientes,
   carregarInbox,
   devolverConversaParaIa,
   pausarIaDaConversa,
   responderConversa,
+  vincularPerfilDaMeta,
   type Falha,
 } from "@/lib/crc/api";
-import type { Conversa, Mensagem } from "@/lib/crc/dominio/tipos";
+import {
+  CANAIS_DE_CONVERSA,
+  canalDaLinha,
+  contatoParaTela,
+  rotuloDoCanal,
+  type CanalConversa,
+} from "@/lib/crc/dominio/canais";
+import type { Conversa, Mensagem, Paciente } from "@/lib/crc/dominio/tipos";
 import { hora, iniciais, tempoRelativo, truncar } from "@/lib/crc/dominio/formatar";
 import { ROTULO_INTENCAO, ROTULO_TEMPERATURA } from "@/lib/crc/dominio/rotulos";
 import { telefoneParaTela } from "@/lib/crc/dominio/telefone";
 
 import { Aviso, BarraDeRecado, Botao, Etiqueta, ListaEsqueleto, Vazio, useAcao } from "./base";
 import "./crc-operational.css";
+import "./crc-omnichannel.css";
+
+/* -------------------------------------------------------------------------- */
+/* O canal na tela — §22                                                      */
+/* -------------------------------------------------------------------------- */
+
+const ICONE_DO_CANAL: Readonly<Record<CanalConversa, typeof Phone>> = {
+  whatsapp: MessageCircle,
+  instagram: Instagram,
+  messenger: Facebook,
+};
+
+/**
+ * O selo que diz de onde a conversa veio.
+ *
+ * ============================================================================
+ *  ÍCONE + TEXTO + `aria-label`, e NÃO cor — §22, segunda frase.
+ *
+ *  O §22 sugere emoji colorido e, na linha seguinte, proíbe depender de cor. A
+ *  segunda frase venceu, e o motivo está inteiro no cabeçalho de
+ *  `crc-omnichannel.css`: a paleta do CRC é fechada em cinco semânticas, e o
+ *  azul já significa "informativo".
+ *
+ *  O `aria-label` carrega a frase COMPLETA — "conversa por direct do
+ *  Instagram" — e não só o nome. Lido em sequência depois do nome do paciente,
+ *  "Instagram" sozinho soa como parte do nome dele.
+ * ============================================================================
+ */
+function SeloDeCanal({ canal }: { canal: string }) {
+  const chave = canalDaLinha(canal);
+  const rotulo = rotuloDoCanal(canal);
+  const Icone = ICONE_DO_CANAL[chave];
+
+  return (
+    <span className="crc-canal-selo" data-canal={chave} aria-label={rotulo.acessivel}>
+      <Icone aria-hidden="true" />
+      <span>{rotulo.nome}</span>
+    </span>
+  );
+}
+
+/**
+ * O painel de vínculo — §25.
+ *
+ * ============================================================================
+ *  A AÇÃO "VINCULAR A PACIENTE EXISTENTE" MORA NA INBOX, e não na ficha.
+ *
+ *  O §25 pede a ação "na ficha, com busca". A ficha é o lugar natural para a
+ *  administração da identidade — e é o lugar ERRADO para o momento em que a
+ *  decisão acontece.
+ *
+ *  O momento é este: alguém mandou direct, a recepção está lendo a conversa, e
+ *  percebe que é a Ana que veio na semana passada. Mandá-la abrir outra tela,
+ *  achar a Ana e voltar significa, na prática, que o vínculo não é feito — e a
+ *  conversa fica órfã para sempre.
+ *
+ *  A ficha continua tendo o desvínculo e a lista de canais (§24); o VÍNCULO
+ *  acontece onde a informação aparece.
+ * ============================================================================
+ *
+ * ============================================================================
+ *  E ELE NÃO SUGERE NINGUÉM. A busca é digitada.
+ *
+ *  Um "provavelmente é a Ana Silva" seria sugestão por similaridade de nome —
+ *  proibido pelo §10, e pela razão que `dominio/identidade.ts` explica: o
+ *  estrago de um vínculo errado é irreversível, e o acerto economiza um clique.
+ *
+ *  Quando o telefone resolve para exatamente um paciente, o vínculo já
+ *  aconteceu sozinho em `resolverConversaNoCanal` — e aí este painel nem
+ *  aparece.
+ * ============================================================================
+ */
+function PainelDeVinculo({
+  conversa,
+  aoVincular,
+}: {
+  conversa: Conversa;
+  aoVincular: (patientId: string) => void;
+}) {
+  const [termo, setTermo] = useState("");
+  const [achados, setAchados] = useState<Paciente[] | null>(null);
+  const [buscando, setBuscando] = useState(false);
+
+  const procurar = useCallback(async (): Promise<void> => {
+    const t = termo.trim();
+    if (t.length < 3) return;
+    setBuscando(true);
+    try {
+      const r = await buscarPacientes({ data: { termo: t } });
+      setAchados(r.ok ? r.itens : []);
+    } catch {
+      setAchados([]);
+    } finally {
+      setBuscando(false);
+    }
+  }, [termo]);
+
+  const canal = rotuloDoCanal(conversa.canal);
+
+  return (
+    <div className="crc-inbox-aviso">
+      <Aviso tom="alerta">
+        {conversa.revisaoPendente
+          ? "Este contato está cadastrado para mais de um paciente. Confirme de quem é esta conversa antes de registrar qualquer coisa na ficha."
+          : `Este ${canal.nome} ainda não está ligado a nenhum paciente. Vincule para o histórico aparecer na ficha.`}
+      </Aviso>
+
+      <div className="crc-linha" style={{ gap: "var(--crc-e2)", marginTop: "var(--crc-e2)" }}>
+        <label className="crc-so-leitor" htmlFor="crc-vincular-busca">
+          Buscar paciente por nome, telefone ou e-mail
+        </label>
+        <input
+          id="crc-vincular-busca"
+          className="crc-campo"
+          type="search"
+          placeholder="Nome, telefone ou e-mail do paciente…"
+          value={termo}
+          onChange={(e) => setTermo(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void procurar();
+            }
+          }}
+        />
+        <Botao
+          pequeno
+          carregando={buscando}
+          disabled={termo.trim().length < 3}
+          onClick={() => void procurar()}
+        >
+          Buscar
+        </Botao>
+      </div>
+
+      {achados !== null && (
+        <div role="status" style={{ marginTop: "var(--crc-e2)" }}>
+          {achados.length === 0 ? (
+            <p className="crc-meta">
+              Nenhum paciente com esse termo. Se a pessoa ainda não é paciente, ela segue como lead
+              — e isso é o normal para quem chega por direct.
+            </p>
+          ) : (
+            <ul className="crc-canais-do-paciente">
+              {achados.slice(0, 6).map((p) => (
+                <li key={p.id} className="crc-canal-linha">
+                  <div>
+                    <strong>{p.nome}</strong>
+                    <small>
+                      {p.telefone === null ? "sem telefone" : telefoneParaTela(p.telefone)}
+                    </small>
+                  </div>
+                  <Botao pequeno variante="primario" onClick={() => aoVincular(p.id)}>
+                    Vincular
+                  </Botao>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Como esta pessoa aparece na lista — §24.
+ *
+ * ============================================================================
+ *  UM IGSID TEM DEZESSETE DÍGITOS, e a Inbox mostrava `contato_externo` para
+ *  toda conversa sem paciente vinculado.
+ *
+ *  Sem esta função, a lista de conversas do Instagram seria uma coluna de
+ *  números de dezessete dígitos — que é literalmente o que o §24 proíbe:
+ *  "nunca exibir identificadores Meta gigantes como UX principal".
+ *
+ *  A ORDEM É: nome do paciente → apelido do perfil → rótulo do canal. Nunca o
+ *  id técnico. Ele continua acessível no detalhe/admin, que é onde alguém
+ *  investigando precisa dele.
+ * ============================================================================
+ */
+function comoChamar(conversa: Conversa, nome: string | null): string {
+  if (nome !== null && nome.length > 0) return nome;
+
+  const canal = canalDaLinha(conversa.canal);
+  if (canal === "whatsapp") return telefoneParaTela(conversa.contatoExterno);
+
+  return contatoParaTela(canal, conversa.contatoExterno, conversa.apelidoExterno);
+}
 
 /**
  * Quem manda nesta conversa, e o botão para mudar isso.
@@ -127,12 +328,50 @@ export function Inbox({
   const [mudandoDono, setMudandoDono] = useState(false);
   const [busca, setBusca] = useState("");
 
+  /**
+   * Os canais marcados. VAZIO = todos — §22.
+   *
+   * ==========================================================================
+   *  O FILTRO É MÚLTIPLO, e não um seletor de um canal.
+   *
+   *  "Todos" e "só o Instagram" são os dois usos óbvios. O terceiro é o que
+   *  justifica a multiplicidade: numa clínica com muito volume de WhatsApp, a
+   *  recepção da tarde quer ver "Instagram + Messenger" — o que chegou pelo
+   *  social, que é menos e responde diferente — sem perder de vista que a
+   *  Inbox é uma só.
+   *
+   *  VAZIO SIGNIFICA TODOS, e não nenhum. Desmarcar o último filtro volta ao
+   *  estado inicial em vez de mostrar uma lista vazia que pareceria defeito.
+   * ==========================================================================
+   */
+  const [canaisMarcados, setCanaisMarcados] = useState<readonly CanalConversa[]>([]);
+  const [apenasRevisao, setApenasRevisao] = useState(false);
+  const [donos, setDonos] = useState<readonly string[]>([]);
+
   const acao = useAcao();
   const fimDaLista = useRef<HTMLDivElement>(null);
 
+  /*
+   * A CHAVE DE DEPENDÊNCIA É UMA STRING, e não o array.
+   *
+   * `useCallback` compara dependências por identidade, e um array novo a cada
+   * render — que é o que `setCanaisMarcados([...])` produz — recriaria
+   * `recarregar` sempre, e o `useEffect` que depende dela faria uma requisição
+   * por render. A string só muda quando a SELEÇÃO muda.
+   */
+  const chaveDosCanais = canaisMarcados.join(",");
+  const chaveDosDonos = donos.join(",");
+
   const recarregar = useCallback(async (): Promise<void> => {
     try {
-      const r = await carregarInbox({ data: { apenasNaoLidas } });
+      const r = await carregarInbox({
+        data: {
+          apenasNaoLidas,
+          apenasRevisao,
+          canais: chaveDosCanais.length > 0 ? chaveDosCanais.split(",") : [],
+          donos: chaveDosDonos.length > 0 ? chaveDosDonos.split(",") : [],
+        },
+      });
       if (r.ok) {
         setConversas(r.conversas);
         setNomes(r.nomes);
@@ -143,7 +382,57 @@ export function Inbox({
     } catch {
       setErro("Não conseguimos carregar as conversas. Tente atualizar a página.");
     }
-  }, [apenasNaoLidas]);
+  }, [apenasNaoLidas, apenasRevisao, chaveDosCanais, chaveDosDonos]);
+
+  const alternarCanal = useCallback((canal: CanalConversa): void => {
+    setCanaisMarcados((atuais) =>
+      atuais.includes(canal) ? atuais.filter((c) => c !== canal) : [...atuais, canal],
+    );
+  }, []);
+
+  const alternarDono = useCallback((dono: string): void => {
+    setDonos((atuais) =>
+      atuais.includes(dono) ? atuais.filter((d) => d !== dono) : [...atuais, dono],
+    );
+  }, []);
+
+  /**
+   * Liga o perfil ao paciente — §25.
+   *
+   * RECARREGA A LISTA INTEIRA depois, pelo mesmo motivo de `trocarDono`: o
+   * vínculo muda o nome mostrado, a ficha alcançável e as mensagens já
+   * recebidas. Remendar o estado local deixaria a tela concordando consigo
+   * mesma e discordando do banco.
+   */
+  const vincular = useCallback(
+    async (patientId: string): Promise<void> => {
+      if (selecionada === null) return;
+
+      await acao.executar(
+        () =>
+          vincularPerfilDaMeta({
+            data: {
+              conversationId: selecionada.id,
+              patientId,
+              motivo: "Confirmado por quem atendeu, na Inbox.",
+            },
+          }) as Promise<{ ok: true } | Falha>,
+        undefined,
+        "Perfil vinculado ao paciente. O histórico passa a aparecer na ficha.",
+      );
+
+      await recarregar();
+
+      // A conversa aberta precisa refletir o vínculo — senão o painel continua
+      // pedindo para vincular algo que já foi vinculado.
+      const atualizada = await abrirConversa({ data: { conversationId: selecionada.id } });
+      if (atualizada.ok) setMensagens(atualizada.mensagens);
+      setSelecionada((atual) =>
+        atual === null ? null : { ...atual, patientId, revisaoPendente: false },
+      );
+    },
+    [acao, recarregar, selecionada],
+  );
 
   /**
    * Troca o dono e recarrega.
@@ -249,9 +538,23 @@ export function Inbox({
 
     return conversas.filter((c) => {
       const nome = c.patientId === null ? "" : (nomes[c.patientId] ?? "");
-      const telefone = telefoneParaTela(c.contatoExterno);
+      /*
+       * A BUSCA INCLUI O CONTATO CRU, e não só o formatado — e aí está a
+       * diferença que faz a busca servir no Instagram.
+       *
+       * `telefoneParaTela` de um IGSID devolve o número cru; buscar por
+       * `@joao_ig` não acharia nada se só o número estivesse no índice. Com o
+       * apelido e o rótulo do canal na mesma string, quem atende encontra por
+       * "@joao", por "instagram", ou pelo trecho da mensagem.
+       */
+      const apelido = c.apelidoExterno ?? "";
+      const canal = rotuloDoCanal(c.canal).nome;
+      const contato = `${c.contatoExterno} ${telefoneParaTela(c.contatoExterno)}`;
       const trecho = c.ultimaMensagemTrecho ?? "";
-      return `${nome} ${telefone} ${trecho}`.toLocaleLowerCase("pt-BR").includes(termo);
+
+      return `${nome} ${apelido} ${canal} ${contato} ${trecho}`
+        .toLocaleLowerCase("pt-BR")
+        .includes(termo);
     });
   }, [busca, conversas, nomes]);
 
@@ -334,6 +637,91 @@ export function Inbox({
             </button>
           </div>
 
+          {/*
+            OS FILTROS DE CANAL E DE DONO — §22.
+
+            `role="group"` com `aria-label` é o que faz um leitor de tela
+            anunciar "grupo Filtrar por canal" antes dos botões, em vez de ler
+            sete botões soltos no meio da lista. Cada botão carrega
+            `aria-pressed`, que é o estado — e não a cor.
+          */}
+          <div className="crc-canal-filtros" role="group" aria-label="Filtrar por canal">
+            {CANAIS_DE_CONVERSA.map((canal) => {
+              const rotulo = rotuloDoCanal(canal);
+              const Icone = ICONE_DO_CANAL[canal];
+              const ligado = canaisMarcados.includes(canal);
+
+              return (
+                <button
+                  key={canal}
+                  type="button"
+                  className="crc-canal-filtro"
+                  aria-pressed={ligado}
+                  onClick={() => alternarCanal(canal)}
+                >
+                  <Icone aria-hidden="true" />
+                  {rotulo.nome}
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            className="crc-canal-filtros"
+            role="group"
+            aria-label="Filtrar por quem responde e por revisão"
+          >
+            <button
+              type="button"
+              className="crc-canal-filtro"
+              aria-pressed={donos.includes("ia")}
+              onClick={() => alternarDono("ia")}
+            >
+              <Bot aria-hidden="true" />
+              IA assumiu
+            </button>
+            <button
+              type="button"
+              className="crc-canal-filtro"
+              aria-pressed={donos.includes("humano")}
+              onClick={() => alternarDono("humano")}
+            >
+              <UserRound aria-hidden="true" />
+              Humano assumiu
+            </button>
+            <button
+              type="button"
+              className="crc-canal-filtro"
+              aria-pressed={apenasRevisao}
+              onClick={() => setApenasRevisao((v) => !v)}
+            >
+              Revisão de identidade
+            </button>
+          </div>
+
+          {/* ============================================================
+               A FILA É UM `listbox`, E O `<li>` DENTRO DELE É `presentation`.
+
+               `role="listbox"` exige `option` como filho DIRETO. Com o `li`
+               no caminho, o axe-core reprova quatro vezes por uma causa só:
+
+                 aria-required-children  o `li` não é `option`
+                 aria-required-parent    o `option` não alcança o listbox
+                 listitem                o `li` está num `ul` que virou listbox
+                 aria-input-field-name   o listbox estava sem nome
+
+               `presentation` tira o `li` da árvore de acessibilidade e deixa o
+               botão como filho direto — sem mexer no HTML nem no CSS, que
+               continuam precisando do `li`.
+
+               Para quem usa leitor de tela a diferença não é acadêmica: um
+               listbox malformado é lido como texto solto, e a fila deixa de
+               ser navegável por seta.
+
+               Encontrado por `e2e/acessibilidade.spec.ts` depois que a
+               varredura passou a esperar a tela ASSENTAR — antes ela media a
+               tela antes de a lista existir, e não via nada disto.
+             ============================================================ */}
           <div className="crc-painel-corpo crc-inbox-lista-corpo">
             {conversasFiltradas === null ? (
               <div className="crc-inbox-loading">
@@ -353,13 +741,13 @@ export function Inbox({
                     ? "Tente outro nome, telefone ou trecho da mensagem."
                     : apenasNaoLidas
                       ? "Você chegou ao fim da fila. Quando um paciente responder, a conversa aparece aqui."
-                      : "As conversas aparecem quando um paciente escreve pelo WhatsApp ou quando uma automação inicia o contato."
+                      : "As conversas aparecem quando alguém escreve pelo WhatsApp, pelo direct do Instagram ou pelo Messenger — e também quando uma automação inicia o contato."
                 }
               />
             ) : (
-              <ul className="crc-inbox-lista-itens" role="listbox">
+              <ul className="crc-inbox-lista-itens" role="listbox" aria-label="Conversas na fila">
                 {conversasFiltradas.map((c) => (
-                  <li key={c.id}>
+                  <li key={c.id} role="presentation">
                     <button
                       type="button"
                       role="option"
@@ -410,18 +798,43 @@ export function Inbox({
                 <div className="crc-inbox-pessoa">
                   <span className="crc-inbox-avatar" aria-hidden="true">
                     {iniciais(
-                      selecionada.patientId === null
-                        ? telefoneParaTela(selecionada.contatoExterno)
-                        : (nomes[selecionada.patientId] ?? "Paciente"),
+                      comoChamar(
+                        selecionada,
+                        selecionada.patientId === null
+                          ? null
+                          : (nomes[selecionada.patientId] ?? null),
+                      ),
                     )}
                   </span>
                   <div>
                     <h2 className="crc-titulo-cartao crc-truncar">
-                      {selecionada.patientId === null
-                        ? telefoneParaTela(selecionada.contatoExterno)
-                        : (nomes[selecionada.patientId] ?? "Paciente")}
+                      {comoChamar(
+                        selecionada,
+                        selecionada.patientId === null
+                          ? null
+                          : (nomes[selecionada.patientId] ?? null),
+                      )}
                     </h2>
-                    <p className="crc-meta">{telefoneParaTela(selecionada.contatoExterno)}</p>
+                    <p className="crc-meta crc-linha" style={{ gap: "var(--crc-e2)" }}>
+                      <SeloDeCanal canal={selecionada.canal} />
+                      {/*
+                        NO CABEÇALHO O CONTATO APARECE, inclusive o do
+                        Instagram — e aqui isso é correto.
+
+                        O §24 proíbe o id gigante como UX PRINCIPAL. Neste
+                        ponto a pessoa já está DENTRO da conversa, com o nome no
+                        título; o identificador aqui é o detalhe que ela precisa
+                        quando vai procurar o perfil no aplicativo ou abrir um
+                        chamado.
+                      */}
+                      {canalDaLinha(selecionada.canal) === "whatsapp"
+                        ? telefoneParaTela(selecionada.contatoExterno)
+                        : contatoParaTela(
+                            selecionada.canal,
+                            selecionada.contatoExterno,
+                            selecionada.apelidoExterno,
+                          )}
+                    </p>
                   </div>
                 </div>
 
@@ -446,13 +859,25 @@ export function Inbox({
               />
 
               <div className="crc-painel-corpo crc-inbox-conversa-corpo">
-                {selecionada.revisaoPendente && (
-                  <div className="crc-inbox-aviso">
-                    <Aviso tom="alerta">
-                      Este telefone está cadastrado para mais de um paciente. Confirme de quem é
-                      esta conversa antes de registrar qualquer coisa na ficha.
-                    </Aviso>
-                  </div>
+                {/*
+                  O PAINEL APARECE EM DOIS CASOS, e não só na ambiguidade — §25.
+
+                  `revisaoPendente` é a ambiguidade: o contato casou com mais de
+                  um paciente, e o sistema recusou escolher.
+
+                  O segundo caso é mais comum e não é problema nenhum: uma
+                  conversa de Instagram SEM paciente vinculado. Quem chega por
+                  direct quase nunca tem ficha — é prospect, e é normal. O
+                  painel é o que permite ligar as duas coisas no instante em que
+                  quem atende descobre quem é.
+
+                  Só para Instagram e Messenger: no WhatsApp o vínculo é por
+                  telefone e tem caminho próprio (`vincularConversaAoPaciente`).
+                */}
+                {(selecionada.revisaoPendente ||
+                  (selecionada.patientId === null &&
+                    canalDaLinha(selecionada.canal) !== "whatsapp")) && (
+                  <PainelDeVinculo conversa={selecionada} aoVincular={(id) => void vincular(id)} />
                 )}
 
                 <div className="crc-mensagens crc-mensagens-v2">
@@ -591,9 +1016,28 @@ export function Inbox({
                 </div>
 
                 <ContextoDado
-                  icone={Phone}
-                  rotulo="Telefone"
-                  valor={telefoneParaTela(selecionada.contatoExterno)}
+                  icone={
+                    canalDaLinha(selecionada.canal) === "whatsapp"
+                      ? Phone
+                      : ICONE_DO_CANAL[canalDaLinha(selecionada.canal)]
+                  }
+                  // O RÓTULO SEGUE O CANAL. "Telefone" numa conversa de
+                  // Instagram é uma etiqueta errada em cima de um dado que não
+                  // é telefone — e alguém copiaria o IGSID para discar.
+                  rotulo={
+                    canalDaLinha(selecionada.canal) === "whatsapp"
+                      ? "Telefone"
+                      : `Perfil no ${rotuloDoCanal(selecionada.canal).nome}`
+                  }
+                  valor={
+                    canalDaLinha(selecionada.canal) === "whatsapp"
+                      ? telefoneParaTela(selecionada.contatoExterno)
+                      : contatoParaTela(
+                          selecionada.canal,
+                          selecionada.contatoExterno,
+                          selecionada.apelidoExterno,
+                        )
+                  }
                 />
                 {selecionada.ultimaMensagemEm !== null && (
                   <ContextoDado
@@ -643,7 +1087,9 @@ function ContextoDado({
 }
 
 function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | null }) {
-  const titulo = nome ?? telefoneParaTela(conversa.contatoExterno);
+  // §24: NUNCA o id técnico como título. Ver `comoChamar`.
+  const titulo = comoChamar(conversa, nome);
+  const canal = canalDaLinha(conversa.canal);
 
   /*
    * ==========================================================================
@@ -663,8 +1109,27 @@ function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | n
    *  seria ruído.
    * ==========================================================================
    */
-  const contato = nome === null ? null : telefoneParaTela(conversa.contatoExterno);
-  const canalOutro = conversa.canal !== "whatsapp" ? conversa.canal : null;
+  /*
+   * NO INSTAGRAM O SEGUNDO NÍVEL É O APELIDO, e não o contato.
+   *
+   * ==========================================================================
+   *  O raciocínio acima vale para telefone: a pessoa com dois celulares tem
+   *  duas conversas, e o número embaixo é o que as separa.
+   *
+   *  No Instagram, o que separa é o PERFIL — e o identificador dele tem
+   *  dezessete dígitos. Mostrá-lo embaixo do nome devolveria exatamente a UX
+   *  que o §24 proíbe, e não separaria nada: quem tem dois perfis do Instagram
+   *  vinculados ao mesmo paciente é caso raríssimo, e `@usuario` já distingue.
+   * ==========================================================================
+   */
+  const contato =
+    nome === null
+      ? null
+      : canal === "whatsapp"
+        ? telefoneParaTela(conversa.contatoExterno)
+        : (conversa.apelidoExterno ?? "").length > 0
+          ? `@${(conversa.apelidoExterno ?? "").replace(/^@/u, "")}`
+          : null;
 
   /*
    * "SEM MENSAGENS" SÓ QUANDO NÃO HÁ MENSAGEM NENHUMA.
@@ -685,16 +1150,20 @@ function ItemConversa({ conversa, nome }: { conversa: Conversa; nome: string | n
       <div className="crc-inbox-item-copy">
         <div className="crc-inbox-item-titulo">
           <strong className="crc-truncar">{titulo}</strong>
+          {/*
+            O SELO FICA ANTES DO HORÁRIO, e sempre visível — §22.
+
+            Ele é o que responde "de onde veio isto?" antes de a pessoa abrir a
+            conversa. E é o que impede o erro que a Inbox unificada torna
+            possível: responder no Instagram achando que é WhatsApp, onde fora
+            das 24 horas a mensagem simplesmente não sai.
+          */}
+          <SeloDeCanal canal={conversa.canal} />
           {conversa.ultimaMensagemEm !== null && (
             <span>{tempoRelativo(conversa.ultimaMensagemEm)}</span>
           )}
         </div>
-        {(contato !== null || canalOutro !== null) && (
-          <p className="crc-inbox-item-contato">
-            {contato}
-            {canalOutro !== null && <> · {canalOutro}</>}
-          </p>
-        )}
+        {contato !== null && <p className="crc-inbox-item-contato">{contato}</p>}
         <p className="crc-truncar">
           {conversa.ultimaMensagemTrecho !== null
             ? truncar(conversa.ultimaMensagemTrecho, 72)

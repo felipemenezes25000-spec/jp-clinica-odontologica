@@ -37,6 +37,7 @@ import { Route as ApiCrcPulsoRouteImport } from './routes/api/crc/pulso'
 import { Route as ApiCrcSaudeRouteImport } from './routes/api/crc/saude'
 import { Route as ApiCrcWhatsappRouteImport } from './routes/api/crc/whatsapp'
 import { Route as ApiRhVarrerRouteImport } from './routes/api/rh/varrer'
+import { Route as ApiCrcMetaCanalRouteImport } from './routes/api/crc/meta.$canal'
 import { Route as ApiCrcWhatsappCanalRouteImport } from './routes/api/crc/whatsapp.$canal'
 import { Route as ApiRhCurriculoIdRouteImport } from './routes/api/rh/curriculo/$id'
 
@@ -180,6 +181,11 @@ const ApiRhVarrerRoute = ApiRhVarrerRouteImport.update({
   path: '/api/rh/varrer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCrcMetaCanalRoute = ApiCrcMetaCanalRouteImport.update({
+  id: '/api/crc/meta/$canal',
+  path: '/api/crc/meta/$canal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCrcWhatsappCanalRoute = ApiCrcWhatsappCanalRouteImport.update({
   id: '/$canal',
   path: '/$canal',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRouteWithChildren
   '/api/rh/varrer': typeof ApiRhVarrerRoute
+  '/api/crc/meta/$canal': typeof ApiCrcMetaCanalRoute
   '/api/crc/whatsapp/$canal': typeof ApiCrcWhatsappCanalRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
@@ -251,6 +258,7 @@ export interface FileRoutesByTo {
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRouteWithChildren
   '/api/rh/varrer': typeof ApiRhVarrerRoute
+  '/api/crc/meta/$canal': typeof ApiCrcMetaCanalRoute
   '/api/crc/whatsapp/$canal': typeof ApiCrcWhatsappCanalRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/api/crc/saude': typeof ApiCrcSaudeRoute
   '/api/crc/whatsapp': typeof ApiCrcWhatsappRouteWithChildren
   '/api/rh/varrer': typeof ApiRhVarrerRoute
+  '/api/crc/meta/$canal': typeof ApiCrcMetaCanalRoute
   '/api/crc/whatsapp/$canal': typeof ApiCrcWhatsappCanalRoute
   '/api/rh/curriculo/$id': typeof ApiRhCurriculoIdRoute
 }
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
     | '/api/rh/varrer'
+    | '/api/crc/meta/$canal'
     | '/api/crc/whatsapp/$canal'
     | '/api/rh/curriculo/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
     | '/api/rh/varrer'
+    | '/api/crc/meta/$canal'
     | '/api/crc/whatsapp/$canal'
     | '/api/rh/curriculo/$id'
   id:
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/api/crc/saude'
     | '/api/crc/whatsapp'
     | '/api/rh/varrer'
+    | '/api/crc/meta/$canal'
     | '/api/crc/whatsapp/$canal'
     | '/api/rh/curriculo/$id'
   fileRoutesById: FileRoutesById
@@ -412,6 +424,7 @@ export interface RootRouteChildren {
   ApiCrcSaudeRoute: typeof ApiCrcSaudeRoute
   ApiCrcWhatsappRoute: typeof ApiCrcWhatsappRouteWithChildren
   ApiRhVarrerRoute: typeof ApiRhVarrerRoute
+  ApiCrcMetaCanalRoute: typeof ApiCrcMetaCanalRoute
   ApiRhCurriculoIdRoute: typeof ApiRhCurriculoIdRoute
 }
 
@@ -613,6 +626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRhVarrerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/crc/meta/$canal': {
+      id: '/api/crc/meta/$canal'
+      path: '/api/crc/meta/$canal'
+      fullPath: '/api/crc/meta/$canal'
+      preLoaderRoute: typeof ApiCrcMetaCanalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/crc/whatsapp/$canal': {
       id: '/api/crc/whatsapp/$canal'
       path: '/$canal'
@@ -681,6 +701,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCrcSaudeRoute: ApiCrcSaudeRoute,
   ApiCrcWhatsappRoute: ApiCrcWhatsappRouteWithChildren,
   ApiRhVarrerRoute: ApiRhVarrerRoute,
+  ApiCrcMetaCanalRoute: ApiCrcMetaCanalRoute,
   ApiRhCurriculoIdRoute: ApiRhCurriculoIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -492,3 +492,135 @@ describe("nenhuma tela importa o servidor estaticamente", () => {
     ).toEqual([]);
   });
 });
+
+/* -------------------------------------------------------------------------- */
+
+describe("a trava de sandbox pergunta ao runtime, e não ao bundler", () => {
+  /*
+   * ==========================================================================
+   *  ESTE INVARIANTE NASCEU DE UMA MEDIÇÃO NO ARTEFATO, e não de uma teoria.
+   *
+   *  `process.env["NODE_ENV"]` é substituído por um LITERAL no bundle do
+   *  servidor — e não é o `--mode` que decide: o build define `"production"` nas
+   *  duas passagens. O efeito, conferido em `.output/server/_ssr/ssr.mjs`:
+   *
+   *      function sandboxLigado() { return false; }
+   *
+   *  `grep -c META_SANDBOX` no artefato devolvia **0**. A variável não era
+   *  ignorada: não era nem lida, porque o caminho do sandbox tinha sido removido
+   *  do arquivo.
+   *
+   *  A CONSEQUÊNCIA ERA UM E2E QUE NÃO PROVAVA NENHUM ENVIO — nem do Instagram,
+   *  nem do WhatsApp. E o sintoma ficava a três camadas da causa: "a conta da
+   *  Meta está cadastrada para receber, mas não tem token de envio".
+   *
+   *  A regra: quem decide sandbox lê `ehProducao()`, de `servidor/ambiente.ts`,
+   *  onde a indireção mantém a pergunta viva até a execução.
+   * ==========================================================================
+   *
+   * ==========================================================================
+   *  E A REGRA VALE SÓ PARA AS TRAVAS DE SANDBOX — de propósito.
+   *
+   *  `process.env["NODE_ENV"]` dobrado em constante está CERTO em
+   *  `servidor/sessao.ts` (cookie seguro) e `servidor/instalacao.ts` (recusa de
+   *  semente de exemplo): essas decisões devem valer no artefato de produção e
+   *  não depender de variável de ambiente.
+   *
+   *  A lista abaixo é dos arquivos que escolhem provedor FALSO, e ela é
+   *  explícita — uma heurística que "sabe" quais arquivos são travas de sandbox
+   *  seria uma regra que ninguém consegue auditar.
+   * ==========================================================================
+   */
+  const TRAVAS_DE_SANDBOX = [
+    "src/lib/crc/integracoes/meta/config.ts",
+    "src/lib/crc/integracoes/whatsapp/provedores.ts",
+  ];
+
+  it("a varredura enxerga os arquivos — controle positivo", () => {
+    for (const caminho of TRAVAS_DE_SANDBOX) {
+      const fonte = readFileSync(caminho, "utf8");
+      expect(fonte.length, `${caminho} não foi lido`).toBeGreaterThan(500);
+      // Cada um tem que MENCIONAR sandbox, senão a lista está desatualizada e o
+      // teste passaria varrendo arquivos que não decidem nada.
+      expect(fonte.toLowerCase(), `${caminho} não fala de sandbox`).toContain("sandbox");
+    }
+  });
+
+  it("nenhuma delas lê `process.env` do NODE_ENV direto", () => {
+    const violacoes: string[] = [];
+
+    for (const caminho of TRAVAS_DE_SANDBOX) {
+      const fonte = semComentarios(readFileSync(caminho, "utf8"));
+      const linhas = fonte.split("\n");
+
+      linhas.forEach((linha, i) => {
+        if (/process\s*\.\s*env\s*(?:\.\s*NODE_ENV|\[\s*["']NODE_ENV["']\s*\])/u.test(linha)) {
+          violacoes.push(`${comBarras(caminho)}:${String(i + 1)}  ${linha.trim()}`);
+        }
+      });
+    }
+
+    expect(
+      violacoes,
+      [
+        "Uma trava de sandbox voltou a ler `process.env.NODE_ENV` direto.",
+        "",
+        "Isso vira um LITERAL no bundle do servidor: a comparação com",
+        '"production" é resolvida em tempo de build, o caminho do sandbox é',
+        "REMOVIDO do artefato, e a variável do sandbox deixa de ser lida.",
+        "",
+        "O sintoma não é um erro — é um envio que nunca acontece, com uma",
+        "mensagem sobre credencial faltando três camadas acima.",
+        "",
+        "Use o helper, que mantém a pergunta para o runtime:",
+        "",
+        '    import { ehProducao } from "../../servidor/ambiente";',
+        "    if (ehProducao()) return false;",
+      ].join("\n"),
+    ).toEqual([]);
+  });
+
+  it("`ehProducao` chega em `process` por `globalThis`", () => {
+    /*
+     * ========================================================================
+     *  DUAS FORMAS JÁ FORAM DOBRADAS PELO BUNDLER, e a segunda é a instrutiva:
+     *
+     *    process.env["NODE_ENV"]                → "production"
+     *    const v = process.env; v["NODE_ENV"]   → "production"
+     *
+     *  A substituição casa o caminho a partir do IDENTIFICADOR `process`, e
+     *  propaga pela variável local. Chegar por `globalThis` sai do casamento,
+     *  porque não existe identificador `process` na expressão.
+     *
+     *  Este teste é o que impede a próxima "limpeza" de reabrir o buraco: a
+     *  forma dobrada compila, passa em todo teste de unidade — e desliga o
+     *  sandbox no artefato, em silêncio.
+     * ========================================================================
+     */
+    const fonte = semComentarios(readFileSync("src/lib/crc/servidor/ambiente.ts", "utf8"));
+
+    expect(fonte, "`servidor/ambiente.ts` tem que chegar em `process` por `globalThis`.").toContain(
+      "globalThis",
+    );
+
+    // O identificador `process` não pode aparecer como raiz de acesso. Depois
+    // de `globalThis.` ele é propriedade, e isso o bundler não substitui.
+    const semGlobalThis = fonte.split("globalThis").join("«raiz»");
+
+    expect(
+      /\bprocess\s*\.\s*env/u.test(semGlobalThis),
+      [
+        "`servidor/ambiente.ts` voltou a usar o identificador `process` direto.",
+        "",
+        "O bundler substitui `process.env.NODE_ENV` por um literal e propaga",
+        "pela variável local — as duas formas óbvias já foram tentadas e",
+        "dobradas. O sintoma não é erro nenhum: o sandbox some do artefato.",
+        "",
+        "A forma que sobrevive:",
+        "",
+        "    const raiz = globalThis as { process?: { env?: ... } };",
+        '    return (raiz.process?.env?.["NODE_ENV"] ?? "").trim();',
+      ].join("\n"),
+    ).toBe(false);
+  });
+});

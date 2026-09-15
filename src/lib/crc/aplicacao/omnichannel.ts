@@ -31,8 +31,11 @@ import {
 import {
   compararCadastros,
   normalizar,
+  normalizarNamespace,
   resolver,
+  SEM_NAMESPACE,
   type Candidato,
+  type NamespaceDeIdentidade,
   type ParaComparar,
   type Resolucao,
   type SuspeitaDeDuplicata,
@@ -281,17 +284,48 @@ export async function registrarIdentidade(
   patientId: string,
   tipo: TipoDeIdentidade,
   bruto: string,
+  /**
+   * De qual sistema veio o identificador — obrigatório em `EXTERNAL_ID`.
+   *
+   * ========================================================================
+   *  O DEFAULT É VAZIO, E ISSO É COMPATIBILIDADE COM QUEM JÁ CHAMA — não
+   *  permissividade. `normalizarNamespace` RECUSA `EXTERNAL_ID` sem
+   *  namespace, então a chamada antiga de telefone/e-mail continua idêntica e
+   *  a de id externo passa a exigir a origem. É o único desenho em que a
+   *  colisão descrita no `dominio/identidade.ts` deixa de ser possível sem
+   *  reescrever todos os chamadores no mesmo commit.
+   * ========================================================================
+   */
+  namespaceBruto: NamespaceDeIdentidade = SEM_NAMESPACE,
 ): Promise<boolean> {
   const valor = normalizar(tipo, bruto);
   if (valor === null) return false;
 
+  const namespace = normalizarNamespace(tipo, namespaceBruto);
+  if (namespace === null) {
+    registrar("erro", "Identidade recusada: namespace inválido para o tipo.", {
+      organizationId,
+      tipo,
+      namespace: namespaceBruto,
+      detalhe:
+        "EXTERNAL_ID exige namespace (dental-office, instagram, messenger…); os outros tipos não aceitam nenhum.",
+    });
+    return false;
+  }
+
+  const escopoDoValor: Filtro[] = [
+    { coluna: "organization_id", op: "eq", valor: organizationId },
+    { coluna: "tipo", op: "eq", valor: tipo },
+    // O NAMESPACE ENTRA NO FILTRO, e é o que impede o IGSID `123` ser lido como
+    // o paciente `123` do Dental Office. Sem ele a consulta abaixo acharia o
+    // "outro dono" errado e marcaria as duas linhas como compartilhadas.
+    { coluna: "namespace", op: "eq", valor: namespace },
+    { coluna: "valor", op: "eq", valor },
+  ];
+
   const outros = await selecionar<{ id: string; patient_id: string }>("crc_patient_identities", {
     colunas: "id,patient_id",
-    filtros: [
-      { coluna: "organization_id", op: "eq", valor: organizationId },
-      { coluna: "tipo", op: "eq", valor: tipo },
-      { coluna: "valor", op: "eq", valor },
-    ],
+    filtros: escopoDoValor,
     limite: 20,
   });
 
@@ -302,6 +336,7 @@ export async function registrarIdentidade(
     organization_id: organizationId,
     patient_id: patientId,
     tipo,
+    namespace,
     valor,
     compartilhada,
   });
@@ -311,19 +346,12 @@ export async function registrarIdentidade(
 
     // Os que já existiam também passam a ser ambíguos. Sem isto, a linha antiga
     // continuaria resolvendo sozinha e a proteção valeria só para a nova.
-    await atualizar(
-      "crc_patient_identities",
-      [
-        { coluna: "organization_id", op: "eq", valor: organizationId },
-        { coluna: "tipo", op: "eq", valor: tipo },
-        { coluna: "valor", op: "eq", valor },
-      ],
-      { compartilhada: true },
-    );
+    await atualizar("crc_patient_identities", escopoDoValor, { compartilhada: true });
 
     registrar("info", "Identificador compartilhado entre pacientes.", {
       organizationId,
       tipo,
+      namespace,
       pacientes: deOutraPessoa.length + 1,
     });
   }
@@ -340,10 +368,28 @@ export async function quemE(
   organizationId: string,
   tipo: TipoDeIdentidade,
   bruto: string,
+  namespaceBruto: NamespaceDeIdentidade = SEM_NAMESPACE,
 ): Promise<Resolucao> {
   const valor = normalizar(tipo, bruto);
   if (valor === null) {
     return { tipo: "NENHUM", porque: "O identificador informado não é válido." };
+  }
+
+  const namespace = normalizarNamespace(tipo, namespaceBruto);
+  if (namespace === null) {
+    /*
+     * RECUSA EM VEZ DE BUSCA AMPLA, e a diferença é tudo.
+     *
+     * Buscar sem filtrar namespace devolveria os pacientes de TODOS os
+     * sistemas que têm aquele número — que é exatamente a colisão. `NENHUM` é
+     * a resposta honesta: não dá para saber de quem é um id externo sem saber
+     * de onde ele veio.
+     */
+    return {
+      tipo: "NENHUM",
+      porque:
+        "Não dá para resolver um id externo sem saber de qual sistema ele veio. Informe o namespace (dental-office, instagram, messenger…).",
+    };
   }
 
   const linhas = await selecionar<{
@@ -355,6 +401,7 @@ export async function quemE(
     filtros: [
       { coluna: "organization_id", op: "eq", valor: organizationId },
       { coluna: "tipo", op: "eq", valor: tipo },
+      { coluna: "namespace", op: "eq", valor: namespace },
       { coluna: "valor", op: "eq", valor },
     ],
     limite: 20,
@@ -373,11 +420,29 @@ export async function quemE(
     patientId: l.patient_id,
     nome: nomes.get(l.patient_id) ?? "Paciente sem nome",
     porQual: tipo,
+    namespace,
     compartilhado: l.compartilhada,
     confirmado: l.confirmada_em !== null,
   }));
 
   return resolver(candidatos);
+}
+
+/**
+ * Quem é a pessoa por trás de um perfil da Meta — §25.
+ *
+ * É `quemE` com o namespace já preenchido, e existe como função própria por um
+ * motivo de segurança: o chamador é o caminho de webhook, que recebe o IGSID de
+ * FORA. Esquecer o namespace ali é o defeito do `dominio/identidade.ts`
+ * acontecendo de novo, e uma função que não tem parâmetro para esquecer não
+ * pode ser chamada errado.
+ */
+export async function quemEPerfilDaMeta(
+  organizationId: string,
+  canal: "instagram" | "messenger",
+  identificadorExterno: string,
+): Promise<Resolucao> {
+  return quemE(organizationId, "EXTERNAL_ID", identificadorExterno, canal);
 }
 
 async function nomesDe(

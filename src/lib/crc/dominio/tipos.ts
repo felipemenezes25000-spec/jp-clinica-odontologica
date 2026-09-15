@@ -291,6 +291,20 @@ export type Conversa = {
   patientId: string | null;
   canal: string;
   contatoExterno: string;
+  /**
+   * O `@usuario` ou nome do perfil, quando o canal informa — §24.
+   *
+   * ==========================================================================
+   *  É RÓTULO, E NUNCA CHAVE. Ver o cabeçalho de `dominio/canais.ts`: username
+   *  do Instagram é editável e reaproveitável, e casar conversa por ele juntaria
+   *  pessoas diferentes.
+   *
+   *  Existe porque um IGSID tem dezessete dígitos, e a Inbox mostrava
+   *  `contato_externo` para toda conversa sem paciente vinculado. Uma coluna de
+   *  números de dezessete dígitos é exatamente o que o §24 proíbe.
+   * ==========================================================================
+   */
+  apelidoExterno: string | null;
   status: StatusConversa;
   assignedTo: string | null;
   bloqueadaPor: string | null;

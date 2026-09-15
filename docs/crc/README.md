@@ -15,12 +15,15 @@
 
 ## Documentos vivos
 
-| Arquivo | Uso |
-| --- | --- |
-| `README.md` | este índice |
-| `ATIVACAO-EM-PRODUCAO.md` | colocar/validar o CRC no ambiente |
-| `RUNBOOK.md` | incidentes e operação |
-| `EMAIL-DENTAL-OFFICE.md` | checklist/modelo para pedir o que a especificação não entrega |
+| Arquivo                                            | Uso                                                                                       |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `README.md`                                        | este índice                                                                               |
+| `ATIVACAO-EM-PRODUCAO.md`                          | colocar/validar o CRC no ambiente                                                         |
+| `RUNBOOK.md`                                       | incidentes e operação                                                                     |
+| `META-OMNICHANNEL.md`                              | arquitetura da integração com a Meta                                                      |
+| `META-ATIVACAO-E-HOMOLOGACAO.md`                   | ligar a Meta, fase por fase                                                               |
+| `META-RUNBOOK.md`                                  | incidentes de Instagram, Messenger, comentários e Lead Ads                                |
+| `EMAIL-DENTAL-OFFICE.md`                           | checklist/modelo para pedir o que a especificação não entrega                             |
 | `openapi-dentaloffice.yml` + `dental-office-api/*` | cópia versionada do contrato do Dental Office; vale para a data declarada nesses arquivos |
 
 `EMAIL-DENTAL-OFFICE.md` continua dependendo de respostas do fornecedor; não transforme ausência de resposta em comportamento presumido.
@@ -117,6 +120,22 @@ A especificação versionada em `dental-office-api/` é a fonte contratual local
 
 O CRC possui portas/provedores, mas ativação depende de credenciais e configuração de canal. Modo sandbox não é prova de produção.
 
+### Meta (Instagram, Messenger, comentários, Lead Ads)
+
+Quatro documentos, e cada um responde uma pergunta diferente:
+
+| Pergunta                              | Documento                                                        |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| Como funciona?                        | [META-OMNICHANNEL.md](META-OMNICHANNEL.md)                       |
+| O que está provado, e o que não está? | [META-FINAL-ACCEPTANCE.md](META-FINAL-ACCEPTANCE.md)             |
+| Como ligar?                           | [META-ATIVACAO-E-HOMOLOGACAO.md](META-ATIVACAO-E-HOMOLOGACAO.md) |
+| Quebrou, e agora?                     | [META-RUNBOOK.md](META-RUNBOOK.md)                               |
+
+**Nada disso está em produção.** Não existe App da Meta configurado para a
+clínica, e sem App ID/Secret não há webhook chegando nem token para enviar. A
+matriz de aceite é explícita por produto — nenhuma linha está em
+`TESTADO_COM_API_REAL`.
+
 ### IA
 
 Rotas/modelos/orçamentos são configuração operacional. Não coloque segredo ou chave no cliente.
@@ -156,6 +175,10 @@ Não copie nomes de checks de `RELEASE-GATE.md` sem conferir o YAML atual; aquel
 ## Para incidente
 
 Abra `RUNBOOK.md`. Se houver risco de mensagem/escrita indevida para paciente, priorize os interruptores de segurança antes da investigação.
+
+Se o incidente for de Instagram, Messenger, comentário ou Lead Ads, o runbook é
+[META-RUNBOOK.md](META-RUNBOOK.md) — e ele começa pela tela que responde, e não
+por SQL.
 
 ## Regra de manutenção
 

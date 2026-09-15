@@ -210,9 +210,33 @@ export async function auditar(entrada: EntradaAuditoria): Promise<void> {
 /* Log de integração (item 237)                                               */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Qual integração fez a chamada.
+ *
+ * ============================================================================
+ *  A META ENTRA COMO QUATRO NOMES, E NÃO UM.
+ *
+ *  `lerHub()` mede o estado de cada integração por `crc_integration_logs`:
+ *  última vez que funcionou, última vez que falhou, falhas nas 24h. Com um
+ *  `meta` só, a resposta para "o Lead Ads está chegando e o direct não" seria
+ *  "a Meta está mais ou menos" — e quem opera não saberia onde olhar.
+ *
+ *  `whatsapp` fica como está. Ele também é Meta, e renomeá-lo agora quebraria a
+ *  série histórica de uma tela que já funciona.
+ * ============================================================================
+ */
+export type NomeDaIntegracao =
+  | "dental_office"
+  | "whatsapp"
+  | "ia"
+  | "meta_instagram"
+  | "meta_messenger"
+  | "meta_comentarios"
+  | "meta_lead_ads";
+
 export type EntradaIntegracao = {
   organizationId: string | null;
-  integracao: "dental_office" | "whatsapp" | "ia";
+  integracao: NomeDaIntegracao;
   operacao: string;
   direcao?: "ENTRADA" | "SAIDA";
   metodo?: string;

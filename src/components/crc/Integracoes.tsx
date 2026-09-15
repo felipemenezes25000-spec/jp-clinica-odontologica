@@ -33,6 +33,7 @@ import {
   useAcao,
 } from "./base";
 import { HubDeIntegracoes } from "./HubDeIntegracoes";
+import { MetaIntegracao } from "./MetaIntegracao";
 import "./crc-integrations.css";
 
 type Cartao3 = EstadoIntegracoes["dentalOffice"];
@@ -192,6 +193,24 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
           Há interruptores de emergência acionados. Parte do sistema está pausada de propósito.
         </Aviso>
       )}
+
+      {/*
+        A META VEM ANTES DA GRADE DOS TRES CARTOES, e a posicao e uma decisao.
+
+        ========================================================================
+         `IntegracaoCard` cabe para uma integracao que tem UM estado e duas
+         acoes. A Meta tem quatro produtos, N contas, oito sinais medidos, a URL
+         do webhook, os campos a assinar e as regras de comentario.
+
+         Espremer isso num cartao da grade produziria um cartao tres vezes mais
+         alto que os vizinhos — ou, pior, esconderia os sinais atras de um
+         "ver detalhes" que ninguem clica. E os sinais sao o §39 inteiro.
+
+         Ela vem ANTES porque e a integracao que esta sendo ativada agora: e
+         nela que alguem vai olhar ao abrir esta tela nas proximas semanas.
+        ========================================================================
+      */}
+      <MetaIntegracao podeGerenciar={podeGerenciar} />
 
       <section className="crc-int-grid-v2">
         <IntegracaoCard

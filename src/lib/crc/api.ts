@@ -100,6 +100,22 @@ export type ItemPrioridade = {
   proximaAcao: string | null;
   ultimoContatoEm: string | null;
   temJornadaAtiva: boolean;
+  /**
+   * De onde esta oportunidade veio — §42.
+   *
+   * ==========================================================================
+   *  UMA LINHA NO CARD, E NÃO UMA ÁRVORE DE NATAL — o §42 usa esta palavra.
+   *
+   *  O dado completo é uma hierarquia: plataforma → campanha → conjunto →
+   *  anúncio → formulário. Cinco níveis num card de funil empurrariam a
+   *  PRÓXIMA AÇÃO para fora da vista — e a próxima ação é a única informação
+   *  pela qual alguém olha um funil.
+   *
+   *  Aqui entra o canal e, quando existe, a campanha. O resto vive na ficha do
+   *  lead, para quem foi olhar de propósito.
+   * ==========================================================================
+   */
+  origem: string | null;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -443,6 +459,7 @@ export const carregarHome = createServerFn({ method: "GET" }).handler(
         proximaAcao: o.nextAction,
         ultimoContatoEm: null,
         temJornadaAtiva: false,
+        origem: o.origem,
       }));
 
       /*
@@ -1152,6 +1169,7 @@ export const carregarFunil = createServerFn({ method: "GET" })
             proximaAcao: o.nextAction,
             ultimoContatoEm: null,
             temJornadaAtiva: false,
+            origem: o.origem,
             stageId: o.stageId,
           })),
         };
@@ -2990,11 +3008,57 @@ export const criarTarefaManual = createServerFn({ method: "POST" })
 /* Inbox                                                                      */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Os valores que o filtro da Inbox aceita — §22.
+ *
+ * ============================================================================
+ *  LISTAS LITERAIS, E NÃO IMPORT DE `dominio/canais`.
+ *
+ *  O topo deste arquivo precisa ser seguro no navegador: ver o cabeçalho, e
+ *  `docs/INCIDENTE-BUILD-500.md` para o que acontece quando o grafo de imports
+ *  do servidor vaza para o bundle do cliente.
+ *
+ *  `dominio/canais.ts` é puro e seria seguro importar — mas a regra deste
+ *  arquivo é "nada estático", e abrir exceção para "este é puro" exige que
+ *  todo mundo depois julgue certo qual módulo é puro. Duas strings duplicadas
+ *  custam menos que essa decisão.
+ *
+ *  O `rotas.test.ts` do CRC e o `invariantes-arquiteturais.test.ts` cobrem a
+ *  regra do bundle; esta lista é conferida por `CANAIS_DE_CONVERSA` no teste do
+ *  filtro.
+ * ============================================================================
+ */
+const CANAIS_VALIDOS: readonly string[] = ["whatsapp", "instagram", "messenger"];
+const DONOS_VALIDOS: readonly string[] = ["ia", "humano", "ninguem"];
+
 export const carregarInbox = createServerFn({ method: "GET" })
-  .validator((e: { apenasNaoLidas?: boolean; apenasMinhas?: boolean }) => ({
-    apenasNaoLidas: e.apenasNaoLidas === true,
-    apenasMinhas: e.apenasMinhas === true,
-  }))
+  .validator(
+    (e: {
+      apenasNaoLidas?: boolean;
+      apenasMinhas?: boolean;
+      apenasRevisao?: boolean;
+      canais?: string[];
+      donos?: string[];
+    }) => ({
+      apenasNaoLidas: e.apenasNaoLidas === true,
+      apenasMinhas: e.apenasMinhas === true,
+      apenasRevisao: e.apenasRevisao === true,
+      /*
+       * OS CANAIS SÃO VALIDADOS CONTRA A UNIÃO FECHADA — §22, §33.
+       *
+       * `canal` entra num `in` da consulta, e `Filtro` já escapa o valor com
+       * `URLSearchParams`. Filtrar pela união fechada não é sobre injeção: é
+       * sobre não deixar a tela pedir um canal que não existe e receber zero
+       * conversas em silêncio, parecendo "não tem mensagem".
+       */
+      canais: Array.isArray(e.canais)
+        ? e.canais.map(String).filter((c) => CANAIS_VALIDOS.includes(c))
+        : [],
+      donos: Array.isArray(e.donos)
+        ? e.donos.map(String).filter((d) => DONOS_VALIDOS.includes(d))
+        : [],
+    }),
+  )
   .handler(
     async ({ data }): Promise<Resposta<{ conversas: Conversa[]; nomes: Record<string, string> }>> =>
       comContexto("ver_conversa", async (ctx) => {
@@ -3004,6 +3068,9 @@ export const carregarInbox = createServerFn({ method: "GET" })
           organizationId: ctx.organizationId,
           clinicIds: ctx.clinicIds,
           apenasNaoLidas: data.apenasNaoLidas,
+          apenasRevisao: data.apenasRevisao,
+          canais: data.canais,
+          donos: data.donos,
           ...(data.apenasMinhas ? { assignedTo: ctx.usuario.id } : {}),
           limite: 50,
         });
@@ -3095,6 +3162,75 @@ export const responderConversa = createServerFn({ method: "POST" })
           ok: false as const,
           code: "INTEGRACAO_INDISPONIVEL",
           message: "Os envios estão pausados por um administrador.",
+        };
+      }
+
+      /*
+       * ========================================================================
+       *  O CANAL DA CONVERSA DECIDE POR ONDE A RESPOSTA SAI — §22.
+       *
+       *  Até aqui esta função montava o provedor de WhatsApp sempre. Numa Inbox
+       *  só de WhatsApp isso estava certo; numa Inbox unificada, é o defeito
+       *  central: responder um direct do Instagram tentava o WhatsApp, e o
+       *  desfecho era `INTEGRACAO_NAO_CONFIGURADA` com a frase "credencial de
+       *  WhatsApp só existe no ambiente" — que não tem nada a ver com o que a
+       *  pessoa estava fazendo.
+       *
+       *  E o desfecho ruim não era o erro: era o SILÊNCIO. Alguém escreveu para
+       *  a clínica pelo Instagram, a recepção respondeu, a tela recusou com uma
+       *  mensagem sobre WhatsApp, e o paciente ficou sem resposta.
+       *
+       *  Foi o E2E do §54 que encontrou isto — nenhum teste de unidade podia:
+       *  eles não passam por esta função.
+       * ========================================================================
+       */
+      if (conversa.canal !== "whatsapp") {
+        const { ehCanalDeConversa, montarDestino } = await import("./dominio/canais");
+        const { enviarNoCanal } = await import("./aplicacao/mensagens");
+
+        /*
+         * `Conversa.canal` É `string`, E A ESTREITADA É AQUI.
+         *
+         * `canalDaLinha` existe e cai em `whatsapp` quando não reconhece — o que
+         * é certo na LEITURA (uma conversa antiga sem canal é WhatsApp). No
+         * ENVIO seria o pior desfecho possível: um valor estranho na coluna
+         * mandaria a resposta por WhatsApp para um IGSID.
+         */
+        const destino = ehCanalDeConversa(conversa.canal)
+          ? montarDestino(conversa.canal, conversa.contatoExterno)
+          : null;
+        if (destino === null) {
+          return {
+            ok: false as const,
+            code: "CANAL_DESCONHECIDO",
+            message: `Esta conversa está marcada como "${conversa.canal}", e não há por onde responder. Fale com o suporte.`,
+          };
+        }
+
+        const noCanal = await enviarNoCanal({
+          organizationId: ctx.organizationId,
+          clinicId: conversa.clinicId,
+          conversationId: conversa.id,
+          patientId: conversa.patientId,
+          destino,
+          texto: data.texto.trim(),
+          // É a PESSOA respondendo. É isto que autoriza a etiqueta `HUMAN_AGENT`
+          // fora das 24 horas — e é por isso que `ia` nunca chega aqui.
+          quem: "atendente",
+          autorId: ctx.usuario.id,
+          chaveDedupe: `manual:${conversa.id}:${Date.now().toString(36)}`,
+        });
+
+        if (!noCanal.ok) {
+          return { ok: false as const, code: noCanal.codigo, message: noCanal.motivo };
+        }
+
+        const gravadaNoCanal = await selecionarUm("crc_messages", {
+          filtros: [{ coluna: "id", op: "eq", valor: noCanal.mensagemId }],
+        });
+        return {
+          ok: true as const,
+          mensagem: gravadaNoCanal === null ? null : linhaParaMensagem(gravadaNoCanal),
         };
       }
 
@@ -6580,3 +6716,574 @@ export const sugerirPublicoDaMeta = createServerFn({ method: "POST" })
       return { ok: true as const, publico: p, meta: meta.titulo };
     }),
   );
+
+/* -------------------------------------------------------------------------- */
+/* Meta — Instagram, Messenger, comentários e Lead Ads (§31, §66)             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * O estado da integração com a Meta.
+ *
+ * ============================================================================
+ *  NADA AQUI VOLTA TOKEN — §32.
+ *
+ *  `canaisMetaParaTela` devolve `CanalMetaParaTela`, que tem `dica` e não tem
+ *  `token`. Não é disciplina de quem escreve a tela: são dois tipos diferentes
+ *  em `integracoes/meta/canais.ts`, e passar um pelo outro não compila.
+ * ============================================================================
+ */
+export type EstadoDaMetaDto = {
+  saude: import("./aplicacao/meta-saude").SaudeDaMeta;
+  canais: import("./integracoes/meta/canais").CanalMetaParaTela[];
+  regras: import("./aplicacao/meta-config").RegraParaTela[];
+  /** A versão da Graph API em uso, e se o ambiente pediu uma inválida. */
+  graph: { versao: string; conferida: string; ambienteInvalido: boolean };
+  /** O que cada produto exige de permissão, com a fonte oficial. §4.3. */
+  exigencias: readonly import("./integracoes/meta/config").ExigenciaDoProduto[];
+  /** Os campos de webhook por produto. Assinar o errado é o defeito mais comum. */
+  camposDeWebhook: Record<string, readonly string[]>;
+  /** A URL que vai no painel da Meta, por canal. */
+  urlDoWebhook: string;
+  /** `true` quando o servidor está rodando com o sandbox local. */
+  sandbox: boolean;
+  /**
+   * As unidades que este usuario alcanca — §33.
+   *
+   * ==========================================================================
+   *  A TELA PRECISA DELAS PORQUE UMA CONTA DA META E DE UMA UNIDADE.
+   *
+   *  E a escolha nao pode ser feita pelo codigo: `clinicas[0]` acertaria numa
+   *  instalacao com uma unidade e escolheria arbitrariamente numa rede — que e
+   *  exatamente o defeito de origem que o `supabase/23` matou, do lado da
+   *  configuracao em vez do lado do webhook.
+   *
+   *  Com UMA unidade a tela nao pergunta nada. Com duas, ela pergunta.
+   * ==========================================================================
+   */
+  unidades: { id: string; nome: string }[];
+};
+
+export const carregarMeta = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ estado: EstadoDaMetaDto }>> =>
+    comContexto("ver_integracoes", async (ctx) => {
+      const { lerSaudeDaMeta } = await import("./aplicacao/meta-saude");
+      const { canaisMetaParaTela } = await import("./integracoes/meta/canais");
+      const { listarRegrasSociais } = await import("./aplicacao/meta-config");
+      const {
+        CAMPOS_DE_WEBHOOK,
+        EXIGENCIAS,
+        VERSAO_CONFERIDA,
+        sandboxLigado,
+        versaoDaGraph,
+        versaoDoAmbienteEhInvalida,
+      } = await import("./integracoes/meta/config");
+
+      const { listarClinicas } = await import("./aplicacao/clinicas");
+
+      const [saude, canais, regras, clinicas] = await Promise.all([
+        lerSaudeDaMeta(ctx.organizationId, ctx.clinicIds),
+        canaisMetaParaTela(ctx.organizationId, ctx.clinicIds),
+        listarRegrasSociais(ctx.organizationId, ctx.clinicIds),
+        listarClinicas(ctx.organizationId),
+      ]);
+
+      return {
+        ok: true as const,
+        estado: {
+          saude,
+          canais,
+          regras,
+          graph: {
+            versao: versaoDaGraph(),
+            conferida: VERSAO_CONFERIDA,
+            ambienteInvalido: versaoDoAmbienteEhInvalida(),
+          },
+          exigencias: EXIGENCIAS,
+          camposDeWebhook: { ...CAMPOS_DE_WEBHOOK },
+          /*
+           * A URL É MONTADA NO SERVIDOR, e o `:canal` fica como marcador.
+           *
+           * Quem cola isto no painel da Meta precisa do endereço PÚBLICO, e o
+           * servidor é quem sabe qual é — `CRC_URL_PUBLICA` quando existe, e o
+           * aviso de que falta quando não. Montar no cliente pegaria
+           * `window.location`, que em desenvolvimento é `localhost` e a Meta
+           * recusa sem dizer por quê.
+           */
+          urlDoWebhook: `${(process.env["CRC_URL_PUBLICA"] ?? "").replace(/\/+$/u, "")}/api/crc/meta/`,
+          sandbox: sandboxLigado(),
+          // `alcanca` E O MESMO filtro que a escrita usa. Mostrar uma unidade
+          // que o usuario nao alcanca faria o formulario oferecer uma escolha
+          // que `conectarMeta` vai recusar com SEM_PERMISSAO.
+          unidades: clinicas
+            .filter((c) => c.ativa && ctx.alcanca(c.id))
+            .map((c) => ({ id: c.id, nome: c.nome })),
+        },
+      };
+    }),
+);
+
+export const conectarMeta = createServerFn({ method: "POST" })
+  .validator(
+    (e: {
+      canalId?: string | null;
+      clinicId: string;
+      pageId?: string | null;
+      instagramAccountId?: string | null;
+      displayName?: string;
+      username?: string;
+      produtos?: string[];
+      token?: string;
+      appSecret?: string;
+      verifyToken?: string;
+      humanAgentAprovado?: boolean;
+      tokenExpiraEm?: string | null;
+      permissoes?: string[];
+    }) => ({
+      canalId: e.canalId ?? null,
+      clinicId: String(e.clinicId ?? ""),
+      pageId: (e.pageId ?? "").trim(),
+      instagramAccountId: (e.instagramAccountId ?? "").trim(),
+      displayName: String(e.displayName ?? "").slice(0, 200),
+      username: String(e.username ?? "").slice(0, 120),
+      produtos: Array.isArray(e.produtos) ? e.produtos.map(String) : [],
+      token: String(e.token ?? ""),
+      appSecret: String(e.appSecret ?? ""),
+      verifyToken: String(e.verifyToken ?? ""),
+      humanAgentAprovado: e.humanAgentAprovado === true,
+      tokenExpiraEm: e.tokenExpiraEm ?? null,
+      permissoes: Array.isArray(e.permissoes) ? e.permissoes.map(String) : [],
+    }),
+  )
+  .handler(async ({ data }): Promise<Resposta<{ canalId: string; dica: string }>> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      if (!ctx.alcanca(data.clinicId)) {
+        return {
+          ok: false as const,
+          code: "SEM_PERMISSAO",
+          message: "Seu acesso não inclui esta unidade.",
+        };
+      }
+
+      const { conectarCanalMeta } = await import("./aplicacao/meta-config");
+
+      /*
+       * O `config` É MONTADO AQUI, e só com o que é dele.
+       *
+       * `appSecret` e `verifyToken` são do APLICATIVO e moram no `config` do
+       * canal por um motivo de arquitetura, não de conveniência: a verificação
+       * de assinatura precisa deles ANTES de o corpo ser confiável, e decifrar
+       * um segredo por canal para conferir uma assinatura que pode ser forjada
+       * abriria um oráculo de tempo. Ver `appDoAmbiente` em
+       * `integracoes/meta/config.ts`.
+       *
+       * VAZIO NÃO ENTRA: um `appSecret: ""` gravado sobrescreveria o que já
+       * estava lá, e a próxima assinatura seria recusada com `sem_segredo`.
+       */
+      const config: Record<string, unknown> = { humanAgentAprovado: data.humanAgentAprovado };
+      if (data.appSecret.trim().length > 0) config["appSecret"] = data.appSecret.trim();
+      if (data.verifyToken.trim().length > 0) config["verifyToken"] = data.verifyToken.trim();
+
+      const r = await conectarCanalMeta({
+        organizationId: ctx.organizationId,
+        clinicId: data.clinicId,
+        userId: ctx.usuario.id,
+        canalId: data.canalId,
+        pageId: data.pageId.length > 0 ? data.pageId : null,
+        instagramAccountId: data.instagramAccountId.length > 0 ? data.instagramAccountId : null,
+        displayName: data.displayName,
+        username: data.username,
+        produtos: data.produtos,
+        token: data.token,
+        config,
+        tokenExpiraEm: data.tokenExpiraEm,
+        permissoes: data.permissoes,
+      });
+
+      if (!r.ok) {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message:
+            r.faltando.length > 0 ? `${r.motivo} Falta: ${r.faltando.join(", ")}.` : r.motivo,
+        };
+      }
+
+      return { ok: true as const, canalId: r.canalId, dica: r.dica };
+    }),
+  );
+
+/**
+ * Testa a conexão — e NÃO manda mensagem para ninguém.
+ *
+ * Ver `testarCanalMeta`: é um GET no próprio objeto da conta. O §31 proíbe a
+ * ação "Testar" enviar mensagem para paciente real, e a forma de cumprir isso é
+ * não haver caminho de envio nesta função.
+ */
+export const testarMeta = createServerFn({ method: "POST" })
+  .validator((e: { canalId: string }) => ({ canalId: String(e.canalId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ detalhe: string }>> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { testarCanalMeta } = await import("./aplicacao/meta-config");
+      const r = await testarCanalMeta({
+        organizationId: ctx.organizationId,
+        canalId: data.canalId,
+      });
+
+      return r.ok
+        ? { ok: true as const, detalhe: r.detalhe }
+        : { ok: false as const, code: "INTEGRACAO_INDISPONIVEL", message: r.detalhe };
+    }),
+  );
+
+export const desativarMeta = createServerFn({ method: "POST" })
+  .validator((e: { canalId: string }) => ({ canalId: String(e.canalId ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_integracoes", async (ctx) => {
+      const { desativarCanalMeta } = await import("./aplicacao/meta-config");
+      const ok = await desativarCanalMeta({
+        organizationId: ctx.organizationId,
+        canalId: data.canalId,
+        userId: ctx.usuario.id,
+      });
+
+      return ok
+        ? { ok: true as const }
+        : { ok: false as const, code: "NAO_ENCONTRADO", message: "Não encontramos este canal." };
+    }),
+  );
+
+/**
+ * Reconcilia os leads de anúncio — §18.1.
+ *
+ * O NÚMERO QUE IMPORTA É `importados`, E ELE DEVERIA SER ZERO. Quando sobe, é
+ * sinal de que o webhook está falhando — não vitória do job. A tela diz isso.
+ */
+export const reconciliarLeadsDaMeta = createServerFn({ method: "POST" })
+  .validator((e: { clinicId: string }) => ({ clinicId: String(e.clinicId ?? "") }))
+  .handler(
+    async ({
+      data,
+    }): Promise<Resposta<{ resultado: import("./aplicacao/lead-ads").ResultadoReconciliacao }>> =>
+      comContexto("gerenciar_integracoes", async (ctx) => {
+        if (!ctx.alcanca(data.clinicId)) {
+          return {
+            ok: false as const,
+            code: "SEM_PERMISSAO",
+            message: "Seu acesso não inclui esta unidade.",
+          };
+        }
+
+        const { reconciliarLeadAds } = await import("./aplicacao/lead-ads");
+        const resultado = await reconciliarLeadAds({
+          organizationId: ctx.organizationId,
+          clinicId: data.clinicId,
+        });
+
+        return { ok: true as const, resultado };
+      }),
+  );
+
+/**
+ * Importa o histórico de conversas — §48.
+ *
+ * O BACKFILL NÃO DISPARA AUTOMAÇÃO. Ver `importarHistoricoDaMeta`: as mensagens
+ * entram com `historico_importado = true`, e esse é o campo que impede
+ * trezentas pessoas receberem "vi sua mensagem" sobre uma conversa esquecida.
+ */
+export const sincronizarConversasDaMeta = createServerFn({ method: "POST" })
+  .validator((e: { clinicId: string; canal: string }) => ({
+    clinicId: String(e.clinicId ?? ""),
+    canal: e.canal === "messenger" ? ("messenger" as const) : ("instagram" as const),
+  }))
+  .handler(
+    async ({
+      data,
+    }): Promise<
+      Resposta<{ resultado: import("./aplicacao/meta-historico").ResultadoDoHistorico }>
+    > =>
+      comContexto("gerenciar_integracoes", async (ctx) => {
+        if (!ctx.alcanca(data.clinicId)) {
+          return {
+            ok: false as const,
+            code: "SEM_PERMISSAO",
+            message: "Seu acesso não inclui esta unidade.",
+          };
+        }
+
+        const { importarHistoricoDaMeta } = await import("./aplicacao/meta-historico");
+        const resultado = await importarHistoricoDaMeta(
+          { organizationId: ctx.organizationId, clinicId: data.clinicId },
+          data.canal,
+        );
+
+        return { ok: true as const, resultado };
+      }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* As regras de comentário (§66)                                              */
+/* -------------------------------------------------------------------------- */
+
+export const salvarRegraDeComentario = createServerFn({ method: "POST" })
+  .validator(
+    (e: {
+      id?: string | null;
+      nome: string;
+      clinicId?: string | null;
+      canal?: string;
+      evento?: string;
+      contem?: string[];
+      naoContem?: string[];
+      exigirCaptacao?: boolean;
+      midias?: string[];
+      criarLead?: boolean;
+      criarOportunidade?: boolean;
+      enviarPrivateReply?: boolean;
+      intencao?: string | null;
+      copy?: string | null;
+      cooldownHoras?: number;
+      ativa?: boolean;
+    }) => ({
+      id: e.id ?? null,
+      nome: String(e.nome ?? "").slice(0, 200),
+      clinicId: e.clinicId ?? null,
+      canal: e.canal === "facebook" ? "facebook" : "instagram",
+      evento: e.evento === "mention.created" ? "mention.created" : "comment.created",
+      contem: Array.isArray(e.contem) ? e.contem.map(String).slice(0, 50) : [],
+      naoContem: Array.isArray(e.naoContem) ? e.naoContem.map(String).slice(0, 50) : [],
+      exigirCaptacao: e.exigirCaptacao !== false,
+      midias: Array.isArray(e.midias) ? e.midias.map(String).slice(0, 50) : [],
+      criarLead: e.criarLead === true,
+      criarOportunidade: e.criarOportunidade === true,
+      enviarPrivateReply: e.enviarPrivateReply === true,
+      intencao: e.intencao ?? null,
+      copy: e.copy ?? null,
+      cooldownHoras: typeof e.cooldownHoras === "number" ? e.cooldownHoras : 168,
+      ativa: e.ativa === true,
+    }),
+  )
+  .handler(async ({ data }): Promise<Resposta<{ id: string; aviso: string | null }>> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      if (data.clinicId !== null && !ctx.alcanca(data.clinicId)) {
+        return {
+          ok: false as const,
+          code: "SEM_PERMISSAO",
+          message: "Seu acesso não inclui esta unidade.",
+        };
+      }
+
+      const { salvarRegraSocial } = await import("./aplicacao/meta-config");
+      const r = await salvarRegraSocial({
+        organizationId: ctx.organizationId,
+        userId: ctx.usuario.id,
+        ...data,
+      });
+
+      return r.ok
+        ? { ok: true as const, id: r.id, aviso: r.aviso }
+        : { ok: false as const, code: "ENTRADA_INVALIDA", message: r.motivo };
+    }),
+  );
+
+export const removerRegraDeComentario = createServerFn({ method: "POST" })
+  .validator((e: { id: string }) => ({ id: String(e.id ?? "") }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("gerenciar_automacao", async (ctx) => {
+      const { removerRegraSocial } = await import("./aplicacao/meta-config");
+      await removerRegraSocial({
+        organizationId: ctx.organizationId,
+        id: data.id,
+        userId: ctx.usuario.id,
+      });
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Identidade cross-channel (§25)                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Liga um perfil da Meta a um paciente.
+ *
+ * ============================================================================
+ *  É UMA AFIRMAÇÃO HUMANA, E A PERMISSÃO É `editar_paciente`.
+ *
+ *  Não é `gerenciar_integracoes`: quem faz isto é a recepção, olhando a
+ *  conversa e a ficha. Exigir permissão de administrador transformaria o
+ *  trabalho normal de atendimento num pedido de configuração.
+ *
+ *  O §63 exige auditoria, e `vincularPerfilAoPaciente` a grava — com quem,
+ *  quando, e o motivo.
+ * ============================================================================
+ */
+export const vincularPerfilDaMeta = createServerFn({ method: "POST" })
+  .validator((e: { conversationId: string; patientId: string; motivo?: string }) => ({
+    conversationId: String(e.conversationId ?? ""),
+    patientId: String(e.patientId ?? ""),
+    motivo: String(e.motivo ?? "Confirmado na Inbox.").slice(0, 200),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("editar_paciente", async (ctx) => {
+      const { selecionarUm } = await import("./servidor/banco");
+      const { linhaParaConversa } = await import("./aplicacao/repositorios");
+
+      const linha = await selecionarUm("crc_conversations", {
+        filtros: [
+          { coluna: "id", op: "eq", valor: data.conversationId },
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+        ],
+      });
+      if (linha === null) {
+        return {
+          ok: false as const,
+          code: "NAO_ENCONTRADO",
+          message: "Não encontramos esta conversa.",
+        };
+      }
+
+      const conversa = linhaParaConversa(linha);
+      if (!ctx.alcanca(conversa.clinicId)) {
+        return {
+          ok: false as const,
+          code: "SEM_PERMISSAO",
+          message: "Seu acesso não inclui esta unidade.",
+        };
+      }
+
+      if (conversa.canal !== "instagram" && conversa.canal !== "messenger") {
+        /*
+         * WHATSAPP TEM CAMINHO PRÓPRIO, e é `vincularConversaAoPaciente`.
+         *
+         * Lá a identidade é o TELEFONE, que já entra em
+         * `crc_patient_identities` como `TELEFONE` — sem namespace, porque
+         * telefone é global. Passar por aqui gravaria o número como
+         * `EXTERNAL_ID / whatsapp`, criando uma segunda identidade para o mesmo
+         * fato e quebrando o cruzamento que a tabela existe para fazer.
+         */
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message: "Esta conversa não é de Instagram nem de Messenger. Use o vínculo por telefone.",
+        };
+      }
+
+      const { vincularPerfilAoPaciente } = await import("./aplicacao/meta");
+      await vincularPerfilAoPaciente({
+        organizationId: ctx.organizationId,
+        canal: conversa.canal,
+        contatoExterno: conversa.contatoExterno,
+        patientId: data.patientId,
+        conversationId: conversa.id,
+        userId: ctx.usuario.id,
+        motivo: data.motivo,
+      });
+
+      return { ok: true as const };
+    }),
+  );
+
+export const desvincularPerfilDaMeta = createServerFn({ method: "POST" })
+  .validator((e: { conversationId: string }) => ({
+    conversationId: String(e.conversationId ?? ""),
+  }))
+  .handler(async ({ data }): Promise<RespostaSimples> =>
+    comContexto("editar_paciente", async (ctx) => {
+      const { selecionarUm } = await import("./servidor/banco");
+      const { linhaParaConversa } = await import("./aplicacao/repositorios");
+
+      const linha = await selecionarUm("crc_conversations", {
+        filtros: [
+          { coluna: "id", op: "eq", valor: data.conversationId },
+          { coluna: "organization_id", op: "eq", valor: ctx.organizationId },
+        ],
+      });
+      if (linha === null) {
+        return {
+          ok: false as const,
+          code: "NAO_ENCONTRADO",
+          message: "Não encontramos esta conversa.",
+        };
+      }
+
+      const conversa = linhaParaConversa(linha);
+      if (!ctx.alcanca(conversa.clinicId) || conversa.patientId === null) {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message:
+            conversa.patientId === null
+              ? "Esta conversa não está vinculada a nenhum paciente."
+              : "Seu acesso não inclui esta unidade.",
+        };
+      }
+      if (conversa.canal !== "instagram" && conversa.canal !== "messenger") {
+        return {
+          ok: false as const,
+          code: "ENTRADA_INVALIDA",
+          message: "Esta conversa não é de Instagram nem de Messenger.",
+        };
+      }
+
+      const { desvincularPerfil } = await import("./aplicacao/meta");
+      await desvincularPerfil({
+        organizationId: ctx.organizationId,
+        canal: conversa.canal,
+        contatoExterno: conversa.contatoExterno,
+        patientId: conversa.patientId,
+        conversationId: conversa.id,
+        userId: ctx.usuario.id,
+      });
+
+      return { ok: true as const };
+    }),
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Patient 360 por canal (§24) e Lead Ads no funil (§42)                      */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Um canal conhecido do paciente, na forma que a TELA usa.
+ *
+ * ============================================================================
+ *  O TIPO E REDECLARADO AQUI, e nao importado de `aplicacao/meta-config`.
+ *
+ *  A regra do topo deste arquivo vale para a TELA tambem: `Ficha360.tsx` nao
+ *  pode importar de `aplicacao/`, porque `aplicacao/meta-config.ts` importa
+ *  `servidor/banco.ts` — que le `SUPABASE_SERVICE_ROLE`.
+ *
+ *  `import type` seria apagado pelo compilador e funcionaria. Mas a regra
+ *  existe justamente para nao depender de quem le julgar certo o que e
+ *  apagado: `api.ts` e o contrato entre a tela e o servidor, e o contrato mora
+ *  aqui. Ver `docs/INCIDENTE-BUILD-500.md`.
+ * ============================================================================
+ */
+export type CanalDoPacienteDto = {
+  canal: string;
+  /** Telefone formatado, `@usuario`, ou o rotulo do canal. NUNCA o id tecnico. */
+  contato: string;
+  conversationId: string;
+  primeiroContatoEm: string | null;
+  ultimoContatoEm: string | null;
+  naoLidas: number;
+};
+
+export const carregarCanaisDoPaciente = createServerFn({ method: "GET" })
+  .validator((e: { patientId: string }) => ({ patientId: String(e.patientId ?? "") }))
+  .handler(async ({ data }): Promise<Resposta<{ canais: CanalDoPacienteDto[] }>> =>
+    comContexto("ver_paciente", async (ctx) => {
+      const { canaisDoPaciente } = await import("./aplicacao/meta-config");
+      const canais = await canaisDoPaciente(ctx.organizationId, data.patientId);
+      return { ok: true as const, canais };
+    }),
+  );
+
+export const carregarLeadsDaMeta = createServerFn({ method: "GET" }).handler(
+  async (): Promise<Resposta<{ leads: import("./aplicacao/lead-ads").LeadDaMeta[] }>> =>
+    comContexto("ver_oportunidade", async (ctx) => {
+      const { leadsDaMeta } = await import("./aplicacao/lead-ads");
+      const leads = await leadsDaMeta(ctx.organizationId, ctx.clinicIds);
+      return { ok: true as const, leads };
+    }),
+);

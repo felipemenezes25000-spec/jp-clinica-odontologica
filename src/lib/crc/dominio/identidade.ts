@@ -34,12 +34,76 @@
 export type TipoDeIdentidade = "TELEFONE" | "EMAIL" | "EXTERNAL_ID" | "DOCUMENTO";
 
 /**
+ * De QUAL SISTEMA veio um `EXTERNAL_ID` — §10.
+ *
+ * ============================================================================
+ *  A COLISÃO QUE ESTE CAMPO IMPEDE, e ela é silenciosa e irreversível.
+ *
+ *  Até o `supabase/45`, `crc_patient_identities` guardava `(tipo, valor)` — e
+ *  `EXTERNAL_ID` significava, por convenção não escrita, "id do paciente no
+ *  Dental Office". O Dental Office numera pacientes com inteiros pequenos:
+ *  `123`, `456`.
+ *
+ *  O Instagram também emite identificadores numéricos. O Messenger também. O
+ *  Lead Ads também. Sem namespace:
+ *
+ *      EXTERNAL_ID / 123   ← paciente 123 do Dental Office
+ *      EXTERNAL_ID / 123   ← IGSID de quem mandou um direct
+ *
+ *  são A MESMA LINHA. E `quemE("EXTERNAL_ID", "123")` devolve `UNICO` com
+ *  confiança total — o mecanismo de ambiguidade nem dispara, porque do ponto
+ *  de vista da tabela não HÁ ambiguidade: é um valor, um paciente.
+ *
+ *  O direct de um estranho entra no prontuário comercial de um paciente. E não
+ *  há como descobrir depois, porque a única informação que separava os dois —
+ *  de qual sistema o número veio — nunca foi gravada.
+ *
+ *  O NAMESPACE NÃO É DECORAÇÃO: ele faz parte da CHAVE. Ver o índice único da
+ *  migração.
+ * ============================================================================
+ *
+ * VAZIO PARA OS OUTROS TIPOS, e de propósito. Telefone, e-mail e CPF são
+ * globais: `11999990000` é o mesmo número em qualquer sistema, e namespeá-los
+ * quebraria o cruzamento que a tabela existe para fazer — o telefone que veio
+ * do Dental Office deixaria de casar com o telefone que veio do site.
+ */
+export type NamespaceDeIdentidade = string;
+
+export const SEM_NAMESPACE = "";
+
+/**
+ * O namespace exigido por tipo.
+ *
+ * `EXTERNAL_ID` sem namespace é exatamente o estado que causava a colisão, e
+ * por isso `normalizarNamespace` o recusa. Os demais o recusam no sentido
+ * inverso: preenchido, ele fragmentaria a busca.
+ */
+export function normalizarNamespace(
+  tipo: TipoDeIdentidade,
+  bruto: string | null | undefined,
+): string | null {
+  const v = (bruto ?? "").trim().toLowerCase();
+
+  if (tipo !== "EXTERNAL_ID") {
+    // Namespace num identificador global é erro de quem chamou, e engolir o
+    // valor faria a linha nascer fora do alcance da busca. Recusar é barulhento.
+    return v.length === 0 ? SEM_NAMESPACE : null;
+  }
+
+  if (v.length === 0) return null;
+  // Só o que caberia num segmento de URL: o namespace aparece em log e em
+  // chave de dedupe, e um valor com ':' ou '|' dentro quebraria as duas.
+  if (!/^[a-z0-9][a-z0-9._-]{0,39}$/u.test(v)) return null;
+  return v;
+}
+
+/**
  * A força de cada identificador.
  *
  * ============================================================================
  *  A ORDEM NÃO É ARBITRÁRIA — é quanto cada um é ÚNICO NO MUNDO.
  *
- *    EXTERNAL_ID  o id do paciente no Dental Office. É único por construção.
+ *    EXTERNAL_ID  id emitido por um sistema. Único DENTRO do namespace dele.
  *    DOCUMENTO    CPF. Único por lei, e quase nunca preenchido.
  *    EMAIL        raramente compartilhado. Casais às vezes dividem; filhos não.
  *    TELEFONE     o mais disponível E o mais compartilhado. Família inteira.
@@ -48,15 +112,38 @@ export type TipoDeIdentidade = "TELEFONE" | "EMAIL" | "EXTERNAL_ID" | "DOCUMENTO
  *  primeiro — e o que chega primeiro é quase sempre o telefone, justamente o
  *  mais fraco.
  * ============================================================================
+ *
+ * ============================================================================
+ *  E ENTRE DOIS `EXTERNAL_ID`, O NAMESPACE DESEMPATA.
+ *
+ *  O id do Dental Office vale 100 porque ele É o prontuário: o paciente existe
+ *  porque aquela linha existe. Um IGSID vale 95 — ele identifica com certeza
+ *  um PERFIL, e o vínculo perfil↔paciente é uma afirmação que alguém fez, não
+ *  um fato do cadastro.
+ *
+ *  A diferença importa num caso concreto: a mesma pessoa com IGSID vinculado ao
+ *  paciente A e id de Dental Office do paciente B significa que o vínculo
+ *  social está errado. Empatados, `resolver()` devolveria `AMBIGUO` e pararia
+ *  a operação; com o Dental Office na frente, ele resolve pelo prontuário — que
+ *  é a fonte de verdade sobre quem é paciente — e o vínculo social pode ser
+ *  corrigido depois, à mão.
+ * ============================================================================
  */
 const FORCA: Readonly<Record<TipoDeIdentidade, number>> = {
-  EXTERNAL_ID: 100,
+  EXTERNAL_ID: 95,
   DOCUMENTO: 90,
   EMAIL: 60,
   TELEFONE: 40,
 };
 
-export function forcaDoIdentificador(tipo: TipoDeIdentidade): number {
+/** O namespace que representa o prontuário, e por isso vale mais. */
+export const NAMESPACE_DO_PRONTUARIO = "dental-office";
+
+export function forcaDoIdentificador(
+  tipo: TipoDeIdentidade,
+  namespace: NamespaceDeIdentidade = SEM_NAMESPACE,
+): number {
+  if (tipo === "EXTERNAL_ID" && namespace === NAMESPACE_DO_PRONTUARIO) return 100;
   return FORCA[tipo];
 }
 
@@ -121,6 +208,15 @@ export type Candidato = {
   nome: string;
   /** Por qual tipo de identificador este candidato casou. */
   porQual: TipoDeIdentidade;
+  /**
+   * De qual sistema veio o identificador, quando ele é `EXTERNAL_ID`.
+   *
+   * OPCIONAL PARA NÃO QUEBRAR QUEM JÁ CHAMA, e o default é vazio — que é
+   * exatamente o que os tipos globais usam. Um `EXTERNAL_ID` sem namespace
+   * aqui não colide com nada: ele só perde o bônus de força do prontuário, e
+   * `resolver()` o trata como qualquer id externo.
+   */
+  namespace?: NamespaceDeIdentidade;
   /** O identificador é usado por mais de uma pessoa. */
   compartilhado: boolean;
   /** Alguém já confirmou esta ligação à mão. */
@@ -164,7 +260,7 @@ export function resolver(candidatos: readonly Candidato[]): Resolucao {
     return {
       tipo: "UNICO",
       patientId: unico.patientId,
-      porque: `Ligação confirmada por uma pessoa (${rotulo(unico.porQual)}).`,
+      porque: `Ligação confirmada por uma pessoa (${rotulo(unico.porQual, unico.namespace)}).`,
     };
   }
   if (confirmados.length > 1) {
@@ -199,30 +295,50 @@ export function resolver(candidatos: readonly Candidato[]): Resolucao {
    * dois pacientes com o mesmo CPF significa cadastro duplicado, e fundi-los
    * automaticamente é exatamente o que o §64 proíbe.
    */
-  const maiorForca = Math.max(...candidatos.map((c) => FORCA[c.porQual]));
-  const noTopo = candidatos.filter((c) => FORCA[c.porQual] === maiorForca);
+  const forcaDe = (c: Candidato): number =>
+    forcaDoIdentificador(c.porQual, c.namespace ?? SEM_NAMESPACE);
+
+  const maiorForca = Math.max(...candidatos.map(forcaDe));
+  const noTopo = candidatos.filter((c) => forcaDe(c) === maiorForca);
 
   if (noTopo.length === 1) {
     const unico = noTopo[0]!;
     return {
       tipo: "UNICO",
       patientId: unico.patientId,
-      porque: `Casou por ${rotulo(unico.porQual)}, e só um paciente tem este valor.`,
+      porque: `Casou por ${rotulo(unico.porQual, unico.namespace)}, e só um paciente tem este valor.`,
     };
   }
 
   return {
     tipo: "AMBIGUO",
     candidatos: noTopo,
-    porque: `${String(noTopo.length)} pacientes casam por ${rotulo(noTopo[0]!.porQual)}. Provavelmente é cadastro duplicado.`,
+    porque: `${String(noTopo.length)} pacientes casam por ${rotulo(noTopo[0]!.porQual, noTopo[0]!.namespace)}. Provavelmente é cadastro duplicado.`,
   };
 }
 
-function rotulo(t: TipoDeIdentidade): string {
-  const MAPA: Readonly<Record<TipoDeIdentidade, string>> = {
+/**
+ * O nome do identificador, para a frase que a tela mostra.
+ *
+ * O NAMESPACE APARECE NO RÓTULO, e é o que faz a explicação ser útil: "casou
+ * por id do sistema da clínica" e "casou por perfil do Instagram" levam a
+ * pessoa a conferir coisas diferentes. Sem ele, as duas frases eram idênticas.
+ */
+function rotulo(t: TipoDeIdentidade, namespace?: NamespaceDeIdentidade): string {
+  if (t === "EXTERNAL_ID") {
+    const ns = (namespace ?? "").trim();
+    if (ns === NAMESPACE_DO_PRONTUARIO) return "id do sistema da clínica";
+    if (ns === "instagram") return "perfil do Instagram";
+    if (ns === "messenger") return "perfil do Messenger";
+    if (ns === "whatsapp") return "conta de WhatsApp";
+    if (ns === "meta-lead") return "formulário da Meta";
+    if (ns.length > 0) return `id externo (${ns})`;
+    return "id externo sem origem declarada";
+  }
+
+  const MAPA: Readonly<Record<Exclude<TipoDeIdentidade, "EXTERNAL_ID">, string>> = {
     TELEFONE: "telefone",
     EMAIL: "e-mail",
-    EXTERNAL_ID: "id do sistema da clínica",
     DOCUMENTO: "documento",
   };
   return MAPA[t];

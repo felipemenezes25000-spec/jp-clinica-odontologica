@@ -13,6 +13,7 @@
  * depois gravar — um timeout entre as duas coisas produziria mensagem enviada e
  * não registrada, que a jornada seguinte mandaria de novo.
  */
+import type { DestinoCanal } from "../dominio/canais";
 import { CONFIGURACAO_PADRAO, type ConfiguracaoCrc } from "../dominio/configuracao";
 import { comoEnviar, estadoDaJanela } from "../dominio/janela-whatsapp";
 import { pedeDescadastro, podeContatar, type ContextoContato } from "../dominio/regras";
@@ -126,6 +127,331 @@ export async function resolverConversa(
   }
 
   return { conversa: linhaParaConversa(linha), precisaRevisao };
+}
+
+/* -------------------------------------------------------------------------- */
+/* A conversa em QUALQUER canal — §6                                          */
+/* -------------------------------------------------------------------------- */
+
+export type ResolucaoNoCanal = {
+  conversa: Conversa;
+  precisaRevisao: boolean;
+  /** `true` quando a conversa acabou de nascer. Quem chama usa para o backfill. */
+  nova: boolean;
+};
+
+/**
+ * Encontra (ou cria) a conversa de um contato em qualquer canal.
+ *
+ * ============================================================================
+ *  POR QUE UMA FUNÇÃO NOVA, E NÃO UM PARÂMETRO A MAIS EM `resolverConversa`.
+ *
+ *  `resolverConversa` faz DUAS coisas que só valem para telefone, e as duas na
+ *  primeira linha:
+ *
+ *      normalizarTelefone(telefoneBruto)
+ *      buscarPacientesPorTelefone(org, variacoesDeTelefone(telefone))
+ *
+ *  `normalizarTelefone` de um IGSID de dezessete dígitos devolve… algo. E
+ *  `variacoesDeTelefone` gera as variantes de DDI de um número que não é
+ *  número — e casa, por acidente, com o paciente cujo telefone tenha aqueles
+ *  dígitos.
+ *
+ *  Ou seja: reaproveitar a função não daria erro. Daria um direct do Instagram
+ *  entrando no prontuário de um paciente escolhido por coincidência numérica.
+ *
+ *  A ASSINATURA DE `resolverConversa` FICA INTACTA porque ela é o caminho de
+ *  todo o WhatsApp — motor de jornadas, campanha, IA, webhook. Um parâmetro a
+ *  mais ali obrigaria a auditar cada chamador para saber se ele passa canal.
+ * ============================================================================
+ */
+export async function resolverConversaNoCanal(
+  organizationId: string,
+  clinicId: string,
+  destino: DestinoCanal,
+  opcoes: { apelido?: string | null } = {},
+): Promise<ResolucaoNoCanal> {
+  // WHATSAPP CONTINUA PELO CAMINHO DE SEMPRE. Ver o cabeçalho: é o casamento
+  // por telefone, com as variações de DDI, e ele está certo para telefone.
+  if (destino.canal === "whatsapp") {
+    const r = await resolverConversa(organizationId, clinicId, destino.contato.valor, "whatsapp");
+    return { ...r, nova: false };
+  }
+
+  const canal = destino.canal;
+  const contato = destino.contato.valor;
+  const apelido = (opcoes.apelido ?? "").trim();
+
+  const existente = await selecionarUm("crc_conversations", {
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "canal", op: "eq", valor: canal },
+      { coluna: "contato_externo", op: "eq", valor: contato },
+    ],
+  });
+
+  if (existente !== null) {
+    const conversa = linhaParaConversa(existente);
+
+    /*
+     * O APELIDO É ATUALIZADO A CADA MENSAGEM, e é por isso que ele é rótulo.
+     *
+     * A pessoa troca o `@usuario`; a conversa continua a mesma, porque a chave
+     * é o IGSID. Não atualizar deixaria a Inbox mostrando um nome que não existe
+     * mais — e a recepção procuraria por ele no Instagram sem achar.
+     */
+    if (apelido.length > 0 && apelido !== (conversa.apelidoExterno ?? "")) {
+      await atualizar(
+        "crc_conversations",
+        [
+          { coluna: "id", op: "eq", valor: conversa.id },
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+        ],
+        { apelido_externo: apelido.slice(0, 120) },
+      );
+      return {
+        conversa: { ...conversa, apelidoExterno: apelido.slice(0, 120) },
+        precisaRevisao: conversa.revisaoPendente,
+        nova: false,
+      };
+    }
+
+    return { conversa, precisaRevisao: conversa.revisaoPendente, nova: false };
+  }
+
+  /*
+   * ==========================================================================
+   *  QUEM É ESTA PESSOA — pelo IGSID/PSID, com NAMESPACE (§10, §25).
+   *
+   *  `quemEPerfilDaMeta` consulta `crc_patient_identities` com
+   *  `tipo = EXTERNAL_ID` e `namespace = instagram|messenger`. Sem o namespace,
+   *  o IGSID `123` casaria com o paciente `123` do Dental Office — ver o
+   *  cabeçalho de `dominio/identidade.ts`.
+   *
+   *  `UNICO` vincula. `AMBIGUO` e `NENHUM` NÃO vinculam, e a diferença entre
+   *  os dois é o que a tela mostra:
+   *
+   *    NENHUM   é prospect. Normal, e é o caso da imensa maioria dos directs.
+   *    AMBIGUO  é revisão. Duas pessoas com o mesmo perfil vinculado significa
+   *             que um dos vínculos está errado, e escolher seria escrever no
+   *             prontuário de quem não é.
+   * ==========================================================================
+   */
+  const { quemEPerfilDaMeta } = await import("./omnichannel");
+  const resolucao = await quemEPerfilDaMeta(organizationId, canal, contato);
+
+  const patientId = resolucao.tipo === "UNICO" ? resolucao.patientId : null;
+  const precisaRevisao = resolucao.tipo === "AMBIGUO";
+
+  const criadas = await gravar(
+    "crc_conversations",
+    {
+      organization_id: organizationId,
+      clinic_id: clinicId,
+      patient_id: patientId,
+      canal,
+      contato_externo: contato,
+      ...(apelido.length > 0 ? { apelido_externo: apelido.slice(0, 120) } : {}),
+      status: "ABERTA",
+      revisao_pendente: precisaRevisao,
+      candidatos:
+        resolucao.tipo === "AMBIGUO"
+          ? resolucao.candidatos.map((c) => ({ id: c.patientId, nome: c.nome }))
+          : null,
+    },
+    "organization_id,canal,contato_externo",
+  );
+
+  const linha = criadas[0];
+  if (linha === undefined) {
+    // Corrida: outra requisição criou a conversa entre o SELECT e o UPSERT. O
+    // upsert por conflito já resolveu do lado do banco; basta reler.
+    const releitura = await selecionarUm("crc_conversations", {
+      filtros: [
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+        { coluna: "canal", op: "eq", valor: canal },
+        { coluna: "contato_externo", op: "eq", valor: contato },
+      ],
+    });
+    if (releitura === null) throw new Error("Não foi possível abrir a conversa.");
+    return { conversa: linhaParaConversa(releitura), precisaRevisao, nova: false };
+  }
+
+  if (precisaRevisao) {
+    registrar(
+      "aviso",
+      "Perfil externo casou com mais de um paciente — conversa foi para revisão.",
+      {
+        organizationId,
+        canal,
+      },
+    );
+  }
+
+  return { conversa: linhaParaConversa(linha), precisaRevisao, nova: true };
+}
+
+/* -------------------------------------------------------------------------- */
+
+export type MensagemDeCanal = {
+  providerMessageId: string;
+  destino: DestinoCanal;
+  texto: string;
+  ocorridoEm: string;
+  apelido?: string | null;
+  /**
+   * `true` quando NÓS mandamos e a Meta devolveu como eco.
+   *
+   * Ver `EventoMensagemRecebida.eco`. A mensagem entra como `SAIDA` e NÃO
+   * dispara nada: sem incremento de não lidas, sem reabrir conversa, sem
+   * evento de domínio.
+   */
+  saida?: boolean;
+  /**
+   * `true` num backfill de histórico — §48.
+   *
+   * ========================================================================
+   *  ESTA FLAG É A REGRA MAIS FÁCIL DE ERRAR DE TODO O PROMPT.
+   *
+   *  "Backfill não pode mandar 'Oi, vi sua mensagem' para conversa de seis
+   *  meses atrás."
+   *
+   *  Sem ela, importar histórico emitiria centenas de `message.received` com
+   *  data antiga — e o motor de automação responderia a todos, porque para ele
+   *  um evento é um evento.
+   *
+   *  A mensagem entra no histórico e na linha do tempo. O que ela NÃO faz é
+   *  incrementar não lidas, reabrir conversa resolvida, e emitir evento.
+   * ========================================================================
+   */
+  historico?: boolean;
+  /** Metadados do anexo, quando houver. Ver a política de mídia do §47. */
+  anexos?: readonly { tipo: string; url: string | null; mime: string | null }[];
+};
+
+/**
+ * Persiste uma mensagem de um canal qualquer.
+ *
+ * É `receberMensagem` generalizada, e a diferença entre as duas é o destino:
+ * aqui ele é `DestinoCanal` em vez de `telefone: string`. Ver o cabeçalho de
+ * `resolverConversaNoCanal` para por que não é a mesma função.
+ */
+export async function receberMensagemDoCanal(
+  organizationId: string,
+  clinicId: string,
+  dados: MensagemDeCanal,
+): Promise<RecebimentoResultado> {
+  const { conversa } = await resolverConversaNoCanal(organizationId, clinicId, dados.destino, {
+    apelido: dados.apelido ?? null,
+  });
+
+  const ehSaida = dados.saida === true;
+  const ehHistorico = dados.historico === true;
+  const agora = new Date().toISOString();
+
+  const linha = await inserirIgnorandoDuplicata("crc_messages", {
+    organization_id: organizationId,
+    conversation_id: conversa.id,
+    patient_id: conversa.patientId,
+    direcao: ehSaida ? "SAIDA" : "ENTRADA",
+    /*
+     * O ECO É `atendente`, E NÃO `ia`.
+     *
+     * Ele é a mensagem que uma PESSOA mandou pelo app do celular — é assim que
+     * a recepção trabalha hoje, e é justamente o que a Inbox precisa mostrar
+     * para não parecer que o paciente foi ignorado. Marcar como `ia` faria a
+     * auditoria atribuir à máquina o que uma pessoa escreveu.
+     */
+    remetente: ehSaida ? "atendente" : "paciente",
+    conteudo: dados.texto,
+    status_entrega: ehSaida ? "SENT" : "DELIVERED",
+    provider_message_id: dados.providerMessageId,
+    // §49: `criado_em` é quando ACONTECEU; `recebido_em` é quando chegou aqui.
+    criado_em: dados.ocorridoEm,
+    recebido_em: agora,
+    historico_importado: ehHistorico,
+  });
+
+  if (linha === null) return { ok: true, duplicada: true };
+
+  const mensagem = linhaParaMensagem(linha);
+
+  /*
+   * ==========================================================================
+   *  OS TRÊS EFEITOS COLATERAIS SÃO PULADOS EM ECO E EM HISTÓRICO, e cada um
+   *  por uma razão própria:
+   *
+   *    NÃO LIDAS   um eco é nossa resposta. Incrementar faria a recepção ver
+   *                "1 nova" na conversa que ela mesma acabou de responder.
+   *
+   *    REABRIR     uma conversa resolvida não volta a abrir porque importamos
+   *                o histórico dela.
+   *
+   *    EVENTO      é o gatilho da IA e da automação. É o §48 literal.
+   * ==========================================================================
+   */
+  if (!ehSaida && !ehHistorico) {
+    await rpc("crc_marcar_nao_lida", {
+      conversa: conversa.id,
+      trecho: truncar(dados.texto, 120),
+      quando: dados.ocorridoEm,
+    });
+
+    if (conversa.status === "RESOLVIDA") {
+      await atualizar(
+        "crc_conversations",
+        [
+          { coluna: "id", op: "eq", valor: conversa.id },
+          { coluna: "organization_id", op: "eq", valor: organizationId },
+        ],
+        { status: "ABERTA" },
+      );
+    }
+
+    if (pedeDescadastro(dados.texto) && conversa.patientId !== null) {
+      await registrarOptOut(organizationId, conversa.patientId, "Pedido do paciente por mensagem.");
+    }
+
+    await emitir({
+      organizationId,
+      clinicId: conversa.clinicId,
+      tipo: "message.received",
+      entityType: "message",
+      entityId: mensagem.id,
+      payload: {
+        conversationId: conversa.id,
+        patientId: conversa.patientId,
+        canal: dados.destino.canal,
+        texto: dados.texto,
+        nomePerfil: dados.apelido ?? null,
+        anexos: dados.anexos ?? [],
+      },
+      fingerprint: `message.received:${dados.providerMessageId}`,
+      ocorridoEm: dados.ocorridoEm,
+    });
+  } else if (ehSaida) {
+    /*
+     * O ECO AINDA ATUALIZA A PRÉVIA DA CONVERSA.
+     *
+     * Sem isto, a Inbox mostraria a pergunta do paciente como última mensagem
+     * de uma conversa que já foi respondida pelo celular — e a recepção
+     * responderia de novo. A prévia é o que ela lê antes de abrir.
+     */
+    await atualizar(
+      "crc_conversations",
+      [
+        { coluna: "id", op: "eq", valor: conversa.id },
+        { coluna: "organization_id", op: "eq", valor: organizationId },
+      ],
+      {
+        ultima_mensagem_em: dados.ocorridoEm,
+        ultima_mensagem_trecho: truncar(dados.texto, 120),
+        atualizado_em: agora,
+      },
+    );
+  }
+
+  return { ok: true, mensagemId: mensagem.id, conversationId: conversa.id, duplicada: false };
 }
 
 /** Resolve a revisão do item 167: um humano diz de quem é a conversa. */
@@ -1036,6 +1362,25 @@ export type FiltroInbox = {
   assignedTo?: string | null;
   apenasNaoLidas?: boolean;
   apenasRevisao?: boolean;
+  /**
+   * Os canais a mostrar — §22.
+   *
+   * ==========================================================================
+   *  O FILTRO E POR CANAL, E A INBOX CONTINUA SENDO UMA.
+   *
+   *  O §22 proibe "Inbox Instagram": a lista e a mesma, e o canal e um FILTRO
+   *  dentro dela. A diferenca importa na operacao — quem atende trabalha por
+   *  ordem de chegada, e nao por aplicativo. Tres telas fariam a mensagem mais
+   *  antiga ficar escondida na aba que ninguem abriu.
+   *
+   *  Ausente = todos. Lista vazia tambem = todos, e nao "nenhum": uma lista
+   *  vazia chega quando a tela desmarca o ultimo filtro, e mostrar zero
+   *  conversas ali pareceria defeito.
+   * ==========================================================================
+   */
+  canais?: readonly string[];
+  /** Quem manda na conversa: `ia`, `humano` ou `ninguem`. Ausente = todos. */
+  donos?: readonly string[];
   limite?: number;
   deslocamento?: number;
 };
@@ -1053,6 +1398,14 @@ export async function listarConversas(f: FiltroInbox): Promise<Conversa[]> {
   }
   if (f.apenasNaoLidas === true) filtros.push({ coluna: "nao_lidas", op: "gt", valor: 0 });
   if (f.apenasRevisao === true) filtros.push({ coluna: "revisao_pendente", op: "eq", valor: true });
+
+  // Ver o comentario em `FiltroInbox.canais`: lista vazia e "todos".
+  if (f.canais !== undefined && f.canais.length > 0) {
+    filtros.push({ coluna: "canal", op: "in", valor: [...f.canais] });
+  }
+  if (f.donos !== undefined && f.donos.length > 0) {
+    filtros.push({ coluna: "dono", op: "in", valor: [...f.donos] });
+  }
 
   const linhas = await selecionar("crc_conversations", {
     filtros,
@@ -1151,6 +1504,349 @@ export async function buscarConversaDoPaciente(
     ordenar: [{ coluna: "ultima_mensagem_em", ascendente: false }],
   });
   return linha === null ? null : linhaParaConversa(linha);
+}
+
+/* -------------------------------------------------------------------------- */
+/* O envio nos canais da Meta — §7, §15, §22                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Responde numa conversa de Instagram ou Messenger.
+ *
+ * ============================================================================
+ *  POR QUE ESTA FUNÇÃO EXISTE, EM VEZ DE UM `if` DENTRO DE `enviarMensagem`.
+ *
+ *  `enviarMensagem` recebe `telefone: string` e `porta: PortaMensageria`, e
+ *  decide a janela com `dominio/janela-whatsapp.ts`. Os três são do WhatsApp:
+ *  o destino é um número, a porta fala `{ destino: { telefone } }`, e a janela
+ *  resolve template aprovado — que no Instagram não existe.
+ *
+ *  Enfiar um canal com IGSID ali dentro significaria passar um id de dezessete
+ *  dígitos no campo `telefone` e confiar que nenhuma das três camadas o trate
+ *  como número. `normalizarTelefone` o trataria: ele tem dígitos suficientes
+ *  para parecer um telefone com DDI.
+ *
+ *  ESTA FUNÇÃO ESPELHA A ESTRUTURA de `enviarMensagem` de propósito — grava
+ *  antes de mandar, mesma chave de dedupe, mesmos três estados de falha — e
+ *  troca as três peças do WhatsApp pelas equivalentes do canal:
+ *
+ *    destino     `DestinoCanal` discriminado, de `dominio/canais.ts`
+ *    porta       `PortaCanal`, de `integracoes/canais/porta.ts`
+ *    política    `avaliarPoliticaDoCanal`, de `dominio/politica-de-canal.ts`
+ * ============================================================================
+ *
+ * ============================================================================
+ *  GRAVA ANTES DE MANDAR — a mesma ordem, pela mesma razão.
+ *
+ *  A linha em `crc_messages` com `chave_dedupe` sob índice único é o que
+ *  impede o segundo envio quando dois cliques, duas abas ou duas retentativas
+ *  acontecem juntos. A Meta não oferece idempotência de envio: a garantia é
+ *  nossa, e ela mora no banco.
+ * ============================================================================
+ */
+export type PedidoNoCanal = {
+  organizationId: string;
+  clinicId: string;
+  conversationId: string;
+  patientId: string | null;
+  destino: DestinoCanal;
+  texto: string;
+  /** `atendente` responde; `ia` e `automacao` nunca usam etiqueta humana. */
+  quem: "atendente" | "ia" | "automacao";
+  autorId: string | null;
+  chaveDedupe: string;
+  agora?: Date;
+};
+
+export async function enviarNoCanal(pedido: PedidoNoCanal): Promise<ResultadoEnvioMensagem> {
+  const agora = pedido.agora ?? new Date();
+
+  if (pedido.destino.canal === "whatsapp") {
+    /*
+     * O WHATSAPP NÃO PASSA POR AQUI, e a recusa é explícita.
+     *
+     * Ele tem `enviarMensagem`, com janela, template aprovado e política de
+     * contato por telefone. Deixar os dois caminhos aceitarem WhatsApp criaria
+     * duas verdades sobre a janela de 24 horas — e a divergência apareceria
+     * como "a campanha manda template e a Inbox manda texto".
+     */
+    return {
+      ok: false,
+      codigo: "CANAL_ERRADO",
+      motivo: "WhatsApp é enviado por `enviarMensagem`, que tem a janela e o modelo aprovado.",
+      permanente: true,
+    };
+  }
+
+  const canal = pedido.destino.canal;
+
+  /* ---------------------------------------------------------------------- */
+  /* 1. A PORTA — e ela pode não existir                                    */
+  /* ---------------------------------------------------------------------- */
+
+  const { criarPortaDaMeta } = await import("../integracoes/meta/provedores");
+  const estado = await criarPortaDaMeta(canal, pedido.organizationId, pedido.clinicId);
+
+  if (!estado.configurado) {
+    return {
+      ok: false,
+      codigo: "INTEGRACAO_NAO_CONFIGURADA",
+      motivo: `${estado.motivo} Falta configurar: ${estado.faltando.join(", ")}.`,
+      permanente: true,
+    };
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* 2. A POLÍTICA DO CANAL — §15                                           */
+  /* ---------------------------------------------------------------------- */
+
+  const { avaliarPoliticaDoCanal } = await import("../dominio/politica-de-canal");
+  const { humanAgentAprovado } = await import("../integracoes/meta/canais");
+
+  const ultimaEntrada = await ultimaEntradaDaConversaPorId(
+    pedido.organizationId,
+    pedido.conversationId,
+  );
+
+  const decisao = avaliarPoliticaDoCanal({
+    canal,
+    ultimaMensagemDoUsuario: ultimaEntrada,
+    agora,
+    tipo: "resposta",
+    quem: pedido.quem,
+    /*
+     * A APROVAÇÃO É DO CANAL CADASTRADO, e `false` quando não há linha.
+     *
+     * `estado.canal` é `null` no sandbox — e ali `humanAgentAprovado` seria uma
+     * afirmação sobre um App Review que não existe. Fora da janela, o sandbox
+     * recusa com o mesmo motivo que a produção recusaria sem a feature: é o
+     * comportamento que o teste precisa exercitar.
+     */
+    humanAgentAprovado: estado.canal === null ? false : humanAgentAprovado(estado.canal),
+  });
+
+  if (decisao.forma === "PERMITIDO_TEMPLATE") {
+    /*
+     * TEMPLATE NUM CANAL DA META É CONTRADIÇÃO, e ela é recusada com nome.
+     *
+     * `avaliarPoliticaDoCanal` só devolve `PERMITIDO_TEMPLATE` para WhatsApp —
+     * e o WhatsApp já foi recusado no começo desta função. O tipo não sabe
+     * disso, e a saída honesta é dizer o que aconteceu em vez de um `default`
+     * silencioso: se isto algum dia disparar, a política mudou e alguém precisa
+     * ler o porquê.
+     */
+    return {
+      ok: false,
+      codigo: "FORMA_INCOMPATIVEL",
+      motivo: `A política devolveu modelo aprovado para ${canal}, que não tem modelos. ${decisao.porque}`,
+      permanente: true,
+    };
+  }
+
+  if (
+    decisao.forma !== "PERMITIDO_TEXTO" &&
+    decisao.forma !== "PERMITIDO_ETIQUETA_HUMANA" &&
+    decisao.forma !== "PERMITIDO_PRIVATE_REPLY"
+  ) {
+    /*
+     * A RECUSA NÃO GRAVA MENSAGEM NENHUMA.
+     *
+     * Uma linha `FAILED` aqui poluiria a conversa com uma bolha que o paciente
+     * nunca recebeu, e a recepção veria "não enviada" sem entender que o
+     * problema é a janela. O motivo volta para a tela, que é onde a pessoa pode
+     * agir — ligando para o paciente, ou esperando ele escrever.
+     */
+    return {
+      ok: false,
+      codigo: decisao.codigo,
+      motivo: decisao.porque,
+      // Insistir não abre janela. O que abre é a pessoa escrever de novo.
+      permanente: true,
+    };
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* 3. GRAVA, DEPOIS MANDA                                                 */
+  /* ---------------------------------------------------------------------- */
+
+  let linha: Linha | null;
+  try {
+    linha = await inserirIgnorandoDuplicata("crc_messages", {
+      organization_id: pedido.organizationId,
+      conversation_id: pedido.conversationId,
+      patient_id: pedido.patientId,
+      direcao: "SAIDA",
+      remetente: pedido.quem,
+      autor_id: pedido.autorId,
+      conteudo: pedido.texto,
+      status_entrega: "QUEUED",
+      /*
+       * O CANAL NÃO VAI NA MENSAGEM, e a ausência é deliberada.
+       *
+       * `crc_messages` não tem coluna `canal` — ele mora em
+       * `crc_conversations.canal`, e uma conversa nunca troca de canal. Copiar o
+       * valor para cada mensagem criaria uma segunda verdade, e o dia em que as
+       * duas divergissem seria o dia em que uma resposta sai pelo canal errado.
+       */
+      chave_dedupe: pedido.chaveDedupe,
+    });
+  } catch (erro) {
+    if (erro instanceof ErroBanco && erro.ehConflitoDeUnicidade) linha = null;
+    else throw erro;
+  }
+
+  if (linha === null) {
+    return {
+      ok: false,
+      codigo: "JA_ENVIADA",
+      motivo: "Esta mensagem já foi enviada.",
+      permanente: true,
+    };
+  }
+
+  const mensagemId = String(linha["id"] ?? "");
+
+  const resultado = await estado.porta.enviar({
+    destino: pedido.destino,
+    texto: pedido.texto,
+    forma:
+      decisao.forma === "PERMITIDO_ETIQUETA_HUMANA"
+        ? { forma: "etiqueta_humana" }
+        : { forma: "texto" },
+    chaveDedupe: pedido.chaveDedupe,
+  });
+
+  /* ---------------------------------------------------------------------- */
+  /* 4. O DESFECHO — e os TRÊS estados, não dois                            */
+  /* ---------------------------------------------------------------------- */
+
+  if (!resultado.ok) {
+    /*
+     * ======================================================================
+     *  `DESCONHECIDO` EXISTE PORQUE `FAILED` MENTIRIA — §35.
+     *
+     *  O POST saiu e a resposta não voltou: a Meta PODE ter entregue. Escrever
+     *  "não enviada" na Inbox é a leitura a partir da qual alguém manda de novo
+     *  à mão — e o paciente recebe duas vezes.
+     *
+     *  E SÓ A FALHA TRANSITÓRIA LIBERA A CHAVE DE DEDUPE. Liberar na incerta
+     *  reabriria a porta que o HTTP fechou. É a mesma decisão, palavra por
+     *  palavra, de `enviarMensagem`.
+     * ======================================================================
+     */
+    const incerta = resultado.classe === "incerta";
+
+    await atualizar(
+      "crc_messages",
+      [
+        { coluna: "id", op: "eq", valor: mensagemId },
+        { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+      ],
+      {
+        status_entrega: incerta ? "DESCONHECIDO" : "FAILED",
+        erro: `${resultado.codigo}: ${resultado.detalhe}`,
+        ...(resultado.classe === "transitoria" ? { chave_dedupe: null } : {}),
+      },
+    );
+
+    registrar(incerta ? "erro" : "aviso", "Envio no canal da Meta falhou.", {
+      organizationId: pedido.organizationId,
+      mensagemId,
+      canal,
+      codigo: resultado.codigo,
+      classe: resultado.classe,
+    });
+
+    return {
+      ok: false,
+      codigo: resultado.codigo,
+      motivo: resultado.detalhe,
+      permanente: resultado.classe !== "transitoria",
+      classe: resultado.classe,
+    };
+  }
+
+  const quando = agora.toISOString();
+
+  await atualizar(
+    "crc_messages",
+    [
+      { coluna: "id", op: "eq", valor: mensagemId },
+      { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+    ],
+    {
+      status_entrega: "SENT",
+      provider_message_id: resultado.providerMessageId,
+      enviado_em: quando,
+    },
+  );
+
+  await atualizar(
+    "crc_conversations",
+    [
+      { coluna: "id", op: "eq", valor: pedido.conversationId },
+      { coluna: "organization_id", op: "eq", valor: pedido.organizationId },
+    ],
+    {
+      ultima_mensagem_em: quando,
+      ultima_mensagem_trecho: truncar(pedido.texto, 120),
+      status: "ABERTA",
+      atualizado_em: quando,
+    },
+  );
+
+  await emitir({
+    organizationId: pedido.organizationId,
+    clinicId: pedido.clinicId,
+    tipo: "message.sent",
+    entityType: "message",
+    entityId: mensagemId,
+    payload: { conversationId: pedido.conversationId, patientId: pedido.patientId, canal },
+    fingerprint: `message.sent:${mensagemId}`,
+  });
+
+  return { ok: true, mensagemId, providerMessageId: resultado.providerMessageId };
+}
+
+/**
+ * A última mensagem RECEBIDA nesta conversa — a que abre a janela.
+ *
+ * Gêmea de `ultimaEntradaDaConversa`, que recebe um `PedidoEnvio` inteiro. Aqui
+ * o pedido é de outro tipo, e passar um objeto de mentira só para reaproveitar
+ * a função esconderia o que de fato é lido.
+ *
+ * `historico_importado` FICA DE FORA, e isso é o §48 na prática: uma conversa
+ * trazida por backfill não abre janela de 24 horas. A Meta conta a janela pelo
+ * que a PESSOA mandou de verdade, não pelo que nós importamos depois.
+ */
+async function ultimaEntradaDaConversaPorId(
+  organizationId: string,
+  conversationId: string,
+): Promise<string | null> {
+  const l = await selecionarUm("crc_messages", {
+    colunas: "recebido_em,criado_em",
+    filtros: [
+      { coluna: "organization_id", op: "eq", valor: organizationId },
+      { coluna: "conversation_id", op: "eq", valor: conversationId },
+      { coluna: "direcao", op: "eq", valor: "ENTRADA" },
+      { coluna: "historico_importado", op: "eq", valor: false },
+    ],
+    ordenar: [{ coluna: "criado_em", ascendente: false }],
+  });
+
+  if (l === null) return null;
+
+  /*
+   * `recebido_em` VENCE `criado_em`, e a diferença importa.
+   *
+   * `criado_em` é quando NÓS gravamos; `recebido_em` é o `timestamp` que a Meta
+   * mandou no webhook. Numa reentrega — que acontece — os dois divergem em
+   * horas, e julgar a janela pelo nosso relógio faria uma conversa de ontem
+   * parecer recém-aberta.
+   */
+  const recebido = l["recebido_em"];
+  if (typeof recebido === "string" && recebido.length > 0) return recebido;
+  return typeof l["criado_em"] === "string" ? l["criado_em"] : null;
 }
 
 export { descreverErro };

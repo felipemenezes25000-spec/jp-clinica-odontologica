@@ -529,10 +529,30 @@ function HorarioComercial({
                 />
                 <span>{nome}</span>
               </label>
+              {/*
+                O RÓTULO DOS CAMPOS DE HORA É `aria-label`, E DIZ O DIA JUNTO.
+                ==========================================================
+
+                Eles não tinham rótulo nenhum, e o axe-core classifica isso
+                como `critical` com razão: são sete dias na tela, catorze
+                campos de hora idênticos, e o leitor de tela anunciava "editar
+                hora" catorze vezes. Não dava para saber qual dia se estava
+                mexendo — nem depois de mexer.
+
+                Não é um `<label>` visível porque o dia já está escrito ao
+                lado, no `<label>` da caixa de seleção: repeti-lo em cada campo
+                encheria a tela de "Segunda" três vezes. `aria-label` dá o nome
+                a quem precisa dele sem redesenhar a semana.
+
+                E ele nomeia o DIA junto da ponta — "Segunda, abre às" — e não
+                só "abre às": num formulário de sete linhas iguais, o nome do
+                controle é a única coisa que diz em qual linha se está.
+              */}
               {atende ? (
                 <div className="crc-settings-horas-v2">
                   <Entrada
                     type="time"
+                    aria-label={`${nome}, abre às`}
                     value={dia.inicio}
                     onChange={(e) =>
                       setRascunho((atual) =>
@@ -545,6 +565,7 @@ function HorarioComercial({
                   <span>até</span>
                   <Entrada
                     type="time"
+                    aria-label={`${nome}, fecha às`}
                     value={dia.fim}
                     onChange={(e) =>
                       setRascunho((atual) =>

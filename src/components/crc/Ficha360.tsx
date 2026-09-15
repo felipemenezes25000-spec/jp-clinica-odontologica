@@ -20,9 +20,16 @@
  */
 import { useEffect, useState } from "react";
 
-import { carregarFicha360, type Ficha360UI } from "@/lib/crc/api";
+import {
+  carregarCanaisDoPaciente,
+  carregarFicha360,
+  type CanalDoPacienteDto,
+  type Ficha360UI,
+} from "@/lib/crc/api";
+import { rotuloDoCanal } from "@/lib/crc/dominio/canais";
 
 import { Aviso, Cartao, Etiqueta, ListaEsqueleto } from "./base";
+import "./crc-omnichannel.css";
 
 function reais(v: number): string {
   return v.toLocaleString("pt-BR", {
@@ -185,6 +192,25 @@ export function Ficha360({ patientId }: { patientId: string }) {
         </div>
       )}
 
+      {/*
+        OS CANAIS CONHECIDOS — §24.
+
+        ======================================================================
+         ELE RESPONDE UMA PERGUNTA QUE NENHUM OUTRO BLOCO RESPONDE: "por onde
+         esta pessoa fala com a gente?".
+
+         "Costuma falar por WhatsApp" logo acima é PREFERÊNCIA inferida do
+         volume. Isto é FATO: existe uma conversa de Instagram aberta, com
+         data, e a recepção pode abrir.
+
+         E é o que o §23 pede junto: as conversas NÃO são fundidas — uma por
+         canal, com janelas e políticas diferentes —, mas todas aparecem na
+         MESMA ficha. Juntá-las numa thread visual faria alguém responder no
+         canal errado, e no Instagram fora das 24 horas a mensagem não sai.
+        ======================================================================
+      */}
+      <CanaisConhecidos patientId={patientId} />
+
       {ficha.household.length > 0 && (
         <div style={{ marginTop: "var(--crc-e5)" }}>
           <p className="crc-rotulo">Possivelmente da mesma casa</p>
@@ -208,6 +234,83 @@ export function Ficha360({ patientId }: { patientId: string }) {
         </div>
       )}
     </Cartao>
+  );
+}
+
+/**
+ * Os canais por onde esta pessoa já falou — §24.
+ *
+ * ============================================================================
+ *  CARREGA SEPARADO DA FICHA, e a separação é deliberada.
+ *
+ *  `carregarFicha360` já faz treze contas. Somar os canais a ela atrasaria o
+ *  bloco inteiro — que é o bloco lido com alguém esperando no telefone — por
+ *  causa de uma informação secundária.
+ *
+ *  E a falha é isolada: se esta consulta quebrar, a ficha continua inteira e
+ *  este pedaço simplesmente não aparece. O inverso — a ficha não abrir porque
+ *  a lista de canais falhou — seria trocar o essencial pelo complementar.
+ * ============================================================================
+ *
+ * NÃO MOSTRA O ID TÉCNICO. `canaisDoPaciente` devolve o contato já pronto para
+ * a tela: telefone formatado, ou `@usuario`, ou o rótulo do canal. Ver
+ * `contatoParaTela` — e o §24, que proíbe identificador da Meta como UX.
+ */
+function CanaisConhecidos({ patientId }: { patientId: string }) {
+  const [canais, setCanais] = useState<CanalDoPacienteDto[] | null>(null);
+
+  useEffect(() => {
+    let vivo = true;
+    setCanais(null);
+
+    void (async () => {
+      try {
+        const r = await carregarCanaisDoPaciente({ data: { patientId } });
+        if (vivo) setCanais(r.ok ? r.canais : []);
+      } catch {
+        if (vivo) setCanais([]);
+      }
+    })();
+
+    return () => {
+      vivo = false;
+    };
+  }, [patientId]);
+
+  // NADA NA TELA ENQUANTO CARREGA, e nada quando não há canal. Um esqueleto
+  // para uma lista de duas linhas pisca mais do que informa.
+  if (canais === null || canais.length === 0) return null;
+
+  return (
+    <div style={{ marginTop: "var(--crc-e5)" }}>
+      <p className="crc-rotulo">Canais conhecidos</p>
+      <ul className="crc-canais-do-paciente">
+        {canais.map((c) => {
+          const rotulo = rotuloDoCanal(c.canal);
+          return (
+            <li key={c.conversationId} className="crc-canal-linha">
+              <span className="crc-canal-selo" data-canal={c.canal} aria-label={rotulo.acessivel}>
+                <span>{rotulo.nome}</span>
+              </span>
+              <div>
+                <strong>{c.contato}</strong>
+                <small>
+                  {c.primeiroContatoEm === null
+                    ? "sem primeiro contato registrado"
+                    : `primeiro contato em ${quando(c.primeiroContatoEm)}`}
+                  {c.ultimoContatoEm !== null && ` · último em ${quando(c.ultimoContatoEm)}`}
+                </small>
+              </div>
+              {c.naoLidas > 0 && (
+                <Etiqueta tom="positiva">
+                  {c.naoLidas} {c.naoLidas === 1 ? "nova" : "novas"}
+                </Etiqueta>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

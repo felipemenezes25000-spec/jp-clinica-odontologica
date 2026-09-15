@@ -295,6 +295,9 @@ export function linhaParaConversa(l: Linha): Conversa {
     patientId: textoOuNulo(l, "patient_id"),
     canal: texto(l, "canal"),
     contatoExterno: texto(l, "contato_externo"),
+    // Conversa anterior ao `supabase/45` não tem a coluna, e `null` é o certo:
+    // a tela cai para o rótulo genérico do canal em vez de mostrar o id técnico.
+    apelidoExterno: textoOuNulo(l, "apelido_externo"),
     status: umDe(l, "status", STATUS_CONV, "ABERTA"),
     assignedTo: textoOuNulo(l, "assigned_to"),
     bloqueadaPor: textoOuNulo(l, "bloqueada_por"),

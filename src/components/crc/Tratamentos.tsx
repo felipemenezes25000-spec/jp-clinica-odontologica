@@ -28,7 +28,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { carregarTratamentos, type TratamentosUI } from "@/lib/crc/api";
 
-import { Aviso, Cartao, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
+import { Aviso, Cartao, Etiqueta, Kpi, ListaEsqueleto, TabelaRolavel, Vazio } from "./base";
 
 /**
  * ============================================================================
@@ -174,7 +174,7 @@ export function Tratamentos() {
             explicacao="Quando alguém anotar o motivo que a pessoa deu para não fechar — nas palavras dela —, a contagem por categoria aparece aqui. Com desfecho suficiente, a taxa de conversão de cada motivo também."
           />
         ) : (
-          <div className="crc-tabela-caixa">
+          <TabelaRolavel rotulo="Objeções por categoria">
             <table className="crc-tabela">
               <thead>
                 <tr>
@@ -215,7 +215,7 @@ export function Tratamentos() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TabelaRolavel>
         )}
       </Cartao>
     </>

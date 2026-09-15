@@ -251,7 +251,47 @@ export type PedidoDeAcao = {
   flags: Readonly<Record<string, boolean>>;
   /** Kill switch de emergência ativo neste escopo. */
   killSwitch: boolean;
+  /**
+   * O canal em que a ação vai acontecer, quando ela tem um — §27.
+   *
+   * ========================================================================
+   *  O CANAL SÓ ABAIXA. NUNCA SOBE.
+   *
+   *  É a mesma regra da flag sobre o nível, um degrau abaixo, e ela existe
+   *  porque o risco de um canal não é o risco do outro. Responder errado no
+   *  WhatsApp é uma conversa privada; responder errado no direct do Instagram
+   *  é a mesma conta que publica a clínica — e uma pessoa com má impressão
+   *  pode comentar o print no post seguinte.
+   *
+   *  Se `nivelDoCanal` pudesse SUBIR, o Centro de Autonomia teria um segundo
+   *  caminho para ligar envio automático — e o kill switch de madrugada
+   *  deixaria de ser confiável, porque alguém precisaria lembrar de desligar
+   *  os dois. É literalmente o argumento do cabeçalho deste arquivo, aplicado
+   *  de novo.
+   *
+   *  `null`/ausente significa "sem regra própria de canal", e o nível do
+   *  domínio vale integralmente.
+   * ========================================================================
+   */
+  nivelDoCanal?: NivelAutonomia | null;
 };
+
+/**
+ * O nível que vale de verdade.
+ *
+ *     autonomia_efetiva = min(teto_global, domínio, canal, regra)
+ *
+ * O teto global (a flag) e a regra são aplicados em outros pontos — a flag em
+ * `podeAgir()`, a regra no chamador que a carregou. Aqui se resolve o par
+ * domínio/canal, que é o que o §27 acrescenta.
+ */
+export function nivelEfetivo(
+  nivelDoDominio: NivelAutonomia,
+  nivelDoCanal: NivelAutonomia | null | undefined,
+): NivelAutonomia {
+  if (nivelDoCanal === null || nivelDoCanal === undefined) return nivelDoDominio;
+  return Math.min(nivelDoDominio, nivelDoCanal) as NivelAutonomia;
+}
 
 export type Veredito =
   | { pode: true; motivo: string }
@@ -300,21 +340,35 @@ export function podeAgir(pedido: PedidoDeAcao): Veredito {
     }
   }
 
+  /*
+   * O NÍVEL EFETIVO, e não o do domínio — §27.
+   *
+   * Um canal configurado mais baixo que o domínio recusa aqui, com a frase
+   * dizendo QUAL dos dois apertou. Sem isso, a pessoa na tela veria "aumente o
+   * nível de Conversas" e aumentaria — sem efeito, porque o que segurava era o
+   * canal.
+   */
+  const efetivo = nivelEfetivo(pedido.nivel, pedido.nivelDoCanal);
+  const apertouOCanal = efetivo < pedido.nivel;
+
   const minimo = MINIMO_POR_RISCO[pedido.risco];
-  if (pedido.nivel < minimo) {
+  if (efetivo < minimo) {
     const nome = descreverNivel(minimo).rotulo;
+    const onde = apertouOCanal
+      ? `o canal desta conversa está limitado ao nível ${efetivo} (o domínio está em ${pedido.nivel})`
+      : `este domínio está no nível ${efetivo}`;
     return {
       pode: false,
-      motivo: `Ação de risco ${pedido.risco.toLowerCase()} exige autonomia "${nome}" (nível ${minimo}); este domínio está no nível ${pedido.nivel}.`,
+      motivo: `Ação de risco ${pedido.risco.toLowerCase()} exige autonomia "${nome}" (nível ${minimo}); ${onde}.`,
       // Nível 0 é "nem observa" — nem para aprovação humana esta ação deve
       // aparecer na fila, senão o desligado vira uma fila crescendo em silêncio.
-      sugestao: pedido.nivel === 0 ? "NADA" : "APROVACAO_HUMANA",
+      sugestao: efetivo === 0 ? "NADA" : "APROVACAO_HUMANA",
     };
   }
 
   return {
     pode: true,
-    motivo: `Autonomia ${pedido.nivel} em ${descreverDominio(pedido.dominio).rotulo}, risco ${pedido.risco.toLowerCase()}.`,
+    motivo: `Autonomia ${efetivo} em ${descreverDominio(pedido.dominio).rotulo}, risco ${pedido.risco.toLowerCase()}.`,
   };
 }
 

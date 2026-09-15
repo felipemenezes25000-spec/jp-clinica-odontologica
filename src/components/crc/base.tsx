@@ -150,6 +150,42 @@ export function Etiqueta({ tom = "neutra", children }: { tom?: TomEtiqueta; chil
 }
 
 /* -------------------------------------------------------------------------- */
+/* Tabela larga                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A caixa que rola em volta de uma tabela mais larga que a tela.
+ *
+ * ============================================================================
+ *  QUEM ROLA COM A RODA DO MOUSE NÃO É TODO MUNDO.
+ *
+ *  `.crc-tabela-caixa` é um `overflow-x: auto` — e uma região que rola e não
+ *  recebe foco é conteúdo inalcançável para quem navega por teclado: as
+ *  colunas escondidas à direita simplesmente não existem. É a regra
+ *  `scrollable-region-focusable` do axe, `serious`, e ela reprovou a tela de
+ *  Gestão.
+ *
+ *  `tabIndex={0}` põe a caixa na ordem de tabulação, e aí as setas rolam.
+ *
+ *  O `role="region"` com nome vem junto por consequência: uma parada de
+ *  tabulação que o leitor de tela anuncia como "grupo, em branco" é pior do
+ *  que nenhuma. Com o nome ele anuncia "Perdas por motivo, região" — e quem
+ *  ouviu sabe se vale rolar ou seguir.
+ *
+ *  POR QUE COMPONENTE, e não `tabIndex` nas cinco chamadas: o `rotulo` é
+ *  obrigatório aqui. Como atributo solto, a sexta tabela nasceria sem ele, e
+ *  o defeito volta calado — a tabela rola, ninguém repara, e só o axe vê.
+ * ============================================================================
+ */
+export function TabelaRolavel({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <div className="crc-tabela-caixa" role="region" aria-label={rotulo} tabIndex={0}>
+      {children}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Campos                                                                     */
 /* -------------------------------------------------------------------------- */
 

@@ -14,7 +14,7 @@ import {
 
 import { carregarFunil, moverOportunidade, type ItemPrioridade } from "@/lib/crc/api";
 import { dinheiro, dinheiroCurto, somarDinheiro } from "@/lib/crc/dominio/formatar";
-import { MOTIVOS_PERDA, ROTULO_TIPO_OPORTUNIDADE } from "@/lib/crc/dominio/rotulos";
+import { MOTIVOS_PERDA, ROTULO_TIPO_OPORTUNIDADE, rotuloDeOrigem } from "@/lib/crc/dominio/rotulos";
 
 import {
   Aviso,
@@ -29,6 +29,7 @@ import {
 } from "./base";
 import { BarraDeVisoes, FILTRO_VAZIO, filtroVazio, type FiltroFunilUi } from "./Visoes";
 import "./crc-pipeline.css";
+import "./crc-omnichannel.css";
 
 type Etapa = { id: string; chave: string; nome: string; ordem: number; categoria: string };
 type Cartao = ItemPrioridade & { stageId: string | null };
@@ -456,6 +457,29 @@ function CartaoFunil({
       </div>
 
       {cartao.motivo.length > 0 && <p className="crc-funil-card-motivo-v2">{cartao.motivo}</p>}
+
+      {/*
+        A ORIGEM — §42.
+
+        ======================================================================
+         É A PERGUNTA "QUAL ANÚNCIO TROUXE?" respondida no card, e ela é uma das
+         nove do §77 que a recepção precisa responder sem abrir cinco janelas.
+
+         UMA LINHA, E SÓ. `rotuloDeOrigem` traduz `instagram:comentario` para
+         "Instagram · comentário" e `meta_lead_ads` para "Meta Lead Ads". A
+         hierarquia completa — campanha, conjunto, anúncio, formulário — vive na
+         ficha do lead, para quem foi olhar de propósito.
+
+         NULO NÃO DESENHA NADA. "Sem origem conhecida" escrito em todo card de
+         base antiga seria ruído em cem cards para informar zero.
+        ======================================================================
+      */}
+      {cartao.origem !== null && cartao.origem.length > 0 && (
+        <p className="crc-card-origem">
+          <ArrowUpRight aria-hidden="true" />
+          <span>{rotuloDeOrigem(cartao.origem)}</span>
+        </p>
+      )}
 
       <div className="crc-funil-card-dados-v2">
         {cartao.valorPotencial !== null && (

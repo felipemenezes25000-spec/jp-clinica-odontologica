@@ -128,13 +128,32 @@ export async function lerHub(
 
   const desde24h = new Date(agora.getTime() - 24 * 3_600_000).toISOString();
 
-  const [integracoes, canais, logs, errosRecentes] = await Promise.all([
+  const [integracoes, canais, canaisMeta, logs, errosRecentes] = await Promise.all([
     selecionar<{ sistema: string; ativo: boolean | null }>("crc_integracoes_clinica", {
       colunas: "sistema,ativo",
       filtros: [...escopo, { coluna: "ativo", op: "eq", valor: true }],
       limite: 50,
     }),
     contar("crc_canais_whatsapp", [...escopo, { coluna: "ativo", op: "eq", valor: true }]),
+    /*
+     * OS CANAIS DA META, COM OS PRODUTOS — `supabase/45`.
+     *
+     * ========================================================================
+     *  A CONTAGEM NÃO BASTA AQUI, e é a diferença em relação ao WhatsApp.
+     *
+     *  Um número de WhatsApp cadastrado serve para uma coisa só. Uma conta da
+     *  Meta serve para QUATRO produtos, e a clínica pode ter conectado a
+     *  Página para Lead Ads sem nunca ter ligado o Instagram.
+     *
+     *  Com um "Meta: conectado" só, "o Lead Ads chega e o direct não" ficaria
+     *  invisível — e é justamente a pergunta que traz alguém a esta tela.
+     * ========================================================================
+     */
+    selecionar<{ produtos: unknown }>("crc_canais_meta", {
+      colunas: "produtos",
+      filtros: [...escopo, { coluna: "ativo", op: "eq", valor: true }],
+      limite: 50,
+    }),
     /*
      * O HISTÓRICO VEM DE `crc_integration_logs`, que já registra cada chamada.
      *
@@ -162,6 +181,12 @@ export async function lerHub(
   ]);
 
   const sistemas = new Set(integracoes.map((i) => i.sistema));
+
+  const produtosDaMeta = new Set<string>();
+  for (const c of canaisMeta) {
+    if (!Array.isArray(c.produtos)) continue;
+    for (const p of c.produtos) if (typeof p === "string") produtosDaMeta.add(p);
+  }
 
   const ultimoSucesso = new Map<string, string>();
   const ultimoErro = new Map<string, string>();
@@ -258,11 +283,43 @@ export async function lerHub(
       temCredencial: false,
       bloqueadoExterno: true,
     }),
+    /*
+     * OS TRÊS PRODUTOS DA META, SEPARADOS — §39.
+     *
+     * A chave de cada um é a MESMA de `crc_integration_logs.integracao` (ver
+     * `NomeDaIntegracao` em `servidor/registro.ts`). É isso que faz `avaliar()`
+     * encontrar o último sucesso e o último erro de cada um: com chaves
+     * diferentes, a tela mostraria "nunca foi usada" para uma integração que
+     * falha de hora em hora.
+     */
+    montar({
+      chave: "meta_instagram",
+      rotulo: "Instagram Direct",
+      seFaltar:
+        "Direct não entra na Inbox. A recepção volta a responder pelo app do celular, e o histórico não aparece na ficha do paciente.",
+      temCredencial: produtosDaMeta.has("instagram"),
+      bloqueadoExterno: !produtosDaMeta.has("instagram"),
+    }),
+    montar({
+      chave: "meta_messenger",
+      rotulo: "Facebook Messenger",
+      seFaltar: "Mensagem da Página fica só no Facebook, fora do histórico do paciente.",
+      temCredencial: produtosDaMeta.has("messenger"),
+      bloqueadoExterno: !produtosDaMeta.has("messenger"),
+    }),
+    montar({
+      chave: "meta_lead_ads",
+      rotulo: "Meta Lead Ads",
+      seFaltar:
+        "O lead do Instant Form fica no Gerenciador de Anúncios. Alguém baixa CSV, e o speed-to-lead morre.",
+      temCredencial: produtosDaMeta.has("lead_ads"),
+      bloqueadoExterno: !produtosDaMeta.has("lead_ads"),
+    }),
     montar({
       chave: "ads",
-      rotulo: "Anúncios",
+      rotulo: "Investimento em anúncios",
       seFaltar:
-        "O custo por lead fica sem origem: o CRC sabe quantos leads entraram, e não quanto custaram.",
+        "O custo por lead fica sem origem: o CRC sabe quantos leads entraram, e não quanto custaram. A Marketing API de insights de gasto ainda não está integrada.",
       temCredencial: false,
       bloqueadoExterno: true,
     }),

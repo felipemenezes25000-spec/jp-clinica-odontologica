@@ -140,7 +140,12 @@ export type Tabela =
   | "crc_experiments"
   | "crc_experiment_variants"
   | "crc_experiment_assignments"
-  | "crc_learnings";
+  | "crc_learnings"
+  // supabase/45 — Meta omnichannel: Instagram, Messenger, comentários, Lead Ads.
+  | "crc_canais_meta"
+  | "crc_social_events"
+  | "crc_regras_sociais"
+  | "crc_private_replies";
 
 export type Linha = Record<string, unknown>;
 

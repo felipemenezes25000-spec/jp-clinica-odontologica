@@ -75,9 +75,24 @@
 .crc-app .crc-int-command-status-v2 strong {
   font-size: 0.73rem;
 }
+/*
+ * SEM `opacity` AQUI — e o numero e medido, nao estetico.
+ *
+ * `--crc-alerta` (#8a5300) sobre `--crc-alerta-suave` (#fdf3e3) da 5.76:1, e
+ * passa o AA (4.5 para texto pequeno). Com `opacity: 0.75` a cor efetiva vira
+ * #a77b39 e a razao cai para 3.45:1 — reprova.
+ *
+ * O axe-core pegou isto em `e2e/acessibilidade.spec.ts`, e so no estado
+ * `data-alerta="sim"`: no estado normal o par e o primario, que sobrevive a
+ * opacidade. Era uma violacao que aparecia exatamente quando a tela tinha algo
+ * importante a dizer.
+ *
+ * A hierarquia visual continua existindo pelo `font-size` — que e como o resto
+ * do sistema marca texto secundario. Se voce precisar de opacidade aqui, 0.9 e
+ * o maximo que ainda passa (4.67:1).
+ */
 .crc-app .crc-int-command-status-v2 small {
   margin-top: 2px;
-  opacity: 0.75;
   font-size: 0.61rem;
 }
 .crc-app .crc-int-grid-v2 {

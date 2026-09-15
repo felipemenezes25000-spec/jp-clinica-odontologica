@@ -125,6 +125,15 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
   ],
   crc_leads: [
     { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
+    /*
+     * O ÍNDICE DO 45: um `leadgen_id` da Meta, um lead.
+     *
+     * É ele que faz a reconciliação do §18.1 ser segura de rodar. O webhook e o
+     * job de garantia leem o MESMO lead, e sem esta chave o job criaria uma
+     * segunda cópia de tudo o que o webhook já trouxe — e a clínica ligaria
+     * duas vezes para a mesma pessoa.
+     */
+    { colunas: ["organization_id", "meta_lead_id"], onde: (l) => !nulo(l["meta_lead_id"]) },
   ],
   crc_budgets: [{ colunas: ["organization_id", "fingerprint"] }],
   crc_charges: [{ colunas: ["organization_id", "fingerprint"] }],
@@ -262,19 +271,65 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
    * sem o paciente recusaria o segundo cadastro e apagaria justamente o caso
    * que a resolucao de identidade existe para tratar.
    */
-  crc_patient_identities: [{ colunas: ["organization_id", "patient_id", "tipo", "valor"] }],
+  /*
+   * E COM O NAMESPACE, desde `supabase/45`.
+   *
+   * Sem ele, `EXTERNAL_ID / 123` do Dental Office e `EXTERNAL_ID / 123` do
+   * Instagram (um IGSID) são a mesma linha — e a resolução devolve `UNICO` com
+   * confiança total para o paciente errado. Um fake com a chave antiga
+   * aceitaria as duas como duplicata uma da outra e esconderia exatamente o
+   * defeito que a migração veio matar.
+   */
+  crc_patient_identities: [
+    { colunas: ["organization_id", "patient_id", "tipo", "namespace", "valor"] },
+  ],
   crc_objections: [
     { colunas: ["organization_id", "chave_dedupe"], onde: (l) => !nulo(l["chave_dedupe"]) },
   ],
   crc_gap_offers: [{ colunas: ["gap_id", "patient_id"] }],
   crc_waitlist_preferences: [{ colunas: ["organization_id", "patient_id"] }],
+  /*
+   * E COM O CANAL, desde `supabase/45` — §27.
+   *
+   * `canal = ''` é "vale para todos os canais", e é o que as linhas antigas
+   * têm. Uma clínica pode querer a IA respondendo WhatsApp sozinha e apenas
+   * sugerindo no Instagram, onde a conta é a mesma que publica.
+   */
   crc_autonomia: [
     {
-      colunas: ["organization_id", "clinic_id", "dominio"],
+      colunas: ["organization_id", "clinic_id", "dominio", "canal"],
       onde: (l) => !nulo(l["clinic_id"]),
     },
-    { colunas: ["organization_id", "dominio"], onde: (l) => nulo(l["clinic_id"]) },
+    { colunas: ["organization_id", "dominio", "canal"], onde: (l) => nulo(l["clinic_id"]) },
   ],
+  /*
+   * OS ÍNDICES DO 45 — a Meta.
+   *
+   * `crc_canais_meta` tem DOIS parciais, e não um composto: uma conta pode ter
+   * Página sem Instagram profissional, ou Instagram sem Página. Um índice em
+   * `(provider, page_id, instagram_account_id)` deixaria duas linhas com o
+   * mesmo `page_id` conviverem se o Instagram diferisse — e aí o webhook do
+   * Messenger teria dois donos possíveis, que é o defeito que o `supabase/23`
+   * existiu para matar.
+   */
+  crc_canais_meta: [
+    { colunas: ["provider", "page_id"], onde: (l) => !nulo(l["page_id"]) },
+    {
+      colunas: ["provider", "instagram_account_id"],
+      onde: (l) => !nulo(l["instagram_account_id"]),
+    },
+  ],
+  // Um comentário, um evento. É a dedupe do §34, e ela precisa ser do banco:
+  // a Meta reentrega o mesmo comentário quando não recebe 200 rápido.
+  crc_social_events: [{ colunas: ["organization_id", "provider", "external_event_id"] }],
+  /*
+   * A RESERVA DO PRIVATE REPLY, e este índice É o anti-spam do §17.
+   *
+   * Dois webhooks do mesmo comentário chegam juntos; as duas execuções
+   * perguntariam "já mandei?" e as duas leriam "não". Aqui o banco decide quem
+   * ganha, e quem perde o INSERT não chama a Graph API.
+   */
+  crc_private_replies: [{ colunas: ["organization_id", "chave_reserva"] }],
   // O índice do 04: é ele que faz "salvar de novo com o mesmo nome" ser
   // ATUALIZAR em vez de criar uma segunda visão homônima.
   crc_saved_views: [{ colunas: ["organization_id", "user_id", "escopo", "nome"] }],
@@ -301,12 +356,12 @@ const INDICES: Readonly<Record<string, IndiceUnico[]>> = {
  * está certa. Fidelidade aqui é o que separa "o teste falhou" de "o teste
  * mentiu".
  */
-const PADRAO_DE_COLUNA: Readonly<Record<string, Readonly<Record<string, boolean>>>> = {
+const PADRAO_DE_COLUNA: Readonly<Record<string, Readonly<Record<string, boolean | string>>>> = {
   crc_clinics: { ativa: true },
   crc_users: { ativo: true },
   crc_patients: { ativo: true, arquivado: false },
   crc_conversations: { revisao_pendente: false },
-  crc_messages: { nota_interna: false },
+  crc_messages: { nota_interna: false, historico_importado: false },
   crc_templates: { ativo: true },
   crc_revenue_events: { recuperada: false },
   crc_ai_calls: { sucesso: true },
@@ -315,6 +370,29 @@ const PADRAO_DE_COLUNA: Readonly<Record<string, Readonly<Record<string, boolean>
   crc_saved_views: { compartilhada: false },
   crc_charges: { negociacao_humana: false },
   crc_dentists: { ativo: true },
+  /*
+   * OS DEFAULTS DE TEXTO DO 45, e eles não são cosmética: são o que faz o
+   * índice único do fake se comportar como o do Postgres.
+   *
+   * `chaveDe()` desiste do índice quando QUALQUER coluna dele é nula — porque
+   * em Postgres nulo não participa de índice único. Mas `namespace` e `canal`
+   * são `not null default ''` no schema: eles SEMPRE participam.
+   *
+   * Sem estes defaults, uma linha semeada sem `namespace` sairia por fora da
+   * chave — e o fake aceitaria duas identidades idênticas exatamente onde a
+   * produção recusa. É a inversão descrita no cabeçalho de `nulo()`, e é o pior
+   * defeito possível num banco de teste.
+   */
+  crc_patient_identities: { namespace: "", compartilhada: false },
+  crc_autonomia: { canal: "" },
+  crc_canais_meta: { provider: "meta", ativo: true },
+  crc_regras_sociais: {
+    ativa: false,
+    exigir_captacao: true,
+    criar_lead: false,
+    criar_oportunidade: false,
+    enviar_private_reply: false,
+  },
 };
 
 export class ErroBancoFake extends Error {
@@ -435,8 +513,34 @@ function casa(linha: Linha, f: Filtro): boolean {
       const padrao = f.valor.replace(/[.+?^${}()|[\]\\]/gu, "\\$&").replace(/\*/gu, ".*");
       return new RegExp(`^${padrao}$`, "iu").test(v);
     }
-    case "cs":
-      return Array.isArray(v) && Array.isArray(f.valor);
+    /*
+     * ========================================================================
+     *  `cs` É CONTAINMENT DE ARRAY, e a versão anterior era um carimbo.
+     *
+     *      return Array.isArray(v) && Array.isArray(f.valor);
+     *
+     *  Ela devolvia `true` para QUALQUER array contra QUALQUER array — ou seja,
+     *  um filtro `midias=cs.{outra-midia}` casava uma regra cujas mídias eram
+     *  completamente diferentes. Num fake de banco, aceitar o que a produção
+     *  recusa é o pior defeito possível: o teste passa e o comportamento errado
+     *  é o que vai para o ar.
+     *
+     *  E ela também errava no sentido inverso, que foi como isto apareceu: o
+     *  valor real vem como LITERAL DO POSTGREST (`"{a,b}"` — uma string, ver
+     *  `formatarValor` em `servidor/banco.ts`), então `Array.isArray(f.valor)`
+     *  era falso e o filtro NUNCA casava.
+     *
+     *  Agora as duas formas são aceitas na entrada, e a comparação é de
+     *  verdade: a coluna precisa CONTER todos os valores pedidos.
+     * ========================================================================
+     */
+    case "cs": {
+      if (!Array.isArray(v)) return false;
+      const pedidos = comoArrayDoPostgrest(f.valor);
+      if (pedidos === null) return false;
+      const naColuna = new Set(v.map((x) => String(x)));
+      return pedidos.every((p) => naColuna.has(p));
+    }
     default:
       return false;
   }
@@ -444,6 +548,33 @@ function casa(linha: Linha, f: Filtro): boolean {
 
 function comparavel(v: unknown): v is string | number {
   return typeof v === "string" || typeof v === "number";
+}
+
+/**
+ * `"{a,b}"` ou `["a","b"]` → `["a","b"]`.
+ *
+ * O LITERAL DE ARRAY DO POSTGREST é uma string: `formatarValor` em
+ * `servidor/banco.ts` monta `midias=cs.{uma-midia}`. Aceitar as duas formas é o
+ * que faz o fake casar com o que o código de produção realmente envia, sem
+ * obrigar o teste a saber do detalhe de serialização.
+ *
+ * `null` quando o valor não é nenhuma das duas — e aí `cs` não casa nada, que é
+ * o comportamento seguro.
+ */
+function comoArrayDoPostgrest(valor: unknown): string[] | null {
+  if (Array.isArray(valor)) return valor.map((x) => String(x));
+  if (typeof valor !== "string") return null;
+
+  const cru = valor.trim();
+  if (!cru.startsWith("{") || !cru.endsWith("}")) return null;
+
+  const dentro = cru.slice(1, -1).trim();
+  if (dentro.length === 0) return [];
+
+  // Sem tratamento de aspas nem de vírgula escapada: os valores que este
+  // projeto põe em array são ids opacos da Meta. Um id com vírgula dentro não
+  // existe, e inventar um parser completo aqui esconderia o dia em que existir.
+  return dentro.split(",").map((p) => p.trim().replace(/^"|"$/gu, ""));
 }
 
 function aplicar(linhas: Linha[], opcoes: OpcoesSelecao): Linha[] {

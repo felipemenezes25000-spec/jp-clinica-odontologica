@@ -26,7 +26,7 @@ import { TriangleAlert } from "lucide-react";
 
 import { carregarRadar, listarRadar, type ItemDoRadarUI, type RadarUI } from "@/lib/crc/api";
 
-import { Aviso, Botao, Cartao, Etiqueta, Kpi, ListaEsqueleto, Vazio } from "./base";
+import { Aviso, Botao, Cartao, Etiqueta, Kpi, ListaEsqueleto, TabelaRolavel, Vazio } from "./base";
 
 /**
  * Abaixo disto, a tela avisa que está estimando.
@@ -126,7 +126,7 @@ export function Radar() {
             explicacao="Quando a sincronização encontrar faltas, orçamentos parados ou pacientes em retorno, elas aparecem aqui."
           />
         ) : (
-          <div className="crc-tabela-caixa">
+          <TabelaRolavel rotulo="Oportunidades abertas por tipo">
             <table className="crc-tabela">
               <thead>
                 <tr>
@@ -172,7 +172,7 @@ export function Radar() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TabelaRolavel>
         )}
       </Cartao>
 

@@ -35,6 +35,14 @@
  *                      `external_id` próprio e cursor próprio
  * ========================================================================
  */
+/*
+ * IMPORT DE TIPO, E POR ISSO ESTATICO.
+ *
+ * `import type` e apagado na compilacao: ele nao arrasta `aplicacao/lead-ads`
+ * — nem o cliente da Graph que ele carrega — para o grafo deste modulo. A
+ * FUNCAO continua entrando por `await import()` dentro do handler.
+ */
+import type { ResultadoReconciliacao } from "../aplicacao/lead-ads";
 import { registrar } from "../servidor/registro";
 
 export type ResultadoDaOrganizacao = {
@@ -412,6 +420,41 @@ async function umaOrganizacao(
       await comCaptura(organizationId, "retencao de transcricao", async () => ({
         transcricoesPodadas: await podarTranscricoes(organizationId),
       })),
+      /*
+       * ======================================================================
+       *  A RECONCILIACAO DO LEAD ADS — e ela cabe AQUI, sem cron novo.
+       *
+       *  O webhook de `leadgen` falha em silencio de tres formas: token
+       *  rotacionado, app desassinado da Pagina, e o nosso proprio 500 durante
+       *  um deploy. Nas tres a Meta considera entregue e NUNCA reenvia — o lead
+       *  fica no Gerenciador de Anuncios e ninguem sabe que existiu.
+       *
+       *  A reconciliacao busca na Graph o que o webhook nao trouxe. Ela e
+       *  idempotente (chave em `crc_leads.meta_lead_id`) e retoma por cursor em
+       *  `crc_sync_state`, entao rodar todo dia e seguro e barato.
+       *
+       *  POR QUE AQUI, E NAO NUM CRON PROPRIO: o plano da Vercel deste projeto
+       *  da dois cron jobs diarios, e os dois ja tem dono. Isto foi registrado
+       *  como "bloqueado pelo plano" por um tempo — e era erro de escopo: a
+       *  volta pesada JA roda uma vez ao dia e JA percorre organizacao por
+       *  organizacao. Ela custa zero slot.
+       *
+       *  POR QUE FORA DO LACO DE CLINICA lá em cima: aquele laco pula quando o
+       *  Dental Office nao esta configurado (`cliente.ok`), e a Meta nao tem
+       *  nada a ver com o Dental Office. Preso ali, o lead da clinica sem
+       *  prontuario integrado nunca seria recuperado.
+       *
+       *  `importados > 0` E ALARME, E NAO SUCESSO: significa que um webhook se
+       *  perdeu. O numero vai para o relatorio da volta justamente para ser
+       *  visto — ver `docs/crc/META-RUNBOOK.md`.
+       * ======================================================================
+       */
+      await comCaptura(organizationId, "leads da Meta", () =>
+        reconciliarLeadsDaMeta(
+          organizationId,
+          clinicas.map((c) => String(c["id"] ?? "")),
+        ),
+      ),
       await faxina(),
     );
   }
@@ -420,6 +463,77 @@ async function umaOrganizacao(
 }
 
 /** Roda algo e transforma a exceção em resultado, sem derrubar a volta. */
+/* -------------------------------------------------------------------------- */
+/* Leads da Meta que o webhook nao trouxe                                     */
+/* -------------------------------------------------------------------------- */
+
+export type ResultadoDosLeadsDaMeta = {
+  /** Quantos leads a Graph tinha e o webhook nao entregou. **Alarme**, nao meta. */
+  leadsDaMetaRecuperados: number;
+  /** So as clinicas que tem algo a dizer. Ver o comentario abaixo. */
+  porClinica: Record<string, ResultadoReconciliacao>;
+};
+
+/**
+ * Busca na Graph os leads de anuncio que o webhook perdeu — uma vez ao dia.
+ *
+ * ============================================================================
+ *  O WEBHOOK DE `leadgen` FALHA EM SILENCIO DE TRES FORMAS: token rotacionado,
+ *  app desassinado da Pagina, e o nosso proprio 500 durante um deploy. Nas tres
+ *  a Meta considera entregue e NUNCA reenvia — o lead fica no Gerenciador de
+ *  Anuncios e ninguem sabe que existiu.
+ *
+ *  A reconciliacao e idempotente (chave em `crc_leads.meta_lead_id`) e retoma
+ *  por cursor em `crc_sync_state`, entao rodar todo dia e seguro e barato.
+ * ============================================================================
+ *
+ * ============================================================================
+ *  POR QUE NA VOLTA PESADA, E NAO NUM CRON PROPRIO.
+ *
+ *  O plano da Vercel deste projeto da dois cron jobs diarios, e os dois ja tem
+ *  dono (`/api/rh/varrer` e `/api/crc/motor`). Isto ficou registrado como
+ *  "bloqueado pelo plano" por um tempo — e era erro de escopo: a volta pesada
+ *  JA roda uma vez ao dia e JA percorre organizacao por organizacao. Custa zero
+ *  slot.
+ *
+ *  E POR QUE FORA DO LACO DE CLINICA de `umaOrganizacao`: aquele laco pula
+ *  quando o Dental Office nao esta configurado (`cliente.ok`), e a Meta nao tem
+ *  nada a ver com o Dental Office. Preso ali, o lead da clinica sem prontuario
+ *  integrado nunca seria recuperado.
+ * ============================================================================
+ */
+export async function reconciliarLeadsDaMeta(
+  organizationId: string,
+  clinicIds: readonly string[],
+): Promise<ResultadoDosLeadsDaMeta> {
+  const { reconciliarLeadAds } = await import("../aplicacao/lead-ads");
+
+  const porClinica: Record<string, ResultadoReconciliacao> = {};
+  let leadsDaMetaRecuperados = 0;
+
+  for (const clinicId of clinicIds) {
+    if (clinicId.length === 0) continue;
+
+    const r = await reconciliarLeadAds({ organizationId, clinicId });
+    leadsDaMetaRecuperados += r.importados;
+
+    /*
+     * SO ENTRA NO RELATORIO O QUE TEM O QUE DIZER.
+     *
+     * Uma clinica sem conta da Meta devolve `motivo` e zero de tudo. Numa rede
+     * de dez unidades onde duas usam Instagram, listar as dez faria oito linhas
+     * de "nao configurado" por dia — e o relatorio que a gente aprende a nao
+     * ler e o mesmo que esconde a nona.
+     *
+     * `!r.fechou` entra porque significa "ainda ha lead para importar na
+     * proxima volta": e informacao, e nao ruido.
+     */
+    if (r.importados > 0 || r.falhas > 0 || !r.fechou) porClinica[clinicId] = r;
+  }
+
+  return { leadsDaMetaRecuperados, porClinica };
+}
+
 async function comCaptura<T>(
   organizationId: string,
   o_que: string,

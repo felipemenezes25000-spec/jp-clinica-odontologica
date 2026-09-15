@@ -155,7 +155,24 @@ const EXCECOES: readonly string[] = [
    * o valor que a escrita existe para gravar — e ela nunca acharia linha
    * nenhuma.
    */
-  "src/lib/crc/aplicacao/webhooks.ts:537  atualizar crc_webhook_inbox",
+  // 537 -> 574 em 15/09/2026: `aplicarEnvelope` ganhou o desvio para o envelope
+  // da Meta lá em cima, e o trecho desceu. É a MESMA escrita.
+  "src/lib/crc/aplicacao/webhooks.ts:574  atualizar crc_webhook_inbox",
+
+  /*
+   * A IRMÃ DA DE CIMA, no caminho da Meta — `supabase/45`.
+   *
+   * `aplicarEnvelopeDaMeta` atribui o tenant a um envelope que chegou sem ele:
+   * acontece quando a conta da Meta ainda não estava cadastrada na hora do
+   * webhook, e passou a estar quando a repescagem rodou. Exatamente a mesma
+   * exceção, pelo mesmo motivo — filtrar pelo valor que a escrita existe para
+   * gravar não acharia linha nenhuma.
+   *
+   * O QUE ELA NÃO É: uma escrita de conteúdo. Ela toca duas colunas de
+   * roteamento e nada mais, e o `id` do inbox não é adivinhável — ele sai de
+   * `crc_reservar_webhooks`, que já reserva por tenant.
+   */
+  "src/lib/crc/aplicacao/webhooks.ts:663  atualizar crc_webhook_inbox",
 ];
 
 function arquivosTs(raiz: string): string[] {

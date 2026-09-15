@@ -1384,6 +1384,15 @@ const CHAVE_GRUPOS = "crc:grupos-fechados";
 /** Quais seções de conteúdo estão recolhidas, por título. */
 const CHAVE_SECOES = "crc:secoes-fechadas";
 
+/**
+ * A classe do botão que recolhe uma seção — a seta do canto do cabeçalho.
+ *
+ * Ela vive em `crc-screens.css`, junto das outras regras de seção recolhível,
+ * e o `<button>` é criado por `useSecoesRecolhiveis`. Um nome só, nos dois
+ * lados, para a busca por ele encontrar a marcação e o estilo de uma vez.
+ */
+const CLASSE_GATILHO = "crc-secao-gatilho";
+
 /** O lado do avatar depois de reduzido. 128px cobre a tela retina de 36px. */
 const LADO_FOTO = 128;
 
@@ -1519,14 +1528,50 @@ function useSecoesRecolhiveis(container: HTMLElement | null, aba: string): void 
          */
         if (secao.dataset["semRecolher"] === "sim") continue;
 
+        const fechada = fechadas.has(titulo);
         secao.dataset["recolhivel"] = "sim";
-        secao.dataset["recolhida"] = fechadas.has(titulo) ? "sim" : "nao";
+        secao.dataset["recolhida"] = fechada ? "sim" : "nao";
 
-        // O cabeçalho vira controle de verdade para quem usa teclado e leitor
-        // de tela — não só uma área clicável.
-        sec.setAttribute("role", "button");
-        sec.setAttribute("tabindex", "0");
-        sec.setAttribute("aria-expanded", fechadas.has(titulo) ? "false" : "true");
+        /*
+         * ==================================================================
+         *  O CONTROLE É UM BOTÃO PRÓPRIO, E NÃO O CABEÇALHO INTEIRO.
+         *
+         *  Esta linha era `sec.setAttribute("role", "button")` — o cabeçalho
+         *  todo virava controle. Parecia o caminho curto, e criava um defeito
+         *  que o axe-core classifica como `serious`: `nested-interactive`.
+         *
+         *  Metade dos cabeçalhos do CRC tem botão dentro ("Nova unidade",
+         *  "Exportar"). Um botão dentro de outro botão é território que o ARIA
+         *  não define, e cada leitor de tela resolve de um jeito: o mais comum
+         *  é anunciar só o de fora e o de dentro deixar de existir. Quem
+         *  navega por áudio perdia o "Nova unidade" da tela de Gestão e da de
+         *  Configurações.
+         *
+         *  A seta agora é um `<button>` de verdade, com nome próprio. O
+         *  cabeçalho continua clicável no mouse — isso é conforto, não
+         *  promessa de ARIA, e um alvo grande de clique não precisa se
+         *  declarar controle para funcionar.
+         *
+         *  Ele é CRIADO AQUI, e não no JSX, pelo mesmo motivo da seta ter
+         *  nascido em CSS: são seis telas de cabeçalho montado à mão, e o
+         *  mecanismo inteiro existe para elas não precisarem saber dele.
+         * ==================================================================
+         */
+        let gatilho = sec.querySelector<HTMLButtonElement>(`:scope > .${CLASSE_GATILHO}`);
+        if (gatilho === null) {
+          gatilho = document.createElement("button");
+          gatilho.type = "button";
+          gatilho.className = CLASSE_GATILHO;
+          sec.append(gatilho);
+        }
+        gatilho.setAttribute("aria-expanded", fechada ? "false" : "true");
+        gatilho.setAttribute("aria-label", `${fechada ? "Abrir" : "Recolher"} ${titulo}`);
+
+        // Restos da versão em que o cabeçalho inteiro era o botão: sem isto,
+        // uma sessão aberta antes da troca continuaria com o defeito no DOM.
+        sec.removeAttribute("role");
+        sec.removeAttribute("tabindex");
+        sec.removeAttribute("aria-expanded");
       }
     };
 
@@ -1551,19 +1596,38 @@ function useSecoesRecolhiveis(container: HTMLElement | null, aba: string): void 
       return secao !== null && secao.tagName === "SECTION" ? secao : null;
     };
 
+    /**
+     * A SETA É A EXCEÇÃO AO `alvo()` ACIMA — ela é um `<button>`, e o `alvo()`
+     * devolve `null` para tudo que está dentro de um.
+     */
+    const secaoDaSeta = (e: Event): HTMLElement | null => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement)) return null;
+      return el.closest(`.${CLASSE_GATILHO}`)?.closest("section") ?? null;
+    };
+
     const aoClicar = (e: MouseEvent): void => {
+      const pelaSeta = secaoDaSeta(e);
+      if (pelaSeta !== null) {
+        alternar(pelaSeta);
+        return;
+      }
       const secao = alvo(e);
       if (secao !== null) alternar(secao);
     };
 
-    const aoTeclar = (e: KeyboardEvent): void => {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      const secao = alvo(e);
-      if (secao === null) return;
-      e.preventDefault();
-      alternar(secao);
-    };
-
+    /*
+     * NÃO EXISTE MAIS UM `keydown` AQUI, e a ausência é o conserto.
+     *
+     * Enquanto o cabeçalho inteiro era `role="button" tabindex="0"`, o teclado
+     * dependia deste arquivo: era preciso ouvir Enter e Espaço à mão, chamar
+     * `preventDefault` para o Espaço não rolar a página, e torcer para o
+     * `alvo()` não confundir o botão de dentro com o cabeçalho.
+     *
+     * Um `<button>` de verdade faz as três coisas sozinho — e faz certo, em
+     * todo navegador e leitor de tela. O que sobrou é só o clique no
+     * cabeçalho, que é conforto de mouse.
+     */
     aplicar();
     // As telas carregam dados depois do primeiro render; sem observar, só a
     // primeira leva de seções ganharia o comportamento.
@@ -1571,11 +1635,9 @@ function useSecoesRecolhiveis(container: HTMLElement | null, aba: string): void 
     observador.observe(container, { childList: true, subtree: true });
 
     container.addEventListener("click", aoClicar);
-    container.addEventListener("keydown", aoTeclar);
     return () => {
       observador.disconnect();
       container.removeEventListener("click", aoClicar);
-      container.removeEventListener("keydown", aoTeclar);
     };
   }, [container, aba]);
 }

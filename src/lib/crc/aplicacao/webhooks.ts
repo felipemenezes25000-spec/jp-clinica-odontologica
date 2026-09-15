@@ -136,7 +136,7 @@ export async function processarWebhookWhatsapp(
   const inboxId = String(inbox["id"] ?? "");
 
   if (escopo === null) {
-    await marcar(inboxId, "FALHOU", "Nenhuma organização configurada.");
+    await marcarEnvelope(inboxId, "FALHOU", "Nenhuma organização configurada.");
     registrar("erro", "Webhook recebido sem organização configurada.");
     return resultado;
   }
@@ -168,7 +168,7 @@ export async function processarWebhookWhatsapp(
     }
   }
 
-  await marcar(
+  await marcarEnvelope(
     inboxId,
     erros.length === 0 ? "PROCESSADO" : "FALHOU",
     erros.length === 0 ? null : erros.join(" | ").slice(0, 1000),
@@ -195,7 +195,7 @@ export async function processarWebhookWhatsapp(
  *   um segundo lugar com PII e outra política de retenção (item 75), que é
  *   exatamente o que o `mascarar()` original tentava evitar.
  */
-async function marcar(
+export async function marcarEnvelope(
   id: string,
   status: string,
   erro: string | null,
@@ -433,7 +433,7 @@ export async function repescarWebhooks(
     try {
       const aplicado = await aplicarEnvelope(linha);
       if (aplicado) {
-        await marcar(id, "PROCESSADO", null, tentativas);
+        await marcarEnvelope(id, "PROCESSADO", null, tentativas);
         resultado.recuperados += 1;
       } else {
         /*
@@ -443,12 +443,12 @@ export async function repescarWebhooks(
          * vezes para falhar cinco vezes, e encheria a dead letter de coisa que
          * ninguém pode consertar.
          */
-        await marcar(id, "DESCARTADO", "Envelope sem conteúdo aplicável.", tentativas);
+        await marcarEnvelope(id, "DESCARTADO", "Envelope sem conteúdo aplicável.", tentativas);
         resultado.descartados += 1;
       }
     } catch (erro) {
       const detalhe = descreverErro(erro);
-      await marcar(id, "FALHOU", detalhe, tentativas);
+      await marcarEnvelope(id, "FALHOU", detalhe, tentativas);
       resultado.falhados += 1;
 
       if (tentativas >= MAX_TENTATIVAS_WEBHOOK) {
@@ -476,10 +476,26 @@ async function tenantDaLinha(linha: Linha): Promise<string | null> {
   if (daColuna.length > 0) return daColuna;
 
   const payload = linha["payload"];
-  const destinatario =
-    typeof payload === "object" && payload !== null
-      ? (payload as { destinatario?: unknown }).destinatario
-      : null;
+  if (typeof payload !== "object" || payload === null) return null;
+
+  /*
+   * O ENVELOPE DA META RESOLVE PELAS CONTAS, e não pelo `destinatario`.
+   *
+   * Sem este ramo, um envelope da Meta sem tenant cairia em `resolverEscopo`
+   * com `destinatario: null` — que vai direto para o caminho da clínica única.
+   * Com uma clínica, acertaria por acidente; com duas, a dead letter nasceria
+   * sem dono, que é exatamente o defeito que o `supabase/25` consertou.
+   */
+  const contas = (payload as { contas?: unknown }).contas;
+  if (Array.isArray(contas)) {
+    const { resolverEscopoDaMeta } = await import("./meta");
+    const escopo = await resolverEscopoDaMeta(
+      contas.filter((c): c is string => typeof c === "string"),
+    );
+    return escopo?.organizationId ?? null;
+  }
+
+  const destinatario = (payload as { destinatario?: unknown }).destinatario;
 
   const escopo = await resolverEscopo(
     String(linha["provedor"] ?? ""),
@@ -497,6 +513,27 @@ async function tenantDaLinha(linha: Linha): Promise<string | null> {
 async function aplicarEnvelope(linha: Linha): Promise<boolean> {
   const payload = linha["payload"];
   if (typeof payload !== "object" || payload === null) return false;
+
+  /*
+   * ==========================================================================
+   *  O ENVELOPE DA META TEM OUTRA FORMA, E A MESMA FILA — §36.
+   *
+   *  A repescagem é UMA, e é esta função que decide como reaplicar. Duas filas
+   *  significariam dois repescadores, dois tetos de tentativa, duas dead
+   *  letters e dois lugares na tela de saúde — e a que envelhecesse primeiro
+   *  seria a que ninguém olha.
+   *
+   *  A DISCRIMINAÇÃO É PELA FORMA DO PAYLOAD, e não pelo nome do provedor. O
+   *  envelope da Meta tem `eventos`; o de WhatsApp tem `mensagens`/`entregas`.
+   *  Decidir pelo `provedor` funcionaria hoje e quebraria no dia em que alguém
+   *  gravasse `meta_cloud` num envelope de Instagram — e o efeito seria um
+   *  envelope descartado como "sem conteúdo aplicável", que é o pior desfecho
+   *  possível: silencioso e terminal.
+   * ==========================================================================
+   */
+  if (Array.isArray((payload as { eventos?: unknown }).eventos)) {
+    return aplicarEnvelopeDaMeta(linha, payload as { eventos: unknown[]; contas?: unknown });
+  }
 
   const envelope = payload as { mensagens?: unknown; entregas?: unknown };
   const mensagens = Array.isArray(envelope.mensagens) ? envelope.mensagens : [];
@@ -558,6 +595,92 @@ async function aplicarEnvelope(linha: Linha): Promise<boolean> {
       typeof entrega.erro === "string" ? entrega.erro : null,
     );
   }
+
+  return true;
+}
+
+/**
+ * Reaplica um envelope da Meta guardado.
+ *
+ * ============================================================================
+ *  O REPLAY ROTEIA PELO MESMO CAMINHO DO ORIGINAL, e isso não é detalhe —
+ *  é a mesma razão que o replay de WhatsApp resolve o escopo de novo em vez de
+ *  confiar na coluna.
+ *
+ *  As `contas` viajam DENTRO do envelope normalizado, então um webhook
+ *  repescado três dias depois cai na MESMA clínica em que teria caído na hora.
+ *  Resolver "pela primeira clínica" faria a repescagem entregar a mensagem para
+ *  o tenant errado — pior que não repescar, porque o dado atravessaria a
+ *  fronteira sem ninguém perceber.
+ * ============================================================================
+ *
+ * LANÇA quando não há tenant, em vez de devolver `false`. A diferença importa:
+ * `false` vira `DESCARTADO` (terminal, payload zerado), e "a conta ainda não
+ * foi cadastrada" é uma falha de CONFIGURAÇÃO — ela se resolve quando alguém
+ * cadastra a conta, e até lá o envelope precisa continuar reprocessável.
+ */
+async function aplicarEnvelopeDaMeta(
+  linha: Linha,
+  payload: { eventos: unknown[]; contas?: unknown },
+): Promise<boolean> {
+  if (payload.eventos.length === 0) return false;
+
+  const contas = Array.isArray(payload.contas)
+    ? payload.contas.filter((c): c is string => typeof c === "string")
+    : [];
+
+  const { aplicarEventosDaMeta, resolverEscopoDaMeta } = await import("./meta");
+
+  const daColuna = {
+    organizationId: typeof linha["organization_id"] === "string" ? linha["organization_id"] : "",
+    clinicId: typeof linha["clinic_id"] === "string" ? linha["clinic_id"] : "",
+  };
+
+  /*
+   * A COLUNA PRIMEIRO, O ENVELOPE COMO RESGATE — a ordem inversa da do
+   * WhatsApp, e de propósito.
+   *
+   * Lá o escopo é sempre reresolvido porque o `destinatario` do envelope é a
+   * fonte mais próxima do fato e a coluna pode estar vazia (linhas anteriores
+   * ao `supabase/25`). Aqui a coluna nasceu junto com a tabela de canais: ela
+   * está preenchida em toda linha que existe, e reresolver seria uma ida ao
+   * banco para chegar ao mesmo valor.
+   *
+   * Quando ela falta — linha gravada sem tenant porque a conta não estava
+   * cadastrada —, as `contas` do envelope resolvem exatamente como resolveriam
+   * na primeira vez.
+   */
+  const escopo =
+    daColuna.organizationId.length > 0 && daColuna.clinicId.length > 0
+      ? daColuna
+      : await resolverEscopoDaMeta(contas);
+
+  if (escopo === null) {
+    throw new Error("Nenhuma conta da Meta cadastrada para este envelope.");
+  }
+
+  if (daColuna.organizationId.length === 0) {
+    await atualizar(
+      "crc_webhook_inbox",
+      [{ coluna: "id", op: "eq", valor: String(linha["id"] ?? "") }],
+      { organization_id: escopo.organizationId, clinic_id: escopo.clinicId },
+    );
+  }
+
+  const r = await aplicarEventosDaMeta(
+    payload.eventos as Parameters<typeof aplicarEventosDaMeta>[0],
+    escopo,
+  );
+
+  /*
+   * ERRO NA REAPLICAÇÃO VOLTA A LANÇAR, e é o que devolve o envelope à fila.
+   *
+   * `aplicarEventosDaMeta` coleta os erros em vez de lançar — porque um evento
+   * quebrado não pode impedir os outros do mesmo envelope. Mas aqui, no replay,
+   * "sobrou erro" significa "ainda não terminou", e engolir isso marcaria a
+   * linha como `PROCESSADO` com metade aplicada.
+   */
+  if (r.erros.length > 0) throw new Error(r.erros.join(" | ").slice(0, 500));
 
   return true;
 }

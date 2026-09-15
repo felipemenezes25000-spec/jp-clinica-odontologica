@@ -1541,7 +1541,34 @@
   user-select: none;
 }
 
-.crc-app .crc-conteudo section[data-recolhivel="sim"] > header::after {
+/* A SETA É UM `<button>`, e não um `::after` do cabeçalho.
+   ==========================================================================
+
+   Ela desenhava em `header::after`, e o cabeçalho inteiro carregava
+   `role="button"`. Metade dos cabeçalhos do CRC tem botão dentro ("Nova
+   unidade", "Exportar") — e botão dentro de botão é `nested-interactive`,
+   `serious` no axe: o leitor de tela anuncia só o de fora, e o de dentro
+   some para quem navega por áudio.
+
+   O desenho é o mesmo pixel a pixel; o que mudou é quem o carrega. O
+   `<button>` nasce em `useSecoesRecolhiveis` (`routes/crc.tsx`), ocupa os
+   38px que o `padding-right` do cabeçalho já reservava, e ganha nome
+   ("Recolher Unidades") porque uma seta sozinha não diz o que recolhe. */
+
+.crc-app .crc-conteudo section[data-recolhivel="sim"] > header > .crc-secao-gatilho {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 38px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.crc-app .crc-conteudo section[data-recolhivel="sim"] > header > .crc-secao-gatilho::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -1555,11 +1582,13 @@
   transition: transform 180ms cubic-bezier(0.2, 0, 0.2, 1);
 }
 
-.crc-app .crc-conteudo section[data-recolhida="sim"] > header::after {
+.crc-app .crc-conteudo section[data-recolhida="sim"] > header > .crc-secao-gatilho::after {
   transform: translateY(-30%) rotate(-45deg);
 }
 
-.crc-app .crc-conteudo section[data-recolhivel="sim"] > header:hover::after {
+/* O realce segue o cabeçalho inteiro, e não só a seta: a área de clique do
+   mouse continua sendo o cabeçalho, e a seta é o retorno visual disso. */
+.crc-app .crc-conteudo section[data-recolhivel="sim"] > header:hover .crc-secao-gatilho::after {
   opacity: 0.9;
 }
 
@@ -1575,7 +1604,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .crc-app .crc-conteudo section[data-recolhivel="sim"] > header::after {
+  .crc-app .crc-conteudo section[data-recolhivel="sim"] > header > .crc-secao-gatilho::after {
     transition: none;
   }
 }

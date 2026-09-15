@@ -22,6 +22,7 @@
  */
 import { normalizarTelefone } from "../../dominio/telefone";
 import { ehObjeto } from "../../dominio/validar";
+import { ehProducao } from "../../servidor/ambiente";
 import { registrar } from "../../servidor/registro";
 
 import { ProvedorMetaCloud, interpretarWebhookMeta } from "./meta-cloud";
@@ -169,7 +170,18 @@ export async function criarProvedorMensageria(
   organizationId: string | null,
   clinicId: string | null = null,
 ): Promise<EstadoMensageria> {
-  const producao = process.env["NODE_ENV"] === "production";
+  /*
+   * `ehProducao()`, E NÃO `process.env["NODE_ENV"]` DIRETO.
+   *
+   * Lido direto aqui, o bundler dobrava isto para `true` no artefato do
+   * servidor — e a checagem inteira sumia junto com o caminho do sandbox. O
+   * efeito era um E2E que nunca conseguiu provar um envio de WhatsApp: ele caía
+   * em `doAmbiente`, que recusa com "credencial só existe no ambiente, e há
+   * mais de uma clínica".
+   *
+   * O cabeçalho de `servidor/ambiente.ts` tem o artefato e a análise da troca.
+   */
+  const producao = ehProducao();
   const pediuSandbox =
     (process.env["WHATSAPP_SANDBOX"] ?? "").trim() === "1" || provedorEscolhido() === "sandbox";
 
@@ -407,7 +419,18 @@ export type CanalDoWebhook = {
  * envio, que é onde a credencial errada escreve no mundo.
  */
 export function provedorParaWebhook(): EstadoMensageria {
-  const producao = process.env["NODE_ENV"] === "production";
+  /*
+   * `ehProducao()`, E NÃO `process.env["NODE_ENV"]` DIRETO.
+   *
+   * Lido direto aqui, o bundler dobrava isto para `true` no artefato do
+   * servidor — e a checagem inteira sumia junto com o caminho do sandbox. O
+   * efeito era um E2E que nunca conseguiu provar um envio de WhatsApp: ele caía
+   * em `doAmbiente`, que recusa com "credencial só existe no ambiente, e há
+   * mais de uma clínica".
+   *
+   * O cabeçalho de `servidor/ambiente.ts` tem o artefato e a análise da troca.
+   */
+  const producao = ehProducao();
   const pediuSandbox =
     (process.env["WHATSAPP_SANDBOX"] ?? "").trim() === "1" || provedorEscolhido() === "sandbox";
 

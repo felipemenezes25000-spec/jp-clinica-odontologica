@@ -60,6 +60,7 @@ const RESUMO_HOME: ResumoHome = {
       proximaAcao: "Mandar mensagem tratando a objeção de preço",
       ultimoContatoEm: new Date(Date.now() - 18 * 86_400_000).toISOString(),
       temJornadaAtiva: false,
+      origem: "site",
     },
     {
       opportunityId: "o2",
@@ -75,6 +76,10 @@ const RESUMO_HOME: ResumoHome = {
       proximaAcao: "Oferecer dois horários desta semana",
       ultimoContatoEm: null,
       temJornadaAtiva: true,
+      // A ORIGEM SOCIAL ENTRA NA VITRINE de propósito: é ela que revela se o
+      // card sabe desenhar duas linhas de metadado sem empurrar a proxima acao
+      // para fora da vista (§42).
+      origem: "instagram:comentario",
     },
     {
       opportunityId: "o3",
@@ -91,6 +96,9 @@ const RESUMO_HOME: ResumoHome = {
       proximaAcao: null,
       ultimoContatoEm: null,
       temJornadaAtiva: false,
+      // Nulo de propósito: "sem origem conhecida" é o caso mais comum numa
+      // base antiga, e a tela tem que desenhar sem a linha.
+      origem: null,
     },
   ],
 };
