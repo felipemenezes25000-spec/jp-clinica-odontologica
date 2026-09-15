@@ -73,7 +73,7 @@ import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, SITE_URL, TRATAMENTOS, whatsappLin
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { DADOS_ESTRUTURADOS } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
 // 73 caracteres antes, e o Google corta perto de 60: o título terminava dentro
 // de "São Paulo". Agora "Dentista na Freguesia do Ó" -- que é a busca -- vem
@@ -418,7 +418,7 @@ function StructureGallery() {
 }
 
 function Home() {
-  const waGeral = contatoWhatsApp("agendar");
+  const waGeral = useContatoWhatsApp("agendar");
 
   return (
     <div className="min-h-dvh bg-cream">
@@ -815,7 +815,7 @@ function Home() {
                     <p className="mt-1 font-display text-lg font-extrabold">{CLINICA.telefone}</p>
                   </a>
                   <a
-                    href={contatoWhatsApp("agendar")}
+                    href={waGeral}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="jp-soft-card rounded-xl p-5"

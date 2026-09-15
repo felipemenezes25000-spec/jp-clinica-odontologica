@@ -32,7 +32,7 @@ const SLUG = "harmonizacao-orofacial";
 const CANONICO = `${SITE_URL}/tratamentos/harmonizacao-orofacial`;
 
 export const Route = createFileRoute("/harmonizacao-facial")({
-  component: () => <PaginaDeTratamento slug={SLUG} />,
+  component: () => <PaginaDeTratamento slug={SLUG} modo="anuncio" />,
   loader: () => {
     const t = TRATAMENTOS.find((x) => x.slug === SLUG);
     return { titulo: t?.titulo ?? "" };

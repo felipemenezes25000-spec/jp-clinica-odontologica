@@ -4,7 +4,8 @@ import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, NAV } from "@/lib/jp";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { tituloDaRota } from "@/lib/analytics/rotas";
 import "./visual-fixes.css";
 
 export function Header() {
@@ -93,7 +94,19 @@ export function Header() {
     };
   }, [aberto]);
 
-  const wa = contatoWhatsApp("agendar");
+  /*
+   * O CTA DO TOPO FALA DO TRATAMENTO DA PÁGINA — e é o primeiro link de
+   * WhatsApp do documento, ou seja, o que mais gente clica sem rolar nada.
+   *
+   * Ele era sempre genérico ("Vim pelo site da JP…"), inclusive na LP de
+   * implante. Numa campanha paga isso significa a recepção receber a conversa
+   * mais cara do funil sem saber o que a pessoa estava lendo. `tituloDaRota`
+   * responde pelas DUAS famílias de URL, a orgânica e a de anúncio; fora de
+   * página de tratamento devolve `null`, e aí a mensagem segue genérica — que
+   * é o certo na home.
+   */
+  const assunto = tituloDaRota(location.pathname) ?? undefined;
+  const wa = useContatoWhatsApp("agendar", assunto);
 
   const fechar = () => setAberto(false);
 

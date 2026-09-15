@@ -1,11 +1,26 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
 import { CLINICA } from "@/lib/jp";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
 const CHAVE_DISPENSA = "jp:cta-dispensado";
 
-export function FloatingCTA() {
+/**
+ * O CTA que acompanha a rolagem.
+ *
+ * `assunto` É O QUE FALTAVA, E CUSTAVA CONVERSA. Na página de implante, o botão
+ * do hero abria o WhatsApp dizendo "Vi a página sobre Implantes dentários"; a
+ * barra flutuante — que é a que a pessoa vê depois de rolar a página inteira,
+ * ou seja, a que ela mais usa — abria com a mensagem genérica do site.
+ *
+ * A recepção recebia duas conversas diferentes da mesma página, e só uma dizia
+ * o que a pessoa estava lendo. Numa campanha de implante, isso é a informação
+ * mais cara que existe chegando pela metade.
+ *
+ * Sem `assunto` (a home, carreiras) a mensagem continua genérica, que é o certo
+ * lá: quem está na home não está lendo sobre nada em particular.
+ */
+export function FloatingCTA({ assunto }: { assunto?: string }) {
   const [showBar, setShowBar] = useState(false);
   const [dispensado, setDispensado] = useState(false);
 
@@ -47,7 +62,7 @@ export function FloatingCTA() {
 
   const visivel = showBar && !dispensado;
 
-  const wa = contatoWhatsApp("agendar");
+  const wa = useContatoWhatsApp("agendar", assunto);
 
   return (
     <>

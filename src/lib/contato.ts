@@ -11,29 +11,29 @@ import { CLINICA, whatsappLink } from "@/lib/jp";
  *
  * Aqui a mensagem é montada, não digitada. O nome vem de `CLINICA.nome`, a
  * mesma fonte do resto do site.
+ *
+ * O RASTREIO NÃO MORA MAIS AQUI. Ele foi para `@/lib/analytics`, porque passou
+ * a ter três responsabilidades que não são "escrever a frase do paciente":
+ * decidir qual evento único um clique produz, guardar a atribuição da campanha
+ * e respeitar o consentimento. Este arquivo voltou a fazer uma coisa só.
  */
 
 /** O que a pessoa quer, que é o que muda a frase. */
 export type Intencao = "agendar" | "duvida" | "orientacao";
 
-/**
- * De onde o contato partiu.
+/*
+ * O TIPO `Origem` SAIU DAQUI, e a ausência dele é a documentação.
  *
- * Serve para duas coisas: alimentar o evento de analytics e, nas páginas de
- * tratamento, entrar na própria mensagem — "Vi a página sobre implantes" diz à
- * recepção o que a pessoa estava lendo, sem depender de ferramenta nenhuma
- * estar instalada.
+ * Ele enumerava as seções de onde um contato podia partir ("topo", "hero",
+ * "rodape"…) e **nunca foi importado por ninguém** — conferido. A origem real
+ * sempre foi descoberta em tempo de execução, subindo o DOM até achar o `id` da
+ * seção (`origemDoLink`, em `RastreioDeContato`), porque é isso que funciona
+ * para um link que ainda não existe.
+ *
+ * Uma união fechada de nomes de seção só teria duas consequências: envelhecer a
+ * cada seção nova, e dar a impressão de que a lista é exaustiva quando o ouvinte
+ * aceita qualquer `id`.
  */
-export type Origem =
-  | "topo"
-  | "hero"
-  | "flutuante"
-  | "rodape"
-  | "faq"
-  | "especialidades"
-  | "contato"
-  | "avaliacoes"
-  | `tratamento:${string}`;
 
 const ABERTURA = `Olá! Vim pelo site da ${CLINICA.nome}`;
 
@@ -56,88 +56,55 @@ function frase(intencao: Intencao, assunto?: string): string {
 }
 
 /**
+ * A referência de campanha, quando existe, numa linha à parte.
+ *
+ * ============================================================================
+ *  POR QUE NÃO MANDAR A UTM INTEIRA.
+ *
+ *  Sem CRC operacional nesta primeira fase, a única ponte entre "o anúncio que
+ *  a clínica pagou" e "a conversa que a recepção atendeu" é o que viaja dentro
+ *  da mensagem. A tentação é colar tudo:
+ *
+ *      ?gclid=EAIaIQobChMIx...&utm_campaign=implante_search&utm_content=a01
+ *
+ *  Noventa caracteres de ruído que o PACIENTE lê antes da recepção, numa
+ *  conversa sobre saúde. Fica péssimo, parece rastreamento invasivo, e não diz
+ *  nada a quem atende.
+ *
+ *  `Ref.: IMP-G-A01` diz o mesmo para quem precisa saber: implante, Google,
+ *  criativo A01. Cabe num bloco de anotação, dá para ditar no telefone, e não
+ *  carrega identificador de pessoa nenhum.
+ * ============================================================================
+ *
+ * SEM CAMPANHA, SEM LINHA. Quem chega pela busca orgânica ou digitando o
+ * endereço manda exatamente a mesma mensagem de antes — é a maioria das
+ * conversas, e ela não devia mudar por causa de uma minoria paga.
+ */
+function linhaDeReferencia(referencia: string | null | undefined): string {
+  return referencia === null || referencia === undefined || referencia.length === 0
+    ? ""
+    : `\n\nRef.: ${referencia}`;
+}
+
+/**
  * O link de WhatsApp já com a mensagem certa.
  *
  * A origem NÃO entra no texto quando não for natural dizê-la. Colar
  * "origem=rodape" numa mensagem que um paciente vai ler é poluir a conversa
  * dele para resolver um problema nosso — a origem viaja pelo evento de
  * analytics, que é onde ela serve.
+ *
+ * ESTA FUNÇÃO É PURA, E TEM DE CONTINUAR SENDO. Ela é chamada durante o render,
+ * e o render acontece duas vezes: no servidor e na hidratação. Se ela lesse
+ * `sessionStorage` para descobrir a campanha, o servidor produziria um `href`
+ * e o navegador outro — que é erro de hidratação do React, e derruba a árvore
+ * inteira num CTA. Quem busca a referência é `useContatoWhatsApp`, depois de
+ * montar. Ver `components/site/useContatoWhatsApp.ts`.
  */
-export function contatoWhatsApp(intencao: Intencao, assunto?: string): string {
-  return whatsappLink(frase(intencao, assunto));
-}
-
-/* ────────────────────────────────────────────────────────────────────────── */
-
-export type Evento =
-  | "whatsapp_click"
-  | "schedule_click"
-  | "phone_click"
-  | "treatment_view"
-  | "treatment_cta_click"
-  | "map_click"
-  | "review_click"
-  | "form_start"
-  | "form_submit"
-  | "career_view"
-  | "career_apply";
-
-declare global {
-  interface Window {
-    dataLayer?: unknown[];
-    /** O Pixel da Meta, quando e se alguém instalar. Ver `META_POR_EVENTO`. */
-    fbq?: (...args: unknown[]) => void;
-  }
-}
-
-/**
- * De evento nosso para evento padrão da Meta.
- *
- * A Meta só otimiza campanha em cima do vocabulário dela — um evento chamado
- * `whatsapp_click` não entra em otimização de conversão; `Contact`, sim. Por
- * isso a tradução, e não um segundo conjunto de chamadas espalhado pelo código.
- *
- * O que fica de fora fica de propósito: `map_click`, `review_click` e os de
- * carreira são sinal de navegação, não de intenção comercial, e mandá-los como
- * conversão ensinaria o algoritmo a buscar a pessoa errada.
- */
-const META_POR_EVENTO: Partial<Record<Evento, string>> = {
-  whatsapp_click: "Contact",
-  schedule_click: "Lead",
-  phone_click: "Contact",
-  treatment_view: "ViewContent",
-  treatment_cta_click: "Lead",
-  form_submit: "Lead",
-};
-
-/**
- * Registra um evento de conversão.
- *
- * Hoje o site NÃO tem GA4, GTM nem nada equivalente instalado — conferido. Esta
- * função existe para que a instrumentação já esteja no lugar certo quando
- * alguém instalar: basta o GTM aparecer e os eventos começam a chegar, sem
- * caçar cada botão de novo.
- *
- * Até lá ela empurra para `window.dataLayer`, que é o formato que o GTM lê. Sem
- * GTM o array simplesmente não existe e a função não faz nada — nunca lança, e
- * nunca impede o clique de acontecer, que é o que de fato importa numa clínica.
- */
-export function rastrear(evento: Evento, dados: Record<string, string> = {}): void {
-  try {
-    if (typeof window === "undefined") return;
-
-    // GTM / GA4 / Google Ads — o dataLayer é o formato que os três leem.
-    window.dataLayer ??= [];
-    window.dataLayer.push({ event: evento, ...dados });
-
-    // Meta Ads. `fbq` só existe se o Pixel estiver instalado; sem ele, esta
-    // linha não faz nada — nenhum ID é inventado aqui, e a ausência do Pixel
-    // não pode impedir um clique de WhatsApp de acontecer.
-    const meta = META_POR_EVENTO[evento];
-    if (meta && typeof window.fbq === "function") {
-      window.fbq("track", meta, dados);
-    }
-  } catch {
-    // Analytics nunca pode derrubar um CTA. Se falhar, falha calado.
-  }
+export function contatoWhatsApp(
+  intencao: Intencao,
+  assunto?: string,
+  referencia?: string | null,
+): string {
+  return whatsappLink(`${frase(intencao, assunto)}${linhaDeReferencia(referencia)}`);
 }

@@ -107,17 +107,27 @@
   --ink: #172018;
   --primary-ink: #095902;
 
-  /* Duas cores criadas na revisão de contraste. O verde da marca (#7BD51C)
-     mede 1.73:1 sobre o creme da página — reprova até como texto grande, que
-     exige só 3:1. E o texto secundário usava --forest com opacidade de 40% a
-     70%, faixa que ia de 1.87:1 a 3.31:1.
-       --brand-text  5.13:1 no creme, 5.48:1 no branco
+  /* Duas cores criadas na revisão de contraste. O verde vivo da marca mede
+     2.81:1 sobre o creme da página — reprova até como texto grande, que exige
+     só 3:1. E o texto secundário usava --forest com opacidade de 40% a 70%,
+     faixa que ia de 1.87:1 a 3.31:1.
+       --brand-text  8.05:1 no creme, 8.60:1 no branco
        --ink-soft    5.33:1 no creme, 5.69:1 no branco
-     Use --lime como texto só sobre fundo escuro, onde ele mede 8.2:1. */
+     Use --lime como texto só sobre --brand-deep, onde ele mede 4.96:1. Sobre
+     --forest-2 ele cai para 2.87:1 e reprova.
+
+     OS NÚMEROS ACIMA FORAM REMEDIDOS EM 14/09/2026, e mudaram. Este bloco dizia
+     1.73:1, 5.13:1, 5.48:1 e 8.2:1 — contas feitas quando --lime era #7bd51c e
+     --brand-text era #41761c, antes de a paleta passar a ser derivada da folha
+     de marca (10/08/2026). O valor mudou e a prosa não; foi daqui que o README
+     e o DESIGN.md copiaram número errado por um mês. Quem trocar um token
+     remede o parágrafo junto, pintando a cor num canvas e lendo o pixel. */
   /* Verde oficial claro, da folha de marca (RGB 86 168 5). Só preenchimento:
      como texto mede 2.81:1 no creme, e sobre o verde escuro da própria marca
-     fica em 2.87:1. Para texto em fundo escuro continua valendo --lime, que
-     ali dá 4.66:1. */
+     fica em 2.87:1. Para texto em fundo escuro vale --lime sobre --brand-deep,
+     que dá 4.96:1 — e --lime é esta mesma cor, então sobre --forest-2 ele
+     também reprova. O par que funciona é lime + brand-deep, nunca lime +
+     forest-2. */
   --brand-green: #56a805;
 
   /* Superfície das seções escuras. É o verde oficial #095902 escurecido
@@ -138,7 +148,10 @@
   --forest: #095902;
   /* Verde escuro oficial da marca (RGB 9 89 2), da folha entregue pela
      clínica. Era #052d0b, que não vinha de lugar nenhum. Branco em cima mede
-     8.6:1 e o lime como texto, 4.66:1 — passam, com menos folga que antes. */
+     8.60:1 e passa com folga.
+     O LIME COMO TEXTO AQUI, NÃO: mede 2.87:1, porque desde 10/08/2026 --lime é
+     o mesmo #56a805 de --brand-green. Este comentário dizia 4.66:1, conta do
+     tempo do #7bd51c. Texto lime só sobre --brand-deep. */
   --forest-2: #095902;
   --lime: #56a805;
   --mint: #ebf5e1;
@@ -343,11 +356,16 @@
 }
 
 /* Letra branca no botão principal.
-   Sobre o lime (#7BD51C) o branco mede 1.85:1 — ilegível. O fundo precisou
-   escurecer para o verde institucional (#095902), onde o branco dá 6.41:1.
-   A borda lime devolve o destaque que o preenchimento perdeu: sobre o verde
-   escuro das seções ela mede 8.2:1, bem acima dos 3:1 que a WCAG pede para
-   a borda de um componente. */
+   O preenchimento é o verde institucional (#095902), onde o branco mede
+   8.60:1. Foi para lá porque sobre o limão o branco dá 3.00:1 — piso de texto
+   grande, e rótulo de botão não é texto grande.
+   A borda lime devolve o destaque que o preenchimento perdeu: sobre o
+   --brand-deep das seções escuras ela mede 4.96:1, acima dos 3:1 que a WCAG
+   pede para a borda de um componente. Contra o próprio preenchimento do botão
+   ela fica em 2.87:1 — é acento, não o que delimita o botão; quem separa o
+   botão da superfície é a borda contra o fundo da seção.
+   Remedido em 14/09/2026: os números antigos (1.85:1, 6.41:1, 8.2:1) eram do
+   tempo em que --lime era #7bd51c. */
 /* AS TRÊS VARIANTES COMPARTILHAM A MESMA CAIXA, e isso é o ponto.
  *
  * Antes cada uma media diferente: primário 52px no hero e 55px no rodapé, dark
@@ -1359,9 +1377,12 @@ textarea.rh-campo {
   text-transform: uppercase;
   /* Era --brand-text (verde sobre claro). A regra do cliente é dura: fundo
      claro, letra preta — e rótulo de campo é corpo de formulário, não título
-     curto de seção. --ink mede 13:1 no branco contra os 5.13:1 do verde, então
-     a troca sobe o contraste em vez de baixá-lo. É este rótulo que serve TODOS
-     os campos do formulário público e do painel. */
+     curto de seção. --ink mede 16.72:1 no branco contra os 8.60:1 do verde,
+     então a troca sobe o contraste em vez de baixá-lo. É este rótulo que serve
+     TODOS os campos do formulário público e do painel.
+     (Os dois números vinham de 13:1 e 5.13:1, do tempo do --brand-text
+     #41761c; remedidos em 14/09/2026. A conclusão não mudou — o preto continua
+     ganhando do verde —, só a margem.) */
   color: var(--ink);
 }
 

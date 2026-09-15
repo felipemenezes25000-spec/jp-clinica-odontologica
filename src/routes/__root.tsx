@@ -13,6 +13,13 @@ import { Logo } from "@/components/site/Logo";
 import { SITE_URL } from "@/lib/jp";
 import appCss from "../styles.css?url";
 import { RastreioDeContato } from "@/components/site/RastreioDeContato";
+import { AvisoDeCookies } from "@/components/site/AvisoDeCookies";
+import {
+  SCRIPT_CONSENTIMENTO,
+  iframeNoscriptDoGTM,
+  scriptDoGTM,
+  scriptDoPixel,
+} from "@/lib/analytics/scripts";
 
 /**
  * Shared shell for the 404 and error boundaries. Both are dead ends, so they
@@ -162,6 +169,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/site.webmanifest" },
     ],
+
+    /*
+     * A MEDIÇÃO, E A ORDEM DELA — ver `lib/analytics/scripts.ts`.
+     *
+     * Primeiro o Consent Mode com tudo NEGADO, depois os containers. O Google
+     * só respeita o padrão que já estava no `dataLayer` quando o container
+     * subiu; inverter estes dois itens é medir primeiro e perguntar depois.
+     *
+     * Os dois containers saem da lista quando não há ID configurado — e é assim
+     * que este site roda hoje. `.filter(Boolean)` não é economia de linha: é o
+     * que garante que, sem GTM e sem Pixel, NADA é pedido à rede e nada muda no
+     * tempo de carregamento.
+     */
+    scripts: [
+      { children: SCRIPT_CONSENTIMENTO },
+      ...(scriptDoGTM() !== null ? [{ children: scriptDoGTM() as string }] : []),
+      ...(scriptDoPixel() !== null ? [{ children: scriptDoPixel() as string }] : []),
+    ],
   }),
 
   shellComponent: RootShell,
@@ -171,12 +196,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const noscriptGTM = iframeNoscriptDoGTM();
+
   return (
     <html lang="pt-BR">
       <head>
         <HeadContent />
       </head>
       <body>
+        {/* O `<noscript>` do GTM existe por completude do container e registra
+            só a visita: nenhum CTA deste site funciona sem JavaScript, então
+            não há evento a medir por aqui. Sai inteiro quando não há ID. */}
+        {noscriptGTM !== null && (
+          <noscript>
+            <iframe
+              src={noscriptGTM}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        )}
         {children}
         <Scripts />
       </body>
@@ -196,6 +237,10 @@ function RootComponent() {
       <RastreioDeContato />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      {/* Depois do <Outlet />: a faixa é a última coisa da árvore, e a última na
+          ordem de leitura de quem usa leitor de tela. Ela não bloqueia nada —
+          o WhatsApp funciona com ela na tela, aceita ou recusada. */}
+      <AvisoDeCookies />
     </QueryClientProvider>
   );
 }

@@ -2,14 +2,17 @@
  * A PÁGINA DE UM TRATAMENTO — o corpo, sem rota.
  *
  * Estava dentro de `routes/tratamentos/$slug.tsx` e lia o slug de
- * `Route.useParams()`, o que a prendia àquela URL. Hoje duas rotas a usam: a
- * orgânica (`/tratamentos/<slug>`) e as sete de anúncio (`/implante-dentario` e
+ * `Route.useParams()`, o que a prendia àquela URL. Hoje nove rotas a usam: a
+ * orgânica (`/tratamentos/<slug>`) e as OITO de anúncio (`/implante-dentario` e
  * companhia), que precisam da MESMA página sob uma URL que combine com o termo
  * pesquisado.
  *
- * A extração é o que evita o pior desfecho possível aqui: sete cópias de 400
+ * A extração é o que evita o pior desfecho possível aqui: oito cópias de 500
  * linhas que começam iguais e envelhecem diferente. Uma correção de conteúdo
- * tem de valer para as oito URLs de uma vez.
+ * tem de valer para as **16 URLs** — 8 orgânicas e 8 pagas — de uma vez.
+ *
+ * (Este cabeçalho dizia "sete" desde o primeiro dia, e o commit que criou as
+ * LPs também. Eram oito: a harmonização entrou junto e ficou fora da conta.)
  */
 import {
   ArrowLeft,
@@ -60,7 +63,7 @@ import videoProtese from "@/assets/video-protese.mp4?url";
 import posterProtese from "@/assets/video-protese-poster.webp";
 import { CLINICA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { GoogleRating } from "@/components/site/GoogleRating";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
 /**
  * Animações explicativas, por slug.
@@ -125,9 +128,39 @@ const VISUALS = [
   consultorioReal2Img,
 ];
 
-export function PaginaDeTratamento({ slug }: { slug: string }) {
+/**
+ * ORGÂNICO OU ANÚNCIO — a mesma página, duas intenções de leitura.
+ *
+ * `organico` é quem chegou pela busca e pode estar comparando tratamentos: para
+ * essa pessoa, "Outros caminhos de cuidado" no fim é serviço.
+ *
+ * `anuncio` é quem clicou num anúncio de implante que a clínica pagou. Oferecer
+ * ortodontia a ela é pagar por um clique de implante e mandar a pessoa embora
+ * para outro assunto — o vazamento mais caro que uma LP pode ter.
+ *
+ * O QUE O MODO **NÃO** MUDA, e a lista é a parte importante: marca, cabeçalho,
+ * rodapé, CRO da responsável técnica, endereço, prova social, política de
+ * privacidade, acessibilidade e todo o conteúdo do tratamento. Nada que sirva à
+ * confiança ou à conformidade com o CFO sai por causa de conversão.
+ */
+export type ModoDaPagina = "organico" | "anuncio";
+
+export function PaginaDeTratamento({
+  slug,
+  modo = "organico",
+}: {
+  slug: string;
+  modo?: ModoDaPagina;
+}) {
   const index = TRATAMENTOS.findIndex((item) => item.slug === slug);
   const treatment = TRATAMENTOS[index];
+
+  /*
+   * O HOOK VEM ANTES DO `return` DE PÁGINA INEXISTENTE, e não por estilo: a
+   * regra dos hooks proíbe chamada condicional, e um `useContatoWhatsApp` depois
+   * do early return quebraria a ordem entre um render e o seguinte.
+   */
+  const wa = useContatoWhatsApp("agendar", treatment?.titulo);
 
   if (!treatment) {
     return (
@@ -155,8 +188,11 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
       ? consultorioImplantes1Img
       : VISUALS[Math.max(index, 0) % VISUALS.length];
   const video = treatment ? VIDEOS[treatment.slug] : undefined;
-  const wa = contatoWhatsApp("agendar", treatment.titulo);
-  const others = TRATAMENTOS.filter((item) => item.slug !== treatment.slug).slice(0, 3);
+  // No modo anúncio a lista sai vazia, e a seção inteira deixa de ser montada.
+  const others =
+    modo === "anuncio"
+      ? []
+      : TRATAMENTOS.filter((item) => item.slug !== treatment.slug).slice(0, 3);
 
   return (
     <div className="min-h-dvh bg-cream">
@@ -401,12 +437,19 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
             `bg-brand-deep/45` o mesmo branco mede 5,93:1 e passa como texto
             corrido. Sobre o limão puro, o branco dá 3,00:1, que serve ao título
             (texto grande) mas não a texto pequeno — por isso nada de corpo fica
-            direto no fundo da seção. */}
+            direto no fundo da seção.
+
+            O RÓTULO ABAIXO ERA A EXCEÇÃO QUE NINGUÉM TINHA VISTO. `.eyebrow` é
+            12px, e 12px em branco sobre o limão são os mesmos 3,00:1 — que
+            bastam para o título de 67px logo abaixo e não bastam para ele. O
+            texto pequeno daqui é `--brand-deep`, que mede 4,96:1 sobre o mesmo
+            fundo. A regra inteira da seção, em uma frase: sobre o limão puro, só
+            texto grande fica branco. */}
         <section className="jp-section section-transition process-stage relative overflow-hidden bg-lime text-white">
           <div className="process-orbit" aria-hidden="true" />
           <div className="jp-container relative">
             <Reveal className="max-w-5xl">
-              <span className="eyebrow text-white">Do primeiro contato ao acompanhamento</span>
+              <span className="eyebrow text-brand-deep">Do primeiro contato ao acompanhamento</span>
               <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.78] tracking-[-.075em]">
                 Um processo. Quatro momentos.
               </h2>
@@ -490,49 +533,60 @@ export function PaginaDeTratamento({ slug }: { slug: string }) {
           </div>
         </section>
 
-        <section className="jp-section bg-cream ">
-          <div className="jp-container">
-            <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-              <div>
-                <span className="eyebrow text-primary-ink">Continue explorando</span>
-                <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.84] tracking-[-.065em] text-forest-2">
-                  Outros caminhos de cuidado.
-                </h2>
+        {/* O CROSS-SELL SÓ EXISTE NA ORGÂNICA.
+            Numa LP paga, "Outros caminhos de cuidado" e o botão "Ver todos" são
+            duas saídas grandes, no fim da página, para quem acabou de ler sobre
+            o procedimento que a clínica pagou para mostrar. Quem chegou por
+            busca orgânica pode estar comparando e ganha com a lista; quem chegou
+            por anúncio de implante já disse o que queria. */}
+        {others.length > 0 && (
+          <section className="jp-section bg-cream ">
+            <div className="jp-container">
+              <Reveal className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+                <div>
+                  <span className="eyebrow text-primary-ink">Continue explorando</span>
+                  <h2 className="mt-5 font-display text-[clamp(2.4rem,4.6vw,4.2rem)] font-extrabold leading-[.84] tracking-[-.065em] text-forest-2">
+                    Outros caminhos de cuidado.
+                  </h2>
+                </div>
+                <a href="/#tratamentos" className="button-dark shrink-0">
+                  Ver todos <ArrowUpRight className="h-4 w-4" />
+                </a>
+              </Reveal>
+              <div className="mt-10 grid gap-4 md:grid-cols-3">
+                {others.map((item, i) => (
+                  <Reveal key={item.slug} delay={i * 70}>
+                    <a
+                      href={`/tratamentos/${item.slug}`}
+                      className="group block min-h-[270px] rounded-3xl border border-forest/10 bg-white p-6 transition-all duration-500 hover:-translate-y-2 hover:border-lime hover:shadow-lift sm:p-7"
+                    >
+                      <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-forest-2">
+                        <Sparkles className="h-5 w-5" />
+                      </span>
+                      <p className="mt-14 text-micro font-black uppercase tracking-[.16em] text-brand-text">
+                        {item.kicker}
+                      </p>
+                      <h3 className="mt-3 font-display text-3xl font-black leading-[.9] text-forest-2">
+                        {item.titulo}
+                      </h3>
+                      <span className="mt-6 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.08em] text-brand-text">
+                        Abrir história{" "}
+                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                      </span>
+                    </a>
+                  </Reveal>
+                ))}
               </div>
-              <a href="/#tratamentos" className="button-dark shrink-0">
-                Ver todos <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </Reveal>
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
-              {others.map((item, i) => (
-                <Reveal key={item.slug} delay={i * 70}>
-                  <a
-                    href={`/tratamentos/${item.slug}`}
-                    className="group block min-h-[270px] rounded-3xl border border-forest/10 bg-white p-6 transition-all duration-500 hover:-translate-y-2 hover:border-lime hover:shadow-lift sm:p-7"
-                  >
-                    <span className="grid h-11 w-11 place-items-center rounded-full bg-mint text-forest-2">
-                      <Sparkles className="h-5 w-5" />
-                    </span>
-                    <p className="mt-14 text-micro font-black uppercase tracking-[.16em] text-brand-text">
-                      {item.kicker}
-                    </p>
-                    <h3 className="mt-3 font-display text-3xl font-black leading-[.9] text-forest-2">
-                      {item.titulo}
-                    </h3>
-                    <span className="mt-6 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.08em] text-brand-text">
-                      Abrir história{" "}
-                      <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
-                    </span>
-                  </a>
-                </Reveal>
-              ))}
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <Footer />
-      <FloatingCTA />
+      {/* O CTA que acompanha a rolagem fala do MESMO tratamento que a página.
+          Sem isto, a barra flutuante da página de implante abria o WhatsApp com
+          a mensagem genérica do site — e é ela que a pessoa usa depois de ler. */}
+      <FloatingCTA assunto={treatment.titulo} />
     </div>
   );
 }

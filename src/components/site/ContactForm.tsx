@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { useReferenciaDeCampanha } from "@/components/site/useContatoWhatsApp";
 
 const PERIODOS = ["Manhã", "Tarde", "Qualquer horário"];
 const CONTATOS = ["WhatsApp", "Telefone"];
@@ -69,6 +70,11 @@ export function ContactForm() {
   const [periodo, setPeriodo] = useState("Qualquer horário");
   const [obs, setObs] = useState("");
 
+  /* A campanha entra na mensagem do formulário pelo mesmo motivo que entra na
+     dos CTAs: sem CRC operacional, é a única ponte entre o anúncio pago e a
+     conversa que a recepção atende. `null` quando a visita é orgânica. */
+  const referencia = useReferenciaDeCampanha();
+
   const mensagem = useMemo(() => {
     const linhas = [
       `Olá! Meu nome é ${nome || "[nome]"}. Vim pelo site da JP Clínica Integrada Odontológica.`,
@@ -77,9 +83,23 @@ export function ContactForm() {
       `Melhor período para mim: ${periodo}.`,
     ];
     if (obs.trim()) linhas.push(`Mensagem: ${obs.trim()}`);
-    return linhas.join("\n");
-  }, [nome, contato, assunto, periodo, obs]);
+    const corpo = linhas.join("\n");
+    return referencia === null ? corpo : `${corpo}\n\nRef.: ${referencia}`;
+  }, [nome, contato, assunto, periodo, obs, referencia]);
 
+  /**
+   * O CRC NÃO É CONDIÇÃO PARA O PACIENTE FALAR COM A CLÍNICA.
+   *
+   * `registrarLead` já era disparado sem `await` e com toda falha engolida — a
+   * intenção estava certa desde o começo. O que faltava era dizer isto por
+   * escrito, porque é a propriedade que a campanha paga depende: com o CRC
+   * desligado, sem banco ou com o endpoint fora, esta função continua abrindo o
+   * WhatsApp. O `window.open` não está atrás de nenhum `await`, de nenhum
+   * `then` e de nenhum `catch`.
+   *
+   * O E2E de tráfego pago roda contra um servidor SEM CRC nenhum configurado,
+   * justamente para que isso pare de ser promessa e vire regressão vermelha.
+   */
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!nome.trim() || !telefone.trim()) return;

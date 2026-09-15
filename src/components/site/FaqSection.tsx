@@ -3,7 +3,7 @@ import { ChevronRight, Heart, MessageCircleQuestion, Minus, Plus, ShieldCheck } 
 
 import { FAQ } from "@/lib/jp";
 import { IconDente } from "@/components/site/TreatmentIcons";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
 function Diferencial({ icon, title }: { icon: React.ReactNode; title: React.ReactNode }) {
   return (
@@ -39,7 +39,7 @@ export function FaqSection() {
   const [aberto, setAberto] = useState<number | null>(null);
   const idBase = useId();
 
-  const wa = contatoWhatsApp("duvida");
+  const wa = useContatoWhatsApp("duvida");
 
   return (
     <section

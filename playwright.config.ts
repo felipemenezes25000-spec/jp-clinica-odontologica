@@ -36,6 +36,18 @@ export const BASE_URL = `http://127.0.0.1:${String(PORTA)}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  /*
+   * O E2E DO SITE PÚBLICO FICA DE FORA DAQUI, e não por organização.
+   *
+   * `globalSetup` abaixo instala uma organização num Postgres de teste e
+   * recusa rodar sem ele. Os testes de `e2e/publico` provam o contrário:
+   * que o funil de tráfego pago funciona SEM banco e SEM CRC. Deixá-los
+   * neste `testDir` faria o requisito central da campanha depender de um
+   * container de Postgres para ser verificado.
+   *
+   * Eles rodam por `npm run e2e:site`, com `playwright.publico.config.ts`.
+   */
+  testIgnore: ["publico/**"],
   globalSetup: "./e2e/apoio/instalar.ts",
 
   /*

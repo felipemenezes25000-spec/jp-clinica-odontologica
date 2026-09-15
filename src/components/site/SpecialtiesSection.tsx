@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 
 import { TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { TreatmentIcon } from "@/components/site/TreatmentIcons";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
 /**
  * Foto de cada card, por slug.
@@ -94,7 +94,11 @@ function CardEspecialidade({
           aria-label={`Saiba mais sobre ${titulo}`}
         >
           Saiba mais
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#56A805] text-brand-text transition-all duration-300 group-hover/link:border-lime group-hover/link:bg-lime group-hover/link:text-forest-2">
+          {/* Em repouso a seta é `--brand-text` sobre claro; no hover o fundo
+              vira limão e ela passa a `--brand-deep` (4,96:1). Era
+              `--forest-2`, que sobre o limão dá 2,87:1 — abaixo dos 3:1 que a
+              WCAG pede para um elemento gráfico. */}
+          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#56A805] text-brand-text transition-all duration-300 group-hover/link:border-lime group-hover/link:bg-lime group-hover/link:text-brand-deep">
             <ArrowRight
               size={13}
               aria-hidden="true"
@@ -113,6 +117,8 @@ function CardEspecialidade({
 }
 
 export function SpecialtiesSection() {
+  const waOrientacao = useContatoWhatsApp("orientacao");
+
   return (
     <section id="tratamentos" className="jp-section relative overflow-hidden bg-paper">
       <div
@@ -172,7 +178,7 @@ export function SpecialtiesSection() {
             </p>
 
             <a
-              href={contatoWhatsApp("orientacao")}
+              href={waOrientacao}
               target="_blank"
               rel="noopener noreferrer"
               className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-lime bg-forest py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(9,89,2,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#0C7503] hover:shadow-[0_18px_40px_rgba(86,168,5,.32)]"

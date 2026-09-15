@@ -14,10 +14,23 @@ import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
 import { CLINICA, SITE_URL } from "@/lib/jp";
+import { descricaoLocal } from "@/lib/seo";
 
+/*
+ * A descrição passa pelo `seo.ts` — ela tinha 164 caracteres, e o Google corta
+ * perto de 155. `descricaoLocal` junta só as frases que cabem inteiras, então o
+ * corte nunca cai no meio de uma palavra.
+ *
+ * O título fica escrito à mão, e aqui é deliberado: "Política de Privacidade" é
+ * o termo que a pessoa procura, e `tituloLocal` acrescentaria "na Freguesia do
+ * Ó" — que faz sentido para um procedimento e nenhum para um documento legal.
+ * Ele mede 59 caracteres, dentro do limite.
+ */
 const TITULO = `Política de Privacidade | ${CLINICA.nome}`;
-const DESCRICAO =
-  "Entenda quais dados a JP Clínica Integrada Odontológica coleta pelo site, para que são usados, por quanto tempo são mantidos e como exercer seus direitos pela LGPD.";
+const DESCRICAO = descricaoLocal(
+  "Quais dados a JP Clínica Integrada Odontológica recebe pelo site, para que são usados e por quanto tempo.",
+  "Saiba como exercer seus direitos pela LGPD.",
+);
 const ATUALIZADA_EM = "8 de setembro de 2026";
 
 type BlocoProps = {
@@ -166,6 +179,34 @@ function PoliticaDePrivacidade() {
                   No portal de carreiras, são tratados os dados informados na candidatura e os dados
                   constantes do currículo anexado, juntamente com o registro do consentimento
                   apresentado no próprio formulário.
+                </p>
+              </Bloco>
+
+              <Bloco numero="02-B" titulo="Cookies e medição de campanhas">
+                <p>
+                  O site usa cookies e tecnologias semelhantes para medir o desempenho das
+                  divulgações da clínica. Eles <strong>não são necessários</strong> para navegar,
+                  ver os tratamentos, ligar para a clínica ou iniciar uma conversa no WhatsApp —
+                  tudo isso funciona igual com a medição ligada ou desligada.
+                </p>
+                <p>
+                  Na primeira visita, um aviso pergunta se você aceita. Até a resposta, os sinais de
+                  publicidade e de análise ficam <strong>desativados por padrão</strong> (Google
+                  Consent Mode). Se você recusar, eles permanecem desativados. A sua escolha fica
+                  guardada no seu próprio navegador.
+                </p>
+                <p>
+                  Para rever a decisão a qualquer momento, use o link{" "}
+                  <strong>“Rever consentimento de cookies”</strong> no rodapé de qualquer página —
+                  ele apaga a escolha guardada e o aviso volta a perguntar.
+                </p>
+                <p>
+                  Independentemente de cookies, quando o endereço acessado já contém parâmetros de
+                  campanha (UTM, <em>gclid</em>, <em>fbclid</em> e equivalentes), o site registra
+                  esses parâmetros durante a sessão para saber qual divulgação trouxe o contato. São
+                  identificadores de campanha, não de pessoa: nome, telefone, e-mail e qualquer
+                  conteúdo que você escreva <strong>não entram</strong> nesse registro nem são
+                  enviados às ferramentas de análise ou de anúncios.
                 </p>
               </Bloco>
 

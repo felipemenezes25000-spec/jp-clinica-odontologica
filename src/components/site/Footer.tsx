@@ -1,9 +1,24 @@
+import { useLocation } from "@tanstack/react-router";
 import { ArrowUpRight, Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, HISTORIA, NAV_RODAPE, RESPONSAVEL_TECNICA, whatsappLink } from "@/lib/jp";
-import { contatoWhatsApp } from "@/lib/contato";
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { BotaoRevisarConsentimento } from "@/components/site/AvisoDeCookies";
+import { tituloDaRota } from "@/lib/analytics/rotas";
 
 export function Footer() {
+  /*
+   * Um link só para os dois CTAs do rodapé — eram duas chamadas idênticas, e
+   * duas chamadas idênticas são duas chances de uma delas ficar para trás.
+   *
+   * E ele fala do tratamento da página, como o do topo. O rodapé é o fim da
+   * leitura: quem chega até aqui numa LP de implante leu a página inteira, e é
+   * o contato mais qualificado que ela produz. Era justamente esse que abria o
+   * WhatsApp dizendo "Vim pelo site da JP" — sem dizer de quê.
+   */
+  const location = useLocation();
+  const assunto = tituloDaRota(location.pathname) ?? undefined;
+  const waAgendar = useContatoWhatsApp("agendar", assunto);
   return (
     <footer className="section-deep text-white">
       {/* O respiro extra embaixo só faz sentido no celular, onde a barra fixa
@@ -37,7 +52,7 @@ export function Footer() {
             </p>
 
             <a
-              href={contatoWhatsApp("agendar")}
+              href={waAgendar}
               target="_blank"
               rel="noopener noreferrer"
               className="button-primary mt-8"
@@ -97,7 +112,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href={contatoWhatsApp("agendar")}
+                  href={waAgendar}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="alvo-toque flex items-center gap-3 transition-colors hover:text-lime"
@@ -119,13 +134,17 @@ export function Footer() {
               </li>
             </ul>
 
+            {/* No hover o fundo vira limão, e o ícone tem de acompanhar: como
+                desenho, ele precisa de 3:1 contra o próprio fundo (WCAG 1.4.11).
+                `--forest-2` ali dá 2,87:1 — reprova por pouco, que é como esse
+                defeito sobrevive. `--brand-deep` dá 4,96:1. */}
             <div className="mt-7 flex gap-2">
               <a
                 href={CLINICA.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram da JP Clínica"
-                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
+                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-brand-deep"
               >
                 <Instagram className="h-4.5 w-4.5" />
               </a>
@@ -134,7 +153,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook da JP Clínica"
-                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-forest-2"
+                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-brand-deep"
               >
                 <Facebook className="h-4.5 w-4.5" />
               </a>
@@ -167,6 +186,14 @@ export function Footer() {
               >
                 Política de Privacidade
               </a>
+              <span aria-hidden="true" className="hidden text-white/35 sm:inline">
+                •
+              </span>
+              {/* A LGPD pede que revogar seja tão fácil quanto consentir, e um
+                  aviso que nunca mais aparece transforma uma decisão de dois
+                  segundos em definitiva. O botão some sozinho para quem ainda
+                  não escolheu — nesse caso a faixa já está na tela. */}
+              <BotaoRevisarConsentimento className="alvo-toque font-semibold text-white underline decoration-white/25 underline-offset-2 transition hover:text-lime" />
               <span aria-hidden="true" className="hidden text-white/35 sm:inline">
                 •
               </span>

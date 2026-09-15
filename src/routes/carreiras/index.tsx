@@ -36,15 +36,36 @@ import { SkipLink } from "@/components/site/SkipLink";
 import { CartaoVaga } from "@/components/rh/CartaoVaga";
 
 import { CLINICA, HISTORIA, MISSAO, SITE_URL, whatsappLink } from "@/lib/jp";
+import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { listarVagasPublicas } from "@/lib/rh/api-portal";
 import { apenasDigitos } from "@/lib/rh/formatar";
 import { AREAS, TURNOS, VINCULOS } from "@/lib/rh/opcoes";
 import type { AreaVaga, Vinculo } from "@/lib/rh/tipos";
 import { ordenarVagas } from "@/lib/rh/vagas";
 
-const TITULO = "Trabalhe na JP — vagas na JP Clínica Integrada Odontológica, Freguesia do Ó";
-const DESCRICAO =
-  "Vagas abertas na JP Clínica Integrada Odontológica, na Vila Bruna, região da Freguesia do Ó, em São Paulo. Veja as oportunidades para dentistas, ASB/TSB, recepção e administrativo, ou cadastre seu currículo no banco de talentos.";
+/*
+ * TÍTULO E DESCRIÇÃO PASSAM PELO `seo.ts`, como as 17 rotas de paciente.
+ *
+ * Esta página escrevia os dois à mão e estourava os dois limites: **75**
+ * caracteres de título (o Google corta perto de 60) e **228** de descrição (ele
+ * corta perto de 155) — medido no HTML servido em 14/09/2026. O corte caía
+ * dentro do nome da clínica, e o fim da descrição era texto que ninguém leu.
+ *
+ * `tituloLocal` põe o assunto na frente e encolhe a marca até caber;
+ * `descricaoLocal` junta só as frases que cabem INTEIRAS, nunca cortando no meio
+ * de uma. Era o defeito que `seo.ts` existe para não deixar acontecer, e esta
+ * rota tinha ficado de fora dele.
+ */
+/* "Vagas de emprego", e não "Trabalhe na JP": o assunto entra ANTES da região,
+   e "Trabalhe na JP na Freguesia do Ó" repetia a preposição. Além de ler
+   melhor, começa pelo termo que quem procura emprego digita — a mesma lógica
+   que põe "implante dentário" na frente nas páginas de paciente. */
+const TITULO = tituloLocal("Vagas de emprego");
+const DESCRICAO = descricaoLocal(
+  "Vagas abertas na clínica para dentistas, ASB/TSB, recepção e administrativo.",
+  "Cadastre seu currículo no banco de talentos.",
+  FECHO_LOCAL,
+);
 const URL_PAGINA = `${SITE_URL}/carreiras`;
 
 export const Route = createFileRoute("/carreiras/")({
@@ -195,9 +216,11 @@ function PaginaCarreiras() {
             <Reveal>
               {/* REGRA DE CONTRASTE DA CLÍNICA: em fundo verde, letra branca —
                   sem exceção. Este eyebrow era `text-lime`, que sobre o verde
-                  escuro do `.section-deep` fica em 4,66:1 e some no celular sob
-                  luz do sol. O lime segue vivo nos elementos que NÃO são letra
-                  (o halo, a borda, o ✓ dos chips). */}
+                  escuro do `.section-deep` fica em 4,96:1 e some no celular sob
+                  luz do sol. Passa na WCAG e some na calçada, que é o motivo de
+                  a regra da clínica ser mais dura que a norma. O lime segue vivo
+                  nos elementos que NÃO são letra (o halo, a borda, o ✓ dos
+                  chips). */}
               <span className="eyebrow text-white">Trabalhe na JP</span>
               <h1 className="mt-6 max-w-4xl font-display text-[clamp(2.9rem,7.5vw,6.4rem)] font-extrabold leading-[.9] tracking-[-.055em]">
                 {config.tituloPortal}

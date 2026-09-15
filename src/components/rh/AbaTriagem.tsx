@@ -197,7 +197,19 @@ function sinaisDeDestaque(sinais: Sinal[]): Sinal[] {
 /* Peças de leitura                                                           */
 /* -------------------------------------------------------------------------- */
 
-/** Estrelas em superfície escura: aqui o preenchimento pode ser lime (8,2:1). */
+/**
+ * Estrelas em superfície escura.
+ *
+ * O preenchimento pode ser lime porque estrela é DESENHO, e desenho pede 3:1
+ * (WCAG 1.4.11), não os 4,5:1 de texto. Sobre o `--brand-deep` do painel o lime
+ * mede 4,96:1; dentro do cartão `bg-lime/10`, 4,27:1; e no hover dele, a
+ * `bg-lime/20`, 3,62:1 — o pior caso, ainda acima do piso.
+ *
+ * Remedido em 14/09/2026: este comentário dizia 8,2:1, conta de quando --lime
+ * era #7bd51c. O número caiu pela metade e a conclusão continua valendo, mas a
+ * folga não é mais a que o "8,2" sugeria — qualquer fundo mais claro que o
+ * hover atual derruba a estrela abaixo de 3:1.
+ */
 function EstrelasEscuras(props: { valor: number }) {
   return (
     <span

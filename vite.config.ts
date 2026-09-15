@@ -66,6 +66,34 @@ export default defineConfig({
     postcss: {},
   },
 
+  /*
+   * OS IDs DE MEDIÇÃO VIRAM LITERAL NOS DOIS BUNDLES — e este `define` existe
+   * porque, sem ele, eles viravam literal só num.
+   *
+   * MEDIDO em 15/09/2026, com o build servido: `import.meta.env.VITE_GTM_ID`
+   * era substituído no pacote do NAVEGADOR e sobrevivia como leitura de runtime
+   * no de SSR, onde `import.meta.env` não tem as variáveis. O efeito é o pior
+   * possível para medição:
+   *
+   *   o HTML SERVIDO saía sem o script do GTM (o servidor achava que não havia
+   *   ID configurado);
+   *
+   *   o cliente, que tinha o literal, queria renderizar o script — divergindo
+   *   do `<head>` servido e jogando o container para depois da hidratação.
+   *
+   * O Consent Mode depende da ORDEM: os padrões negados têm de estar no
+   * `dataLayer` antes de o container subir. Um GTM que entra depois da
+   * hidratação perde essa garantia e perde a visita inteira de quem sai rápido.
+   *
+   * São identificadores PÚBLICOS — um container de GTM e um Pixel aparecem no
+   * código-fonte de qualquer site que os use. Nenhum segredo entra aqui, e
+   * `scripts/conferir-bundle.mjs` reprova o build se algum tentar.
+   */
+  define: {
+    "import.meta.env.VITE_GTM_ID": JSON.stringify(process.env["VITE_GTM_ID"] ?? ""),
+    "import.meta.env.VITE_META_PIXEL_ID": JSON.stringify(process.env["VITE_META_PIXEL_ID"] ?? ""),
+  },
+
   // Plugin order matters: Tailwind must be registered before TanStack Start
   // generates the route tree, and React comes last so it transforms the output
   // of everything above it. Path aliases are resolved natively by Vite 8.

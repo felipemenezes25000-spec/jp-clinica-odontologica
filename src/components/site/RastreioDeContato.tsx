@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 import { useLocation } from "@tanstack/react-router";
 
-import { rastrear } from "@/lib/contato";
+import { registrarEntrada } from "@/lib/analytics/atribuicao";
+import { decidirEventoDeClique, rastrear } from "@/lib/analytics/eventos";
+import { tratamentoDaRota } from "@/lib/analytics/rotas";
 
 /**
- * Registra os cliques que valem conversão — num lugar só.
+ * Registra o que vale medir — num lugar só.
  *
  * A alternativa era pendurar `onClick` em cada botão. São catorze links de
  * WhatsApp só na home, mais telefone, mapa e avaliações, espalhados por sete
@@ -16,20 +18,42 @@ import { rastrear } from "@/lib/contato";
  * qualquer handler chame `stopPropagation`. Sem isso, um botão que interrompe a
  * propagação some silenciosamente do relatório — e é justamente o botão com
  * comportamento próprio que costuma ser o mais importante de medir.
+ *
+ * A DECISÃO DE QUAL EVENTO NÃO MORA MAIS AQUI. Ela é uma função pura em
+ * `@/lib/analytics/eventos.ts`, que devolve no máximo UM evento por clique.
+ * Enquanto ela morava neste componente, o mesmo clique caía em três `if`
+ * seguidos e virava três conversões — ver o cabeçalho daquele arquivo. Agora o
+ * componente faz o que um componente deve fazer: ouvir, perguntar e despachar.
  */
 export function RastreioDeContato() {
   const location = useLocation();
 
-  // Views precisam acompanhar navegação SPA também. Ler `window.location` só
-  // no primeiro mount perderia toda troca de rota feita sem recarregar a página.
+  /*
+   * A ATRIBUIÇÃO É REGISTRADA ANTES DE QUALQUER EVENTO, e a ordem importa.
+   *
+   * `registrarEntrada` guarda a campanha da primeira entrada da sessão. Se um
+   * `generate_lead` disparasse antes disso — pessoa que clica no CTA do hero em
+   * dois segundos —, ele iria sem `utm_campaign` e sem `gclid`, e a conversão
+   * mais rápida do funil seria justamente a que chega órfã no relatório.
+   */
+  useEffect(() => {
+    registrarEntrada(window.location.href);
+  }, []);
+
+  /*
+   * As views acompanham navegação SPA também. Ler `window.location` só no
+   * primeiro mount perderia toda troca de rota feita sem recarregar a página.
+   */
   useEffect(() => {
     const pagina = location.pathname;
 
-    if (pagina.startsWith("/tratamentos/")) {
-      rastrear("treatment_view", {
-        pagina,
-        tratamento: pagina.split("/").filter(Boolean).pop() ?? "",
-      });
+    // `tratamentoDaRota` reconhece as DUAS famílias de URL — `/tratamentos/x` e
+    // as oito de anúncio. Era aqui que a LP paga sumia do funil: o teste antigo
+    // era `pathname.startsWith("/tratamentos/")`, e `/implante-dentario` não
+    // começa com isso.
+    const tratamento = tratamentoDaRota(pagina);
+    if (tratamento !== null) {
+      rastrear("treatment_view", { pagina, treatment: tratamento });
     }
 
     if (pagina === "/carreiras" || pagina.startsWith("/carreiras/")) {
@@ -50,80 +74,35 @@ export function RastreioDeContato() {
       formulario: form.id || form.getAttribute("name") || form.getAttribute("action") || "form",
     });
 
+    /** De que seção partiu: o `id` da seção ancestral mais próxima é o mesmo
+     *  nome que o menu usa, então o relatório fala a língua do site. */
+    const origemDoLink = (link: Element): string => {
+      let n: Element | null = link;
+      while (n && n !== document.body) {
+        if (n.tagName === "FOOTER") return "rodape";
+        if (n.tagName === "HEADER") return "topo";
+        if (n.id) return n.id;
+        n = n.parentElement;
+      }
+      return "outro";
+    };
+
     const aoClicar = (e: MouseEvent) => {
       const alvo = e.target;
       if (!(alvo instanceof Element)) return;
       const link = alvo.closest("a");
       if (!link) return;
 
-      const href = link.getAttribute("href") ?? "";
-      // De que seção partiu: o id da seção ancestral mais próxima é o mesmo
-      // nome que o menu usa, então o relatório fala a língua do site.
-      let origem = "outro";
-      let n: Element | null = link;
-      while (n && n !== document.body) {
-        if (n.tagName === "FOOTER") {
-          origem = "rodape";
-          break;
-        }
-        if (n.tagName === "HEADER") {
-          origem = "topo";
-          break;
-        }
-        if (n.id) {
-          origem = n.id;
-          break;
-        }
-        n = n.parentElement;
-      }
+      const planejado = decidirEventoDeClique({
+        href: link.getAttribute("href") ?? "",
+        rotulo: (link.textContent ?? "").trim().replace(/\s+/gu, " ").slice(0, 60),
+        origem: origemDoLink(link),
+        pathname: window.location.pathname,
+      });
 
-      const rotulo = (link.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 60);
-      const pagina = window.location.pathname;
-      const comum = { origem, rotulo, pagina };
-
-      if (href.includes("wa.me")) {
-        rastrear("whatsapp_click", comum);
-        // "Agendar" é o CTA primário, e separá-lo do WhatsApp genérico é o que
-        // permite responder "quantas pessoas pediram avaliação?" em vez de
-        // "quantas clicaram em algum botão verde?".
-        //
-        // A intenção é lida da MENSAGEM, não do rótulo visível: o cartão que
-        // mostra o número tem "(11) 97616-5117" escrito nele e mesmo assim abre
-        // o WhatsApp pedindo avaliação. Pelo rótulo, esse clique sumia da conta
-        // de agendamentos; pela mensagem, ele conta -- e é o que de fato houve.
-        const mensagem = decodeURIComponent(href.split("text=")[1] ?? "");
-        if (/agendar uma avalia/i.test(mensagem)) rastrear("schedule_click", comum);
-        if (pagina.startsWith("/tratamentos/")) {
-          rastrear("treatment_cta_click", { ...comum, tratamento: pagina.split("/").pop() ?? "" });
-        }
-        return;
-      }
-
-      if (href.startsWith("tel:")) return rastrear("phone_click", comum);
-
-      if (href.includes("google.com/maps")) {
-        // O selo de avaliações também aponta para o Google Maps. Diferenciar
-        // pelo conteúdo evita contar clique em "192 avaliações" como pedido de rota.
-        if (/avalia|★|estrela/i.test(rotulo)) return rastrear("review_click", comum);
-        return rastrear("map_click", comum);
-      }
-
-      if (href.includes("google.com/search") || href.includes("g.page")) {
-        return rastrear("review_click", comum);
-      }
-
-      try {
-        const destino = new URL(link.href, window.location.href);
-        if (destino.pathname === "/trabalhe-conosco") {
-          rastrear("career_apply", {
-            ...comum,
-            etapa: "cta",
-            vaga: destino.searchParams.get("vaga") ?? "",
-          });
-        }
-      } catch {
-        // Link relativo inválido não deve interferir na navegação.
-      }
+      // UM evento, ou nenhum. Não existe segundo `rastrear` neste caminho, e é
+      // essa ausência que impede a conversão de ser contada duas vezes.
+      if (planejado !== null) rastrear(planejado.evento, planejado.dados);
     };
 
     const aoIniciarFormulario = (e: FocusEvent) => {
@@ -136,17 +115,35 @@ export function RastreioDeContato() {
       rastrear("form_start", dadosDoFormulario(form));
     };
 
+    /*
+     * O FORMULÁRIO É O ÚNICO LUGAR COM DOIS EVENTOS, e eles têm pesos
+     * diferentes: `form_submit` é leitura de funil e não vira nada na Meta;
+     * `generate_lead` é a conversão. Quem enviou o formulário pediu contato
+     * tanto quanto quem clicou no CTA de WhatsApp — se só o primeiro contasse,
+     * o Google otimizaria contra metade dos leads da clínica.
+     */
     const aoEnviarFormulario = (e: SubmitEvent) => {
       const form = e.target;
       if (!(form instanceof HTMLFormElement)) return;
 
       const dados = dadosDoFormulario(form);
+      const tratamento = tratamentoDaRota(window.location.pathname);
+
       rastrear("form_submit", dados);
 
       if (window.location.pathname === "/trabalhe-conosco") {
+        // Candidatura NÃO é lead comercial. Mandá-la como conversão ensinaria o
+        // algoritmo a buscar candidato, não paciente — e a clínica pagaria por isso.
         const vaga = new URLSearchParams(window.location.search).get("vaga") ?? "";
         rastrear("career_apply", { ...dados, etapa: "submit", vaga });
+        return;
       }
+
+      rastrear("generate_lead", {
+        ...dados,
+        channel: "formulario",
+        ...(tratamento !== null ? { treatment: tratamento } : {}),
+      });
     };
 
     document.addEventListener("click", aoClicar, { capture: true });

@@ -27,7 +27,7 @@ const SLUG = "restauracoes";
 const CANONICO = `${SITE_URL}/tratamentos/restauracoes`;
 
 export const Route = createFileRoute("/restauracao-dentaria")({
-  component: () => <PaginaDeTratamento slug={SLUG} />,
+  component: () => <PaginaDeTratamento slug={SLUG} modo="anuncio" />,
   loader: () => {
     const t = TRATAMENTOS.find((x) => x.slug === SLUG);
     return { titulo: t?.titulo ?? "" };
