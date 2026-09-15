@@ -1,0 +1,53 @@
+# O QUE NÃO PRECISA SUBIR NO DEPLOY.
+#
+# POR QUE ESTE ARQUIVO EXISTE
+# O `vercel deploy` NÃO lê o `.gitignore`. A lista de ignorados embutida no CLI
+# tem 26 entradas — `.git`, `node_modules`, `.vercel`, `.next`, `.env.local` e
+# pouco mais — e o `.gitignore` aparece nela como ARQUIVO ignorado, não como
+# lista a obedecer. Tudo o que estiver no disco fora dessas 26 entradas é
+# empacotado e enviado, inclusive o que o git esconde.
+#
+# Medido em 15/09/2026, com o mesmo pacote `ignore` que o CLI usa e as mesmas
+# regras: 524,1 MB em 2117 arquivos antes deste arquivo, 80,0 MB em 1238 depois.
+
+# O KIT DE INSTAGRAM.
+#
+# `social/` é material de marketing, gerado por
+# `social/instagram/source/scripts/` e consumido fora do site: 260 PNG, 34 MP4,
+# as legendas e as cópias de entrega. Nada em `src/` nem em `public/` referencia
+# esses caminhos, e o Vite não os enxerga — eles nunca chegam ao `dist`, só ao
+# upload.
+#
+# São 340 MB, e 152 MB deles são `ENTREGA/` e `ENTREGA.zip`: as cópias que o
+# `.gitignore` já descarta com nome próprio, e que o CLI da Vercel vinha
+# enviando assim mesmo, justamente por não ler aquele arquivo.
+social
+
+# O SUB-PROJETO DO TOUR — a FONTE, nunca a BUILD.
+#
+# CUIDADO AO MEXER AQUI. A rota `/crc-institucional` é um `<iframe>` para
+# `/crc-tour/index.html`. Quem serve isso é `public/crc-tour/` — 18 arquivos
+# RASTREADOS pelo git de propósito, dentro de `public/`, que este arquivo não
+# toca e que continuam subindo. Conferido: o `index.html` commitado aponta para
+# os dois assets commitados, e não há arquivo solto na pasta.
+#
+# `apresentacao/` só existe para GERAR aquela pasta, com `npm run tour:build`,
+# na máquina de quem edita o tour. A Vercel nunca roda esse script:
+#
+#   o Build Command do projeto é o padrão `npm run build` (conferido em
+#   `vercel project inspect`), e `build` é `vite build` — não encadeia
+#   `tour:build`;
+#
+#   nem poderia: `apresentacao/node_modules` cai na lista embutida do CLI, e
+#   nenhum `postinstall` instala o sub-projeto. Um build que tentasse construir
+#   o tour já estaria falhando hoje.
+#
+# São 104 MB, e 103 deles são saída de ferramenta — toda ela fora do git e toda
+# ela regenerável: 79 MB de `out/` (os renders MP4/PNG do Remotion), 13 MB de
+# `public/` (os originais que a build já copiou para `public/crc-tour/`) e 11 MB
+# de `dist/`. Sobram ~600 KB de `src/`, que ninguém executa em produção.
+#
+# SE UM DIA o build da Vercel passar a construir o tour, ou `public/crc-tour/`
+# deixar de ir commitado, ESTA LINHA TEM DE SAIR. O sintoma de esquecer seria um
+# iframe vazio em produção, com o build passando limpo.
+apresentacao
