@@ -438,6 +438,8 @@ export function EditorVaga(props: {
                     erro={erros["area"] ?? ""}
                     aoMudar={(v) => {
                       const escolhida = v as AreaVaga;
+                      // Só estas duas áreas perguntam especialidade.
+                      const pedeEspecialidade = escolhida === "dentista" || escolhida === "outro";
                       setForm((atual) => ({
                         ...atual,
                         area: escolhida,
@@ -445,6 +447,12 @@ export function EditorVaga(props: {
                         // ele voltaria sozinho se alguém reabrisse o select
                         // nessa opção meses depois, com o texto de outra vaga.
                         areaOutra: escolhida === "outro" ? atual.areaOutra : "",
+                        // E o mesmo vale para a lista: sem isto, marcar
+                        // "Ortodontia" e depois trocar a vaga para recepção
+                        // publica "Especialidades envolvidas: Ortodontia" numa
+                        // página onde o campo nem aparece mais para ser
+                        // corrigido — o RH não tem como saber que está lá.
+                        especialidades: pedeEspecialidade ? atual.especialidades : [],
                       }));
                     }}
                   />
@@ -491,8 +499,19 @@ export function EditorVaga(props: {
                   />
                 ) : null}
 
-                {/* Especialidade só faz sentido para cadeira: pedir isso numa vaga
-                    de recepção confunde quem preenche e quem lê o anúncio. */}
+                {/* Numa vaga de recepção, perguntar especialidade confunde quem
+                    preenche e quem lê o anúncio — por isso o campo só existe em
+                    duas áreas, e em formatos diferentes.
+
+                    Na cadeira, a lista fechada do CFO: são termos que o
+                    candidato procura com a grafia exata, e digitar "ortodontía"
+                    no anúncio custa a busca inteira.
+
+                    Em "Outra área", a mesma lista não serve para nada — nenhuma
+                    vaga de marketing pede endodontia. Como a área ali é digitada
+                    (ver `areaOutra`), a especialidade também é: "Tráfego pago",
+                    "Suporte", "Fisioterapia". Sai no mesmo bloco
+                    "Especialidades envolvidas" da página da vaga. */}
                 {form.area === "dentista" ? (
                   <SeletorChips
                     campo="vaga-especialidades"
@@ -503,6 +522,16 @@ export function EditorVaga(props: {
                     opcional
                     ajuda="Aparecem na página da vaga como o perfil que a clínica procura."
                     aoAlternar={alternarEspecialidade}
+                  />
+                ) : form.area === "outro" ? (
+                  <ListaEditavel
+                    rotulo="Especialidades desejadas"
+                    ajuda="Opcional. Aparecem na página da vaga como o perfil que a clínica procura."
+                    placeholder="Ex.: Tráfego pago"
+                    itens={form.especialidades}
+                    sugestoes={[]}
+                    rotuloSugestoes=""
+                    aoMudar={(itens) => trocar("especialidades", itens)}
                   />
                 ) : null}
 
