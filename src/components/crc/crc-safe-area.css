@@ -1,0 +1,166 @@
+/*
+ * JP CRC — área segura, calha de scrollbar e contenção de scroll.
+ *
+ * ==========================================================================
+ *  AS TRÊS REGRAS DURAS QUE FALTAVAM.
+ *
+ *  As demais já estavam cumpridas quando esta folha nasceu: a unidade antiga de
+ *  altura de viewport não existe em lugar nenhum (só `100dvh`) — e esta frase
+ *  evita escrevê-la de propósito, porque a proibição é conferida por `grep` e um
+ *  comentário que cita o proibido faz a conferência acusar a si mesma.
+ *  `min-width: 0` / `min-height: 0` já estão
+ *  espalhados pelos pais de contêiner com scroll. O que faltava era isto:
+ *
+ *    safe-area-inset      — ZERO ocorrências no projeto inteiro. Num iPhone
+ *                           com notch, a marca do CRC ficava embaixo do
+ *                           entalhe; com a barra de gestos, o último item da
+ *                           navegação ficava debaixo dela.
+ *
+ *    scrollbar-gutter     — uma única ocorrência. Onde falta, o conteúdo PULA
+ *                           lateralmente no instante em que a barra aparece.
+ *
+ *    overscroll-behavior  — existia na lista de conversas e nas tabelas, e
+ *                           faltava onde mais incomoda: a barra lateral. Rolar
+ *                           até o fim do menu passava a rolar a página atrás.
+ * ==========================================================================
+ *
+ *  POR QUE UMA FOLHA NOVA, E NÃO LINHAS ESPALHADAS.
+ *
+ *  Porque as três são uma preocupação só — "o app respeita as bordas físicas e
+ *  não deixa o scroll vazar" — e porque espalhá-las condenaria a próxima pessoa
+ *  a descobrir, um `grep` por vez, em quais dos nove arquivos a regra vale.
+ *
+ *  Ela entra por `crc-shell-harmony.css`, como as `crc-responsive*`, para
+ *  continuar EAGER. Estilo global pendurado em tela preguiçosa já colocou esta
+ *  interface no ar sem CSS uma vez.
+ */
+
+/* -------------------------------------------------------------------------- */
+/* 1. Área segura — notch, cantos arredondados e barra de gestos              */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * O `env()` devolve 0 em qualquer aparelho sem entalhe, então isto é inerte no
+ * desktop — não custa um pixel a quem não precisa. O segundo argumento existe
+ * porque navegador antigo sem suporte a `env()` descarta a declaração inteira,
+ * e aí o padding somiria em vez de virar zero.
+ */
+.crc-app {
+  --crc-safe-t: env(safe-area-inset-top, 0px);
+  --crc-safe-r: env(safe-area-inset-right, 0px);
+  --crc-safe-b: env(safe-area-inset-bottom, 0px);
+  --crc-safe-l: env(safe-area-inset-left, 0px);
+}
+
+/*
+ * A lateral encosta na borda ESQUERDA e no topo. Em paisagem, o notch fica na
+ * lateral — e é exatamente aí que ela mora.
+ *
+ * `padding` somado ao que a folha do shell já aplica, via `calc`, para não
+ * reescrever o valor original e perder a harmonia de espaçamento.
+ */
+.crc-app.crc-app .crc-lateral {
+  padding-top: calc(18px + var(--crc-safe-t));
+  padding-left: calc(12px + var(--crc-safe-l));
+  padding-bottom: calc(14px + var(--crc-safe-b));
+}
+
+/*
+ * O conteúdo encosta na borda DIREITA e embaixo.
+ */
+.crc-app.crc-app .crc-conteudo {
+  padding-right: calc(var(--crc-espaco-conteudo, 24px) + var(--crc-safe-r));
+  padding-bottom: calc(var(--crc-espaco-conteudo, 24px) + var(--crc-safe-b));
+}
+
+/*
+ * Abaixo de 1025px a lateral vira faixa horizontal no topo: aí ela precisa do
+ * inset de cima e dos DOIS laterais, e deixa de precisar do de baixo.
+ */
+@media (max-width: 1024px) {
+  .crc-app.crc-app .crc-lateral {
+    padding-top: calc(12px + var(--crc-safe-t));
+    padding-right: calc(12px + var(--crc-safe-r));
+    padding-bottom: 12px;
+  }
+
+  .crc-app.crc-app .crc-conteudo {
+    padding-left: calc(var(--crc-espaco-conteudo, 16px) + var(--crc-safe-l));
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* 2. Calha de scrollbar — o conteúdo não pula quando a barra aparece         */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * `stable` reserva o espaço SEMPRE, exista barra ou não. É o ponto: a largura
+ * útil não muda entre uma lista curta e uma longa, então nada se desloca no
+ * instante em que o conteúdo cresce.
+ *
+ * Só em contêiner que rola de verdade. Aplicar em tudo reservaria uma calha em
+ * caixas que nunca rolam, e aí o desperdício seria constante em vez de nenhum.
+ */
+.crc-app.crc-app .crc-lateral,
+.crc-app.crc-app .crc-conteudo,
+.crc-app.crc-app .crc-inbox-lista .crc-painel-corpo,
+.crc-app.crc-app .crc-inbox-conversa .crc-painel-corpo,
+.crc-app.crc-app .crc-inbox-contexto .crc-painel-corpo,
+.crc-app.crc-app .crc-funil-coluna-corpo-v2 {
+  scrollbar-gutter: stable;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 3. Contenção de scroll — a rolagem não vaza para o pai                     */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Sem isto, chegar ao fim do menu lateral e continuar rolando passa a rolar a
+ * PÁGINA atrás dele — o conteúdo se mexe enquanto o usuário está olhando para
+ * a navegação. É o defeito nº 3 do critério de aceite ("scroll com o cursor
+ * sobre a sidebar não altera o layout do conteúdo").
+ *
+ * `contain` e não `none`: `none` também mata o gesto de puxar-para-atualizar e
+ * a navegação por gesto lateral do próprio sistema. Queremos parar o vazamento,
+ * não sequestrar o aparelho.
+ *
+ * A lista de conversas e as tabelas já tinham a regra; aqui ficam a lateral e
+ * as colunas do funil, que rolam por dentro e não tinham.
+ */
+.crc-app.crc-app .crc-lateral,
+.crc-app.crc-app .crc-funil-coluna-corpo-v2 {
+  overscroll-behavior: contain;
+}
+
+/* -------------------------------------------------------------------------- */
+/* 4. Bloco "Detalhes técnicos"                                               */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Onde a informação de infraestrutura passou a morar depois de sair do texto
+ * que a recepção lê. Fechado por padrão, e discreto: quem precisa dele sabe que
+ * ele existe; quem não precisa não devia nem reparar.
+ */
+.crc-app.crc-app .crc-detalhe-tecnico {
+  margin-top: var(--crc-e2, 6px);
+}
+
+.crc-app.crc-app .crc-detalhe-tecnico > summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--crc-texto-fraco, #6a7a72);
+  /* O marcador nativo some em Safari sem isto, e o bloco vira texto morto. */
+  display: list-item;
+}
+
+.crc-app.crc-app .crc-detalhe-tecnico > summary:focus-visible {
+  outline: 2px solid var(--crc-foco, #2f7d4f);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.crc-app.crc-app .crc-detalhe-tecnico > .crc-meta {
+  display: block;
+  margin-top: var(--crc-e1, 4px);
+  overflow-wrap: anywhere;
+}

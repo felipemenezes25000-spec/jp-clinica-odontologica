@@ -1,6 +1,7 @@
 @import "./crc-responsive.css";
 @import "./crc-responsive-layouts.css";
 @import "./crc-responsive-mobile-nav.css";
+@import "./crc-safe-area.css";
 
 /*
  * JP CRC — harmonia do shell com as telas v2.

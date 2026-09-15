@@ -275,14 +275,14 @@ function Vitrine(): ReactElement {
   return (
     <div
       className="crc-app"
-      style={{ display: "grid", gridTemplateColumns: "230px 1fr", minHeight: "100vh" }}
+      style={{ display: "grid", gridTemplateColumns: "230px 1fr", minHeight: "100dvh" }}
     >
       <nav
         style={{
           borderRight: "1px solid var(--border-soft, #e0e5dd)",
           padding: "1rem",
           overflowY: "auto",
-          maxHeight: "100vh",
+          maxHeight: "100dvh",
         }}
       >
         <strong style={{ display: "block", marginBottom: "0.75rem", fontSize: "0.9rem" }}>
@@ -328,7 +328,7 @@ function Vitrine(): ReactElement {
       </nav>
 
       <main
-        style={{ padding: "1.5rem", overflow: "auto", maxHeight: "100vh" }}
+        style={{ padding: "1.5rem", overflow: "auto", maxHeight: "100dvh" }}
         data-vitrine-alvo={atual}
       >
         {!pronta ? (
