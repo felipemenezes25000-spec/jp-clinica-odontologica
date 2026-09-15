@@ -33,3 +33,12 @@ public/crc-tour
 # Mesmo principio de `apresentacao` e `public/crc-tour`: o que nao e nosso, nao
 # formatamos.
 .agents/skills
+
+# ARTEFATOS DO PLAYWRIGHT.
+#
+# Estao no .gitignore e nunca chegam ao repositorio, mas `prettier --write .`
+# le o disco: depois de um `npm run e2e`, ele reescrevia o visualizador de
+# trace — JavaScript minificado de terceiros — so para o proximo `eslint .`
+# reclamar dele. Ver o comentario gemeo em `eslint.config.js`.
+playwright-report
+test-results

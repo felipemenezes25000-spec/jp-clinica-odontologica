@@ -52,6 +52,26 @@ export default tseslint.config(
       ".data",
       "apresentacao",
       "public/crc-tour",
+
+      /*
+       * OS ARTEFATOS DO PLAYWRIGHT — e a ausência deles aqui QUEBRAVA o portão.
+       *
+       * As duas pastas estão no `.gitignore`, então nunca chegam ao repositório
+       * — e foi por isso que ninguém notou. Mas o `eslint .` do `npm run check`
+       * lê o disco, não o índice do git: depois da primeira execução de
+       * `npm run e2e` ou `npm run e2e:site`, ele passava a analisar o visualizador
+       * de trace do Playwright, que é JavaScript minificado de terceiros.
+       *
+       * O resultado era `npm run check` VERMELHO na máquina de quem tinha
+       * rodado E2E e VERDE em quem não tinha, com um erro apontando para a
+       * coluna 101 de um bundle que ninguém escreveu. O CI não via nada disso
+       * porque lista os caminhos explicitamente (`eslint src vite.config.ts …`).
+       *
+       * Mesmo princípio de `apresentacao` e `public/crc-tour`: o que não é
+       * nosso, não lintamos.
+       */
+      "playwright-report",
+      "test-results",
     ],
   },
   {

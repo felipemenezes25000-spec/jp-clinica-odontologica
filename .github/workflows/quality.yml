@@ -29,8 +29,21 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
+      # `npm run lint` (= `eslint .`), e NAO uma lista de caminhos.
+      #
+      # A lista explicita escondeu um defeito por meses: o portao local
+      # (`npm run check`) roda `eslint .`, que le o DISCO — inclusive
+      # `playwright-report/` e `test-results/`, que o .gitignore esconde do git
+      # mas nao do sistema de arquivos. Quem rodava E2E via o portao vermelho
+      # com um erro na coluna 101 de um bundle minificado de terceiros; quem nao
+      # rodava via verde. O CI, lendo so `src`, nunca reproduzia nenhum dos dois.
+      #
+      # Agora CI e portao local executam o MESMO comando, e as duas pastas estao
+      # nos ignores do ESLint. Uma divergencia entre o que o CI roda e o que a
+      # pessoa roda antes de commitar e uma classe inteira de "na minha maquina
+      # funciona" — nos dois sentidos.
       - name: Lint
-        run: npx eslint src vite.config.ts eslint.config.js
+        run: npm run lint
 
       - name: Typecheck
         run: npm run typecheck
