@@ -21,11 +21,39 @@ import { useCallback, useEffect, useState } from "react";
 
 import { carregarRecepcao, type RecepcaoUI } from "@/lib/crc/api";
 
-import { Aviso, Cartao, Kpi, ListaEsqueleto, Vazio } from "./base";
+import { Aviso, Botao, Cartao, Kpi, ListaEsqueleto, Vazio } from "./base";
+
+/**
+ * ============================================================================
+ *  ESTE `catch` ERA `} catch {` — SEM LIGAR O ERRO A NADA.
+ *
+ *  A tela falhava em produção com "Não conseguimos ler os números do
+ *  atendimento agora", e a causa real era descartada ali mesmo: nada no
+ *  console, nada em telemetria, nada para correlacionar com o log do servidor.
+ *  Quem fosse investigar tinha a mesma informação que a recepcionista — ou
+ *  seja, nenhuma.
+ *
+ *  Agora: a causa vai para o console, a tela mostra um id de correlação, e há
+ *  um botão de tentar de novo que realmente refaz a chamada. O id é gerado no
+ *  cliente porque o erro pode acontecer ANTES de existir resposta do servidor
+ *  — que é justamente o caso em que não há id vindo de lá.
+ * ============================================================================
+ */
+type Falha = { mensagem: string; correlacao: string; tecnico: string };
+
+function idDeCorrelacao(): string {
+  try {
+    return crypto.randomUUID().slice(0, 8);
+  } catch {
+    // `randomUUID` exige contexto seguro. Sem ele, um id fraco ainda serve:
+    // ele só precisa casar a tela com a linha do console.
+    return Math.random().toString(36).slice(2, 10);
+  }
+}
 
 export function Recepcao() {
   const [dados, setDados] = useState<RecepcaoUI | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState<Falha | null>(null);
 
   const recarregar = useCallback(async (): Promise<void> => {
     try {
@@ -34,10 +62,23 @@ export function Recepcao() {
         setDados(r.recepcao);
         setErro(null);
       } else {
-        setErro(r.message);
+        const correlacao = idDeCorrelacao();
+        console.error(
+          `[crc:recepcao ${correlacao}] a chamada respondeu, mas não com ok`,
+          r.message,
+        );
+        setErro({ mensagem: r.message, correlacao, tecnico: r.message });
       }
-    } catch {
-      setErro("Não conseguimos ler os números do atendimento agora.");
+    } catch (causa) {
+      const correlacao = idDeCorrelacao();
+      // O `console.error` É O CONSERTO. Sem ele esta linha era um buraco.
+      console.error(`[crc:recepcao ${correlacao}] falhou ao carregar`, causa);
+      setErro({
+        mensagem:
+          "Não conseguimos ler os números do atendimento agora. Tente de novo; se continuar, avise o responsável técnico com o código abaixo.",
+        correlacao,
+        tecnico: causa instanceof Error ? `${causa.name}: ${causa.message}` : String(causa),
+      });
     }
   }, []);
 
@@ -45,7 +86,19 @@ export function Recepcao() {
     void recarregar();
   }, [recarregar]);
 
-  if (erro !== null && dados === null) return <Aviso tom="perigo">{erro}</Aviso>;
+  if (erro !== null && dados === null) {
+    return (
+      <Aviso tom="perigo" detalheTecnico={`${erro.tecnico} · correlação ${erro.correlacao}`}>
+        <p style={{ margin: 0 }}>{erro.mensagem}</p>
+        <div className="crc-linha" style={{ marginTop: "var(--crc-e3)", gap: "var(--crc-e3)" }}>
+          <Botao variante="discreto" onClick={() => void recarregar()}>
+            Tentar de novo
+          </Botao>
+          <small className="crc-meta">código {erro.correlacao}</small>
+        </div>
+      </Aviso>
+    );
+  }
   if (dados === null) return <ListaEsqueleto linhas={5} />;
 
   const semNada = dados.chamadas === 0 && dados.semResposta === 0 && dados.leadsParados === 0;
