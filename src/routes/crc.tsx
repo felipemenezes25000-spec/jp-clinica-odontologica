@@ -4,16 +4,8 @@
  * O shell concentra sessão, navegação e orientação de contexto. As regras de
  * negócio continuam nos módulos de `src/lib/crc` e nas telas específicas.
  */
-import { createFileRoute } from "@tanstack/react-router";
-import {
-  Suspense,
-  lazy,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type ComponentType,
-} from "react";
+import { Link, Outlet, createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart3,
   BookOpenText,
@@ -85,9 +77,9 @@ import { Logo } from "@/components/site/Logo";
  *  ==========================================================================
  * ============================================================================
  */
-import { Home } from "@/components/crc/Home";
-import { PrimeirosPassos } from "@/components/crc/PrimeirosPassos";
 import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
+import { ProvedorDoCrc } from "@/components/crc/contexto-crc";
+import { abaDoCaminho, caminhoDaAba, type Aba } from "@/components/crc/rotas";
 import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
 /*
  * ============================================================================
@@ -128,65 +120,6 @@ import "@/components/crc/crc-qa.css";
 import "@/components/crc/crc-shell-harmony.css";
 
 /**
- * `React.lazy` com export nomeado.
- *
- * O `lazy` só aceita um módulo cujo `default` seja o componente, e nenhuma tela
- * do CRC tem export default — o estilo da casa é nomear. Este ajudante faz a
- * ponte num lugar só, em vez de trinta `.then(m => ({ default: m.X }))`
- * espalhados, cada um uma chance de trocar o nome e descobrir em produção.
- */
-function tela<M extends Record<string, unknown>, N extends keyof M & string>(
-  carregar: () => Promise<M>,
-  nome: N,
-): M[N] {
-  /*
-   * A CONVERSÃO DE TIPO É DELIBERADA, E ESTREITA.
-   *
-   * `lazy` devolve `LazyExoticComponent<T>`, que o JSX aceita mas cujos tipos
-   * de prop o TypeScript relaxa. Devolver `M[N]` — o tipo do componente
-   * ORIGINAL — mantém a conferência de props exata em cada uso: passar
-   * `patientId` para uma tela que não o recebe continua sendo erro de
-   * compilação.
-   *
-   * `Pacientes` é o caso que obrigou esta forma: o módulo exporta dois
-   * componentes com props diferentes, e qualquer assinatura que amarrasse os
-   * dois ao mesmo tipo de prop quebra num dos dois.
-   */
-  return lazy(() =>
-    carregar().then((m) => ({ default: m[nome] as ComponentType<Record<string, unknown>> })),
-  ) as unknown as M[N];
-}
-
-const Agenda = tela(() => import("@/components/crc/Agenda"), "Agenda");
-const Automacoes = tela(() => import("@/components/crc/Automacoes"), "Automacoes");
-const Autonomia = tela(() => import("@/components/crc/Autonomia"), "Autonomia");
-const Avaliacao = tela(() => import("@/components/crc/Avaliacao"), "Avaliacao");
-const Campanhas = tela(() => import("@/components/crc/Campanhas"), "Campanhas");
-const Configuracoes = tela(() => import("@/components/crc/Configuracoes"), "Configuracoes");
-const Conhecimento = tela(() => import("@/components/crc/Conhecimento"), "Conhecimento");
-const Encaixes = tela(() => import("@/components/crc/Encaixes"), "Encaixes");
-const Equipe = tela(() => import("@/components/crc/Equipe"), "Equipe");
-const Estudio = tela(() => import("@/components/crc/Estudio"), "Estudio");
-const Ferramentas = tela(() => import("@/components/crc/Ferramentas"), "Ferramentas");
-const Funil = tela(() => import("@/components/crc/Funil"), "Funil");
-const Gestao = tela(() => import("@/components/crc/Gestao"), "Gestao");
-const Importar = tela(() => import("@/components/crc/Importar"), "Importar");
-const Inbox = tela(() => import("@/components/crc/Inbox"), "Inbox");
-const Integracoes = tela(() => import("@/components/crc/Integracoes"), "Integracoes");
-const Inteligencia = tela(() => import("@/components/crc/Inteligencia"), "Inteligencia");
-const Metas = tela(() => import("@/components/crc/Metas"), "Metas");
-const MeuTrabalho = tela(() => import("@/components/crc/MeuTrabalho"), "MeuTrabalho");
-const ModelosECusto = tela(() => import("@/components/crc/ModelosECusto"), "ModelosECusto");
-const Playground = tela(() => import("@/components/crc/Playground"), "Playground");
-const ProximasAcoes = tela(() => import("@/components/crc/ProximasAcoes"), "ProximasAcoes");
-const Radar = tela(() => import("@/components/crc/Radar"), "Radar");
-const Recepcao = tela(() => import("@/components/crc/Recepcao"), "Recepcao");
-const Saude = tela(() => import("@/components/crc/Saude"), "Saude");
-const Tratamentos = tela(() => import("@/components/crc/Tratamentos"), "Tratamentos");
-const BuscaPacientes = tela(() => import("@/components/crc/Pacientes"), "BuscaPacientes");
-const CentralDoPaciente = tela(() => import("@/components/crc/Pacientes"), "CentralDoPaciente");
-
-/**
  * As telas que a recepção abre logo depois da Home.
  *
  * PRÉ-CARREGADAS NA OCIOSIDADE, e não no carregamento: a diferença é que
@@ -214,6 +147,37 @@ import type { Permissao } from "@/lib/crc/dominio/rbac";
 
 export const Route = createFileRoute("/crc")({
   component: PortalCrc,
+  /*
+   * ==========================================================================
+   *  O QUE MERECE ESTAR NA URL.
+   *
+   *  `paciente` e `conversa` eram `useState` dentro do shell. A consequência
+   *  aparecia todo dia: quem abria a ficha de um paciente e recarregava a
+   *  página voltava para a busca; quem queria mandar "olha esse caso aqui" para
+   *  um colega não tinha link para mandar; e "voltar" saía do CRC em vez de
+   *  fechar a ficha.
+   *
+   *  Ficam no LAYOUT, e não em cada tela, porque as duas atravessam telas: a
+   *  ficha do paciente é aberta a partir da fila, da agenda, do funil e das
+   *  conversas.
+   *
+   *  A validação devolve a chave AUSENTE quando o valor não presta, em vez de
+   *  `undefined` — com `exactOptionalPropertyTypes` as duas coisas são
+   *  diferentes, e a segunda não compila.
+   * ==========================================================================
+   */
+  validateSearch: (busca: Record<string, unknown>): { paciente?: string; conversa?: string } => {
+    const texto = (v: unknown): string | null =>
+      typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
+
+    const paciente = texto(busca["paciente"]);
+    const conversa = texto(busca["conversa"]);
+
+    return {
+      ...(paciente !== null ? { paciente } : {}),
+      ...(conversa !== null ? { conversa } : {}),
+    };
+  },
   head: () => ({
     meta: [
       { title: "JP CRC — Central de Relacionamento" },
@@ -230,36 +194,6 @@ export const Route = createFileRoute("/crc")({
     ],
   }),
 });
-
-type Aba =
-  | "home"
-  | "radar"
-  | "encaixes"
-  | "tratamentos"
-  | "recepcao"
-  | "trabalho"
-  | "inbox"
-  | "agenda"
-  | "funil"
-  | "pacientes"
-  | "gestao"
-  | "metas"
-  | "autonomia"
-  | "importar"
-  | "automacoes"
-  | "campanhas"
-  | "inteligencia"
-  | "conhecimento"
-  | "modelos"
-  | "avaliacao"
-  | "estudio"
-  | "playground"
-  | "ferramentas"
-  | "proximas"
-  | "saude"
-  | "integracoes"
-  | "configuracoes"
-  | "equipe";
 
 type ItemNav = {
   aba: Aba;
@@ -1690,8 +1624,37 @@ function GuiaDaTela({
 }
 
 function PortalCrc() {
+  const navegar = useNavigate();
+  const { pathname } = useLocation();
+  const busca = Route.useSearch();
   const [sessao, setSessao] = useState<EstadoSessao | null>(null);
-  const [aba, setAba] = useState<Aba>("home");
+
+  /*
+   * ==========================================================================
+   *  A TELA ATUAL VEM DA URL — antes era `useState<Aba>("home")`.
+   *
+   *  Com o estado em memória, recarregar a página devolvia a pessoa para a
+   *  Home, "voltar" saía do aplicativo, e nenhuma tela tinha endereço para
+   *  mandar a um colega. O item do menu era um `<button>`: Ctrl+clique não
+   *  abria aba nova porque não existia link para abrir.
+   *
+   *  Agora o caminho é a fonte, e o shell só LÊ. Quem quiser trocar de tela
+   *  navega — e o navegador cuida do histórico, do F5 e do meio-clique de graça.
+   * ==========================================================================
+   */
+  const aba = abaDoCaminho(pathname);
+
+  /** Leva para uma tela. `home` é a raiz `/crc`, as outras são `/crc/<nome>`. */
+  const irPara = useCallback(
+    (destino: Aba): void => {
+      if (destino === "home") {
+        void navegar({ to: "/crc" });
+        return;
+      }
+      void navegar({ to: "/crc/$tela", params: { tela: destino } });
+    },
+    [navegar],
+  );
   /*
     Ler o localStorage já no inicializador é seguro AQUI porque este componente
     nunca chega ao HTML do servidor: enquanto a sessão não carrega, a tela é
@@ -1722,8 +1685,12 @@ function PortalCrc() {
 
   useSecoesRecolhiveis(conteudoEl, aba);
 
-  const [conversaAberta, setConversaAberta] = useState<string | null>(null);
-  const [pacienteAberto, setPacienteAberto] = useState<string | null>(null);
+  /*
+   * Os dois saíram de `useState` e foram para a barra de endereço. O shell
+   * ainda precisa saber se há uma ficha aberta — é o que decide se o guia
+   * aparece — mas quem guarda a informação agora é a URL.
+   */
+  const pacienteAberto = busca.paciente ?? null;
 
   const carregarSessao = useCallback(async (): Promise<void> => {
     try {
@@ -1817,10 +1784,16 @@ function PortalCrc() {
     };
   }, [sessao?.autenticado]);
 
-  const abrirPaciente = useCallback((patientId: string) => {
-    setPacienteAberto(patientId);
-    setAba("pacientes");
-  }, []);
+  const abrirPaciente = useCallback(
+    (patientId: string): void => {
+      void navegar({
+        to: "/crc/$tela",
+        params: { tela: "pacientes" },
+        search: { paciente: patientId },
+      });
+    },
+    [navegar],
+  );
 
   if (sessao === null) {
     return (
@@ -1882,8 +1855,7 @@ function PortalCrc() {
     rotulo: `Ir para ${n.rotulo}`,
     dica: "Navegação",
     executar: () => {
-      setAba(n.aba);
-      if (n.aba !== "pacientes") setPacienteAberto(null);
+      irPara(n.aba);
     },
   }));
 
@@ -1895,245 +1867,286 @@ function PortalCrc() {
     .join("");
 
   return (
-    <div className="crc-app">
-      <Paleta
-        acoes={acoesDaPaleta}
-        aoAbrirPaciente={abrirPaciente}
-        aoAbrirConversa={(conversationId) => {
-          setConversaAberta(conversationId);
-          setAba("inbox");
-          setPacienteAberto(null);
-        }}
-      />
+    /*
+     * O PROVEDOR ENVOLVE O SHELL INTEIRO, e não só o `<Outlet />`.
+     *
+     * A paleta de comandos também precisa do usuário e de `abrirPaciente`, e
+     * ela vive fora do `<main>`. Envolver só a área de conteúdo obrigaria a
+     * passar as mesmas coisas por prop para a paleta — ou seja, manteria de pé
+     * metade do encanamento que o contexto veio desmontar.
+     */
+    <ProvedorDoCrc valor={{ usuario, abrirPaciente }}>
+      <div className="crc-app">
+        <Paleta
+          acoes={acoesDaPaleta}
+          aoAbrirPaciente={abrirPaciente}
+          aoAbrirConversa={(conversationId) => {
+            void navegar({
+              to: "/crc/$tela",
+              params: { tela: "inbox" },
+              search: { conversa: conversationId },
+            });
+          }}
+        />
 
-      <div className="crc-shell">
-        <nav className="crc-lateral" aria-label="Seções do CRC">
-          <div className="crc-marca">
-            {/*
+        <div className="crc-shell">
+          <nav className="crc-lateral" aria-label="Seções do CRC">
+            <div className="crc-marca">
+              {/*
               `fundo` nomeia a SUPERFÍCIE, não a arte. O menu é verde escuro,
               então a marca certa é a de fundo escuro — branca, com a folha em
               #56A805. Enquanto pedia "claro", a única forma de ela aparecer era
               o adesivo branco atrás, que é o que ficava estranho.
               O login continua "claro": lá o cartão é branco de verdade.
             */}
-            <Logo
-              variante="lockup"
-              fundo="escuro"
-              altura={44}
-              alt="JP Clínica Integrada Odontológica"
-            />
-            <span className="crc-modulo">CRC</span>
-          </div>
+              <Logo
+                variante="lockup"
+                fundo="escuro"
+                altura={44}
+                alt="JP Clínica Integrada Odontológica"
+              />
+              <span className="crc-modulo">CRC</span>
+            </div>
 
-          {gruposPermitidos.map((grupo) => {
-            /*
+            {gruposPermitidos.map((grupo) => {
+              /*
               A seção que contém a tela aberta nunca aparece fechada. Sem isso,
               recolher "Operação" e depois chegar em Conversas pelo Ctrl+K
               deixaria o menu inteiro sem nenhuma marca de onde a pessoa está.
             */
-            const temAtual = grupo.itens.some((n) => n.aba === abaAtual);
-            const fechado = gruposFechados.includes(grupo.id) && !temAtual;
-            const idLista = `crc-grupo-${grupo.id}`;
+              const temAtual = grupo.itens.some((n) => n.aba === abaAtual);
+              const fechado = gruposFechados.includes(grupo.id) && !temAtual;
+              const idLista = `crc-grupo-${grupo.id}`;
 
-            return (
-              <div key={grupo.id} className="crc-nav-grupo" data-fechado={fechado ? "sim" : "nao"}>
-                <button
-                  type="button"
-                  className="crc-nav-rotulo"
-                  aria-expanded={!fechado}
-                  aria-controls={idLista}
-                  onClick={() => {
-                    alternarGrupo(grupo.id);
-                  }}
+              return (
+                <div
+                  key={grupo.id}
+                  className="crc-nav-grupo"
+                  data-fechado={fechado ? "sim" : "nao"}
                 >
-                  <span>{grupo.rotulo}</span>
-                  <ChevronDown aria-hidden="true" />
-                </button>
+                  <button
+                    type="button"
+                    className="crc-nav-rotulo"
+                    aria-expanded={!fechado}
+                    aria-controls={idLista}
+                    onClick={() => {
+                      alternarGrupo(grupo.id);
+                    }}
+                  >
+                    <span>{grupo.rotulo}</span>
+                    <ChevronDown aria-hidden="true" />
+                  </button>
 
-                <div id={idLista} className="crc-nav-lista" hidden={fechado}>
-                  {grupo.itens.map((n) => {
-                    const Icone = n.icone;
-                    return (
-                      <button
-                        key={n.aba}
-                        type="button"
-                        className="crc-nav-item"
+                  <div id={idLista} className="crc-nav-lista" hidden={fechado}>
+                    {grupo.itens.map((n) => {
+                      const Icone = n.icone;
+                      /*
+                       * `<Link>` E NÃO `<button>`. O item vira um `<a href>` de
+                       * verdade, e com isso ganha de graça o que o botão nunca
+                       * teve: Ctrl/Cmd+clique abre em aba nova, o botão do meio
+                       * também, "copiar endereço do link" funciona, e o leitor de
+                       * tela anuncia navegação em vez de ação.
+                       */
+                      const comuns = {
+                        className: "crc-nav-item",
                         /* A mesma linha do mapa do CRC, para quem passa o mouse
-                       antes de clicar em algo que nunca abriu. */
-                        title={`${n.rotulo} — ${GUIA_ABAS[n.aba].paraQue}`}
-                        aria-current={abaAtual === n.aba ? "page" : undefined}
-                        onClick={() => {
-                          setAba(n.aba);
-                          if (n.aba !== "pacientes") setPacienteAberto(null);
-                        }}
-                      >
-                        <Icone aria-hidden="true" />
-                        <span>{n.rotulo}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+                         antes de clicar em algo que nunca abriu. */
+                        title: `${n.rotulo} — ${GUIA_ABAS[n.aba].paraQue}`,
+                        "aria-current": (abaAtual === n.aba ? "page" : undefined) as
+                          "page" | undefined,
+                      };
+                      const dentro = (
+                        <>
+                          <Icone aria-hidden="true" />
+                          <span>{n.rotulo}</span>
+                        </>
+                      );
 
-          <div className="crc-usuario-shell">
-            <div className="crc-usuario">
-              {/*
+                      return n.aba === "home" ? (
+                        /*
+                         * `exact` SÓ AQUI, e por um defeito que se via na tela.
+                         *
+                         * O `<Link>` do TanStack considera um link ativo quando o
+                         * caminho atual COMEÇA com o dele. Como `/crc` é prefixo
+                         * de `/crc/funil`, o Início ficava aceso em todas as
+                         * telas: dois itens com `aria-current="page"` ao mesmo
+                         * tempo, e o leitor de tela anunciando duas "páginas
+                         * atuais".
+                         *
+                         * Nas outras o casamento por prefixo é o desejado —
+                         * `/crc/pacientes/123` deve manter Pacientes aceso.
+                         */
+                        <Link key={n.aba} to="/crc" activeOptions={{ exact: true }} {...comuns}>
+                          {dentro}
+                        </Link>
+                      ) : (
+                        <Link key={n.aba} to="/crc/$tela" params={{ tela: n.aba }} {...comuns}>
+                          {dentro}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="crc-usuario-shell">
+              <div className="crc-usuario">
+                {/*
                 Um `div` com dois botões dentro, e NÃO um `label` envolvendo
                 tudo: com o label, o botão de remover abriria o seletor de
                 arquivo junto, porque clicar em qualquer lugar de um label
                 aciona o campo dele. O input fica fora e é acionado por
                 referência.
               */}
-              <div className="crc-avatar crc-avatar-troca">
-                {usuario.fotoUrl === null ? (
-                  <span aria-hidden="true">{iniciais || "JP"}</span>
-                ) : (
-                  <img src={usuario.fotoUrl} alt="" />
-                )}
+                <div className="crc-avatar crc-avatar-troca">
+                  {usuario.fotoUrl === null ? (
+                    <span aria-hidden="true">{iniciais || "JP"}</span>
+                  ) : (
+                    <img src={usuario.fotoUrl} alt="" />
+                  )}
 
-                <span className="crc-avatar-acoes">
-                  <button
-                    type="button"
-                    aria-label={usuario.fotoUrl === null ? "Colocar sua foto" : "Trocar sua foto"}
-                    title={usuario.fotoUrl === null ? "Colocar foto" : "Trocar foto"}
-                    onClick={() => {
-                      campoFoto.current?.click();
-                    }}
-                  >
-                    <Camera aria-hidden="true" />
-                  </button>
-
-                  {usuario.fotoUrl !== null && (
+                  <span className="crc-avatar-acoes">
                     <button
                       type="button"
-                      aria-label="Remover sua foto"
-                      title="Remover foto"
+                      aria-label={usuario.fotoUrl === null ? "Colocar sua foto" : "Trocar sua foto"}
+                      title={usuario.fotoUrl === null ? "Colocar foto" : "Trocar foto"}
                       onClick={() => {
-                        void removerFoto();
+                        campoFoto.current?.click();
                       }}
                     >
-                      <ImageOff aria-hidden="true" />
+                      <Camera aria-hidden="true" />
                     </button>
-                  )}
-                </span>
 
-                <input
-                  ref={campoFoto}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  className="crc-so-leitor"
-                  onChange={(e) => {
-                    const arquivo = e.target.files?.[0];
-                    // Limpa o campo para escolher o MESMO arquivo de novo
-                    // funcionar — sem isso, `change` não dispara na segunda vez.
-                    e.target.value = "";
-                    if (arquivo !== undefined) void trocarFoto(arquivo);
+                    {usuario.fotoUrl !== null && (
+                      <button
+                        type="button"
+                        aria-label="Remover sua foto"
+                        title="Remover foto"
+                        onClick={() => {
+                          void removerFoto();
+                        }}
+                      >
+                        <ImageOff aria-hidden="true" />
+                      </button>
+                    )}
+                  </span>
+
+                  <input
+                    ref={campoFoto}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="crc-so-leitor"
+                    onChange={(e) => {
+                      const arquivo = e.target.files?.[0];
+                      // Limpa o campo para escolher o MESMO arquivo de novo
+                      // funcionar — sem isso, `change` não dispara na segunda vez.
+                      e.target.value = "";
+                      if (arquivo !== undefined) void trocarFoto(arquivo);
+                    }}
+                  />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="crc-usuario-nome">{usuario.nome}</div>
+                  <div className="crc-meta">{ROTULO_PAPEL[usuario.papel]}</div>
+                </div>
+                <Botao
+                  variante="discreto"
+                  pequeno
+                  aria-label="Sair do CRC"
+                  title="Sair"
+                  onClick={() => {
+                    void (async () => {
+                      await sairDoCrc();
+                      await carregarSessao();
+                    })();
                   }}
-                />
+                >
+                  <LogOut size={17} aria-hidden="true" />
+                </Botao>
               </div>
-              <div style={{ minWidth: 0 }}>
-                <div className="crc-usuario-nome">{usuario.nome}</div>
-                <div className="crc-meta">{ROTULO_PAPEL[usuario.papel]}</div>
-              </div>
-              <Botao
-                variante="discreto"
-                pequeno
-                aria-label="Sair do CRC"
-                title="Sair"
-                onClick={() => {
-                  void (async () => {
-                    await sairDoCrc();
-                    await carregarSessao();
-                  })();
-                }}
-              >
-                <LogOut size={17} aria-hidden="true" />
-              </Botao>
-            </div>
 
-            {/* Se a troca falhar, a pessoa fica olhando o avatar antigo sem
+              {/* Se a troca falhar, a pessoa fica olhando o avatar antigo sem
                 saber por quê. O aviso mora no próprio cartão, ao lado do que
                 ela acabou de tentar mudar. */}
-            {erroFoto !== null && (
-              <p className="crc-usuario-erro" role="alert">
-                {erroFoto}
-              </p>
+              {erroFoto !== null && (
+                <p className="crc-usuario-erro" role="alert">
+                  {erroFoto}
+                </p>
+              )}
+            </div>
+          </nav>
+
+          <main className="crc-conteudo" ref={setConteudoEl}>
+            <div className="crc-barra-contexto" aria-label="Contexto da tela">
+              <div className="crc-barra-trilha">
+                <ShieldCheck aria-hidden="true" />
+                <strong>JP CRC</strong>
+                <ChevronRight aria-hidden="true" />
+                <span>{itemAtual.rotulo}</span>
+              </div>
+              <div className="crc-barra-acoes">
+                <button
+                  type="button"
+                  className="crc-guia-botao"
+                  aria-expanded={guiaAberto}
+                  onClick={() => {
+                    alternarGuia(!guiaAberto);
+                  }}
+                >
+                  <Compass aria-hidden="true" />
+                  <span>{guiaAberto ? "Ocultar guia" : "Como usar esta tela"}</span>
+                </button>
+
+                <div className="crc-atalho-dica" title="Use Ctrl+K ou ⌘K para abrir a busca global">
+                  <Search aria-hidden="true" />
+                  <span>Buscar ou navegar</span>
+                  <kbd>Ctrl K</kbd>
+                </div>
+              </div>
+            </div>
+
+            {abaAtual !== "home" && !naFichaDoPaciente && (
+              <header className="crc-cabecalho-pagina crc-cabecalho-premium">
+                <div className="crc-cabecalho-icone" aria-hidden="true">
+                  <IconeAtual />
+                </div>
+                <div className="crc-cabecalho-copy">
+                  <div className="crc-sobretitulo">{guiaAtual.sobretitulo}</div>
+                  <h1 className="crc-titulo-pagina">{itemAtual.rotulo}</h1>
+                  <p className="crc-corpo">{guiaAtual.descricao}</p>
+                </div>
+                <div className="crc-legenda" aria-label={`Legenda de ${itemAtual.rotulo}`}>
+                  {guiaAtual.legendas.map((legenda) => (
+                    <span key={legenda.rotulo} className="crc-legenda-item" data-tom={legenda.tom}>
+                      <span className="crc-legenda-ponto" aria-hidden="true" />
+                      {legenda.rotulo}
+                    </span>
+                  ))}
+                </div>
+              </header>
             )}
-          </div>
-        </nav>
 
-        <main className="crc-conteudo" ref={setConteudoEl}>
-          <div className="crc-barra-contexto" aria-label="Contexto da tela">
-            <div className="crc-barra-trilha">
-              <ShieldCheck aria-hidden="true" />
-              <strong>JP CRC</strong>
-              <ChevronRight aria-hidden="true" />
-              <span>{itemAtual.rotulo}</span>
-            </div>
-            <div className="crc-barra-acoes">
-              <button
-                type="button"
-                className="crc-guia-botao"
-                aria-expanded={guiaAberto}
-                onClick={() => {
-                  alternarGuia(!guiaAberto);
+            {guiaAberto && !naFichaDoPaciente && (
+              <GuiaDaTela
+                guia={guiaAtual}
+                tela={itemAtual.rotulo}
+                mapa={
+                  abaAtual === "home"
+                    ? permitidas.map((n) => ({
+                        rotulo: n.rotulo,
+                        paraQue: GUIA_ABAS[n.aba].paraQue,
+                        icone: n.icone,
+                      }))
+                    : null
+                }
+                aoDesligar={() => {
+                  alternarGuia(false);
                 }}
-              >
-                <Compass aria-hidden="true" />
-                <span>{guiaAberto ? "Ocultar guia" : "Como usar esta tela"}</span>
-              </button>
+              />
+            )}
 
-              <div className="crc-atalho-dica" title="Use Ctrl+K ou ⌘K para abrir a busca global">
-                <Search aria-hidden="true" />
-                <span>Buscar ou navegar</span>
-                <kbd>Ctrl K</kbd>
-              </div>
-            </div>
-          </div>
-
-          {abaAtual !== "home" && !naFichaDoPaciente && (
-            <header className="crc-cabecalho-pagina crc-cabecalho-premium">
-              <div className="crc-cabecalho-icone" aria-hidden="true">
-                <IconeAtual />
-              </div>
-              <div className="crc-cabecalho-copy">
-                <div className="crc-sobretitulo">{guiaAtual.sobretitulo}</div>
-                <h1 className="crc-titulo-pagina">{itemAtual.rotulo}</h1>
-                <p className="crc-corpo">{guiaAtual.descricao}</p>
-              </div>
-              <div className="crc-legenda" aria-label={`Legenda de ${itemAtual.rotulo}`}>
-                {guiaAtual.legendas.map((legenda) => (
-                  <span key={legenda.rotulo} className="crc-legenda-item" data-tom={legenda.tom}>
-                    <span className="crc-legenda-ponto" aria-hidden="true" />
-                    {legenda.rotulo}
-                  </span>
-                ))}
-              </div>
-            </header>
-          )}
-
-          {guiaAberto && !naFichaDoPaciente && (
-            <GuiaDaTela
-              guia={guiaAtual}
-              tela={itemAtual.rotulo}
-              mapa={
-                abaAtual === "home"
-                  ? permitidas.map((n) => ({
-                      rotulo: n.rotulo,
-                      paraQue: GUIA_ABAS[n.aba].paraQue,
-                      icone: n.icone,
-                    }))
-                  : null
-              }
-              aoDesligar={() => {
-                alternarGuia(false);
-              }}
-            />
-          )}
-
-          {/*
+            {/*
             ============================================================
              A FRONTEIRA DO `Suspense` FICA AQUI, E NÃO UMA LINHA ACIMA.
 
@@ -2146,109 +2159,25 @@ function PortalCrc() {
              aba. A pessoa continua vendo onde está.
             ============================================================
           */}
-          <Suspense fallback={<TelaCarregando rotulo={itemAtual.rotulo} />}>
-            {abaAtual === "home" && (
-              <>
-                {/*
-                O CHECKLIST DE INSTALAÇÃO FICA NO TOPO DA HOME, e só enquanto
-                faltar passo essencial — ele some sozinho, sem botão de fechar.
+            <Suspense fallback={<TelaCarregando rotulo={itemAtual.rotulo} />}>
+              {/*
+              O `<Outlet />` ESTÁ DENTRO DO `<main>`, e isso não é detalhe de
+              formatação: é o que garante que a barra lateral, o cabeçalho e o
+              guia NUNCA desmontem ao trocar de tela. Se o limite do Suspense
+              ficasse acima do shell, cada navegação apagaria a interface
+              inteira e a redesenharia — que foi exatamente o defeito que a
+              divisão do pacote introduziu uma vez.
 
-                Aqui em cima porque é a primeira tela de todo mundo, e porque a
-                pergunta que ele responde é a que a pessoa faz olhando uma tela
-                vazia: "o sistema quebrou, ou ainda não terminei de instalar?".
-              */}
-                <PrimeirosPassos
-                  aoIrPara={(destino) => {
-                    // A aba só muda se ela existir E a pessoa tiver a permissão:
-                    // mandar alguém para uma aba que ela não pode abrir trocaria
-                    // um checklist por uma tela em branco.
-                    const alvo = permitidas.find((n) => n.aba === destino);
-                    if (alvo !== undefined) setAba(alvo.aba);
-                  }}
-                />
-                <Home nomeUsuario={usuario.nome} aoAbrirPaciente={abrirPaciente} />
-              </>
-            )}
-
-            {abaAtual === "trabalho" && (
-              <MeuTrabalho usuarioId={usuario.id} aoAbrirPaciente={abrirPaciente} />
-            )}
-
-            {abaAtual === "inbox" && (
-              <Inbox
-                aoAbrirPaciente={abrirPaciente}
-                conversaInicial={conversaAberta}
-                aoConsumirInicial={() => {
-                  setConversaAberta(null);
-                }}
-              />
-            )}
-
-            {abaAtual === "funil" && <Funil aoAbrirPaciente={abrirPaciente} />}
-            {abaAtual === "agenda" && <Agenda aoAbrirPaciente={abrirPaciente} />}
-
-            {abaAtual === "pacientes" &&
-              (pacienteAberto === null ? (
-                <BuscaPacientes aoAbrirPaciente={abrirPaciente} />
-              ) : (
-                <CentralDoPaciente
-                  patientId={pacienteAberto}
-                  aoVoltar={() => {
-                    setPacienteAberto(null);
-                  }}
-                />
-              ))}
-
-            {abaAtual === "gestao" && (
-              <Gestao
-                podeExportar={usuario.permissoes.includes("exportar_dados")}
-                podeVerFinanceiro={usuario.permissoes.includes("ver_financeiro")}
-              />
-            )}
-
-            {abaAtual === "metas" && (
-              <Metas podeGerenciar={usuario.permissoes.includes("gerenciar_autopilot")} />
-            )}
-
-            {abaAtual === "autonomia" && <Autonomia />}
-
-            {abaAtual === "importar" && <Importar />}
-
-            {abaAtual === "automacoes" && (
-              <Automacoes podeGerenciar={usuario.permissoes.includes("gerenciar_automacao")} />
-            )}
-
-            {abaAtual === "integracoes" && (
-              <Integracoes podeGerenciar={usuario.permissoes.includes("gerenciar_integracoes")} />
-            )}
-
-            {abaAtual === "campanhas" && <Campanhas />}
-
-            {abaAtual === "inteligencia" && <Inteligencia />}
-            {abaAtual === "conhecimento" && <Conhecimento />}
-            {abaAtual === "modelos" && <ModelosECusto />}
-            {abaAtual === "avaliacao" && <Avaliacao />}
-            {abaAtual === "estudio" && <Estudio />}
-            {abaAtual === "playground" && <Playground />}
-            {abaAtual === "ferramentas" && <Ferramentas />}
-            {abaAtual === "proximas" && <ProximasAcoes />}
-            {abaAtual === "radar" && <Radar />}
-            {abaAtual === "encaixes" && <Encaixes />}
-            {abaAtual === "tratamentos" && <Tratamentos />}
-            {abaAtual === "recepcao" && <Recepcao />}
-            {abaAtual === "saude" && (
-              <Saude podeVerTecnico={usuario.permissoes.includes("gerenciar_integracoes")} />
-            )}
-            {abaAtual === "equipe" && <Equipe />}
-            {abaAtual === "configuracoes" && (
-              <Configuracoes
-                podeGerenciarUsuarios={usuario.permissoes.includes("gerenciar_usuarios")}
-              />
-            )}
-          </Suspense>
-        </main>
+              Aqui estavam as trinta telas, num `switch` de cem linhas. Elas
+              agora são rotas: a Home em `crc/index.tsx`, as demais em
+              `crc/$tela.tsx`.
+            */}
+              <Outlet />
+            </Suspense>
+          </main>
+        </div>
       </div>
-    </div>
+    </ProvedorDoCrc>
   );
 }
 

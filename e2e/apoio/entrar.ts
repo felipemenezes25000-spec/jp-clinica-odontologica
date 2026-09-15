@@ -50,7 +50,18 @@ async function fecharOGuia(page: Page): Promise<void> {
  * numa cópia da interface.
  */
 export function navegacao(page: Page, rotulo: string): ReturnType<Page["getByRole"]> {
-  return page.getByRole("button", { name: new RegExp(`^${rotulo}(\\s|—|$)`, "u") });
+  /*
+   * `link`, E NÃO `button`.
+   *
+   * O item do menu era um `<button>` que trocava `useState`. Virou um `<a href>`
+   * quando cada tela ganhou endereço próprio — e a diferença é justamente o que
+   * se queria: Ctrl+clique abre em aba nova, o botão do meio também, e o leitor
+   * de tela anuncia navegação em vez de ação.
+   *
+   * Esta linha afirmava o contrário, e por isso ela precisava mudar junto: um
+   * helper que procura botão é um teste que exige que o menu continue errado.
+   */
+  return page.getByRole("link", { name: new RegExp(`^${rotulo}(\\s|—|$)`, "u") });
 }
 
 /** Troca de aba pela navegação, como uma pessoa faria. */

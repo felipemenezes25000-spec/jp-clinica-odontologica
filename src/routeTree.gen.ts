@@ -26,6 +26,8 @@ import { Route as RhRouteImport } from './routes/rh'
 import { Route as TrabalheConoscoRouteImport } from './routes/trabalhe-conosco'
 import { Route as CarreirasIndexRouteImport } from './routes/carreiras/index'
 import { Route as CarreirasSlugRouteImport } from './routes/carreiras/$slug'
+import { Route as CrcIndexRouteImport } from './routes/crc/index'
+import { Route as CrcTelaRouteImport } from './routes/crc/$tela'
 import { Route as TratamentosSlugRouteImport } from './routes/tratamentos/$slug'
 import { Route as ApiCrcInstalarRouteImport } from './routes/api/crc/instalar'
 import { Route as ApiCrcLeadRouteImport } from './routes/api/crc/lead'
@@ -123,6 +125,16 @@ const CarreirasSlugRoute = CarreirasSlugRouteImport.update({
   path: '/carreiras/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrcIndexRoute = CrcIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CrcRoute,
+} as any)
+const CrcTelaRoute = CrcTelaRouteImport.update({
+  id: '/$tela',
+  path: '/$tela',
+  getParentRoute: () => CrcRoute,
+} as any)
 const TratamentosSlugRoute = TratamentosSlugRouteImport.update({
   id: '/tratamentos/$slug',
   path: '/tratamentos/$slug',
@@ -182,7 +194,7 @@ const ApiRhCurriculoIdRoute = ApiRhCurriculoIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/clareamento-dental': typeof ClareamentoDentalRoute
-  '/crc': typeof CrcRoute
+  '/crc': typeof CrcRouteWithChildren
   '/crc-institucional': typeof CrcInstitucionalRoute
   '/crc-vitrine': typeof CrcVitrineRoute
   '/harmonizacao-facial': typeof HarmonizacaoFacialRoute
@@ -196,8 +208,10 @@ export interface FileRoutesByFullPath {
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
+  '/crc/$tela': typeof CrcTelaRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
+  '/crc/': typeof CrcIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
   '/api/crc/lead': typeof ApiCrcLeadRoute
   '/api/crc/mcp': typeof ApiCrcMcpRoute
@@ -212,7 +226,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/clareamento-dental': typeof ClareamentoDentalRoute
-  '/crc': typeof CrcRoute
   '/crc-institucional': typeof CrcInstitucionalRoute
   '/crc-vitrine': typeof CrcVitrineRoute
   '/harmonizacao-facial': typeof HarmonizacaoFacialRoute
@@ -226,8 +239,10 @@ export interface FileRoutesByTo {
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
+  '/crc/$tela': typeof CrcTelaRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras': typeof CarreirasIndexRoute
+  '/crc': typeof CrcIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
   '/api/crc/lead': typeof ApiCrcLeadRoute
   '/api/crc/mcp': typeof ApiCrcMcpRoute
@@ -243,7 +258,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/clareamento-dental': typeof ClareamentoDentalRoute
-  '/crc': typeof CrcRoute
+  '/crc': typeof CrcRouteWithChildren
   '/crc-institucional': typeof CrcInstitucionalRoute
   '/crc-vitrine': typeof CrcVitrineRoute
   '/harmonizacao-facial': typeof HarmonizacaoFacialRoute
@@ -257,8 +272,10 @@ export interface FileRoutesById {
   '/rh': typeof RhRoute
   '/trabalhe-conosco': typeof TrabalheConoscoRoute
   '/carreiras/$slug': typeof CarreirasSlugRoute
+  '/crc/$tela': typeof CrcTelaRoute
   '/tratamentos/$slug': typeof TratamentosSlugRoute
   '/carreiras/': typeof CarreirasIndexRoute
+  '/crc/': typeof CrcIndexRoute
   '/api/crc/instalar': typeof ApiCrcInstalarRoute
   '/api/crc/lead': typeof ApiCrcLeadRoute
   '/api/crc/mcp': typeof ApiCrcMcpRoute
@@ -289,8 +306,10 @@ export interface FileRouteTypes {
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
+    | '/crc/$tela'
     | '/tratamentos/$slug'
     | '/carreiras/'
+    | '/crc/'
     | '/api/crc/instalar'
     | '/api/crc/lead'
     | '/api/crc/mcp'
@@ -305,7 +324,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/clareamento-dental'
-    | '/crc'
     | '/crc-institucional'
     | '/crc-vitrine'
     | '/harmonizacao-facial'
@@ -319,8 +337,10 @@ export interface FileRouteTypes {
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
+    | '/crc/$tela'
     | '/tratamentos/$slug'
     | '/carreiras'
+    | '/crc'
     | '/api/crc/instalar'
     | '/api/crc/lead'
     | '/api/crc/mcp'
@@ -349,8 +369,10 @@ export interface FileRouteTypes {
     | '/rh'
     | '/trabalhe-conosco'
     | '/carreiras/$slug'
+    | '/crc/$tela'
     | '/tratamentos/$slug'
     | '/carreiras/'
+    | '/crc/'
     | '/api/crc/instalar'
     | '/api/crc/lead'
     | '/api/crc/mcp'
@@ -366,7 +388,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ClareamentoDentalRoute: typeof ClareamentoDentalRoute
-  CrcRoute: typeof CrcRoute
+  CrcRoute: typeof CrcRouteWithChildren
   CrcInstitucionalRoute: typeof CrcInstitucionalRoute
   CrcVitrineRoute: typeof CrcVitrineRoute
   HarmonizacaoFacialRoute: typeof HarmonizacaoFacialRoute
@@ -514,6 +536,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarreirasSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crc/': {
+      id: '/crc/'
+      path: '/'
+      fullPath: '/crc/'
+      preLoaderRoute: typeof CrcIndexRouteImport
+      parentRoute: typeof CrcRoute
+    }
+    '/crc/$tela': {
+      id: '/crc/$tela'
+      path: '/$tela'
+      fullPath: '/crc/$tela'
+      preLoaderRoute: typeof CrcTelaRouteImport
+      parentRoute: typeof CrcRoute
+    }
     '/tratamentos/$slug': {
       id: '/tratamentos/$slug'
       path: '/tratamentos/$slug'
@@ -594,6 +630,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CrcRouteChildren {
+  CrcTelaRoute: typeof CrcTelaRoute
+  CrcIndexRoute: typeof CrcIndexRoute
+}
+
+const CrcRouteChildren: CrcRouteChildren = {
+  CrcTelaRoute: CrcTelaRoute,
+  CrcIndexRoute: CrcIndexRoute,
+}
+
+const CrcRouteWithChildren = CrcRoute._addFileChildren(CrcRouteChildren)
+
 interface ApiCrcWhatsappRouteChildren {
   ApiCrcWhatsappCanalRoute: typeof ApiCrcWhatsappCanalRoute
 }
@@ -609,7 +657,7 @@ const ApiCrcWhatsappRouteWithChildren = ApiCrcWhatsappRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ClareamentoDentalRoute: ClareamentoDentalRoute,
-  CrcRoute: CrcRoute,
+  CrcRoute: CrcRouteWithChildren,
   CrcInstitucionalRoute: CrcInstitucionalRoute,
   CrcVitrineRoute: CrcVitrineRoute,
   HarmonizacaoFacialRoute: HarmonizacaoFacialRoute,
