@@ -13,6 +13,7 @@ Este diretório organiza a documentação dos quatro produtos/artefatos que vive
 | Visão geral do repositório | [`../README.md`](../README.md) | vivo |
 | Design do site público | [`../DESIGN.md`](../DESIGN.md) | vivo |
 | Tráfego pago e analytics | [`ANUNCIAR.md`](ANUNCIAR.md) | vivo |
+| Perfil da Empresa no Google | [`GOOGLE-PERFIL-DA-EMPRESA.md`](GOOGLE-PERFIL-DA-EMPRESA.md) | vivo |
 | Portal de RH | [`PORTAL-RH.md`](PORTAL-RH.md) | vivo |
 | CRC — índice e fontes | [`crc/README.md`](crc/README.md) | vivo |
 | CRC — ativação | [`crc/ATIVACAO-EM-PRODUCAO.md`](crc/ATIVACAO-EM-PRODUCAO.md) | vivo |
