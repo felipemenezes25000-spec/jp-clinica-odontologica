@@ -30,17 +30,13 @@ import { SkipLink } from "@/components/site/SkipLink";
 import { CLINICA, SITE_URL } from "@/lib/jp";
 import { obterVagaPublica } from "@/lib/rh/api-portal";
 import { formatarData } from "@/lib/rh/formatar";
-import { AREAS, MODELOS_TRABALHO, TURNOS, VINCULOS, resumirDisponibilidade } from "@/lib/rh/opcoes";
+import { MODELOS_TRABALHO, TURNOS, VINCULOS, resumirDisponibilidade } from "@/lib/rh/opcoes";
 import type { ConfiguracoesRh, Vaga } from "@/lib/rh/tipos";
-import { faixaSalarial, resumoJornada } from "@/lib/rh/vagas";
+import { faixaSalarial, resumoJornada, rotuloArea } from "@/lib/rh/vagas";
 
 /* -------------------------------------------------------------------------- */
 /* Leitura do domínio                                                         */
 /* -------------------------------------------------------------------------- */
-
-function rotuloArea(vaga: Vaga): string {
-  return AREAS.find((a) => a.valor === vaga.area)?.rotulo ?? "Equipe JP";
-}
 
 function rotuloVinculo(vaga: Vaga): string {
   return VINCULOS.find((v) => v.valor === vaga.vinculo)?.rotulo ?? "A combinar";
@@ -534,7 +530,7 @@ function PaginaVaga() {
                   "VAGA ABERTA · RECEPCAO E ATENDIMENTO" nao cabia na coluna. */}
                 <p className="eyebrow flex-wrap text-white">
                   <span aria-hidden="true" className="h-2 w-2 rounded-full bg-lime" />
-                  Vaga aberta · {rotuloArea(vaga)}
+                  Vaga aberta · {rotuloArea(vaga, "Equipe JP")}
                 </p>
                 {/* `text-wrap:balance` distribui as duas linhas em vez de deixar
                   uma órfã; `hyphens:auto` resolve "odontológica" sem precisar do
@@ -551,7 +547,7 @@ function PaginaVaga() {
                 )}
 
                 <div className="mt-7 flex flex-wrap gap-2.5">
-                  <Pilula icone={Briefcase}>{rotuloArea(vaga)}</Pilula>
+                  <Pilula icone={Briefcase}>{rotuloArea(vaga, "Equipe JP")}</Pilula>
                   <Pilula icone={BadgeCheck}>{rotuloVinculo(vaga)}</Pilula>
                   <Pilula icone={Sparkles}>{rotuloModelo(vaga)}</Pilula>
                   <Pilula icone={MapPin}>{local}</Pilula>
@@ -722,7 +718,7 @@ function PaginaVaga() {
                 </h2>
 
                 <dl className="mt-5">
-                  <LinhaResumo rotulo="Área" valor={rotuloArea(vaga)} />
+                  <LinhaResumo rotulo="Área" valor={rotuloArea(vaga, "Equipe JP")} />
                   <LinhaResumo rotulo="Vínculo" valor={rotuloVinculo(vaga)} />
                   <LinhaResumo rotulo="Modelo" valor={rotuloModelo(vaga)} />
                   <LinhaResumo rotulo="Local" valor={local} />

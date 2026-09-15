@@ -30,10 +30,10 @@ import {
 } from "lucide-react";
 import { EditorVaga } from "@/components/rh/EditorVaga";
 import { formatarData, tempoRelativo } from "@/lib/rh/formatar";
-import { AREAS, MODELOS_TRABALHO, STATUS_VAGA, VINCULOS, statusVagaPor } from "@/lib/rh/opcoes";
+import { MODELOS_TRABALHO, STATUS_VAGA, VINCULOS, statusVagaPor } from "@/lib/rh/opcoes";
 import type { Candidatura, ConfiguracoesRh, StatusVaga, Vaga } from "@/lib/rh/tipos";
 import { vagaVazia } from "@/lib/rh/tipos";
-import { faixaSalarial, ordenarVagas, resumoJornada, vagaAberta } from "@/lib/rh/vagas";
+import { faixaSalarial, ordenarVagas, resumoJornada, rotuloArea, vagaAberta } from "@/lib/rh/vagas";
 
 /** Busca sem acento e sem caixa: quem procura "cirurgiao" acha "Cirurgião". */
 function normalizar(texto: string): string {
@@ -42,10 +42,6 @@ function normalizar(texto: string): string {
     .replace(/\p{Mn}/gu, "")
     .toLowerCase()
     .trim();
-}
-
-function rotuloArea(vaga: Vaga): string {
-  return AREAS.find((a) => a.valor === vaga.area)?.rotulo ?? "Área não definida";
 }
 
 function rotuloVinculo(vaga: Vaga): string {
@@ -330,7 +326,9 @@ export function GestaoVagas(props: {
                 </div>
 
                 <ul className="flex flex-wrap gap-1.5 text-[0.7rem] font-bold text-white">
-                  <li className="rounded-full bg-white/10 px-2.5 py-1">{rotuloArea(vaga)}</li>
+                  <li className="rounded-full bg-white/10 px-2.5 py-1">
+                    {rotuloArea(vaga, "Área não definida")}
+                  </li>
                   <li className="rounded-full bg-white/10 px-2.5 py-1">{rotuloVinculo(vaga)}</li>
                   <li className="rounded-full bg-white/10 px-2.5 py-1">{rotuloModelo(vaga)}</li>
                   {vaga.quantidade > 1 ? (

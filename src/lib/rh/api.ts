@@ -909,16 +909,23 @@ function montarVaga(bruto: Record<string, unknown>): Vaga {
       ? Math.min(99, Math.max(1, Math.trunc(quantidadeBruta)))
       : 1;
 
+  const area = uniao<AreaVaga>(
+    bruto["area"],
+    AREAS.map((item) => item.valor),
+  );
+  // O nome digitado só sobrevive em "Outra área". Quem escreveu "Marketing" e
+  // depois trocou a área para recepção não pode ficar com o texto guardado no
+  // JSON, esperando para reaparecer se alguém devolver o select meses depois.
+  const areaOutra = area === "outro" ? texto(bruto["areaOutra"], LIMITES.areaOutra) : "";
+
   return {
     ...vagaVazia(),
 
     id: texto(bruto["id"], 60),
     titulo: texto(bruto["titulo"], 120),
 
-    area: uniao<AreaVaga>(
-      bruto["area"],
-      AREAS.map((item) => item.valor),
-    ),
+    area,
+    areaOutra,
     vinculo: uniao<Vinculo>(
       bruto["vinculo"],
       VINCULOS.map((item) => item.valor),

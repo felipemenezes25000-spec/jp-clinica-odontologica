@@ -14,9 +14,9 @@
 import { CalendarClock, Check, Clock3, MapPin, Star, UsersRound, Wallet } from "lucide-react";
 
 import { formatarData, tempoRelativo } from "@/lib/rh/formatar";
-import { AREAS, MODELOS_TRABALHO, VINCULOS } from "@/lib/rh/opcoes";
+import { MODELOS_TRABALHO, VINCULOS } from "@/lib/rh/opcoes";
 import type { Vaga } from "@/lib/rh/tipos";
-import { faixaSalarial, resumoJornada } from "@/lib/rh/vagas";
+import { faixaSalarial, resumoJornada, rotuloArea } from "@/lib/rh/vagas";
 
 export function CartaoVaga({
   vaga,
@@ -34,9 +34,9 @@ export function CartaoVaga({
 }) {
   const realce = destaque || vaga.destaque;
 
-  // `find` pode não achar nada se um JSON antigo trouxer uma área que saiu do
-  // catálogo; nesse caso a pílula simplesmente não é desenhada.
-  const area = AREAS.find((a) => a.valor === vaga.area);
+  // Volta vazio se um JSON antigo trouxer uma área que saiu do catálogo; nesse
+  // caso a pílula simplesmente não é desenhada.
+  const area = rotuloArea(vaga);
   const vinculo = VINCULOS.find((v) => v.valor === vaga.vinculo);
   const modelo = MODELOS_TRABALHO.find((m) => m.valor === vaga.modelo);
 
@@ -54,9 +54,9 @@ export function CartaoVaga({
       }`}
     >
       <div className="flex flex-wrap items-center gap-2">
-        {area ? (
+        {area.length > 0 ? (
           <span className="inline-flex items-center rounded-full bg-mint px-3 py-1 text-xs font-extrabold text-ink ring-1 ring-forest/15">
-            {area.rotulo}
+            {area}
           </span>
         ) : null}
         {realce ? (

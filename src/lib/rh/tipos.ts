@@ -269,6 +269,8 @@ export const LIMITES = {
   formacaoLivre: 1000,
   /** Endereço do posto de trabalho ("Vila Bruna — São Paulo/SP"). */
   localVaga: 160,
+  /** Nome digitado da área quando a vaga é de "Outra área". */
+  areaOutra: 40,
 } as const;
 
 export const TIPOS_CURRICULO: readonly string[] = [
@@ -441,6 +443,14 @@ export type Vaga = {
   titulo: string;
 
   area: AreaVaga;
+  /**
+   * Nome da área quando `area` é "outro". O catálogo cobre as funções de
+   * clínica e termina num balde ("Marketing, TI, limpeza e demais funções de
+   * apoio"): sem este campo, a vaga de marketing chega ao candidato anunciada
+   * como "Outra área", que não é nome de profissão nenhuma. Só tem efeito com
+   * `area === "outro"` — nas demais, quem manda é o rótulo do catálogo.
+   */
+  areaOutra: string;
   vinculo: Vinculo;
   status: StatusVaga;
   destaque: boolean;
@@ -488,6 +498,7 @@ export function vagaVazia(): Vaga {
     titulo: "",
 
     area: "" as AreaVaga,
+    areaOutra: "",
     vinculo: "" as Vinculo,
     status: "rascunho",
     destaque: false,

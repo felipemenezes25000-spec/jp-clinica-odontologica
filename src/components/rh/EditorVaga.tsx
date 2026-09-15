@@ -9,8 +9,8 @@
  * Tailwind que tentasse trocar fundo ou largura da gaveta; então a superfície
  * aqui é montada do zero.
  *
- * Os campos reusam `CampoTexto`/`CampoSelect`/`CampoTextarea`, `SeletorChips` e
- * `GradeTurnos`, os mesmos do formulário público — inclusive o contrato de id
+ * Os campos reusam `CampoTexto`/`CampoSelect`/`CampoTextarea` e `SeletorChips`,
+ * os mesmos do formulário público — inclusive o contrato de id
  * (`rh-campo-<campo>`), que é o que permite levar o foco ao primeiro campo
  * inválido com um `getElementById`, sem uma ref por campo. Os nomes de campo
  * levam o prefixo "vaga-" porque o painel monta várias telas ao mesmo tempo e
@@ -29,7 +29,6 @@ import {
 import { descritores, idCampo } from "@/components/rh/idsCampo";
 import { CartaoVaga } from "@/components/rh/CartaoVaga";
 import { Interruptor, ListaEditavel } from "@/components/rh/ControlesRh";
-import { GradeTurnos } from "@/components/rh/GradeTurnos";
 import { SeletorChips } from "@/components/rh/SeletorChips";
 import { mascararMoeda } from "@/lib/rh/formatar";
 import {
@@ -437,7 +436,17 @@ export function EditorVaga(props: {
                     valor={form.area}
                     opcoes={AREAS.map((a) => ({ valor: a.valor, rotulo: a.rotulo }))}
                     erro={erros["area"] ?? ""}
-                    aoMudar={(v) => trocar("area", v as AreaVaga)}
+                    aoMudar={(v) => {
+                      const escolhida = v as AreaVaga;
+                      setForm((atual) => ({
+                        ...atual,
+                        area: escolhida,
+                        // Sair de "Outra área" apaga o nome digitado: guardado,
+                        // ele voltaria sozinho se alguém reabrisse o select
+                        // nessa opção meses depois, com o texto de outra vaga.
+                        areaOutra: escolhida === "outro" ? atual.areaOutra : "",
+                      }));
+                    }}
                   />
                   <CampoSelect
                     campo="vaga-vinculo"
@@ -463,6 +472,24 @@ export function EditorVaga(props: {
                     </select>
                   </div>
                 </div>
+
+                {/* A última opção do catálogo é um balde ("Marketing, TI,
+                    limpeza e demais funções de apoio"). Sem este campo, a vaga
+                    de marketing chega ao candidato anunciada como "Outra área"
+                    — e é esse rótulo que vai para a pílula do card e para a
+                    linha "Área" da página da vaga. */}
+                {form.area === "outro" ? (
+                  <CampoTexto
+                    campo="vaga-areaOutra"
+                    rotulo="Nome da área"
+                    valor={form.areaOutra}
+                    maxLength={LIMITES.areaOutra}
+                    opcional
+                    placeholder="Ex.: Marketing"
+                    ajuda="Aparece no lugar de “Outra área” no card e na página da vaga. Em branco, continua valendo “Outra área”."
+                    aoMudar={(v) => trocar("areaOutra", v)}
+                  />
+                ) : null}
 
                 {/* Especialidade só faz sentido para cadeira: pedir isso numa vaga
                     de recepção confunde quem preenche e quem lê o anúncio. */}
@@ -545,13 +572,6 @@ export function EditorVaga(props: {
                   placeholder="Ex.: 44h semanais, de segunda a sexta"
                   ajuda="Sai no card junto com o modelo de trabalho."
                   aoMudar={(v) => trocar("jornada", v)}
-                />
-
-                <GradeTurnos
-                  campo="vaga-turnos"
-                  selecionadas={form.turnos}
-                  ajuda="Turnos em que esta vaga trabalha. Ajuda o candidato a se descartar sozinho quando a escala não serve."
-                  aoMudar={(chaves) => trocar("turnos", chaves)}
                 />
 
                 <div>

@@ -5,7 +5,7 @@
  * sem React. O painel usa para dar retorno enquanto o RH digita e o servidor usa
  * de novo antes de gravar — uma regra só, escrita uma vez.
  */
-import { MODELOS_TRABALHO } from "./opcoes";
+import { AREAS, MODELOS_TRABALHO } from "./opcoes";
 import { vagaVazia, type Vaga } from "./tipos";
 
 /** Os campos que só o driver de armazenamento sabe preencher ao criar a vaga. */
@@ -127,6 +127,22 @@ export function resumoJornada(v: Vaga): string {
 }
 
 /**
+ * Rótulo da área para a tela — a pílula do card, a linha "Área" da página da
+ * vaga, a lista do painel. Em "Outra área" vale o nome que o RH digitou, pelo
+ * motivo descrito em `Vaga.areaOutra`.
+ *
+ * `padrao` é o que sai quando nem catálogo nem texto respondem: vaga ainda sem
+ * área, ou um JSON antigo apontando para uma área que saiu da lista. Nasce
+ * vazio porque a maioria de quem chama prefere esconder a pílula a desenhar uma
+ * pílula em branco.
+ */
+export function rotuloArea(v: Vaga, padrao = ""): string {
+  const digitada = v.areaOutra.trim();
+  if (v.area === "outro" && digitada.length > 0) return digitada;
+  return AREAS.find((a) => a.valor === v.area)?.rotulo ?? padrao;
+}
+
+/**
  * Campo -> mensagem, no mesmo formato de `ErrosPasso`. A ordem de inserção
  * importa: o servidor devolve a primeira mensagem como motivo da recusa, então
  * o campo mais acima no formulário vem primeiro.
@@ -245,7 +261,6 @@ export function vagasSemente(agoraIso: string, novoId: () => string): Vaga[] {
       beneficios: beneficiosPj,
       especialidades: ["Clínica geral", "Dentística", "Periodontia"],
       jornada: "Agenda de segunda a sexta, combinada com a clínica",
-      turnos: ["manha", "tarde"],
       local: "Vila Bruna — São Paulo/SP",
       modelo: "presencial",
       quantidade: 1,
@@ -279,7 +294,6 @@ export function vagasSemente(agoraIso: string, novoId: () => string): Vaga[] {
       ],
       beneficios: beneficiosClt,
       jornada: "44h semanais, de segunda a sexta",
-      turnos: ["manha", "tarde"],
       local: "Vila Bruna — São Paulo/SP",
       modelo: "presencial",
       quantidade: 1,
@@ -313,7 +327,6 @@ export function vagasSemente(agoraIso: string, novoId: () => string): Vaga[] {
       ],
       beneficios: beneficiosClt,
       jornada: "44h semanais, de segunda a sexta",
-      turnos: ["manha", "tarde"],
       local: "Vila Bruna — São Paulo/SP",
       modelo: "presencial",
       quantidade: 1,
