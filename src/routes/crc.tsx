@@ -2236,7 +2236,9 @@ function PortalCrc() {
             {abaAtual === "encaixes" && <Encaixes />}
             {abaAtual === "tratamentos" && <Tratamentos />}
             {abaAtual === "recepcao" && <Recepcao />}
-            {abaAtual === "saude" && <Saude />}
+            {abaAtual === "saude" && (
+              <Saude podeVerTecnico={usuario.permissoes.includes("gerenciar_integracoes")} />
+            )}
             {abaAtual === "equipe" && <Equipe />}
             {abaAtual === "configuracoes" && (
               <Configuracoes

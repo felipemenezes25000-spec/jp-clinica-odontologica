@@ -176,9 +176,10 @@ async function olharPulso(_organizationId: string, agora: Date): Promise<SinalDe
       {
         codigo: "pulso_nunca_bateu",
         titulo: "O pulso nunca rodou neste ambiente.",
-        acao: "Configure CRON_SECRET no repositório e CRC_URL_PUBLICA no servidor. Sem os dois, nada consome a fila.",
+        acao: "A automação ainda não foi ligada neste ambiente. Peça ao responsável técnico para concluir a configuração — enquanto isso, nada sai sozinho.",
         severidade: "critico",
-        detalhe: "Nenhum registro em crc_runtime_heartbeats para o worker 'pulso'.",
+        detalhe:
+          "Nenhum registro em crc_runtime_heartbeats para o worker 'pulso'. Configure CRON_SECRET no repositório e CRC_URL_PUBLICA no servidor.",
       },
     ];
   }
@@ -195,7 +196,7 @@ async function olharPulso(_organizationId: string, agora: Date): Promise<SinalDe
        * com o atraso. Mandar olhar o lugar errado custa mais tempo do que não
        * dizer nada.
        */
-      acao: "Veja o workflow 'CRC Pulso' no GitHub Actions. Para destravar agora: POST /api/crc/pulso com o CRON_SECRET.",
+      acao: "A automação parou de dar sinal. Avise o responsável técnico; as mensagens da fila só saem quando ela voltar.",
       severidade: minutos >= PULSO_CRITICO_MIN ? "critico" : "atencao",
       detalhe:
         pulso?.ultimoErro === null || pulso?.ultimoErro === undefined
@@ -331,7 +332,7 @@ async function olharVarreduras(organizationId: string, agora: Date): Promise<Sin
     sinais.push({
       codigo: "varredura_parada",
       titulo: "Uma varredura parou de avançar.",
-      acao: "Confira o sinal do pulso e do schema acima. Para forçar agora: GET /api/crc/motor?varrer=1.",
+      acao: "A leitura da base travou. Confira os sinais acima e avise o responsável técnico se eles estiverem limpos.",
       // CRÍTICO, e o anterior era atenção: enquanto ela não anda, NINGUÉM da
       // base está sendo avaliado para recall.
       severidade: "critico",
@@ -343,7 +344,7 @@ async function olharVarreduras(organizationId: string, agora: Date): Promise<Sin
     sinais.push({
       codigo: "ciclo_lento",
       titulo: "Uma varredura está avançando, mas não fecha uma volta pela base.",
-      acao: "A base cresceu mais que o teto por execução. Aumente o teto da varredura ou rode o motor com ?varrer=1 mais de uma vez ao dia.",
+      acao: "A base cresceu mais rápido do que a leitura diária consegue percorrer. O responsável técnico precisa aumentar o ritmo da varredura.",
       severidade: "atencao",
       detalhe: lentas.join(", "),
     });
@@ -421,14 +422,22 @@ async function olharCredenciais(organizationId: string): Promise<SinalDeSaude[]>
     {
       codigo: "credencial_ausente",
       titulo: "O WhatsApp não está configurado para esta organização.",
-      acao: `${zap.motivo}${zap.faltando.length > 0 ? ` Falta: ${zap.faltando.join(", ")}.` : ""}`,
+      /*
+       * `zap.faltando` É NOME DE VARIÁVEL DE AMBIENTE, e ele vinha para cá.
+       *
+       * A tela Saúde é lida pela recepção. "Falta WHATSAPP_TOKEN,
+       * WHATSAPP_PHONE_ID" não diz nada a quem atende paciente, e diz o nome
+       * das nossas variáveis a quem passar por trás dela. A lista continua
+       * existindo — em `detalhe`, que só quem administra integração enxerga.
+       */
+      acao: "O WhatsApp ainda não foi conectado. Peça ao responsável técnico para concluir a integração — sem ela, nenhuma mensagem sai.",
       /*
        * CRÍTICO, e não atenção: sem canal de saída, tudo que este sistema faz
        * termina em nada. A automação continua rodando, as jornadas continuam
        * avançando, e nenhuma mensagem chega a ninguém.
        */
       severidade: "critico",
-      detalhe: "Cadastre o canal da clínica ou configure as variáveis do provedor.",
+      detalhe: `${zap.motivo}${zap.faltando.length > 0 ? ` Falta: ${zap.faltando.join(", ")}.` : ""} Cadastre o canal da clínica ou configure as variáveis do provedor.`,
     },
   ];
 }
@@ -466,9 +475,9 @@ async function olharSchema(): Promise<SinalDeSaude[]> {
     {
       codigo: "schema_atrasado",
       titulo: "O banco não registra a migração que este código espera.",
-      acao: `Rode supabase/${MIGRACAO_ESPERADA} e depois \`npm run schema:status\` para conferir objeto por objeto.`,
+      acao: "O sistema está mais novo que o banco de dados. Peça ao responsável técnico para aplicar a atualização pendente — até lá, algumas telas podem falhar.",
       severidade: "atencao",
-      detalhe: `Esperado: ${MIGRACAO_ESPERADA}.`,
+      detalhe: `Esperado: ${MIGRACAO_ESPERADA}. Rode supabase/${MIGRACAO_ESPERADA} e depois \`npm run schema:status\` para conferir objeto por objeto.`,
     },
   ];
 }
@@ -509,7 +518,7 @@ async function olharFila(organizationId: string, agora: Date): Promise<SinalDeSa
        * nenhuma com o atraso, e mandar olhar o lugar errado custa mais tempo do
        * que não dizer nada.
        */
-      acao: "Quem consome esta fila é o pulso — confira o sinal dele acima. Para destravar agora: POST /api/crc/pulso com o CRON_SECRET.",
+      acao: "Quem consome esta fila é a automação — confira o sinal dela acima. Se estiver saudável, avise o responsável técnico.",
       severidade: fila.esperaMaisAntigaMin > 60 ? "critico" : "atencao",
       detalhe: `${String(fila.pendentes)} pendentes, ${String(fila.repetindo)} repetindo.`,
     });

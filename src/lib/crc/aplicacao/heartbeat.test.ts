@@ -140,8 +140,18 @@ describe("o painel de saúde", () => {
     const sinal = p.sinais.find((s) => s.codigo === "pulso_nunca_bateu");
 
     expect(sinal?.severidade).toBe("critico");
-    expect(sinal?.acao).toContain("CRON_SECRET");
-    expect(sinal?.acao).toContain("CRC_URL_PUBLICA");
+    /*
+     * A AÇÃO É PARA QUEM OPERA A CLÍNICA; o nome da variável foi para o
+     * `detalhe`, que só quem administra integração enxerga. Esta asserção
+     * exigia "CRON_SECRET" no texto que a recepção lê — ou seja, ela estava
+     * PRENDENDO o defeito que a tela tinha. A intenção original ("a pessoa
+     * descobre o que fazer") continua verificada, nos dois níveis.
+     */
+    expect(sinal?.acao).toContain("responsável técnico");
+    expect(sinal?.acao).not.toContain("CRON_SECRET");
+    expect(sinal?.detalhe).toContain("CRON_SECRET");
+    expect(sinal?.acao).not.toContain("CRC_URL_PUBLICA");
+    expect(sinal?.detalhe).toContain("CRC_URL_PUBLICA");
   });
 
   it("pulso vivo não vira sinal", async () => {
@@ -200,7 +210,12 @@ describe("o painel de saúde", () => {
 
     const p = await panoramaDeSaude(ORG, AGORA);
     const sinal = p.sinais.find((s) => s.codigo === "fila_parada");
-    expect(sinal?.acao).toContain("pulso");
+    /*
+     * O PONTO SEMPRE FOI "não mande olhar o motor", e não a palavra "pulso".
+     * O texto agora diz "automação", que é como quem usa a tela chama a coisa.
+     */
+    expect(sinal?.acao).toContain("automação");
+    expect(sinal?.acao).not.toContain("motor");
     expect(sinal?.acao).not.toContain("motor");
   });
 
@@ -332,8 +347,10 @@ describe("o painel de saúde", () => {
     const sinal = p.sinais.find((s) => s.codigo === "schema_atrasado");
 
     expect(sinal).toBeDefined();
-    // A AÇÃO MANDA SONDAR, e não confiar no registro: a tabela é bookkeeping.
-    expect(sinal?.acao).toContain("schema:status");
+    // A SONDAGEM CONTINUA SENDO O CAMINHO — mas o comando vive no `detalhe`,
+    // porque `npm run schema:status` não é instrução para a recepção.
+    expect(sinal?.detalhe).toContain("schema:status");
+    expect(sinal?.acao).not.toContain("schema:status");
   });
 
   it("o painel registra o que está no banco quando o pulso roda de verdade", async () => {

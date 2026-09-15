@@ -146,7 +146,8 @@ describe("a fila", () => {
      * ele não tem relação nenhuma com turno parado. Mandar olhar o lugar errado
      * custa mais tempo do que não dizer nada.
      */
-    expect(sinal?.acao).toContain("pulso");
+    expect(sinal?.acao).toContain("automação");
+    expect(sinal?.acao).not.toContain("motor");
     expect(sinal?.acao).not.toContain("motor");
   });
 

@@ -28,7 +28,7 @@ const TOM: Record<string, "positiva" | "alerta" | "perigo"> = {
   critico: "perigo",
 };
 
-export function Saude() {
+export function Saude({ podeVerTecnico = false }: { podeVerTecnico?: boolean }) {
   const [painel, setPainel] = useState<PainelDeSaudeDto | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
@@ -101,7 +101,11 @@ export function Saude() {
         ) : (
           <ul className="crc-pilha">
             {painel.sinais.map((s) => (
-              <SinalNaLista key={`${s.codigo}-${s.titulo}`} sinal={s} />
+              <SinalNaLista
+                key={`${s.codigo}-${s.titulo}`}
+                sinal={s}
+                podeVerTecnico={podeVerTecnico}
+              />
             ))}
           </ul>
         )}
@@ -133,7 +137,7 @@ export function Saude() {
         {painel.leituras.length > 0 && (
           <ul className="crc-pilha" style={{ marginTop: "var(--crc-e4)" }}>
             {painel.leituras.map((l) => (
-              <SinalNaLista key={l.titulo} sinal={l} />
+              <SinalNaLista key={l.titulo} sinal={l} podeVerTecnico={podeVerTecnico} />
             ))}
           </ul>
         )}
@@ -193,7 +197,13 @@ export function Saude() {
  * provedor está fora" sem "aguarde a próxima tentativa ou troque a rota" deixa
  * quem lê no mesmo lugar em que estava.
  */
-function SinalNaLista({ sinal }: { sinal: SinalDeSaudeDto }) {
+function SinalNaLista({
+  sinal,
+  podeVerTecnico,
+}: {
+  sinal: SinalDeSaudeDto;
+  podeVerTecnico: boolean;
+}) {
   return (
     <li className="crc-cartao-compacto">
       <div className="crc-linha">
@@ -205,7 +215,24 @@ function SinalNaLista({ sinal }: { sinal: SinalDeSaudeDto }) {
       <p className="crc-corpo" style={{ marginTop: "var(--crc-e1)" }}>
         {sinal.acao}
       </p>
-      {sinal.detalhe.length > 0 && <small className="crc-meta">{sinal.detalhe}</small>}
+      {/*
+       * O DETALHE É TÉCNICO, E SÓ QUEM PODE AGIR SOBRE ELE O VÊ.
+       *
+       * Esta linha era `<small>{sinal.detalhe}</small>`, sem condição. Com ela,
+       * quem atende paciente lia nome de tabela do banco, nome de variável de
+       * ambiente do provedor de WhatsApp e endpoint interno — informação que
+       * não ajuda quem não administra nada, e que descreve a nossa
+       * infraestrutura para qualquer pessoa que passe atrás do balcão.
+       *
+       * Nenhum VALOR de segredo passava por aqui, e continua não passando: o
+       * que era exposto eram nomes. Mas nome de variável é meio caminho.
+       */}
+      {podeVerTecnico && sinal.detalhe.length > 0 && (
+        <details className="crc-detalhe-tecnico">
+          <summary>Detalhes técnicos</summary>
+          <small className="crc-meta">{sinal.detalhe}</small>
+        </details>
+      )}
     </li>
   );
 }
