@@ -1563,7 +1563,7 @@ export function rpc<T = Linha>(nome: string, argumentos: Linha = {}): Promise<T[
 
         const resultado = String(l["resultado"] ?? "");
         const portao = typeof l["portao_bloqueou"] === "string" ? l["portao_bloqueou"] : "";
-        const chave = `${resultado} ${portao}`;
+        const chave = `${resultado}\x00${portao}`;
 
         const atual = grupos.get(chave) ?? { resultado, portao, quantidade: 0, custo: 0 };
         atual.quantidade += 1;
