@@ -5,9 +5,9 @@
   "type": "module",
   "description": "Tour interativo e vídeo renderizável do JP CRC / Revenue OS.",
   "scripts": {
-    "dev": "vite --port 5180",
+    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 5180",
+    "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run build",
     "video:preview": "remotion studio src/remotion/index.ts",

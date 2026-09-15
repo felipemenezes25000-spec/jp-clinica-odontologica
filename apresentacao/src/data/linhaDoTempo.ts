@@ -24,7 +24,9 @@ export type ChaveCapitulo =
   | "automacao"
   | "midia"
   | "conversa"
+  | "agente"
   | "operacao"
+  | "resultados"
   | "resultados";
 
 export type IdCena =
@@ -36,6 +38,7 @@ export type IdCena =
   | "eventos"
   | "elegibilidade"
   | "prioridade"
+  | "risco"
   | "divisao"
   | "automacoes"
   | "baseAntiga"
@@ -50,18 +53,34 @@ export type IdCena =
   | "intencoes"
   | "agendamento"
   | "lembretes"
+  | "encaixes"
   | "cobranca"
   | "humano"
+  | "agente"
+  | "portoes"
+  | "autonomia"
+  | "conhecimento"
+  | "prova"
+  | "sombra"
   | "home"
   | "inbox"
   | "paciente360"
+  | "recepcao"
+  | "unidades"
   | "resultados"
   | "funil"
+  | "radar"
+  | "tratamentos"
+  | "aprende"
+  | "metas"
+  | "briefing"
+  | "custoIa"
   | "antesDepois"
   | "impacto"
   | "gestor"
   | "ecossistema"
   | "frase"
+  | "final"
   | "final";
 
 export type DefinicaoCena = {
@@ -130,6 +149,7 @@ export const NOMES_CAPITULO: Readonly<Record<ChaveCapitulo, string>> = {
   automacao: "O que roda sozinho",
   midia: "Anúncios e leads",
   conversa: "A conversa",
+  agente: "O agente",
   operacao: "O dia da equipe",
   resultados: "Resultados",
 };

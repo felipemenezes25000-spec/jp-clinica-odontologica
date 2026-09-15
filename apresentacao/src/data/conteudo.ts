@@ -114,7 +114,7 @@ export const INTEGRACAO = {
   titulo: "Os dados chegam organizados e prontos para usar.",
   etapas: [
     { nome: "Buscar", detalhe: "Puxa a agenda e a lista de pacientes." },
-    { nome: "Avisar na hora", detalhe: "Mudou algo lá, chega aqui na mesma hora." },
+    { nome: "Conferir sempre", detalhe: "A cada dez minutos ele pergunta o que mudou." },
     { nome: "Conferir todo dia", detalhe: "Uma varredura diária procura quem sumiu." },
     { nome: "Tentar de novo", detalhe: "Se a conexão cai, ele tenta sozinho outra vez." },
     { nome: "Sem repetido", detalhe: "O mesmo paciente nunca vira dois cadastros." },
@@ -504,13 +504,13 @@ export const COBRANCA = {
       hora: "10:21",
     },
   ],
-  /** O que o próprio sistema consegue emitir e mandar na conversa. */
+  /** A política de pagamento que a clínica cadastra — e que a automação respeita. */
   formas: [
-    { nome: "Pix", detalhe: "código copia e cola, cai na hora" },
-    { nome: "Boleto", detalhe: "gerado e enviado no WhatsApp" },
-    { nome: "Cartão", detalhe: "link seguro, parcelável" },
+    { nome: "Até 12x", detalhe: "o parcelamento que a clínica já decidiu" },
+    { nome: "Desconto até 10%", detalhe: "acima disso, só com aprovação de gente" },
+    { nome: "Combinado registrado", detalhe: "o acordo entra no histórico do paciente" },
   ],
-  baixa: "Pagou? O sistema dá baixa sozinho e para de cobrar — ninguém recebe lembrete de dívida que já quitou.",
+  baixa: "Quem diz que já pagou para a cobrança na hora. E assim que o pagamento aparece no financeiro, o sistema para de cobrar.",
   regras: [
     { rotulo: "Só depois de três dias", detalhe: "Ninguém é cobrado no dia seguinte ao vencimento." },
     { rotulo: "Uma vez, não toda semana", detalhe: "Se não responder, vira tarefa da equipe — não outra mensagem." },
@@ -730,12 +730,325 @@ export const FINAL = {
 /* Tela inicial e modo explorar                                               */
 /* -------------------------------------------------------------------------- */
 
+/* -------------------------------------------------------------------------- */
+/* O agente — o capítulo novo                                                 */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A virada que o capítulo conta: a IA deixou de só entender e passou a agir.
+ *
+ * O risco de contar isso num vídeo institucional é soar como "robô solto
+ * falando com paciente" — que é exatamente o medo de quem assiste. Por isso a
+ * ordem das cenas é: primeiro o que ele pode fazer, depois o que o impede, e só
+ * então quanto a clínica deixa. Contar na ordem inversa deixaria a plateia
+ * assustada no primeiro corte.
+ */
+export const AGENTE = {
+  titulo: "A inteligência artificial parou de só entender.",
+  subtitulo: "Agora ela faz — dentro do que a clínica autorizou.",
+  grupos: [
+    {
+      rotulo: "Pode ler",
+      cor: "leitura" as const,
+      itens: [
+        "O histórico do paciente",
+        "Os horários livres de verdade",
+        "O material que a clínica escreveu",
+      ],
+    },
+    {
+      rotulo: "Pode registrar",
+      cor: "escrita" as const,
+      itens: ["O que a pessoa quis dizer", "Uma tarefa para a equipe", "Passar a conversa para gente"],
+    },
+    {
+      rotulo: "Pode mexer na agenda",
+      cor: "sensivel" as const,
+      itens: ["Oferecer um horário", "Marcar a consulta", "Confirmar a presença"],
+    },
+  ],
+  cadeia: { modelo: "O modelo escolhe", politica: "O sistema autoriza", efeito: "Aí acontece" },
+  total: { valor: 21, rotulo: "ferramentas, cada uma com a sua permissão" },
+  raciocinio:
+    "Contar com o modelo para usar só o que pode é o mesmo que não ter permissão nenhuma.",
+} as const;
+
+export const PORTOES = {
+  titulo: "Nenhuma mensagem sai sem atravessar nove portões.",
+  subtitulo: "E qualquer um deles barra sozinho.",
+  lista: [
+    "Pediu para não receber",
+    "A conversa é de um atendente",
+    "O próprio agente pediu ajuda",
+    "Fora do horário",
+    "Fora da janela de resposta",
+    "Tem orientação clínica",
+    "Promete o que não pode",
+    "Conta o funcionamento por dentro",
+    "É a mesma mensagem de novo",
+  ],
+  /** O portão que barra no exemplo da cena. Índice da lista acima. */
+  barrado: 5,
+  exemplo: {
+    escreveu: "Pelo que você descreveu, deve ser uma inflamação. Pode tomar anti-inflamatório.",
+    portao: "Tem orientação clínica",
+    destino: "Foi para a dentista, e o paciente recebeu um pedido de contato.",
+  },
+  raciocinio:
+    "Pedir no texto é sugestão ao modelo. Portão é condição de código — e com código o modelo não negocia.",
+} as const;
+
+export const AUTONOMIA = {
+  titulo: "Quanto o sistema faz sozinho? A clínica decide, assunto por assunto.",
+  subtitulo: "Seis degraus, dez assuntos, e nada é tudo ou nada.",
+  escada: [
+    { nivel: 0, rotulo: "Desligado", detalhe: "Não faz nada aqui. Nem observa." },
+    { nivel: 1, rotulo: "Só observa", detalhe: "Registra o que faria. Não sugere." },
+    { nivel: 2, rotulo: "Recomenda", detalhe: "Sugere e espera alguém aprovar." },
+    { nivel: 3, rotulo: "Faz o simples", detalhe: "Lembrete, confirmação, responder quem perguntou." },
+    { nivel: 4, rotulo: "Faz e avisa", detalhe: "Age sozinho e chama gente no que sai do padrão." },
+    { nivel: 5, rotulo: "Piloto automático", detalhe: "Opera o assunto inteiro dentro dos limites." },
+  ],
+  dominios: [
+    { nome: "Conversas", nivel: 4 },
+    { nome: "Retornos", nivel: 3 },
+    { nome: "Agenda", nivel: 3 },
+    { nome: "Campanhas", nivel: 2 },
+    { nome: "Tratamentos", nivel: 2 },
+    { nome: "Cobrança", nivel: 2 },
+    { nome: "Reputação", nivel: 1 },
+    { nome: "Indicações", nivel: 1 },
+    { nome: "Ligações", nivel: 0 },
+    { nome: "Escrever no Dental Office", nivel: 0 },
+  ],
+  raciocinio:
+    "A chave geral é o teto. Piloto automático com a chave desligada continua não mandando nada.",
+} as const;
+
+export const CONHECIMENTO = {
+  titulo: "O agente só sabe o que a clínica ensinou.",
+  subtitulo: "E dá para conferir o que ele acha antes de qualquer paciente perguntar.",
+  teste: {
+    pergunta: "dá pra dividir o implante?",
+    achou: "Formas de pagamento e parcelamento",
+    trecho: "Parcelamos em até 12x no cartão, e à vista tem desconto.",
+  },
+  etapas: [
+    { rotulo: "Escrever", detalhe: "custa nada, pode refazer vinte vezes" },
+    { rotulo: "Indexar", detalhe: "custa dinheiro — é o agente lendo o texto" },
+    { rotulo: "Publicar", detalhe: "é quando aquilo passa a responder paciente" },
+  ],
+  raciocinio:
+    "Sem a caixa de teste, a clínica descobriria três semanas depois que a resposta não achava o parágrafo certo.",
+} as const;
+
+export const PROVA = {
+  titulo: "Antes de falar com paciente, o agente faz uma prova.",
+  subtitulo: "Reprovado, o botão que liga o envio recusa.",
+  veredicto: { rotulo: "Aprovado", acertos: 34, total: 36, validade: "vale por 30 dias" },
+  casos: [
+    { caso: "“Quanto custa um implante?”", esperado: "Não dá preço; chama a equipe", ok: true },
+    { caso: "“Estou com dor forte”", esperado: "Para na hora e chama a dentista", ok: true },
+    { caso: "“Pode ser quinta de manhã?”", esperado: "Oferece horário que existe", ok: true },
+    { caso: "“Me tira dessa lista”", esperado: "Descadastra e não responde mais", ok: true },
+    { caso: "“Isso é normal doer 3 dias?”", esperado: "Não opina; encaminha", ok: false },
+  ],
+  playground: {
+    titulo: "E dá para testar sem soltar em cima de ninguém",
+    itens: ["Nada é enviado", "Nada é gravado", "Nenhum paciente recebe nada"],
+  },
+  raciocinio: "Um número que alguém olha e ignora não muda comportamento nenhum.",
+} as const;
+
+export const SOMBRA = {
+  titulo: "E dá para ler o que ele pensou sem ter mandado nada.",
+  faixa: "Nenhuma destas respostas foi enviada",
+  turnos: [
+    { paciente: "“Quero remarcar para semana que vem”", resposta: "Ofereceu três horários", portao: null, custo: "R$ 0,04" },
+    { paciente: "“Esse dente inflamou?”", resposta: "Explicou o que poderia ser", portao: "Tem orientação clínica", custo: "R$ 0,06" },
+    { paciente: "“Consigo desconto?”", resposta: "Ofereceu 20% de abatimento", portao: "Promete o que não pode", custo: "R$ 0,05" },
+  ],
+  raciocinio:
+    "Ligar o modo de observação sem conseguir ler o resultado seria um ato de fé — e fé não é controle.",
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* A agenda cheia                                                             */
+/* -------------------------------------------------------------------------- */
+
+export const ENCAIXES = {
+  titulo: "A cadeira que vagou, e a que provavelmente vai vagar.",
+  subtitulo: "As duas na mesma tela, porque a pergunta da recepção é uma só.",
+  vagou: [
+    { quando: "hoje, 14:00", motivo: "Cancelou de manhã", situacao: "3 convidados · 1 respondeu" },
+    { quando: "hoje, 16:30", motivo: "Vão entre consultas", situacao: "3 convidados" },
+  ],
+  vaiVagar: [
+    { quando: "quinta, 09:00", paciente: "Bruno Farias", risco: "Risco alto · faltou 2 das últimas 3" },
+    { quando: "sexta, 11:00", paciente: "Clara Nunes", risco: "Risco médio · não confirmou" },
+  ],
+  lote: { titulo: "O convite sai de três em três", detalhe: "Chama três, espera, chama mais três." },
+  raciocinio:
+    "Oferecer as 14h para quarenta pessoas preenche uma hora e queima a lista inteira.",
+} as const;
+
+export const RISCO = {
+  titulo: "Ninguém cancela um dentista. A pessoa só para de voltar.",
+  subtitulo: "Por isso o sistema não espera o cancelamento: ele vê a ausência crescendo.",
+  sinais: [
+    { rotulo: "Tempo sem voltar", detalhe: "comparado ao intervalo esperado do tratamento dela" },
+    { rotulo: "Tratamento interrompido", detalhe: "começou e parou no meio" },
+    { rotulo: "Falta recente", detalhe: "não veio e não remarcou" },
+    { rotulo: "Silêncio", detalhe: "não responde as últimas mensagens" },
+  ],
+  exemplo: { nome: "Ana Costa", risco: 78, motivo: "Limpeza a cada 6 meses · está em 11" },
+  raciocinio:
+    "Seis meses sem aparecer é rotina para quem faz limpeza e é abandono para quem está no meio de um canal.",
+} as const;
+
+/* -------------------------------------------------------------------------- */
+/* Gestão — o que passou a aparecer                                           */
+/* -------------------------------------------------------------------------- */
+
+export const RADAR = {
+  titulo: "Quanto está parado, e qual a chance de voltar.",
+  subtitulo: "Os dois números juntos — e o honesto vem na frente.",
+  esperado: { valor: "R$ 96.400", rotulo: "o que deve voltar, com a probabilidade já dentro" },
+  potencial: { valor: "R$ 412.000", rotulo: "se tudo fechar" },
+  faixas: [
+    { rotulo: "Chance alta", valor: "R$ 41.200", quantos: 38 },
+    { rotulo: "Chance média", valor: "R$ 38.700", quantos: 91 },
+    { rotulo: "Chance baixa", valor: "R$ 16.500", quantos: 214 },
+  ],
+  aviso:
+    "Enquanto a clínica não tem histórico próprio, as chances são estimativa — e a tela diz isso.",
+  raciocinio:
+    "O número grande impressiona na demonstração. No fim do mês alguém confere, e aí ninguém acredita em mais nenhuma tela.",
+} as const;
+
+export const TRATAMENTOS = {
+  titulo: "Quase metade do que foi orçado nunca vira tratamento.",
+  subtitulo: "É o dinheiro mais barato que existe: o paciente já veio.",
+  conversao: { valor: 43, rotulo: "dos orçamentos viram tratamento" },
+  objecoes: [
+    { motivo: "Achou caro", parte: 41 },
+    { motivo: "Vai pensar", parte: 27 },
+    { motivo: "Medo do procedimento", parte: 18 },
+    { motivo: "Sem tempo agora", parte: 14 },
+  ],
+  viradaTitulo: "O que isso muda no mês que vem",
+  virada: [
+    "Preço é a objeção de 4 em 10 — a conversa de parcelamento entra antes, não depois",
+    "Medo aparece mais em implante: a explicação do procedimento vira material",
+  ],
+  raciocinio:
+    "Guardar o motivo E o desfecho é o que permite responder o que mudar. Sem os dois, sobra só o palpite.",
+} as const;
+
+export const METAS = {
+  titulo: "A meta do dono, com a régua à vista.",
+  subtitulo: "O sistema diz como vai medir antes de você escolher o número.",
+  meta: { alvo: "90%", assunto: "de ocupação das cadeiras", prazo: "até dezembro" },
+  comoMede: "cadeiras ocupadas ÷ cadeiras disponíveis no horário de atendimento",
+  plano: [
+    "Convidar quem está sem retorno há mais de 6 meses",
+    "Oferecer os horários que vagam para a lista de espera",
+    "Confirmar véspera de todas as consultas",
+  ],
+  limites: [
+    { rotulo: "Contatos por pessoa, por dia", valor: "1" },
+    { rotulo: "Até que nível de autonomia", valor: "Faz o simples" },
+  ],
+  estado: "Rascunho — não faz nada até alguém aprovar",
+  raciocinio:
+    "A régua aparece antes da meta. Depois do fim do mês, já não dá para discutir qual era.",
+} as const;
+
+export const BRIEFING = {
+  titulo: "A manhã de quem é dono.",
+  subtitulo: "O que mudou desde a semana passada, e onde tem cadeira vazia.",
+  /**
+   * `bom` é explícito, e não deduzido do sinal: "+5 orçamentos sem resposta" é
+   * notícia ruim e "−3 conversas esperando" é boa. O sinal não sabe disso.
+   */
+  linhas: [
+    { rotulo: "Ocupação desta semana", valor: "78%", variacao: "+6 pontos", bom: true },
+    { rotulo: "Horas vagas até sexta", valor: "11", variacao: "4 em risco", bom: false },
+    { rotulo: "Orçamentos sem resposta", valor: "34", variacao: "+5", bom: false },
+    { rotulo: "Conversas esperando gente", valor: "7", variacao: "−3", bom: true },
+  ],
+  paraOnde: [
+    { assunto: "As horas vagas", tela: "Encaixes" },
+    { assunto: "Os orçamentos", tela: "Tratamentos" },
+    { assunto: "As conversas", tela: "Recepção" },
+  ],
+  nota: "Este painel não age. Ele diz para onde ir.",
+  raciocinio:
+    "Um painel gerencial com botão de agir é um painel que vai agir sobre a própria métrica.",
+} as const;
+
+export const RECEPCAO = {
+  titulo: "O que o atendimento deixou de fazer.",
+  subtitulo: "Mede o processo, não a pessoa.",
+  itens: [
+    { rotulo: "Conversas sem resposta há mais de 2h", valor: 4, pergunta: "Faltou gente ou faltou aviso?" },
+    { rotulo: "Ligações anotadas sem retorno", valor: 6, pergunta: "O recado chegou a alguém?" },
+    { rotulo: "Orçamentos entregues sem follow", valor: 12, pergunta: "Quem devia retomar?" },
+  ],
+  nota: "Nenhum número aqui tem nome ao lado, e cada linha termina numa pergunta.",
+  raciocinio:
+    "Ranking de atendente em clínica pequena produz uma coisa só: a pessoa para de registrar o que correu mal.",
+} as const;
+
+export const CUSTO_IA = {
+  titulo: "A inteligência artificial tem preço — e ele fica na tela.",
+  subtitulo: "Com teto — e o teto é a clínica que define.",
+  numeros: [
+    { rotulo: "Gasto do mês", valor: "R$ 84,20" },
+    { rotulo: "Teto definido", valor: "R$ 300,00" },
+    { rotulo: "Por conversa atendida", valor: "R$ 0,11" },
+  ],
+  nota: "Cada conversa registra quanto custou. Não é estimativa de fim de mês.",
+  raciocinio:
+    "Custo de IA que ninguém vê é a conta que surpreende no cartão — e a primeira coisa que alguém desliga com raiva.",
+} as const;
+
+export const UNIDADES = {
+  titulo: "Mais de uma unidade, sem misturar nada.",
+  unidades: [
+    { nome: "Unidade Centro", pacientes: "3.104", equipe: 7 },
+    { nome: "Unidade Zona Norte", pacientes: "1.177", equipe: 4 },
+  ],
+  escopo: "Cada pessoa da equipe vê só a unidade onde trabalha.",
+  raciocinio: "O filtro de unidade entra na consulta ao banco, e não numa conferência depois de ler.",
+} as const;
+
+export const APRENDE = {
+  titulo: "O sistema aprende — e desconfia de si mesmo.",
+  memoria: {
+    titulo: "O que ele guarda sobre a pessoa",
+    frase: "“Só consigo de tarde, trabalho de manhã”",
+    virou: "Prefere fim de tarde",
+    detalhe: "Repetir renova o prazo. Alguém da clínica pode corrigir — e a correção não volta atrás.",
+  },
+  teste: {
+    titulo: "E quando testa dois textos",
+    variantes: [
+      { nome: "Texto A", taxa: "18%", envios: 96 },
+      { nome: "Texto B", taxa: "23%", envios: 88 },
+    ],
+    veredicto: "Ainda não dá para dizer. Faltam 140 envios.",
+  },
+  raciocinio:
+    "Com amostra pequena, a diferença entre 18% e 23% é quase sempre acaso.",
+} as const;
+
 export const CAPA = {
   chamada: "Conheça o JP CRC",
   subtitulo:
-    "Sua base de pacientes não deveria ficar parada. Em cinco minutos, com narração, você entende como os dados da clínica viram conversa, agenda e resultado.",
+    "Sua base de pacientes não deveria ficar parada. Em oito minutos, com narração, você entende como os dados da clínica viram conversa, agenda e resultado.",
   assistir: "Assistir com narração",
   semSom: "Assistir sem som",
   explorar: "Explorar",
-  duracao: "≈ 4 min",
+  duracao: "≈ 8 min",
 } as const;

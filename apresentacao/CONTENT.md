@@ -73,13 +73,27 @@ limpo. Quem descobriu foi o cliente assistindo.
 
 ## A linha "Por que"
 
-Em oito cenas aparece um rodapé com o critério que o sistema usou para decidir o
-que acabou de fazer. Os textos ficam em `RACIOCINIO`, em `conteudo.ts`, e o
-componente é o `Raciocinio` de `components/CenaBase.tsx`.
+Em vinte cenas aparece um rodapé com o critério que o sistema usou para decidir o
+que acabou de fazer. O componente é o `Raciocinio` de `components/CenaBase.tsx`,
+e o texto vem de dois lugares:
+
+- as cenas antigas leem `RACIOCINIO` — um objeto com uma chave por cena;
+- as cenas novas leem o campo `raciocinio` **do próprio bloco** da cena
+  (`AGENTE.raciocinio`, `RADAR.raciocinio`, …).
+
+A segunda forma é a preferida para conteúdo novo: o texto fica ao lado do resto
+da cena, e não num objeto distante que ninguém lembra de atualizar quando a cena
+muda.
 
 Duas regras ao editar: **uma linha só** (duas encostam na legenda) e **responder
 por que, não o quê** — "junta todos e começa pelo maior" descreve; "orçamento
 parado quase nunca é não, é depois" explica.
+
+Para saber quais cenas trazem a linha:
+
+```bash
+grep -l "<Raciocinio" src/scenes/*.tsx
+```
 
 ## A voz
 

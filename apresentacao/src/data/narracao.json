@@ -2,87 +2,405 @@
   "_leia_me": "A narração falada e as legendas — o MESMO texto para os dois, para que nunca divirjam. `inicio` é o segundo DENTRO da cena (não do filme inteiro). A duração NÃO se escreve aqui: ela é medida do áudio gerado e gravada em `narracao.duracoes.json`, para que a legenda apareça e saia exatamente com a voz. Rode `npm run narracao` depois de mexer em qualquer texto.",
   "_tom": "Frases curtas, palavras do dia a dia. Quem assiste não é da área de tecnologia: nada de 'webhook', 'evento', 'score', 'opt-out' ou nome de sistema em inglês na fala.",
   "linhas": [
-    { "cena": "abertura", "inicio": 2.2, "texto": "Toda clínica gera sinais o dia inteiro." },
-    { "cena": "abertura", "inicio": 6.4, "texto": "O difícil é agir na hora certa." },
-
-    { "cena": "problema", "inicio": 0.9, "texto": "Pacientes que faltaram. Quem cancelou. Quem sumiu há meses." },
-    { "cena": "problema", "inicio": 7.0, "texto": "A informação existe. Só está espalhada em vários lugares." },
-
-    { "cena": "dentalOffice", "inicio": 0.9, "texto": "Tudo começa no Dental Office, onde ficam os pacientes, a agenda e os horários." },
-
-    { "cena": "integracao", "inicio": 0.8, "texto": "O JP CRC lê esses dados e organiza tudo sozinho." },
-
-    { "cena": "nucleo", "inicio": 1.2, "texto": "Aqui o dado vira oportunidade: alguém que precisa de contato." },
-
-    { "cena": "eventos", "inicio": 0.8, "texto": "O sistema percebe quem faltou, quem cancelou e quem sumiu." },
-    { "cena": "eventos", "inicio": 5.6, "texto": "Inclusive quem ficou com uma parcela em aberto." },
-
-    { "cena": "elegibilidade", "inicio": 0.8, "texto": "Antes de mandar mensagem, ele confere se pode falar com a pessoa." },
-
-    { "cena": "prioridade", "inicio": 0.8, "texto": "E põe na frente quem tem mais chance de voltar." },
-
-    { "cena": "divisao", "inicio": 0.8, "texto": "Caso simples, a automação resolve. Caso delicado, a equipe assume." },
-
-    { "cena": "automacoes", "inicio": 0.8, "texto": "São seis rotinas rodando todo dia, sem ninguém precisar lembrar." },
-
-    { "cena": "baseAntiga", "inicio": 1.2, "texto": "E os pacientes antigos voltam a ser lembrados, um por um." },
-
-    { "cena": "orcamentos", "inicio": 0.8, "texto": "E tem muito orçamento parado no Dental Office esperando uma resposta." },
-    { "cena": "orcamentos", "inicio": 6.2, "texto": "O sistema junta todos, começa pelos maiores e pergunta se ficou alguma dúvida." },
-
-    { "cena": "reativacao", "inicio": 0.8, "texto": "O contato sai aos poucos, com limite e respeito a quem pediu para parar." },
-
-    { "cena": "campanhas", "inicio": 0.8, "texto": "As campanhas falam com um grupo inteiro de uma vez." },
-    { "cena": "campanhas", "inicio": 5.2, "texto": "Aniversariantes do mês, quem sumiu, quem parou no meio do tratamento." },
-
-    { "cena": "montarCampanha", "inicio": 0.8, "texto": "E montar uma campanha são três passos: quem recebe, o que chega e quando sai." },
-    { "cena": "montarCampanha", "inicio": 6.4, "texto": "A própria clínica faz, e vê quantas pessoas entram no filtro antes de enviar." },
-
-    { "cena": "leadPago", "inicio": 0.8, "texto": "Quem clica num anúncio recebe resposta em segundos, não no dia seguinte." },
-    { "cena": "leadPago", "inicio": 6.2, "texto": "E o sistema guarda de qual anúncio aquela pessoa veio." },
-
-    { "cena": "midia", "inicio": 0.8, "texto": "Aí dá para ver quanto custou cada paciente que sentou na cadeira." },
-    { "cena": "midia", "inicio": 6.4, "texto": "E qual campanha vale a pena manter, qual vale a pena pausar." },
-
-    { "cena": "whatsapp", "inicio": 0.8, "texto": "A conversa acontece no WhatsApp, onde o paciente já está." },
-    { "cena": "whatsapp", "inicio": 5.4, "texto": "E é aqui que ele responde." },
-
-    { "cena": "ia", "inicio": 0.8, "texto": "A inteligência artificial lê a resposta e entende o que a pessoa quer." },
-
-    { "cena": "intencoes", "inicio": 0.7, "texto": "Ela separa quem quer marcar de quem precisa falar com alguém." },
-
-    { "cena": "agendamento", "inicio": 0.8, "texto": "Quando o paciente quer marcar, o sistema mostra os horários que existem de verdade." },
-    { "cena": "agendamento", "inicio": 7.8, "texto": "Confere de novo e cria a consulta." },
-
-    { "cena": "lembretes", "inicio": 0.8, "texto": "Um dia antes, o paciente recebe o lembrete e confirma pelo WhatsApp." },
-    { "cena": "lembretes", "inicio": 5.6, "texto": "Se não puder vir, o horário volta para a agenda." },
-
-    { "cena": "cobranca", "inicio": 0.8, "texto": "A parcela em atraso também é lembrada, com jeito e uma vez só." },
-    { "cena": "cobranca", "inicio": 5.8, "texto": "O próprio sistema manda o Pix, o boleto ou o link do cartão." },
-    { "cena": "cobranca", "inicio": 10.6, "texto": "Quem quer renegociar fala com a equipe, não com um robô." },
-
-    { "cena": "humano", "inicio": 0.8, "texto": "Se o caso é delicado, a automação para e chama a equipe." },
-
-    { "cena": "home", "inicio": 1.0, "texto": "A equipe abre o dia sabendo quem precisa dela." },
-
-    { "cena": "inbox", "inicio": 0.8, "texto": "Cada conversa chega com o histórico do paciente do lado." },
-
-    { "cena": "paciente360", "inicio": 0.8, "texto": "E cada paciente tem uma página com tudo que já aconteceu." },
-
-    { "cena": "resultados", "inicio": 0.8, "texto": "Nada se perde. Tudo fica registrado." },
-
-    { "cena": "funil", "inicio": 0.8, "texto": "Dá para ver quantos foram contatados, quantos responderam e quantos marcaram." },
-
-    { "cena": "antesDepois", "inicio": 0.8, "texto": "Menos trabalho manual. Mais constância." },
-
-    { "cena": "impacto", "inicio": 0.8, "texto": "Mais contato gera mais resposta. Mais resposta gera mais agenda." },
-
-    { "cena": "gestor", "inicio": 0.8, "texto": "E a gestão enxerga o que está dando resultado." },
-
-    { "cena": "ecossistema", "inicio": 1.2, "texto": "Do dado até a consulta marcada, um caminho só." },
-
-    { "cena": "frase", "inicio": 0.8, "texto": "O Dental Office guarda a operação. O JP CRC transforma isso em ação." },
-
-    { "cena": "final", "inicio": 1.4, "texto": "Mais organização, mais relacionamento e menos oportunidade esquecida." }
+    {
+      "cena": "abertura",
+      "inicio": 2.2,
+      "texto": "Toda clínica gera sinais o dia inteiro."
+    },
+    {
+      "cena": "abertura",
+      "inicio": 6.4,
+      "texto": "O difícil é agir na hora certa."
+    },
+    {
+      "cena": "problema",
+      "inicio": 0.9,
+      "texto": "Pacientes que faltaram. Quem cancelou. Quem sumiu há meses."
+    },
+    {
+      "cena": "problema",
+      "inicio": 7,
+      "texto": "A informação existe. Só está espalhada em vários lugares."
+    },
+    {
+      "cena": "dentalOffice",
+      "inicio": 0.9,
+      "texto": "Tudo começa no Dental Office, onde ficam os pacientes, a agenda e os horários."
+    },
+    {
+      "cena": "integracao",
+      "inicio": 0.8,
+      "texto": "O JP CRC lê esses dados e organiza tudo sozinho."
+    },
+    {
+      "cena": "nucleo",
+      "inicio": 1.2,
+      "texto": "Aqui o dado vira oportunidade: alguém que precisa de contato."
+    },
+    {
+      "cena": "eventos",
+      "inicio": 0.8,
+      "texto": "O sistema percebe quem faltou, quem cancelou e quem sumiu."
+    },
+    {
+      "cena": "eventos",
+      "inicio": 5.6,
+      "texto": "Inclusive quem ficou com uma parcela em aberto."
+    },
+    {
+      "cena": "elegibilidade",
+      "inicio": 0.8,
+      "texto": "Antes de mandar mensagem, ele confere se pode falar com a pessoa."
+    },
+    {
+      "cena": "prioridade",
+      "inicio": 0.8,
+      "texto": "E põe na frente quem tem mais chance de voltar."
+    },
+    {
+      "cena": "risco",
+      "inicio": 0.8,
+      "texto": "Ninguém cancela um dentista. A pessoa só para de voltar."
+    },
+    {
+      "cena": "risco",
+      "inicio": 5.4,
+      "texto": "O sistema vê essa ausência crescendo e avisa enquanto dá tempo."
+    },
+    {
+      "cena": "divisao",
+      "inicio": 0.8,
+      "texto": "Caso simples, a automação resolve. Caso delicado, a equipe assume."
+    },
+    {
+      "cena": "automacoes",
+      "inicio": 0.8,
+      "texto": "São sete rotinas rodando todo dia, sem ninguém precisar lembrar."
+    },
+    {
+      "cena": "baseAntiga",
+      "inicio": 1.2,
+      "texto": "E os pacientes antigos voltam a ser lembrados, um por um."
+    },
+    {
+      "cena": "orcamentos",
+      "inicio": 0.8,
+      "texto": "E tem muito orçamento parado no Dental Office esperando uma resposta."
+    },
+    {
+      "cena": "orcamentos",
+      "inicio": 6.2,
+      "texto": "O sistema junta todos, começa pelos maiores e pergunta se ficou alguma dúvida."
+    },
+    {
+      "cena": "reativacao",
+      "inicio": 0.8,
+      "texto": "O contato sai aos poucos, com limite e respeito a quem pediu para parar."
+    },
+    {
+      "cena": "campanhas",
+      "inicio": 0.8,
+      "texto": "As campanhas falam com um grupo inteiro de uma vez."
+    },
+    {
+      "cena": "campanhas",
+      "inicio": 5.2,
+      "texto": "Aniversariantes do mês, quem sumiu, quem parou no meio do tratamento."
+    },
+    {
+      "cena": "montarCampanha",
+      "inicio": 0.8,
+      "texto": "E montar uma campanha são três passos: quem recebe, o que chega e quando sai."
+    },
+    {
+      "cena": "montarCampanha",
+      "inicio": 6.4,
+      "texto": "A própria clínica faz, e vê quantas pessoas entram no filtro antes de enviar."
+    },
+    {
+      "cena": "leadPago",
+      "inicio": 0.8,
+      "texto": "Quem clica num anúncio recebe resposta em segundos, não no dia seguinte."
+    },
+    {
+      "cena": "leadPago",
+      "inicio": 6.2,
+      "texto": "E o sistema guarda de qual anúncio aquela pessoa veio."
+    },
+    {
+      "cena": "midia",
+      "inicio": 0.8,
+      "texto": "Aí dá para ver quanto custou cada paciente que sentou na cadeira."
+    },
+    {
+      "cena": "midia",
+      "inicio": 6.4,
+      "texto": "E qual campanha vale a pena manter, qual vale a pena pausar."
+    },
+    {
+      "cena": "whatsapp",
+      "inicio": 0.8,
+      "texto": "A conversa acontece no WhatsApp, onde o paciente já está."
+    },
+    {
+      "cena": "whatsapp",
+      "inicio": 5.4,
+      "texto": "E é aqui que ele responde."
+    },
+    {
+      "cena": "ia",
+      "inicio": 0.8,
+      "texto": "A inteligência artificial lê a resposta e entende o que a pessoa quer."
+    },
+    {
+      "cena": "intencoes",
+      "inicio": 0.7,
+      "texto": "Ela separa quem quer marcar de quem precisa falar com alguém."
+    },
+    {
+      "cena": "agendamento",
+      "inicio": 0.8,
+      "texto": "Quando o paciente quer marcar, o sistema mostra os horários que existem de verdade."
+    },
+    {
+      "cena": "agendamento",
+      "inicio": 7.8,
+      "texto": "Confere de novo e cria a consulta."
+    },
+    {
+      "cena": "lembretes",
+      "inicio": 0.8,
+      "texto": "Um dia antes, o paciente recebe o lembrete e confirma pelo WhatsApp."
+    },
+    {
+      "cena": "lembretes",
+      "inicio": 5.6,
+      "texto": "Se não puder vir, o horário volta para a agenda."
+    },
+    {
+      "cena": "encaixes",
+      "inicio": 0.8,
+      "texto": "Quando uma cadeira vaga, o sistema chama quem está esperando."
+    },
+    {
+      "cena": "encaixes",
+      "inicio": 6.4,
+      "texto": "De três em três, para não queimar a lista inteira."
+    },
+    {
+      "cena": "cobranca",
+      "inicio": 0.8,
+      "texto": "A parcela em atraso também é lembrada, com jeito e uma vez só."
+    },
+    {
+      "cena": "cobranca",
+      "inicio": 5.8,
+      "texto": "O parcelamento e o desconto seguem o que a clínica já definiu."
+    },
+    {
+      "cena": "cobranca",
+      "inicio": 10.6,
+      "texto": "Quem quer renegociar fala com a equipe, não com um robô."
+    },
+    {
+      "cena": "humano",
+      "inicio": 0.8,
+      "texto": "Se o caso é delicado, a automação para e chama a equipe."
+    },
+    {
+      "cena": "agente",
+      "inicio": 0.8,
+      "texto": "A inteligência artificial parou de só entender. Agora ela faz."
+    },
+    {
+      "cena": "agente",
+      "inicio": 6.2,
+      "texto": "São vinte e uma ferramentas, e cada uma precisa de permissão."
+    },
+    {
+      "cena": "portoes",
+      "inicio": 0.8,
+      "texto": "Antes de qualquer mensagem sair, ela passa por nove portões."
+    },
+    {
+      "cena": "portoes",
+      "inicio": 6.8,
+      "texto": "Aqui o portão de conteúdo clínico barrou, e a dentista assumiu."
+    },
+    {
+      "cena": "autonomia",
+      "inicio": 0.8,
+      "texto": "Quanto o sistema faz sozinho é a clínica que decide."
+    },
+    {
+      "cena": "autonomia",
+      "inicio": 6.4,
+      "texto": "Assunto por assunto, de só observar até o piloto automático."
+    },
+    {
+      "cena": "conhecimento",
+      "inicio": 0.8,
+      "texto": "O agente só sabe o que a clínica ensinou para ele."
+    },
+    {
+      "cena": "conhecimento",
+      "inicio": 5.8,
+      "texto": "E dá para conferir a resposta antes de qualquer paciente perguntar."
+    },
+    {
+      "cena": "prova",
+      "inicio": 0.8,
+      "texto": "Antes de falar com paciente, ele tem que passar numa prova."
+    },
+    {
+      "cena": "prova",
+      "inicio": 6.4,
+      "texto": "Se for reprovado, o botão que liga o envio recusa."
+    },
+    {
+      "cena": "sombra",
+      "inicio": 0.8,
+      "texto": "E dá para ler o que ele pensou sem ter mandado nada."
+    },
+    {
+      "cena": "sombra",
+      "inicio": 5.8,
+      "texto": "Com o motivo de cada mensagem barrada e quanto custou."
+    },
+    {
+      "cena": "home",
+      "inicio": 1,
+      "texto": "A equipe abre o dia sabendo quem precisa dela."
+    },
+    {
+      "cena": "inbox",
+      "inicio": 0.8,
+      "texto": "Cada conversa chega com o histórico do paciente do lado."
+    },
+    {
+      "cena": "paciente360",
+      "inicio": 0.8,
+      "texto": "E cada paciente tem uma página com tudo que já aconteceu."
+    },
+    {
+      "cena": "recepcao",
+      "inicio": 0.8,
+      "texto": "O sistema também mostra o que o atendimento deixou de fazer."
+    },
+    {
+      "cena": "recepcao",
+      "inicio": 5.4,
+      "texto": "Sem nome do lado: mede o processo, não a pessoa."
+    },
+    {
+      "cena": "unidades",
+      "inicio": 0.8,
+      "texto": "Se a clínica tem mais de uma unidade, nada se mistura."
+    },
+    {
+      "cena": "unidades",
+      "inicio": 4.8,
+      "texto": "E cada pessoa vê só onde trabalha."
+    },
+    {
+      "cena": "resultados",
+      "inicio": 0.8,
+      "texto": "Nada se perde. Tudo fica registrado."
+    },
+    {
+      "cena": "funil",
+      "inicio": 0.8,
+      "texto": "Dá para ver quantos foram contatados, quantos responderam e quantos marcaram."
+    },
+    {
+      "cena": "radar",
+      "inicio": 0.8,
+      "texto": "Aqui está quanto dinheiro está parado e qual a chance de voltar."
+    },
+    {
+      "cena": "radar",
+      "inicio": 6.2,
+      "texto": "O número em destaque já tem a probabilidade dentro dele."
+    },
+    {
+      "cena": "tratamentos",
+      "inicio": 0.8,
+      "texto": "Quase metade do que foi orçado nunca vira tratamento."
+    },
+    {
+      "cena": "tratamentos",
+      "inicio": 6.4,
+      "texto": "E o sistema mostra por quê, para a clínica mudar o mês seguinte."
+    },
+    {
+      "cena": "aprende",
+      "inicio": 0.8,
+      "texto": "O sistema guarda o que cada paciente prefere."
+    },
+    {
+      "cena": "aprende",
+      "inicio": 5.6,
+      "texto": "E se recusa a dizer qual texto é melhor sem ter certeza."
+    },
+    {
+      "cena": "metas",
+      "inicio": 0.8,
+      "texto": "A meta do dono entra com a régua à vista."
+    },
+    {
+      "cena": "metas",
+      "inicio": 5.6,
+      "texto": "E não sai do rascunho até alguém aprovar."
+    },
+    {
+      "cena": "briefing",
+      "inicio": 0.8,
+      "texto": "De manhã, o dono vê o que mudou e onde tem cadeira vazia."
+    },
+    {
+      "cena": "briefing",
+      "inicio": 5.4,
+      "texto": "Este painel não age. Ele diz para onde ir."
+    },
+    {
+      "cena": "custoIa",
+      "inicio": 0.8,
+      "texto": "A inteligência artificial tem preço, e ele fica na tela."
+    },
+    {
+      "cena": "custoIa",
+      "inicio": 5.2,
+      "texto": "Com teto. Passou do teto, o sistema para."
+    },
+    {
+      "cena": "antesDepois",
+      "inicio": 0.8,
+      "texto": "Menos trabalho manual. Mais constância."
+    },
+    {
+      "cena": "impacto",
+      "inicio": 0.8,
+      "texto": "Mais contato gera mais resposta. Mais resposta gera mais agenda."
+    },
+    {
+      "cena": "gestor",
+      "inicio": 0.8,
+      "texto": "E a gestão enxerga o que está dando resultado."
+    },
+    {
+      "cena": "ecossistema",
+      "inicio": 1.2,
+      "texto": "Do dado até a consulta marcada, um caminho só."
+    },
+    {
+      "cena": "frase",
+      "inicio": 0.8,
+      "texto": "O Dental Office guarda a operação. O JP CRC transforma isso em ação."
+    },
+    {
+      "cena": "final",
+      "inicio": 1.4,
+      "texto": "Mais organização, mais relacionamento e menos oportunidade esquecida."
+    }
   ]
 }

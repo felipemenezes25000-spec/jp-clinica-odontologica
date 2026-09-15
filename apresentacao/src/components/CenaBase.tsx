@@ -39,6 +39,31 @@ export const TETO_DA_LEGENDA = 890;
  */
 export const RODAPE = 858;
 
+/**
+ * Onde o conteúdo da cena pode começar, abaixo do cabeçalho.
+ *
+ * O cabeçalho não tem altura fixa: ele cresce com o texto. Um título de duas
+ * linhas com subtítulo de uma ocupa até ~300; se o subtítulo também quebrar,
+ * vai a ~340. Cinco cenas nasceram assumindo 272 ou 292 e saíram com o
+ * subtítulo encostando — em duas delas, com palavra atropelada em cima de
+ * outra.
+ *
+ * A regra, então, é por forma de cabeçalho:
+ *
+ *   título 1 linha, sem subtítulo ............ 240
+ *   título 1 linha + subtítulo 1 linha ....... 272
+ *   título 2 linhas + subtítulo 1 linha ...... 300
+ *   título 2 linhas + subtítulo 2 linhas ..... 340
+ *
+ * Na dúvida, use o maior: 40 px de folga não se nota, e texto sobreposto sim.
+ */
+export const TOPO = {
+  soTitulo: 240,
+  comSubtitulo: 272,
+  tituloLongo: 300,
+  ambosLongos: 340,
+} as const;
+
 export function TituloDeCena({
   kicker,
   titulo,

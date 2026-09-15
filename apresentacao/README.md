@@ -4,13 +4,13 @@ Uma peça, dois destinos: um **tour interativo** publicado em
 `/crc-institucional` no site da clínica e um **vídeo MP4** renderizável. Os dois
 desenham exatamente o mesmo filme — o que muda é só quem conta o tempo.
 
-**35 cenas · 5:24 · narração falada em português, legenda sincronizada e trilha
+**51 cenas · 8:23 · narração falada em português, legenda sincronizada e trilha
 original.**
 
 ```bash
 npm install
 
-npm run dev              # tour           → http://localhost:5180/crc-tour/
+npm run dev              # tour (a porta sai no terminal) → /crc-tour/
 npm run build            # publica em     ../public/crc-tour/
 npm run narracao         # regera a voz e os tempos das legendas
 npm run trilha           # regera a música — SEMPRE depois da narração
@@ -51,7 +51,7 @@ Ao abrir, três portas:
 | **Assistir sem som**      | O mesmo filme, só com legenda                              |
 | **Explorar**              | Mapa clicável, fluxos por tipo de paciente, salto por cena |
 
-Durante o filme: play/pause, avançar/voltar, arrastar a barra, sete capítulos,
+Durante o filme: play/pause, avançar/voltar, arrastar a barra, nove capítulos,
 ligar/desligar legenda e som, tela cheia, reiniciar.
 
 Teclado: `espaço` pausa · `←` `→` movem 3 s (com `shift`, 10 s) · `F` tela cheia
@@ -59,17 +59,32 @@ Teclado: `espaço` pausa · `←` `→` movem 3 s (com `shift`, 10 s) · `F` tel
 
 ## O que o filme conta
 
-Do dado ao resultado, em oito capítulos: de onde vêm os dados (Dental Office),
-quem precisa de contato, o que roda sozinho — **faltas, retorno, pacientes
-antigos, orçamentos parados, campanhas e aniversariantes, e como a clínica monta
-uma campanha do zero** —, o que acontece com **quem clica no anúncio pago e
-quanto custou cada paciente que apareceu**, a conversa no WhatsApp com **IA,
-agendamento, lembrete de consulta e cobrança de parcela em atraso com Pix, boleto
-ou cartão**, o dia da equipe e os resultados. Cena a cena em
-[STORYBOARD.md](STORYBOARD.md).
+Do dado ao resultado, em **nove capítulos**:
 
-Oito vezes ao longo do filme aparece no rodapé a linha **"Por que"**: o critério
-que o sistema usou para tomar aquela decisão. É assim que a peça mostra
+1. **Começo** — por que isso existe
+2. **De onde vêm os dados** — Dental Office, a ponte, o núcleo
+3. **Quem precisa de contato** — o que o sistema percebe, as regras antes de
+   falar, a fila com o motivo, e **quem está no caminho de sumir**
+4. **O que roda sozinho** — faltas, retorno, pacientes antigos, **orçamentos
+   parados**, campanhas, aniversariantes e **montar uma campanha do zero**
+5. **Anúncios e leads** — o lead do anúncio pago e **quanto custou cada paciente
+   que sentou na cadeira**
+6. **A conversa** — WhatsApp, a leitura da resposta, agendamento, lembrete,
+   **a cadeira que vagou**, cobrança e o repasse para gente
+7. **O agente** — ele **age** (21 ferramentas com permissão), os **nove portões**
+   que barram antes de qualquer envio, os **seis níveis de autonomia por
+   assunto**, o que a clínica **ensina** a ele, a **prova** que ele faz antes de
+   falar com paciente, e o **modo de observação** que deixa ler o que ele pensou
+8. **O dia da equipe** — a tela do dia, as conversas, a ficha, **o que o
+   atendimento deixou de fazer** e **mais de uma unidade**
+9. **Resultados** — o funil, o **radar de receita**, **orçamento que virou
+   tratamento**, **o que o sistema aprende**, **a meta com a régua**, **a manhã
+   do dono**, **quanto a IA custa**, e o fecho
+
+Cena a cena em [STORYBOARD.md](STORYBOARD.md).
+
+**Vinte vezes** ao longo do filme aparece no rodapé a linha **"Por que"**: o
+critério que o sistema usou para tomar aquela decisão. É assim que a peça mostra
 inteligência em vez de afirmar que ela existe.
 
 ## Como está organizado
@@ -80,7 +95,7 @@ src/
   design-system/ cores, tipografia, blocos visuais
   motion/        a matemática do movimento (sem React, sem Remotion)
   components/    nós, conexões, celular, gráficos, janela do produto
-  scenes/        as 35 cenas, na ordem do filme (numeradas por cenas:ordenar)
+  scenes/        as 51 cenas, na ordem do filme (numeradas por cenas:ordenar)
   film/          o filme: dado um frame, desenha o quadro
   interactive/   player, controles, legenda, modo explorar
   remotion/      as composições de vídeo

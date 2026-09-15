@@ -3,47 +3,311 @@
   "fps": 30,
   "sobreposicaoSegundos": 0.5,
   "cenas": [
-    { "id": "abertura", "nome": "Abertura", "segundos": 11, "capitulo": "introducao" },
-    { "id": "problema", "nome": "O problema", "segundos": 13, "capitulo": "introducao" },
-
-    { "id": "dentalOffice", "nome": "Dental Office", "segundos": 8, "capitulo": "dados" },
-    { "id": "integracao", "nome": "A ponte entre os sistemas", "segundos": 7, "capitulo": "dados" },
-    { "id": "nucleo", "nome": "JP CRC", "segundos": 9, "capitulo": "dados" },
-
-    { "id": "eventos", "nome": "O que o sistema percebe", "segundos": 10, "capitulo": "oportunidades" },
-    { "id": "elegibilidade", "nome": "As regras de contato", "segundos": 8, "capitulo": "oportunidades" },
-    { "id": "prioridade", "nome": "Quem vem primeiro", "segundos": 8, "capitulo": "oportunidades" },
-    { "id": "divisao", "nome": "Humano e automação", "segundos": 8, "capitulo": "oportunidades" },
-
-    { "id": "automacoes", "nome": "As rotinas do dia", "segundos": 9, "capitulo": "automacao" },
-    { "id": "baseAntiga", "nome": "Pacientes antigos", "segundos": 9, "capitulo": "automacao" },
-    { "id": "orcamentos", "nome": "Orcamentos parados", "segundos": 12, "capitulo": "automacao" },
-    { "id": "reativacao", "nome": "Contato aos poucos", "segundos": 8, "capitulo": "automacao" },
-    { "id": "campanhas", "nome": "Campanhas e aniversariantes", "segundos": 11, "capitulo": "automacao" },
-    { "id": "montarCampanha", "nome": "Montar uma campanha", "segundos": 12, "capitulo": "automacao" },
-
-    { "id": "leadPago", "nome": "O lead do anuncio", "segundos": 11, "capitulo": "midia" },
-    { "id": "midia", "nome": "Quanto custa cada paciente", "segundos": 12, "capitulo": "midia" },
-
-    { "id": "whatsapp", "nome": "WhatsApp", "segundos": 9, "capitulo": "conversa" },
-    { "id": "ia", "nome": "A leitura da resposta", "segundos": 8, "capitulo": "conversa" },
-    { "id": "intencoes", "nome": "Outras respostas", "segundos": 8, "capitulo": "conversa" },
-    { "id": "agendamento", "nome": "Marcando a consulta", "segundos": 11, "capitulo": "conversa" },
-    { "id": "lembretes", "nome": "Lembrete e confirmacao", "segundos": 10, "capitulo": "conversa" },
-    { "id": "cobranca", "nome": "Cobranca de parcela", "segundos": 15, "capitulo": "conversa" },
-    { "id": "humano", "nome": "Quando a equipe entra", "segundos": 7, "capitulo": "conversa" },
-
-    { "id": "home", "nome": "A tela do dia", "segundos": 9, "capitulo": "operacao" },
-    { "id": "inbox", "nome": "As conversas", "segundos": 8, "capitulo": "operacao" },
-    { "id": "paciente360", "nome": "A ficha do paciente", "segundos": 8, "capitulo": "operacao" },
-
-    { "id": "resultados", "nome": "O que se acumula", "segundos": 8, "capitulo": "resultados" },
-    { "id": "funil", "nome": "Etapa por etapa", "segundos": 8, "capitulo": "resultados" },
-    { "id": "antesDepois", "nome": "Antes e depois", "segundos": 7, "capitulo": "resultados" },
-    { "id": "impacto", "nome": "O caminho até a receita", "segundos": 8, "capitulo": "resultados" },
-    { "id": "gestor", "nome": "A visão da gestão", "segundos": 8, "capitulo": "resultados" },
-    { "id": "ecossistema", "nome": "Tudo junto", "segundos": 9, "capitulo": "resultados" },
-    { "id": "frase", "nome": "Em uma frase", "segundos": 8, "capitulo": "resultados" },
-    { "id": "final", "nome": "Final", "segundos": 9, "capitulo": "resultados" }
+    {
+      "id": "abertura",
+      "nome": "Abertura",
+      "segundos": 11,
+      "capitulo": "introducao"
+    },
+    {
+      "id": "problema",
+      "nome": "O problema",
+      "segundos": 13,
+      "capitulo": "introducao"
+    },
+    {
+      "id": "dentalOffice",
+      "nome": "Dental Office",
+      "segundos": 8,
+      "capitulo": "dados"
+    },
+    {
+      "id": "integracao",
+      "nome": "A ponte entre os sistemas",
+      "segundos": 7,
+      "capitulo": "dados"
+    },
+    {
+      "id": "nucleo",
+      "nome": "JP CRC",
+      "segundos": 9,
+      "capitulo": "dados"
+    },
+    {
+      "id": "eventos",
+      "nome": "O que o sistema percebe",
+      "segundos": 10,
+      "capitulo": "oportunidades"
+    },
+    {
+      "id": "elegibilidade",
+      "nome": "As regras de contato",
+      "segundos": 8,
+      "capitulo": "oportunidades"
+    },
+    {
+      "id": "prioridade",
+      "nome": "Quem vem primeiro",
+      "segundos": 8,
+      "capitulo": "oportunidades"
+    },
+    {
+      "id": "risco",
+      "nome": "Quem esta sumindo",
+      "segundos": 10,
+      "capitulo": "oportunidades"
+    },
+    {
+      "id": "divisao",
+      "nome": "Humano e automação",
+      "segundos": 8,
+      "capitulo": "oportunidades"
+    },
+    {
+      "id": "automacoes",
+      "nome": "As rotinas do dia",
+      "segundos": 9,
+      "capitulo": "automacao"
+    },
+    {
+      "id": "baseAntiga",
+      "nome": "Pacientes antigos",
+      "segundos": 9,
+      "capitulo": "automacao"
+    },
+    {
+      "id": "orcamentos",
+      "nome": "Orcamentos parados",
+      "segundos": 12,
+      "capitulo": "automacao"
+    },
+    {
+      "id": "reativacao",
+      "nome": "Contato aos poucos",
+      "segundos": 8,
+      "capitulo": "automacao"
+    },
+    {
+      "id": "campanhas",
+      "nome": "Campanhas e aniversariantes",
+      "segundos": 11,
+      "capitulo": "automacao"
+    },
+    {
+      "id": "montarCampanha",
+      "nome": "Montar uma campanha",
+      "segundos": 12,
+      "capitulo": "automacao"
+    },
+    {
+      "id": "leadPago",
+      "nome": "O lead do anuncio",
+      "segundos": 11,
+      "capitulo": "midia"
+    },
+    {
+      "id": "midia",
+      "nome": "Quanto custa cada paciente",
+      "segundos": 12,
+      "capitulo": "midia"
+    },
+    {
+      "id": "whatsapp",
+      "nome": "WhatsApp",
+      "segundos": 9,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "ia",
+      "nome": "A leitura da resposta",
+      "segundos": 8,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "intencoes",
+      "nome": "Outras respostas",
+      "segundos": 8,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "agendamento",
+      "nome": "Marcando a consulta",
+      "segundos": 11,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "lembretes",
+      "nome": "Lembrete e confirmacao",
+      "segundos": 10,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "encaixes",
+      "nome": "A cadeira que vagou",
+      "segundos": 12,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "cobranca",
+      "nome": "Cobranca de parcela",
+      "segundos": 15,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "humano",
+      "nome": "Quando a equipe entra",
+      "segundos": 7,
+      "capitulo": "conversa"
+    },
+    {
+      "id": "agente",
+      "nome": "O agente age",
+      "segundos": 12,
+      "capitulo": "agente"
+    },
+    {
+      "id": "portoes",
+      "nome": "Os nove portoes",
+      "segundos": 13,
+      "capitulo": "agente"
+    },
+    {
+      "id": "autonomia",
+      "nome": "Quanto ele pode sozinho",
+      "segundos": 13,
+      "capitulo": "agente"
+    },
+    {
+      "id": "conhecimento",
+      "nome": "O que a clinica ensina",
+      "segundos": 11,
+      "capitulo": "agente"
+    },
+    {
+      "id": "prova",
+      "nome": "A prova do agente",
+      "segundos": 12,
+      "capitulo": "agente"
+    },
+    {
+      "id": "sombra",
+      "nome": "O que ele pensou",
+      "segundos": 11,
+      "capitulo": "agente"
+    },
+    {
+      "id": "home",
+      "nome": "A tela do dia",
+      "segundos": 9,
+      "capitulo": "operacao"
+    },
+    {
+      "id": "inbox",
+      "nome": "As conversas",
+      "segundos": 8,
+      "capitulo": "operacao"
+    },
+    {
+      "id": "paciente360",
+      "nome": "A ficha do paciente",
+      "segundos": 8,
+      "capitulo": "operacao"
+    },
+    {
+      "id": "recepcao",
+      "nome": "O que ficou para tras",
+      "segundos": 10,
+      "capitulo": "operacao"
+    },
+    {
+      "id": "unidades",
+      "nome": "Mais de uma unidade",
+      "segundos": 9,
+      "capitulo": "operacao"
+    },
+    {
+      "id": "resultados",
+      "nome": "O que se acumula",
+      "segundos": 8,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "funil",
+      "nome": "Etapa por etapa",
+      "segundos": 8,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "radar",
+      "nome": "Radar de receita",
+      "segundos": 12,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "tratamentos",
+      "nome": "Orcamento que virou tratamento",
+      "segundos": 12,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "aprende",
+      "nome": "O sistema aprende",
+      "segundos": 11,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "metas",
+      "nome": "A meta com a regua",
+      "segundos": 11,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "briefing",
+      "nome": "A manha do dono",
+      "segundos": 10,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "custoIa",
+      "nome": "Quanto a IA custa",
+      "segundos": 10,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "antesDepois",
+      "nome": "Antes e depois",
+      "segundos": 7,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "impacto",
+      "nome": "O caminho até a receita",
+      "segundos": 8,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "gestor",
+      "nome": "A visão da gestão",
+      "segundos": 8,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "ecossistema",
+      "nome": "Tudo junto",
+      "segundos": 9,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "frase",
+      "nome": "Em uma frase",
+      "segundos": 8,
+      "capitulo": "resultados"
+    },
+    {
+      "id": "final",
+      "nome": "Final",
+      "segundos": 9,
+      "capitulo": "resultados"
+    }
   ]
 }
