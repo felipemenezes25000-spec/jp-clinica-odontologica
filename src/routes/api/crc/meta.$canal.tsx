@@ -142,9 +142,7 @@ async function receberExclusao(request: Request): Promise<Response> {
   }
 
   const { appSecretDoAmbiente } = await import("@/lib/crc/integracoes/meta/config");
-  const { verificarSignedRequestMeta } = await import(
-    "@/lib/crc/integracoes/meta/data-deletion"
-  );
+  const { verificarSignedRequestMeta } = await import("@/lib/crc/integracoes/meta/data-deletion");
   const verificado = verificarSignedRequestMeta(signedRequest, appSecretDoAmbiente());
   if (!verificado.ok) {
     const status = verificado.motivo === "sem_segredo" ? 503 : 401;
@@ -195,7 +193,9 @@ export const Route = createFileRoute("/api/crc/meta/$canal")({
 
       POST: async ({ request, params }) => {
         if (params.canal === "data-deletion") return receberExclusao(request);
-        if (params.canal === "analytics") return json({ ok: false, message: "Método não permitido." }, 405);
+        if (params.canal === "analytics") {
+          return json({ ok: false, message: "Método não permitido." }, 405);
+        }
 
         const { registrar, descreverErro } = await import("@/lib/crc/servidor/registro");
         const corpoCru = await request.text();

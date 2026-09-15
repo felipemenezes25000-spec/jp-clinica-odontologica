@@ -3,9 +3,9 @@ import { BarChart3, RefreshCw } from "lucide-react";
 
 import { Aviso, Botao, Etiqueta, ListaEsqueleto } from "./base";
 
- type LinhaConversa = { canal: string; conversas: number; entradas: number; saidas: number };
- type LinhaLead = { canal: string; leads: number; primeiraRespostaSegundos: number | null };
- type LinhaOportunidade = {
+type LinhaConversa = { canal: string; conversas: number; entradas: number; saidas: number };
+type LinhaLead = { canal: string; leads: number; primeiraRespostaSegundos: number | null };
+type LinhaOportunidade = {
   canal: string;
   oportunidades: number;
   ganhas: number;
@@ -14,9 +14,9 @@ import { Aviso, Botao, Etiqueta, ListaEsqueleto } from "./base";
   potencial: number;
   receitaConfirmada: number;
 };
- type LinhaGasto = { canal: string; valor: number };
- type LinhaCampanha = { canal: string; campanha: string; leads: number };
- type Painel = {
+type LinhaGasto = { canal: string; valor: number };
+type LinhaCampanha = { canal: string; campanha: string; leads: number };
+type Painel = {
   periodoDias: number;
   geradoEm: string;
   conversas: LinhaConversa[];
@@ -80,7 +80,11 @@ export function MetaAnalytics() {
 
       const corpo = (await r.json().catch(() => null)) as Resposta | null;
       if (!r.ok || corpo === null || !corpo.ok) {
-        setErro(corpo !== null && !corpo.ok && corpo.message ? corpo.message : "Não foi possível carregar a analítica por canal.");
+        setErro(
+          corpo !== null && !corpo.ok && corpo.message
+            ? corpo.message
+            : "Não foi possível carregar a analítica por canal.",
+        );
         return;
       }
 
@@ -107,28 +111,30 @@ export function MetaAnalytics() {
     for (const x of painel.oportunidades) canais.add(x.canal);
     for (const x of painel.gasto) canais.add(x.canal);
 
-    return [...canais].map((canal) => {
-      const conversa = painel.conversas.find((x) => x.canal === canal);
-      const lead = painel.leads.find((x) => x.canal === canal);
-      const oportunidade = painel.oportunidades.find((x) => x.canal === canal);
-      const gasto = painel.gasto.find((x) => x.canal === canal);
-      const leads = n(lead?.leads);
-      const gastoValor = n(gasto?.valor);
+    return [...canais]
+      .map((canal) => {
+        const conversa = painel.conversas.find((x) => x.canal === canal);
+        const lead = painel.leads.find((x) => x.canal === canal);
+        const oportunidade = painel.oportunidades.find((x) => x.canal === canal);
+        const gasto = painel.gasto.find((x) => x.canal === canal);
+        const leads = n(lead?.leads);
+        const gastoValor = n(gasto?.valor);
 
-      return {
-        canal,
-        conversas: n(conversa?.conversas),
-        entradas: n(conversa?.entradas),
-        saidas: n(conversa?.saidas),
-        leads,
-        primeiraResposta: lead?.primeiraRespostaSegundos ?? null,
-        ganhas: n(oportunidade?.ganhas),
-        abertas: n(oportunidade?.abertas),
-        gasto: gastoValor,
-        cac: gastoValor > 0 && leads > 0 ? gastoValor / leads : null,
-        receita: n(oportunidade?.receitaConfirmada),
-      };
-    }).sort((a, b) => (b.leads + b.conversas) - (a.leads + a.conversas));
+        return {
+          canal,
+          conversas: n(conversa?.conversas),
+          entradas: n(conversa?.entradas),
+          saidas: n(conversa?.saidas),
+          leads,
+          primeiraResposta: lead?.primeiraRespostaSegundos ?? null,
+          ganhas: n(oportunidade?.ganhas),
+          abertas: n(oportunidade?.abertas),
+          gasto: gastoValor,
+          cac: gastoValor > 0 && leads > 0 ? gastoValor / leads : null,
+          receita: n(oportunidade?.receitaConfirmada),
+        };
+      })
+      .sort((a, b) => b.leads + b.conversas - (a.leads + a.conversas));
   }, [painel]);
 
   if (oculto) return null;
@@ -153,7 +159,12 @@ export function MetaAnalytics() {
               {periodo}d
             </Botao>
           ))}
-          <Botao pequeno variante="discreto" carregando={carregando} onClick={() => void carregar()}>
+          <Botao
+            pequeno
+            variante="discreto"
+            carregando={carregando}
+            onClick={() => void carregar()}
+          >
             <RefreshCw size={13} aria-hidden="true" /> Atualizar
           </Botao>
         </div>
@@ -182,7 +193,9 @@ export function MetaAnalytics() {
                   </div>
                   <div className="crc-meta-sinal" data-alerta="nao">
                     <small>Mensagens</small>
-                    <strong>{x.entradas} ↓ · {x.saidas} ↑</strong>
+                    <strong>
+                      {x.entradas} ↓ · {x.saidas} ↑
+                    </strong>
                   </div>
                   <div className="crc-meta-sinal" data-alerta="nao">
                     <small>1ª resposta</small>
@@ -190,11 +203,16 @@ export function MetaAnalytics() {
                   </div>
                   <div className="crc-meta-sinal" data-alerta="nao">
                     <small>Ganhas / abertas</small>
-                    <strong>{x.ganhas} / {x.abertas}</strong>
+                    <strong>
+                      {x.ganhas} / {x.abertas}
+                    </strong>
                   </div>
                   <div className="crc-meta-sinal" data-alerta="nao">
                     <small>Gasto / CAC</small>
-                    <strong>{x.gasto > 0 ? dinheiro(x.gasto) : "—"} · {x.cac === null ? "—" : dinheiro(x.cac)}</strong>
+                    <strong>
+                      {x.gasto > 0 ? dinheiro(x.gasto) : "—"} ·{" "}
+                      {x.cac === null ? "—" : dinheiro(x.cac)}
+                    </strong>
                   </div>
                   <div className="crc-meta-sinal" data-alerta="nao">
                     <small>Receita confirmada</small>
@@ -220,7 +238,8 @@ export function MetaAnalytics() {
         )}
 
         <p className="crc-meta" style={{ marginTop: "var(--crc-e3)" }}>
-          Só entram fatos observados no CRC. Gasto é o lançamento mensal de mídia; receita é somente a natureza CONFIRMADA. Potencial e receita não são somados no mesmo número.
+          Só entram fatos observados no CRC. Gasto é o lançamento mensal de mídia; receita é somente
+          a natureza CONFIRMADA. Potencial e receita não são somados no mesmo número.
         </p>
       </div>
     </section>

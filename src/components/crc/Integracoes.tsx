@@ -276,7 +276,8 @@ export function Integracoes({ podeGerenciar }: { podeGerenciar: boolean }) {
                     <small>{s.recurso === "customers" ? "Pacientes" : "Agenda"}</small>
                     <strong>{s.status === "OK" ? "Em dia" : "Falhou"}</strong>
                     <em>
-                      Última tentativa {frescor(s.ultimaEm)} · sucesso {frescor(s.ultimaComSucessoEm)}
+                      Última tentativa {frescor(s.ultimaEm)} · sucesso{" "}
+                      {frescor(s.ultimaComSucessoEm)}
                     </em>
                   </div>
                 </article>

@@ -1,13 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  CLINICA_A,
-  exigirBanco,
-  limparTudo,
-  ORG_A,
-  semearDuasClinicas,
-  sql,
-} from "./apoio";
+import { CLINICA_A, exigirBanco, limparTudo, ORG_A, semearDuasClinicas, sql } from "./apoio";
 
 const PACIENTE_A = "e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1";
 const PACIENTE_B = "f1f1f1f1-f1f1-4f1f-8f1f-f1f1f1f1f1f1";
