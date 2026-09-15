@@ -1493,6 +1493,31 @@ function useSecoesRecolhiveis(container: HTMLElement | null, aba: string): void 
         const titulo = tituloDe(secao);
         if (titulo.length === 0) continue;
 
+        /*
+         * ==================================================================
+         *  QUEM JÁ TEM RECOLHIMENTO PRÓPRIO FICA DE FORA.
+         *
+         *  Este laço pega TODA `<section>` com `<header>` dentro do conteúdo —
+         *  e as colunas do funil são `<section>`. O resultado foi uma colisão
+         *  silenciosa e difícil de enxergar:
+         *
+         *    a coluna escrevia `data-recolhida="sim"` para se estreitar quando
+         *    a etapa está vazia, e ESTA LINHA sobrescrevia com "nao" logo
+         *    depois — a etapa vazia nunca encolhia, e nada no console avisava;
+         *
+         *    `section[data-recolhivel="sim"] > header { position: relative }`
+         *    vencia, por especificidade, o `position: sticky` do cabeçalho da
+         *    coluna — que então não grudava ao rolar;
+         *
+         *    e o cabeçalho ganhava um SEGUNDO mecanismo de recolher, por cima
+         *    do botão que a própria coluna já oferece.
+         *
+         *  `data-sem-recolher` é a saída explícita: quem sabe recolher sozinho
+         *  diz isso, e o shell não encosta.
+         * ==================================================================
+         */
+        if (secao.dataset["semRecolher"] === "sim") continue;
+
         secao.dataset["recolhivel"] = "sim";
         secao.dataset["recolhida"] = fechadas.has(titulo) ? "sim" : "nao";
 

@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { carregarFunil, moverOportunidade, type ItemPrioridade } from "@/lib/crc/api";
-import { dinheiro } from "@/lib/crc/dominio/formatar";
+import { dinheiro, dinheiroCurto, somarDinheiro } from "@/lib/crc/dominio/formatar";
 import { MOTIVOS_PERDA, ROTULO_TIPO_OPORTUNIDADE } from "@/lib/crc/dominio/rotulos";
 
 import {
@@ -57,6 +57,9 @@ export function Funil({
   const [filtro, trocarFiltro] = useControlavel<FiltroFunilUi>(filtroInicial, aoTrocarFiltro, {
     ...FILTRO_VAZIO,
   });
+
+  /** As etapas vazias que a pessoa abriu à mão. O padrão é recolhida. */
+  const [expandidas, setExpandidas] = useState<readonly string[]>([]);
 
   /*
    * `setFiltro` aceitava a forma de função (`setFiltro((f) => ...)`), e o
@@ -267,17 +270,42 @@ export function Funil({
           {etapas.map((etapa) => {
             const daEtapa = cartoes.filter((c) => c.stageId === etapa.id);
             const altasDaEtapa = daEtapa.filter((c) => c.faixa === "ALTA").length;
+            const valorDaEtapa = somarDinheiro(daEtapa.map((c) => c.valorPotencial));
+            const vazia = daEtapa.length === 0;
+            /*
+             * ETAPA VAZIA VIRA FAIXA FINA. Seis colunas vazias espremendo a que
+             * tem 72 cartões é o quadro trabalhando contra quem o lê: o espaço
+             * vai para onde não há nada. Recolhida, ela continua visível — a
+             * etapa existe, e isso é informação — e devolve a largura para quem
+             * tem trabalho.
+             */
+            const recolhida = vazia && !expandidas.includes(etapa.id);
             return (
               <section
                 key={etapa.id}
                 className="crc-coluna crc-funil-coluna-v2"
                 aria-label={etapa.nome}
+                data-sem-recolher="sim"
+                data-etapa-recolhida={recolhida ? "sim" : "nao"}
               >
                 <header className="crc-funil-coluna-topo-v2">
                   <div>
                     <h2>{etapa.nome}</h2>
                     <span>
                       {daEtapa.length} {daEtapa.length === 1 ? "oportunidade" : "oportunidades"}
+                      {/*
+                        O VALOR AO LADO DA CONTAGEM. "12 oportunidades" não diz
+                        se a etapa vale R$ 3 mil ou R$ 300 mil — e é o segundo
+                        número que decide onde a equipe gasta a manhã.
+                      */}
+                      {Number.parseFloat(valorDaEtapa) > 0 && (
+                        <>
+                          {" · "}
+                          <strong className="crc-funil-coluna-valor">
+                            {dinheiroCurto(valorDaEtapa)}
+                          </strong>
+                        </>
+                      )}
                     </span>
                   </div>
                   <div className="crc-funil-coluna-contadores">
@@ -285,6 +313,23 @@ export function Funil({
                     <strong>{daEtapa.length}</strong>
                   </div>
                 </header>
+
+                {vazia && (
+                  <button
+                    type="button"
+                    className="crc-funil-coluna-alternar"
+                    aria-expanded={!recolhida}
+                    onClick={() => {
+                      setExpandidas((atuais) =>
+                        atuais.includes(etapa.id)
+                          ? atuais.filter((x) => x !== etapa.id)
+                          : [...atuais, etapa.id],
+                      );
+                    }}
+                  >
+                    {recolhida ? "Abrir etapa vazia" : "Recolher"}
+                  </button>
+                )}
 
                 <div className="crc-coluna-corpo crc-funil-coluna-corpo-v2">
                   {daEtapa.length === 0 ? (

@@ -181,10 +181,21 @@
   background: rgba(255, 255, 255, 0.62);
 }
 
+/*
+ * FLEX, E NÃO GRID DE COLUNAS AUTOMÁTICAS.
+ *
+ * Com `grid-auto-flow: column` + `grid-auto-columns`, a TRILHA tem largura fixa
+ * e o item não manda nela: estreitar a coluna vazia para 56 px deixava o
+ * elemento fino dentro de uma trilha de 280 px, e o quadro continuava com os
+ * mesmos 2912 px de largura. Encolhia na aparência e não devolvia espaço
+ * nenhum — que era o ponto inteiro.
+ *
+ * No flex cada item declara a própria largura, e a que sobra vai de fato para
+ * a etapa que tem trabalho.
+ */
 .crc-app .crc-funil-quadro-v2 {
-  display: grid;
-  grid-auto-columns: minmax(280px, 320px);
-  grid-auto-flow: column;
+  display: flex;
+  align-items: flex-start;
   gap: 12px;
   align-items: start;
   overflow-x: auto;
@@ -193,6 +204,7 @@
 }
 
 .crc-app .crc-funil-coluna-v2 {
+  flex: 0 0 300px;
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--crc-borda);
@@ -467,8 +479,8 @@
     width: fit-content;
   }
 
-  .crc-app .crc-funil-quadro-v2 {
-    grid-auto-columns: minmax(275px, 88vw);
+  .crc-app .crc-funil-coluna-v2 {
+    flex: 0 0 min(88vw, 320px);
   }
 
   .crc-app .crc-funil-coluna-corpo-v2 {
@@ -478,5 +490,165 @@
   .crc-app .crc-funil-card-acoes-v2 {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+/* ========================================================================== */
+/* §10 — o quadro respeita o dado                                             */
+/* ========================================================================== */
+
+/*
+ * A ETAPA VAZIA VIRA UMA FAIXA FINA.
+ *
+ * Seis colunas vazias com a mesma largura da que tem 72 cartões é o quadro
+ * trabalhando contra quem o lê: o espaço vai para onde não há nada, e a etapa
+ * cheia fica com um oitavo da tela. Recolhida, a coluna continua VISÍVEL — a
+ * etapa existe, e isso é informação — e devolve a largura para quem tem
+ * trabalho.
+ *
+ * O título gira na vertical em vez de sumir: quem olha o quadro precisa saber
+ * QUAL etapa está vazia, não só que alguma está.
+ */
+.crc-app .crc-funil-quadro-v2 > .crc-funil-coluna-v2[data-etapa-recolhida="sim"] {
+  flex: 0 0 56px;
+}
+
+.crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-topo-v2 {
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 12px 6px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-topo-v2 h2 {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* A contagem e o valor não cabem na vertical, e a contagem é zero de qualquer
+   forma: some o texto, fica o rótulo. */
+.crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-topo-v2 span,
+.crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-contadores,
+.crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-corpo-v2 {
+  display: none;
+}
+
+.crc-app .crc-funil-coluna-alternar {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--crc-texto-fraco, #6a7a72);
+  font: inherit;
+  font-size: 0.74rem;
+  padding: 6px 8px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.crc-app .crc-funil-coluna-alternar:hover {
+  color: var(--crc-texto);
+  text-decoration: underline;
+}
+
+.crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-alternar {
+  writing-mode: vertical-rl;
+  height: auto;
+  padding: 8px 2px;
+}
+
+/*
+ * O CABEÇALHO DA COLUNA GRUDA AO ROLAR.
+ *
+ * Numa etapa com 72 cartões, rolar até o quadragésimo tira da tela justamente
+ * o que diz em qual etapa a pessoa está e quanto ela vale.
+ */
+.crc-app .crc-funil-coluna-topo-v2 {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: inherit;
+  backdrop-filter: saturate(140%) blur(2px);
+}
+
+/*
+ * NÚMERO DE DINHEIRO EM FONTE TABULAR.
+ *
+ * Sem isto, "R$ 1.111" e "R$ 8.888" têm larguras diferentes, e uma coluna de
+ * valores fica com a vírgula dançando. É o item do §5, e vale aqui porque é
+ * aqui que os valores se empilham.
+ */
+.crc-app .crc-funil-coluna-valor,
+.crc-app .crc-funil-coluna-contadores strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * O NOME DO PACIENTE QUEBRA EM DUAS LINHAS, e não é truncado.
+ *
+ * "Maria Aparecida de Souza Nascimen…" obriga quem lê a abrir o cartão para
+ * saber de quem se trata — num quadro cuja função é justamente decidir sem
+ * abrir. Duas linhas cabem; a terceira vira reticência, aí sim.
+ */
+.crc-app .crc-funil-quadro-v2 .crc-funil-card-topo-v2 > div > strong {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+  text-wrap: balance;
+}
+
+/*
+ * ABAIXO DE 768 px O QUADRO VIRA LISTA.
+ *
+ * Kanban no celular é rolagem horizontal dentro de rolagem vertical: para ver a
+ * quarta etapa a pessoa arrasta de lado, e para ver o quinto cartão arrasta
+ * para baixo — dois eixos disputando o mesmo dedo. A lista empilhada resolve
+ * com um eixo só, e mantém a etapa como cabeçalho.
+ *
+ * As etapas vazias continuam recolhidas, agora como uma faixa horizontal fina
+ * em vez de uma coluna fina — mesma ideia, geometria adequada ao formato.
+ */
+@media (max-width: 767px) {
+  .crc-app .crc-funil-quadro-v2 {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .crc-app .crc-funil-coluna-v2 {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  .crc-app .crc-funil-quadro-v2 > .crc-funil-coluna-v2[data-etapa-recolhida="sim"] {
+    flex: 0 0 auto;
+  }
+
+  /* Recolhida no celular: uma faixa de uma linha, com o nome deitado de volta
+     na horizontal — vertical só fazia sentido numa coluna estreita. */
+  .crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-topo-v2 {
+    flex-direction: row;
+    height: auto;
+    padding: 10px 12px;
+    justify-content: space-between;
+  }
+
+  .crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-topo-v2 h2 {
+    writing-mode: horizontal-tb;
+  }
+
+  .crc-app .crc-funil-coluna-v2[data-etapa-recolhida="sim"] .crc-funil-coluna-alternar {
+    writing-mode: horizontal-tb;
+    width: auto;
+    padding: 8px 12px;
+  }
+
+  .crc-app .crc-funil-coluna-corpo-v2 {
+    max-height: none;
   }
 }
