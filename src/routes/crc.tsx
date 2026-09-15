@@ -2092,6 +2092,18 @@ function PortalCrc() {
                     ref={campoFoto}
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
+                    /*
+                     * `aria-label` PORQUE ELE NÃO TEM RÓTULO VISÍVEL, e o axe
+                     * reprovava por isso nas oito telas varridas — é do shell,
+                     * então aparecia em todas.
+                     *
+                     * "Estar escondido" não o tira da árvore de acessibilidade:
+                     * `crc-so-leitor` esconde dos olhos e MANTÉM para o leitor
+                     * de tela, de propósito, porque é ele que o botão da câmera
+                     * aciona. Sem rótulo, o leitor anuncia "campo de arquivo" e
+                     * a pessoa não tem como saber de qual arquivo se trata.
+                     */
+                    aria-label="Escolher uma foto de perfil"
                     className="crc-so-leitor"
                     onChange={(e) => {
                       const arquivo = e.target.files?.[0];
