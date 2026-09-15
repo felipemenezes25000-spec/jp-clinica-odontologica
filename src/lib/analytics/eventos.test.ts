@@ -19,6 +19,8 @@
  */
 import { describe, expect, it } from "vitest";
 
+import { AVALIACOES } from "@/lib/jp";
+
 import { decidirEventoDeClique, type Clique } from "./eventos";
 
 const MSG_AGENDAR = encodeURIComponent(
@@ -117,7 +119,7 @@ describe("cada tipo de link produz exatamente um evento", () => {
       "selo de avaliações (mesmo apontando para o Maps)",
       clique({
         href: "https://www.google.com/maps/search/?api=1&query=x",
-        rotulo: "192 avaliações",
+        rotulo: `${AVALIACOES.total} avaliações`,
       }),
       "review_click",
     ],

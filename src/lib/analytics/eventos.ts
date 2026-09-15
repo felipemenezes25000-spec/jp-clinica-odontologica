@@ -204,7 +204,7 @@ export function decidirEventoDeClique(clique: Clique): EventoPlanejado | null {
 
   if (href.includes("google.com/maps")) {
     // O selo de avaliações também aponta para o Maps. Diferenciar pelo texto
-    // evita contar clique em "192 avaliações" como pedido de rota.
+    // evita contar clique no selo ("N avaliações") como pedido de rota.
     return /avalia|★|estrela/iu.test(rotulo)
       ? { evento: "review_click", dados: comum }
       : { evento: "map_click", dados: comum };
