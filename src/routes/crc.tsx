@@ -1752,6 +1752,25 @@ function PortalCrc() {
 
   const [conteudoEl, setConteudoEl] = useState<HTMLElement | null>(null);
 
+  /**
+   * ==========================================================================
+   *  O MENU VIRA GAVETA NO CELULAR.
+   *
+   *  Abaixo de 768 px a lateral era uma faixa horizontal fixa de 108 px no topo
+   *  de TODA tela. Num iPhone de 844 px de altura isso é 13% da tela gasta com
+   *  navegação que a pessoa usa uma vez a cada vários minutos — e ela some por
+   *  baixo do teclado assim que alguém digita.
+   *
+   *  Como gaveta, a navegação continua a um toque e devolve os 108 px para o
+   *  que a pessoa veio ver.
+   *
+   *  FECHA EM TRÊS SITUAÇÕES, e as três importam: Escape, toque no fundo, e ao
+   *  NAVEGAR — esta última é a mais esquecida, e sem ela a gaveta fica aberta
+   *  por cima da tela que ela mesma acabou de abrir.
+   * ==========================================================================
+   */
+  const [menuAberto, setMenuAberto] = useState(false);
+
   const alternarGrupo = useCallback((id: string) => {
     setGruposFechados((atuais) => {
       const proximo = atuais.includes(id) ? atuais.filter((x) => x !== id) : [...atuais, id];
@@ -1766,6 +1785,22 @@ function PortalCrc() {
   }, []);
 
   useSecoesRecolhiveis(conteudoEl, aba);
+
+  /* Navegou: a gaveta sai da frente do que a pessoa pediu. */
+  useEffect(() => {
+    setMenuAberto(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuAberto) return undefined;
+    const aoTeclar = (e: KeyboardEvent): void => {
+      if (e.key === "Escape") setMenuAberto(false);
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("keydown", aoTeclar);
+    };
+  }, [menuAberto]);
 
   /*
    * Os dois saíram de `useState` e foram para a barra de endereço. O shell
@@ -1999,8 +2034,8 @@ function PortalCrc() {
           }}
         />
 
-        <div className="crc-shell">
-          <nav className="crc-lateral" aria-label="Seções do CRC">
+        <div className="crc-shell" data-menu={menuAberto ? "aberto" : "fechado"}>
+          <nav className="crc-lateral" aria-label="Seções do CRC" id="crc-menu-lateral">
             <div className="crc-marca">
               {/*
               `fundo` nomeia a SUPERFÍCIE, não a arte. O menu é verde escuro,
@@ -2199,8 +2234,42 @@ function PortalCrc() {
             </div>
           </nav>
 
+          {/*
+            O FUNDO É UM BOTÃO, e não uma `div` com `onClick`: quem navega por
+            teclado precisa alcançar "fechar" sem depender do mouse, e o leitor
+            de tela precisa anunciar que existe uma saída.
+          */}
+          {menuAberto && (
+            <button
+              type="button"
+              className="crc-menu-fundo"
+              aria-label="Fechar menu"
+              onClick={() => {
+                setMenuAberto(false);
+              }}
+            />
+          )}
+
           <main className="crc-conteudo" ref={setConteudoEl}>
             <div className="crc-barra-contexto" aria-label="Contexto da tela">
+              {/*
+                O BOTÃO SÓ EXISTE ONDE A GAVETA EXISTE — o CSS o esconde acima
+                de 768 px, onde o menu está sempre visível e um botão para
+                abri-lo seria um controle que não faz nada.
+              */}
+              <button
+                type="button"
+                className="crc-abrir-menu"
+                aria-expanded={menuAberto}
+                aria-controls="crc-menu-lateral"
+                aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
+                onClick={() => {
+                  setMenuAberto((x) => !x);
+                }}
+              >
+                <span aria-hidden="true">{menuAberto ? "✕" : "☰"}</span>
+              </button>
+
               <div className="crc-barra-trilha">
                 <ShieldCheck aria-hidden="true" />
                 <strong>JP CRC</strong>

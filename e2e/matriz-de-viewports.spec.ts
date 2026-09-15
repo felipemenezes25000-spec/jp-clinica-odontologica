@@ -121,16 +121,26 @@ test.describe("a matriz do §15", () => {
          *
          * `page.goto()` recarrega a página inteira, e o CRC passa por
          * "Carregando…" enquanto confere a sessão. Medir logo depois do `goto`
-         * media essa tela intermediária — que não tem barra lateral, não tem
-         * conteúdo e nunca vaza. Oito das 28 telas caíam nisso, e a matriz
-         * inteira ficava verde medindo um spinner.
+         * media essa tela intermediária — que não tem conteúdo e nunca vaza.
+         * Oito das 28 telas caíam nisso, e a matriz inteira ficava verde
+         * medindo um spinner.
          *
          * O `catch` existe para o diagnóstico continuar sendo uma LISTA. Se a
          * espera estourasse, o teste morreria na primeira tela e ninguém
          * saberia das outras 27.
+         *
+         * E A TESTEMUNHA É A BARRA DE CONTEXTO, e não a lateral.
+         *
+         * A primeira versão esperava `.crc-lateral` visível. Funcionava
+         * enquanto o menu estava sempre na tela; abaixo de 768 px ele virou
+         * gaveta e começa FECHADO — então a espera estourava os 20 s em cada
+         * uma das 28 telas, e o teste morria por tempo (180 s) sem ter medido
+         * nada. Quatro viewports de celular caíram assim.
+         *
+         * A barra de contexto existe em toda largura e só depois da sessão.
          */
         await page
-          .locator(".crc-lateral")
+          .locator(".crc-barra-contexto")
           .waitFor({ state: "visible", timeout: 20_000 })
           .catch(() => undefined);
 
@@ -142,12 +152,12 @@ test.describe("a matriz do §15", () => {
           /*
            * A PROVA DE QUE A TELA ABRIU MESMO.
            *
-           * `.crc-lateral` só existe com sessão; o campo de e-mail só existe
-           * sem ela. Exigir os dois, nos dois sentidos, fecha a porta para o
-           * teste medir a tela de login trinta e duas vezes achando que está
-           * medindo o CRC.
+           * A barra de contexto só existe COM sessão; o campo de e-mail só
+           * existe SEM ela. Exigir os dois, nos dois sentidos, fecha a porta
+           * para o teste medir a tela de login vinte e oito vezes achando que
+           * está medindo o CRC.
            */
-          temShell: document.querySelector(".crc-lateral") !== null,
+          temShell: document.querySelector(".crc-barra-contexto") !== null,
           temLogin: document.querySelector('input[type="email"]') !== null,
         }));
 

@@ -164,3 +164,124 @@
   margin-top: var(--crc-e1, 4px);
   overflow-wrap: anywhere;
 }
+
+/* ========================================================================== */
+/* §4 — abaixo de 768 px o menu é gaveta                                      */
+/* ========================================================================== */
+
+/*
+ * O botão de abrir só existe onde a gaveta existe. Acima de 768 px o menu está
+ * sempre visível, e um botão para "abrir" o que já está aberto é um controle
+ * que não faz nada — pior que ausente, porque quem clica espera algo.
+ */
+.crc-app .crc-abrir-menu {
+  display: none;
+}
+
+.crc-app .crc-menu-fundo {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .crc-app .crc-abrir-menu {
+    display: grid;
+    place-items: center;
+    /* 44 px é o alvo mínimo do §4 para ponteiro grosso. Aqui não é "ideal": é
+       o botão que abre a navegação inteira num aparelho de toque. */
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border: 1px solid var(--crc-borda);
+    border-radius: 12px;
+    background: var(--crc-superficie);
+    color: var(--crc-texto);
+    font-size: 1.05rem;
+    cursor: pointer;
+  }
+
+  .crc-app .crc-abrir-menu:focus-visible {
+    outline: 2px solid var(--crc-primaria);
+    outline-offset: 2px;
+  }
+
+  /*
+   * A GAVETA.
+   *
+   * `translateX(-100%)` e não `display: none`: o conteúdo continua no DOM, a
+   * transição existe, e o leitor de tela não vê a navegação aparecer e sumir
+   * da árvore a cada toque. `visibility` fecha a porta para o foco enquanto ela
+   * está fora da tela — sem isso, tabular passaria por trinta itens invisíveis.
+   */
+  .crc-app.crc-app.crc-app .crc-lateral {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 65;
+    width: min(84vw, 300px);
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    /*
+     * `visibility` FECHA A PORTA PARA O FOCO enquanto a gaveta está fora da
+     * tela — sem ela, tabular passaria por trinta itens invisíveis.
+     *
+     * E ela NÃO entra na lista de transição. `visibility` é propriedade
+     * discreta: transicioná-la junto com o `transform` deixou a gaveta presa em
+     * `hidden` mesmo com a regra de aberta valendo — medido, com o seletor
+     * casando e o atributo correto no DOM, e só descoberto ao desligar a
+     * transição à mão. A troca é instantânea; quem desliza é o `transform`.
+     */
+    visibility: hidden;
+    transition: transform 180ms ease;
+  }
+
+  .crc-app.crc-app.crc-app .crc-shell[data-menu="aberto"] .crc-lateral {
+    transform: translateX(0);
+    visibility: visible;
+    box-shadow: 0 0 40px rgba(3, 35, 20, 0.35);
+  }
+
+  .crc-app .crc-menu-fundo {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 64;
+    border: 0;
+    padding: 0;
+    background: rgba(22, 36, 26, 0.45);
+    cursor: pointer;
+  }
+
+  /*
+   * O conteúdo ocupa a largura inteira: a gaveta flutua por cima, e não empurra.
+   * É isto que devolve os 108 px que a faixa horizontal gastava em toda tela.
+   */
+  .crc-app.crc-app.crc-app .crc-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Quem pede menos movimento não ganha o deslize. */
+  @media (prefers-reduced-motion: reduce) {
+    .crc-app.crc-app.crc-app .crc-lateral {
+      transition: none;
+    }
+  }
+}
+
+/*
+ * A BARRA DE CONTEXTO VOLTA AO TOPO.
+ *
+ * Ela grudava em `top: var(--crc-nav-movel-altura)` — 108 px — porque a
+ * navegação era uma faixa horizontal fixa e a barra tinha de começar ABAIXO
+ * dela. Com a gaveta, essa faixa não existe mais: manter o deslocamento é
+ * reservar espaço para algo que saiu, e o conteúdo começava 108 px abaixo do
+ * topo em toda tela de celular.
+ *
+ * Fica o `safe-area-inset`, que é a única coisa que de fato ocupa o topo num
+ * aparelho com entalhe.
+ */
+@media (max-width: 767px) {
+  .crc-app.crc-app.crc-app .crc-barra-contexto {
+    top: env(safe-area-inset-top, 0px);
+  }
+}

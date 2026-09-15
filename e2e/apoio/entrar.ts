@@ -39,8 +39,18 @@ export async function entrarNoCrc(
   await page.getByLabel("Senha").fill(ADMIN_SENHA);
   await page.getByRole("button", { name: "Entrar no CRC" }).click();
 
-  // O painel carregou: a navegação lateral só existe com sessão.
-  await expect(navegacao(page, "Conversas")).toBeVisible();
+  /*
+   * O PAINEL CARREGOU — e a prova disso NÃO pode ser um item da navegação.
+   *
+   * Esta linha esperava `navegacao(page, "Conversas")` visível. Funcionava
+   * enquanto a lateral estava sempre na tela; abaixo de 768 px ela virou gaveta,
+   * e a gaveta começa fechada — então o login "falhava" em todo teste de
+   * celular, apontando para o lugar errado.
+   *
+   * A barra de contexto existe em toda largura e só depois da sessão: é ela que
+   * responde "entrou?" sem depender de onde o menu está.
+   */
+  await expect(page.locator(".crc-barra-contexto")).toBeVisible();
 
   if (opcoes.fecharGuia !== false) await fecharOGuia(page);
 }

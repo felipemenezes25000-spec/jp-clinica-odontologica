@@ -34,7 +34,21 @@ async function esperarLayout(page: Page): Promise<void> {
   );
 }
 
+/**
+ * Abre a gaveta quando a largura a tem, e não faz nada quando não tem.
+ *
+ * Abaixo de 768 px o menu deixou de estar sempre na tela (§4). Todo teste que
+ * precisa TOCAR um item da navegação passa por aqui primeiro — antes disso eles
+ * falhavam com "elemento não encontrado", apontando para o item em vez de para
+ * a gaveta fechada.
+ */
+async function abrirMenuSePrecisar(page: Page): Promise<void> {
+  const botao = page.getByRole("button", { name: /Abrir menu/u });
+  if (await botao.isVisible().catch(() => false)) await botao.click();
+}
+
 async function esperarTela(page: Page, aba: string): Promise<void> {
+  await abrirMenuSePrecisar(page);
   const destino = navegacao(page, aba);
 
   /*
@@ -91,7 +105,18 @@ test.describe("CRC responsivo", () => {
 
       await exigirSemOverflowHorizontal(page, viewport.nome);
       await expect(page.getByRole("main")).toBeVisible();
-      await expect(navegacao(page, "Início")).toBeVisible();
+
+      /*
+       * A NAVEGAÇÃO PRECISA ESTAR A UM TOQUE, e não necessariamente na tela.
+       * Acima de 768 px ela é a lateral; abaixo, a gaveta — e o critério §15.2
+       * diz exatamente isso: "visíveis OU acessíveis em 1 toque".
+       */
+      const naTela = await navegacao(page, "Início")
+        .isVisible()
+        .catch(() => false);
+      if (!naTela) {
+        await expect(page.getByRole("button", { name: /Abrir menu/u })).toBeVisible();
+      }
     }
   });
 
@@ -147,6 +172,10 @@ test.describe("CRC responsivo", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await esperarLayout(page);
 
+    // A gaveta guarda o menu no celular: para inspecionar o item, abra-a —
+    // que é o que a pessoa faz.
+    await abrirMenuSePrecisar(page);
+
     const inicio = navegacao(page, "Início");
     const textoInicio = inicio.locator("span").last();
     await expect(textoInicio).toBeVisible();
@@ -163,15 +192,44 @@ test.describe("CRC responsivo", () => {
       await exigirSemOverflowHorizontal(page, `${aba} em 390x844`);
     }
 
-    // A barra de contexto usa a mesma variável da altura da navegação; não
-    // pode ficar escondida sob o menu quando ele ganha a segunda faixa.
-    const nav = page.locator(".crc-lateral");
-    const contexto = page.locator(".crc-barra-contexto");
-    const offsets = await Promise.all([
-      nav.evaluate((elemento) => elemento.getBoundingClientRect().height),
-      contexto.evaluate((elemento) => Number.parseFloat(getComputedStyle(elemento).top)),
-    ]);
-    expect(Math.abs(offsets[0] - offsets[1])).toBeLessThanOrEqual(1);
+    /*
+     * ========================================================================
+     *  ESTA AFIRMAÇÃO MUDOU DE SENTIDO JUNTO COM O DESENHO.
+     *
+     *  Antes ela exigia que o `top` da barra de contexto fosse IGUAL à altura
+     *  da navegação — porque a navegação era uma faixa horizontal fixa no topo,
+     *  e a barra tinha de começar logo abaixo dela.
+     *
+     *  Com a gaveta (§4), a navegação não ocupa altura nenhuma: ela flutua por
+     *  cima quando aberta. Manter a regra antiga seria exigir que o conteúdo
+     *  continuasse sendo empurrado por uma faixa que não existe mais — e foi
+     *  exatamente isso que ela passou a acusar: 736 px (a altura da gaveta)
+     *  contra 0.
+     *
+     *  O que importa agora é o contrário: o conteúdo começa no TOPO, e nada o
+     *  empurra.
+     * ========================================================================
+     */
+    await expect(page.locator(".crc-lateral")).toBeHidden();
+
+    const topoDoConteudo = await page
+      .locator(".crc-barra-contexto")
+      .evaluate((elemento) => Math.round(elemento.getBoundingClientRect().top));
+
+    /*
+     * O LIMITE É 32 px, e não zero.
+     *
+     * A primeira versão exigia 8 px e reprovava com y=22 — que é o
+     * `padding-top` normal do conteúdo, respiro legítimo. O que este caso
+     * precisa pegar é a FAIXA DE NAVEGAÇÃO voltando, e ela mede 72 px no
+     * mínimo (108 px na configuração que existia). 32 px passa longe de um e
+     * pega o outro com folga.
+     */
+    expect(
+      topoDoConteudo,
+      `a barra de contexto começa em y=${String(topoDoConteudo)}: uma faixa de ` +
+        "navegação voltou a empurrar o conteúdo para baixo no celular.",
+    ).toBeLessThanOrEqual(32);
   });
 });
 
@@ -239,4 +297,81 @@ test.describe("o primeiro dado aparece sem rolar", () => {
       ).toBeLessThan(800);
     });
   }
+});
+
+/* ========================================================================== */
+/* §4 — abaixo de 768 px o menu é gaveta                                      */
+/* ========================================================================== */
+
+/**
+ * ============================================================================
+ *  POR QUE A GAVETA, E O QUE ELA DEVOLVE.
+ *
+ *  Abaixo de 768 px a lateral era uma faixa horizontal fixa de 108 px no topo
+ *  de TODA tela. Num iPhone de 844 px de altura isso é 13% da tela gasta com
+ *  navegação que se usa uma vez a cada vários minutos — e que some por baixo do
+ *  teclado assim que alguém digita.
+ *
+ *  Medido depois: o conteúdo passou a ocupar os 390 px inteiros.
+ * ============================================================================
+ */
+test.describe("no celular o menu é gaveta", () => {
+  test("começa fora da tela, e o conteúdo ocupa a largura inteira", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await entrarNoCrc(page);
+    await esperarLayout(page);
+
+    const lateral = page.locator(".crc-lateral");
+
+    /*
+     * `visibility: hidden` E NÃO SÓ DESLOCADA. Uma gaveta apenas translada para
+     * fora continua recebendo foco: tabular passaria por trinta itens que
+     * ninguém vê. É a diferença entre estar escondida e estar fora do caminho.
+     */
+    await expect(lateral).toBeHidden();
+
+    const main = await page.locator("main").boundingBox();
+    expect(Math.round(main?.width ?? 0), "o conteúdo não ocupou a largura toda").toBe(390);
+  });
+
+  test("abre no botão, fecha no Escape e fecha ao navegar", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await entrarNoCrc(page);
+    await esperarLayout(page);
+
+    const lateral = page.locator(".crc-lateral");
+    const abrir = page.getByRole("button", { name: /Abrir menu/u });
+
+    await abrir.click();
+    await expect(lateral).toBeVisible();
+    await expect(page.getByRole("button", { name: /Fechar menu/u }).first()).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(lateral).toBeHidden();
+
+    /*
+     * FECHAR AO NAVEGAR é o caso mais esquecido: sem ele a gaveta fica aberta
+     * por cima da tela que ela mesma acabou de abrir, e a pessoa tem de fechá-la
+     * para ver o que pediu.
+     */
+    await abrir.click();
+    await expect(lateral).toBeVisible();
+    // Com a gaveta aberta o item já é alcançável — é para isso que ela serve.
+    await navegacao(page, "Radar").click();
+    await expect(page).toHaveURL(/\/crc\/radar/u);
+    await expect(lateral).toBeHidden();
+  });
+
+  test("o botão de abrir não existe no desktop", async ({ page }) => {
+    /*
+     * A contrapartida. Um botão "abrir menu" numa tela onde o menu já está
+     * sempre visível é um controle que não faz nada — e quem clica espera algo.
+     */
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await entrarNoCrc(page);
+    await esperarLayout(page);
+
+    await expect(page.locator(".crc-lateral")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Abrir menu/u })).toBeHidden();
+  });
 });
