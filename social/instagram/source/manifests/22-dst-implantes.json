@@ -1,0 +1,119 @@
+{
+  "grupo": "dst-implantes",
+  "descricao": "Os cartões de dentro do Destaque Implantes. A ordem importa: ela segue a sequência real em que a dúvida aparece na recepção — o que é, quando entra, como avalia, se dói, se precisa de enxerto, quanto tempo leva. Quem chegar no cartão 14 já sabe o que quer perguntar.",
+  "saida": "exports/highlights/implantes",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_implantes_01_capa",
+      "chip": "IMPLANTES",
+      "headline": "Tudo o que\nse pergunta\nantes.",
+      "escala": "h-m",
+      "corpo": "Treze cartões, na ordem em que a dúvida costuma aparecer.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_02_oque",
+      "chip": "1 · O QUE É",
+      "headline": "O implante\nsubstitui a [[raiz]]\ndo dente.",
+      "escala": "h-p",
+      "corpo": "É um pino instalado no osso. Sobre ele vai a prótese — a parte que aparece e devolve a mastigação."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_03_quando",
+      "chip": "2 · QUANDO ENTRA",
+      "headline": "Quando falta\num dente — ou\nvários.",
+      "escala": "h-p",
+      "corpo": "A ausência muda a mordida e afeta os dentes vizinhos com o tempo. Avaliar cedo costuma ampliar as opções."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_04_avaliacao",
+      "chip": "3 · A AVALIAÇÃO",
+      "headline": "Começa por\nvocê, não\npelo dente.",
+      "escala": "h-p",
+      "corpo": "Histórico de saúde, medicamentos em uso, exame clínico da boca e, quando indicado, exame de imagem.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_05_plano",
+      "chip": "4 · PLANEJAMENTO",
+      "headline": "Plano antes\nde [[proposta]].",
+      "escala": "h-p",
+      "corpo": "A equipe explica possibilidades, etapas e cuidados previstos antes de qualquer decisão."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_06_etapas",
+      "chip": "5 · AS ETAPAS",
+      "headline": "Avaliação →\ncirurgia →\nintegração →\nprótese.",
+      "escala": "h-pp",
+      "corpo": "Quatro fases, sempre nessa ordem. A maior parte do tempo é de integração do implante ao osso."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_07_doi",
+      "chip": "6 · “DÓI?”",
+      "headline": "A cirurgia é feita\ncom [[anestesia\nlocal]].",
+      "escala": "h-p",
+      "corpo": "O pós-operatório varia de caso para caso. A equipe orienta cuidados e prescrição, e os retornos acompanham a cicatrização.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_08_enxerto",
+      "chip": "7 · ENXERTO",
+      "headline": "Nem todo caso\nprecisa.",
+      "escala": "h-p",
+      "corpo": "O enxerto entra quando falta volume ósseo na região. Quem responde é o exame de imagem — e, quando é necessário, já entra no planejamento."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_09_tempo",
+      "chip": "8 · TEMPO",
+      "headline": "O prazo é\n[[combinado antes]].",
+      "escala": "h-p",
+      "corpo": "Varia conforme o caso. O cronograma faz parte do planejamento, não é descoberto no meio do caminho."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_10_cuidados",
+      "chip": "9 · CUIDADOS",
+      "headline": "Implante também\npede manutenção.",
+      "escala": "h-p",
+      "corpo": "Higiene diária, escovação orientada e retornos de acompanhamento. O implante não tem cárie, mas a gengiva ao redor adoece."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_11_unitario",
+      "chip": "10 · UM DENTE",
+      "headline": "Repor um dente\nisolado é dos\ncasos mais comuns.",
+      "escala": "h-pp",
+      "corpo": "A vantagem é não depender do desgaste dos dentes vizinhos. A conduta é definida na avaliação."
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_12_multiplos",
+      "chip": "11 · VÁRIOS DENTES",
+      "headline": "Nem sempre é\num implante\npor dente.",
+      "escala": "h-p",
+      "corpo": "Em muitas situações um implante sustenta mais de um dente. A quantidade sai do planejamento, não de uma tabela.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_13_protese",
+      "chip": "12 · A PRÓTESE",
+      "headline": "O implante é\na raiz. A prótese\né o [[dente]].",
+      "escala": "h-p",
+      "corpo": "A fase protética é o que devolve forma, função e a aparência do sorriso.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_implantes_14_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Traga o seu\ncaso para a\n[[avaliação]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

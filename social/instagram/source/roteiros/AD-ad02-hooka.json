@@ -1,0 +1,62 @@
+{
+  "id": "AD02-A",
+  "titulo": "Dentadura é a única possibilidade? — reabilitação (hook A)",
+  "arquivo": "jp_ig_ad_ad02_hooka_v01",
+  "anuncio": true,
+  "pilar": "proteses",
+  "utm_content": "ad02_hooka",
+  "objetivo": "generate_lead",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "titulo": "Dentadura é a\n[[única]] opção?",
+      "escala": "v-g",
+      "corpo": "Para quem perdeu vários dentes, não.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Dentadura é a única opção? Para quem perdeu vários dentes, não."
+    },
+    {
+      "t": 6.0,
+      "superficie": "escura",
+      "chip": "OS CAMINHOS",
+      "titulo": "Três possibilidades\naparecem com\nmais frequência.",
+      "escala": "v-p",
+      "itens": [
+        "Prótese removível",
+        "Prótese fixa sobre implantes",
+        "Prótese protocolo, quando indicada"
+      ],
+      "narracao": "Três possibilidades aparecem com mais frequência: prótese removível, prótese fixa sobre implantes, e prótese protocolo quando indicada."
+    },
+    {
+      "t": 4.6,
+      "superficie": "escura",
+      "titulo": "Nenhuma delas é\na melhor para\n[[todo mundo]].",
+      "escala": "v-p",
+      "corpo": "Volume ósseo, saúde geral e rotina definem o que é possível.",
+      "narracao": "Nenhuma delas é a melhor para todo mundo: volume ósseo, saúde geral e rotina definem o que é possível."
+    },
+    {
+      "t": 4.0,
+      "titulo": "Quem já usa prótese\npode [[avaliar]]\nimplantes.",
+      "escala": "v-p",
+      "corpo": "Existem alternativas que usam implantes para dar mais estabilidade à prótese.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Quem já usa prótese removível pode avaliar implantes."
+    },
+    {
+      "t": 4.2,
+      "superficie": "clara",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "titulo": "Fale com a\nequipe da [[JP]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "narracao": "Fale com a equipe da JP. Avaliação com hora marcada, na região da Freguesia do Ó."
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "grupo": "dst-ortodontia",
+  "descricao": "Destaque Ortodontia. Aparelho é a porta de entrada de família inteira: quem traz o filho volta para tratar a própria boca.",
+  "saida": "exports/highlights/ortodontia",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_ortodontia_01_capa",
+      "chip": "ORTODONTIA",
+      "headline": "Alinhar não é\nsó [[estética]].",
+      "escala": "h-m",
+      "corpo": "Oito cartões sobre aparelho, alinhador e o que muda no dia a dia.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_02_avaliacao",
+      "chip": "1 · AVALIAÇÃO",
+      "headline": "Tudo começa pela\ndocumentação\nortodôntica.",
+      "escala": "h-pp",
+      "corpo": "Exames e modelos mostram o que os dentes precisam mover. Sem isso, qualquer escolha é chute."
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_03_convencional",
+      "chip": "2 · APARELHO FIXO",
+      "headline": "O mais\nconhecido — e\nainda o mais\nversátil.",
+      "escala": "h-pp",
+      "corpo": "Resolve uma gama ampla de movimentos e não depende da disciplina de uso."
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_04_esteticas",
+      "chip": "3 · ALTERNATIVAS",
+      "headline": "Existem opções\nmais discretas.",
+      "escala": "h-p",
+      "corpo": "Braquetes estéticos e alinhadores, quando o caso permite. O que é possível sai da avaliação.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_05_manutencao",
+      "chip": "4 · MANUTENÇÃO",
+      "headline": "O retorno é\nparte do\ntratamento.",
+      "escala": "h-p",
+      "corpo": "É no ajuste periódico que o movimento acontece. Faltar atrasa o próprio resultado."
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_06_higiene",
+      "chip": "5 · HIGIENE",
+      "headline": "Aparelho exige\nescovação mais\n[[atenta]].",
+      "escala": "h-p",
+      "corpo": "Escova interdental, fio com passador e orientação da equipe evitam mancha e cárie ao redor do braquete.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_07_idades",
+      "chip": "6 · IDADES",
+      "headline": "Criança,\nadolescente\ne adulto.",
+      "escala": "h-p",
+      "corpo": "Cada fase tem um objetivo diferente: guiar o crescimento, corrigir a mordida ou reorganizar o espaço."
+    },
+    {
+      "arquivo": "jp_ig_dst_ortodontia_08_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Comece pela\n[[documentação]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

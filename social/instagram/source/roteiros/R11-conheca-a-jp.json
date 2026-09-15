@@ -1,0 +1,80 @@
+{
+  "id": "R11",
+  "titulo": "Conheça a JP por dentro",
+  "arquivo": "jp_ig_reel_r11_conheca_a_jp_v01",
+  "pilar": "clinica",
+  "objetivo": "reduzir a incerteza de quem nunca entrou — o principal freio de agendamento",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 3.0,
+      "chip": "A CLÍNICA",
+      "titulo": "Conheça a JP\npor [[dentro]].",
+      "escala": "v-g",
+      "corpo": "R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Conheça a JP por dentro. Ficamos na Rua Rio Verde, 1029, Vila Bruna, região da Freguesia do Ó."
+    },
+    {
+      "t": 3.6,
+      "superficie": "clara",
+      "chip": "RECEPÇÃO",
+      "janela": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "arco": true,
+      "titulo": "Aqui começa\no cuidado.",
+      "escala": "v-p",
+      "narracao": "A recepção: aqui começa o cuidado."
+    },
+    {
+      "t": 3.6,
+      "superficie": "clara",
+      "chip": "CONSULTÓRIOS",
+      "janela": "/social/instagram/source/assets-derivados/consultorio-janela-2x.webp",
+      "titulo": "Salas com\nluz natural.",
+      "escala": "v-p",
+      "narracao": "Os consultórios, com luz natural."
+    },
+    {
+      "t": 3.6,
+      "superficie": "escura",
+      "chip": "ESTERILIZAÇÃO",
+      "titulo": "A sala que\nninguém mostra.",
+      "escala": "v-m",
+      "corpo": "Instrumental processado em rotina própria, a cada atendimento.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "A esterilização: a sala que ninguém mostra. O instrumental é processado em rotina própria a cada atendimento."
+    },
+    {
+      "t": 3.4,
+      "superficie": "clara",
+      "chip": "SALA DE ESPERA",
+      "janela": "/social/instagram/source/assets-derivados/cantinho-cafe-2x.webp",
+      "titulo": "E um cantinho\ndo café.",
+      "escala": "v-p",
+      "narracao": "E um cantinho do café, para a espera ser mais curta."
+    },
+    {
+      "t": 4.2,
+      "superficie": "escura",
+      "titulo": "{{historia.anos}} anos\nde história.",
+      "escala": "v-g",
+      "corpo": "{{avaliacoes.notaBR}} no Google, com {{avaliacoes.total}} avaliações de quem já passou por aqui.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "fora",
+      "narracao": "São 24 anos de história, com nota 4,6 no Google."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Venha\n[[conhecer]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}} · {{clinica.horario}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Venha conhecer. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

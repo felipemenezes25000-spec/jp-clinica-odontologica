@@ -1,0 +1,63 @@
+{
+  "id": "R01",
+  "titulo": "Implante dói?",
+  "arquivo": "jp_ig_reel_r01_implante_doi_v01",
+  "pilar": "implantes",
+  "objetivo": "responder a objeção nº 1 antes da avaliação",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.6,
+      "chip": "IMPLANTES",
+      "titulo": "Implante\n[[dói]]?",
+      "escala": "v-xg",
+      "corpo": "É a pergunta que mais chega antes da avaliação.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Implante dói? É a pergunta que mais chega antes da avaliação."
+    },
+    {
+      "t": 4.2,
+      "titulo": "A cirurgia é feita com\n[[anestesia local]].",
+      "escala": "v-m",
+      "corpo": "Durante o procedimento, a região tratada fica anestesiada.",
+      "superficie": "escura",
+      "narracao": "A cirurgia é feita com anestesia local: durante o procedimento, a região tratada fica anestesiada."
+    },
+    {
+      "t": 5.4,
+      "chip": "E DEPOIS?",
+      "titulo": "O pós-operatório\nvaria de caso\npara caso.",
+      "escala": "v-p",
+      "itens": [
+        "A equipe orienta cuidados e prescrição",
+        "Os retornos acompanham a cicatrização",
+        "Cada organismo responde de um jeito"
+      ],
+      "superficie": "escura",
+      "narracao": "O pós-operatório varia de caso para caso. A equipe orienta cuidados e prescrição, e os retornos acompanham a cicatrização."
+    },
+    {
+      "t": 4.6,
+      "titulo": "O que não dá\npara dizer pela\ninternet:",
+      "escala": "v-m",
+      "corpo": "se o implante é indicado para você. Isso depende de exame de imagem, histórico de saúde e avaliação individual.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "O que não dá para dizer pela internet é se o implante é indicado para você. Isso depende de exames, histórico e avaliação individual."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Vamos olhar\no [[seu caso]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Vamos olhar o seu caso. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

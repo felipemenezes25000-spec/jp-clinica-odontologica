@@ -1,0 +1,83 @@
+{
+  "grupo": "equipe",
+  "descricao": "Um card por pessoa REAL da clínica. Nome, função e CRO saem de src/lib/jp.ts pelo extrator — nenhum número de registro foi digitado aqui. Quem não é do conselho (recepção, gestão) não ganha campo de registro, e não por esquecimento: CRO é dado regulado pela Resolução CFO 196/2019 e atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa que existe. Dra. Juliana e Jeferson entram em moldura reta porque os retratos deles não têm fundo vazado; silhueta forçada inventaria contorno.",
+  "saida": "exports/feed",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_feed_equipe_juliana_pelisser_v01",
+      "tipo": "feed-team",
+      "chip": "RESPONSÁVEL TÉCNICA",
+      "foto": "/src/assets/juliana-pelisser.webp",
+      "opaco": true,
+      "nome": "{{responsavelTecnica.nome}}",
+      "papel": "{{responsavelTecnica.papel}}",
+      "registro": "{{responsavelTecnica.registro}}"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_ana_beatriz_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/ana-beatriz.webp",
+      "nome": "Dra. Ana Beatriz",
+      "papel": "Coordenadora e cirurgiã-dentista",
+      "registro": "CROSP 177.801"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_matheus_fraga_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/matheus-fraga.webp",
+      "nome": "Dr. Matheus Fraga",
+      "papel": "Odontopediatria e endodontia",
+      "registro": "CROSP 168.512"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_julia_vargas_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/julia-vargas.webp",
+      "nome": "Dra. Júlia Vargas",
+      "papel": "Odontopediatria e estética",
+      "registro": "CROSP 175.851"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_hugo_leonardo_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/hugo-leonardo.webp",
+      "nome": "Dr. Hugo Leonardo",
+      "papel": "Ortodontia",
+      "registro": "CROSP 75.157"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_sabrina_vamszer_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/sabrina-vamszer.webp",
+      "nome": "Dra. Sabrina Vamszer Flaquer",
+      "papel": "Endodontia",
+      "registro": "CROSP 162.394"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_raphaela_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/raphaela-recepcao.webp",
+      "nome": "Raphaela",
+      "papel": "Recepção"
+    },
+    {
+      "arquivo": "jp_ig_feed_equipe_jeferson_barbosa_v01",
+      "tipo": "feed-team",
+      "chip": "GESTÃO",
+      "foto": "/src/assets/jeferson-barbosa.webp",
+      "opaco": true,
+      "nome": "{{gestor.nome}}",
+      "papel": "{{gestor.papel}} · {{gestor.formacao}}"
+    }
+  ]
+}

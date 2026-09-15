@@ -1,0 +1,59 @@
+{
+  "grupo": "ads-ad11",
+  "descricao": "AD11 — carrossel de anúncio, conceito implantes. Quatro cartões: promessa de informação, resposta, método, CTA. Curto de propósito: carrossel de anúncio perde metade do público entre o slide 2 e o 3.",
+  "saida": "exports/ads/ad11-implantes-duvidas",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme",
+    "anuncio": true
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "IMPLANTES",
+      "headline": "3 dúvidas antes\nde um [[implante]].",
+      "escala": "h-m",
+      "corpo": "Respondidas por uma clínica que faz avaliação antes de orçamento.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "arquivo": "jp_ig_ad_ad11_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "1 · DÓI?",
+      "headline": "A cirurgia é feita\ncom anestesia\nlocal.",
+      "escala": "h-p",
+      "corpo": "O pós-operatório varia de caso para caso, e a equipe orienta os cuidados.",
+      "arquivo": "jp_ig_ad_ad11_02_v01",
+      "pagina": "2/5"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "2 · PRECISA DE ENXERTO?",
+      "headline": "Nem todo\ncaso precisa.",
+      "escala": "h-m",
+      "corpo": "O enxerto entra quando falta volume ósseo. Quem responde é o exame de imagem.",
+      "arquivo": "jp_ig_ad_ad11_03_v01",
+      "pagina": "3/5"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "3 · QUANTO TEMPO?",
+      "headline": "O prazo é\ncombinado\nantes.",
+      "escala": "h-m",
+      "corpo": "A maior parte do tempo é de integração do implante ao osso. O cronograma faz parte do planejamento.",
+      "arquivo": "jp_ig_ad_ad11_04_v01",
+      "pagina": "4/5"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "headline": "Fale com a\nequipe da [[JP]].",
+      "escala": "h-m",
+      "corpo": "Implantes com planejamento individual na região da {{historia.regiaoAtual}}.",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}. {{clinica.horario}}.",
+      "arquivo": "jp_ig_ad_ad11_05_v01",
+      "pagina": "5/5"
+    }
+  ]
+}

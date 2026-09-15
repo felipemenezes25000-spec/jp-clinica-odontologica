@@ -1,0 +1,177 @@
+{
+  "_origem": "src/lib/jp.ts",
+  "_gerador": "social/instagram/source/scripts/extrair-dados.mjs",
+  "_aviso": "ARQUIVO DERIVADO. Não edite à mão: rode o gerador depois de mudar src/lib/jp.ts.",
+  "siteUrl": "https://www.jpclinicaodontologica.com.br",
+  "avaliacoes": {
+    "nota": 4.6,
+    "total": 192,
+    "conferidoEm": "2026-09-10",
+    "conferidoEmBR": "10/09/2026",
+    "notaBR": "4,6",
+    "provaCurta": "4,6 no Google",
+    "provaLonga": "4,6★ no Google · 192 avaliações"
+  },
+  "clinica": {
+    "nome": "JP Clínica Integrada Odontológica",
+    "nomeCurto": "JP Clínica Odontológica",
+    "razaoSocial": "J P Clínica Integrada Odontológica LTDA",
+    "cnpj": "42.401.404/0001-37",
+    "assinatura": "Ver seu sorriso é nossa missão.",
+    "telefone": "(11) 3975-9902",
+    "whatsapp": "(11) 97616-5117",
+    "whatsappHref": "https://wa.me/5511976165117",
+    "horario": "Segunda a sexta, 08:00 às 18:00",
+    "instagram": "https://www.instagram.com/jpclinicaodontologica/",
+    "mapsHref": "https://www.google.com/maps/search/?api=1&query=R.+Rio+Verde,+1029+-+Vila+Bruna,+São+Paulo+-+SP,+02934-201",
+    "bairroExibicao": "Vila Bruna • região da Freguesia do Ó",
+    "endereco": {
+      "logradouro": "R. Rio Verde, 1029",
+      "bairro": "Vila Bruna",
+      "cidade": "São Paulo",
+      "uf": "SP",
+      "cep": "02934-201"
+    },
+    "enderecoLinha": "R. Rio Verde, 1029 — Vila Bruna, São Paulo - SP"
+  },
+  "historia": {
+    "fundacao": 2002,
+    "fundacaoData": "17/08/2002",
+    "anos": 24,
+    "regiaoAnterior": "Pirituba",
+    "bairroAnterior": "Vila Pereira Barreto",
+    "regiaoAtual": "Freguesia do Ó",
+    "mudanca": 2024
+  },
+  "responsavelTecnica": {
+    "nome": "Dra. Juliana Pelisser Barbosa",
+    "registro": "CROSP 75.159",
+    "papel": "Gestora, fundadora e responsável técnica"
+  },
+  "gestor": {
+    "nome": "Jeferson Barbosa",
+    "papel": "Gestor e fundador",
+    "formacao": "Comunicação Social — Relações Públicas"
+  },
+  "equipe": [
+    {
+      "nome": "Dra. Ana Beatriz",
+      "registro": "CROSP 177.801",
+      "papel": "Coordenadora e cirurgiã-dentista"
+    },
+    {
+      "nome": "Dr. Matheus Fraga",
+      "registro": "CROSP 168.512",
+      "papel": "Odontopediatria e endodontia"
+    },
+    {
+      "nome": "Dra. Júlia Vargas",
+      "registro": "CROSP 175.851",
+      "papel": "Odontopediatria e estética"
+    },
+    {
+      "nome": "Dr. Hugo Leonardo",
+      "registro": "CROSP 75.157",
+      "papel": "Ortodontia"
+    },
+    {
+      "nome": "Dra. Sabrina Vamszer Flaquer",
+      "registro": "CROSP 162.394",
+      "papel": "Endodontia"
+    },
+    {
+      "nome": "Raphaela",
+      "registro": null,
+      "papel": "Recepção"
+    }
+  ],
+  "tratamentos": [
+    {
+      "slug": "limpeza-profilaxia",
+      "titulo": "Limpeza e profilaxia",
+      "short": "Limpeza",
+      "headline": "para manter a prevenção em dia.",
+      "desc": "Remoção de placa e tártaro, com orientação de higiene e acompanhamento preventivo individualizado.",
+      "kicker": "Prevenção que começa no básico bem feito."
+    },
+    {
+      "slug": "clareamento-dental",
+      "titulo": "Clareamento dental",
+      "short": "Clareamento",
+      "headline": "no tom que combina com você.",
+      "desc": "Protocolos de clareamento indicados após avaliação, respeitando as características e a sensibilidade de cada paciente.",
+      "kicker": "Estética com indicação, não com pressa."
+    },
+    {
+      "slug": "restauracoes",
+      "titulo": "Restaurações",
+      "short": "Restaurações",
+      "headline": "para recuperar forma e função.",
+      "desc": "Recuperação de dentes comprometidos por cárie ou perda de estrutura, buscando função, forma e integração estética.",
+      "kicker": "Reconstruir sem chamar atenção para a reconstrução."
+    },
+    {
+      "slug": "implantes-dentarios",
+      "titulo": "Implantes dentários",
+      "short": "Implantes",
+      "headline": "para voltar a mastigar com tranquilidade.",
+      "desc": "Reabilitação de dentes ausentes com planejamento individual e acompanhamento profissional em cada etapa.",
+      "kicker": "Reabilitação é recuperar presença, função e confiança."
+    },
+    {
+      "slug": "proteses-dentarias",
+      "titulo": "Próteses dentárias",
+      "short": "Próteses",
+      "headline": "planejadas caso a caso.",
+      "desc": "Soluções protéticas fixas ou removíveis planejadas para apoiar mastigação, conforto e harmonia do sorriso.",
+      "kicker": "Reabilitar é devolver possibilidades ao dia a dia."
+    },
+    {
+      "slug": "ortodontia",
+      "titulo": "Aparelhos e ortodontia",
+      "short": "Ortodontia",
+      "headline": "é alinhar também a mordida.",
+      "desc": "Alinhamento dos dentes e acompanhamento da mordida por meio de planejamento ortodôntico individualizado.",
+      "kicker": "Mover dentes exige direção."
+    },
+    {
+      "slug": "odontopediatria",
+      "titulo": "Odontopediatria",
+      "short": "Odontopediatria",
+      "headline": "no tempo de cada criança.",
+      "desc": "Cuidado odontológico para crianças com linguagem simples, acolhimento e construção gradual de confiança.",
+      "kicker": "O primeiro vínculo com o dentista pode ser uma boa memória."
+    },
+    {
+      "slug": "harmonizacao-orofacial",
+      "titulo": "Harmonização orofacial",
+      "short": "Harmonização",
+      "headline": "na medida do seu rosto.",
+      "desc": "Botox, preenchimento e skinbooster quando indicados, sempre mediante avaliação profissional e planejamento individual.",
+      "kicker": "Estética facial sem apagar quem você é."
+    }
+  ],
+  "depoimentos": [
+    {
+      "autor": "Mari Nozzolillo",
+      "texto": "Estou muito satisfeita com a atendimento da Clínica, fui atendida pela Dra Ana Beatriz que fez a extração do meu dente com muita calma e paciência, me esclareceu todos os procedimentos que iria fazer e foi muito cuidadosa em todo momento. Um ambiente limpo, organizado e aconchegante. Super indico com certeza!"
+    },
+    {
+      "autor": "Valéria C.",
+      "texto": "Já faço meus tratamentos com eles há mais de 3 anos. A clínica é maravilhosa, atendimento cuidadoso e equipe muito acolhedora."
+    },
+    {
+      "autor": "Marjorye A.",
+      "texto": "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!"
+    },
+    {
+      "autor": "Carolina T.",
+      "texto": "Meu filho foi muito bem atendido. Equipe paciente, carinhosa e muito profissional. Recomendo!"
+    },
+    {
+      "autor": "Rafael M.",
+      "texto": "Atendimento impecável desde o primeiro contato. Planos claros e tratamentos que fazem a diferença."
+    }
+  ],
+  "missao": "Proporcionar aos nossos pacientes um tratamento humanizado e personalizado do começo ao fim, saúde bucal, sorriso e satisfação, resgatando sua autoestima!"
+}

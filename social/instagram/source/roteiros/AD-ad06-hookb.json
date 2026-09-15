@@ -1,0 +1,60 @@
+{
+  "id": "AD06-B",
+  "titulo": "Prova social — 24 anos + avaliações (hook B)",
+  "arquivo": "jp_ig_ad_ad06_hookb_v01",
+  "anuncio": true,
+  "pilar": "marca",
+  "utm_content": "ad06_hookb",
+  "objetivo": "generate_lead",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "titulo": "{{historia.anos}} anos.\nE a conta que\nimporta é [[outra]].",
+      "escala": "v-g",
+      "corpo": "Quem já sentou na nossa cadeira.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "24 anos. E a conta que importa é outra: quem já sentou na nossa cadeira."
+    },
+    {
+      "t": 4.6,
+      "superficie": "escura",
+      "chip": "AVALIAÇÃO REAL",
+      "titulo": "“Um ambiente\nlimpo, organizado\ne aconchegante.”",
+      "escala": "v-p",
+      "corpo": "Mari Nozzolillo · Google",
+      "narracao": "Um ambiente limpo, organizado e aconchegante. Mari Nozzolillo, no Google."
+    },
+    {
+      "t": 4.4,
+      "superficie": "escura",
+      "chip": "AVALIAÇÃO REAL",
+      "titulo": "“Já faço meus\ntratamentos com\neles há mais de\n3 anos.”",
+      "escala": "v-p",
+      "corpo": "Valéria C. · Google",
+      "narracao": "Já faço meus tratamentos com eles há mais de três anos. Valéria C., no Google."
+    },
+    {
+      "t": 4.0,
+      "superficie": "escura",
+      "titulo": "Desde {{historia.fundacao}}.\nHoje, na\n[[{{historia.regiaoAtual}}]].",
+      "escala": "v-m",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Desde 2002. Hoje, na Freguesia do Ó."
+    },
+    {
+      "t": 4.2,
+      "superficie": "clara",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "titulo": "Fale com a\nequipe da [[JP]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "narracao": "Fale com a equipe da JP. Avaliação com hora marcada, na região da Freguesia do Ó."
+    }
+  ]
+}

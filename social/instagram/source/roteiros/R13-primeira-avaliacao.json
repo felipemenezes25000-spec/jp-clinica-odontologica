@@ -1,0 +1,64 @@
+{
+  "id": "R13",
+  "titulo": "Como funciona uma primeira avaliação na JP?",
+  "arquivo": "jp_ig_reel_r13_primeira_avaliacao_v01",
+  "pilar": "clinica",
+  "objetivo": "tirar o medo do desconhecido antes do agendamento",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "PRIMEIRA VISITA",
+      "titulo": "O que acontece\nna primeira\n[[avaliação]]?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "O que acontece na primeira avaliação?"
+    },
+    {
+      "t": 3.4,
+      "superficie": "clara",
+      "chip": "1. CHEGADA",
+      "janela": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "arco": true,
+      "titulo": "Recepção e\nficha.",
+      "escala": "v-p",
+      "narracao": "Primeiro, a recepção e a ficha de cadastro."
+    },
+    {
+      "t": 7.0,
+      "superficie": "escura",
+      "chip": "2. CONSULTA",
+      "titulo": "A conversa\nvem antes\ndo exame.",
+      "escala": "v-m",
+      "itens": [
+        "Você conta o histórico e o que incomoda",
+        "A equipe examina a boca e a gengiva",
+        "Exames de imagem, quando indicados",
+        "As possibilidades são explicadas com clareza"
+      ],
+      "narracao": "Na consulta, a conversa vem antes do exame: você conta o histórico, a equipe examina, e as possibilidades são explicadas com clareza."
+    },
+    {
+      "t": 4.4,
+      "superficie": "escura",
+      "titulo": "3. Você decide\ncom [[informação]].",
+      "escala": "v-m",
+      "corpo": "Sem pressa, sem pressão e com o plano por escrito.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Por fim, você decide com informação: sem pressa, sem pressão, e com o plano por escrito."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Agende a sua\nprimeira [[visita]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}} · {{clinica.horario}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Agende a sua primeira visita. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

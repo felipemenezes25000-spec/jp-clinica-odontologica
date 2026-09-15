@@ -1,0 +1,61 @@
+{
+  "id": "R05",
+  "titulo": "Quando um dente é perdido, quais possibilidades existem?",
+  "arquivo": "jp_ig_reel_r05_possibilidades_v01",
+  "pilar": "implantes",
+  "objetivo": "educar sobre o leque de reabilitação",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "REABILITAÇÃO",
+      "titulo": "Perdeu um dente.\nE [[agora]]?",
+      "escala": "v-m",
+      "corpo": "Existe mais de um caminho — e o primeiro passo é saber quais são.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Quando um dente é perdido, existe mais de um caminho. O primeiro passo é saber quais são."
+    },
+    {
+      "t": 6.4,
+      "superficie": "escura",
+      "chip": "AS POSSIBILIDADES",
+      "titulo": "Três caminhos\nclássicos.",
+      "escala": "v-g",
+      "itens": [
+        "Implante, com a coroa sobre ele",
+        "Prótese fixa apoiada nos dentes vizinhos",
+        "Prótese removível"
+      ],
+      "narracao": "Três caminhos clássicos: implante com coroa, prótese fixa apoiada nos dentes vizinhos, ou prótese removível."
+    },
+    {
+      "t": 4.6,
+      "superficie": "escura",
+      "titulo": "Cada um tem\nindicação, vantagem\ne [[limite]].",
+      "escala": "v-p",
+      "corpo": "Nenhum deles é o melhor para todo mundo. Quem escolhe é o caso, junto com a equipe.",
+      "narracao": "Cada um tem indicação, vantagem e limite. Nenhum é o melhor para todo mundo."
+    },
+    {
+      "t": 4.4,
+      "titulo": "Esperar também\né uma decisão.",
+      "escala": "v-m",
+      "corpo": "O espaço vazio muda a mordida e os dentes vizinhos com o tempo. Avaliar cedo costuma ampliar as opções.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Esperar também é uma decisão: o espaço vazio muda a mordida com o tempo, e avaliar cedo costuma ampliar as opções."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Entenda as opções\ndo [[seu caso]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Entenda as opções do seu caso. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

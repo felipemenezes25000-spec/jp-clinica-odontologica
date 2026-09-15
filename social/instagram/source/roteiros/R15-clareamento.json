@@ -1,0 +1,60 @@
+{
+  "id": "R15",
+  "titulo": "Clareamento enfraquece os dentes?",
+  "arquivo": "jp_ig_reel_r15_clareamento_v01",
+  "pilar": "estetica",
+  "objetivo": "responder o mito e trazer a busca estética para dentro da clínica",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "ESTÉTICA",
+      "titulo": "Clareamento\nenfraquece\nos dentes?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Clareamento enfraquece os dentes?"
+    },
+    {
+      "t": 4.4,
+      "superficie": "escura",
+      "titulo": "Feito com\nacompanhamento,\nnão remove\nestrutura.",
+      "escala": "v-p",
+      "corpo": "O agente clareador age na cor, não desgasta o esmalte como uma lixa.",
+      "narracao": "Feito com acompanhamento profissional, o clareamento não remove estrutura: o agente age na cor, não desgasta o esmalte."
+    },
+    {
+      "t": 6.4,
+      "superficie": "escura",
+      "chip": "O QUE É VERDADE",
+      "titulo": "Três coisas\nque acontecem\nmesmo.",
+      "escala": "v-p",
+      "itens": [
+        "Sensibilidade temporária é comum",
+        "A avaliação vê cáries e restaurações antes",
+        "Nem toda mancha responde ao clareamento"
+      ],
+      "narracao": "Três coisas acontecem mesmo: sensibilidade temporária é comum, a avaliação precisa ver cáries e restaurações antes, e nem toda mancha responde ao clareamento."
+    },
+    {
+      "t": 4.4,
+      "titulo": "O risco mora\nno [[produto sem\navaliação]].",
+      "escala": "v-p",
+      "corpo": "Não no clareamento acompanhado por quem examinou a sua boca.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "fora",
+      "narracao": "O risco mora no produto usado sem avaliação, não no clareamento acompanhado por quem examinou a sua boca."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Avalie antes\nde [[clarear]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Avalie antes de clarear. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

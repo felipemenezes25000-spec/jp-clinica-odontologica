@@ -42,3 +42,17 @@ public/crc-tour
 # reclamar dele. Ver o comentario gemeo em `eslint.config.js`.
 playwright-report
 test-results
+
+# OS DOCUMENTOS GERADOS DO KIT DE INSTAGRAM.
+#
+# `social/instagram/content/*.md` sai de
+# `social/instagram/source/scripts/gerar-docs.mjs`, que monta tabelas a partir
+# dos manifests e roteiros. O Prettier alinha coluna de tabela por largura de
+# celula, entao cada execucao do gerador desformata o arquivo e cada
+# `npm run format` o formata de volta — dois diffs enormes por rodada, num
+# arquivo que ninguem edita a mao.
+#
+# Mesmo principio das entradas acima: o que e gerado, nao formatamos. A FONTE
+# (`source/manifests`, `source/roteiros`, `source/templates`, `source/scripts`)
+# continua fora do ignore e passa no `npm run check` normalmente.
+social/instagram/content

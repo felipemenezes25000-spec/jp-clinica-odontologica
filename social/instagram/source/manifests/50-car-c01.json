@@ -1,0 +1,95 @@
+{
+  "grupo": "car-c01",
+  "descricao": "C01 — as cinco dúvidas que mais aparecem antes de uma avaliação de implante. Todas as respostas terminam na avaliação individual, porque é onde a Resolução CFO 196/2019 manda terminar: a diferença entre informar e prescrever pela internet.",
+  "saida": "exports/carousel/c01-duvidas-implantes",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "IMPLANTES",
+      "headline": "5 dúvidas\nsobre\n[[implantes]].",
+      "escala": "h-g",
+      "corpo": "As que mais chegam na nossa recepção — respondidas sem enrolação.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "arquivo": "jp_ig_car_c01_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "1",
+      "headline": "“Implante\ndói?”",
+      "escala": "h-m",
+      "corpo": "A cirurgia é feita com **anestesia local**: durante o procedimento, a região fica anestesiada.",
+      "nota": "O pós-operatório varia de caso para caso. A equipe orienta cuidados e prescrição.",
+      "arquivo": "jp_ig_car_c01_02_v01",
+      "pagina": "2/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "2",
+      "headline": "“Precisa de\nenxerto?”",
+      "escala": "h-m",
+      "corpo": "Nem todo caso precisa. O enxerto entra quando falta **volume ósseo** na região.",
+      "nota": "Quem responde isso é o exame de imagem, não a internet.",
+      "arquivo": "jp_ig_car_c01_03_v01",
+      "pagina": "3/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "3",
+      "headline": "“Quanto tempo\nleva?”",
+      "escala": "h-m",
+      "corpo": "Varia conforme o caso. A maior parte do tempo é de **integração do implante ao osso**.",
+      "nota": "O cronograma do seu caso é combinado no planejamento, antes de começar.",
+      "arquivo": "jp_ig_car_c01_04_v01",
+      "pagina": "4/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "4",
+      "headline": "“Existe idade\nmáxima?”",
+      "escala": "h-m",
+      "corpo": "Não existe um número. O que pesa é a **condição de saúde**, não a data de nascimento.",
+      "nota": "Saúde geral, medicamentos em uso, osso e gengiva entram na avaliação.",
+      "arquivo": "jp_ig_car_c01_05_v01",
+      "pagina": "5/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "5",
+      "headline": "“Um implante\npara cada\ndente?”",
+      "escala": "h-p",
+      "corpo": "Não necessariamente. Em muitas situações, **um implante sustenta mais de um dente**.",
+      "nota": "A quantidade sai do planejamento, não de uma tabela.",
+      "arquivo": "jp_ig_car_c01_06_v01",
+      "pagina": "6/8"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "A AVALIAÇÃO",
+      "headline": "O que acontece\nna consulta.",
+      "escala": "h-m",
+      "itens": [
+        "Histórico de saúde e medicamentos em uso",
+        "Exame clínico da boca e da gengiva",
+        "Exame de imagem, quando indicado",
+        "As possibilidades explicadas com clareza"
+      ],
+      "arquivo": "jp_ig_car_c01_07_v01",
+      "pagina": "7/8"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Traga a sua\ndúvida para\na [[avaliação]].",
+      "escala": "h-m",
+      "corpo": "Respondemos no WhatsApp e explicamos como funciona a primeira consulta.",
+      "arquivo": "jp_ig_car_c01_08_v01",
+      "pagina": "8/8"
+    }
+  ]
+}

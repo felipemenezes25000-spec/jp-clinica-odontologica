@@ -1,0 +1,155 @@
+{
+  "grupo": "reel-capas",
+  "descricao": "Uma capa por Reel, mais duas alternativas com rosto real. As capas são 1080×1920, mas quem decide o toque é a FAIXA 4:5 CENTRAL — é ela que o grid do perfil mostra. Por isso o miolo respeita 340px de topo e 400px de pé. Rode com --qa para ver a guia azul dessa faixa. A alternância foto / creme / escura não é estética: é o que impede o grid de virar um bloco de seis retângulos verdes iguais.",
+  "saida": "exports/reel-covers",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_reel_r01_cover_v01",
+      "chip": "IMPLANTES",
+      "headline": "Implante\n[[dói]]?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp"
+    },
+    {
+      "arquivo": "jp_ig_reel_r02_cover_v01",
+      "chip": "PRÓTESES",
+      "headline": "Dentadura é\na [[única]]\nopção?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "jp_ig_reel_r03_cover_v01",
+      "chip": "IMPLANTES",
+      "headline": "Precisa de\n[[enxerto]]?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_reel_r04_cover_v01",
+      "chip": "IMPLANTES",
+      "headline": "Quanto\n[[tempo]]\nleva?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp"
+    },
+    {
+      "arquivo": "jp_ig_reel_r05_cover_v01",
+      "chip": "REABILITAÇÃO",
+      "headline": "Perdeu um\ndente.\nE [[agora]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "jp_ig_reel_r06_cover_v01",
+      "chip": "IMPLANTES",
+      "headline": "Um implante\npor [[dente]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_reel_r07_cover_v01",
+      "chip": "IMPLANTES",
+      "headline": "Existe [[idade]]\nmáxima?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp"
+    },
+    {
+      "arquivo": "jp_ig_reel_r08_cover_v01",
+      "chip": "AVALIAÇÃO",
+      "headline": "O que olhamos\n[[antes]].",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp"
+    },
+    {
+      "arquivo": "jp_ig_reel_r09_cover_v01",
+      "chip": "PRÓTESES",
+      "headline": "O que é\n[[protocolo]]?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "jp_ig_reel_r10_cover_v01",
+      "chip": "IMPLANTES",
+      "headline": "Implante\nx [[prótese]]",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_reel_r11_cover_v01",
+      "chip": "A CLÍNICA",
+      "headline": "Conheça a JP\npor [[dentro]].",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp"
+    },
+    {
+      "arquivo": "jp_ig_reel_r12_cover_v01",
+      "chip": "PLANEJAMENTO",
+      "headline": "Por que\n[[plano]]\nimporta?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "jp_ig_reel_r13_cover_v01",
+      "chip": "PRIMEIRA VISITA",
+      "headline": "Como é a\nprimeira\n[[avaliação]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp"
+    },
+    {
+      "arquivo": "jp_ig_reel_r14_cover_v01",
+      "chip": "ORTODONTIA",
+      "headline": "Aparelho ou\n[[alinhador]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_reel_r15_cover_v01",
+      "chip": "ESTÉTICA",
+      "headline": "Clareamento\n[[enfraquece]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "jp_ig_reel_r16_cover_v01",
+      "chip": "NOSSA HISTÓRIA",
+      "headline": "{{historia.anos}} anos\nem 30\nsegundos.",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_reel_r13_cover_rosto_alt_v01",
+      "tipo": "reel-cover-rosto",
+      "chip": "PRIMEIRA VISITA",
+      "foto": "/src/assets/raphaela-recepcao.webp",
+      "headline": "Como é a\nprimeira [[visita]]?",
+      "escala": "h-m"
+    },
+    {
+      "arquivo": "jp_ig_reel_r08_cover_rosto_alt_v01",
+      "tipo": "reel-cover-rosto",
+      "chip": "AVALIAÇÃO",
+      "foto": "/src/assets/ana-beatriz.webp",
+      "headline": "O que olhamos\nantes de [[indicar]].",
+      "escala": "h-p"
+    }
+  ]
+}

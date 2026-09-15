@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>JP Social — palco de vídeo</title>
+    <link rel="stylesheet" href="/social/instagram/source/templates/sistema.css" />
+    <style>
+      /* ======================================================================
+         MOTION — as regras do DESIGN.md §39 escritas como código.
+
+         "movimentos suaves, entrada curta de texto, zoom discreto, nada de
+         explosão, glitch, neon, letras pulando sem motivo."
+
+         Traduzido em números, que é a única forma de uma regra dessas
+         sobreviver a trinta cenas:
+
+           entrada de texto ........ 460 ms, sobe 26px, opacidade 0→1
+           saída de texto .......... 300 ms, sobe 14px, opacidade 1→0
+           escalonamento entre linhas 130 ms
+           zoom de foto ............ 8% ao longo da cena inteira
+           corte ................... 260 ms de dissolução
+
+         Nenhuma curva é linear: `easeOutCubic` na entrada e `easeInCubic` na
+         saída. Movimento linear é o que faz uma peça parecer apresentação de
+         slides, e é de graça evitá-lo.
+      ====================================================================== */
+      html,
+      body {
+        margin: 0;
+        background: #000;
+        overflow: hidden;
+      }
+      #palco {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .camada {
+        position: absolute;
+        inset: 0;
+        will-change: opacity, transform;
+      }
+      .cena {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        display: flex;
+        flex-direction: column;
+        /* A ÁREA SEGURA DO REEL, e ela não é simétrica.
+           Em cima moram o nome do perfil e o áudio; embaixo, a legenda, o
+           botão de curtir e a barra de navegação. 300px de pé é o que impede a
+           última linha de nascer atrás do "…mais". */
+        padding: 290px 96px 470px;
+      }
+      .cena.ativa {
+        opacity: 1;
+      }
+      .foto-cena {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .foto-cena img {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform-origin: center;
+        will-change: transform;
+      }
+      .veu {
+        position: absolute;
+        inset: 0;
+      }
+      .veu.escuro {
+        background: linear-gradient(
+          to top,
+          rgba(3, 47, 1, 0.95) 0%,
+          rgba(3, 47, 1, 0.9) 38%,
+          rgba(3, 47, 1, 0.74) 58%,
+          rgba(3, 47, 1, 0.34) 80%,
+          rgba(3, 47, 1, 0.46) 100%
+        );
+      }
+      .veu.leve {
+        background: linear-gradient(
+          to top,
+          rgba(3, 47, 1, 0.82) 0%,
+          rgba(3, 47, 1, 0.4) 40%,
+          rgba(3, 47, 1, 0.12) 72%,
+          rgba(3, 47, 1, 0.36) 100%
+        );
+      }
+      /* O verde vivo dentro da headline de vídeo. Existe separado do `.h .vivo`
+         do sistema porque a classe de título aqui e `.vh`, nao `.h` -- e sem
+         esta regra o destaque da palavra simplesmente nao acontecia, sem erro
+         nenhum: a peca saia com a frase inteira de uma cor so. */
+      .vh .vivo {
+        color: #56a805;
+      }
+      .cena.escura .vh .vivo {
+        color: #8ede2e;
+      }
+      /* JANELA — a foto dentro de uma moldura, sobre superficie de marca.
+         Existe por um motivo de ACERVO, nao de estilo: sete ambientes reais da
+         clinica so existem em 665x480. Sangrados em 1080x1920 eles ficam
+         leitosos; dentro de uma janela de 1080x720 a ampliacao cai para 1,6x e
+         a foto aguenta. Enquanto o SHOT-LIST nao for executado, e esta moldura
+         que permite mostrar a clinica de verdade em vez de ilustracao. */
+      .janela {
+        width: 100%;
+        height: 720px;
+        border-radius: 38px;
+        overflow: hidden;
+        flex: none;
+        background: var(--mint);
+      }
+      .janela.arco {
+        border-radius: 999px 999px 38px 38px;
+      }
+      .janela img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform-origin: center;
+        will-change: transform;
+      }
+      .an {
+        opacity: 0;
+        will-change: opacity, transform;
+      }
+      .vh {
+        font-family: var(--display);
+        font-weight: 800;
+        letter-spacing: -0.024em;
+        line-height: 1.03;
+        text-wrap: balance;
+      }
+      .v-xg {
+        font-size: 132px;
+        line-height: 0.99;
+      }
+      .v-g {
+        font-size: 108px;
+      }
+      .v-m {
+        font-size: 88px;
+      }
+      .v-p {
+        font-size: 70px;
+        line-height: 1.08;
+      }
+      .vp {
+        font-family: var(--sans);
+        font-weight: 450;
+        font-size: 44px;
+        line-height: 1.38;
+        max-width: 22ch;
+      }
+      .vitem {
+        display: flex;
+        gap: 26px;
+        align-items: flex-start;
+        font-family: var(--sans);
+        font-size: 46px;
+        line-height: 1.34;
+        font-weight: 500;
+      }
+      .vitem .bolinha {
+        flex: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: var(--lime);
+        margin-top: 16px;
+      }
+      /* A assinatura fixa. Fica em TODA cena e em todo vídeo, no mesmo lugar,
+         porque Reel é consumido em rolagem: quem entra no meio precisa saber de
+         quem é aquilo sem esperar o card final. */
+      .assinatura {
+        position: absolute;
+        left: 96px;
+        bottom: 340px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        z-index: 40;
+      }
+      .assinatura img {
+        height: 48px;
+      }
+      .assinatura span {
+        font-family: var(--sans);
+        font-weight: 600;
+        font-size: 28px;
+        letter-spacing: 0.01em;
+      }
+      /* Barra de progresso própria: diz que o vídeo tem fim, o que segura
+         retenção melhor do que qualquer texto pedindo "assista até o final". */
+      .progresso {
+        position: absolute;
+        left: 96px;
+        right: 96px;
+        bottom: 300px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.22);
+        overflow: hidden;
+        z-index: 40;
+      }
+      .progresso i {
+        display: block;
+        height: 100%;
+        background: var(--lime);
+        width: 0;
+      }
+      .progresso.claro {
+        background: rgba(9, 89, 2, 0.16);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="palco"></div>
+
+    <script type="module">
+      import { ICONES } from "/social/instagram/source/templates/templates.js";
+
+      const palco = document.getElementById("palco");
+      const MARCA_CLARA = "/src/assets/marca/marca-jp.svg";
+      const MARCA_ESCURA = "/src/assets/marca/marca-jp-claro.svg";
+
+      const e = (s) =>
+        String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      const rico = (s) =>
+        e(s)
+          .replace(/\[\[([\s\S]+?)\]\]/g, '<span class="vivo">$1</span>')
+          .replace(/\n/g, "<br>");
+
+      const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+      const easeIn = (x) => x * x * x;
+      const clamp01 = (x) => Math.min(1, Math.max(0, x));
+
+      let ESTADO = null;
+
+      /**
+       * Monta o vídeo inteiro no DOM ANTES de o primeiro quadro ser capturado.
+       *
+       * Não é otimização prematura: é correção. Se uma cena só é construída
+       * quando chega a vez dela, a foto daquela cena começa a baixar no quadro
+       * em que ela deveria aparecer — e os primeiros seis quadros saem com
+       * retângulo vazio. Num vídeo, seis quadros vazios no meio de um corte são
+       * um piscar que ninguém entende de onde veio.
+       */
+      window.prepararVideo = async (roteiro) => {
+        palco.innerHTML = "";
+        palco.style.background = roteiro.fundo ?? "var(--cream)";
+
+        const cenas = [];
+        let relogio = 0;
+
+        for (const [i, c] of roteiro.cenas.entries()) {
+          const escura = c.superficie !== "clara";
+          const div = document.createElement("div");
+          div.className = escura ? "cena escura" : "cena clara";
+
+          const corTitulo = escura ? "#F6FAF2" : "#095902";
+          const corCorpo = escura ? (c.foto ? "#E6F1DF" : "#D5E6CE") : "#5A6B5C";
+
+          let dentro = "";
+          if (c.foto) {
+            dentro += `<div class="foto-cena"><img src="${e(c.foto)}" alt=""></div><div class="veu ${c.veu ?? "escuro"}"></div>`;
+          } else {
+            /* CADA CENA PINTA O PRÓPRIO FUNDO.
+               Sem isto, uma cena `superficie: "clara"` herda o fundo verde do
+               vídeo e escreve #095902 sobre #032F01 — 1,2:1, texto invisível.
+               O defeito não aparece no roteiro nem no console: aparece só no
+               MP4, no card de CTA, que é a última coisa que alguém confere. */
+            div.style.background = escura ? (roteiro.fundo ?? "#032F01") : "var(--cream)";
+          }
+          div.innerHTML = dentro;
+
+          const bloco = document.createElement("div");
+          bloco.style.cssText =
+            "position:relative;z-index:3;display:flex;flex-direction:column;height:100%;justify-content:" +
+            (c.ancora ?? "flex-end") +
+            ";gap:" +
+            String(c.gap ?? 34) +
+            "px";
+
+          const partes = [];
+          if (c.chip) {
+            partes.push(
+              `<span class="chip ${escura ? "" : ""}" style="${escura ? "background:rgba(86,168,5,.22);color:#CFE9B4;" : ""}align-self:flex-start">${e(c.chip)}</span>`,
+            );
+          }
+          if (c.icone && ICONES[c.icone]) {
+            partes.push(
+              `<span style="display:block;width:150px;height:150px">${ICONES[c.icone].replace(/#095902/g, escura ? "#CFE9B4" : "#095902")}</span>`,
+            );
+          }
+          if (c.janela) {
+            partes.push(
+              `<div class="janela ${c.arco ? "arco" : ""}" style="height:${String(c.alturaJanela ?? 720)}px"><img src="${e(c.janela)}" alt=""></div>`,
+            );
+          }
+          if (c.titulo) {
+            partes.push(
+              `<h2 class="vh ${c.escala ?? "v-g"}" style="color:${corTitulo}">${rico(c.titulo)}</h2>`,
+            );
+          }
+          if (c.corpo) {
+            partes.push(`<p class="vp" style="color:${corCorpo}">${rico(c.corpo)}</p>`);
+          }
+          for (const it of c.itens ?? []) {
+            partes.push(
+              `<div class="vitem" style="color:${escura ? "#E4F0DC" : "#172018"}"><span class="bolinha"></span><span>${rico(it)}</span></div>`,
+            );
+          }
+          if (c.selo) {
+            partes.push(
+              `<div style="align-self:flex-start;padding:22px 34px;border-radius:20px;background:${escura ? "rgba(86,168,5,.2)" : "var(--mint)"};color:${escura ? "#D9EFBD" : "#095902"};font-family:var(--sans);font-weight:650;font-size:38px;line-height:1.3">${rico(c.selo)}</div>`,
+            );
+          }
+
+          bloco.innerHTML = partes.map((p) => `<div class="an">${p}</div>`).join("");
+          div.appendChild(bloco);
+          palco.appendChild(div);
+
+          const inicio = relogio;
+          const fim = relogio + c.t;
+          relogio = fim;
+          cenas.push({
+            cfg: c,
+            div,
+            inicio,
+            fim,
+            animaveis: [...bloco.querySelectorAll(".an")],
+            img: div.querySelector(".foto-cena img"),
+            imgJanela: div.querySelector(".janela img"),
+            escura,
+          });
+        }
+
+        // Assinatura e barra de progresso, fora das cenas — são do vídeo.
+        const claroNoFim = roteiro.cenas.at(-1)?.superficie === "clara";
+        const ass = document.createElement("div");
+        ass.className = "assinatura";
+        ass.innerHTML = `<img src="${MARCA_ESCURA}" alt=""><span style="color:#E2F0D8">@jpclinicaodontologica</span>`;
+        palco.appendChild(ass);
+        const prog = document.createElement("div");
+        prog.className = "progresso";
+        prog.innerHTML = "<i></i>";
+        palco.appendChild(prog);
+
+        ESTADO = {
+          cenas,
+          duracao: relogio,
+          assinatura: ass,
+          progresso: prog.querySelector("i"),
+          barra: prog,
+          claroNoFim,
+        };
+
+        await document.fonts.ready;
+        const imgs = [...palco.querySelectorAll("img")];
+        await Promise.all(
+          imgs.map(
+            (img) =>
+              new Promise((ok, falha) => {
+                if (img.complete && img.naturalWidth > 0) return ok();
+                img.addEventListener("load", ok, { once: true });
+                img.addEventListener(
+                  "error",
+                  () => falha(new Error(`imagem não carregou: ${img.getAttribute("src")}`)),
+                  { once: true },
+                );
+              }),
+          ),
+        );
+        await Promise.all(imgs.map((i) => i.decode().catch(() => {})));
+
+        return { duracao: relogio, cenas: cenas.length };
+      };
+
+      /** Põe o vídeo no instante `t`. Função pura do tempo — nada acumula. */
+      window.quadro = (t) => {
+        const s = ESTADO;
+        for (const c of s.cenas) {
+          const ativa = t >= c.inicio - 0.3 && t < c.fim + 0.02;
+          if (!ativa) {
+            if (c.div.style.opacity !== "0") c.div.style.opacity = "0";
+            continue;
+          }
+
+          const local = t - c.inicio;
+          const restante = c.fim - t;
+
+          // Dissolução de entrada e saída da CENA (260 ms de cada lado).
+          const entrada = clamp01((local + 0.26) / 0.26);
+          const saida = clamp01(restante / 0.26);
+          c.div.style.opacity = String(Math.min(entrada, saida));
+
+          // Zoom discreto na foto: 8% ao longo da cena, direção alternada.
+          if (c.img) {
+            const p = clamp01(local / (c.fim - c.inicio));
+            const sentido = c.cfg.zoom === "fora" ? -1 : 1;
+            const escala = 1.04 + sentido * 0.08 * (sentido > 0 ? p : 1 - p);
+            const desloc = (c.cfg.pan ?? 0) * (p - 0.5) * 2;
+            c.img.style.transform = `scale(${String(escala)}) translate(${String(desloc)}px, 0)`;
+          }
+
+          if (c.imgJanela) {
+            const p = clamp01(local / (c.fim - c.inicio));
+            c.imgJanela.style.transform = `scale(${String(1.03 + 0.06 * p)})`;
+          }
+
+          // Entrada escalonada dos elementos de texto.
+          c.animaveis.forEach((el, i) => {
+            const atraso = 0.13 * i;
+            const a = clamp01((local - atraso) / 0.46);
+            const f = easeOut(a);
+            const saindo = clamp01((0.3 - restante) / 0.3);
+            const g = easeIn(saindo);
+            el.style.opacity = String(f * (1 - g));
+            el.style.transform = `translateY(${String(26 * (1 - f) - 14 * g)}px)`;
+          });
+        }
+
+        const claroAgora = s.cenas.find((c) => t >= c.inicio && t < c.fim)?.escura === false;
+        s.assinatura.querySelector("img").src = claroAgora ? MARCA_CLARA : MARCA_ESCURA;
+        s.assinatura.querySelector("span").style.color = claroAgora ? "#095902" : "#E2F0D8";
+        s.barra.classList.toggle("claro", Boolean(claroAgora));
+        s.progresso.style.width = `${String(clamp01(t / s.duracao) * 100)}%`;
+      };
+    </script>
+  </body>
+</html>

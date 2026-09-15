@@ -1,0 +1,60 @@
+{
+  "id": "R07",
+  "titulo": "Existe idade máxima para implante?",
+  "arquivo": "jp_ig_reel_r07_idade_v01",
+  "pilar": "implantes",
+  "objetivo": "falar com o público 55+ sem atribuir condição a ninguém",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "IMPLANTES",
+      "titulo": "Existe idade\nmáxima para\n[[implante]]?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Existe idade máxima para implante?"
+    },
+    {
+      "t": 4.0,
+      "superficie": "escura",
+      "titulo": "Não existe\num número.",
+      "escala": "v-g",
+      "corpo": "O que pesa na indicação é a condição de saúde, não a data de nascimento.",
+      "narracao": "Não existe um número. O que pesa na indicação é a condição de saúde, não a data de nascimento."
+    },
+    {
+      "t": 6.0,
+      "superficie": "escura",
+      "chip": "O QUE É AVALIADO",
+      "titulo": "Três frentes,\nem qualquer\nidade.",
+      "escala": "v-p",
+      "itens": [
+        "Saúde geral e medicamentos em uso",
+        "Condição do osso na região",
+        "Saúde da gengiva e higiene"
+      ],
+      "narracao": "Em qualquer idade avaliam-se três frentes: saúde geral e medicamentos em uso, condição do osso, e saúde da gengiva."
+    },
+    {
+      "t": 4.4,
+      "titulo": "Há jovens que\nprecisam de\npreparo antes.",
+      "escala": "v-m",
+      "corpo": "E há pacientes mais velhos com condições favoráveis. Por isso a avaliação é individual.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Há jovens que precisam de preparo antes, e pacientes mais velhos com condições favoráveis. Por isso a avaliação é individual."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Traga a sua\n[[dúvida]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Traga a sua dúvida. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

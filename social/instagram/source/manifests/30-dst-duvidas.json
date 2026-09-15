@@ -1,0 +1,117 @@
+{
+  "grupo": "dst-duvidas",
+  "descricao": "Destaque Dúvidas. Onze das doze saem do FAQ que já está publicado nas páginas de tratamento (src/lib/jp.ts) — mesma resposta no site e no Instagram, porque duas versões da mesma pergunta é como a clínica passa a discordar de si mesma. As perguntas sobre convênio e sábado mandam confirmar com a recepção de propósito: são as duas cuja resposta muda sem aviso.",
+  "saida": "exports/highlights/duvidas",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_duvidas_01_capa",
+      "chip": "DÚVIDAS",
+      "headline": "As doze que\nmais chegam\nna [[recepção]].",
+      "escala": "h-m",
+      "corpo": "Respostas curtas. A completa é na avaliação.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_02",
+      "chip": "DÚVIDA 1",
+      "headline": "Implante serve\npara qualquer\npessoa?",
+      "escala": "h-p",
+      "corpo": "Não necessariamente. A indicação depende de avaliação clínica, exames e condições individuais de saúde."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_03",
+      "chip": "DÚVIDA 2",
+      "headline": "Preciso fazer\nexames antes?",
+      "escala": "h-p",
+      "corpo": "Em muitos casos, exames de imagem ajudam no planejamento. A equipe orienta o que é necessário."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_04",
+      "chip": "DÚVIDA 3",
+      "headline": "Falta só um dente.\nÉ caso de\nimplante?",
+      "escala": "h-p",
+      "corpo": "Pode ser. Repor um dente isolado é uma das situações mais comuns. A conduta sai da avaliação.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_05",
+      "chip": "DÚVIDA 4",
+      "headline": "Uso prótese\nremovível. Posso\navaliar implantes?",
+      "escala": "h-p",
+      "corpo": "Sim, pode avaliar. Existem alternativas que usam implantes para dar mais estabilidade à prótese."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_06",
+      "chip": "DÚVIDA 5",
+      "headline": "Preciso ter osso\nsuficiente?",
+      "escala": "h-p",
+      "corpo": "O volume ósseo é um dos fatores analisados. Quando não é suficiente, existem condutas para preparar a região."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_07",
+      "chip": "DÚVIDA 6",
+      "headline": "Quanto tempo\nleva o tratamento?",
+      "escala": "h-p",
+      "corpo": "Varia conforme o caso. O implante passa por um período de integração ao osso antes de receber a coroa.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_08",
+      "chip": "DÚVIDA 7",
+      "headline": "Como funciona\na avaliação?",
+      "escala": "h-p",
+      "corpo": "É uma consulta para examinar a região, conversar sobre o seu histórico e indicar quais exames ajudam no planejamento."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_09",
+      "chip": "DÚVIDA 8",
+      "headline": "Vocês atendem\ncrianças?",
+      "escala": "h-p",
+      "corpo": "Sim. A clínica tem odontopediatria, e a primeira visita costuma ser de orientação e adaptação."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_10",
+      "chip": "DÚVIDA 9",
+      "headline": "Atendem\naos sábados?",
+      "escala": "h-p",
+      "corpo": "O horário de atendimento é {{clinica.horario}}. Para casos específicos, confirme com a recepção.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_11",
+      "chip": "DÚVIDA 10",
+      "headline": "Onde fica\na clínica?",
+      "escala": "h-p",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}, {{clinica.endereco.cidade}}."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_12",
+      "chip": "DÚVIDA 11",
+      "headline": "Vocês aceitam\nconvênio?",
+      "escala": "h-p",
+      "corpo": "Confirme com a recepção pelo WhatsApp {{clinica.whatsapp}}: a lista muda e a resposta certa é sempre a atual."
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_13",
+      "chip": "DÚVIDA 12",
+      "headline": "Consigo\navaliação sem\nagendar?",
+      "escala": "h-p",
+      "corpo": "O atendimento é com hora marcada, para ninguém esperar. Agende pelo WhatsApp {{clinica.whatsapp}}.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_duvidas_14_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Ficou outra\n[[dúvida]]?",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

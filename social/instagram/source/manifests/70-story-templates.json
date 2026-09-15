@@ -1,0 +1,182 @@
+{
+  "grupo": "story-templates",
+  "descricao": "Os 16 templates de Story, renderizados PREENCHIDOS. O campo `_uso` de cada peça é uma nota para quem publica — o renderizador ignora campos com underline. Onde há moldura tracejada, o adesivo NATIVO do Instagram (enquete, caixa de perguntas, localização) vai por cima: a moldura marca o lugar e não imita o widget, porque adesivo desenhado não é clicável e treina a pessoa a tocar onde nada acontece.",
+  "saida": "exports/story/templates",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_st01_bom_dia_v01",
+      "tipo": "story-texto",
+      "chip": "BOM DIA",
+      "headline": "A JP está\n[[aberta]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Agenda aberta para avaliação.",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "_uso": "Publique entre 8h e 9h. Troque a headline pelo dia da semana quando fizer sentido."
+    },
+    {
+      "arquivo": "jp_ig_st02_bastidor_v01",
+      "tipo": "story-janela",
+      "chip": "BASTIDOR",
+      "foto": "/social/instagram/source/assets-derivados/consultorio-bancada-2x.webp",
+      "headline": "Sala pronta\npara o primeiro\nda manhã.",
+      "escala": "h-p",
+      "corpo": "Rotina que ninguém vê — e que muda tudo.",
+      "_uso": "Troque a foto pela do dia. Bastidor real bate arte produzida em Story."
+    },
+    {
+      "arquivo": "jp_ig_st03_pergunta_v01",
+      "tipo": "story-texto",
+      "chip": "PERGUNTA",
+      "superficie": "escura",
+      "headline": "Qual dúvida\nte segura?",
+      "escala": "h-g",
+      "corpo": "Responda aqui. A gente responde em vídeo amanhã.",
+      "adesivo": "↓ AQUI ENTRA A CAIXA DE PERGUNTAS ↓",
+      "_uso": "Cole o adesivo nativo de “Perguntas” exatamente sobre a moldura tracejada."
+    },
+    {
+      "arquivo": "jp_ig_st04_enquete_v01",
+      "tipo": "story-texto",
+      "chip": "ENQUETE",
+      "headline": "Implante dói?",
+      "escala": "h-xg",
+      "corpo": "Chuta aí. A resposta vem no próximo card.",
+      "adesivo": "↓ AQUI ENTRA A ENQUETE (SIM / NÃO) ↓",
+      "_uso": "Enquete de duas opções sobre a moldura. O card seguinte SEMPRE traz a resposta."
+    },
+    {
+      "arquivo": "jp_ig_st05_caixa_perguntas_v01",
+      "tipo": "story-texto",
+      "chip": "CAIXINHA",
+      "superficie": "escura",
+      "headline": "Pergunte sobre\n[[implantes]].",
+      "escala": "h-m",
+      "corpo": "Sem compromisso e sem julgamento. Toda pergunta já foi feita antes.",
+      "adesivo": "↓ AQUI ENTRA A CAIXA DE PERGUNTAS ↓",
+      "_uso": "Rode uma vez por semana, sempre no mesmo dia. Previsibilidade cria hábito."
+    },
+    {
+      "arquivo": "jp_ig_st06_resposta_profissional_v01",
+      "tipo": "story-equipe",
+      "chip": "QUEM RESPONDE",
+      "foto": "/src/assets/ana-beatriz.webp",
+      "nome": "Dra. Ana Beatriz",
+      "papel": "Coordenadora e cirurgiã-dentista",
+      "registro": "CROSP 177.801",
+      "cta": "Pergunta respondida no próximo card",
+      "_uso": "Use ANTES do vídeo de resposta. Dá rosto e registro a quem responde — é o que separa a resposta de um palpite."
+    },
+    {
+      "arquivo": "jp_ig_st07_avaliacao_google_v01",
+      "tipo": "story-prova",
+      "chip": "AVALIAÇÃO REAL",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": "Um ambiente limpo, organizado e aconchegante. Super indico com certeza!",
+      "autor": "Mari Nozzolillo",
+      "cta": "Ver as avaliações no Google",
+      "_uso": "Troque a citação por outra avaliação REAL do Google. Nunca escreva uma."
+    },
+    {
+      "arquivo": "jp_ig_st08_educativo_v01",
+      "tipo": "story-texto",
+      "chip": "IMPLANTES",
+      "superficie": "escura",
+      "headline": "O implante\nsubstitui a\n[[raiz]].",
+      "escala": "h-m",
+      "corpo": "A prótese é a parte que aparece. São dois componentes do mesmo tratamento.",
+      "cta": "Mais no Destaque “Implantes”",
+      "ctaSuave": true,
+      "_uso": "Um conceito por card. Se precisar de dois, são dois cards."
+    },
+    {
+      "arquivo": "jp_ig_st09_estrutura_v01",
+      "tipo": "story-foto",
+      "chip": "ESTRUTURA",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "headline": "A sala que\nninguém mostra.",
+      "escala": "h-m",
+      "corpo": "Instrumental processado em rotina própria, a cada atendimento.",
+      "_uso": "Estrutura é o conteúdo que mais reduz incerteza de quem nunca entrou."
+    },
+    {
+      "arquivo": "jp_ig_st10_equipe_v01",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/matheus-fraga.webp",
+      "nome": "Dr. Matheus Fraga",
+      "papel": "Odontopediatria e endodontia",
+      "registro": "CROSP 168.512",
+      "cta": "Conheça a equipe no Destaque",
+      "_uso": "Um por semana, rodando a equipe inteira. Nome, função e CRO sempre juntos."
+    },
+    {
+      "arquivo": "jp_ig_st11_localizacao_v01",
+      "tipo": "story-foto",
+      "chip": "ONDE ESTAMOS",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "headline": "{{clinica.endereco.logradouro}}",
+      "escala": "h-p",
+      "corpo": "{{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}} — {{clinica.endereco.cidade}}.",
+      "adesivo": "↓ AQUI ENTRA O ADESIVO DE LOCALIZAÇÃO ↓",
+      "_uso": "O adesivo nativo de localização põe a clínica no mapa do Instagram. Use sempre."
+    },
+    {
+      "arquivo": "jp_ig_st12_whatsapp_v01",
+      "tipo": "story-texto",
+      "chip": "AGENDAMENTO",
+      "superficie": "escura",
+      "headline": "Agenda aberta\npara [[avaliação]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona.",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "_uso": "No máximo 1 por dia. CTA repetido em todo card treina a pessoa a pular o Story inteiro."
+    },
+    {
+      "arquivo": "jp_ig_st13_novo_reel_v01",
+      "tipo": "story-texto",
+      "chip": "NOVO REEL",
+      "headline": "Respondemos\nem 30\nsegundos.",
+      "escala": "h-m",
+      "corpo": "Implante dói? A resposta completa está no feed.",
+      "adesivo": "↓ AQUI ENTRA O LINK / MENÇÃO DO REEL ↓",
+      "_uso": "Publicado 30–60 min DEPOIS do Reel, não junto: dá tempo de o Reel ganhar tração sozinha."
+    },
+    {
+      "arquivo": "jp_ig_st14_novo_carrossel_v01",
+      "tipo": "story-texto",
+      "chip": "NOVO NO FEED",
+      "superficie": "escura",
+      "headline": "5 dúvidas\nsobre\n[[implantes]].",
+      "escala": "h-m",
+      "corpo": "Salve para consultar antes da sua avaliação.",
+      "adesivo": "↓ AQUI ENTRA A MENÇÃO DO POST ↓",
+      "_uso": "Troque a headline pela capa do carrossel do dia."
+    },
+    {
+      "arquivo": "jp_ig_st15_dica_v01",
+      "tipo": "story-texto",
+      "chip": "DICA RÁPIDA",
+      "headline": "Escovar até os\n8 anos é tarefa\nde [[adulto]].",
+      "escala": "h-p",
+      "corpo": "A coordenação para escovar sozinho e bem chega depois do que a gente imagina.",
+      "_uso": "Uma frase útil, sem CTA. É o card que a pessoa compartilha."
+    },
+    {
+      "arquivo": "jp_ig_st16_mito_verdade_v01",
+      "tipo": "story-texto",
+      "chip": "MITO OU VERDADE",
+      "superficie": "escura",
+      "headline": "“Implante não\ntem cárie, então\nrelaxa.”",
+      "escala": "h-p",
+      "corpo": "Mito. O implante não tem cárie, mas a gengiva ao redor adoece — e é isso que faz implante falhar.",
+      "adesivo": "↓ AQUI ENTRA A ENQUETE (MITO / VERDADE) ↓",
+      "_uso": "Formato de maior interação do conjunto. Rode toda semana."
+    }
+  ]
+}

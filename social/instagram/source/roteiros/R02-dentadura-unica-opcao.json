@@ -1,0 +1,61 @@
+{
+  "id": "R02",
+  "titulo": "Dentadura é a única opção?",
+  "arquivo": "jp_ig_reel_r02_dentadura_opcoes_v01",
+  "pilar": "proteses",
+  "objetivo": "abrir o leque de reabilitação sem prometer indicação",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.6,
+      "chip": "PRÓTESES",
+      "titulo": "Dentadura é a\n[[única]] opção?",
+      "escala": "v-m",
+      "corpo": "Quem perdeu vários dentes costuma chegar achando que sim.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Dentadura é a única opção? Quem perdeu vários dentes costuma chegar achando que sim."
+    },
+    {
+      "t": 3.8,
+      "superficie": "escura",
+      "titulo": "Não.",
+      "escala": "v-xg",
+      "corpo": "Existem caminhos diferentes, e eles não competem entre si: cada um tem indicação própria.",
+      "narracao": "Não. Existem caminhos diferentes, e cada um tem indicação própria."
+    },
+    {
+      "t": 6.0,
+      "superficie": "escura",
+      "chip": "OS CAMINHOS",
+      "titulo": "Três possibilidades\naparecem com\nmais frequência.",
+      "escala": "v-p",
+      "itens": [
+        "Prótese removível",
+        "Prótese fixa sobre implantes",
+        "Prótese protocolo, quando indicada"
+      ],
+      "narracao": "Três possibilidades aparecem com mais frequência: prótese removível, prótese fixa sobre implantes e prótese protocolo, quando indicada."
+    },
+    {
+      "t": 4.8,
+      "titulo": "Qual delas cabe\nno seu caso?",
+      "escala": "v-m",
+      "corpo": "Depende de exame de imagem, condição óssea e saúde geral. Isso não se decide por catálogo.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Qual delas cabe no seu caso depende de exame, condição óssea e saúde geral."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Vamos olhar\no [[seu caso]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Vamos olhar o seu caso. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

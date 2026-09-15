@@ -1,0 +1,72 @@
+{
+  "grupo": "destaques",
+  "descricao": "Doze capas de Destaque. O Instagram recorta um CÍRCULO do centro e o exibe com 60px de diâmetro — por isso o ícone vive dentro de `.circulo`, com um traço só, e o rótulo em Manrope embaixo. As doze compartilham peso de traço e escala óptica de propósito: capa de Destaque é vista em fila, e variação de peso entre vizinhas lê como 'foram feitas por pessoas diferentes'.",
+  "saida": "exports/highlights",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "highlight-cover"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_highlight_implantes_v01",
+      "icone": "implantes",
+      "rotulo": "Implantes"
+    },
+    {
+      "arquivo": "jp_ig_highlight_proteses_v01",
+      "icone": "proteses",
+      "rotulo": "Próteses"
+    },
+    {
+      "arquivo": "jp_ig_highlight_ortodontia_v01",
+      "icone": "ortodontia",
+      "rotulo": "Ortodontia"
+    },
+    {
+      "arquivo": "jp_ig_highlight_estetica_v01",
+      "icone": "estetica",
+      "rotulo": "Estética"
+    },
+    {
+      "arquivo": "jp_ig_highlight_criancas_v01",
+      "icone": "criancas",
+      "rotulo": "Crianças"
+    },
+    {
+      "arquivo": "jp_ig_highlight_clinica_v01",
+      "icone": "clinica",
+      "rotulo": "A clínica"
+    },
+    {
+      "arquivo": "jp_ig_highlight_equipe_v01",
+      "icone": "equipe",
+      "rotulo": "Equipe"
+    },
+    {
+      "arquivo": "jp_ig_highlight_avaliacoes_v01",
+      "icone": "avaliacoes",
+      "rotulo": "Avaliações"
+    },
+    {
+      "arquivo": "jp_ig_highlight_duvidas_v01",
+      "icone": "duvidas",
+      "rotulo": "Dúvidas"
+    },
+    {
+      "arquivo": "jp_ig_highlight_localizacao_v01",
+      "icone": "localizacao",
+      "rotulo": "Onde estamos"
+    },
+    {
+      "arquivo": "jp_ig_highlight_tecnologia_v01",
+      "icone": "tecnologia",
+      "rotulo": "Estrutura"
+    },
+    {
+      "arquivo": "jp_ig_highlight_24anos_v01",
+      "numero": "{{historia.anos}}",
+      "rotulo": "anos"
+    }
+  ]
+}

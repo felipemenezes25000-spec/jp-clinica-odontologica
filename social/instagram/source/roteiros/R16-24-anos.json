@@ -1,0 +1,68 @@
+{
+  "id": "R16",
+  "titulo": "{{historia.anos}} anos de história em 30 segundos",
+  "arquivo": "jp_ig_reel_r16_historia_v01",
+  "pilar": "marca",
+  "objetivo": "prova de confiança — o post fixado nº 3 em movimento",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 3.2,
+      "chip": "NOSSA HISTÓRIA",
+      "titulo": "{{historia.fundacao}}.",
+      "escala": "v-xg",
+      "corpo": "A Dra. Juliana Pelisser Barbosa abre a JP, em {{historia.regiaoAnterior}}.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "2002: a Dra. Juliana Pelisser Barbosa abre a JP, em Pirituba."
+    },
+    {
+      "t": 4.0,
+      "superficie": "escura",
+      "titulo": "Duas décadas\natendendo\nfamílias.",
+      "escala": "v-m",
+      "corpo": "Crianças que viraram adultos. Adultos que trouxeram os pais.",
+      "narracao": "Duas décadas atendendo famílias: crianças que viraram adultos, adultos que trouxeram os pais."
+    },
+    {
+      "t": 3.6,
+      "superficie": "clara",
+      "chip": "{{historia.mudanca}}",
+      "janela": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "arco": true,
+      "titulo": "Nova casa,\nmesma equipe.",
+      "escala": "v-p",
+      "narracao": "Em 2024 veio a nova casa, com a mesma equipe."
+    },
+    {
+      "t": 4.0,
+      "superficie": "escura",
+      "titulo": "Hoje, na\n[[{{historia.regiaoAtual}}]].",
+      "escala": "v-g",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Hoje, na Freguesia do Ó: Rua Rio Verde, 1029, Vila Bruna."
+    },
+    {
+      "t": 4.2,
+      "superficie": "escura",
+      "chip": "PROVA",
+      "titulo": "{{historia.anos}} anos.\n{{avaliacoes.notaBR}} no Google.\n{{avaliacoes.total}} avaliações.",
+      "escala": "v-m",
+      "corpo": "Números públicos, conferidos em {{avaliacoes.conferidoEmBR}}.",
+      "narracao": "24 anos, 4,6 no Google, 192 avaliações. Números públicos."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "A trajetória\n[[continua]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "A trajetória continua. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

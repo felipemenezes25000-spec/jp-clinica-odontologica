@@ -1,0 +1,62 @@
+{
+  "id": "R12",
+  "titulo": "Por que planejamento individual importa?",
+  "arquivo": "jp_ig_reel_r12_planejamento_v01",
+  "pilar": "implantes",
+  "objetivo": "transformar método em diferencial percebido",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 3.0,
+      "chip": "PLANEJAMENTO",
+      "titulo": "Duas pessoas.\nO mesmo dente\nausente.",
+      "escala": "v-m",
+      "corpo": "E dois planos de tratamento diferentes.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Duas pessoas, o mesmo dente ausente, e dois planos de tratamento diferentes."
+    },
+    {
+      "t": 6.6,
+      "superficie": "escura",
+      "chip": "O QUE MUDA DE UM PARA O OUTRO",
+      "titulo": "Quatro variáveis\nque não se\nrepetem.",
+      "escala": "v-p",
+      "itens": [
+        "Volume e qualidade do osso",
+        "Como a mordida distribui a força",
+        "Saúde geral e medicamentos",
+        "O que cada pessoa espera do resultado"
+      ],
+      "narracao": "Quatro variáveis que não se repetem: volume e qualidade do osso, distribuição da mordida, saúde geral e medicamentos, e o que cada pessoa espera do resultado."
+    },
+    {
+      "t": 4.4,
+      "superficie": "escura",
+      "titulo": "Plano é o que\nevita [[refazer]].",
+      "escala": "v-g",
+      "corpo": "Tratamento refeito custa duas vezes: em dinheiro e em tempo de cadeira.",
+      "narracao": "Plano é o que evita refazer. Tratamento refeito custa duas vezes: em dinheiro e em tempo de cadeira."
+    },
+    {
+      "t": 4.2,
+      "titulo": "Por isso a\navaliação vem\nantes do orçamento.",
+      "escala": "v-p",
+      "corpo": "Sempre nessa ordem.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Por isso a avaliação vem antes do orçamento. Sempre nessa ordem."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comece pelo\n[[plano]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Comece pelo plano. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

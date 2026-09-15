@@ -1,0 +1,61 @@
+{
+  "id": "R14",
+  "titulo": "Aparelho ou alinhador?",
+  "arquivo": "jp_ig_reel_r14_aparelho_alinhador_v01",
+  "pilar": "ortodontia",
+  "objetivo": "captar busca de ortodontia sem prometer técnica",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "ORTODONTIA",
+      "titulo": "Aparelho ou\n[[alinhador]]?",
+      "escala": "v-xg",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Aparelho ou alinhador?"
+    },
+    {
+      "t": 4.2,
+      "superficie": "escura",
+      "titulo": "A pergunta certa\nnão é qual é\nmelhor.",
+      "escala": "v-m",
+      "corpo": "É qual resolve o seu caso — e isso a documentação ortodôntica responde.",
+      "narracao": "A pergunta certa não é qual é melhor, e sim qual resolve o seu caso. Isso a documentação ortodôntica responde."
+    },
+    {
+      "t": 6.4,
+      "superficie": "escura",
+      "chip": "O QUE PESA NA ESCOLHA",
+      "titulo": "Quatro fatores.",
+      "escala": "v-g",
+      "itens": [
+        "O tipo de movimento que os dentes precisam",
+        "A idade e a fase do crescimento",
+        "A rotina e a disciplina de uso",
+        "O acompanhamento possível"
+      ],
+      "narracao": "Quatro fatores pesam: o tipo de movimento necessário, a idade e a fase de crescimento, a rotina de uso, e o acompanhamento possível."
+    },
+    {
+      "t": 4.4,
+      "titulo": "Aparelho não\né só estética.",
+      "escala": "v-m",
+      "corpo": "Mordida desalinhada afeta mastigação, higiene e desgaste dos dentes ao longo da vida.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Aparelho não é só estética: mordida desalinhada afeta mastigação, higiene e desgaste dos dentes ao longo da vida."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comece pela\n[[documentação]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Comece pela documentação ortodôntica. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

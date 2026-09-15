@@ -1,0 +1,74 @@
+{
+  "grupo": "dst-estetica",
+  "descricao": "Destaque Estética. O cartão de facetas é informativo de propósito: é o procedimento mais vendido como se fosse universal, e o que mais gera arrependimento quando é.",
+  "saida": "exports/highlights/estetica",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_estetica_01_capa",
+      "chip": "ESTÉTICA",
+      "headline": "Natural é\no [[objetivo]].",
+      "escala": "h-m",
+      "corpo": "Oito cartões sobre clareamento, restauração e o que a estética dental resolve.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_02_clareamento",
+      "chip": "1 · CLAREAMENTO",
+      "headline": "Age na cor,\nnão desgasta\no esmalte.",
+      "escala": "h-p",
+      "corpo": "Feito com acompanhamento profissional e depois de a boca ser examinada."
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_03_sensibilidade",
+      "chip": "2 · SENSIBILIDADE",
+      "headline": "Sensibilidade\ntemporária é\ncomum.",
+      "escala": "h-p",
+      "corpo": "Faz parte e costuma passar. A equipe orienta como reduzir e quando pausar."
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_04_restauracoes",
+      "chip": "3 · RESTAURAÇÕES",
+      "headline": "Devolver forma\nsem parecer\n[[remendo]].",
+      "escala": "h-p",
+      "corpo": "Resina na cor do dente, ajustada ao formato e ao brilho dos dentes vizinhos.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_05_facetas",
+      "chip": "4 · FACETAS",
+      "headline": "Existem, e não\nservem para\ntodo mundo.",
+      "escala": "h-p",
+      "corpo": "É um procedimento com indicação específica, que envolve preparo do dente. Só a avaliação diz se cabe.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_06_harmonia",
+      "chip": "5 · HARMONIA",
+      "headline": "O sorriso\nacompanha\no rosto.",
+      "escala": "h-p",
+      "corpo": "Proporção, linha do lábio e cor da pele entram na conversa antes de qualquer procedimento."
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_07_avaliacao",
+      "chip": "6 · AVALIAÇÃO",
+      "headline": "Saúde primeiro.\nEstética depois.",
+      "escala": "h-p",
+      "corpo": "Cárie, gengiva inflamada e restauração antiga são resolvidas antes — senão o resultado não dura."
+    },
+    {
+      "arquivo": "jp_ig_dst_estetica_08_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Avalie antes\nde [[decidir]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

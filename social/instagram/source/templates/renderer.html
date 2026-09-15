@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>JP Social — palco de render</title>
+    <link rel="stylesheet" href="/social/instagram/source/templates/sistema.css" />
+  </head>
+  <body>
+    <!--
+      O PALCO. Uma peça por vez.
+
+      O elemento nasce vazio e é preenchido pelo Node via `window.montar(...)`.
+      Um navegador e uma página servem as ~300 peças do kit: abrir um Chromium
+      por arquivo custaria minutos de processo e zero benefício, e recarregar a
+      página a cada peça faria as fontes entrarem de novo na fila — que é
+      exatamente a corrida que produz export com texto em Arial.
+    -->
+    <div id="palco"></div>
+
+    <script type="module">
+      import { TEMPLATES } from "/social/instagram/source/templates/templates.js";
+
+      const palco = document.getElementById("palco");
+
+      /**
+       * Monta uma peça e devolve quando ela está PRONTA PARA FOTOGRAFAR.
+       *
+       * "Pronta" é mais do que "o HTML está no DOM": as fontes precisam estar
+       * carregadas e cada <img> precisa ter decodificado. Sem essas duas
+       * esperas o screenshot sai com fallback de sistema no lugar da Manrope e
+       * com buraco onde deveria estar a foto — e o pior é que sai SEM ERRO.
+       */
+      window.montar = async (d) => {
+        const fn = TEMPLATES[d.tipo];
+        if (!fn) throw new Error(`Template desconhecido: ${d.tipo}`);
+
+        const classes = [
+          "peca",
+          `f-${d.formato ?? "feed"}`,
+          `s-${d.superficie ?? "creme"}`,
+          d.qa ? "qa" : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        palco.innerHTML = `<div class="${classes}" id="peca">${fn(d)}</div>`;
+
+        await document.fonts.ready;
+
+        const imgs = [...palco.querySelectorAll("img")];
+        await Promise.all(
+          imgs.map(async (img) => {
+            if (img.complete && img.naturalWidth > 0) return img.decode().catch(() => {});
+            await new Promise((ok, falha) => {
+              img.addEventListener("load", ok, { once: true });
+              // Falhar alto: uma foto que não carregou vira retângulo menta no
+              // export, e retângulo menta é bonito o bastante para passar
+              // despercebido numa revisão rápida.
+              img.addEventListener(
+                "error",
+                () => falha(new Error(`imagem não carregou: ${img.getAttribute("src")}`)),
+                { once: true },
+              );
+            });
+            await img.decode().catch(() => {});
+          }),
+        );
+
+        const peca = document.getElementById("peca");
+
+        /* ------------------------------------------------------------------
+           AUTO-AJUSTE — a peça se encaixa sozinha.
+
+           O kit tem ~300 arquivos e as headlines têm de 2 a 14 palavras. Fixar
+           altura de foto e corpo de letra em cada manifest significaria abrir
+           300 JSONs de novo toda vez que uma frase mudasse de tamanho — e o
+           defeito que isso produz é o pior de todos: o rodapé com a marca sai
+           cortado pela borda de baixo, que é justamente onde ninguém olha
+           porque "o texto principal está lá".
+
+           A ordem de sacrifício não é arbitrária. Encolhe primeiro a FOTO, que
+           perde pouco; depois o CORPO, que é apoio; e só então a HEADLINE, que
+           é a mensagem. Cada degrau tem piso: chegando neles a peça sai grande
+           demais de propósito e o `renderizar.mjs` grita, porque aí o problema
+           é a copy, não o layout.
+        ------------------------------------------------------------------ */
+        const alvo = peca.clientHeight;
+        const ajustes = [];
+        const fotoCaixa = peca.querySelector(".foto[style*='height']");
+        const titulo = peca.querySelector("h1, h2");
+        const corpos = [...peca.querySelectorAll(".p")];
+
+        const alturaFoto0 = fotoCaixa ? parseFloat(getComputedStyle(fotoCaixa).height) : 0;
+        const titulo0 = titulo ? parseFloat(getComputedStyle(titulo).fontSize) : 0;
+        const corpo0 = corpos.map((el) => parseFloat(getComputedStyle(el).fontSize));
+
+        for (let volta = 0; volta < 40 && peca.scrollHeight > alvo + 1; volta += 1) {
+          const sobra = peca.scrollHeight - alvo;
+          const hFoto = fotoCaixa ? parseFloat(getComputedStyle(fotoCaixa).height) : 0;
+          if (fotoCaixa && hFoto > Math.max(340, alturaFoto0 * 0.55)) {
+            fotoCaixa.style.height = `${String(Math.max(340, hFoto - Math.min(sobra, 40)))}px`;
+            ajustes[0] = "foto";
+            continue;
+          }
+          const hCorpo = corpos.length > 0 ? parseFloat(getComputedStyle(corpos[0]).fontSize) : 0;
+          if (corpos.length > 0 && hCorpo > corpo0[0] * 0.84) {
+            corpos.forEach((el, i) => {
+              el.style.fontSize = `${String(Math.max(corpo0[i] * 0.84, parseFloat(getComputedStyle(el).fontSize) - 1.5))}px`;
+            });
+            ajustes[1] = "corpo";
+            continue;
+          }
+          const hTit = titulo ? parseFloat(getComputedStyle(titulo).fontSize) : 0;
+          if (titulo && hTit > titulo0 * 0.7) {
+            titulo.style.fontSize = `${String(Math.max(titulo0 * 0.7, hTit - 2))}px`;
+            ajustes[2] = "headline";
+            continue;
+          }
+          break;
+        }
+
+        // Dois frames: o primeiro aplica o layout, o segundo garante que o
+        // compositor já pintou o que o layout produziu.
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+        /* Relatório de transbordo, consumido pelo QA automático do
+           `renderizar.mjs`. Texto que vazou da safe area é o defeito mais comum
+           de peça gerada por template — e o único que o olho perde quando são
+           300 arquivos. */
+        const caixa = peca.getBoundingClientRect();
+        const alvos = [...peca.querySelectorAll("h1,h2,p,span,div.cta,div.item")];
+        const vazamentos = alvos
+          .filter((el) => {
+            const r = el.getBoundingClientRect();
+            if (r.width === 0 || r.height === 0) return false;
+            return (
+              r.left < caixa.left - 0.5 ||
+              r.right > caixa.right + 0.5 ||
+              r.top < caixa.top - 0.5 ||
+              r.bottom > caixa.bottom + 0.5
+            );
+          })
+          .map((el) => `${el.tagName.toLowerCase()}.${el.className || "-"}`);
+
+        return {
+          altura: peca.scrollHeight,
+          alturaVisivel: caixa.height,
+          vazamentos: [...new Set(vazamentos)],
+          transbordo: peca.scrollHeight - Math.round(caixa.height),
+          ajustes: ajustes.filter(Boolean),
+        };
+      };
+    </script>
+  </body>
+</html>

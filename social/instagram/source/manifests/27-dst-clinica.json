@@ -1,0 +1,96 @@
+{
+  "grupo": "dst-clinica",
+  "descricao": "Destaque A Clínica — o mais importante do conjunto. É ele que responde a pergunta que trava o agendamento: 'como é lá dentro?'. Todas as fotos são reais e da própria JP. A foto de recepção com recepcionista que existe em src/assets (capa-recepcao-*.webp) NÃO entra aqui: ela é banco de imagem, e usá-la como se fosse a JP seria exatamente o que o §22 proíbe.",
+  "saida": "exports/highlights/clinica",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_clinica_01_capa",
+      "chip": "A CLÍNICA",
+      "headline": "Entre antes\nde [[entrar]].",
+      "escala": "h-m",
+      "corpo": "Dez cartões com as fotos reais de cada ambiente.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_02_fachada",
+      "chip": "A FACHADA",
+      "headline": "{{clinica.endereco.logradouro}}",
+      "escala": "h-p",
+      "corpo": "{{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}} — {{clinica.endereco.cidade}}.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_03_recepcao",
+      "chip": "RECEPÇÃO",
+      "headline": "Aqui começa\no cuidado.",
+      "escala": "h-p",
+      "foto": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "tipo": "story-janela"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_04_espera",
+      "chip": "SALA DE ESPERA",
+      "headline": "Com um cantinho\ndo café.",
+      "escala": "h-p",
+      "corpo": "Porque espera curta começa por não parecer espera.",
+      "foto": "/social/instagram/source/assets-derivados/cantinho-cafe-2x.webp",
+      "tipo": "story-janela"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_05_consultorio1",
+      "chip": "CONSULTÓRIO",
+      "headline": "Luz natural,\nsempre que\npossível.",
+      "escala": "h-p",
+      "foto": "/social/instagram/source/assets-derivados/consultorio-janela-2x.webp",
+      "tipo": "story-janela"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_06_consultorio2",
+      "chip": "CONSULTÓRIO",
+      "headline": "Salas preparadas\npara cada\nprocedimento.",
+      "escala": "h-p",
+      "foto": "/src/assets/consultorio-1.webp",
+      "tipo": "story-janela"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_07_esterilizacao",
+      "chip": "ESTERILIZAÇÃO",
+      "headline": "A sala que\nninguém mostra.",
+      "escala": "h-p",
+      "corpo": "Instrumental processado em rotina própria, a cada atendimento.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_08_equipamento",
+      "chip": "EQUIPAMENTO",
+      "headline": "Manutenção\nem dia.",
+      "escala": "h-p",
+      "corpo": "Equipamento revisado é parte da segurança do atendimento — e não aparece em foto de propaganda.",
+      "foto": "/src/assets/equipamento.webp",
+      "tipo": "story-janela"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_09_horario",
+      "chip": "HORÁRIO",
+      "headline": "{{clinica.horario}}",
+      "escala": "h-pp",
+      "corpo": "Telefone {{clinica.telefone}} · WhatsApp {{clinica.whatsapp}}"
+    },
+    {
+      "arquivo": "jp_ig_dst_clinica_10_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Venha\n[[conhecer]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

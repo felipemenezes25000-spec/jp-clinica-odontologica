@@ -1,0 +1,60 @@
+{
+  "id": "R06",
+  "titulo": "É necessário um implante para cada dente perdido?",
+  "arquivo": "jp_ig_reel_r06_quantidade_v01",
+  "pilar": "implantes",
+  "objetivo": "reduzir o receio de volume de tratamento sem falar de preço",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "IMPLANTES",
+      "titulo": "Um implante\npara cada\n[[dente]]?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "É necessário um implante para cada dente perdido?"
+    },
+    {
+      "t": 3.8,
+      "superficie": "escura",
+      "titulo": "Não\nnecessariamente.",
+      "escala": "v-g",
+      "corpo": "Em muitas situações, um implante sustenta mais de um dente.",
+      "narracao": "Não necessariamente. Em muitas situações, um implante sustenta mais de um dente."
+    },
+    {
+      "t": 6.0,
+      "superficie": "escura",
+      "chip": "O QUE DEFINE",
+      "titulo": "A conta não é\nde matemática.\nÉ clínica.",
+      "escala": "v-p",
+      "itens": [
+        "Quantidade e posição dos dentes ausentes",
+        "Volume ósseo de cada região",
+        "Como a mordida distribui a força"
+      ],
+      "narracao": "A conta não é de matemática, é clínica: depende da posição dos dentes ausentes, do volume ósseo e de como a mordida distribui a força."
+    },
+    {
+      "t": 4.4,
+      "titulo": "Menos implantes\nnem sempre\né melhor.",
+      "escala": "v-m",
+      "corpo": "E mais, também não. O número certo é o que o planejamento sustenta.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Menos implantes nem sempre é melhor, e mais também não. O número certo é o que o planejamento sustenta."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Peça uma\n[[avaliação]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Peça uma avaliação. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

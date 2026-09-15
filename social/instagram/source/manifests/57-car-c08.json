@@ -1,0 +1,104 @@
+{
+  "grupo": "car-c08",
+  "descricao": "C08 — só foto real da JP. É o carrossel que responde a pergunta que trava o agendamento: 'como é lá dentro?'. A foto de recepção com recepcionista que existe em src/assets (capa-recepcao-*.webp) NÃO entra: ela é banco de imagem e usá-la como se fosse a JP seria o que o §22 proíbe.",
+  "saida": "exports/carousel/c08-conheca-a-estrutura",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "A CLÍNICA",
+      "headline": "Conheça a JP\npor [[dentro]].",
+      "escala": "h-g",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "arquivo": "jp_ig_car_c08_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "RECEPÇÃO",
+      "headline": "Aqui começa\no cuidado.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "alturaFoto": 520,
+      "corpo": "Hora marcada, para a espera ser curta.",
+      "arquivo": "jp_ig_car_c08_02_v01",
+      "pagina": "2/9"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "SALA DE ESPERA",
+      "headline": "Com um\ncantinho\ndo café.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/cantinho-cafe-2x.webp",
+      "alturaFoto": 500,
+      "arquivo": "jp_ig_car_c08_03_v01",
+      "pagina": "3/9"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "CONSULTÓRIOS",
+      "headline": "Luz natural,\nsempre que\npossível.",
+      "escala": "h-p",
+      "foto": "/social/instagram/source/assets-derivados/consultorio-janela-2x.webp",
+      "alturaFoto": 500,
+      "arquivo": "jp_ig_car_c08_04_v01",
+      "pagina": "4/9"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "CONSULTÓRIOS",
+      "headline": "Salas preparadas\npara cada\nprocedimento.",
+      "escala": "h-p",
+      "foto": "/src/assets/consultorio-1.webp",
+      "alturaFoto": 500,
+      "arquivo": "jp_ig_car_c08_05_v01",
+      "pagina": "5/9"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "ESTERILIZAÇÃO",
+      "headline": "A sala que\nninguém mostra.",
+      "escala": "h-m",
+      "foto": "/src/assets/esterilizacao.webp",
+      "alturaFoto": 500,
+      "corpo": "Instrumental processado em rotina própria, a cada atendimento.",
+      "arquivo": "jp_ig_car_c08_06_v01",
+      "pagina": "6/9"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "EQUIPAMENTO",
+      "headline": "Manutenção\nem dia.",
+      "escala": "h-m",
+      "foto": "/src/assets/equipamento.webp",
+      "alturaFoto": 500,
+      "corpo": "Não aparece em foto de propaganda, mas é parte da segurança do atendimento.",
+      "arquivo": "jp_ig_car_c08_07_v01",
+      "pagina": "7/9"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "A EQUIPE",
+      "headline": "Gente real,\ncom nome\ne registro.",
+      "escala": "h-m",
+      "corpo": "{{responsavelTecnica.nome}} — {{responsavelTecnica.registro}} — responde tecnicamente pela clínica.",
+      "nota": "Os registros de toda a equipe estão no site e no Destaque “Equipe”.",
+      "arquivo": "jp_ig_car_c08_08_v01",
+      "pagina": "8/9"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Venha\n[[conhecer]].",
+      "escala": "h-xg",
+      "corpo": "{{clinica.horario}}.",
+      "arquivo": "jp_ig_car_c08_09_v01",
+      "pagina": "9/9"
+    }
+  ]
+}

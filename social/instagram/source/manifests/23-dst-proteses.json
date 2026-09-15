@@ -1,0 +1,81 @@
+{
+  "grupo": "dst-proteses",
+  "descricao": "Destaque Próteses. Nenhum cartão diz que protocolo é indicado para todo mundo — essa é a frase que mais aparece em anúncio de clínica e é exatamente a que a Resolução CFO 196/2019 não permite.",
+  "saida": "exports/highlights/proteses",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_proteses_01_capa",
+      "chip": "PRÓTESES",
+      "headline": "Reabilitar é\ndevolver\n[[possibilidades]].",
+      "escala": "h-m",
+      "corpo": "Nove cartões sobre o que existe, para que serve e como se escolhe.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_02_tipos",
+      "chip": "1 · OS TIPOS",
+      "headline": "Fixa ou\nremovível.",
+      "escala": "h-p",
+      "corpo": "Essa é a primeira divisão. Dentro de cada uma existem soluções diferentes, e a escolha é clínica."
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_03_finalidade",
+      "chip": "2 · PARA QUE SERVE",
+      "headline": "Mastigar, falar\ne [[voltar a sorrir]]\nsem pensar nisso.",
+      "escala": "h-pp",
+      "corpo": "Prótese não é só estética: a ausência de dentes muda a mordida, a fala e a digestão."
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_04_removivel",
+      "chip": "3 · REMOVÍVEL",
+      "headline": "Sai da boca\npara a higiene.",
+      "escala": "h-p",
+      "corpo": "É uma solução consolidada. Exige adaptação, ajustes periódicos e cuidado com a higiene diária.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_05_fixa",
+      "chip": "4 · FIXA",
+      "headline": "Não é removida\npelo paciente.",
+      "escala": "h-p",
+      "corpo": "Pode se apoiar nos dentes vizinhos ou em implantes, conforme o caso e as condições ósseas."
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_06_protocolo",
+      "chip": "5 · PROTOCOLO",
+      "headline": "Uma prótese fixa\nsobre [[implantes]].",
+      "escala": "h-p",
+      "corpo": "Para arcadas sem dentes. É uma possibilidade, não um padrão: depende de osso, saúde geral e planejamento.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_07_manutencao",
+      "chip": "6 · MANUTENÇÃO",
+      "headline": "Toda prótese\ntem revisão.",
+      "escala": "h-p",
+      "corpo": "Ajuste, higiene orientada e retornos fazem parte do tratamento — não são um extra."
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_08_avaliacao",
+      "chip": "7 · A ESCOLHA",
+      "headline": "Não se escolhe\nprótese por\n[[catálogo]].",
+      "escala": "h-p",
+      "corpo": "Osso, gengiva, mordida, saúde geral e rotina entram na conta. Por isso a avaliação vem antes."
+    },
+    {
+      "arquivo": "jp_ig_dst_proteses_09_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Vamos entender\no [[seu caso]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

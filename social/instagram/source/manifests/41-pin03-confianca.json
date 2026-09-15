@@ -1,0 +1,91 @@
+{
+  "grupo": "car-pin03",
+  "descricao": "PIN 03 — prova de confiança. Todos os números vêm do extrator: {{historia.anos}}, {{avaliacoes.notaBR}} e {{avaliacoes.total}} saem de src/lib/jp.ts. Nenhuma avaliação foi escrita pela clínica. A frase 'X anos na Freguesia do Ó' é PROIBIDA aqui e não aparece: a clínica passou a maior parte desses anos em Pirituba, e o slide 2 conta isso.",
+  "saida": "exports/carousel/pin03-prova-de-confianca",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "A JP",
+      "headline": "{{historia.anos}} anos.\nE a conta que\nimporta é [[outra]].",
+      "escala": "h-m",
+      "corpo": "Quem já sentou na nossa cadeira — e o que disse depois.",
+      "arquivo": "jp_ig_car_pin03_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "A TRAJETÓRIA",
+      "headline": "Desde {{historia.fundacao}}.\nHoje, na\n[[{{historia.regiaoAtual}}]].",
+      "escala": "h-p",
+      "corpo": "A clínica nasceu em {{historia.regiaoAnterior}} e mudou para a {{clinica.endereco.bairro}} em {{historia.mudanca}}.",
+      "nota": "Mesma equipe, mesma forma de atender, endereço novo.",
+      "arquivo": "jp_ig_car_pin03_02_v01",
+      "pagina": "2/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "NO GOOGLE",
+      "headline": "{{avaliacoes.notaBR}} de nota,\ncom {{avaliacoes.total}}\navaliações.",
+      "escala": "h-p",
+      "corpo": "Números públicos, conferidos em {{avaliacoes.conferidoEmBR}}.",
+      "nota": "Você pode conferir agora mesmo — é isso que faz deles uma prova.",
+      "arquivo": "jp_ig_car_pin03_03_v01",
+      "pagina": "3/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "QUEM DISSE",
+      "headline": "“Um ambiente\nlimpo, organizado\ne aconchegante.”",
+      "escala": "h-p",
+      "corpo": "Avaliação real de paciente no Google.",
+      "nota": "Mari Nozzolillo",
+      "arquivo": "jp_ig_car_pin03_04_v01",
+      "pagina": "4/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "QUEM DISSE",
+      "headline": "“Já faço meus\ntratamentos com\neles há mais\nde 3 anos.”",
+      "escala": "h-pp",
+      "corpo": "Avaliação real de paciente no Google.",
+      "nota": "Valéria C.",
+      "arquivo": "jp_ig_car_pin03_05_v01",
+      "pagina": "5/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "A ESTRUTURA",
+      "headline": "E a clínica\nexiste mesmo.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "alturaFoto": 470,
+      "corpo": "Foto real da recepção da JP, na {{clinica.endereco.bairro}}.",
+      "arquivo": "jp_ig_car_pin03_06_v01",
+      "pagina": "6/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "A EQUIPE",
+      "headline": "Com nome,\nfunção e\n[[registro]].",
+      "escala": "h-m",
+      "corpo": "{{responsavelTecnica.nome}} — {{responsavelTecnica.registro}} — responde tecnicamente pela clínica.",
+      "nota": "Os registros de toda a equipe estão no site e no Destaque “Equipe”.",
+      "arquivo": "jp_ig_car_pin03_07_v01",
+      "pagina": "7/8"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Venha ser o\npróximo a\n[[avaliar]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}.",
+      "arquivo": "jp_ig_car_pin03_08_v01",
+      "pagina": "8/8"
+    }
+  ]
+}

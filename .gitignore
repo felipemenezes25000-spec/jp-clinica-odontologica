@@ -59,3 +59,17 @@ __pycache__/
 playwright-report/
 test-results/
 .output/
+
+# A PASTA DE ENTREGA DO KIT DE INSTAGRAM.
+#
+# `social/instagram/ENTREGA/` e uma COPIA de `social/instagram/exports/`,
+# reorganizada em pastas numeradas para ser compactada e enviada. Sao 77 MB de
+# PNG que ja existem versionados em exports/ — versionar de novo dobraria o
+# peso do repositorio para guardar o mesmo pixel duas vezes.
+#
+# Quem precisar da pasta roda:
+#   node social/instagram/source/scripts/montar-entrega.mjs
+social/instagram/ENTREGA/
+
+# O zip e a MESMA copia comprimida de ENTREGA/ — regenere com montar-entrega.mjs.
+social/instagram/ENTREGA.zip

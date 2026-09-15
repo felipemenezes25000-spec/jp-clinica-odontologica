@@ -1,0 +1,60 @@
+{
+  "id": "R03",
+  "titulo": "Todo implante precisa de enxerto?",
+  "arquivo": "jp_ig_reel_r03_enxerto_v01",
+  "pilar": "implantes",
+  "objetivo": "derrubar a objeção do enxerto sem prometer que ninguém precisa",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.6,
+      "chip": "IMPLANTES",
+      "titulo": "Todo implante\nprecisa de\n[[enxerto]]?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Todo implante precisa de enxerto?"
+    },
+    {
+      "t": 4.0,
+      "superficie": "escura",
+      "titulo": "Não.",
+      "escala": "v-xg",
+      "corpo": "O enxerto entra quando falta volume ósseo na região que vai receber o implante.",
+      "narracao": "Não. O enxerto entra quando falta volume ósseo na região que vai receber o implante."
+    },
+    {
+      "t": 6.0,
+      "superficie": "escura",
+      "chip": "COMO SE SABE",
+      "titulo": "Quem responde\né o exame.",
+      "escala": "v-m",
+      "itens": [
+        "O exame de imagem mostra o volume disponível",
+        "Boa parte dos casos não precisa",
+        "Quando precisa, já entra no planejamento"
+      ],
+      "narracao": "Quem responde é o exame de imagem, que mostra o volume ósseo disponível. Quando o enxerto é necessário, ele já entra no planejamento."
+    },
+    {
+      "t": 4.4,
+      "titulo": "O que vale para\no vizinho não\nvale para você.",
+      "escala": "v-m",
+      "corpo": "Cada boca tem osso, gengiva e histórico próprios.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "zoom": "fora",
+      "narracao": "O que vale para o vizinho não vale para você: cada boca tem osso, gengiva e histórico próprios."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comece pela\n[[avaliação]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Comece pela avaliação. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

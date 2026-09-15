@@ -1,0 +1,74 @@
+{
+  "grupo": "dst-criancas",
+  "descricao": "Destaque Crianças. Acolhedor sem virar infantil: a identidade continua a mesma, sem arco-íris nem mascote inventado (§44).",
+  "saida": "exports/highlights/criancas",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_criancas_01_capa",
+      "chip": "CRIANÇAS",
+      "headline": "A primeira\nvisita marca\nas [[próximas]].",
+      "escala": "h-m",
+      "corpo": "Oito cartões para quem vai trazer o filho pela primeira vez.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_02_primeira",
+      "chip": "1 · QUANDO IR",
+      "headline": "Por volta do\nprimeiro\naninho.",
+      "escala": "h-p",
+      "corpo": "A primeira consulta costuma ser de orientação: higiene, mamadeira, chupeta e o que esperar dos primeiros dentes."
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_03_prevencao",
+      "chip": "2 · PREVENÇÃO",
+      "headline": "O que evita é\nmais barato que\no que trata.",
+      "escala": "h-pp",
+      "corpo": "Escovação orientada, revisão periódica e atenção ao açúcar resolvem a maior parte antes de virar tratamento."
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_04_acolhimento",
+      "chip": "3 · ACOLHIMENTO",
+      "headline": "Criança com\nmedo não\ncolabora.",
+      "escala": "h-p",
+      "corpo": "O tempo de adaptação faz parte da consulta. Ninguém é apressado na cadeira.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_05_pais",
+      "chip": "4 · O PAPEL DOS PAIS",
+      "headline": "Não prometa\nque “não vai\ndoer nada”.",
+      "escala": "h-p",
+      "corpo": "Se doer, a confiança quebra. Prefira: “o dentista vai olhar os seus dentes”.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_06_higiene",
+      "chip": "5 · HIGIENE",
+      "headline": "Escovar até os\n8 anos é tarefa\nde adulto.",
+      "escala": "h-p",
+      "corpo": "A coordenação motora para escovar sozinho e bem chega depois do que a gente imagina."
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_07_rotina",
+      "chip": "6 · ROTINA",
+      "headline": "Duas vezes por\ndia, sempre nos\nmesmos horários.",
+      "escala": "h-pp",
+      "corpo": "Rotina previsível reduz negociação — e reduz cárie."
+    },
+    {
+      "arquivo": "jp_ig_dst_criancas_08_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Vamos conhecer\nseu [[pequeno]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

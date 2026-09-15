@@ -1,0 +1,60 @@
+{
+  "id": "R10",
+  "titulo": "Implante e prótese: qual é a diferença?",
+  "arquivo": "jp_ig_reel_r10_implante_x_protese_v01",
+  "pilar": "implantes",
+  "objetivo": "corrigir a confusão de vocabulário que atrapalha a decisão",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "IMPLANTES",
+      "titulo": "Implante e prótese\nsão a mesma\ncoisa?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Implante e prótese são a mesma coisa?"
+    },
+    {
+      "t": 4.4,
+      "superficie": "escura",
+      "titulo": "O implante é a\n[[raiz]]. A prótese\né o [[dente]].",
+      "escala": "v-m",
+      "corpo": "Dois componentes com funções diferentes, no mesmo tratamento.",
+      "narracao": "O implante é a raiz. A prótese é o dente. São dois componentes com funções diferentes no mesmo tratamento."
+    },
+    {
+      "t": 6.2,
+      "superficie": "escura",
+      "chip": "NA PRÁTICA",
+      "titulo": "Quem faz\no quê.",
+      "escala": "v-g",
+      "itens": [
+        "Implante: o pino que substitui a raiz no osso",
+        "Prótese: a parte visível, que devolve forma e função",
+        "Na maioria dos casos, os dois trabalham juntos"
+      ],
+      "narracao": "O implante é o pino que substitui a raiz no osso. A prótese é a parte visível, que devolve forma e função. Na maioria dos casos os dois trabalham juntos."
+    },
+    {
+      "t": 4.6,
+      "titulo": "Por isso\n“colocar implante”\nnão é uma\netapa só.",
+      "escala": "v-p",
+      "corpo": "Entre a cirurgia e a prótese existe o tempo de integração ao osso.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Por isso colocar implante não é uma etapa só: entre a cirurgia e a prótese existe o tempo de integração ao osso."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Entenda as etapas\ndo [[seu caso]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Entenda as etapas do seu caso. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

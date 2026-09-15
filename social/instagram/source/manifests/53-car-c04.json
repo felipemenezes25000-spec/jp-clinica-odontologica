@@ -1,0 +1,84 @@
+{
+  "grupo": "car-c04",
+  "descricao": "C04 — método. É o carrossel que transforma 'mais uma clínica' em 'essa clínica sabe o que faz'. Também é o melhor conteúdo para quem está comparando orçamentos: quem explica o processo antes ganha a comparação.",
+  "saida": "exports/carousel/c04-como-e-a-avaliacao",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "AVALIAÇÃO",
+      "headline": "Como funciona\na avaliação\npara [[implantes]].",
+      "escala": "h-m",
+      "corpo": "Passo a passo, do que acontece na primeira consulta.",
+      "arquivo": "jp_ig_car_c04_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "1 · CONVERSA",
+      "headline": "Começa por\nvocê, não\npelo dente.",
+      "escala": "h-m",
+      "corpo": "Histórico de saúde, medicamentos em uso, cirurgias anteriores e o que te trouxe até aqui.",
+      "arquivo": "jp_ig_car_c04_02_v01",
+      "pagina": "2/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "2 · EXAME CLÍNICO",
+      "headline": "A boca inteira,\nnão só o\nespaço vazio.",
+      "escala": "h-p",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "alturaFoto": 420,
+      "corpo": "Gengiva, dentes vizinhos, mordida e higiene entram na conta.",
+      "arquivo": "jp_ig_car_c04_03_v01",
+      "pagina": "3/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "3 · IMAGEM",
+      "headline": "Quando o exame\nde imagem é\nindicado.",
+      "escala": "h-p",
+      "corpo": "É ele que mostra **volume ósseo** e estruturas próximas. Sem isso, planejar implante é adivinhar.",
+      "nota": "A equipe orienta qual exame é necessário no seu caso.",
+      "arquivo": "jp_ig_car_c04_04_v01",
+      "pagina": "4/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "4 · O PLANO",
+      "headline": "O que você\nrecebe.",
+      "escala": "h-m",
+      "itens": [
+        "As possibilidades para o seu caso",
+        "As etapas e a ordem delas",
+        "Os cuidados previstos em cada fase",
+        "O que é e o que não é possível — e por quê"
+      ],
+      "arquivo": "jp_ig_car_c04_05_v01",
+      "pagina": "5/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "5 · A DECISÃO",
+      "headline": "É sua. E sem\npressa.",
+      "escala": "h-m",
+      "corpo": "Ninguém decide reabilitação na cadeira, no mesmo dia, sob pressão.",
+      "nota": "Plano antes de proposta — é essa ordem que evita refazer tratamento.",
+      "arquivo": "jp_ig_car_c04_06_v01",
+      "pagina": "6/7"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Agende a\nsua [[avaliação]].",
+      "escala": "h-g",
+      "corpo": "Hora marcada, para ninguém esperar.",
+      "arquivo": "jp_ig_car_c04_07_v01",
+      "pagina": "7/7"
+    }
+  ]
+}

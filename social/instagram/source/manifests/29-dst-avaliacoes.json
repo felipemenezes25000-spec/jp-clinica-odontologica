@@ -1,0 +1,90 @@
+{
+  "grupo": "dst-avaliacoes",
+  "descricao": "Destaque Avaliações. Os textos vêm de DEPOIMENTOS em src/lib/jp.ts, que são avaliações reais do Google; a nota e o total vêm de AVALIACOES. Nada aqui foi escrito pela clínica sobre si mesma — e essa é a única razão de o Destaque funcionar como prova.",
+  "saida": "exports/highlights/avaliacoes",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_01_capa",
+      "chip": "AVALIAÇÕES",
+      "headline": "A nota é\npública. E é\n[[deles]].",
+      "escala": "h-m",
+      "corpo": "Avaliações reais no Google. Nenhuma foi escrita por nós.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_02_nota",
+      "tipo": "story-prova",
+      "chip": "GOOGLE",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": null,
+      "cta": "Ver no Google",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_03_review",
+      "tipo": "story-prova",
+      "chip": "AVALIAÇÃO REAL",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": "Estou muito satisfeita com a atendimento da Clínica, fui atendida pela Dra Ana Beatriz que fez a extração do meu dente com muita calma e paciência, me esclareceu todos os procedimentos que iria fazer…",
+      "autor": "Mari Nozzolillo"
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_04_review",
+      "tipo": "story-prova",
+      "chip": "AVALIAÇÃO REAL",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": "Já faço meus tratamentos com eles há mais de 3 anos. A clínica é maravilhosa, atendimento cuidadoso e equipe muito acolhedora.",
+      "autor": "Valéria C."
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_05_review",
+      "tipo": "story-prova",
+      "chip": "AVALIAÇÃO REAL",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": "Fui bem recepcionada pelo Jeferson. Tudo muito perfeito! Parabéns a todos!",
+      "autor": "Marjorye A."
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_06_review",
+      "tipo": "story-prova",
+      "chip": "AVALIAÇÃO REAL",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": "Meu filho foi muito bem atendido. Equipe paciente, carinhosa e muito profissional. Recomendo!",
+      "autor": "Carolina T."
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_07_review",
+      "tipo": "story-prova",
+      "chip": "AVALIAÇÃO REAL",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "citacao": "Atendimento impecável desde o primeiro contato. Planos claros e tratamentos que fazem a diferença.",
+      "autor": "Rafael M."
+    },
+    {
+      "arquivo": "jp_ig_dst_avaliacoes_08_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Depois conte\na [[sua]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

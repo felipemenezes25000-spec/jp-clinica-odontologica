@@ -1,0 +1,62 @@
+{
+  "id": "R08",
+  "titulo": "O que avaliamos antes de indicar um implante?",
+  "arquivo": "jp_ig_reel_r08_avaliacao_v01",
+  "pilar": "implantes",
+  "objetivo": "mostrar método — é o que separa clínica de balcão",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "AVALIAÇÃO",
+      "titulo": "A consulta não\ncomeça pelo\n[[implante]].",
+      "escala": "v-m",
+      "corpo": "Começa por você.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "A consulta não começa pelo implante. Começa por você."
+    },
+    {
+      "t": 7.2,
+      "superficie": "escura",
+      "chip": "O QUE ENTRA NA CONTA",
+      "titulo": "Quatro coisas,\nantes de\nqualquer plano.",
+      "escala": "v-p",
+      "itens": [
+        "Histórico de saúde e medicamentos em uso",
+        "Exame clínico da boca e da gengiva",
+        "Exame de imagem, quando indicado",
+        "O que você espera do tratamento"
+      ],
+      "narracao": "Antes de qualquer plano: histórico de saúde e medicamentos, exame clínico da boca, exame de imagem quando indicado, e o que você espera do tratamento."
+    },
+    {
+      "t": 4.4,
+      "superficie": "escura",
+      "titulo": "Só depois disso\nvêm as\npossibilidades.",
+      "escala": "v-p",
+      "corpo": "Com o que é possível, o que não é, e por quê.",
+      "narracao": "Só depois disso vêm as possibilidades: o que é possível, o que não é, e por quê."
+    },
+    {
+      "t": 4.2,
+      "titulo": "Plano antes\nde proposta.",
+      "escala": "v-g",
+      "corpo": "É essa ordem que evita refazer tratamento depois.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Plano antes de proposta: é essa ordem que evita refazer tratamento depois."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Agende a sua\n[[avaliação]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Agende a sua avaliação. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

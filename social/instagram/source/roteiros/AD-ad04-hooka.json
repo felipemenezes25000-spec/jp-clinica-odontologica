@@ -1,0 +1,70 @@
+{
+  "id": "AD04-A",
+  "titulo": "Conheça a JP — confiança (hook A)",
+  "arquivo": "jp_ig_ad_ad04_hooka_v01",
+  "anuncio": true,
+  "pilar": "clinica",
+  "utm_content": "ad04_hooka",
+  "objetivo": "generate_lead",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "titulo": "Conheça a JP\npor [[dentro]].",
+      "escala": "v-g",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Conheça a JP por dentro."
+    },
+    {
+      "t": 3.6,
+      "superficie": "clara",
+      "chip": "RECEPÇÃO",
+      "janela": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "arco": true,
+      "titulo": "Aqui começa\no cuidado.",
+      "escala": "v-p",
+      "narracao": "A recepção: aqui começa o cuidado."
+    },
+    {
+      "t": 3.6,
+      "superficie": "clara",
+      "chip": "CONSULTÓRIOS",
+      "janela": "/social/instagram/source/assets-derivados/consultorio-janela-2x.webp",
+      "titulo": "Salas com\nluz natural.",
+      "escala": "v-p",
+      "narracao": "Os consultórios, com luz natural."
+    },
+    {
+      "t": 4.0,
+      "superficie": "escura",
+      "chip": "ESTERILIZAÇÃO",
+      "titulo": "A sala que\nninguém mostra.",
+      "escala": "v-m",
+      "corpo": "Instrumental processado em rotina própria, a cada atendimento.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "A esterilização: instrumental processado em rotina própria a cada atendimento."
+    },
+    {
+      "t": 3.8,
+      "superficie": "escura",
+      "titulo": "{{avaliacoes.notaBR}} no Google,\ncom {{avaliacoes.total}}\navaliações.",
+      "escala": "v-m",
+      "corpo": "Números públicos, conferidos em {{avaliacoes.conferidoEmBR}}.",
+      "narracao": "4,6 no Google, com 192 avaliações. Números públicos."
+    },
+    {
+      "t": 4.2,
+      "superficie": "clara",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "titulo": "Fale com a\nequipe da [[JP]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "narracao": "Fale com a equipe da JP. Avaliação com hora marcada, na região da Freguesia do Ó."
+    }
+  ]
+}

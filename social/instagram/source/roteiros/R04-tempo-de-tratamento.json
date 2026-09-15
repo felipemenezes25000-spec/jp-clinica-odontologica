@@ -1,0 +1,61 @@
+{
+  "id": "R04",
+  "titulo": "Quanto tempo leva um tratamento com implante?",
+  "arquivo": "jp_ig_reel_r04_tempo_v01",
+  "pilar": "implantes",
+  "objetivo": "dar previsibilidade sem prometer prazo",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "IMPLANTES",
+      "titulo": "Quanto tempo\nleva um\n[[implante]]?",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Quanto tempo leva um tratamento com implante?"
+    },
+    {
+      "t": 4.2,
+      "superficie": "escura",
+      "titulo": "A maior parte\ndo tempo é de\ncicatrização.",
+      "escala": "v-m",
+      "corpo": "E cicatrização não se acelera com pressa: ela é o que garante o resto.",
+      "narracao": "A maior parte do tempo é de cicatrização, e ela é o que garante o resto do tratamento."
+    },
+    {
+      "t": 6.4,
+      "superficie": "escura",
+      "chip": "AS ETAPAS",
+      "titulo": "Quatro fases,\nsempre nesta\nordem.",
+      "escala": "v-p",
+      "itens": [
+        "Avaliação e exames",
+        "Cirurgia de instalação",
+        "Integração do implante ao osso",
+        "Fase protética e retornos"
+      ],
+      "narracao": "São quatro fases: avaliação e exames, cirurgia de instalação, integração do implante ao osso, e a fase protética com os retornos."
+    },
+    {
+      "t": 4.4,
+      "titulo": "O prazo do\nseu caso é\n[[combinado antes]].",
+      "escala": "v-m",
+      "corpo": "O cronograma faz parte do planejamento, não é descoberto no meio do caminho.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "zoom": "fora",
+      "narracao": "O prazo do seu caso é combinado antes: o cronograma faz parte do planejamento."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Vamos montar\no [[seu plano]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Vamos montar o seu plano. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

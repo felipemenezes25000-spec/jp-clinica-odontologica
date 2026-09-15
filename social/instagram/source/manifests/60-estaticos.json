@@ -1,0 +1,137 @@
+{
+  "grupo": "estaticos",
+  "descricao": "Os doze estáticos do relançamento. Pouco texto e uma ideia por peça — a regra do §63: se a peça funciona removendo um elemento, o elemento sai. Nenhum deles é flyer: não há preço, não há 'promoção' e não há número que não venha de src/lib/jp.ts.",
+  "saida": "exports/feed",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_feed_s01_sorrir_muda_tudo_v01",
+      "tipo": "feed-quote",
+      "chip": "A JP",
+      "headline": "Sorrir\nmuda [[tudo]].",
+      "escala": "h-xg",
+      "assinatura": "{{clinica.nomeCurto}}",
+      "cta": "Fale com a equipe no WhatsApp",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_feed_s02_24_anos_v01",
+      "tipo": "feed-brand",
+      "chip": "NOSSA HISTÓRIA",
+      "headline": "{{historia.anos}} anos\ncuidando de\n[[sorrisos]].",
+      "escala": "h-g",
+      "corpo": "Desde {{historia.fundacao}}. Hoje, na região da {{historia.regiaoAtual}}.",
+      "cta": "Conheça a nossa história",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_feed_s03_google_v01",
+      "tipo": "feed-proof",
+      "chip": "AVALIAÇÕES",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "headline": "A nota é\npública. E é\ndeles.",
+      "escala": "h-p",
+      "corpo": "Avaliações reais de pacientes no Google, conferidas em {{avaliacoes.conferidoEmBR}}.",
+      "cta": "Ver as avaliações no Google",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_feed_s04_recepcao_v01",
+      "tipo": "feed-photo-copy",
+      "chip": "A CLÍNICA",
+      "foto": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "alturaFoto": 640,
+      "headline": "Aqui começa\no cuidado.",
+      "escala": "h-m",
+      "corpo": "A recepção da JP, na Vila Bruna. Foto real, sem montagem.",
+      "rodapeLocal": "{{clinica.endereco.logradouro}}"
+    },
+    {
+      "arquivo": "jp_ig_feed_s05_estrutura_v01",
+      "tipo": "feed-photo-copy",
+      "chip": "ESTRUTURA",
+      "foto": "/src/assets/esterilizacao.webp",
+      "alturaFoto": 620,
+      "arco": false,
+      "headline": "A sala que\nninguém mostra.",
+      "escala": "h-m",
+      "corpo": "Esterilização própria. O instrumental passa por rotina de processamento a cada atendimento.",
+      "rodapeLocal": "Freguesia do Ó · São Paulo"
+    },
+    {
+      "arquivo": "jp_ig_feed_s06_atendimento_humano_v01",
+      "tipo": "feed-team",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/ana-beatriz.webp",
+      "alturaRetrato": 700,
+      "nome": "Dra. Ana Beatriz",
+      "papel": "Coordenadora e cirurgiã-dentista",
+      "registro": "CROSP 177.801"
+    },
+    {
+      "arquivo": "jp_ig_feed_s07_planejamento_v01",
+      "tipo": "feed-brand",
+      "chip": "COMO TRABALHAMOS",
+      "headline": "Plano antes\nde [[proposta]].",
+      "escala": "h-g",
+      "corpo": "Avaliação, exames quando indicados e só então as possibilidades — explicadas com clareza, antes de qualquer decisão.",
+      "cta": "Entenda como funciona a avaliação",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_feed_s08_freguesia_v01",
+      "tipo": "feed-local",
+      "chip": "ONDE ESTAMOS",
+      "headline": "{{historia.anos}} anos de história.\nHoje, na\n[[{{historia.regiaoAtual}}]].",
+      "escala": "h-p",
+      "foto": "/social/instagram/source/assets-derivados/fachada-faixa.webp",
+      "endereco": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}",
+      "horario": "{{clinica.horario}} · {{clinica.telefone}}",
+      "rodapeLocal": "Zona Norte · SP"
+    },
+    {
+      "arquivo": "jp_ig_feed_s09_implantes_v01",
+      "tipo": "feed-treatment",
+      "chip": "IMPLANTES",
+      "foto": "/src/assets/consultorio-implantes-1.webp",
+      "headline": "Implantes\ndentários.",
+      "escala": "h-g",
+      "corpo": "Reabilitação de dentes ausentes com planejamento individual e acompanhamento em cada etapa.",
+      "cta": "Agendar avaliação de implantes"
+    },
+    {
+      "arquivo": "jp_ig_feed_s10_proteses_v01",
+      "tipo": "feed-treatment",
+      "chip": "PRÓTESES",
+      "foto": "/src/assets/consultorio-implantes-2.webp",
+      "headline": "Próteses e\nreabilitação.",
+      "escala": "h-g",
+      "corpo": "Soluções fixas ou removíveis, planejadas caso a caso para apoiar mastigação e conforto.",
+      "cta": "Falar sobre reabilitação"
+    },
+    {
+      "arquivo": "jp_ig_feed_s11_todas_as_fases_v01",
+      "tipo": "feed-brand",
+      "chip": "A JP",
+      "headline": "Odontologia\npara todas as\n[[fases da vida]].",
+      "escala": "h-m",
+      "corpo": "Da primeira consulta da criança à reabilitação do adulto. A mesma equipe, acompanhando a família inteira.",
+      "cta": "Conheça os tratamentos",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_feed_s12_whatsapp_v01",
+      "tipo": "feed-brand",
+      "chip": "FALE CONOSCO",
+      "headline": "A dúvida é sua.\nA resposta\né [[nossa]].",
+      "escala": "h-m",
+      "corpo": "Nossa recepção responde no WhatsApp {{clinica.whatsapp}}. {{clinica.horario}}.",
+      "cta": "Chamar no WhatsApp"
+    }
+  ]
+}

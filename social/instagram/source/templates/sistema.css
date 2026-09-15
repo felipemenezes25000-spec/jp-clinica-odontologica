@@ -1,0 +1,708 @@
+/* ============================================================================
+   SISTEMA VISUAL SOCIAL — JP Clínica Odontológica
+   ----------------------------------------------------------------------------
+   Este arquivo é o equivalente social de `src/styles.css`. Ele existe por um
+   motivo só: garantir que uma peça de Instagram e uma página do site pareçam a
+   MESMA marca. Os valores não foram inventados aqui — vieram de lá, e o
+   comentário ao lado de cada token diz de onde.
+
+   A regra que organiza tudo: 1 peça = 1 ideia = 1 ação.
+
+   Unidades em px absolutos, e isso é proposital. O navegador que renderiza
+   estas peças roda com viewport exato (1080×1350, 1080×1080, 1080×1920) e
+   deviceScaleFactor 1, então 1px de CSS é 1px do arquivo final. Escrever em rem
+   acrescentaria um nível de indireção que só serviria para alguém errar.
+   ========================================================================== */
+
+/* As fontes do site, servidas do próprio repositório. São arquivos variáveis —
+   um por família cobre a faixa de peso inteira —, por isso `font-weight` declara
+   o intervalo em vez de um número. Declarar 400 faria o Chromium sintetizar o
+   negrito (esticar o desenho), que é visível em headline de 96px. */
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: block;
+  src: url("/src/assets/fontes/manrope-400-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: block;
+  src: url("/src/assets/fontes/manrope-400-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("/src/assets/fontes/inter-400-latin.woff2") format("woff2");
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("/src/assets/fontes/inter-400-latin-ext.woff2") format("woff2");
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  /* --- Cores. Copiadas de src/styles.css; se lá mudar, aqui muda junto. --- */
+  --forest: #095902; /* verde oficial escuro — TEXTO forte em fundo claro */
+  --lime: #56a805; /* verde oficial claro — só preenchimento e acento    */
+  --deep: #032f01; /* superfície escura derivada (o lime funciona nela)  */
+  --cream: #f7f8f2; /* fundo padrão                                      */
+  --paper: #fcfdf9; /* cartão sobre o creme                              */
+  --mint: #ebf5e1; /* chip, selo, faixa suave                           */
+  --ink: #172018; /* texto principal                                    */
+  --ink-soft: #5a6b5c; /* texto secundário — 5,33:1 no creme            */
+  --border: #dce4d6;
+  --white: #ffffff;
+
+  /* --- Tipografia --- */
+  --display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background: #1b1b1b; /* fora da peça; nunca entra no export */
+}
+
+body {
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* ============================================================================
+   A PEÇA — o retângulo que vira arquivo.
+   Três formatos, e só três. Quadrado entra quando o carrossel precisa de 1:1.
+   ========================================================================== */
+.peca {
+  position: relative;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  isolation: isolate;
+}
+.peca.f-feed {
+  width: 1080px;
+  height: 1350px;
+}
+.peca.f-quadrado {
+  width: 1080px;
+  height: 1080px;
+}
+.peca.f-story {
+  width: 1080px;
+  height: 1920px;
+}
+
+/* Superfícies. `escura` existe para implantes e prova social: o assunto pede
+   sobriedade, e é a única em que o lime pode virar texto (4,96:1 sobre --deep). */
+.peca.s-creme {
+  background: var(--cream);
+}
+.peca.s-papel {
+  background: var(--paper);
+}
+.peca.s-menta {
+  background: var(--mint);
+}
+.peca.s-escura {
+  background: var(--deep);
+  color: #eef3e9;
+}
+.peca.s-floresta {
+  background: var(--forest);
+  color: #f2f7ee;
+}
+
+/* ----------------------------------------------------------------------------
+   SAFE AREA. Não é margem estética: é onde a interface do Instagram NÃO cobre.
+
+   - feed: as bordas ficam livres, mas texto colado na borda parece erro de
+     export. 84px de lateral é o respiro que o site usa proporcionalmente.
+   - story: o topo leva avatar + nome + "x h" e o pé leva a barra de resposta.
+     220px/250px é a medida conservadora de aparelho com notch.
+   - reel: a capa aparece no grid do perfil recortada em 4:5 CENTRAL. Por isso
+     `--faixa-feed`, a faixa de 1350px no meio dos 1920 — o que precisa ser
+     lido no grid tem de caber ali.
+-------------------------------------------------------------------------- */
+.peca.f-feed .pad {
+  padding: 96px 84px;
+}
+.peca.f-quadrado .pad {
+  padding: 84px 84px;
+}
+.peca.f-story .pad {
+  padding: 250px 88px 270px;
+}
+.pad {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============================================================================
+   PRIMITIVOS
+   ========================================================================== */
+
+/* O CHIP DE CATEGORIA. Diz em 1 palavra de que assunto é a peça, antes de a
+   pessoa ler a headline. É o que faz oito posts diferentes parecerem coleção. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  align-self: flex-start;
+  padding: 16px 28px 16px 26px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--forest);
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.chip::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--lime);
+  flex: none;
+}
+.s-escura .chip,
+.s-floresta .chip {
+  background: rgba(86, 168, 5, 0.18);
+  color: #cfe9b4;
+}
+.chip.sem-ponto::before {
+  display: none;
+}
+
+/* HEADLINE. Manrope apertado. O tamanho não é fixo: cada peça escolhe um degrau
+   da escala abaixo conforme o número de palavras — headline que precisa de
+   quatro linhas num feed já é legenda, e deve voltar para a legenda. */
+.h {
+  font-family: var(--display);
+  font-weight: 800;
+  letter-spacing: -0.022em;
+  line-height: 1.02;
+  color: var(--forest);
+  text-wrap: balance;
+}
+.s-escura .h,
+.s-floresta .h {
+  color: #f4f9ef;
+}
+.h-xg {
+  font-size: 124px;
+  line-height: 0.98;
+}
+.h-g {
+  font-size: 100px;
+}
+.h-m {
+  font-size: 82px;
+}
+.h-p {
+  font-size: 66px;
+  line-height: 1.06;
+}
+.h-pp {
+  font-size: 54px;
+  line-height: 1.1;
+}
+
+/* Um pedaço da headline em verde vivo. Só sobre fundo claro e SÓ em texto
+   grande: #56A805 mede 2,81:1 no creme e reprova como texto corrente — acima de
+   ~64px ele funciona como elemento gráfico, que é o uso pretendido. */
+.h .vivo {
+  color: var(--lime);
+}
+.s-escura .h .vivo,
+.s-floresta .h .vivo {
+  color: #8ede2e;
+}
+
+/* Corpo. Inter, e sempre acima do piso de leitura confortável. */
+.p {
+  font-family: var(--sans);
+  font-size: 34px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  font-weight: 450;
+  max-width: 24ch;
+}
+.p.grande {
+  font-size: 40px;
+  line-height: 1.4;
+}
+.p.larga {
+  max-width: 30ch;
+}
+.s-escura .p,
+.s-floresta .p {
+  color: #c3d3bd;
+}
+.p strong {
+  color: var(--forest);
+  font-weight: 650;
+}
+.s-escura .p strong,
+.s-floresta .p strong {
+  color: #e6f2dc;
+}
+
+/* O RODAPÉ DE MARCA — o elemento que aparece em 100% das peças.
+   É ele, mais que a cor, que faz o feed parecer de uma clínica só. */
+.rodape {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding-top: 34px;
+  border-top: 2px solid var(--border);
+}
+.s-escura .rodape,
+.s-floresta .rodape {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+.rodape img {
+  height: 56px;
+  width: auto;
+  flex: none;
+}
+.rodape .arroba {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 27px;
+  letter-spacing: 0.01em;
+  color: var(--forest);
+}
+.s-escura .rodape .arroba,
+.s-floresta .rodape .arroba {
+  color: #d9ead0;
+}
+.rodape .local {
+  margin-left: auto;
+  font-size: 25px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-align: right;
+}
+.s-escura .rodape .local,
+.s-floresta .rodape .local {
+  color: #9fb69a;
+}
+
+/* CTA. Uma faixa, nunca um botão falso: peça de Instagram não é clicável, e
+   desenhar um botão treina a pessoa a tocar onde nada acontece. */
+.cta {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 30px 36px;
+  border-radius: 22px;
+  background: var(--forest);
+  color: #f2f9ec;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 31px;
+  line-height: 1.25;
+}
+.cta .seta {
+  margin-left: auto;
+  flex: none;
+  width: 40px;
+  height: 40px;
+}
+.cta.suave {
+  background: var(--mint);
+  color: var(--forest);
+}
+.s-escura .cta.suave {
+  background: rgba(86, 168, 5, 0.2);
+  color: #d5ecbb;
+}
+
+/* ============================================================================
+   FOTO
+   Sem filtro, sem saturação forçada. O que o sistema acrescenta é só o recorte
+   e, quando há texto por cima, um degradê verde-profundo para o contraste
+   deixar de depender da sorte do pixel que estiver atrás da letra.
+   ========================================================================== */
+.foto {
+  position: relative;
+  overflow: hidden;
+  background: var(--mint);
+  flex: none;
+}
+.foto > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.foto.r {
+  border-radius: 34px;
+}
+/* O ARCO — a única forma "de marca" do sistema. Ecoa a curva do sorriso do
+   símbolo da JP. Usado no topo de janelas de foto e nas capas de Destaque. */
+.foto.arco {
+  border-radius: 999px 999px 34px 34px;
+}
+.scrim::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(3, 47, 1, 0.88) 0%,
+    rgba(3, 47, 1, 0.62) 26%,
+    rgba(3, 47, 1, 0.12) 56%,
+    rgba(3, 47, 1, 0) 78%
+  );
+}
+.scrim-topo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(3, 47, 1, 0.55), rgba(3, 47, 1, 0) 42%);
+  z-index: 1;
+}
+
+/* Foto sangrando na peça inteira. */
+.fundo-foto {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.fundo-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ============================================================================
+   PROVA SOCIAL
+   ========================================================================== */
+.estrelas {
+  display: flex;
+  gap: 10px;
+}
+.estrelas svg {
+  width: 52px;
+  height: 52px;
+}
+.numerao {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 250px;
+  line-height: 0.84;
+  letter-spacing: -0.045em;
+  color: var(--forest);
+}
+.s-escura .numerao,
+.s-floresta .numerao {
+  color: #f3f9ee;
+}
+.aspas {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 150px;
+  line-height: 0.6;
+  color: var(--lime);
+  opacity: 0.55;
+}
+
+/* ============================================================================
+   RETRATO — os recortes com fundo transparente da equipe.
+   A silhueta pousa sobre uma forma de marca; a cabeça pode passar do topo dela,
+   que é o que dá vida ao card e o diferencia de crachá.
+   ========================================================================== */
+.retrato {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: none;
+}
+.retrato .forma {
+  position: absolute;
+  inset: auto 0 0 0;
+  border-radius: 999px 999px 40px 40px;
+  background: var(--mint);
+}
+.retrato img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  object-fit: contain;
+  object-position: bottom center;
+}
+/* Retrato com fundo opaco (Dra. Juliana, Jeferson) entra em moldura reta —
+   silhueta só funciona com PNG vazado, e forçar recorte inventaria contorno. */
+.retrato.opaco img {
+  border-radius: 32px;
+  object-fit: cover;
+  object-position: top center;
+}
+.retrato.opaco .forma {
+  display: none;
+}
+
+/* ============================================================================
+   LISTA / COMPARATIVO — usados nos carrosséis
+   ========================================================================== */
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+.item {
+  display: flex;
+  gap: 26px;
+  align-items: flex-start;
+}
+.item .marca {
+  flex: none;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--forest);
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+.s-escura .item .marca {
+  background: rgba(86, 168, 5, 0.2);
+  color: #cfe9b4;
+}
+.item .texto {
+  font-size: 34px;
+  line-height: 1.42;
+  color: var(--ink);
+  font-weight: 450;
+}
+.s-escura .item .texto {
+  color: #dbe7d4;
+}
+.item .texto b {
+  font-weight: 650;
+  color: var(--forest);
+}
+.s-escura .item .texto b {
+  color: #eaf5e1;
+}
+
+.colunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+.coluna {
+  border-radius: 28px;
+  padding: 40px 36px;
+  background: var(--paper);
+  border: 2px solid var(--border);
+}
+.coluna h4 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 44px;
+  color: var(--forest);
+  margin-bottom: 22px;
+  letter-spacing: -0.015em;
+}
+.coluna p {
+  font-size: 30px;
+  line-height: 1.42;
+  color: var(--ink-soft);
+}
+
+/* Paginação de carrossel — diz quantos slides faltam, que é o que segura o
+   deslize até o CTA. */
+.paginacao {
+  position: absolute;
+  z-index: 3;
+  right: 84px;
+  top: 96px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+.s-escura .paginacao {
+  color: #93ad8d;
+}
+.arraste {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 27px;
+  font-weight: 600;
+  color: var(--forest);
+  letter-spacing: 0.02em;
+}
+.s-escura .arraste {
+  color: #c6e3a6;
+}
+
+/* ============================================================================
+   CAPA DE DESTAQUE
+   O Instagram recorta em CÍRCULO a partir do centro. Tudo que precisa ser visto
+   fica dentro de `.circulo`; o resto da peça é só a moldura que sobra no export.
+   ========================================================================== */
+.destaque-fundo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.circulo {
+  width: 760px;
+  height: 760px;
+  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 42px;
+}
+.circulo svg {
+  width: 278px;
+  height: 278px;
+}
+.circulo .rotulo {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 66px;
+  letter-spacing: -0.01em;
+  color: var(--forest);
+  text-align: center;
+}
+
+/* ============================================================================
+   STORY
+   ========================================================================== */
+.story-topo {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.story-topo img {
+  height: 50px;
+}
+.story-topo span {
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+}
+.s-escura .story-topo span {
+  color: #a8c0a2;
+}
+
+/* Caixa que imita a mecânica nativa (enquete/pergunta) só o suficiente para a
+   pessoa saber ONDE tocar. O adesivo de verdade é posto na hora de publicar —
+   por isso o arquivo traz a marca do lugar, não uma imitação do widget. */
+.marca-adesivo {
+  border: 3px dashed rgba(9, 89, 2, 0.35);
+  border-radius: 26px;
+  padding: 34px;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--forest);
+  line-height: 1.35;
+}
+.s-escura .marca-adesivo {
+  border-color: rgba(207, 233, 180, 0.4);
+  color: #cfe9b4;
+}
+
+.espaco {
+  flex: 1 1 auto;
+}
+.gap-s {
+  gap: 24px;
+}
+.gap-m {
+  gap: 36px;
+}
+.gap-g {
+  gap: 52px;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+}
+.linha {
+  display: flex;
+  align-items: center;
+}
+
+/* Guias de segurança: aparecem só quando o render é chamado em modo QA. */
+.peca.qa::after {
+  content: "";
+  position: absolute;
+  z-index: 99;
+  pointer-events: none;
+  outline: 2px dashed rgba(255, 0, 90, 0.75);
+}
+.peca.qa.f-feed::after {
+  inset: 96px 84px;
+}
+.peca.qa.f-quadrado::after {
+  inset: 84px;
+}
+.peca.qa.f-story::after {
+  inset: 250px 88px 270px;
+}
+/* A faixa 4:5 central — o que o grid do perfil mostra de uma capa de Reel. */
+.peca.qa.f-story::before {
+  content: "";
+  position: absolute;
+  z-index: 99;
+  pointer-events: none;
+  left: 0;
+  right: 0;
+  top: 285px;
+  height: 1350px;
+  outline: 2px dashed rgba(0, 120, 255, 0.7);
+}

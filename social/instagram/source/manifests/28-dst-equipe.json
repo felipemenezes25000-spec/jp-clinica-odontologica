@@ -1,0 +1,101 @@
+{
+  "grupo": "dst-equipe",
+  "descricao": "Destaque Equipe. Nome, função e CRO saem de src/lib/jp.ts pelo extrator — nenhum registro foi digitado nestes cartões. Quem não é do conselho não recebe campo de registro.",
+  "saida": "exports/highlights/equipe",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_equipe_01_capa",
+      "chip": "EQUIPE",
+      "headline": "Gente real,\ncom nome e\n[[registro]].",
+      "escala": "h-m",
+      "corpo": "Quem atende você na JP — um cartão por pessoa.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_02_juliana",
+      "tipo": "story-equipe",
+      "chip": "RESPONSÁVEL TÉCNICA",
+      "foto": "/src/assets/juliana-pelisser.webp",
+      "opaco": true,
+      "nome": "{{responsavelTecnica.nome}}",
+      "papel": "{{responsavelTecnica.papel}}",
+      "registro": "{{responsavelTecnica.registro}}"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_03_ana_beatriz",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/ana-beatriz.webp",
+      "nome": "Dra. Ana Beatriz",
+      "papel": "Coordenadora e cirurgiã-dentista",
+      "registro": "CROSP 177.801"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_04_matheus_fraga",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/matheus-fraga.webp",
+      "nome": "Dr. Matheus Fraga",
+      "papel": "Odontopediatria e endodontia",
+      "registro": "CROSP 168.512"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_05_julia_vargas",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/julia-vargas.webp",
+      "nome": "Dra. Júlia Vargas",
+      "papel": "Odontopediatria e estética",
+      "registro": "CROSP 175.851"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_06_hugo_leonardo",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/hugo-leonardo.webp",
+      "nome": "Dr. Hugo Leonardo",
+      "papel": "Ortodontia",
+      "registro": "CROSP 75.157"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_07_sabrina_vamszer",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/sabrina-vamszer.webp",
+      "nome": "Dra. Sabrina Vamszer Flaquer",
+      "papel": "Endodontia",
+      "registro": "CROSP 162.394"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_08_raphaela",
+      "tipo": "story-equipe",
+      "chip": "EQUIPE",
+      "foto": "/src/assets/raphaela-recepcao.webp",
+      "nome": "Raphaela",
+      "papel": "Recepção"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_09_jeferson",
+      "tipo": "story-equipe",
+      "chip": "GESTÃO",
+      "foto": "/src/assets/jeferson-barbosa.webp",
+      "opaco": true,
+      "nome": "{{gestor.nome}}",
+      "papel": "{{gestor.papel}} · {{gestor.formacao}}"
+    },
+    {
+      "arquivo": "jp_ig_dst_equipe_10_cta",
+      "chip": "PRÓXIMO PASSO",
+      "headline": "Marque com\nquem você\n[[já conhece]].",
+      "escala": "h-m",
+      "corpo": "{{clinica.horario}}. Nossa recepção responde e explica como funciona a avaliação.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

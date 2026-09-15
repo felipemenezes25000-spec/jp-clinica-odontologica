@@ -1,0 +1,99 @@
+{
+  "grupo": "car-c06",
+  "descricao": "C06 — o carrossel que mais pede cuidado de redação. Lista sinais para PROCURAR AVALIAÇÃO, e em nenhum momento diz o que a pessoa tem. O slide 7 existe só para deixar isso explícito, e não é decorativo: é o que separa conteúdo de saúde de autodiagnóstico.",
+  "saida": "exports/carousel/c06-hora-de-avaliar",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "PREVENÇÃO",
+      "headline": "Quando marcar\numa [[avaliação]]\nodontológica.",
+      "escala": "h-m",
+      "corpo": "Sete situações que costumam pedir uma consulta — sem autodiagnóstico.",
+      "arquivo": "jp_ig_car_c06_01_v01"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "SINAIS COMUNS",
+      "headline": "Vale marcar\numa consulta\nquando há:",
+      "escala": "h-p",
+      "numerado": false,
+      "itens": [
+        "Sangramento na gengiva ao escovar",
+        "Sensibilidade a frio ou quente que não passa",
+        "Dente que mudou de posição ou ficou mole",
+        "Dificuldade ou incômodo para mastigar"
+      ],
+      "arquivo": "jp_ig_car_c06_02_v01",
+      "pagina": "2/8"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "TAMBÉM VALE",
+      "headline": "E quando:",
+      "escala": "h-g",
+      "numerado": false,
+      "itens": [
+        "Faz mais de um ano da última revisão",
+        "Uma restauração antiga lascou ou caiu",
+        "Há um espaço vazio de dente ausente",
+        "A prótese em uso está incomodando"
+      ],
+      "arquivo": "jp_ig_car_c06_03_v01",
+      "pagina": "3/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "O ESPAÇO VAZIO",
+      "headline": "Ausência de\ndente não\nfica parada.",
+      "escala": "h-m",
+      "corpo": "Os dentes vizinhos e a mordida se reorganizam com o tempo. Avaliar cedo costuma **ampliar as opções**.",
+      "arquivo": "jp_ig_car_c06_04_v01",
+      "pagina": "4/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "QUANDO NADA DÓI",
+      "headline": "Boca calada\nnão é boca\nsaudável.",
+      "escala": "h-m",
+      "corpo": "Boa parte do que se trata cedo não dói ainda. Dor costuma ser o aviso tardio.",
+      "arquivo": "jp_ig_car_c06_05_v01",
+      "pagina": "5/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "A REVISÃO",
+      "headline": "Uma vez por ano,\nno mínimo.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "alturaFoto": 420,
+      "corpo": "A frequência ideal varia conforme o histórico de cada pessoa.",
+      "arquivo": "jp_ig_car_c06_06_v01",
+      "pagina": "6/8"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "IMPORTANTE",
+      "headline": "Nada disto é\n[[diagnóstico]].",
+      "escala": "h-m",
+      "corpo": "Esta lista serve para decidir marcar uma consulta — não para concluir o que você tem.",
+      "nota": "Diagnóstico exige exame presencial. Sempre.",
+      "arquivo": "jp_ig_car_c06_07_v01",
+      "pagina": "7/8"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Na dúvida,\n[[avalie]].",
+      "escala": "h-g",
+      "corpo": "Uma consulta responde o que uma busca na internet não responde.",
+      "arquivo": "jp_ig_car_c06_08_v01",
+      "pagina": "8/8"
+    }
+  ]
+}

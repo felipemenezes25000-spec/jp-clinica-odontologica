@@ -1,0 +1,125 @@
+{
+  "previa": false,
+  "videos": [
+    {
+      "id": "AD01-A",
+      "arquivo": "jp_ig_ad_ad01_hooka_v01.mp4",
+      "duracao": 21,
+      "fps": 30
+    },
+    {
+      "id": "AD01-B",
+      "arquivo": "jp_ig_ad_ad01_hookb_v01.mp4",
+      "duracao": 21,
+      "fps": 30
+    },
+    {
+      "id": "AD01-C",
+      "arquivo": "jp_ig_ad_ad01_hookc_v01.mp4",
+      "duracao": 21,
+      "fps": 30
+    },
+    {
+      "id": "AD02-A",
+      "arquivo": "jp_ig_ad_ad02_hooka_v01.mp4",
+      "duracao": 21.599999999999998,
+      "fps": 30
+    },
+    {
+      "id": "AD02-B",
+      "arquivo": "jp_ig_ad_ad02_hookb_v01.mp4",
+      "duracao": 21.599999999999998,
+      "fps": 30
+    },
+    {
+      "id": "AD02-C",
+      "arquivo": "jp_ig_ad_ad02_hookc_v01.mp4",
+      "duracao": 21.599999999999998,
+      "fps": 30
+    },
+    {
+      "id": "AD03-A",
+      "arquivo": "jp_ig_ad_ad03_hooka_v01.mp4",
+      "duracao": 21.2,
+      "fps": 30
+    },
+    {
+      "id": "AD03-B",
+      "arquivo": "jp_ig_ad_ad03_hookb_v01.mp4",
+      "duracao": 21.2,
+      "fps": 30
+    },
+    {
+      "id": "AD03-C",
+      "arquivo": "jp_ig_ad_ad03_hookc_v01.mp4",
+      "duracao": 21.2,
+      "fps": 30
+    },
+    {
+      "id": "AD04-A",
+      "arquivo": "jp_ig_ad_ad04_hooka_v01.mp4",
+      "duracao": 22,
+      "fps": 30
+    },
+    {
+      "id": "AD04-B",
+      "arquivo": "jp_ig_ad_ad04_hookb_v01.mp4",
+      "duracao": 22,
+      "fps": 30
+    },
+    {
+      "id": "AD04-C",
+      "arquivo": "jp_ig_ad_ad04_hookc_v01.mp4",
+      "duracao": 22,
+      "fps": 30
+    },
+    {
+      "id": "AD05-A",
+      "arquivo": "jp_ig_ad_ad05_hooka_v01.mp4",
+      "duracao": 20.599999999999998,
+      "fps": 30
+    },
+    {
+      "id": "AD05-B",
+      "arquivo": "jp_ig_ad_ad05_hookb_v01.mp4",
+      "duracao": 20.599999999999998,
+      "fps": 30
+    },
+    {
+      "id": "AD05-C",
+      "arquivo": "jp_ig_ad_ad05_hookc_v01.mp4",
+      "duracao": 20.599999999999998,
+      "fps": 30
+    },
+    {
+      "id": "AD06-A",
+      "arquivo": "jp_ig_ad_ad06_hooka_v01.mp4",
+      "duracao": 20,
+      "fps": 30
+    },
+    {
+      "id": "AD06-B",
+      "arquivo": "jp_ig_ad_ad06_hookb_v01.mp4",
+      "duracao": 20,
+      "fps": 30
+    },
+    {
+      "id": "AD06-C",
+      "arquivo": "jp_ig_ad_ad06_hookc_v01.mp4",
+      "duracao": 20,
+      "fps": 30
+    },
+    {
+      "id": "R11",
+      "arquivo": "jp_ig_reel_r11_conheca_a_jp_v01.mp4",
+      "duracao": 25.4,
+      "fps": 30
+    },
+    {
+      "id": "R16",
+      "arquivo": "jp_ig_reel_r16_historia_v01.mp4",
+      "duracao": 23,
+      "fps": 30
+    }
+  ]
+}

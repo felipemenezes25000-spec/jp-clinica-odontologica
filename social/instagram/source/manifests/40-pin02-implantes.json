@@ -1,0 +1,90 @@
+{
+  "grupo": "car-pin02",
+  "descricao": "PIN 02 — o post fixado de implantes. Objetivo declarado no §15: explicar que a JP faz avaliação e planejamento individual. NÃO promete indicação, NÃO diz que a clínica tem especialista em implantodontia (o repositório não traz essa titulação para ninguém) e NÃO usa antes/depois.",
+  "saida": "exports/carousel/pin02-implantes-na-jp",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "IMPLANTES",
+      "headline": "Implantes na JP:\ncomeça pela\n[[avaliação]].",
+      "escala": "h-m",
+      "corpo": "Como a clínica planeja uma reabilitação — do primeiro exame ao retorno.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "arquivo": "jp_ig_car_pin02_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "O QUE FAZEMOS",
+      "headline": "Avaliamos,\nplanejamos e\nacompanhamos.",
+      "escala": "h-p",
+      "corpo": "Reabilitação de dentes ausentes com **planejamento individual** e acompanhamento em cada etapa.",
+      "nota": "A indicação depende de avaliação clínica, exames e condições individuais de saúde.",
+      "arquivo": "jp_ig_car_pin02_02_v01",
+      "pagina": "2/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "A AVALIAÇÃO",
+      "headline": "O que entra\nna conta.",
+      "escala": "h-g",
+      "itens": [
+        "Histórico de saúde e medicamentos em uso",
+        "Exame clínico da boca e da gengiva",
+        "Exame de imagem, quando indicado",
+        "O que você espera do tratamento"
+      ],
+      "arquivo": "jp_ig_car_pin02_03_v01",
+      "pagina": "3/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "AS ETAPAS",
+      "headline": "Quatro fases,\nnesta ordem.",
+      "escala": "h-g",
+      "itens": [
+        "Avaliação e exames",
+        "Cirurgia de instalação",
+        "Integração do implante ao osso",
+        "Fase protética e retornos"
+      ],
+      "arquivo": "jp_ig_car_pin02_04_v01",
+      "pagina": "4/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "O QUE NÃO FAZEMOS",
+      "headline": "Não indicamos\ntratamento\npor [[mensagem]].",
+      "escala": "h-p",
+      "corpo": "Nenhuma clínica séria consegue. Indicação exige exame presencial — e é isso que a avaliação é.",
+      "nota": "Pelo WhatsApp explicamos o processo, o horário e como agendar.",
+      "arquivo": "jp_ig_car_pin02_05_v01",
+      "pagina": "5/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "ONDE",
+      "headline": "{{historia.anos}} anos de história.\nHoje, na\n[[{{historia.regiaoAtual}}]].",
+      "escala": "h-p",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "alturaFoto": 460,
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}.",
+      "arquivo": "jp_ig_car_pin02_06_v01",
+      "pagina": "6/7"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Agende a sua\navaliação de\n[[implantes]].",
+      "escala": "h-m",
+      "corpo": "Responsável técnica: {{responsavelTecnica.nome}} — {{responsavelTecnica.registro}}.",
+      "arquivo": "jp_ig_car_pin02_07_v01",
+      "pagina": "7/7"
+    }
+  ]
+}

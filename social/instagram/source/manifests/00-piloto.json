@@ -1,0 +1,44 @@
+{
+  "grupo": "piloto",
+  "descricao": "Tres pecas-piloto da Etapa B. Existem para provar o sistema antes de 300 arquivos sairem dele: uma tipografica, uma com numero vindo de dados-jp.json e uma com foto real. Ficam numa pasta propria de proposito — elas nao sao conteudo de publicacao, e misturadas em exports/feed viravam tres arquivos que alguem publicaria por engano achando que eram variacoes aprovadas.",
+  "saida": "exports/piloto",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_piloto_marca_v01",
+      "tipo": "feed-quote",
+      "chip": "A JP",
+      "headline": "Sorrir\nmuda [[tudo]].",
+      "escala": "h-xg",
+      "assinatura": "{{clinica.nomeCurto}}",
+      "cta": "Avaliação com hora marcada. Fale com a equipe no WhatsApp.",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_piloto_prova_v01",
+      "tipo": "feed-proof",
+      "chip": "AVALIAÇÕES",
+      "nota": "{{avaliacoes.notaBR}}",
+      "notaNum": "{{avaliacoes.nota}}",
+      "total": "{{avaliacoes.total}}",
+      "headline": "Quem já sentou\nna nossa cadeira\navaliou assim.",
+      "corpo": "Nota pública no Google, conferida em {{avaliacoes.conferidoEmBR}}. Nenhum depoimento aqui foi escrito por nós.",
+      "cta": "Ver as avaliações no Google",
+      "ctaSuave": true
+    },
+    {
+      "arquivo": "jp_ig_piloto_foto_v01",
+      "tipo": "feed-photo-copy",
+      "chip": "A CLÍNICA",
+      "foto": "/src/assets/consultorio-1.webp",
+      "alturaFoto": 660,
+      "headline": "Aqui começa\no cuidado.",
+      "escala": "h-m",
+      "corpo": "Consultório da JP, na Vila Bruna. Foto real, sem montagem.",
+      "rodapeLocal": "R. Rio Verde, 1029"
+    }
+  ]
+}

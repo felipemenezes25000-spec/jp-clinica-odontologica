@@ -1,0 +1,58 @@
+{
+  "id": "AD01-B",
+  "titulo": "Implante dói? — educativo (hook B)",
+  "arquivo": "jp_ig_ad_ad01_hookb_v01",
+  "anuncio": true,
+  "pilar": "implantes",
+  "utm_content": "ad01_hookb",
+  "objetivo": "generate_lead",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "titulo": "A dúvida nº 1\nantes de um\n[[implante]].",
+      "escala": "v-g",
+      "corpo": "E ela tem resposta — sem promessa.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "A dúvida número um antes de um implante. E ela tem resposta."
+    },
+    {
+      "t": 4.2,
+      "superficie": "escura",
+      "titulo": "A cirurgia é feita\ncom [[anestesia\nlocal]].",
+      "escala": "v-m",
+      "corpo": "Durante o procedimento, a região tratada fica anestesiada.",
+      "narracao": "A cirurgia é feita com anestesia local: durante o procedimento, a região tratada fica anestesiada."
+    },
+    {
+      "t": 5.4,
+      "superficie": "escura",
+      "chip": "E DEPOIS?",
+      "titulo": "O pós-operatório\nvaria de caso\npara caso.",
+      "escala": "v-p",
+      "itens": ["A equipe orienta cuidados e prescrição", "Os retornos acompanham a cicatrização"],
+      "narracao": "O pós-operatório varia de caso para caso. A equipe orienta cuidados e os retornos acompanham a cicatrização."
+    },
+    {
+      "t": 4.4,
+      "titulo": "Se o implante é\nindicado para você,\nsó a [[avaliação]]\nresponde.",
+      "escala": "v-p",
+      "corpo": "Depende de exame de imagem, histórico de saúde e exame clínico.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Se o implante é indicado para você, só a avaliação responde."
+    },
+    {
+      "t": 4.2,
+      "superficie": "clara",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "titulo": "Fale com a\nequipe da [[JP]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "narracao": "Fale com a equipe da JP. Avaliação com hora marcada, na região da Freguesia do Ó."
+    }
+  ]
+}

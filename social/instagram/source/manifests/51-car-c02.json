@@ -1,0 +1,88 @@
+{
+  "grupo": "car-c02",
+  "descricao": "C02 — vocabulário. O paciente chega dizendo 'quero colocar implante' querendo dizer 'quero meu dente de volta'. Alinhar o termo encurta a consulta e evita frustração de expectativa.",
+  "saida": "exports/carousel/c02-implante-x-protese",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "IMPLANTES",
+      "headline": "Implante e\nprótese não\nsão a [[mesma\ncoisa]].",
+      "escala": "h-m",
+      "corpo": "E entender a diferença muda o que você espera do tratamento.",
+      "arquivo": "jp_ig_car_c02_01_v01"
+    },
+    {
+      "tipo": "carousel-comparison",
+      "chip": "A DIFERENÇA",
+      "headline": "Um é raiz.\nO outro é dente.",
+      "escala": "h-m",
+      "aTitulo": "Implante",
+      "aTexto": "O pino instalado no osso, que substitui a raiz do dente perdido. Não aparece.",
+      "bTitulo": "Prótese",
+      "bTexto": "A parte visível, que devolve forma, função e a aparência do sorriso.",
+      "nota": "Na maioria dos casos, os dois trabalham juntos no mesmo tratamento.",
+      "arquivo": "jp_ig_car_c02_02_v01",
+      "pagina": "2/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "POR QUE IMPORTA",
+      "headline": "“Colocar\nimplante” não é\numa etapa só.",
+      "escala": "h-p",
+      "corpo": "Entre a cirurgia e a prótese existe o **período de integração ao osso**.",
+      "nota": "É esse prazo que explica por que o tratamento não termina no dia da cirurgia.",
+      "arquivo": "jp_ig_car_c02_03_v01",
+      "pagina": "3/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "AS FASES",
+      "headline": "Quatro etapas,\nnesta ordem.",
+      "escala": "h-m",
+      "itens": [
+        "Avaliação e exames",
+        "Cirurgia de instalação do implante",
+        "Integração do implante ao osso",
+        "Fase protética e retornos"
+      ],
+      "arquivo": "jp_ig_car_c02_04_v01",
+      "pagina": "4/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "E A PRÓTESE SOZINHA?",
+      "headline": "Existe prótese\nsem implante.",
+      "escala": "h-m",
+      "corpo": "Fixa apoiada nos dentes vizinhos, ou removível. São caminhos diferentes, com indicações diferentes.",
+      "nota": "Nenhum é o melhor para todo mundo. Quem escolhe é o caso.",
+      "arquivo": "jp_ig_car_c02_05_v01",
+      "pagina": "5/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "O QUE NÃO MUDA",
+      "headline": "A decisão vem\ndepois do\nexame.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "alturaFoto": 430,
+      "corpo": "Osso, gengiva, mordida e saúde geral definem o que é possível no seu caso.",
+      "arquivo": "jp_ig_car_c02_06_v01",
+      "pagina": "6/7"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Entenda as\netapas do\n[[seu caso]].",
+      "escala": "h-m",
+      "corpo": "A avaliação explica o que se aplica a você — e o que não se aplica.",
+      "arquivo": "jp_ig_car_c02_07_v01",
+      "pagina": "7/7"
+    }
+  ]
+}

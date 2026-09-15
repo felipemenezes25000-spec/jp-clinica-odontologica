@@ -1,0 +1,52 @@
+{
+  "grupo": "ads-estaticos",
+  "descricao": "Os quatro estáticos 4:5 do pacote inicial. Diferem dos posts orgânicos em três pontos, e os três importam: (1) nenhum elemento de interface orgânica — nada de “salve”, “arraste” ou “link na bio”, que em anúncio é ruído e em alguns formatos é motivo de reprovação; (2) o CTA nomeia a ação e o canal; (3) a localidade aparece na peça, porque é ela que qualifica o clique numa campanha de raio curto.",
+  "saida": "exports/ads",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme",
+    "tipo": "ad-estatico",
+    "anuncio": true
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_ad07_implante_planejamento_v01",
+      "chip": "IMPLANTES",
+      "foto": "/src/assets/consultorio-implantes-1.webp",
+      "headline": "Implantes com\nplanejamento\nindividual.",
+      "escala": "h-m",
+      "corpo": "Avaliação, exames quando indicados e um plano explicado antes de qualquer decisão.",
+      "cta": "Agendar avaliação pelo WhatsApp",
+      "rodapeLocal": "{{clinica.endereco.bairro}} · {{historia.regiaoAtual}}"
+    },
+    {
+      "arquivo": "jp_ig_ad08_local_clinica_real_v01",
+      "chip": "{{historia.regiaoAtual}}",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "headline": "A clínica fica\nna {{clinica.endereco.logradouro}}.",
+      "escala": "h-p",
+      "corpo": "{{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}} — Zona Norte de São Paulo. Perto de Pirituba, Limão e Brasilândia.",
+      "cta": "Ver como chegar",
+      "rodapeLocal": "{{clinica.horario}}"
+    },
+    {
+      "arquivo": "jp_ig_ad09_prova_google_v01",
+      "chip": "AVALIAÇÕES",
+      "headline": "{{avaliacoes.notaBR}} no Google,\ncom {{avaliacoes.total}}\navaliações.",
+      "escala": "h-g",
+      "corpo": "Números públicos de pacientes reais, conferidos em {{avaliacoes.conferidoEmBR}}. {{historia.anos}} anos de história.",
+      "cta": "Falar com a equipe da JP",
+      "rodapeLocal": "{{clinica.endereco.bairro}} · {{historia.regiaoAtual}}"
+    },
+    {
+      "arquivo": "jp_ig_ad10_estrutura_equipe_v01",
+      "chip": "A CLÍNICA",
+      "foto": "/src/assets/consultorio-1.webp",
+      "headline": "Estrutura própria.\nEquipe com nome\ne registro.",
+      "escala": "h-p",
+      "corpo": "Responsável técnica: {{responsavelTecnica.nome}} — {{responsavelTecnica.registro}}.",
+      "cta": "Conhecer a clínica",
+      "rodapeLocal": "{{clinica.endereco.logradouro}}"
+    }
+  ]
+}

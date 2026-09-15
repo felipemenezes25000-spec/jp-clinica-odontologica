@@ -1,0 +1,86 @@
+{
+  "grupo": "car-c07",
+  "descricao": "C07 — ortodontia. Não promete técnica que a clínica possa não oferecer: fala de 'alternativas estéticas' e manda a decisão para a documentação ortodôntica. Antes de publicar, confirme com a clínica quais opções estão disponíveis hoje.",
+  "saida": "exports/carousel/c07-aparelho-x-alinhador",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "ORTODONTIA",
+      "headline": "Aparelho ou\n[[alinhador]]?",
+      "escala": "h-xg",
+      "corpo": "A pergunta certa não é qual é melhor.",
+      "arquivo": "jp_ig_car_c07_01_v01"
+    },
+    {
+      "tipo": "carousel-comparison",
+      "chip": "O QUE MUDA",
+      "headline": "Mecânicas\ndiferentes.",
+      "escala": "h-m",
+      "aTitulo": "Aparelho fixo",
+      "aTexto": "Colado aos dentes. Trabalha 24h e não depende da disciplina de uso. Resolve uma gama ampla de movimentos.",
+      "bTitulo": "Alinhador",
+      "bTexto": "Removível e discreto. Depende de ser usado o número de horas prescrito para funcionar.",
+      "nota": "A indicação sai da documentação ortodôntica, não da preferência estética.",
+      "arquivo": "jp_ig_car_c07_02_v01",
+      "pagina": "2/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "O QUE PESA NA ESCOLHA",
+      "headline": "Quatro fatores.",
+      "escala": "h-g",
+      "itens": [
+        "O tipo de movimento que os dentes precisam",
+        "A idade e a fase de crescimento",
+        "A rotina e a disciplina de uso",
+        "O acompanhamento possível"
+      ],
+      "arquivo": "jp_ig_car_c07_03_v01",
+      "pagina": "3/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "A DOCUMENTAÇÃO",
+      "headline": "É ela que\nresponde.",
+      "escala": "h-m",
+      "corpo": "Radiografias, fotos e modelos mostram o que precisa ser movido. Sem isso, qualquer escolha é chute.",
+      "arquivo": "jp_ig_car_c07_04_v01",
+      "pagina": "4/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "NÃO É SÓ ESTÉTICA",
+      "headline": "Mordida\ndesalinhada\ncobra depois.",
+      "escala": "h-p",
+      "corpo": "Afeta mastigação, higiene e desgaste dos dentes ao longo da vida.",
+      "arquivo": "jp_ig_car_c07_05_v01",
+      "pagina": "5/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "IDADE",
+      "headline": "Adulto também\nfaz aparelho.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "alturaFoto": 420,
+      "corpo": "O objetivo muda conforme a fase, mas o movimento dentário continua possível.",
+      "arquivo": "jp_ig_car_c07_06_v01",
+      "pagina": "6/7"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Comece pela\n[[documentação]].",
+      "escala": "h-m",
+      "corpo": "A avaliação ortodôntica diz o que é possível no seu caso.",
+      "arquivo": "jp_ig_car_c07_07_v01",
+      "pagina": "7/7"
+    }
+  ]
+}

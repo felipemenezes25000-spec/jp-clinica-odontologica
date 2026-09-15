@@ -1,0 +1,59 @@
+{
+  "grupo": "dst-localizacao",
+  "descricao": "Destaque Onde estamos. Localidade é estratégia, não rodapé: metade da decisão de uma clínica de bairro é 'dá para ir a pé?'.",
+  "saida": "exports/highlights/localizacao",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme",
+    "tipo": "story-texto"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_dst_local_01_capa",
+      "chip": "ONDE ESTAMOS",
+      "headline": "Vila Bruna,\nregião da\n[[{{historia.regiaoAtual}}]].",
+      "escala": "h-m",
+      "corpo": "Zona Norte de São Paulo.",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "jp_ig_dst_local_02_endereco",
+      "chip": "ENDEREÇO",
+      "headline": "{{clinica.endereco.logradouro}}",
+      "escala": "h-p",
+      "corpo": "{{clinica.endereco.bairro}} · {{clinica.endereco.cidade}} - {{clinica.endereco.uf}} · CEP {{clinica.endereco.cep}}"
+    },
+    {
+      "arquivo": "jp_ig_dst_local_03_fachada",
+      "chip": "A FACHADA",
+      "headline": "É esta porta.",
+      "escala": "h-p",
+      "corpo": "Procure pelo portão branco e pela placa verde.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "tipo": "story-foto"
+    },
+    {
+      "arquivo": "jp_ig_dst_local_04_regiao",
+      "chip": "A REGIÃO",
+      "headline": "Perto de\nPirituba, Limão\ne Brasilândia.",
+      "escala": "h-p",
+      "corpo": "Se você está na Zona Norte, provavelmente estamos a poucos minutos."
+    },
+    {
+      "arquivo": "jp_ig_dst_local_05_horario",
+      "chip": "HORÁRIO",
+      "headline": "{{clinica.horario}}",
+      "escala": "h-pp",
+      "corpo": "Telefone {{clinica.telefone}}"
+    },
+    {
+      "arquivo": "jp_ig_dst_local_06_cta",
+      "chip": "COMO CHEGAR",
+      "headline": "Manda a\n[[localização]]?",
+      "escala": "h-m",
+      "corpo": "Pedimos a referência e mandamos o ponto no mapa.",
+      "superficie": "escura",
+      "cta": "WhatsApp {{clinica.whatsapp}}"
+    }
+  ]
+}

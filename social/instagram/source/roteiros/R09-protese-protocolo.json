@@ -1,0 +1,61 @@
+{
+  "id": "R09",
+  "titulo": "O que é prótese protocolo?",
+  "arquivo": "jp_ig_reel_r09_protocolo_v01",
+  "pilar": "proteses",
+  "objetivo": "explicar o termo que o paciente ouve e não entende",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "chip": "PRÓTESES",
+      "titulo": "O que é\n[[protocolo]]?",
+      "escala": "v-xg",
+      "corpo": "É o nome que mais aparece e o que menos se explica.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "O que é prótese protocolo? É o nome que mais aparece e o que menos se explica."
+    },
+    {
+      "t": 4.6,
+      "superficie": "escura",
+      "titulo": "Uma prótese fixa\napoiada em\nimplantes.",
+      "escala": "v-m",
+      "corpo": "Para arcadas sem dentes, presa a um número planejado de implantes.",
+      "narracao": "É uma prótese fixa apoiada em implantes, para arcadas sem dentes, presa a um número planejado de implantes."
+    },
+    {
+      "t": 6.2,
+      "superficie": "escura",
+      "chip": "O QUE MUDA NO DIA A DIA",
+      "titulo": "Três diferenças\npráticas.",
+      "escala": "v-g",
+      "itens": [
+        "Fica presa: não é removida pelo paciente",
+        "Tem higiene e manutenção próprias",
+        "Exige retornos de acompanhamento"
+      ],
+      "narracao": "Três diferenças práticas: fica presa e não é removida pelo paciente, tem higiene e manutenção próprias, e exige retornos de acompanhamento."
+    },
+    {
+      "t": 4.6,
+      "titulo": "Não é indicada\npara [[todo mundo]].",
+      "escala": "v-m",
+      "corpo": "Depende de osso, saúde geral e planejamento. É uma possibilidade, não um padrão.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Não é indicada para todo mundo: depende de osso, saúde geral e planejamento. É uma possibilidade, não um padrão."
+    },
+    {
+      "t": 4.0,
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Descubra o que\ncabe no [[seu caso]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",
+      "narracao": "Descubra o que cabe no seu caso. Fale com a equipe da JP pelo WhatsApp."
+    }
+  ]
+}

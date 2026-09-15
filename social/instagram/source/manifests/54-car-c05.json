@@ -1,0 +1,89 @@
+{
+  "grupo": "car-c05",
+  "descricao": "C05 — conteúdo de retenção, não de aquisição. Fala com quem JÁ tratou, e é ele que gera salvamento e comentário. Também é o carrossel que mais evita retrabalho clínico.",
+  "saida": "exports/carousel/c05-cuidados-com-implantes",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "IMPLANTES",
+      "headline": "Implante\ntambém pede\n[[manutenção]].",
+      "escala": "h-m",
+      "corpo": "O que fazer para o tratamento durar.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "arquivo": "jp_ig_car_c05_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "O MITO",
+      "headline": "“Implante não\ntem cárie,\nentão relaxa.”",
+      "escala": "h-p",
+      "corpo": "O implante não tem cárie mesmo. Mas a **gengiva ao redor dele adoece** — e é isso que faz implante falhar.",
+      "nota": "Chama-se peri-implantite, e é silenciosa no começo.",
+      "arquivo": "jp_ig_car_c05_02_v01",
+      "pagina": "2/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "TODO DIA",
+      "headline": "O básico,\nfeito bem.",
+      "escala": "h-g",
+      "itens": [
+        "Escovação com técnica orientada pela equipe",
+        "Fio dental ou escova interdental na região",
+        "Atenção ao sangramento da gengiva",
+        "Não usar o implante para abrir embalagem"
+      ],
+      "arquivo": "jp_ig_car_c05_03_v01",
+      "pagina": "3/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "OS RETORNOS",
+      "headline": "A revisão não\né opcional.",
+      "escala": "h-m",
+      "corpo": "É no retorno que se vê o que ainda não incomoda — e o que ainda não incomoda é o que dá para resolver simples.",
+      "arquivo": "jp_ig_car_c05_04_v01",
+      "pagina": "4/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "SINAIS DE ATENÇÃO",
+      "headline": "Quando ligar\npara a clínica.",
+      "escala": "h-m",
+      "numerado": false,
+      "itens": [
+        "Sangramento na gengiva ao redor",
+        "Sensação de mobilidade na prótese",
+        "Desconforto ao mastigar que não passa",
+        "Mau hálito persistente na região"
+      ],
+      "arquivo": "jp_ig_car_c05_05_v01",
+      "pagina": "5/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "IMPORTANTE",
+      "headline": "Isto não é\ndiagnóstico.",
+      "escala": "h-m",
+      "corpo": "É uma lista de quando procurar avaliação — não de quando concluir alguma coisa sozinho.",
+      "nota": "Quem examina é a equipe, presencialmente.",
+      "arquivo": "jp_ig_car_c05_06_v01",
+      "pagina": "6/7"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Marque o\nseu [[retorno]].",
+      "escala": "h-g",
+      "corpo": "Já é paciente da JP? A recepção encaixa a revisão pelo WhatsApp.",
+      "arquivo": "jp_ig_car_c05_07_v01",
+      "pagina": "7/7"
+    }
+  ]
+}

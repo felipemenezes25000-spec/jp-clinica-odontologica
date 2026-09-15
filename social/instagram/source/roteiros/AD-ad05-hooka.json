@@ -1,0 +1,62 @@
+{
+  "id": "AD05-A",
+  "titulo": "Implantes na Freguesia do Ó — local + intenção (hook A)",
+  "arquivo": "jp_ig_ad_ad05_hooka_v01",
+  "anuncio": true,
+  "pilar": "implantes",
+  "utm_content": "ad05_hooka",
+  "objetivo": "generate_lead",
+  "fps": 30,
+  "fundo": "#032F01",
+  "cenas": [
+    {
+      "t": 2.8,
+      "titulo": "Implantes dentários\nna [[{{historia.regiaoAtual}}]].",
+      "escala": "v-g",
+      "corpo": "Com planejamento individual.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "zoom": "dentro",
+      "narracao": "Implantes dentários na Freguesia do Ó, com planejamento individual."
+    },
+    {
+      "t": 5.6,
+      "superficie": "escura",
+      "chip": "COMO FUNCIONA",
+      "titulo": "Começa pela\navaliação —\nnão pelo\norçamento.",
+      "escala": "v-p",
+      "itens": [
+        "Histórico de saúde e exame clínico",
+        "Exame de imagem, quando indicado",
+        "As possibilidades explicadas com clareza"
+      ],
+      "narracao": "Começa pela avaliação, não pelo orçamento: histórico de saúde, exame clínico, exame de imagem quando indicado, e as possibilidades explicadas com clareza."
+    },
+    {
+      "t": 4.2,
+      "superficie": "escura",
+      "titulo": "{{historia.anos}} anos de história.\n{{avaliacoes.notaBR}} no Google.",
+      "escala": "v-m",
+      "corpo": "{{avaliacoes.total}} avaliações públicas de pacientes.",
+      "narracao": "24 anos de história e 4,6 no Google, com 192 avaliações públicas."
+    },
+    {
+      "t": 3.8,
+      "titulo": "{{clinica.endereco.logradouro}}\n{{clinica.endereco.bairro}}.",
+      "escala": "v-m",
+      "corpo": "Perto de Pirituba, Limão e Brasilândia.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "zoom": "fora",
+      "narracao": "Rua Rio Verde, 1029, Vila Bruna. Perto de Pirituba, Limão e Brasilândia."
+    },
+    {
+      "t": 4.2,
+      "superficie": "clara",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "titulo": "Fale com a\nequipe da [[JP]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "narracao": "Fale com a equipe da JP. Avaliação com hora marcada, na região da Freguesia do Ó."
+    }
+  ]
+}

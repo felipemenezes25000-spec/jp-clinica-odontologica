@@ -1,0 +1,88 @@
+{
+  "grupo": "car-c03",
+  "descricao": "C03 — o carrossel de maior risco regulatório do pacote, e por isso o mais revisado. Em NENHUM slide se afirma que protocolo é indicado para todos, nem que é 'melhor' que a prótese removível. As duas colunas comparam mecânica, não qualidade.",
+  "saida": "exports/carousel/c03-dentadura-x-protocolo",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "PRÓTESES",
+      "headline": "Dentadura e\nprotocolo:\no que [[muda]]?",
+      "escala": "h-g",
+      "corpo": "Dois caminhos diferentes para quem perdeu muitos dentes.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "arquivo": "jp_ig_car_c03_01_v01"
+    },
+    {
+      "tipo": "carousel-comparison",
+      "chip": "A MECÂNICA",
+      "headline": "A diferença\nestá no apoio.",
+      "escala": "h-m",
+      "aTitulo": "Prótese removível",
+      "aTexto": "Apoia-se na gengiva e no osso. É removida pelo paciente para a higiene.",
+      "bTitulo": "Protocolo",
+      "bTexto": "Prótese fixa apoiada em implantes. Não é removida pelo paciente.",
+      "nota": "Nenhuma das duas é “a melhor”. São indicações diferentes para situações diferentes.",
+      "arquivo": "jp_ig_car_c03_02_v01",
+      "pagina": "2/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "O QUE O PROTOCOLO EXIGE",
+      "headline": "Não é para\ntodo mundo.",
+      "escala": "h-m",
+      "corpo": "Depende de **volume ósseo**, saúde geral e de um planejamento que defina quantos implantes sustentam a prótese.",
+      "nota": "Só o exame diz se o seu caso comporta.",
+      "arquivo": "jp_ig_car_c03_03_v01",
+      "pagina": "3/7"
+    },
+    {
+      "tipo": "carousel-checklist",
+      "chip": "O QUE É AVALIADO",
+      "headline": "Antes de\nqualquer\nindicação.",
+      "escala": "h-m",
+      "itens": [
+        "Condição do osso em cada região",
+        "Saúde da gengiva",
+        "Saúde geral e medicamentos em uso",
+        "Rotina de higiene e de retornos"
+      ],
+      "arquivo": "jp_ig_car_c03_04_v01",
+      "pagina": "4/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "MANUTENÇÃO",
+      "headline": "Os dois\npedem revisão.",
+      "escala": "h-m",
+      "corpo": "A removível precisa de ajustes periódicos. O protocolo precisa de higiene própria e retornos.",
+      "nota": "Prótese sem manutenção é onde o problema começa — nos dois caminhos.",
+      "arquivo": "jp_ig_car_c03_05_v01",
+      "pagina": "5/7"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "QUEM JÁ USA REMOVÍVEL",
+      "headline": "Você pode\navaliar\nimplantes.",
+      "escala": "h-m",
+      "corpo": "Existem alternativas que usam implantes para dar **mais estabilidade** à prótese.",
+      "nota": "O que é possível depende do caso e das condições ósseas.",
+      "arquivo": "jp_ig_car_c03_06_v01",
+      "pagina": "6/7"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "PRÓXIMO PASSO",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}. {{clinica.horario}}.",
+      "headline": "Descubra o\nque cabe no\n[[seu caso]].",
+      "escala": "h-m",
+      "corpo": "Uma avaliação responde o que nenhum post consegue responder.",
+      "arquivo": "jp_ig_car_c03_07_v01",
+      "pagina": "7/7"
+    }
+  ]
+}

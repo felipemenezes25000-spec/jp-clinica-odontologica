@@ -1,0 +1,62 @@
+{
+  "grupo": "ads-ad12",
+  "descricao": "AD12 — carrossel de anúncio, conceito confiança/local. Só foto real da JP. É o criativo indicado para público frio da região: ele responde 'onde fica' e 'como é' antes de pedir qualquer coisa.",
+  "saida": "exports/ads/ad12-conheca-a-clinica",
+  "padrao": {
+    "formato": "feed",
+    "superficie": "creme",
+    "anuncio": true
+  },
+  "pecas": [
+    {
+      "tipo": "carousel-cover",
+      "chip": "{{historia.regiaoAtual}}",
+      "headline": "{{historia.anos}} anos.\nHoje, aqui.",
+      "escala": "h-g",
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, Zona Norte de São Paulo.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "arquivo": "jp_ig_ad_ad12_01_v01"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "RECEPÇÃO",
+      "headline": "Aqui começa\no cuidado.",
+      "escala": "h-m",
+      "foto": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
+      "alturaFoto": 520,
+      "corpo": "Atendimento com hora marcada.",
+      "arquivo": "jp_ig_ad_ad12_02_v01",
+      "pagina": "2/5"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "CONSULTÓRIOS",
+      "headline": "Estrutura\nprópria.",
+      "escala": "h-m",
+      "foto": "/src/assets/consultorio-1.webp",
+      "alturaFoto": 520,
+      "arquivo": "jp_ig_ad_ad12_03_v01",
+      "pagina": "3/5"
+    },
+    {
+      "tipo": "carousel-body",
+      "chip": "NO GOOGLE",
+      "headline": "{{avaliacoes.notaBR}}, com {{avaliacoes.total}}\navaliações.",
+      "escala": "h-m",
+      "corpo": "Números públicos de pacientes reais, conferidos em {{avaliacoes.conferidoEmBR}}.",
+      "nota": "Responsável técnica: {{responsavelTecnica.nome}} — {{responsavelTecnica.registro}}.",
+      "arquivo": "jp_ig_ad_ad12_04_v01",
+      "pagina": "4/5"
+    },
+    {
+      "tipo": "carousel-cta",
+      "chip": "AVALIAÇÃO COM HORA MARCADA",
+      "headline": "Venha\n[[conhecer]].",
+      "escala": "h-xg",
+      "cta": "WhatsApp {{clinica.whatsapp}}",
+      "contato": "{{clinica.horario}} · {{clinica.telefone}}",
+      "arquivo": "jp_ig_ad_ad12_05_v01",
+      "pagina": "5/5"
+    }
+  ]
+}

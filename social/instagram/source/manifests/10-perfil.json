@@ -1,0 +1,37 @@
+{
+  "grupo": "perfil",
+  "descricao": "Prévias do avatar. O Instagram recorta em círculo e exibe em 110px no perfil e em 32px no feed — por isso o símbolo entra sozinho, sem o lockup: o nome desenhado vira borrão nesse tamanho e o dente não. Escolha UMA e mantenha: trocar avatar apaga o reconhecimento que a conta já tem.",
+  "saida": "exports/avatar",
+  "padrao": {
+    "formato": "quadrado",
+    "tipo": "avatar-preview"
+  },
+  "pecas": [
+    {
+      "arquivo": "jp_ig_avatar_a_papel_v01",
+      "fundo": "#F7F8F2",
+      "fundoCirculo": "#FCFDF9",
+      "escalaArte": 560
+    },
+    {
+      "arquivo": "jp_ig_avatar_b_menta_v01",
+      "fundo": "#F7F8F2",
+      "fundoCirculo": "#EBF5E1",
+      "escalaArte": 560
+    },
+    {
+      "arquivo": "jp_ig_avatar_c_verde_v01",
+      "fundo": "#F7F8F2",
+      "fundoCirculo": "#032F01",
+      "arte": "/src/assets/marca/marca-jp-claro.svg",
+      "escalaArte": 540
+    },
+    {
+      "arquivo": "jp_ig_avatar_d_pequeno_teste_v01",
+      "fundo": "#DCE4D6",
+      "fundoCirculo": "#FCFDF9",
+      "diametro": 320,
+      "escalaArte": 168
+    }
+  ]
+}
