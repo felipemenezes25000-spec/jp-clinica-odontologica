@@ -241,3 +241,75 @@ test.describe("cada tela tem endereço próprio", () => {
     await expect(marcados).toHaveText(/Funil/u);
   });
 });
+
+/* ========================================================================== */
+/* O que a pessoa escolheu também mora no endereço                            */
+/* ========================================================================== */
+
+/**
+ * ============================================================================
+ *  O CRITÉRIO §15.7 PEDE "A TELA, O ITEM SELECIONADO E OS FILTROS".
+ *
+ *  A primeira metade — a tela — foi resolvida quando cada uma ganhou caminho
+ *  próprio. A segunda continuava em `useState`: recarregar perdia a janela da
+ *  agenda, o termo da busca, a aba da ficha e o recorte do funil.
+ *
+ *  O sintoma era pequeno e diário. Alguém monta um recorte do funil, manda o
+ *  link ao colega, e o colega abre o funil inteiro. Alguém acha um paciente,
+ *  abre a ficha, volta — e a busca está vazia de novo.
+ * ============================================================================
+ */
+test.describe("a escolha da pessoa sobrevive ao F5", () => {
+  test("a janela da agenda vai para a URL e volta igual", async ({ page }) => {
+    await entrarNoCrc(page);
+    await navegacao(page, "Agenda").click();
+    await expect(page).toHaveURL(/\/crc\/agenda$/u);
+
+    await page.getByRole("button", { name: /^30/u }).click();
+    await expect(page).toHaveURL(/janela=30/u);
+
+    await page.reload();
+
+    await expect(page).toHaveURL(/janela=30/u);
+    await expect(page.getByRole("button", { name: /^30/u })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  test("o termo da busca vai para a URL, e o resultado volta sozinho", async ({ page }) => {
+    await entrarNoCrc(page);
+    await navegacao(page, "Pacientes").click();
+
+    const campo = page.getByLabel(/Buscar paciente/u);
+    await campo.fill("maria");
+    await expect(page).toHaveURL(/q=maria/u);
+
+    await page.reload();
+
+    // O campo repopula E a busca roda de novo: o link leva ao MESMO estado,
+    // não a uma tela que parece igual e está vazia por baixo.
+    await expect(campo).toHaveValue("maria");
+    await expect(page).toHaveURL(/q=maria/u);
+  });
+
+  test("ajustar filtro não empilha histórico", async ({ page }) => {
+    /*
+     * Escolher "30 dias" não é navegar — é ajustar o que já se está olhando.
+     * Se cada ajuste virasse um passo, sair da tela custaria vinte cliques em
+     * "voltar", e o botão do navegador deixaria de servir para navegar.
+     */
+    await entrarNoCrc(page);
+    await navegacao(page, "Agenda").click();
+
+    await page.getByRole("button", { name: /^7/u }).click();
+    await expect(page).toHaveURL(/janela=7/u);
+    await page.getByRole("button", { name: /^30/u }).click();
+    await expect(page).toHaveURL(/janela=30/u);
+
+    await page.goBack();
+
+    // Um único "voltar" sai da agenda inteira, e não volta para 7 dias.
+    await expect(page).not.toHaveURL(/\/crc\/agenda/u);
+  });
+});

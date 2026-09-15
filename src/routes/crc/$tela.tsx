@@ -21,7 +21,7 @@
  * ============================================================================
  */
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { lazy, type ComponentType, type ReactElement } from "react";
+import { lazy, useCallback, type ComponentType, type ReactElement } from "react";
 
 import { Aviso } from "@/components/crc/base";
 import { useCrc } from "@/components/crc/contexto-crc";
@@ -87,6 +87,25 @@ function TelaDoCrc(): ReactElement {
   const { usuario, abrirPaciente } = useCrc();
 
   /*
+   * Troca pedaços da busca sem sair da tela e SEM empilhar histórico.
+   *
+   * `replace` porque escolher "30 dias" ou digitar na busca não é navegação —
+   * é ajustar o que já se está olhando. Sem ele, voltar viraria um desfazer
+   * tecla a tecla, e sair da tela custaria vinte cliques em "voltar".
+   */
+  const ajustarBusca = useCallback(
+    (mudanca: Record<string, unknown>): void => {
+      void navegar({
+        to: "/crc/$tela",
+        params: { tela: nome },
+        search: (atual: Record<string, unknown>) => ({ ...atual, ...mudanca }),
+        replace: true,
+      });
+    },
+    [navegar, nome],
+  );
+
+  /*
    * ENDEREÇO QUE NÃO EXISTE DIZ QUE NÃO EXISTE.
    *
    * A alternativa seria mandar para a Home em silêncio — e aí quem errou uma
@@ -131,21 +150,69 @@ function TelaDoCrc(): ReactElement {
       );
 
     case "funil":
-      return <Funil aoAbrirPaciente={abrirPaciente} />;
+      return (
+        <Funil
+          aoAbrirPaciente={abrirPaciente}
+          filtroInicial={{
+            tipos: busca.tipo === undefined ? [] : [busca.tipo],
+            etapaChave: busca.etapa ?? null,
+            apenasMinhas: busca.minhas ?? false,
+          }}
+          aoTrocarFiltro={(f) => {
+            ajustarBusca({
+              tipo: f.tipos[0] ?? undefined,
+              etapa: f.etapaChave ?? undefined,
+              minhas: f.apenasMinhas ? true : undefined,
+            });
+          }}
+        />
+      );
 
     case "agenda":
-      return <Agenda aoAbrirPaciente={abrirPaciente} />;
+      return (
+        <Agenda
+          aoAbrirPaciente={abrirPaciente}
+          janela={busca.janela ?? 14}
+          aoTrocarJanela={(dias) => {
+            ajustarBusca({ janela: dias });
+          }}
+        />
+      );
 
     case "pacientes": {
       const paciente = busca.paciente;
       if (paciente === undefined || paciente.length === 0) {
-        return <BuscaPacientes aoAbrirPaciente={abrirPaciente} />;
+        return (
+          <BuscaPacientes
+            aoAbrirPaciente={abrirPaciente}
+            termoInicial={busca.q ?? ""}
+            aoTrocarTermo={(termo) => {
+              ajustarBusca({ q: termo.length > 0 ? termo : undefined });
+            }}
+          />
+        );
       }
       return (
         <CentralDoPaciente
           patientId={paciente}
+          {...(ehAbaDaFicha(busca.ficha) ? { abaInicial: busca.ficha } : {})}
+          aoTrocarAba={(aba) => {
+            ajustarBusca({ ficha: aba === "resumo" ? undefined : aba });
+          }}
           aoVoltar={() => {
-            void navegar({ to: "/crc/$tela", params: { tela: "pacientes" } });
+            /*
+             * VOLTAR PARA A BUSCA PRESERVA O TERMO. Sem isto, abrir um paciente
+             * e voltar devolveria a tela de busca vazia — e a pessoa teria que
+             * digitar de novo o que acabou de digitar.
+             */
+            void navegar({
+              to: "/crc/$tela",
+              params: { tela: "pacientes" },
+              search: (atual: Record<string, unknown>) => {
+                const { paciente: _p, ficha: _f, ...resto } = atual;
+                return resto;
+              },
+            });
           }}
         />
       );
@@ -209,4 +276,17 @@ function TelaDoCrc(): ReactElement {
     case "equipe":
       return <Equipe />;
   }
+}
+
+/**
+ * As abas da ficha do paciente, conferidas em tempo de execução.
+ *
+ * `?ficha=qualquer-coisa` vem da barra de endereço, e a ficha não pode abrir
+ * numa aba que não existe. O tipo `AbaFicha` some na compilação; esta lista é o
+ * que sobra para conferir.
+ */
+const ABAS_DA_FICHA = ["resumo", "aberto", "tarefas", "conversas", "agenda", "historico"] as const;
+
+function ehAbaDaFicha(valor: unknown): valor is (typeof ABAS_DA_FICHA)[number] {
+  return typeof valor === "string" && (ABAS_DA_FICHA as readonly string[]).includes(valor);
 }

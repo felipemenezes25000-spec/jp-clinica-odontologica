@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+
+import { useControlavel } from "./estado-controlavel";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -50,11 +52,25 @@ function diaIso(deslocamento: number): string {
   return `${String(d.getFullYear())}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function Agenda({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string) => void }) {
+export function Agenda({
+  aoAbrirPaciente,
+  janela,
+  aoTrocarJanela,
+}: {
+  aoAbrirPaciente: (patientId: string) => void;
+  /**
+   * A janela de leitura, quando quem renderiza a guarda — hoje, a URL.
+   *
+   * Sem isto ela era `useState(14)`: recarregar a página voltava para 14 dias
+   * sem avisar, e não havia como mandar a alguém o link de "os próximos 30".
+   */
+  janela?: number;
+  aoTrocarJanela?: (dias: number) => void;
+}) {
   const [dias, setDias] = useState<DiaDaAgenda[] | null>(null);
   const [aConfirmar, setAConfirmar] = useState(0);
   const [erro, setErro] = useState<string | null>(null);
-  const [janelaDias, setJanelaDias] = useState(14);
+  const [janelaDias, setJanelaDias] = useControlavel(janela, aoTrocarJanela, 14);
 
   const recarregar = useCallback(async (): Promise<void> => {
     try {

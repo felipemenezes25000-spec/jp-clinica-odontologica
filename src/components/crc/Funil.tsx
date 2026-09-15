@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { useControlavel } from "./estado-controlavel";
 import {
   ArrowUpRight,
   Bot,
@@ -31,13 +33,43 @@ import "./crc-pipeline.css";
 type Etapa = { id: string; chave: string; nome: string; ordem: number; categoria: string };
 type Cartao = ItemPrioridade & { stageId: string | null };
 
-export function Funil({ aoAbrirPaciente }: { aoAbrirPaciente: (patientId: string) => void }) {
+export function Funil({
+  aoAbrirPaciente,
+  filtroInicial,
+  aoTrocarFiltro,
+}: {
+  aoAbrirPaciente: (patientId: string) => void;
+  /**
+   * O filtro aplicado, quando quem renderiza o guarda — hoje, a URL.
+   *
+   * Era `useState`. Quem montava um recorte ("só reativação, etapa Proposta,
+   * apenas as minhas") e recarregava a página perdia os três, e não tinha como
+   * mandar o recorte a ninguém.
+   */
+  filtroInicial?: FiltroFunilUi;
+  aoTrocarFiltro?: (filtro: FiltroFunilUi) => void;
+}) {
   const [etapas, setEtapas] = useState<Etapa[] | null>(null);
   const [cartoes, setCartoes] = useState<Cartao[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [perdendo, setPerdendo] = useState<Cartao | null>(null);
   const [motivoPerda, setMotivoPerda] = useState<string>(MOTIVOS_PERDA[0].chave);
-  const [filtro, setFiltro] = useState<FiltroFunilUi>({ ...FILTRO_VAZIO });
+  const [filtro, trocarFiltro] = useControlavel<FiltroFunilUi>(filtroInicial, aoTrocarFiltro, {
+    ...FILTRO_VAZIO,
+  });
+
+  /*
+   * `setFiltro` aceitava a forma de função (`setFiltro((f) => ...)`), e o
+   * `useControlavel` não — porque o valor "atual" pode vir de fora. Este
+   * invólucro resolve a forma de função contra o filtro que está valendo agora,
+   * mantendo as chamadas existentes intactas.
+   */
+  const setFiltro = useCallback(
+    (proximo: FiltroFunilUi | ((atual: FiltroFunilUi) => FiltroFunilUi)): void => {
+      trocarFiltro(typeof proximo === "function" ? proximo(filtro) : proximo);
+    },
+    [filtro, trocarFiltro],
+  );
 
   const acao = useAcao();
 

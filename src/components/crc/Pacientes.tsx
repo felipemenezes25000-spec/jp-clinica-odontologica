@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+
+import { useControlavel } from "./estado-controlavel";
 import {
   Activity,
   ArrowLeft,
@@ -39,10 +41,21 @@ import "./crc-patients.css";
 
 export function BuscaPacientes({
   aoAbrirPaciente,
+  termoInicial,
+  aoTrocarTermo,
 }: {
   aoAbrirPaciente: (patientId: string) => void;
+  /**
+   * O termo buscado, quando quem renderiza o guarda — hoje, a URL.
+   *
+   * Era `useState("")`. A consequência: nenhuma busca tinha link. Quem achava
+   * um caso e queria mostrar a um colega mandava o print, porque o endereço
+   * levava para a busca vazia.
+   */
+  termoInicial?: string;
+  aoTrocarTermo?: (termo: string) => void;
 }) {
-  const [termo, setTermo] = useState("");
+  const [termo, setTermo] = useControlavel(termoInicial, aoTrocarTermo, "");
   const [resultados, setResultados] = useState<Paciente[] | null>(null);
   const [buscando, setBuscando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -201,12 +214,17 @@ type AbaFicha = "resumo" | "aberto" | "tarefas" | "conversas" | "agenda" | "hist
 export function CentralDoPaciente({
   patientId,
   aoVoltar,
+  abaInicial,
+  aoTrocarAba,
 }: {
   patientId: string;
   aoVoltar: () => void;
+  /** A aba aberta da ficha, quando quem renderiza a guarda — hoje, a URL. */
+  abaInicial?: AbaFicha;
+  aoTrocarAba?: (aba: AbaFicha) => void;
 }) {
   const [ficha, setFicha] = useState<FichaPaciente | null>(null);
-  const [aba, setAba] = useState<AbaFicha>("resumo");
+  const [aba, setAba] = useControlavel<AbaFicha>(abaInicial, aoTrocarAba, "resumo");
   const [erro, setErro] = useState<string | null>(null);
   const acao = useAcao();
 

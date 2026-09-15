@@ -166,16 +166,52 @@ export const Route = createFileRoute("/crc")({
    *  diferentes, e a segunda não compila.
    * ==========================================================================
    */
-  validateSearch: (busca: Record<string, unknown>): { paciente?: string; conversa?: string } => {
+  validateSearch: (
+    busca: Record<string, unknown>,
+  ): {
+    paciente?: string;
+    conversa?: string;
+    janela?: number;
+    q?: string;
+    ficha?: string;
+    tipo?: string;
+    etapa?: string;
+    minhas?: boolean;
+  } => {
     const texto = (v: unknown): string | null =>
       typeof v === "string" && v.trim().length > 0 ? v.trim() : null;
 
     const paciente = texto(busca["paciente"]);
     const conversa = texto(busca["conversa"]);
+    const q = texto(busca["q"]);
+    const ficha = texto(busca["ficha"]);
+    const tipo = texto(busca["tipo"]);
+    const etapa = texto(busca["etapa"]);
+
+    /*
+     * A JANELA SÓ ACEITA OS TRÊS VALORES QUE A TELA OFERECE.
+     *
+     * `?janela=9000` viraria uma consulta de vinte e cinco anos de agenda
+     * porque alguém digitou errado na barra de endereço. Recusar aqui é mais
+     * barato do que descobrir na conta de banco.
+     */
+    const janelaBruta = Number(busca["janela"]);
+    const janela = [7, 14, 30].includes(janelaBruta) ? janelaBruta : null;
+
+    // `?minhas=1` e `?minhas=true` são a mesma intenção. Qualquer outra coisa
+    // é ausência: um filtro ligado por engano esconde trabalho de alguém.
+    const cru = busca["minhas"];
+    const minhas = cru === true || cru === "1" || cru === "true";
 
     return {
       ...(paciente !== null ? { paciente } : {}),
       ...(conversa !== null ? { conversa } : {}),
+      ...(janela !== null ? { janela } : {}),
+      ...(q !== null ? { q } : {}),
+      ...(ficha !== null ? { ficha } : {}),
+      ...(tipo !== null ? { tipo } : {}),
+      ...(etapa !== null ? { etapa } : {}),
+      ...(minhas ? { minhas } : {}),
     };
   },
   head: () => ({
