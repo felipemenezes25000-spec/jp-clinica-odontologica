@@ -1,0 +1,473 @@
+/*
+ * JP CRC — sistema responsivo adaptativo.
+ *
+ * Esta folha e a unica dona das decisoes de recomposicao do CRC. As folhas de
+ * cada tela continuam cuidando da aparencia e do layout largo; aqui decidimos
+ * como esses layouts se reorganizam quando o ESPACO REAL do conteudo diminui.
+ *
+ * O motivo para usar container queries e simples: em notebook, a viewport pode
+ * ter 1366 px, mas a sidebar consome ~220-250 px. Um @media baseado em 1366 px
+ * enxerga "desktop" enquanto a tela recebeu perto de 1050 px. O container
+ * abaixo mede o que a tela realmente recebeu.
+ */
+
+.crc-app.crc-app.crc-app {
+  --crc-sidebar-adaptativa: 252px;
+  --crc-gutter-adaptativo: clamp(12px, 1.45vw, 28px);
+  --crc-nav-movel-altura: 68px;
+  overflow-x: clip;
+}
+
+.crc-app.crc-app.crc-app .crc-shell,
+.crc-app.crc-app.crc-app .crc-conteudo,
+.crc-app.crc-app.crc-app .crc-conteudo > *,
+.crc-app.crc-app.crc-app .crc-conteudo :where(section, article, aside, form, fieldset),
+.crc-app.crc-app.crc-app .crc-conteudo :where(.crc-grade, .crc-pilha, .crc-fila, .crc-painel, .crc-cartao) {
+  min-width: 0;
+}
+
+.crc-app.crc-app.crc-app .crc-conteudo {
+  container-name: crc-content;
+  container-type: inline-size;
+  padding-inline: var(--crc-gutter-adaptativo);
+  overflow-x: clip;
+}
+
+.crc-app.crc-app.crc-app .crc-conteudo :where(img, svg, video, canvas) {
+  max-width: 100%;
+}
+
+.crc-app.crc-app.crc-app .crc-conteudo :where(.crc-entrada, .crc-selecao, .crc-area) {
+  max-width: 100%;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shell: a sidebar encolhe ANTES de transformar tudo em barra horizontal.    */
+/* -------------------------------------------------------------------------- */
+
+@media (min-width: 1441px) {
+  .crc-app.crc-app.crc-app {
+    --crc-sidebar-adaptativa: 252px;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1440px) {
+  .crc-app.crc-app.crc-app {
+    --crc-sidebar-adaptativa: 228px;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1180px) {
+  .crc-app.crc-app.crc-app {
+    --crc-sidebar-adaptativa: 212px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .crc-app.crc-app.crc-app .crc-shell {
+    grid-template-columns: var(--crc-sidebar-adaptativa) minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app.crc-app .crc-lateral {
+    width: var(--crc-sidebar-adaptativa);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tablet e mobile: rail consistente, nomes sempre legiveis e offsets unidos. */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 1024px) {
+  .crc-app.crc-app.crc-app {
+    --crc-nav-movel-altura: 68px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-shell {
+    display: block;
+  }
+
+  .crc-app.crc-app.crc-app .crc-lateral {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: var(--crc-nav-movel-altura);
+    max-height: var(--crc-nav-movel-altura);
+    padding: 6px 10px;
+    gap: 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .crc-app.crc-app.crc-app .crc-lateral::-webkit-scrollbar {
+    display: none;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-grupo {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-lista {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-rotulo {
+    display: none;
+  }
+
+  /* Corrige o conflito premium x QA: o QA desenha icone + nome no celular,
+     mas premium escondia o span e nunca o restaurava. */
+  .crc-app.crc-app.crc-app .crc-nav-item span {
+    display: inline !important;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item {
+    flex: 0 0 auto;
+    min-width: 92px;
+    min-height: 46px;
+    padding: 7px 10px;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item[aria-current="page"]::after {
+    display: none;
+  }
+
+  .crc-app.crc-app.crc-app .crc-barra-contexto {
+    top: var(--crc-nav-movel-altura);
+    margin-inline: calc(var(--crc-gutter-adaptativo) * -1);
+    padding-inline: var(--crc-gutter-adaptativo);
+  }
+}
+
+@media (max-width: 760px) {
+  .crc-app.crc-app.crc-app {
+    --crc-nav-movel-altura: 72px;
+    --crc-gutter-adaptativo: 12px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-lateral {
+    align-items: stretch;
+    min-height: var(--crc-nav-movel-altura);
+    max-height: var(--crc-nav-movel-altura);
+    padding: 5px 8px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-lateral .crc-marca,
+  .crc-app.crc-app.crc-app .crc-usuario-shell {
+    display: none;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-grupo,
+  .crc-app.crc-app.crc-app .crc-nav-lista {
+    align-items: stretch;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item {
+    display: grid;
+    grid-template-rows: 20px minmax(0, auto);
+    place-items: center;
+    align-content: center;
+    gap: 3px;
+    min-width: 76px;
+    min-height: 60px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    font-size: 0.69rem;
+    font-weight: 650;
+    line-height: 1.05;
+    text-align: center;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item span {
+    display: block !important;
+    max-width: 82px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-botao:not(.crc-botao-pequeno),
+  .crc-app.crc-app.crc-app .crc-entrada,
+  .crc-app.crc-app.crc-app .crc-selecao {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 430px) {
+  .crc-app.crc-app.crc-app {
+    --crc-gutter-adaptativo: 10px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item {
+    min-width: 72px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Container queries: dashboards recompõem pelo espaco REAL do main.          */
+/* -------------------------------------------------------------------------- */
+
+@container crc-content (max-width: 1120px) {
+  .crc-app .crc-agenda-resumo-v2,
+  .crc-app .crc-funil-resumo-v2,
+  .crc-app .crc-gestao-kpis-v2,
+  .crc-app .crc-camp-resumo-v2,
+  .crc-app .crc-auto-resumo-v2,
+  .crc-app .crc-home-metricas,
+  .crc-app .crc-paciente-dados-v2,
+  .crc-app .crc-import-passos-v2,
+  .crc-app .crc-settings-semana-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app .crc-team-resumo-v2,
+  .crc-app .crc-int-grid-v2,
+  .crc-app .crc-camp-metricas-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app .crc-auto-card-metricas-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app .crc-painel-duplo,
+  .crc-app .crc-import-preview-grid-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A viewport de 1366 px cai aqui porque, depois da sidebar, o conteudo tem
+     pouco mais de 1.000 px. Era exatamente o caso que os @media nao viam. */
+  .crc-app .crc-inbox-layout-v2,
+  .crc-app .crc-inbox {
+    grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.6fr);
+  }
+
+  .crc-app .crc-inbox-layout-v2 > .crc-inbox-contexto,
+  .crc-app .crc-inbox > .crc-painel:last-child {
+    display: none;
+  }
+
+  .crc-app :where(.crc-filtros-funil, [class*="-filtros-v2"], [class*="-command-v2"]) {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .crc-app :where(.crc-filtros-funil, [class*="-filtros-v2"]) > * {
+    min-width: min(220px, 100%);
+    flex: 1 1 190px;
+  }
+}
+
+@container crc-content (max-width: 820px) {
+  .crc-app .crc-agenda-resumo-v2,
+  .crc-app .crc-funil-resumo-v2,
+  .crc-app .crc-gestao-kpis-v2,
+  .crc-app .crc-camp-resumo-v2,
+  .crc-app .crc-auto-resumo-v2,
+  .crc-app .crc-home-metricas,
+  .crc-app .crc-paciente-dados-v2,
+  .crc-app .crc-import-passos-v2,
+  .crc-app .crc-settings-semana-v2,
+  .crc-app .crc-team-resumo-v2,
+  .crc-app .crc-int-grid-v2,
+  .crc-app .crc-camp-metricas-v2,
+  .crc-app .crc-auto-card-metricas-v2,
+  .crc-app .crc-guia-mapa-lista {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app :where([class*="-command-v2"], .crc-guia-topo) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crc-app :where([class*="-command-v2"]) > :where(.crc-botao, button) {
+    width: 100%;
+  }
+
+  .crc-app .crc-inbox-layout-v2,
+  .crc-app .crc-inbox {
+    display: block;
+    height: auto;
+    min-height: 0;
+  }
+
+  .crc-app .crc-inbox-layout-v2 > .crc-painel,
+  .crc-app .crc-inbox > .crc-painel {
+    min-height: min(68dvh, 620px);
+  }
+
+  .crc-app .crc-inbox-layout-v2[data-conversa-aberta="sim"] > .crc-inbox-lista,
+  .crc-app .crc-inbox[data-conversa-aberta="sim"] > .crc-painel:first-child {
+    display: none;
+  }
+
+  .crc-app .crc-inbox-layout-v2[data-conversa-aberta="nao"] > .crc-inbox-conversa,
+  .crc-app .crc-inbox[data-conversa-aberta="nao"] > .crc-painel:nth-child(2) {
+    display: none;
+  }
+
+  .crc-app .crc-inbox-contexto {
+    display: none;
+  }
+
+  .crc-app .crc-cabecalho-premium,
+  .crc-app .crc-guia {
+    max-width: 100%;
+  }
+}
+
+@container crc-content (max-width: 560px) {
+  .crc-app .crc-cartao:not(.crc-cartao-compacto),
+  .crc-app .crc-painel {
+    border-radius: 14px;
+  }
+
+  .crc-app .crc-kpi {
+    min-height: 92px;
+    padding: 14px;
+  }
+
+  .crc-app .crc-fila-item,
+  .crc-app .crc-conversa-item {
+    min-width: 0;
+  }
+
+  .crc-app .crc-tabela {
+    min-width: 560px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Inbox: altura util em notebook e janelas baixas.                           */
+/* -------------------------------------------------------------------------- */
+
+.crc-app.crc-app.crc-app .crc-inbox-layout-v2 {
+  height: clamp(500px, calc(100dvh - 188px), 820px);
+  min-height: 0;
+  max-height: calc(100dvh - 128px);
+}
+
+.crc-app.crc-app.crc-app .crc-inbox-layout-v2 > .crc-painel,
+.crc-app.crc-app.crc-app .crc-inbox-lista,
+.crc-app.crc-app.crc-app .crc-inbox-conversa,
+.crc-app.crc-app.crc-app .crc-inbox-contexto,
+.crc-app.crc-app.crc-app .crc-painel-corpo {
+  min-height: 0;
+}
+
+.crc-app.crc-app.crc-app .crc-inbox-lista,
+.crc-app.crc-app.crc-app .crc-inbox-conversa,
+.crc-app.crc-app.crc-app .crc-inbox-contexto {
+  overflow: hidden;
+}
+
+.crc-app.crc-app.crc-app .crc-inbox-lista .crc-painel-corpo,
+.crc-app.crc-app.crc-app .crc-inbox-conversa .crc-painel-corpo,
+.crc-app.crc-app.crc-app .crc-inbox-contexto .crc-painel-corpo {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+@media (min-width: 781px) and (max-height: 760px) {
+  .crc-app.crc-app.crc-app .crc-conteudo {
+    padding-bottom: 18px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-inbox-layout-v2 {
+    height: calc(100dvh - 166px);
+    min-height: 460px;
+    max-height: calc(100dvh - 132px);
+  }
+
+  .crc-app.crc-app.crc-app .crc-cabecalho-premium {
+    margin-bottom: 12px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-kpi {
+    min-height: 94px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tabelas e overflow: scroll fica no componente, nunca na pagina inteira.    */
+/* -------------------------------------------------------------------------- */
+
+.crc-app.crc-app.crc-app .crc-tabela-caixa,
+.crc-app.crc-app.crc-app .crc-funil,
+.crc-app.crc-app.crc-app .crc-abas {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.crc-app.crc-app.crc-app .crc-tabela {
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .crc-app.crc-app.crc-app .crc-tabela {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 560px) {
+  .crc-app.crc-app.crc-app .crc-tabela {
+    min-width: 560px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Landscape curto e zoom alto: preserva area util e alvos de toque.          */
+/* -------------------------------------------------------------------------- */
+
+@media (max-height: 520px) and (max-width: 950px) {
+  .crc-app.crc-app.crc-app {
+    --crc-nav-movel-altura: 58px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-lateral {
+    min-height: var(--crc-nav-movel-altura);
+    max-height: var(--crc-nav-movel-altura);
+    padding-block: 3px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item {
+    grid-template-rows: 18px auto;
+    min-height: 50px;
+    padding-block: 4px;
+  }
+
+  .crc-app.crc-app.crc-app .crc-nav-item svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+/* Sem animacao quando o SO pede reducao; tambem evita saltos durante resize. */
+@media (prefers-reduced-motion: reduce) {
+  .crc-app.crc-app.crc-app *,
+  .crc-app.crc-app.crc-app *::before,
+  .crc-app.crc-app.crc-app *::after {
+    scroll-behavior: auto !important;
+  }
+}

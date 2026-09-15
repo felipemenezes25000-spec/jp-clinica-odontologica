@@ -1,0 +1,551 @@
+/*
+ * JP CRC — mapa responsivo das telas.
+ *
+ * As folhas de cada modulo sao lazy e podem ser injetadas depois desta camada.
+ * Por isso os seletores abaixo usam `.crc-app.crc-app`: a especificidade extra
+ * e deliberada e garante que a decisao responsiva vença a regra larga da tela,
+ * independentemente da ordem em que o chunk CSS chegou.
+ *
+ * Nao ha regra de negocio aqui. Este arquivo apenas traduz os breakpoints que
+ * ja existiam por viewport para a largura REAL do container do conteudo.
+ */
+
+/* ========================================================================== */
+/* Faixa notebook / conteudo medio                                            */
+/* ========================================================================== */
+
+@container crc-content (max-width: 1120px) {
+  .crc-app.crc-app .crc-agenda-resumo-v2,
+  .crc-app.crc-app .crc-funil-resumo-v2,
+  .crc-app.crc-app .crc-gestao-kpis-v2,
+  .crc-app.crc-app .crc-camp-resumo-v2,
+  .crc-app.crc-app .crc-auto-resumo-v2,
+  .crc-app.crc-app .crc-home-metricas,
+  .crc-app.crc-app .crc-trabalho-resumo,
+  .crc-app.crc-app .crc-paciente-dados-v2,
+  .crc-app.crc-app .crc-import-passos-v2,
+  .crc-app.crc-app .crc-settings-semana-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app.crc-app .crc-team-resumo-v2,
+  .crc-app.crc-app .crc-camp-metricas-v2,
+  .crc-app.crc-app .crc-auto-card-metricas-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app.crc-app .crc-int-grid-v2,
+  .crc-app.crc-app .crc-home-grid-principal,
+  .crc-app.crc-app .crc-painel-duplo,
+  .crc-app.crc-app .crc-import-preview-grid-v2,
+  .crc-app.crc-app .crc-pacientes-busca-hero-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-home-lateral {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app.crc-app .crc-funil-filtros-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app.crc-app .crc-funil-minhas-v2 {
+    grid-column: 1 / -1;
+  }
+
+  .crc-app.crc-app .crc-gestao-command-v2,
+  .crc-app.crc-app .crc-camp-command-v2,
+  .crc-app.crc-app .crc-auto-command-v2,
+  .crc-app.crc-app .crc-int-command-v2,
+  .crc-app.crc-app .crc-settings-command-v2 {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-gestao-exportar-v2 {
+    justify-content: flex-start;
+  }
+
+  .crc-app.crc-app .crc-int-command-status-v2 {
+    min-width: 0;
+  }
+
+  .crc-app.crc-app .crc-import-numeros-v2 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .crc-app.crc-app .crc-inbox-layout-v2,
+  .crc-app.crc-app .crc-inbox {
+    grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.6fr);
+  }
+
+  .crc-app.crc-app .crc-inbox-layout-v2 > .crc-inbox-contexto,
+  .crc-app.crc-app .crc-inbox > .crc-painel:last-child {
+    display: none;
+  }
+}
+
+@container crc-content (max-width: 1000px) {
+  .crc-app.crc-app .crc-wf-corpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-wf-lado {
+    position: static;
+  }
+}
+
+@container crc-content (max-width: 920px) {
+  .crc-app.crc-app .crc-team-grid-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-team-command-v2 {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* ========================================================================== */
+/* Faixa tablet / janela dividida                                             */
+/* ========================================================================== */
+
+@container crc-content (max-width: 840px) {
+  .crc-app.crc-app .crc-home-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-home-foco {
+    min-height: 150px;
+  }
+
+  .crc-app.crc-app .crc-home-foco-numero {
+    font-size: 3.4rem;
+  }
+
+  .crc-app.crc-app .crc-trabalho-command,
+  .crc-app.crc-app .crc-trabalho-bloco-topo {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-trabalho-command .crc-botao {
+    align-self: flex-start;
+  }
+
+  .crc-app.crc-app .crc-trabalho-item {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-trabalho-item-acoes {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@container crc-content (max-width: 820px) {
+  .crc-app.crc-app .crc-agenda-resumo-v2,
+  .crc-app.crc-app .crc-funil-resumo-v2,
+  .crc-app.crc-app .crc-gestao-kpis-v2,
+  .crc-app.crc-app .crc-camp-resumo-v2,
+  .crc-app.crc-app .crc-auto-resumo-v2,
+  .crc-app.crc-app .crc-home-metricas,
+  .crc-app.crc-app .crc-trabalho-resumo,
+  .crc-app.crc-app .crc-paciente-dados-v2,
+  .crc-app.crc-app .crc-import-passos-v2,
+  .crc-app.crc-app .crc-settings-semana-v2,
+  .crc-app.crc-app .crc-team-resumo-v2,
+  .crc-app.crc-app .crc-int-grid-v2,
+  .crc-app.crc-app .crc-camp-metricas-v2,
+  .crc-app.crc-app .crc-auto-card-metricas-v2,
+  .crc-app.crc-app .crc-guia-mapa-lista {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-gestao-grid-v2,
+  .crc-app.crc-app .crc-paciente-resumo-grid-v2,
+  .crc-app.crc-app .crc-settings-grid-v2,
+  .crc-app.crc-app .crc-settings-flags-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-paciente-identidade-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-paciente-automacao-v2 {
+    min-width: 0;
+  }
+
+  .crc-app.crc-app .crc-inbox-layout-v2,
+  .crc-app.crc-app .crc-inbox {
+    display: block;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .crc-app.crc-app .crc-inbox-layout-v2 > .crc-painel,
+  .crc-app.crc-app .crc-inbox > .crc-painel {
+    min-height: min(68dvh, 620px);
+  }
+
+  .crc-app.crc-app .crc-inbox-layout-v2[data-conversa-aberta="sim"] > .crc-inbox-lista,
+  .crc-app.crc-app .crc-inbox[data-conversa-aberta="sim"] > .crc-painel:first-child {
+    display: none;
+  }
+
+  .crc-app.crc-app .crc-inbox-layout-v2[data-conversa-aberta="nao"] > .crc-inbox-conversa,
+  .crc-app.crc-app .crc-inbox[data-conversa-aberta="nao"] > .crc-painel:nth-child(2) {
+    display: none;
+  }
+
+  .crc-app.crc-app .crc-inbox-contexto {
+    display: none;
+  }
+}
+
+@container crc-content (max-width: 760px) {
+  .crc-app.crc-app .crc-auto-modos-v2,
+  .crc-app.crc-app .crc-camp-campos-grid-v2,
+  .crc-app.crc-app .crc-int-switches-v2,
+  .crc-app.crc-app .crc-int-sync-grid-v2,
+  .crc-app.crc-app .crc-import-escopos-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-auto-card-topo-v2 {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-auto-card-topo-v2 > .crc-botao {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .crc-app.crc-app .crc-camp-card-v2 > header {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-camp-card-acoes-v2 {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .crc-app.crc-app .crc-import-passos-v2,
+  .crc-app.crc-app .crc-import-numeros-v2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crc-app.crc-app .crc-import-escolha-topo-v2,
+  .crc-app.crc-app .crc-import-preview-topo-v2,
+  .crc-app.crc-app .crc-import-acoes-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-import-acoes-v2 > div {
+    margin: 0;
+  }
+
+  .crc-app.crc-app .crc-import-sucesso-v2 {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-import-sucesso-v2 > span {
+    width: 52px;
+    height: 52px;
+  }
+
+  .crc-app.crc-app .crc-import-sucesso-v2 > .crc-botao {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+}
+
+/* ========================================================================== */
+/* Faixa celular                                                              */
+/* ========================================================================== */
+
+@container crc-content (max-width: 680px) {
+  .crc-app.crc-app .crc-agenda-resumo-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-agenda-toolbar-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-agenda-periodos-v2 {
+    width: 100%;
+  }
+
+  .crc-app.crc-app .crc-agenda-periodos-v2 button {
+    flex: 1;
+  }
+
+  .crc-app.crc-app .crc-agenda-item-v2 {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .crc-app.crc-app .crc-agenda-status-v2 {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+
+@container crc-content (max-width: 640px) {
+  .crc-app.crc-app .crc-funil-resumo-v2,
+  .crc-app.crc-app .crc-funil-filtros-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-funil-controles-titulo {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-funil-controles-titulo em {
+    grid-column: 2;
+    width: fit-content;
+  }
+
+  .crc-app.crc-app .crc-funil-quadro-v2 {
+    grid-auto-columns: minmax(275px, 88cqw);
+  }
+
+  .crc-app.crc-app .crc-funil-coluna-corpo-v2 {
+    max-height: none;
+  }
+
+  .crc-app.crc-app .crc-funil-card-acoes-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@container crc-content (max-width: 620px) {
+  .crc-app.crc-app .crc-home-v2,
+  .crc-app.crc-app .crc-trabalho-v2 {
+    gap: 16px;
+  }
+
+  .crc-app.crc-app .crc-home-hero {
+    padding: 20px;
+    border-radius: 23px;
+  }
+
+  .crc-app.crc-app .crc-home-titulo {
+    font-size: 2rem;
+  }
+
+  .crc-app.crc-app .crc-home-metricas,
+  .crc-app.crc-app .crc-trabalho-resumo,
+  .crc-app.crc-app .crc-home-lateral,
+  .crc-app.crc-app .crc-home-resultado-grid,
+  .crc-app.crc-app .crc-gestao-kpis-v2,
+  .crc-app.crc-app .crc-camp-resumo-v2,
+  .crc-app.crc-app .crc-camp-metricas-v2,
+  .crc-app.crc-app .crc-auto-resumo-v2,
+  .crc-app.crc-app .crc-auto-card-metricas-v2,
+  .crc-app.crc-app .crc-team-resumo-v2,
+  .crc-app.crc-app .crc-settings-semana-v2,
+  .crc-app.crc-app .crc-paciente-dados-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-home-metrica,
+  .crc-app.crc-app .crc-trabalho-resumo-card {
+    padding: 14px;
+  }
+
+  .crc-app.crc-app .crc-home-fila .crc-fila-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-home-fila-acoes {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  .crc-app.crc-app .crc-home-fila-acoes .crc-botao,
+  .crc-app.crc-app .crc-trabalho-item-acoes .crc-botao {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .crc-app.crc-app .crc-trabalho-command,
+  .crc-app.crc-app .crc-gestao-command-v2,
+  .crc-app.crc-app .crc-camp-command-v2,
+  .crc-app.crc-app .crc-auto-command-v2,
+  .crc-app.crc-app .crc-team-command-v2,
+  .crc-app.crc-app .crc-settings-command-v2,
+  .crc-app.crc-app .crc-int-command-v2 {
+    padding: 18px;
+  }
+
+  .crc-app.crc-app .crc-trabalho-filtros {
+    width: 100%;
+  }
+
+  .crc-app.crc-app .crc-trabalho-filtro {
+    flex: 1 1 auto;
+  }
+
+  .crc-app.crc-app .crc-trabalho-item {
+    padding: 14px;
+  }
+
+  .crc-app.crc-app .crc-trabalho-item-topo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-trabalho-item-topo > strong,
+  .crc-app.crc-app .crc-trabalho-item-corpo > p {
+    white-space: normal;
+  }
+
+  .crc-app.crc-app .crc-gestao-serie-coluna-v2 {
+    grid-template-rows: 20px 130px 18px;
+  }
+
+  .crc-app.crc-app .crc-gestao-serie-trilho-v2 {
+    height: 130px;
+  }
+
+  .crc-app.crc-app .crc-gestao-funil-topo-v2 {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .crc-app.crc-app .crc-gestao-funil-topo-v2 em {
+    grid-column: 1 / -1;
+  }
+
+  .crc-app.crc-app .crc-camp-estimativa-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-camp-estimativa-v2 p {
+    grid-column: auto;
+  }
+
+  .crc-app.crc-app .crc-team-card-info-v2,
+  .crc-app.crc-app .crc-team-senha-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-team-card-v2 > footer,
+  .crc-app.crc-app .crc-settings-semana-acoes-v2,
+  .crc-app.crc-app .crc-int-switches-v2 article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-team-card-v2 > footer .crc-botao,
+  .crc-app.crc-app .crc-settings-semana-acoes-v2 .crc-botao {
+    justify-content: center;
+  }
+
+  .crc-app.crc-app .crc-settings-semana-acoes-v2 > span {
+    margin: 0;
+  }
+
+  .crc-app.crc-app .crc-settings-horas-v2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .crc-app.crc-app .crc-int-card-v2 > header {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-int-card-v2 > header > .crc-etiqueta {
+    grid-column: 2;
+    width: fit-content;
+  }
+
+  .crc-app.crc-app .crc-int-switch-acao-v2 {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .crc-app.crc-app .crc-pacientes-busca-hero-v2 {
+    padding: 18px;
+  }
+
+  .crc-app.crc-app .crc-pacientes-busca-copy-v2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-pacientes-busca-icone-v2 {
+    width: 42px;
+    height: 42px;
+  }
+
+  .crc-app.crc-app .crc-paciente-resultado-v2 {
+    grid-template-columns: 38px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .crc-app.crc-app .crc-paciente-avatar-v2 {
+    width: 38px;
+    height: 38px;
+  }
+
+  .crc-app.crc-app .crc-paciente-resultado-seta-v2 {
+    display: none;
+  }
+
+  .crc-app.crc-app .crc-paciente-resultado-nome-v2,
+  .crc-app.crc-app .crc-paciente-tarefa-v2 {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .crc-app.crc-app .crc-paciente-identidade-principal-v2 {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-paciente-identidade-avatar-v2 {
+    width: 52px;
+    height: 52px;
+  }
+
+  .crc-app.crc-app .crc-paciente-identidade-copy-v2 h1 {
+    white-space: normal;
+  }
+
+  .crc-app.crc-app .crc-paciente-tarefa-v2 .crc-botao {
+    justify-content: center;
+  }
+}
+
+/* ========================================================================== */
+/* Formulario/canvas muito estreito                                           */
+/* ========================================================================== */
+
+@container crc-content (max-width: 520px) {
+  .crc-app.crc-app .crc-wf-no {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .crc-app.crc-app .crc-wf-no-botoes {
+    grid-column: 2;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .crc-app.crc-app .crc-wf-campos,
+  .crc-app.crc-app .crc-wf-paleta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

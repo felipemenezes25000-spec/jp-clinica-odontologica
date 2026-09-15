@@ -1,7 +1,18 @@
+@import "./crc-responsive.css";
+@import "./crc-responsive-layouts.css";
+@import "./crc-responsive-mobile-nav.css";
+
 /*
  * JP CRC — harmonia do shell com as telas v2.
  * As telas novas já carregam sua própria abertura contextual; o antigo hero
  * genérico do shell vira duplicação. A topbar/breadcrumb continua visível.
+ *
+ * IMPORTANTE: as folhas `crc-responsive*` concentram o sistema adaptativo do
+ * shell, o mapa responsivo das telas e a navegação compacta. Elas entram por
+ * esta última camada global para continuar eager e não repetir o problema
+ * histórico em que CSS essencial só chegava depois de abrir Agenda. As regras
+ * por tela usam especificidade deliberadamente maior porque o CSS dos módulos
+ * lazy pode ser injetado depois no navegador.
  */
 
 @media (min-width: 1025px) {
