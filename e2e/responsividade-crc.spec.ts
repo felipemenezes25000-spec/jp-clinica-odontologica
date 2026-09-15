@@ -35,7 +35,23 @@ async function esperarLayout(page: Page): Promise<void> {
 }
 
 async function esperarTela(page: Page, aba: string): Promise<void> {
-  await navegacao(page, aba).click();
+  const destino = navegacao(page, aba);
+
+  /*
+   * No layout móvel só os módulos do grupo atual ficam na segunda faixa. Para
+   * ir a outro grupo, fazemos exatamente o que uma pessoa faz: toca o título
+   * do grupo e depois o módulo. No desktop o destino já está visível e este
+   * bloco simplesmente não roda.
+   */
+  if (!(await destino.isVisible().catch(() => false))) {
+    const grupo = page.locator(".crc-nav-grupo").filter({ has: destino }).first();
+    const rotulo = grupo.locator(".crc-nav-rotulo");
+    await expect(rotulo).toBeVisible();
+    await rotulo.click();
+    await expect(destino).toBeVisible();
+  }
+
+  await destino.click();
   await expect(page.getByRole("main")).toContainText(aba, { timeout: 15_000 });
   await esperarLayout(page);
 }
@@ -138,13 +154,17 @@ test.describe("CRC responsivo", () => {
     const display = await textoInicio.evaluate((elemento) => getComputedStyle(elemento).display);
     expect(display).not.toBe("none");
 
+    // Em celular existe uma única faixa de módulos por vez, não um rail com
+    // todos os módulos do produto misturados.
+    await expect(page.locator(".crc-nav-rotulo").first()).toBeVisible();
+
     for (const aba of ["Conversas", "Funil", "Agenda"] as const) {
       await esperarTela(page, aba);
       await exigirSemOverflowHorizontal(page, `${aba} em 390x844`);
     }
 
-    // A barra de contexto usa a mesma variavel da altura do rail; nao pode
-    // ficar escondida sob a navegacao quando o rail cresce no celular.
+    // A barra de contexto usa a mesma variável da altura da navegação; não
+    // pode ficar escondida sob o menu quando ele ganha a segunda faixa.
     const nav = page.locator(".crc-lateral");
     const contexto = page.locator(".crc-barra-contexto");
     const offsets = await Promise.all([
