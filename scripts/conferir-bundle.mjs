@@ -29,7 +29,7 @@
  *    npm run build && node scripts/conferir-bundle.mjs
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 /**
  * A pasta que o navegador baixa.
@@ -161,12 +161,54 @@ const FOLHAS_GLOBAIS = [
 
 const fonteDasFolhas = "src/components/crc";
 
+/**
+ * Lê uma folha e SEGUE os `@import` dela, recursivamente.
+ *
+ * ============================================================================
+ *  POR QUE SEGUIR O @import — descoberto em 14/09/2026, num `git pull`.
+ *
+ *  A lista acima tinha seis nomes fixos. No dia em que `crc-shell-harmony.css`
+ *  ganhou três linhas no topo —
+ *
+ *      @import "./crc-responsive.css";
+ *      @import "./crc-responsive-layouts.css";
+ *      @import "./crc-responsive-mobile-nav.css";
+ *
+ *  — mais de mil linhas de CSS global passaram a existir FORA do alcance desta
+ *  verificação. O bundle continuava certo (o `@import` entra no mesmo pedaço
+ *  eager), e a checagem continuava verde — só que verde sobre um sexto a menos
+ *  do que ela afirmava cobrir.
+ *
+ *  É o mesmo modo de falha que ela foi criada para pegar, um nível acima: não
+ *  o estilo no pedaço errado, mas o verificador com um ponto cego que ninguém
+ *  vê, porque ponto cego não emite aviso.
+ * ============================================================================
+ */
+function selectoresDaFolha(caminho, vistos = new Set()) {
+  if (vistos.has(caminho) || !existsSync(caminho)) return new Set();
+  vistos.add(caminho);
+
+  const texto = readFileSync(caminho, "utf8");
+  const achados = new Set();
+  for (const m of texto.matchAll(/\.(crc-[a-z0-9-]+)/gu)) achados.add(m[1]);
+
+  // `@import "./x.css";` e `@import url("./x.css");` — relativos à própria folha.
+  for (const m of texto.matchAll(/@import\s+(?:url\()?["']([^"']+)["']/gu)) {
+    const alvo = m[1];
+    if (alvo === undefined || /^(?:https?:)?\/\//u.test(alvo)) continue;
+    for (const s of selectoresDaFolha(join(dirname(caminho), alvo), vistos)) achados.add(s);
+  }
+
+  return achados;
+}
+
 if (FOLHAS_GLOBAIS.every((f) => existsSync(join(fonteDasFolhas, f)))) {
   const esperados = new Set();
+  const lidas = new Set();
   for (const folha of FOLHAS_GLOBAIS) {
-    const texto = readFileSync(join(fonteDasFolhas, folha), "utf8");
-    for (const m of texto.matchAll(/\.(crc-[a-z0-9-]+)/gu)) esperados.add(m[1]);
+    for (const s of selectoresDaFolha(join(fonteDasFolhas, folha), lidas)) esperados.add(s);
   }
+  console.log(`  (${String(lidas.size)} folhas lidas, seguindo os @import)`);
 
   /*
    * A FOLHA `index-*.css` É A QUE O NAVEGADOR BAIXA SEM PEDIR NADA. Se um
