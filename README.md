@@ -17,13 +17,31 @@ npm run dev
 
 Sobe em `http://localhost:8080`.
 
-| Comando           | O que faz                                    |
-| ----------------- | -------------------------------------------- |
-| `npm run dev`     | Servidor de desenvolvimento com HMR          |
-| `npm run build`   | Build de produção (Nitro → `.vercel/output`) |
-| `npm run preview` | Serve o build localmente                     |
-| `npm run lint`    | ESLint + Prettier                            |
-| `npm run format`  | Aplica a formatação                          |
+| Comando                   | O que faz                                                  |
+| ------------------------- | ---------------------------------------------------------- |
+| `npm run dev`             | Servidor de desenvolvimento com HMR                        |
+| `npm run build`           | Build de produção (Nitro → `.vercel/output`)               |
+| `npm run preview`         | Serve o build localmente                                   |
+| `npm run lint`            | ESLint + Prettier                                          |
+| `npm run format`          | Aplica a formatação                                        |
+| `npm run typecheck`       | `tsc --noEmit`                                             |
+| `npm test`                | Vitest — **2.040 testes em 115 arquivos**, sem banco       |
+| `npm run test:integracao` | Os testes que **exigem** um Postgres de verdade            |
+| `npm run e2e`             | Playwright nas telas do CRC (exige Postgres de teste)      |
+| `npm run e2e:site`        | Playwright no site público — o funil pago, **sem banco**   |
+| `npm run check`           | lint + typecheck + test + build, na ordem em que o CI roda |
+
+`npm run check` é o portão. O CI (`.github/workflows/quality.yml`) roda os
+mesmos quatro passos e, depois do build, `scripts/conferir-bundle.mjs` — que
+pergunta o que **foi parar no navegador**, não o que está no código-fonte: o
+Vite troca `import.meta.env.X` por literal em tempo de build, e uma variável
+renomeada para `VITE_…` viaja para dentro do JavaScript publicado sem nada mudar
+na tela.
+
+> **Os testes de integração ficam fora do `npm test` de propósito**, e não por
+> serem lentos: eles falham alto quando não encontram Postgres, porque um teste
+> de integração que passa sem integração é a pior linha verde do repositório.
+> Quem os roda tem a config própria, `vitest.integracao.config.ts`.
 
 ---
 
@@ -47,17 +65,31 @@ src/
 │   ├── jp.ts                    ← FONTE ÚNICA DE VERDADE (contato, avaliação, tratamentos, equipe)
 │   ├── seo.ts                   título e descrição dentro do que o Google mostra
 │   ├── dadosEstruturados.ts     o JSON-LD, montado a partir de jp.ts
-│   └── analytics.ts             eventos de conversão, um ouvinte só
+│   ├── contato.ts               a mensagem de WhatsApp — só ela
+│   ├── analytics/              rotas pagas, atribuição, eventos, consentimento
+│   ├── error-capture.ts         erro de cliente que vira log, sem derrubar a página
+│   ├── error-page.ts            a página de erro servida quando o SSR falha
+│   ├── rh/                      o portal de vagas — ver docs/PORTAL-RH.md
+│   └── crc/                     o JP CRC OS — ver docs/crc/
 ├── routes/
 │   ├── __root.tsx               shell, metatags globais, 404 e erro
 │   ├── index.tsx                home (9 seções)
-│   └── tratamentos/$slug.tsx    as 8 páginas de tratamento
+│   ├── tratamentos/$slug.tsx    as 8 páginas de tratamento
+│   ├── implante-dentario.tsx …  as 8 LPs de anúncio (rotas finas)
+│   ├── politica-de-privacidade.tsx
+│   ├── carreiras/               vitrine de vagas e a página de cada uma
+│   ├── trabalhe-conosco.tsx     o formulário de candidatura (noindex)
+│   └── api/                     endpoints de servidor do CRC e do RH
 ├── components/site/             componentes próprios
 ├── assets/
 │   ├── fontes/                  Inter e Manrope, hospedadas aqui
 │   └── …                        fotos e vídeos
+├── router.tsx  server.ts  start.ts
 └── styles.css                   tokens e classes de sistema — ver DESIGN.md
 ```
+
+`routeTree.gen.ts` é gerado. Não editar à mão — as convenções de arquivo estão
+em [src/routes/README.md](src/routes/README.md).
 
 **O sistema visual tem documento próprio: [DESIGN.md](DESIGN.md)** — paleta com
 razões de contraste medidas, escala tipográfica, calha, raio, botões, hierarquia
@@ -71,16 +103,28 @@ de CTA, regras de acessibilidade e as armadilhas que custaram iteração.
 | `/rh`  | Portal de RH: vagas, candidaturas, triagem por IA.   | [docs/PORTAL-RH.md](docs/PORTAL-RH.md) |
 | `/crc` | JP CRC OS: CRM, automação de recuperação e cobrança. | [docs/crc/](docs/crc/)                 |
 
+O CRC tem mais duas portas, e as duas são públicas no sentido de responderem
+200 — o que elas **mostram** é que é diferente:
+
+| Rota                 | O que responde                                                                                                                                                                                                                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/crc-vitrine`       | As telas do CRC com dados de mentira, sem sessão e sem senha — **só em desenvolvimento**. Em produção a rota existe e devolve o aviso de indisponível; o corpo dela sai no tree-shaking (`import.meta.env.DEV` vira literal no build), então nenhuma tela do painel entra no pacote que o paciente baixa. |
+| `/crc-institucional` | O tour de cinco minutos, em `<iframe>`, servido de `public/crc-tour/`. `noindex, follow`. A peça é construída no sub-projeto `apresentacao/` (`npm run tour:build`).                                                                                                                                      |
+
 **Para anunciar** (Google Ads e Meta), comece por
 [docs/ANUNCIAR.md](docs/ANUNCIAR.md) — para onde mandar cada campanha, os
 eventos que o site já dispara, o que ainda falta instalar e o que a publicidade
 odontológica não permite.
 
-As sete rotas curtas de anúncio (`/implante-dentario`, `/ortodontia`, …) são a
-**mesma página** do tratamento correspondente, sob a URL que casa com o termo
+As **oito** rotas curtas de anúncio (`/implante-dentario`, `/ortodontia`, …) são
+a **mesma página** do tratamento correspondente, sob a URL que casa com o termo
 pesquisado, com `canonical` apontando para a orgânica. O conteúdo vive em
-`components/site/PaginaDeTratamento.tsx`, e as rotas são finas — uma correção
-vale para as oito URLs de uma vez.
+`components/site/PaginaDeTratamento.tsx`, e as rotas são finas — uma correção de
+conteúdo vale para as **16 URLs** (8 orgânicas + 8 LPs) de uma vez.
+
+> **Foram oito desde o primeiro dia**, mas o commit que as criou (`d34e383`) e o
+> cabeçalho de `PaginaDeTratamento.tsx` diziam sete — a harmonização entrou junto
+> e ficou fora da conta por quatro dias. O cabeçalho está corrigido.
 
 Os três compartilham build, domínio e Supabase, e nada mais: as tabelas do CRC
 têm prefixo `crc_`, o CSS dele vive inteiro sob `.crc-app`, e nenhum arquivo do
@@ -103,7 +147,13 @@ existe).
 
 ### `src/lib/jp.ts` é o arquivo que importa
 
-Telefone, WhatsApp, endereço, horário, avaliação do Google, tratamentos, FAQ, equipe e depoimentos vivem **só ali**. Trocar o telefone nesse arquivo atualiza o cabeçalho, o rodapé, os 8 links de WhatsApp, o formulário, os cards de contato e o JSON-LD de uma vez.
+Telefone, WhatsApp, endereço, horário, avaliação do Google, tratamentos, FAQ, equipe e depoimentos vivem **só ali**. Trocar o telefone nesse arquivo atualiza o cabeçalho, o rodapé, todos os links de WhatsApp (catorze só na home), o formulário, os cards de contato, as respostas da FAQ e o JSON-LD de uma vez.
+
+E a **mensagem** desses links também é montada, não digitada: `src/lib/contato.ts`
+compõe a frase a partir de `CLINICA.nome` e da intenção (`agendar`, `duvida`,
+`orientacao`). Havia seis mensagens escritas à mão em seis arquivos, e elas
+discordavam entre si sobre o nome da própria clínica — na primeira frase que o
+paciente manda, que é onde a marca precisa chegar inteira.
 
 Nada de dado de contato está escrito direto no JSX. Se você encontrar algum, é bug.
 
@@ -131,20 +181,33 @@ NITRO_PRESET=node-server npm run build
 
 ### O verde da marca não serve como texto sobre fundo claro
 
-`--primary` / `--lime` (#7BD51C) mede **1,73:1 sobre o creme da página**. Isso reprova até para texto grande, que exige apenas 3:1 — não é margem apertada, é o dobro do permitido.
+`--primary` / `--lime` (`#56a805`) mede **2,81:1 sobre o creme da página**. Isso
+reprova até para texto grande, que exige apenas 3:1 — e reprova por pouco, que é
+a pior forma de reprovar: passa despercebido.
 
 A revisão de contraste criou dois tokens para resolver isso de uma vez:
 
 | Token          | Valor     | Sobre creme | Sobre branco | Para quê                                     |
 | -------------- | --------- | ----------- | ------------ | -------------------------------------------- |
-| `--brand-text` | `#41761c` | 5,13:1      | 5,48:1       | verde da marca **como texto** em fundo claro |
+| `--brand-text` | `#095902` | 8,05:1      | 8,60:1       | verde da marca **como texto** em fundo claro |
 | `--ink-soft`   | `#5a6b5c` | 5,33:1      | 5,69:1       | texto secundário em fundo claro              |
 
 Regras que decorrem daí:
 
-- **`--lime` como texto só sobre fundo escuro**, onde mede 8,2:1. Em fundo claro, use `--brand-text`.
+- **`--lime` como texto só sobre `--brand-deep`**, onde mede 4,96:1. Sobre
+  `--forest-2` ele cai para 2,87:1 e reprova. Em fundo claro, use `--brand-text`.
 - **Nunca `--forest` com opacidade para texto.** A faixa que existia (40% a 70%) ia de 1,87:1 a 3,31:1 — toda ela reprovava. Use `--ink-soft` sólido.
-- **Sobre o lime**, texto tem de ser `--forest-2` (8,2:1). `--ink-soft` ali dá 3,08:1.
+- **Sobre o lime**, texto tem de ser `--brand-deep` (4,96:1). Branco ali dá
+  3,00:1, que serve a título grande e a ícone, não a texto corrido — e
+  `--forest-2`, que parece a escolha natural, dá 2,87:1 e não serve a nada.
+
+> **Estes números foram remedidos em 14/09/2026, e mudaram.** Em 10/08/2026 a
+> paleta passou a ser derivada da folha de marca (commit `72e2bfa`): o lime
+> largou o `#7bd51c` e o `--brand-text` largou o `#41761c`. A prosa de contraste
+> não acompanhou — nem aqui, nem no DESIGN.md, nem nos comentários de
+> `src/styles.css`, que ainda falam em 1,73:1 e 8,2:1. As duas documentações
+> estão corrigidas; os comentários do código estão listados como pendência em
+> [DESIGN.md](DESIGN.md), §9.
 
 ### Piso de 12px na tipografia
 
@@ -160,13 +223,16 @@ Fechado, ele leva **`invisible`** junto com `max-h-0`. Só altura zero não bast
 
 ### A calha é uma variável, não uma classe por seção
 
-`--jp-gutter` muda em dois breakpoints (20px → 32px → 40px) e as duas larguras globais acompanham:
+`--jp-gutter` muda em dois breakpoints (20px → 32px → 40px) e a largura global acompanha:
 
 | Classe                              | Largura                                                         |
 | ----------------------------------- | --------------------------------------------------------------- |
-| `.jp-container`                     | `min(1320px, 100% - calha × 2)` — o padrão do site              |
-| `.jp-container-wide`                | `min(1400px, 100% - calha × 2)` — só o cabeçalho                |
+| `.jp-container`                     | `min(1320px, 100% - calha × 2)` — a coluna do site inteiro      |
 | `.jp-section` / `.jp-section-large` | espaçamento vertical (4,5rem / 6rem, reduzindo nos breakpoints) |
+
+**É uma coluna só.** Havia uma segunda, `.jp-container-wide` de 1400px, usada
+apenas pelo cabeçalho — e era ela que jogava a logo 40px à esquerda de todo o
+conteúdo abaixo. A classe não existe mais no CSS.
 
 Nenhuma seção repete `mx-auto max-w-[1320px] px-5 md:px-8 xl:px-10`. Se alguma repetir, é regressão: mudar a calha do site passa a exigir uma edição por arquivo.
 
@@ -247,15 +313,35 @@ Já não são. Este bloco existiu por meses avisando o contrário, e o aviso fic
 para trás quando os dados chegaram — registro aqui o estado de hoje para ninguém
 "corrigir" de volta.
 
-| Onde          | Situação                                                            |
-| ------------- | ------------------------------------------------------------------- |
-| `EQUIPE`      | **6 pessoas reais.** Cinco com CROSP conferido, mais a recepção     |
-| `DEPOIMENTOS` | **5 avaliações reais**, transcritas da ficha do Google              |
-| Fundação      | Jeferson Barbosa e **Dra. Juliana Pelisser Barbosa — CROSP 75.159** |
+| Onde          | Situação                                                                |
+| ------------- | ----------------------------------------------------------------------- |
+| `EQUIPE`      | **6 pessoas reais** no arquivo — **4 no ar**, todas com CROSP conferido |
+| `DEPOIMENTOS` | **5 avaliações reais**, transcritas da ficha do Google                  |
+| Fundação      | Jeferson Barbosa e **Dra. Juliana Pelisser Barbosa — CROSP 75.159**     |
 
-Os CROs no ar: **177.801, 168.512, 175.851, 75.157, 162.394** e, na responsável
-técnica, **75.159**. A carteira traz o número sem ponto (`SP-162394`); o ponto é
-só de exibição.
+Os CROs no ar: **177.801, 168.512, 75.157, 162.394** e, na responsável técnica,
+**75.159**. A carteira traz o número sem ponto (`SP-162394`); o ponto é só de
+exibição.
+
+### A grade publica menos gente do que a lista tem, e isso é a trava
+
+`TeamSection` filtra `EQUIPE` por três condições antes de desenhar: sai quem é
+`ficticio`, quem é `placeholder` e quem está em `MEMBROS_INATIVOS` — um conjunto
+de nomes no próprio componente. Em 13/09/2026 entraram ali **Dra. Júlia Vargas**
+e **Raphaela** (recepção), que deixaram a equipe; a home passou de 6 para
+**4 cartões**, todos de dentistas com registro.
+
+**A trava fica no ponto de exibição de propósito.** Os dados continuam em
+`jp.ts` porque tirá-los de lá apagaria o registro de que aquelas pessoas
+existiram e de onde vieram os números; o que não pode é um dado histórico
+voltar ao ar porque alguém reordenou a lista. Quem sair da clínica entra em
+`MEMBROS_INATIVOS` — uma linha — e some das 20 rotas de uma vez.
+
+> Consequência de layout: a largura de cada cartão em `xl` sai de uma tabela
+> indexada pelo **tamanho da lista publicável** (4 → `calc(25% - 15px)`). É o
+> que impede a última pessoa de descer sozinha para uma linha só. A tabela cobre
+> de 4 a 8; fora disso a classe sai vazia e os cartões caem para a largura de
+> `md`, sem erro e sem aviso.
 
 > **Duas armadilhas neste assunto, as duas já cometidas aqui.**
 >
@@ -271,7 +357,11 @@ só de exibição.
 
 ### Regras que o site precisa manter
 
-- **CRO do responsável técnico no rodapé** — obrigatório, aparece nas 9 rotas
+- **CRO do responsável técnico no rodapé** — obrigatório. Conferido em
+  14/09/2026 no HTML servido: a linha `CROSP 75.159` sai nas **20 rotas fixas**,
+  porque todas renderizam `<Footer/>`. A fonte é `RESPONSAVEL_TECNICA`, e ela
+  fica **fora** de `EQUIPE` justamente para não depender de quem é o primeiro da
+  lista — já dependeu, e foi assim que um CRO inventado chegou ao rodapé.
 - **Sem "antes e depois"** — vedado na publicidade odontológica
 - **Sem promessa de resultado** — todo bloco lembra que a indicação depende de avaliação profissional
 - **Sem preço nem promoção** como atrativo
@@ -301,13 +391,135 @@ vercel deploy --prebuilt --prod
 
 O build gera `.vercel/output` no formato Build Output API v3. `.vercel/` está no `.gitignore` — nunca versione, contém os IDs do projeto.
 
+Na prática o projeto é publicado com `npx vercel --prod --yes`, que faz o build
+na Vercel em vez de subir o `--prebuilt`. Os dois chegam ao mesmo lugar; o de
+cima é o que economiza minuto de build remoto.
+
+`vercel.json` fixa a região em **`gru1`** (São Paulo) e declara dois `crons`
+diários — `/api/rh/varrer` às 04:00 e `/api/crc/motor` às 09:00. **Diários por
+imposição do plano:** no Hobby, uma frequência maior que uma vez por dia é
+recusada e derruba o deploy inteiro, não só o cron.
+
 ---
 
 ## Rotas
 
-`/` · `/tratamentos/{limpeza-profilaxia, clareamento-dental, restauracoes, implantes-dentarios, proteses-dentarias, ortodontia, odontopediatria, harmonizacao-orofacial}`
+**20 rotas fixas**, mais as páginas de vaga, que nascem e morrem no painel de RH.
 
-Slug inexistente devolve **404 de verdade**, não 200 com tela de erro. Cada rota emite `title`, `description`, `og:*` e `canonical` próprios **no HTML servido** — o robô de preview do WhatsApp não roda JavaScript, e o WhatsApp é o canal de conversão.
+| Grupo                 | URLs                                                                                                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home                  | `/`                                                                                                                                                                     |
+| Tratamento (orgânica) | `/tratamentos/{limpeza-profilaxia, clareamento-dental, restauracoes, implantes-dentarios, proteses-dentarias, ortodontia, odontopediatria, harmonizacao-orofacial}`     |
+| Tratamento (anúncio)  | `/limpeza-dental`, `/clareamento-dental`, `/restauracao-dentaria`, `/implante-dentario`, `/protese-dentaria`, `/ortodontia`, `/odontopediatria`, `/harmonizacao-facial` |
+| Carreiras             | `/carreiras`, `/carreiras/<slug>`, `/trabalhe-conosco` (`noindex`)                                                                                                      |
+| Institucional         | `/politica-de-privacidade`                                                                                                                                              |
+| Internas              | `/rh` e `/crc` (`noindex, nofollow`, e `Disallow` no robots), `/crc-institucional` (`noindex, follow`), `/crc-vitrine` (só em desenvolvimento), `/api/*`                |
+
+Slug inexistente em `/tratamentos/` devolve **404 de verdade**, não 200 com tela
+de erro — o `loader` faz `throw notFound()`. Cada rota emite `title`,
+`description`, `og:*` e `canonical` próprios **no HTML servido** — o robô de
+preview do WhatsApp não roda JavaScript, e o WhatsApp é o canal de conversão.
+
+---
+
+## Conversão: o que o site mede, e o que ele já guarda
+
+Duas coisas diferentes, e é comum confundi-las.
+
+### A camada — `src/lib/analytics/`
+
+| Arquivo            | O que faz                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| `rotas.ts`         | Fonte única: qual tratamento está nesta URL — orgânica **ou** de anúncio             |
+| `atribuicao.ts`    | Lê UTM/`gclid`/`fbclid`/`gbraid`/`wbraid`, guarda pela sessão, monta a `Ref.:`       |
+| `eventos.ts`       | Decide qual evento **único** cada ação produz, e despacha                            |
+| `consentimento.ts` | O estado da escolha e os quatro sinais do Consent Mode v2                            |
+| `scripts.ts`       | Os `<script>` do `<head>`, montados a partir de `VITE_GTM_ID` e `VITE_META_PIXEL_ID` |
+
+**`generate_lead` é a única conversão.** Um clique em "Agendar avaliação" produz
+exatamente um evento — antes produzia três (`whatsapp_click` + `schedule_click`
+
+- `treatment_cta_click`), que na Meta viravam um `Contact` e **dois** `Lead`.
+  Isso não era erro de relatório: era o Google Ads e a Meta aprendendo que aquele
+  clique valeu três conversões e subindo o lance por causa disso.
+
+A decisão é uma **função pura** (`decidirEventoDeClique`), e é por isso que "um
+clique, um evento" é um teste e não uma intenção.
+
+### O rastreio de clique — `RastreioDeContato`
+
+Um ouvinte só, na raiz, em fase de **captura**. Não há `onClick` em botão nenhum:
+são catorze links de WhatsApp só na home, e cada link novo nasceria sem rastreio
+até alguém lembrar. A captura importa porque um botão que chama
+`stopPropagation` sumiria do relatório na fase de bolha — e é justamente o botão
+com comportamento próprio que mais interessa medir.
+
+Os eventos vão para `window.dataLayer` (o formato que GTM, GA4 e Google Ads leem)
+e, quando o Pixel existir, também para `fbq` com o vocabulário da Meta. **Hoje
+não há container instalado** — conferido. Sem ele a função não faz nada, não
+lança, e nunca impede um clique de acontecer.
+
+A tabela de eventos, quando cada um dispara e o que ainda falta instalar estão
+em **[docs/ANUNCIAR.md](docs/ANUNCIAR.md)**.
+
+### A atribuição, e a referência que a recepção lê
+
+A campanha é capturada **na primeira entrada** e guardada em `sessionStorage`:
+first-touch, porque o último clique de uma visita é quase sempre interno, e
+sobrescrever a cada navegação faria toda conversão parecer orgânica.
+
+Dela sai a **referência curta** que vai na mensagem do WhatsApp:
+
+```
+Olá! Vi a página sobre Implantes dentários no site da JP Clínica Integrada
+Odontológica e gostaria de agendar uma avaliação.
+
+Ref.: IMP-G-A01
+```
+
+`IMP` implante · `G` Google · `A01` o criativo de `utm_content`. Sem campanha,
+**a linha não aparece** — a maioria das conversas é orgânica e não devia mudar
+por causa de uma minoria paga. E o `gclid` nunca entra: são 90 caracteres de
+ruído que o paciente lê antes da recepção.
+
+Essa ponte é o que permite responder "qual anúncio gerou esta conversa?" **sem
+CRC, sem GTM, sem GA4 e sem Pixel** — que é o estado da primeira fase de
+campanha.
+
+> **O `sessionStorage` não pode ser lido durante o render.** O servidor não o
+> tem, e um `href` diferente entre o HTML servido e a hidratação é erro de
+> hidratação do React — num CTA. Por isso `contatoWhatsApp` é pura e a
+> referência entra depois de montar, via `useContatoWhatsApp`.
+
+### O lead no CRC — `/api/crc/lead`, e ele é opcional
+
+O formulário de contato **registra o lead no CRC antes** de abrir o WhatsApp, e
+manda junto a URL da página; `lerAtribuicao` do CRC decompõe os mesmos campos no
+servidor. Com o CRC no ar, a tela de Investimento divide o gasto lançado por essa
+cadeia e entrega custo por paciente que **compareceu**, não por clique.
+
+**Isso é um ganho, não um pré-requisito.** Com o CRC desligado o endpoint responde
+503, o formulário pede para tentar de novo — e o WhatsApp abre do mesmo jeito. O
+E2E de tráfego pago roda contra um servidor **sem banco, sem CRC, sem GTM e sem
+Pixel** justamente para que isso pare de ser promessa e vire regressão vermelha.
+
+> Três decisões que parecem detalhe e não são: a requisição vai **antes** do
+> `window.open` (depois dele a aba perde foco e o navegador pode cancelá-la), com
+> `keepalive`, e **sem esperar resposta** — o lead é problema nosso, a conversa é
+> do visitante. Se o banco não estiver configurado, o endpoint responde **503**
+> e o formulário pede para tentar de novo: já respondeu "recebemos" sem ter
+> recebido, e perder um lead em silêncio é mais caro do que um erro honesto.
+>
+> A querystring **não** é guardada inteira — só os campos decompostos e o
+> `pathname`. Guardá-la de novo duplicaria dado pessoal no dia em que alguém
+> puser um telefone num parâmetro.
+
+O `sitemap.xml` lista **11 URLs**: a home, as 8 orgânicas, a política e
+`/carreiras`. As LPs ficam **fora** de propósito — o `canonical` delas aponta
+para a orgânica, e listá-las seria pedir ao Google que indexasse as duas. As
+páginas de vaga também ficam de fora: uma lista fixa num XML estático viraria
+mentira no dia seguinte, com o robô seguindo links para vagas encerradas. Quem
+leva o robô até elas são os links da própria `/carreiras`.
 
 ---
 
@@ -327,22 +539,39 @@ dela.
 A ordem é a decisão: quem procura dentista digita _"implante dentário na
 Freguesia do Ó"_, não o nome de uma clínica que ainda não conhece. O
 procedimento e o bairro ocupam o começo; a marca fecha, e **encolhe até caber** —
-"Restaurações" sobra espaço e leva o nome inteiro, "Harmonização orofacial" leva
-o curto.
+"Prótese dentária" sobra espaço e leva o nome inteiro (60 caracteres cravados),
+"Implante dentário" leva o médio (48).
+
+**Medido em 14/09/2026, no HTML servido das 17 rotas que passam por `seo.ts`**
+(home + 8 orgânicas + 8 LPs): título entre 48 e 60, descrição entre 114 e 155.
+Nenhuma estoura.
+
+> **Duas rotas não passam por `seo.ts`, e elas estouram.** `/carreiras` publica
+> título de **75** e descrição de **228** caracteres; `/politica-de-privacidade`,
+> descrição de **164**. As duas escrevem `TITULO` e `DESCRICAO` à mão no próprio
+> arquivo. Não é urgente — nenhuma das duas é página de aquisição de paciente —
+> mas é exatamente o defeito que `seo.ts` existe para não deixar acontecer, e
+> some passando as duas por `tituloLocal` / `descricaoLocal`.
 
 ### Dados estruturados
 
 `src/lib/dadosEstruturados.ts` monta o JSON-LD **a partir de `jp.ts`**, nunca
 digitado:
 
-| Onde            | Tipo                         |
-| --------------- | ---------------------------- |
-| Home            | `Dentist` + `FAQPage`        |
-| Cada tratamento | `MedicalWebPage` + `FAQPage` |
-| Cada vaga       | `JobPosting`                 |
+| Onde                       | Tipo                         |
+| -------------------------- | ---------------------------- |
+| Home                       | `Dentist` + `FAQPage`        |
+| Cada tratamento, e cada LP | `MedicalWebPage` + `FAQPage` |
+| Cada vaga                  | `JobPosting`                 |
 
 O `Dentist` traz endereço, coordenadas, horário, CNPJ, a responsável técnica com
 CRO e os 8 tratamentos.
+
+O `MedicalWebPage` das LPs é o **mesmo** da página orgânica, com o `@id` e a
+`url` da orgânica — o que é coerente com o `canonical` e evita declarar duas
+páginas distintas para o mesmo procedimento. O `provider` aponta por `@id` para
+o consultório declarado na home, em vez de repetir endereço e telefone: o Google
+junta os dois sozinho, e não existe a cópia que envelhece.
 
 **Não traz `aggregateRating`, e é decisão consciente.** A nota do Google aparece
 para o visitante na página — é prova social legítima — mas não entra no schema
@@ -356,8 +585,11 @@ factual e verificável.
 > fonte — não há como divergir. E `foundingDate` vai em ISO 8601 (`2002-08-17`),
 > não no formato que a página exibe: data errada o Google descarta em silêncio.
 
-**Lighthouse de SEO: 100** em 11 das 12 rotas. A exceção é `/trabalhe-conosco`,
-que é `noindex` de propósito — quem procura emprego deve cair em `/carreiras`.
+**Lighthouse de SEO: 100** em 11 das 12 rotas que existiam em 11/09/2026. A
+exceção é `/trabalhe-conosco`, que é `noindex` de propósito — quem procura
+emprego deve cair em `/carreiras`. As 8 LPs entraram no mesmo dia e **não foram
+medidas**: elas renderizam o mesmo componente já medido, o que herda a
+estrutura, não o resultado.
 
 ---
 
@@ -374,14 +606,27 @@ O site passou por auditoria WCAG 2.1 AA com contraste calculado, não estimado.
 - `prefers-reduced-motion` zera transição e animação, e desliga o autoplay
 - Decoração de fundo é `aria-hidden` e `pointer-events-none` — nada disso chega ao leitor de tela
 
-**Medido no site publicado, em 320, 390 e 1440px:** zero alvo abaixo de 44px,
-zero texto abaixo de 12px, zero rolagem horizontal e **zero falha de contraste em
-112 elementos**. Lighthouse de acessibilidade **100** nas 12 rotas.
+**Medido no site publicado em 11/09/2026, em 320, 390 e 1440px:** zero alvo
+abaixo de 44px, zero texto abaixo de 12px, zero rolagem horizontal e **zero
+falha de contraste em 112 elementos**. Lighthouse de acessibilidade **100** nas
+12 rotas de então.
+
+**Conferido no HTML servido em 14/09/2026, nas 20 rotas fixas:** exatamente um
+`h1`, um `header`, um `main` e um `footer` em cada uma.
+
+**Corrigido em 14/09/2026:** as duas combinações que a troca de paleta de 10/08
+tinha deixado reprovando sobre o limão — o rótulo branco de 12px na seção "Um
+processo" das páginas de tratamento (3,00:1) e `--forest-2` no skip link focado,
+nas redes do rodapé e nas setas dos tratamentos (2,87:1). Todas em
+`--brand-deep` agora, **4,96:1**. Conferido no DOM: zero elementos restantes com
+`bg-lime` + `text-forest-2`.
 
 > Contraste se mede pintando a cor num canvas e **lendo o pixel**. Parser por
 > expressão regular mente com `oklch()`/`oklab()`, que é o que o Tailwind v4
-> emite — cheguei a reportar 18 falhas que não existiam. Está detalhado em
-> [DESIGN.md](DESIGN.md).
+> emite — cheguei a reportar 18 falhas que não existiam. E quem compõe o fundo
+> tem de considerar gradiente **e** alfa: um varredor que procura o primeiro
+> `background-color` opaco reprova o rodapé escuro achando que o texto branco
+> está sobre o creme. Está detalhado em [DESIGN.md](DESIGN.md).
 
 ---
 
@@ -392,3 +637,9 @@ zero texto abaixo de 12px, zero rolagem horizontal e **zero falha de contraste e
 - [ ] **Vincular o site à ficha do Google.** Hoje o Google mostra "Adicionar website" — é tráfego direto e gratuito sendo perdido.
 - [x] ~~Trocar o domínio.~~ **Feito.** O site responde em `www.jpclinicaodontologica.com.br`; `SITE_URL` e o sitemap já apontam para lá.
 - [ ] Páginas de **facetas**, **endodontia** e **periodontia** — os dois últimos estão na placa da clínica mas não no site, e há bom material de vídeo para os três.
+- [x] ~~Duas falhas de contraste sobre o lime.~~ **Corrigidas em 14/09/2026.** O rótulo de 12px das páginas de tratamento e os três estados de `--forest-2` sobre lime (skip link, redes do rodapé, setas dos tratamentos) foram para `text-brand-deep`: de **2,87/3,00:1** para **4,96:1**, conferido no navegador. Detalhe em [DESIGN.md](DESIGN.md), §9.
+- [x] ~~Os comentários de contraste em `src/styles.css`.~~ **Remedidos**, junto com os de `carreiras/index.tsx` e `rh/AbaTriagem.tsx`. Cada um diz o número de hoje e o que ele era antes.
+- [x] ~~`treatment_view` e `treatment_cta_click` não disparam nas 8 LPs.~~ **Corrigido em 15/09/2026**, junto com a dupla contagem. O reconhecimento de tratamento ganhou fonte única (`src/lib/analytics/rotas.ts`) que responde pelas duas famílias de URL, e um clique em "Agendar avaliação" passou a produzir **um** `generate_lead` em vez de três eventos (que viravam um `Contact` e dois `Lead` na Meta). Coberto por 58 testes de unidade e 48 E2E. Ver [docs/ANUNCIAR.md](docs/ANUNCIAR.md), seção 3.
+- [ ] **Confirmar o profissional responsável por implantes.** A LP não nomeia dentista responsável pelo procedimento, e o repositório não tem esse dado. Só entra com nome, CRO conferido e retrato real — ver a regra de `EQUIPE`.
+- [x] ~~`/carreiras` e `/politica-de-privacidade` fora do `seo.ts`.~~ **Corrigido em 15/09/2026.** As duas passaram a montar título e descrição pelo helper. Medido no HTML servido: `/carreiras` saiu de **75/228** para **60/121**, e a política de **164** para **149** de descrição. As 19 rotas fixas com `<title>` próprio agora cabem no que o Google mostra.
+- [ ] **Rodar Lighthouse nas 8 LPs.** Elas entraram depois da última medição.
