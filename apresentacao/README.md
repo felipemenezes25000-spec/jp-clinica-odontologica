@@ -1,149 +1,103 @@
 # JP CRC — tour interativo e vídeo
 
-Uma peça, dois destinos: um **tour interativo** publicado em
-`/crc-institucional` no site da clínica e um **vídeo MP4** renderizável. Os dois
-desenham exatamente o mesmo filme — o que muda é só quem conta o tempo.
+> **Documento principal do subprojeto, revisado em 15/09/2026.**
+>
+> Este subprojeto é isolado do bundle principal. Ele gera o tour servido pelo site e os materiais de vídeo do CRC. Quantidade/duração de cenas vem dos arquivos de dados do próprio subprojeto; não congele esses números neste README.
 
-**51 cenas · 8:23 · narração falada em português, legenda sincronizada e trilha
-original.**
+## Destinos
+
+- tour interativo publicado em `public/crc-tour/` e acessado pela experiência `/crc-institucional`;
+- vídeo renderizável via Remotion;
+- thumbnail/capa;
+- roteiro/narração/trilha gerados pelos scripts locais.
+
+## Rodando
+
+Dentro de `apresentacao/`:
 
 ```bash
-npm install
-
-npm run dev              # tour (a porta sai no terminal) → /crc-tour/
-npm run build            # publica em     ../public/crc-tour/
-npm run narracao         # regera a voz e os tempos das legendas
-npm run trilha           # regera a música — SEMPRE depois da narração
-npm run audio:conferir   # confere que os dois áudios têm som do início ao fim
-npm run cenas:ordenar    # renumera os arquivos de cena pela ordem do filme
-npm run video:preview    # Remotion Studio
-npm run video:render     # gera out/jp-crc-1080p.mp4
-npm run check            # tipos + build
+npm ci
+npm run dev
+npm run check
 ```
 
-> A ordem `narracao` → `trilha` não é preferência: a música se abaixa nos
-> trechos em que a voz entra, e para isso precisa da duração medida de cada
-> fala. Invertida, a música fica alta em cima da narração.
+Scripts atuais do subprojeto:
 
-> **Sub-projeto isolado**, com o próprio `package.json`. Ele não é importado pelo
-> bundle do site e não altera o build dele — decisão tomada por causa do
-> `docs/INCIDENTE-BUILD-500.md`, que descreve como um ciclo entre chunks derrubou
-> todas as rotas do site com o build passando limpo.
-
-## Onde isso aparece para o público
-
-| Onde                                   | O que é                                            |
-| -------------------------------------- | -------------------------------------------------- |
-| `jpclinicaodontologica.com.br/crc-institucional` | A página do site, com o caminho de volta  |
-| `public/crc-tour/`                     | O app construído, servido como arquivo estático     |
-| `out/jp-crc-1080p.mp4`                 | O vídeo, para WhatsApp, reunião e apresentação      |
-| `out/jp-crc-capa.png`                  | A capa                                              |
-
-Detalhes de publicação em [PUBLICACAO.md](PUBLICACAO.md).
-
-## O que a pessoa vê
-
-Ao abrir, três portas:
-
-| Botão                     | O que faz                                                  |
-| ------------------------- | ---------------------------------------------------------- |
-| **Assistir com narração** | Toca o filme com voz e legenda                             |
-| **Assistir sem som**      | O mesmo filme, só com legenda                              |
-| **Explorar**              | Mapa clicável, fluxos por tipo de paciente, salto por cena |
-
-Durante o filme: play/pause, avançar/voltar, arrastar a barra, nove capítulos,
-ligar/desligar legenda e som, tela cheia, reiniciar.
-
-Teclado: `espaço` pausa · `←` `→` movem 3 s (com `shift`, 10 s) · `F` tela cheia
-· `M` mudo · `R` reinicia · `E` explorar · `Esc` fecha.
-
-## O que o filme conta
-
-Do dado ao resultado, em **nove capítulos**:
-
-1. **Começo** — por que isso existe
-2. **De onde vêm os dados** — Dental Office, a ponte, o núcleo
-3. **Quem precisa de contato** — o que o sistema percebe, as regras antes de
-   falar, a fila com o motivo, e **quem está no caminho de sumir**
-4. **O que roda sozinho** — faltas, retorno, pacientes antigos, **orçamentos
-   parados**, campanhas, aniversariantes e **montar uma campanha do zero**
-5. **Anúncios e leads** — o lead do anúncio pago e **quanto custou cada paciente
-   que sentou na cadeira**
-6. **A conversa** — WhatsApp, a leitura da resposta, agendamento, lembrete,
-   **a cadeira que vagou**, cobrança e o repasse para gente
-7. **O agente** — ele **age** (21 ferramentas com permissão), os **nove portões**
-   que barram antes de qualquer envio, os **seis níveis de autonomia por
-   assunto**, o que a clínica **ensina** a ele, a **prova** que ele faz antes de
-   falar com paciente, e o **modo de observação** que deixa ler o que ele pensou
-8. **O dia da equipe** — a tela do dia, as conversas, a ficha, **o que o
-   atendimento deixou de fazer** e **mais de uma unidade**
-9. **Resultados** — o funil, o **radar de receita**, **orçamento que virou
-   tratamento**, **o que o sistema aprende**, **a meta com a régua**, **a manhã
-   do dono**, **quanto a IA custa**, e o fecho
-
-Cena a cena em [STORYBOARD.md](STORYBOARD.md).
-
-**Vinte vezes** ao longo do filme aparece no rodapé a linha **"Por que"**: o
-critério que o sistema usou para tomar aquela decisão. É assim que a peça mostra
-inteligência em vez de afirmar que ela existe.
-
-## Como está organizado
-
+```bash
+npm run build
+npm run preview
+npm run typecheck
+npm run check
+npm run video:preview
+npm run video:render
+npm run video:leve
+npm run video:render:vertical
+npm run video:thumbnail
+npm run video:frame
+npm run cenas:ordenar
+npm run narracao
+npm run trilha
+npm run audio:conferir
 ```
+
+A ordem `narracao` → `trilha` deve ser preservada quando a trilha depende dos tempos da voz.
+
+No repositório raiz, `npm run tour:build` delega o build para este subprojeto.
+
+## Organização
+
+```text
 src/
-  data/          conteúdo e tempos — é aqui que se edita a peça
-  design-system/ cores, tipografia, blocos visuais
-  motion/        a matemática do movimento (sem React, sem Remotion)
-  components/    nós, conexões, celular, gráficos, janela do produto
-  scenes/        as 51 cenas, na ordem do filme (numeradas por cenas:ordenar)
-  film/          o filme: dado um frame, desenha o quadro
-  interactive/   player, controles, legenda, modo explorar
-  remotion/      as composições de vídeo
-  hooks/ utils/ audio/
-scripts/         gerador de narração (voz neural + tempos das legendas)
+├── data/           conteúdo, cenas, métricas e narração
+├── design-system/  linguagem visual da peça
+├── motion/         matemática de movimento
+├── components/     blocos visuais
+├── scenes/         cenas
+├── film/           composição do filme por frame
+├── interactive/    player/tour
+└── remotion/       composições de vídeo
+
+scripts/            geração/validação de áudio, cena e exportação
+out/                artefatos locais gerados
 ```
 
-A regra que sustenta tudo: **o filme é uma função pura do frame.** Nada de
-`setTimeout`, `Date.now()` ou transição CSS dentro do palco. É isso que faz
-pausar, arrastar a barra e renderizar um frame avulso serem o mesmo problema — e
-o que garante que o MP4 seja idêntico ao que se vê no navegador.
+A regra central permanece: o quadro deve ser determinístico em função do tempo/frame. Evite lógica que dependa de `Date.now()`, `setTimeout` ou estado temporal não reproduzível dentro do palco do filme.
 
-## Tarefas comuns
+## Documentação do subprojeto
 
-| Quero…                        | Onde                                                              |
-| ----------------------------- | ------------------------------------------------------------------ |
-| Trocar um texto do vídeo      | `src/data/conteudo.ts`                                            |
-| Trocar a narração/legenda     | `src/data/narracao.json`, depois `npm run narracao`                |
-| Trocar a voz                  | `npm run narracao -- --voz pt-BR-AntonioNeural`                    |
-| Trocar os números             | `src/data/metricas.ts`                                            |
-| Alongar ou encurtar uma cena  | `src/data/cenas.json`, depois `narracao` e `trilha`                |
-| Acrescentar uma cena no meio  | criar o `.tsx`, somar em `cenas.json` e no `index.ts`, e rodar `npm run cenas:ordenar` |
-| Abrir o tour num trecho       | `?cena=cobranca`, `?frame=5990` ou `?t=3:08` na URL                |
-| Colocar um logo real          | `src/data/marcas.ts` + a pasta em `public/brands/`                 |
-| Mexer na música               | `scripts/gerar-trilha.mjs` — ela é sintetizada, não é arquivo baixado |
-| Regravar a locução com pessoa | `out/roteiro-narracao.txt` traz o texto com as marcações de tempo   |
-| Publicar a versão nova        | `npm run build` (cai em `../public/crc-tour/`)                     |
+| Arquivo | Papel |
+| --- | --- |
+| `CONTENT.md` | linguagem e conteúdo da apresentação |
+| `STORYBOARD.md` | sequência narrativa/cenas |
+| `ASSETS.md` | ativos e origem |
+| `MOTION-SYSTEM.md` | movimento/transições |
+| `RENDERING.md` | render/exportação |
+| `PUBLICACAO.md` | publicação |
 
-Mais em [CONTENT.md](CONTENT.md), [ASSETS.md](ASSETS.md),
-[RENDERING.md](RENDERING.md), [PUBLICACAO.md](PUBLICACAO.md),
-[MOTION-SYSTEM.md](MOTION-SYSTEM.md) e [STORYBOARD.md](STORYBOARD.md).
+Esses arquivos descrevem a peça audiovisual, não o estado técnico completo do CRC. Para produto atual, use [`../docs/crc/README.md`](../docs/crc/README.md) e o mapa gerado.
 
-## Três coisas que a peça se recusa a fazer
+## Conteúdo e dados
 
-1. **Não promete percentual de receita.** Mostra o mecanismo (mais contato → mais
-   resposta → mais agenda) e o valor que está parado na fila. O que vira caixa
-   depende da clínica.
-2. **Não passa número inventado por real.** Todos os dados são fictícios e a tela
-   diz isso. Quando houver dado da clínica, troque em `metricas.ts` e vire
-   `ILUSTRATIVO` para `false`: o carimbo some sozinho de todas as cenas.
-3. **Não usa logo que não tem.** Só a marca da JP é real (vetorizada dos EPS da
-   clínica). Dental Office, WhatsApp e n8n aparecem como wordmark do próprio
-   design system até alguém colocar o arquivo oficial — ver [ASSETS.md](ASSETS.md).
+A apresentação não deve apresentar número fictício como resultado real da clínica. Quando o dado for ilustrativo, a peça deve deixá-lo explícito. Métricas reais só entram com fonte e escopo definidos.
 
-## Linguagem
+Também não deve prometer percentual de receita/recuperação sem evidência. Mostre mecanismo, fluxo e capacidade; resultado financeiro depende de uso, base, operação e conversão clínica.
 
-Quem assiste é dono de clínica, dentista, recepção e CRC — não gente de
-tecnologia. Por isso não existe na tela nem na fala: *evento*, *webhook*,
-*score*, *opt-out*, *job*, *lead*, *deduplicação*, `appointment.missed`. Cada uma
-virou a frase que a explica. Se você for editar texto, mantenha a regra — ela
-está escrita em [CONTENT.md](CONTENT.md).
+## Marcas de terceiros
+
+Use ativos oficiais apenas quando houver direito/arquivo apropriado. Não desenhe uma marca de terceiro como se fosse oficial. A marca da JP segue `docs/marca/` no projeto raiz.
+
+## Relação com o produto
+
+A apresentação pode ficar desatualizada mesmo com o CRC funcionando corretamente. Antes de uso comercial externo:
+
+1. compare afirmações do roteiro com o CRC atual;
+2. confira integrações realmente ativas;
+3. remova números que pertençam a demonstração antiga;
+4. rode `npm run check`;
+5. regenere o build/tour e, se necessário, vídeo/thumbnail.
+
+## Publicação
+
+O build deve continuar isolado do app principal; o site consome o artefato estático publicado, não importa o código do Remotion/player no bundle do paciente.
+
+Detalhes operacionais permanecem em [`PUBLICACAO.md`](PUBLICACAO.md).
