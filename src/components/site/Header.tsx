@@ -26,10 +26,10 @@ import "./visual-fixes.css";
  *  conhecer a estrutura; veio saber se resolvem o dente que falta.
  *
  *  O QUE NÃO SAI, E NÃO SAI POR REGRA: a marca (identificação), o telefone
- *  (acesso), o endereço e o horário da barra de cima (confiança e CFO), o CTA,
- *  o `SkipLink` que vem antes dele e o menu do celular — que, abaixo de `xl`, é
- *  o ÚNICO caminho para telefone e WhatsApp. Esconder a navegação do celular
- *  seria trocar conversão por conversão.
+ *  (acesso), o endereço e o horário da barra de cima (confiança e CFO), o CTA
+ *  e o `SkipLink` que vem antes dele. No mobile, o botão de menu permanece para
+ *  expor telefone e WhatsApp, mas os links de navegação da home não são montados
+ *  quando `enxuto=true`.
  * ============================================================================
  */
 export function Header({ enxuto = false }: { enxuto?: boolean }) {
@@ -47,9 +47,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
     return () => window.removeEventListener("scroll", aoRolar);
   }, []);
 
-  // Se o menu estiver aberto em tablet e a viewport crescer para o breakpoint
-  // em que a navegação desktop assume, feche o estado móvel também. Sem isso o
-  // CSS escondia o menu, mas o efeito abaixo mantinha o body sem rolagem.
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 1280px)");
     const fecharNoDesktop = () => {
@@ -61,9 +58,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
     return () => desktop.removeEventListener("change", fecharNoDesktop);
   }, []);
 
-  // Enquanto o menu móvel está aberto, ele se comporta como uma superfície
-  // modal: trava o scroll da página, fecha ao tocar fora e mantém o foco dentro
-  // dos controles visíveis. Isso evita a sensação de menu "solto" sobre a home.
   useEffect(() => {
     if (!aberto) return;
 
@@ -118,17 +112,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
     };
   }, [aberto]);
 
-  /*
-   * O CTA DO TOPO FALA DO TRATAMENTO DA PÁGINA — e é o primeiro link de
-   * WhatsApp do documento, ou seja, o que mais gente clica sem rolar nada.
-   *
-   * Ele era sempre genérico ("Vim pelo site da JP…"), inclusive na LP de
-   * implante. Numa campanha paga isso significa a recepção receber a conversa
-   * mais cara do funil sem saber o que a pessoa estava lendo. `tituloDaRota`
-   * responde pelas DUAS famílias de URL, a orgânica e a de anúncio; fora de
-   * página de tratamento devolve `null`, e aí a mensagem segue genérica — que
-   * é o certo na home.
-   */
   const assunto = tituloDaRota(location.pathname) ?? undefined;
   const wa = useContatoWhatsApp("agendar", assunto);
 
@@ -154,15 +137,11 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         scrolled ? "shadow-[0_10px_40px_rgba(3,47,1,0.08)]" : ""
       }`}
     >
-      {/* BARRA SUPERIOR */}
       <div className="bg-brand-deep text-white">
         <div className="jp-container flex h-[34px] items-center justify-between">
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
             <span className="text-micro font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-micro">
-              {/* Os {" "} não são enfeite: o JSX apaga a quebra de linha entre
-                  texto e elemento, e o bullet é aria-hidden. Sem eles o leitor
-                  de tela anuncia "Vila BrunaFreguesia do Ó" grudado. */}
               Vila Bruna{" "}
               <span aria-hidden="true" className="mx-2 text-lime">
                 •
@@ -202,10 +181,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         </div>
       </div>
 
-      {/* NAVEGAÇÃO PRINCIPAL
-          No mobile/tablet o fundo é praticamente sólido de propósito: backdrop-filter
-          num elemento sticky custa composição a cada frame durante o scroll. O blur
-          premium fica só no desktop, onde há GPU/viewport para ele e a barra é maior. */}
       <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
         <div
           className={`jp-container flex items-center justify-between gap-3 transition-[height] duration-300 sm:gap-5 xl:gap-[clamp(24px,2.2vw,44px)] ${
@@ -227,11 +202,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
             />
           </a>
 
-          {/* NO ENXUTO A NAV NÃO É ESCONDIDA — ela não é montada.
-              `display:none` tiraria da tela e da ordem de foco, mas deixaria os
-              seis links no HTML servido; o robô do Google Ads que avalia a
-              landing lê o HTML. Um `<div>` vazio ocupa o lugar dela porque é o
-              `flex-1` que empurra o CTA para a direita. */}
           {enxuto ? (
             <div className="hidden min-w-0 flex-1 xl:block" />
           ) : (
@@ -314,29 +284,37 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         }`}
       >
         <nav className="jp-container py-6" aria-label="Navegação móvel">
-          <div className="grid gap-1 sm:grid-cols-2">
-            {NAV.map((item) => {
-              const ativo = itemAtivo(item.href);
-              return (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  onClick={fechar}
-                  aria-current={ativo ? (item.href.includes("#") ? "location" : "page") : undefined}
-                  className={`flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold transition ${
-                    ativo
-                      ? "bg-[#EBF5E1] text-forest-2"
-                      : "text-forest hover:bg-[#EBF5E1] hover:text-forest-2"
-                  }`}
-                >
-                  {item.label}
-                  <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
-                </a>
-              );
-            })}
-          </div>
+          {!enxuto && (
+            <div className="grid gap-1 sm:grid-cols-2">
+              {NAV.map((item) => {
+                const ativo = itemAtivo(item.href);
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={fechar}
+                    aria-current={
+                      ativo ? (item.href.includes("#") ? "location" : "page") : undefined
+                    }
+                    className={`flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold transition ${
+                      ativo
+                        ? "bg-[#EBF5E1] text-forest-2"
+                        : "text-forest hover:bg-[#EBF5E1] hover:text-forest-2"
+                    }`}
+                  >
+                    {item.label}
+                    <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
 
-          <div className="mt-5 grid gap-3 border-t border-border-soft pt-5 sm:grid-cols-2">
+          <div
+            className={`grid gap-3 sm:grid-cols-2 ${
+              enxuto ? "" : "mt-5 border-t border-border-soft pt-5"
+            }`}
+          >
             <a
               href={CLINICA.telefoneHref}
               onClick={fechar}
