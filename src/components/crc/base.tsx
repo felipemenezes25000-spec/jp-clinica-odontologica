@@ -305,12 +305,36 @@ export function Modal({
   aoFechar,
   children,
   rodape,
+  lateral = false,
+  aoAnterior,
+  aoProximo,
 }: {
   titulo: string;
   aberto: boolean;
   aoFechar: () => void;
   children: ReactNode;
   rodape?: ReactNode;
+  /**
+   * Abre como PAINEL LATERAL em vez de caixa centralizada.
+   *
+   * ==========================================================================
+   *  POR QUE UMA VARIANTE, E NÃO UM COMPONENTE NOVO.
+   *
+   *  O §6 pede que o detalhe abra "sobre o contexto", e não numa página cheia:
+   *  quem clica num paciente a partir da fila quer ver a ficha SEM perder de
+   *  vista de onde veio. Isso é geometria — uma folha na direita em vez de uma
+   *  caixa no meio.
+   *
+   *  Tudo o mais que um diálogo precisa já está aqui e é chato de acertar:
+   *  foco preso, Escape, `aria-modal`, e o foco devolvido a quem abriu. Criar
+   *  um componente separado significaria uma segunda implementação dessas
+   *  quatro coisas — e a segunda é sempre a que esquece a devolução do foco.
+   * ==========================================================================
+   */
+  lateral?: boolean;
+  /** Navegação dentro da lista de origem, quando ela existe. */
+  aoAnterior?: (() => void) | undefined;
+  aoProximo?: (() => void) | undefined;
 }) {
   const caixa = useRef<HTMLDivElement>(null);
   const tituloId = useId();
@@ -372,9 +396,10 @@ export function Modal({
         position: "fixed",
         inset: 0,
         background: "rgba(22, 36, 26, 0.35)",
-        display: "grid",
-        placeItems: "center",
-        padding: "var(--crc-e4)",
+        display: lateral ? "flex" : "grid",
+        justifyContent: lateral ? "flex-end" : undefined,
+        placeItems: lateral ? undefined : "center",
+        padding: lateral ? 0 : "var(--crc-e4)",
         zIndex: 60,
       }}
     >
@@ -383,19 +408,81 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={tituloId}
-        className="crc-cartao"
-        style={{
-          borderRadius: "var(--crc-r-modal)",
-          maxWidth: "min(520px, 100%)",
-          width: "100%",
-          boxShadow: "var(--crc-sombra-flutuante)",
-          maxHeight: "85dvh",
-          overflowY: "auto",
-        }}
+        className={lateral ? "crc-cartao crc-folha-lateral" : "crc-cartao"}
+        style={
+          lateral
+            ? {
+                /*
+                 * 480–640 px no desktop, tela inteira no celular. Abaixo de
+                 * 480 a folha vira a própria tela — um painel de 480 px numa
+                 * janela de 390 seria um modal com sobra inútil dos dois lados.
+                 */
+                width: "min(640px, 100vw)",
+                minWidth: "min(480px, 100vw)",
+                height: "100dvh",
+                maxHeight: "100dvh",
+                borderRadius: 0,
+                overflowY: "auto",
+                boxShadow: "var(--crc-sombra-flutuante)",
+                /* O entalhe e a barra de gestos também existem aqui. */
+                paddingTop: "calc(var(--crc-e4) + env(safe-area-inset-top, 0px))",
+                paddingBottom: "calc(var(--crc-e4) + env(safe-area-inset-bottom, 0px))",
+                paddingRight: "calc(var(--crc-e4) + env(safe-area-inset-right, 0px))",
+              }
+            : {
+                borderRadius: "var(--crc-r-modal)",
+                maxWidth: "min(520px, 100%)",
+                width: "100%",
+                boxShadow: "var(--crc-sombra-flutuante)",
+                maxHeight: "85dvh",
+                overflowY: "auto",
+              }
+        }
       >
-        <h2 id={tituloId} className="crc-titulo-secao" style={{ marginBottom: "var(--crc-e3)" }}>
-          {titulo}
-        </h2>
+        <div
+          className="crc-linha"
+          style={{
+            justifyContent: "space-between",
+            marginBottom: "var(--crc-e3)",
+            gap: "var(--crc-e2)",
+          }}
+        >
+          <h2 id={tituloId} className="crc-titulo-secao" style={{ margin: 0, minWidth: 0 }}>
+            {titulo}
+          </h2>
+          {lateral && (
+            <div className="crc-linha" style={{ gap: "var(--crc-e2)", flexShrink: 0 }}>
+              {/*
+                ANTERIOR E PRÓXIMO PERCORREM A LISTA DE ORIGEM. Sem eles, ver
+                cinco pacientes da fila é abrir e fechar cinco vezes — e a
+                folha existe justamente para não perder o lugar na lista.
+              */}
+              {aoAnterior !== undefined && (
+                <Botao
+                  variante="discreto"
+                  pequeno
+                  onClick={aoAnterior}
+                  aria-label="Paciente anterior"
+                >
+                  ‹
+                </Botao>
+              )}
+              {aoProximo !== undefined && (
+                <Botao
+                  variante="discreto"
+                  pequeno
+                  onClick={aoProximo}
+                  aria-label="Próximo paciente"
+                >
+                  ›
+                </Botao>
+              )}
+              <Botao variante="discreto" pequeno onClick={aoFechar} aria-label="Fechar">
+                ✕
+              </Botao>
+            </div>
+          )}
+        </div>
         {children}
         {rodape !== undefined && (
           <div

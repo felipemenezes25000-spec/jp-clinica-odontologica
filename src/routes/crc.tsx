@@ -78,6 +78,7 @@ import { Logo } from "@/components/site/Logo";
  * ============================================================================
  */
 import { Paleta, type AcaoPaleta } from "@/components/crc/Paleta";
+import { FolhaDoPaciente } from "@/components/crc/FolhaDoPaciente";
 import { ProvedorDoCrc } from "@/components/crc/contexto-crc";
 import { abaDoCaminho, caminhoDaAba, type Aba } from "@/components/crc/rotas";
 import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
@@ -1865,16 +1866,44 @@ function PortalCrc() {
     };
   }, [sessao?.autenticado]);
 
+  /**
+   * ==========================================================================
+   *  ABRIR UM PACIENTE NÃO TROCA MAIS DE TELA.
+   *
+   *  Antes isto levava para `/crc/pacientes`: quem clicava num nome na fila
+   *  perdia a fila, e quem clicava num card do funil perdia o recorte que tinha
+   *  acabado de montar. Voltar exigia lembrar de onde se veio — que é o
+   *  "takeover" que o §6 manda substituir.
+   *
+   *  Agora a ficha abre como FOLHA sobre a tela atual, e só o endereço ganha
+   *  `?paciente=`. `/crc/funil?paciente=123` é o funil com a ficha por cima:
+   *  linkável, sobrevive a um F5, e "voltar" do navegador fecha a folha em vez
+   *  de sair do lugar.
+   *
+   *  A tela `/crc/pacientes` continua abrindo a ficha inteira — lá a ficha É a
+   *  tela, e uma folha por cima da busca seria janela dentro de janela.
+   * ==========================================================================
+   */
   const abrirPaciente = useCallback(
     (patientId: string): void => {
       void navegar({
-        to: "/crc/$tela",
-        params: { tela: "pacientes" },
-        search: { paciente: patientId },
+        to: ".",
+        search: (atual: Record<string, unknown>) => ({ ...atual, paciente: patientId }),
       });
     },
     [navegar],
   );
+
+  /** Fecha a folha tirando o paciente (e a aba dele) do endereço. */
+  const fecharFicha = useCallback((): void => {
+    void navegar({
+      to: ".",
+      search: (atual: Record<string, unknown>) => {
+        const { paciente: _paciente, ficha: _ficha, ...resto } = atual;
+        return resto;
+      },
+    });
+  }, [navegar]);
 
   if (sessao === null) {
     return (
@@ -2267,6 +2296,19 @@ function PortalCrc() {
             */}
               <Outlet />
             </Suspense>
+
+            {/*
+              A FOLHA VIVE NO LAYOUT, e não em cada tela.
+
+              Ela é aberta a partir da fila, da agenda, do funil e das conversas
+              — quatro telas. Montá-la em cada uma seria quatro cópias do mesmo
+              painel, e quatro chances de uma delas esquecer de devolver o foco.
+            */}
+            {pacienteAberto !== null && abaAtual !== "pacientes" && (
+              <Suspense fallback={null}>
+                <FolhaDoPaciente patientId={pacienteAberto} aoFechar={fecharFicha} />
+              </Suspense>
+            )}
           </main>
         </div>
       </div>

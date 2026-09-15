@@ -24,7 +24,7 @@
  *   NADA DE TELA VEM ANTES DA SENHA. É o ganho que justifica a mudança.
  *   VOLTAR PARA UMA ABA JÁ ABERTA NÃO BAIXA DE NOVO. Prova o cache do módulo.
  */
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 import { entrarNoCrc, navegacao } from "./apoio/entrar";
 
@@ -311,5 +311,102 @@ test.describe("a escolha da pessoa sobrevive ao F5", () => {
 
     // Um único "voltar" sai da agenda inteira, e não volta para 7 dias.
     await expect(page).not.toHaveURL(/\/crc\/agenda/u);
+  });
+});
+
+/* ========================================================================== */
+/* §6 — o detalhe abre SOBRE o contexto, e não no lugar dele                   */
+/* ========================================================================== */
+
+/**
+ * ============================================================================
+ *  A PRIMEIRA VERSÃO DESTES CASOS ABRIA A FICHA CLICANDO NUM CARD DO FUNIL.
+ *
+ *  Todos os três reprovaram, e não por causa da folha: o banco de teste tem
+ *  DOIS pacientes e ZERO oportunidades, então o funil mostra o estado vazio e
+ *  `.crc-funil-quadro-v2` nem existe. O teste dependia de dado que a instalação
+ *  do E2E não semeia.
+ *
+ *  Agora ele pega um paciente REAL pela busca — que é o caminho por onde a
+ *  própria recepção o acharia — e usa o endereço para abrir a folha sobre outra
+ *  tela. Sem dado inventado, e sem depender do que o seed resolve criar.
+ * ============================================================================
+ */
+async function umPacienteDeVerdade(page: Page): Promise<string> {
+  await page.goto("/crc/pacientes");
+
+  /*
+   * "Paciente", E NÃO UMA LETRA SÓ.
+   *
+   * A busca exige duas letras — abaixo disso ela nem consulta, e mostra o
+   * convite "comece pelo nome". A primeira versão deste helper digitava "a" e
+   * clicava no primeiro botão que achasse dentro do `main`, que acabava sendo
+   * um controle da própria tela. O teste reprovava sem nunca ter aberto ficha
+   * nenhuma.
+   *
+   * O termo casa com os dois pacientes que a instalação do E2E cria
+   * ("Paciente De Teste" e "Paciente Da Unidade Vizinha").
+   */
+  await page.getByLabel(/Buscar paciente/u).fill("Paciente");
+
+  const primeiro = page.locator(".crc-paciente-resultado-v2").first();
+  await expect(primeiro).toBeVisible({ timeout: 15_000 });
+  await primeiro.click();
+
+  await expect(page).toHaveURL(/paciente=/u, { timeout: 15_000 });
+  const id = new URL(page.url()).searchParams.get("paciente");
+  expect(id, "não consegui obter o id de um paciente pela busca").not.toBeNull();
+  return id ?? "";
+}
+
+test.describe("a ficha do paciente abre como folha", () => {
+  test("abre SOBRE a tela atual, com ela ainda atrás", async ({ page }) => {
+    await entrarNoCrc(page);
+    const id = await umPacienteDeVerdade(page);
+
+    await page.goto(`/crc/radar?paciente=${id}`);
+
+    const folha = page.locator('[role="dialog"][aria-modal="true"]');
+    await expect(folha).toBeVisible({ timeout: 15_000 });
+
+    /*
+     * AS TRÊS COISAS QUE FAZEM ISTO SER UMA FOLHA, E NÃO UMA PÁGINA:
+     *
+     *   o contexto continua atrás — é o ponto inteiro do §6;
+     *   o endereço acompanha, então ela é linkável e sobrevive ao F5;
+     *   o foco entra nela, senão o teclado segue na tela de trás.
+     */
+    await expect(page.getByRole("main")).toContainText(/Radar/u);
+    await expect(page).toHaveURL(/paciente=/u);
+    expect(await folha.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  });
+
+  test("Escape fecha a folha e tira o paciente do endereço", async ({ page }) => {
+    await entrarNoCrc(page);
+    const id = await umPacienteDeVerdade(page);
+    await page.goto(`/crc/radar?paciente=${id}`);
+    await expect(page.locator('[role="dialog"][aria-modal="true"]')).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.keyboard.press("Escape");
+
+    await expect(page.locator('[role="dialog"][aria-modal="true"]')).toHaveCount(0);
+    await expect(page).not.toHaveURL(/paciente=/u);
+    // E a tela de trás continua sendo a que era: fechar não navega.
+    await expect(page).toHaveURL(/\/crc\/radar/u);
+  });
+
+  test("na tela de Pacientes a ficha é a TELA, e não uma folha", async ({ page }) => {
+    /*
+     * A contrapartida. Abrir folha por cima da busca de pacientes seria janela
+     * dentro de janela — ali a ficha é o destino, não um detalhe sobre outra
+     * coisa. Sem este caso, "sempre abre folha" passaria por acerto.
+     */
+    await entrarNoCrc(page);
+    await umPacienteDeVerdade(page);
+
+    await expect(page).toHaveURL(/\/crc\/pacientes/u);
+    await expect(page.locator('[role="dialog"][aria-modal="true"]')).toHaveCount(0);
   });
 });
