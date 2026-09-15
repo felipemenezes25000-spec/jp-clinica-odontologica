@@ -97,7 +97,10 @@ export function mapearPaciente(bruto: unknown): Validacao<PacienteExterno> {
    * Não há endpoint que liste as situações de paciente, então não dá para
    * confirmar que a clínica usa os ids de fábrica. Se ela criou os próprios, a
    * leitura sai errada — e é por isso que "qual endpoint lista as situações de
-   * paciente?" está na lista de perguntas ao Dental Office.
+   * paciente?" é a pergunta 5 de `docs/crc/EMAIL-DENTAL-OFFICE.md`.
+   *
+   * (Esta linha citava "a lista de perguntas ao Dental Office" quando lista
+   * nenhuma existia. Agora existe, e o endereço dela está aqui.)
    *
    * Enquanto a resposta não vem, errar para DESCONHECIDO é seguro: paciente
    * com situação desconhecida não entra em jornada que dependa dela.
@@ -145,6 +148,9 @@ export function mapearPaciente(bruto: unknown): Validacao<PacienteExterno> {
        * texto — é melhor que `null`, porque permite agrupar pacientes do mesmo
        * convênio mesmo sem saber o nome dele, e o dia em que o endpoint
        * existir a tradução é uma migração de uma linha.
+       *
+       * "Existe endpoint que liste os convênios?" é a pergunta 6 de
+       * `docs/crc/EMAIL-DENTAL-OFFICE.md`.
        */
       convenio:
         textoOpcional(

@@ -22,6 +22,7 @@
 import { ErroHttp, pedir } from "../../servidor/http";
 import { campo, ehObjeto, numeroOpcional, textoOpcional } from "../../dominio/validar";
 import type { CredenciaisDentalOffice } from "../credenciais";
+import { raizDaApi } from "./base-url";
 
 /*
  * A LEITURA DAS CREDENCIAIS SAIU DAQUI, e foi para `integracoes/credenciais.ts`.
@@ -123,7 +124,13 @@ async function autenticar(
   credenciais: CredenciaisDentalOffice,
   requestId?: string,
 ): Promise<TokenEmCache> {
-  const resposta = await pedir(`${credenciais.baseUrl}/v1/auth/tokens`, {
+  /*
+   * `raizDaApi` e não `credenciais.baseUrl` direto: a URL é entregue pelo
+   * Dental Office JÁ terminando em `/v1`, e concatenar de novo produzia
+   * `/v1/v1/auth/tokens` — 404 na PRIMEIRA chamada de qualquer fluxo. O
+   * porquê inteiro está em `base-url.ts`.
+   */
+  const resposta = await pedir(`${raizDaApi(credenciais.baseUrl)}/v1/auth/tokens`, {
     metodo: "POST",
     corpo: { client_id: credenciais.clientId, secret: credenciais.secret },
     // Autenticar é idempotente na prática (não cria nada do lado de lá), então

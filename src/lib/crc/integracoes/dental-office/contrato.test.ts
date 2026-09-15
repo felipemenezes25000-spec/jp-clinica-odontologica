@@ -314,3 +314,42 @@ describe("a autenticação é a do fluxo documentado", () => {
     expect(corpo.secret).toBe("seg-1");
   });
 });
+
+/**
+ * ============================================================================
+ *  A AUTENTICAÇÃO TAMBÉM MONTA URL — e ninguém estava olhando.
+ *
+ *  O teste acima confere método e corpo do `POST /auth/tokens`, e para aí. O
+ *  bloco "a URL base não ganha /v1 duas vezes" confere a URL, mas através de
+ *  `ultimaDeNegocio()`, que EXCLUI `/auth/tokens` de propósito.
+ *
+ *  Resultado: a única chamada que o adapter faz ANTES de qualquer outra era a
+ *  única cuja URL nenhum teste olhava. E ela é a primeira que vai sair no dia
+ *  em que a credencial chegar — se estiver errada, a integração inteira morre
+ *  no primeiro passo, com 404, sem chegar a tentar nada.
+ * ============================================================================
+ */
+function chamadaDeToken(): Chamada {
+  const t = chamadas.find((c) => c.url.includes("/auth/tokens"));
+  if (t === undefined) throw new Error("nenhuma autenticação foi feita");
+  return t;
+}
+
+describe("a autenticação não ganha /v1 duas vezes", () => {
+  it("a base entregue JÁ com /v1 não vira /v1/v1/auth/tokens", async () => {
+    interceptar();
+    await (await clienteDeTeste()).listarDentistas("7");
+
+    const { url } = chamadaDeToken();
+    expect(url).not.toContain("/v1/v1");
+    expect(url).toBe("https://jp.api.app.dentaloffice.com.br/v1/auth/tokens");
+  });
+
+  it("uma base SEM /v1 chega no mesmo lugar", async () => {
+    vi.stubEnv("DENTAL_OFFICE_BASE_URL", "https://jp.api.app.dentaloffice.com.br");
+    interceptar();
+    await (await clienteDeTeste()).listarDentistas("7");
+
+    expect(chamadaDeToken().url).toBe("https://jp.api.app.dentaloffice.com.br/v1/auth/tokens");
+  });
+});

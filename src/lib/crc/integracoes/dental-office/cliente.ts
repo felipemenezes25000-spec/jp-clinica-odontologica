@@ -22,6 +22,7 @@ import type { SlotDisponivel, StatusAgendamento } from "../../dominio/tipos";
 import { codigoDeStatusAgendamento } from "../../dominio/status";
 
 import { invalidarToken, obterToken } from "./auth";
+import { raizDaApi } from "./base-url";
 import { credenciaisDentalOffice, type CredenciaisDentalOffice } from "../credenciais";
 import { criarSandbox } from "./sandbox";
 import {
@@ -186,9 +187,11 @@ const cotaVista = new Map<string, { restantes: number; em: number }>();
  * hora é folga enorme, por dia cabe apertado, por mês torna impossível um
  * motor de minuto em minuto.
  *
- * Perguntar ao suporte é o caminho certo e leva dias. Enquanto isso, o número
- * já chega em toda resposta: quando `Remaining` SOBE em vez de descer, a
- * janela virou — e o intervalo entre duas subidas é a resposta.
+ * Perguntar ao suporte é o caminho certo e leva dias — é a pergunta 2 de
+ * `docs/crc/EMAIL-DENTAL-OFFICE.md`, e a mais importante da lista. Enquanto a
+ * resposta não vem, o número já chega em toda resposta: quando `Remaining`
+ * SOBE em vez de descer, a janela virou — e o intervalo entre duas subidas é a
+ * resposta.
  *
  * Dois avisos, e os dois são acionáveis:
  *   a virada da janela, que ensina o período;
@@ -284,19 +287,12 @@ class ClienteDentalOffice implements PortaDentalOffice {
     },
   ): Promise<unknown> {
     /*
-     * A URL BASE JÁ TERMINA EM /v1.
-     *
-     * O Dental Office entrega, junto do client_id e do secret, uma URL
-     * exclusiva do cliente — e ela vem com o /v1 no fim
-     * (`https://SEU.api.app.dentaloffice.com.br/v1`). Concatenar "/v1/..." aqui
-     * produzia `/v1/v1/customers` e um 404 em toda chamada.
-     *
-     * Tolerar as duas formas é deliberado: quem cadastrar a variável sem o /v1
-     * também funciona. Uma integração que só aceita uma grafia da URL vira
-     * chamado de suporte no dia da ativação.
+     * A URL BASE JÁ TERMINA EM /v1 — a regra inteira, e o que ela custou, está
+     * em `base-url.ts`. Esta linha era uma CÓPIA dela, e a outra cópia (a de
+     * `auth.ts`) ficou para trás: a autenticação seguiu montando `/v1/v1`
+     * enquanto todo o resto do adapter estava certo.
      */
-    const base = this.credenciais.baseUrl.replace(/\/+$/u, "").replace(/\/v1$/u, "");
-    const url = new URL(`${base}/v1${caminho}`);
+    const url = new URL(`${raizDaApi(this.credenciais.baseUrl)}/v1${caminho}`);
     for (const [chave, valor] of Object.entries(opcoes.query ?? {})) {
       if (valor !== undefined) url.searchParams.set(chave, String(valor));
     }
@@ -463,6 +459,24 @@ class ClienteDentalOffice implements PortaDentalOffice {
      *
      * O `atualizadosDesde` continua na assinatura para o dia em que eles
      * adicionarem o filtro. Enviá-lo hoje seria só ruído na query.
+     *
+     * ─────────────────────────────────────────────────────────────────────
+     * `per_page` É ENVIADO SEM ESTAR DECLARADO NESTE ENDPOINT.
+     *
+     * A introdução da documentação deles diz "use os parâmetros `page` e
+     * `per_page`". Mas, na lista de parâmetros, `per_page` só aparece em
+     * `/customer_evolutions`, `/disciplines`, `/schedule_reasons` e
+     * `/schedule_situations` — NÃO em `/customers`, nem em
+     * `/clinics/{id}/schedules`, que são os dois que paginamos em volume.
+     *
+     * Mandamos assim mesmo: parâmetro desconhecido é ignorado, e se ele valer,
+     * economiza requisição. O que NÃO dá para fazer é contar com ele — se for
+     * ignorado, o tamanho de página é o que o servidor decidir, e uma varredura
+     * completa de pacientes custa muito mais requisições do que o cálculo em
+     * cima do teto de 5.000 sugere.
+     *
+     * É a pergunta 3 de `docs/crc/EMAIL-DENTAL-OFFICE.md`.
+     * ─────────────────────────────────────────────────────────────────────
      */
     const corpo = await this.chamar("/customers", {
       operacao: "listar_pacientes",
