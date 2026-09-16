@@ -4,6 +4,15 @@
 >
 > Estado observado da ficha nessa data: nota 4,6 com 192 avaliações, 715 interações com clientes, 482 visualizações mensais, categoria "Clínica odontológica", força do perfil "Informações completas", nenhuma campanha do Google Ads configurada.
 
+> **Atualizado no fim de 15/09/2026.** A clínica respondeu um questionário por WhatsApp e fechou seis pendências que este documento listava. Em resumo, e detalhado adiante:
+>
+> - **Convênios**: SulAmérica, Porto Seguro, Bradesco, OdontoPrev, Dental Par e Rede Brazil Dental. O site passou a publicar a lista; a ficha ainda não.
+> - **Serviços**: não são oito, são dezessete. Faltavam clínica geral, endodontia, periodontia, facetas, alinhadores, odontologia do esporte, DTM, atendimento a idosos e pacientes com necessidades especiais.
+> - **Acessibilidade**: a clínica é acessível e tem barras de apoio — §3.3 podia ser respondido, e foi.
+> - **Sábado**: não atende. §3.2 fechado.
+> - **WhatsApp da placa**: a placa é que está errada. O número do site, (11) 97616-5117, é o oficial; o antigo foi clonado e desativado. §1.5 e C7 fechados — e isso muda o §1.4, porque uma foto da fachada publica o número errado.
+> - **Pontos de referência**: travessa da Av. Edgar Facó, esquina do supermercado Violeta, perto do Hospital Geral de Vila Penteado e das obras da futura estação Penteado. C5 entregue.
+
 ## Por que este documento existe agora
 
 O repositório já sabia de coisas erradas na ficha do Google e não tinha como consertá-las. O comentário em [`src/lib/jp.ts:122`](../src/lib/jp.ts) é explícito:
@@ -56,7 +65,7 @@ Em 17/08/2027 este número vira 25, junto com `HISTORIA.anos`. Anote nos dois lu
 
 ### 1.3 Cadastrar os serviços — 40 min
 
-**Editar serviços.** Hoje não há nenhum, e é o campo que mais alimenta a busca por procedimento ("implante dentário perto de mim"). São os oito de `TRATAMENTOS`, com a descrição que o site já publica — reaproveitar garante que as duas superfícies digam a mesma coisa:
+**Editar serviços.** Hoje não há nenhum, e é o campo que mais alimenta a busca por procedimento ("implante dentário perto de mim"). Comece pelos oito de `TRATAMENTOS`, com a descrição que o site já publica — reaproveitar garante que as duas superfícies digam a mesma coisa:
 
 | Serviço | Descrição para colar |
 | --- | --- |
@@ -68,6 +77,14 @@ Em 17/08/2027 este número vira 25, junto com `HISTORIA.anos`. Anote nos dois lu
 | Restaurações | Recuperação de dentes comprometidos por cárie ou perda de estrutura, buscando função, forma e integração estética. |
 | Limpeza e profilaxia | Remoção de placa e tártaro, com orientação de higiene e acompanhamento preventivo individualizado. |
 | Harmonização orofacial | Botox, preenchimento e skinbooster quando indicados, sempre mediante avaliação profissional e planejamento individual. |
+
+E não pare nos oito. A clínica informou em 15/09/2026 que atende outras nove áreas, agora em `CUIDADOS_COMPLEMENTARES` (`src/lib/jp.ts`) e publicadas na home como lista:
+
+> Clínica geral · Endodontia (tratamento de canal) · Periodontia (tratamento de gengiva) · Facetas · Alinhadores transparentes · Odontologia do esporte · DTM (disfunção temporomandibular) · Atendimento a idosos · Pacientes com necessidades especiais
+
+Cadastre cada uma como serviço, sem descrição inventada — o nome já responde a busca, e descrição de procedimento clínico que a clínica não revisou é o tipo de texto que não se escreve por conta própria. As três últimas são as de maior retorno: quase nenhuma clínica da região cadastra atendimento a idosos ou a pacientes com necessidades especiais, e quem procura por elas procura por elas.
+
+**Não escreva "Invisalign".** A clínica citou o nome sem ter certeza do credenciamento. Sem contrato, é alinhadores transparentes — o registro está em `A_CONFIRMAR`, no mesmo arquivo.
 
 Nenhum serviço recebe preço. Preço na ficha é preço como chamariz, que o §19 do `ANUNCIAR.md` já veta.
 
@@ -139,10 +156,10 @@ Tarefas de repositório, com arquivo. Nenhuma depende do painel para ser feita; 
 | C1 | [`src/lib/jp.ts:54`](../src/lib/jp.ts) | Atualizar `AVALIACOES.nota`, `.total` e `.conferidoEm` com o que a ficha mostrar hoje. O site inteiro acompanha, inclusive a fatia da quinta estrela. |
 | C2 | [`src/lib/jp.ts:238`](../src/lib/jp.ts) | Ampliar `DEPOIMENTOS` com avaliações lidas direto da ficha, substituindo as de segunda mão do agregador. |
 | C3 | [`src/lib/analytics/eventos.ts:213`](../src/lib/analytics/eventos.ts) | Criar o link "avaliar no Google" que falta. Ver abaixo. |
-| C4 | [`src/lib/dadosEstruturados.ts:42`](../src/lib/dadosEstruturados.ts) | Acrescentar `priceRange`, `paymentAccepted` e `isAcceptingNewPatients` ao `Dentist`, e o link do Maps em `sameAs`. |
-| C5 | [`src/routes/index.tsx`](../src/routes/index.tsx) | Bloco "como chegar": ponto de referência, transporte, estacionamento. Não existe nada disso hoje. |
+| ~~C4~~ | [`src/lib/dadosEstruturados.ts`](../src/lib/dadosEstruturados.ts) | **Parcialmente feito em 15/09/2026.** Entraram `paymentAccepted`, `amenityFeature` (acessibilidade) e `areaServed` com as três regiões; `availableService` passou de 8 para 17. Continuam de fora `priceRange` (que é preço, e o §19 veta) e `isAcceptingNewPatients`. Falta o link do Maps em `sameAs`. |
+| ~~C5~~ | [`src/routes/index.tsx`](../src/routes/index.tsx) | **Feito em 15/09/2026.** Bloco "Pontos de referência" abaixo do mapa, lendo `COMO_CHEGAR` — a mesma fonte alimenta a resposta "Onde fica a clínica, e como eu chego?" da FAQ, que vai para o `FAQPage`. Estacionamento continua de fora: a clínica não foi perguntada. |
 | C6 | [`social/instagram/source/scripts/renderizar.mjs:60`](../social/instagram/source/scripts/renderizar.mjs) | Formato `google` no `VIEWPORT`, para as peças de Post. Ver §6. |
-| C7 | [`src/lib/jp.ts:80`](../src/lib/jp.ts) | Só depois da decisão de 1.5: alinhar o WhatsApp com a placa, ou registrar que a placa é que muda. |
+| ~~C7~~ | [`src/lib/jp.ts:80`](../src/lib/jp.ts) | **Resolvido sem código em 15/09/2026.** A clínica confirmou que o site está certo e a placa errada: o número antigo foi clonado e desativado. Nada a mudar aqui — o que falta é trocar a placa, e não publicar foto da fachada até lá. |
 
 **Sobre C3, que é a mais curiosa.** O classificador de eventos já trata cliques em avaliação:
 
@@ -156,7 +173,7 @@ Esse ramo **nunca dispara**. Não existe um único link `g.page` ou `google.com/
 
 O site mostra a nota em quatro lugares e não pede avaliação em lugar nenhum. É a fonte de avaliação nova mais barata que existe, e está desligada.
 
-**Sobre C5.** Nada no site responde "como chego aí" — não há menção a estacionamento, transporte ou ponto de referência em nenhuma rota pública. É conteúdo que casa exatamente com a intenção de quem chega pela ficha do Google, e que a ficha sozinha não entrega.
+**Sobre C5, que já foi.** Nada no site respondia "como chego aí". Agora responde, com as referências que a própria clínica usa: travessa da Av. Edgar Facó, esquina do supermercado Violeta, perto do Hospital Geral de Vila Penteado e das obras da futura estação Penteado do metrô. É conteúdo que casa com a intenção de quem chega pela ficha do Google, e que a ficha sozinha não entrega. Estacionamento segue sem resposta — vale perguntar.
 
 ---
 
@@ -165,8 +182,11 @@ O site mostra a nota em quatro lugares e não pede avaliação em lugar nenhum. 
 Nada aqui deve ir ao ar antes de alguém da JP confirmar:
 
 1. **Qual WhatsApp está em uso** — o da placa ou o do site (§1.5).
-2. **Se atende sábado**, e em qual escala.
-3. **Atributos da ficha**: acessibilidade para cadeirante, estacionamento, formas de pagamento aceitas, wi-fi, banheiro. O repositório não permite afirmar nenhum deles — atributo errado na ficha é promessa quebrada na porta.
+2. ~~**Se atende sábado**, e em qual escala.~~ **Respondido em 15/09/2026: não atende.** O horário do site, segunda a sexta das 8h às 18h, está correto e já é o que o `openingHoursSpecification` publica.
+3. **Atributos da ficha**, agora em três estados:
+   - **Pode marcar**: a clínica é acessível e tem barras de apoio; aceita cartão de crédito, boleto e parcelamento direto. Informado em 15/09/2026 e já publicado no site.
+   - **NÃO marque ainda**: "atende sem transferência da cadeira de rodas". A clínica disse que a cadeira odontológica dela tem mecanismos para isso e mandou confirmar com a Ana. Está em `A_CONFIRMAR`, em `src/lib/jp.ts`, e é a diferença entre um diferencial e uma pessoa cadeirante atravessando São Paulo à toa.
+   - **Continua sem resposta**: estacionamento, wi-fi, banheiro adaptado dito com essas palavras. Atributo errado na ficha é promessa quebrada na porta.
 4. **Se a foto externa atual é o prédio certo** ou sobrou do endereço de Pirituba.
 5. **Quem responde as avaliações** e com que prazo.
 6. **Quem mais tem acesso administrativo** ao perfil (§8).
