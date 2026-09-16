@@ -571,9 +571,21 @@
 .marquee:focus-within .marquee-track {
   animation-play-state: paused;
 }
+/* Sem animação, um trilho de `width: max-content` continuaria mais largo que a
+   tela, e o `overflow-hidden` do contêiner cortaria metade dos convênios — quem
+   pediu menos movimento veria menos informação, que é o contrário do combinado.
+   Aqui ele deixa de ser trilho e vira grade centrada; a segunda cópia, que só
+   existe para a volta parecer contínua, sai junto. */
 @media (prefers-reduced-motion: reduce) {
   .marquee-track {
     animation: none;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 0.75rem;
+  }
+  .marquee-copia {
+    display: none;
   }
 }
 

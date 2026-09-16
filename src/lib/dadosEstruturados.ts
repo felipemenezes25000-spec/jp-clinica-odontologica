@@ -1,7 +1,9 @@
 import {
   CLINICA,
+  CUIDADOS_COMPLEMENTARES,
   FAQ,
   HISTORIA,
+  PAGAMENTO,
   RESPONSAVEL_TECNICA,
   SITE_URL,
   TRATAMENTOS,
@@ -55,6 +57,8 @@ function consultorio() {
     hasMap: CLINICA.mapsHref,
     foundingDate: fundacaoISO,
     currenciesAccepted: "BRL",
+    /* As formas, sem os múltiplos — mesma regra do site. Ver `PAGAMENTO`. */
+    paymentAccepted: PAGAMENTO.formas.join(", "),
     sameAs: [CLINICA.instagram, CLINICA.facebook],
 
     openingHoursSpecification: [
@@ -75,18 +79,41 @@ function consultorio() {
       },
     ],
 
+    /* As três regiões vêm de `CLINICA.regioes`, e não mais só a do endereço.
+       A clínica informou em 15/09/2026 que quer atender Freguesia do Ó,
+       Cachoeirinha e Pirituba — e Pirituba só aparecia no site como passado. */
     areaServed: [
       { "@type": "Place", name: CLINICA.local.bairro },
-      { "@type": "Place", name: HISTORIA.regiaoAtual },
+      ...CLINICA.regioes.map((regiao) => ({ "@type": "Place", name: regiao })),
       { "@type": "City", name: CLINICA.local.cidade },
     ],
 
-    availableService: TRATAMENTOS.map((t: Tratamento) => ({
-      "@type": "MedicalProcedure",
-      name: t.titulo,
-      description: t.desc,
-      url: `${SITE_URL}/tratamentos/${t.slug}`,
-    })),
+    /* Acessibilidade declarada pela clínica em 15/09/2026. Só o que ela
+       confirmou: o atendimento sem transferência da cadeira de rodas está em
+       `A_CONFIRMAR` e não entra aqui enquanto não for confirmado. */
+    amenityFeature: [
+      {
+        "@type": "LocationFeatureSpecification",
+        name: "Estrutura acessível, com barras de apoio",
+        value: true,
+      },
+    ],
+
+    /* Os oito com página, com link; e as áreas que a clínica atende sem página
+       própria, só com o nome. Deixá-las de fora fazia o buscador ler uma
+       clínica que não faz canal, gengiva nem DTM. */
+    availableService: [
+      ...TRATAMENTOS.map((t: Tratamento) => ({
+        "@type": "MedicalProcedure",
+        name: t.titulo,
+        description: t.desc,
+        url: `${SITE_URL}/tratamentos/${t.slug}`,
+      })),
+      ...CUIDADOS_COMPLEMENTARES.map((nome) => ({
+        "@type": "MedicalProcedure",
+        name: nome,
+      })),
+    ],
   };
 }
 

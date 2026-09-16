@@ -65,11 +65,22 @@ import { CinematicMotion } from "@/components/site/CinematicMotion";
 import { SkipLink } from "@/components/site/SkipLink";
 import { AppleMark } from "@/components/site/AppleMark";
 import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
+import { ConveniosSection } from "@/components/site/ConveniosSection";
+import { AtendimentoSection } from "@/components/site/AtendimentoSection";
 import { ReviewsSection } from "@/components/site/ReviewsSection";
 import { HistorySection } from "@/components/site/HistorySection";
 import { FaqSection } from "@/components/site/FaqSection";
 import { TeamSection } from "@/components/site/TeamSection";
-import { CLINICA, DEPOIMENTOS, FAQ, HISTORIA, SITE_URL, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import {
+  CLINICA,
+  COMO_CHEGAR,
+  DEPOIMENTOS,
+  FAQ,
+  HISTORIA,
+  SITE_URL,
+  TRATAMENTOS,
+  whatsappLink,
+} from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { DADOS_ESTRUTURADOS } from "@/lib/dadosEstruturados";
 import { GoogleRating } from "@/components/site/GoogleRating";
@@ -688,6 +699,17 @@ function Home() {
             ela precisa. */}
         <SpecialtiesSection />
 
+        {/* 03b — CONVÊNIOS
+
+            Logo depois dos tratamentos, e não no fim da página, porque é a
+            segunda pergunta de quem acabou de ver a primeira respondida: se a
+            clínica faz o que a pessoa precisa vem antes de se o plano dela
+            cobre.
+
+            Também quebra a sequência de três seções claras seguidas
+            (tratamentos, equipe, avaliações) com uma faixa escura. */}
+        <ConveniosSection />
+
         {/* 06 — EQUIPE
 
             Voltou ao ar em 07/09/2026. Tinha saído porque ficou com cinco
@@ -775,6 +797,13 @@ function Home() {
           </div>
         </section>
 
+        {/* 07b — ATENDIMENTO ADAPTADO
+
+            Colada na estrutura de propósito: as duas falam do lugar físico e do
+            que ele permite. Quem rolou até aqui já viu as fotos da clínica, e é
+            nessa hora que a pergunta "e para mim, dá?" precisa de resposta. */}
+        <AtendimentoSection />
+
         {/* 08 — FAQ */}
         <FaqSection />
 
@@ -853,7 +882,9 @@ function Home() {
                     </div>
                     <p className="mt-5 flex items-center gap-2 border-t border-forest/8 pt-4 text-xs font-bold text-ink-soft">
                       <Clock3 className="h-4 w-4 shrink-0 text-primary" />
-                      Segunda a sexta, 08h às 18h
+                      {/* Era literal, e divergia do cadastro por duas letras.
+                          Horário é dado que muda: um lugar só, em CLINICA. */}
+                      {CLINICA.horario}
                     </p>
                   </a>
                 </div>
@@ -977,6 +1008,34 @@ function Home() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </Reveal>
+
+            {/* PONTOS DE REFERÊNCIA
+
+                O mapa acima resolve para quem usa GPS. Isto resolve para quem
+                mora na região e se localiza por supermercado e hospital — que é
+                a maioria de quem procura dentista perto de casa.
+
+                A mesma fonte, COMO_CHEGAR, alimenta a resposta "Onde fica a
+                clínica, e como eu chego?" da FAQ — que vai para o JSON-LD. */}
+            <Reveal delay={170} className="mt-4">
+              <div className="rounded-3xl border border-forest/8 bg-white p-7 shadow-[0_24px_70px_-52px_rgba(3,47,1,.45)] sm:p-8">
+                <p className="text-micro font-extrabold uppercase tracking-[.15em] text-brand-text">
+                  Pontos de referência
+                </p>
+                <ul className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                  {COMO_CHEGAR.map(({ prefixo, referencia }) => (
+                    <li key={referencia} className="border-l-2 border-primary/45 pl-4">
+                      <p className="text-micro font-bold uppercase tracking-[.12em] text-ink-soft">
+                        {prefixo}
+                      </p>
+                      <p className="mt-1.5 font-display text-[15px] font-extrabold leading-snug text-forest-2">
+                        {referencia}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </Reveal>
           </div>

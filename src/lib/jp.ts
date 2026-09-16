@@ -82,6 +82,19 @@ export const CLINICA = {
   local: ENDERECO,
   endereco: `${ENDERECO.logradouro} — ${ENDERECO.bairro}, ${ENDERECO.cidade} - ${ENDERECO.uf}, ${ENDERECO.cep}`,
   bairro: "Vila Bruna • região da Freguesia do Ó",
+  /**
+   * As regiões que a clínica quer atender, informadas por ela em 15/09/2026.
+   *
+   * Não é o mesmo que o endereço. O site só falava da Freguesia do Ó, e
+   * Pirituba aparecia apenas como passado — o bairro de onde a clínica saiu
+   * em 2024. Cachoeirinha não aparecia em lugar nenhum. As três são vizinhas,
+   * e quem mora nelas procura dentista pelo nome do próprio bairro.
+   *
+   * Alimenta o `areaServed` do JSON-LD. A primeira continua sendo a região do
+   * endereço: é ela que o título e a descrição de cada rota usam, por ser a
+   * única que a clínica afirma sem ressalva.
+   */
+  regioes: ["Freguesia do Ó", "Cachoeirinha", "Pirituba"],
   cep: ENDERECO.cep,
   mapsHref:
     "https://www.google.com/maps/search/?api=1&query=R.+Rio+Verde,+1029+-+Vila+Bruna,+São+Paulo+-+SP,+02934-201",
@@ -147,6 +160,23 @@ export const HISTORIA = {
   bairroAnterior: "Vila Pereira Barreto",
   regiaoAtual: "Freguesia do Ó",
   mudanca: 2024,
+  /** Mês informado pela clínica em 15/09/2026. O ano já estava certo. */
+  mudancaMes: "janeiro",
+  /**
+   * A clínica não se chamou JP a vida inteira.
+   *
+   * Até 2020 o nome era "Sempre Sorrindo". Alguém registrou a marca em
+   * Ourinhos, a clínica teve de trocar, e em julho de 2020 nasceu a JP —
+   * informado pela clínica em 15/09/2026.
+   *
+   * ISSO NÃO MUDA `fundacao`. Quem completa 24 anos é a clínica, não o nome.
+   * Trocar de placa em 2020 e continuar a mesma casa é exatamente o que a
+   * seção de história precisa dizer: sem isso, quem conheceu a Sempre
+   * Sorrindo lê "JP, desde 2002" e conclui que é outra clínica.
+   */
+  nomeAnterior: "Sempre Sorrindo",
+  renomeacao: 2020,
+  renomeacaoMes: "julho",
   /** Ano do aviso de copyright. Fixo pelo mesmo motivo de `anos`: `new Date()`
    *  no render faria servidor e navegador divergirem na virada do ano. */
   anoCopyright: 2026,
@@ -460,11 +490,18 @@ export const EQUIPE: MembroEquipe[] = [
      * Nome completo confirmado pela clínica em 07/09/2026. A foto dele não
      * tem crachá, então o nome não tem segunda fonte como o dos outros.
      *
-     * ⚠️ CONFERIR O NÚMERO: 75.157 fica a dois dígitos do 75.159 da Dra.
-     * Juliana. Pode muito bem ser inscrição da mesma época, mas dois números
-     * quase iguais na mesma página é exatamente onde um dígito trocado passa
-     * despercebido — e os dois saem publicados, ele aqui e ela no rodapé de
-     * todas as rotas. Informado como "CRO sp-75157".
+     * ✅ CONFERIDO — o aviso que ficava aqui está encerrado.
+     *
+     * 75.157 fica a dois dígitos do 75.159 da Dra. Juliana, e dois números
+     * quase iguais na mesma página é onde um dígito trocado passa
+     * despercebido — os dois saem publicados, ele neste card e ela no rodapé
+     * das 9 rotas. Por isso a dúvida ficou aberta desde 07/09/2026, quando o
+     * número chegou como "CRO sp-75157".
+     *
+     * Em 15/09/2026 a clínica reconfirmou os dois na mesma frase: "Hugo
+     * Leonardo CROSP 75157, Juliana Pelisser CROSP 75159". Duas informações
+     * independentes, com um mês de distância, batendo. É a confirmação que
+     * faltava.
      */
     nome: "Dr. Hugo Leonardo",
     registro: "CROSP 75.157",
@@ -557,6 +594,11 @@ export const NAV_RODAPE = [
   { label: "Nossa História", href: "/#historia" },
   { label: "Equipe", href: "/#equipe" },
   { label: "Tratamentos", href: "/#tratamentos" },
+  /* As duas seções novas de 15/09/2026. Entram aqui e não no topo: o menu está
+     em seis itens por decisão registrada acima, e o rodapé é justamente o que
+     impede esse corte de virar seção sem link. */
+  { label: "Convênios", href: "/#convenios" },
+  { label: "Atendimento", href: "/#atendimento" },
   { label: "Avaliações", href: "/#depoimentos" },
   { label: "Estrutura", href: "/#estrutura" },
   { label: "FAQ", href: "/#faq" },
@@ -1068,6 +1110,259 @@ export const TRATAMENTOS: Tratamento[] = [
   },
 ];
 
+/* ===========================================================================
+   O QUE A CLÍNICA RESPONDEU EM 15/09/2026
+
+   Tudo daqui até `FAQ` veio de uma conversa da Dra. Juliana com o Felipe nessa
+   data, respondendo a um questionário. São dados que o site NUNCA teve: não
+   havia uma linha sobre convênio, acessibilidade, sedação ou ponto de
+   referência em nenhuma das 12 rotas.
+
+   Por que eles moram aqui e não no componente que os desenha: é a mesma regra
+   que vale para `CLINICA` e `AVALIACOES` — dado de clínica é o que mais muda e
+   o que mais aparece em vários lugares ao mesmo tempo. Convênio entra e sai de
+   credenciamento, e quando isso acontecer a pessoa que atualizar o site precisa
+   achar UM lugar, não seis.
+   =========================================================================== */
+
+/**
+ * Lista em português, com "e" antes do último item.
+ *
+ * Existe porque a mesma enumeração aparece na seção de convênios, na resposta
+ * da FAQ e no texto que o buscador lê do JSON-LD. Escrita à mão nos três,
+ * bastaria a clínica descredenciar uma operadora para o site passar a dar duas
+ * respostas diferentes para a mesma pergunta.
+ */
+export function listaPorExtenso(itens: readonly string[]): string {
+  const ultimo = itens.at(-1);
+  if (ultimo === undefined) return "";
+  if (itens.length === 1) return ultimo;
+  return `${itens.slice(0, -1).join(", ")} e ${ultimo}`;
+}
+
+export type Convenio = {
+  /** O nome como a clínica escreveu. Não "corrigir" para o nome comercial do
+   *  produto odontológico sem confirmar: "Bradesco" e "Bradesco Dental" são
+   *  credenciamentos diferentes, e quem sabe qual é o certo é a clínica. */
+  nome: string;
+  /**
+   * Base do arquivo de logo, sem extensão.
+   *
+   * NENHUM ARQUIVO EXISTE AINDA, e isso é de propósito.
+   *
+   * Logo de operadora é marca registrada de terceiro. A clínica é credenciada,
+   * o que normalmente dá direito de uso — mas quem autoriza é cada operadora, e
+   * o material certo é o kit de marca que elas entregam ao credenciado. Baixar
+   * um PNG do Google Imagens resolveria a tela de hoje e criaria um problema
+   * jurídico que ninguém está olhando.
+   *
+   * Enquanto o arquivo não chega, `ConveniosSection` desenha uma placa
+   * tipográfica com o nome — que informa a mesma coisa e não usa marca de
+   * ninguém. Assim que um arquivo cair em `src/assets/convenios/<slug>.svg`
+   * (ou .png/.webp), ele aparece sozinho no lugar da placa: o componente varre
+   * a pasta.
+   */
+  slug: string;
+};
+
+/**
+ * Os convênios atendidos, na ordem em que a clínica os citou.
+ *
+ * Antes desta lista o site fugia da pergunta. A FAQ respondia que as condições
+ * podem mudar e mandava consultar a equipe pelo WhatsApp — o que é verdade e é
+ * inútil: quem tem plano quer saber ANTES de puxar conversa se vale a pena
+ * puxar conversa, e a clínica perdia o contato de gente que já era credenciada
+ * nela sem saber.
+ */
+export const CONVENIOS: Convenio[] = [
+  { nome: "SulAmérica", slug: "sulamerica" },
+  { nome: "Porto Seguro", slug: "porto-seguro" },
+  { nome: "Bradesco", slug: "bradesco" },
+  { nome: "OdontoPrev", slug: "odontoprev" },
+  { nome: "Dental Par", slug: "dental-par" },
+  { nome: "Rede Brazil Dental", slug: "rede-brazil-dental" },
+];
+
+/** "SulAmérica, Porto Seguro, … e Rede Brazil Dental" — fonte única do texto. */
+export const CONVENIOS_POR_EXTENSO = listaPorExtenso(CONVENIOS.map((c) => c.nome));
+
+/**
+ * Formas de pagamento.
+ *
+ * ============================================================================
+ *  POR QUE OS MÚLTIPLOS NÃO VÃO AO AR.
+ *
+ *  A clínica informou as condições exatas: 6x sem juros ou até 24x com juros no
+ *  cartão, boleto mediante consulta, e parcelamento direto com ela. É uma
+ *  informação boa, e é a que mais destrava tratamento caro — implante,
+ *  principalmente.
+ *
+ *  Mesmo assim o site publica só as FORMAS, sem número. `docs/ANUNCIAR.md` §19
+ *  lista "preço como chamariz" e "promoções agressivas" entre o que a
+ *  publicidade desta clínica não faz, e "24x" numa seção de captação fica em
+ *  cima dessa linha — não porque parcelar seja proibido, mas porque o número
+ *  vira a manchete e o tratamento vira o produto.
+ *
+ *  Onde o número serve é na conversa: a recepção responde "parcelamos em até 6x
+ *  sem juros" para quem perguntou, no momento em que perguntou, com o plano de
+ *  tratamento na mão. Por isso `condicoes` continua aqui, escrito e versionado
+ *  — é o script do WhatsApp e do CRC, não a vitrine.
+ *
+ *  Se a clínica decidir publicar assim mesmo, é uma linha: virar
+ *  `publicarCondicoes` para true e a seção passa a mostrar `condicoes`. A
+ *  decisão é dela; este comentário existe para ela decidir sabendo o que está
+ *  em jogo.
+ * ============================================================================
+ */
+export const PAGAMENTO = {
+  /* Sem vírgula dentro do item: eles entram numa enumeração separada por
+     vírgula, e "Boleto, mediante consulta" produzia quatro itens onde há três. */
+  formas: ["Cartão de crédito", "Boleto mediante consulta", "Parcelamento direto com a clínica"],
+  condicoes:
+    "6x sem juros, ou até 24x com juros, no cartão de crédito. Boleto mediante consulta e parcelamento direto com a clínica.",
+  publicarCondicoes: false,
+};
+
+export type PilarDeCuidado = {
+  titulo: string;
+  texto: string;
+  /** Chave do ícone; o desenho fica em `AtendimentoSection`. */
+  icone: "acessibilidade" | "especiais" | "sedacao" | "idosos";
+};
+
+/**
+ * O atendimento que o site não contava.
+ *
+ * Os quatro pilares abaixo saíram da conversa de 15/09/2026, e a clínica citou
+ * dois deles espontaneamente como diferencial dela — atendimento a pessoas com
+ * necessidades especiais entrou na lista dos três motivos pelos quais alguém
+ * escolheria a JP.
+ *
+ * Nenhum aparecia em nenhuma rota. Quem precisa de atendimento adaptado não tem
+ * como adivinhar, e essa é justamente a pessoa que liga antes de ir.
+ *
+ * NÃO ACRESCENTE PILAR SEM FONTE. Cada texto aqui é afirmação sobre a estrutura
+ * física e sobre a prática clínica de uma clínica real — do tipo que faz alguém
+ * atravessar a cidade. Ver `A_CONFIRMAR`.
+ */
+export const ATENDIMENTO: PilarDeCuidado[] = [
+  {
+    titulo: "Pessoas com necessidades especiais",
+    texto:
+      "É uma das áreas de atuação da clínica, e uma das que ela aponta como diferencial. O atendimento é planejado caso a caso — contar a situação no agendamento é o que permite reservar o tempo e as condições certas.",
+    icone: "especiais",
+  },
+  {
+    titulo: "Estrutura acessível",
+    texto:
+      "A clínica é acessível e tem barras de apoio. Se você tem alguma necessidade específica de acesso, avise no agendamento: a equipe organiza a consulta antes de você chegar.",
+    icone: "acessibilidade",
+  },
+  {
+    titulo: "Sedação consciente com óxido nitroso",
+    texto:
+      "Recurso usado para reduzir a ansiedade durante o atendimento, inclusive com crianças. A indicação depende de avaliação profissional e do histórico de saúde de cada paciente.",
+    icone: "sedacao",
+  },
+  {
+    titulo: "Atendimento a idosos",
+    texto:
+      "Cuidado pensado para as condições, os medicamentos e o ritmo de quem envelheceu — e para a família que acompanha.",
+    icone: "idosos",
+  },
+];
+
+/**
+ * O QUE AINDA NÃO VAI AO AR, e por quê.
+ *
+ * Esta lista não é renderizada em lugar nenhum. Ela existe para o item não se
+ * perder entre uma conversa de WhatsApp e a próxima pessoa que mexer no site.
+ *
+ * O caso da cadeira é o exemplo de por que ela precisa existir. A clínica
+ * escreveu, em 15/09/2026, que quer gravar um vídeo dela atendendo sem
+ * transferência da cadeira de rodas, que a cadeira odontológica dela tem
+ * mecanismos para essa adaptação, e mandou confirmar com a Ana. É quase certo
+ * que seja verdade, e é um diferencial enorme.
+ *
+ * Mas "atendemos sem precisar sair da cadeira de rodas" é a promessa que faz
+ * uma pessoa cadeirante pedir transporte adaptado, atravessar São Paulo e
+ * descobrir na recepção que não era bem assim. Uma frase dessas ou está
+ * confirmada por quem opera a cadeira, ou não está no site. A própria clínica
+ * mandou perguntar para a Ana — então a resposta da Ana é o que falta.
+ *
+ * Para publicar qualquer um destes: mover o item para `ATENDIMENTO`. Nada mais.
+ */
+export const A_CONFIRMAR = [
+  {
+    item: "Atendimento sem transferência da cadeira de rodas",
+    falta: "Confirmação da Ana sobre os mecanismos de adaptação da cadeira odontológica.",
+  },
+  {
+    item: "Banheiro adaptado e entrada sem degraus, ditos com essas palavras",
+    falta:
+      "A clínica respondeu sim às duas perguntas e acrescentou que há barras. Confirmar o que é cada sim antes de detalhar no site.",
+  },
+  {
+    item: "Atendimento em inglês",
+    falta:
+      "A clínica informou inglês básico. Só entra no site se for compromisso de atendimento, não simpatia.",
+  },
+  {
+    item: "Alinhadores da marca Invisalign",
+    falta:
+      "Credenciamento documental. A clínica citou o nome sem certeza; sem contrato, o site diz apenas alinhadores transparentes.",
+  },
+];
+
+/**
+ * Áreas que a clínica atende e que não têm página própria.
+ *
+ * O site publica oito tratamentos com página, texto e FAQ. A clínica atende
+ * quinze áreas — e as que faltavam não existiam em lugar nenhum: quem procurava
+ * tratamento de canal na Freguesia do Ó não tinha como saber que a JP faz.
+ *
+ * Aqui elas entram como lista, e não como página, de propósito: página de
+ * tratamento neste site tem manifesto, etapas, para-quem e FAQ, tudo escrito
+ * com a clínica. Inventar esse texto para sete áreas de uma vez seria produzir
+ * conteúdo clínico que a clínica não revisou. A lista diz a verdade que já se
+ * sabe — isto aqui a gente faz — e não afirma nada além.
+ *
+ * Quando uma delas justificar página própria, ela sai daqui e entra em
+ * `TRATAMENTOS`.
+ */
+export const CUIDADOS_COMPLEMENTARES = [
+  "Clínica geral",
+  "Endodontia (tratamento de canal)",
+  "Periodontia (tratamento de gengiva)",
+  "Facetas",
+  "Alinhadores transparentes",
+  "Odontologia do esporte",
+  "DTM (disfunção temporomandibular)",
+  "Atendimento a idosos",
+  "Pacientes com necessidades especiais",
+];
+
+/**
+ * Como se chega, dito como um vizinho diria.
+ *
+ * O site tinha endereço, CEP, mapa e pino — e nenhuma referência. Endereço é o
+ * que o GPS precisa; referência é o que a pessoa precisa. "Travessa da Edgar
+ * Facó, na esquina do supermercado Violeta" localiza qualquer pessoa da região
+ * em dois segundos, e "R. Rio Verde, 1029" não localiza ninguém.
+ *
+ * Vale para a busca também: as referências são termos que as pessoas digitam —
+ * hospital, supermercado, estação.
+ *
+ * A grafia da avenida segue o logradouro oficial de São Paulo (Edgar Facó). A
+ * clínica escreveu "Edgard Faco", sem acento, no WhatsApp.
+ */
+export const COMO_CHEGAR = [
+  { prefixo: "Travessa da", referencia: "Av. Edgar Facó" },
+  { prefixo: "Esquina com o", referencia: "supermercado Violeta" },
+  { prefixo: "Perto do", referencia: "Hospital Geral de Vila Penteado" },
+  { prefixo: "Próximo às obras da", referencia: "futura estação Penteado do metrô" },
+];
+
 export const FAQ = [
   {
     q: "Como faço para agendar uma avaliação?",
@@ -1082,8 +1377,15 @@ export const FAQ = [
     a: `Você pode falar com a recepção pelo WhatsApp ${CLINICA.whatsapp}, ligar para ${CLINICA.telefone} ou usar o formulário do site. Atendemos ${CLINICA.horario.toLowerCase()}.`,
   },
   {
-    q: "Onde fica a clínica?",
-    a: `A ${CLINICA.nome} fica na ${ENDERECO.logradouro} — ${ENDERECO.bairro}, região da Freguesia do Ó, em ${ENDERECO.cidade} (CEP ${ENDERECO.cep}).`,
+    q: "Onde fica a clínica, e como eu chego?",
+    /**
+     * As referências entram aqui montadas de `COMO_CHEGAR`, e não digitadas.
+     * A resposta antiga tinha só endereço e CEP — que é o que o GPS precisa, e
+     * não é o que a pessoa da região usa para se localizar. Esta é também a
+     * resposta que vai para o FAQPage do JSON-LD, então "esquina do
+     * supermercado Violeta" passa a ser texto que o buscador lê.
+     */
+    a: `A ${CLINICA.nome} fica na ${ENDERECO.logradouro} — ${ENDERECO.bairro}, região da Freguesia do Ó, em ${ENDERECO.cidade} (CEP ${ENDERECO.cep}). ${COMO_CHEGAR.map((r) => `${r.prefixo} ${r.referencia}`).join(", ")}.`,
   },
   {
     q: "Vocês atendem crianças e idosos?",
@@ -1106,7 +1408,39 @@ export const FAQ = [
     a: "Não. Procedimentos como botox, preenchimento e skinbooster dependem de avaliação profissional, histórico de saúde e indicação individual.",
   },
   {
-    q: "A clínica trabalha com convênios ou parcelamento?",
-    a: "Essas condições podem mudar. Para informação atualizada sobre convênios, formas de pagamento e disponibilidade, consulte diretamente a equipe pelo WhatsApp.",
+    q: "Vocês atendem convênio?",
+    /**
+     * A resposta que estava aqui não respondia: dizia que as condições podem
+     * mudar e mandava perguntar no WhatsApp. Verdade, e inútil — a pessoa com
+     * plano precisa saber antes de escrever, e a clínica perdia contato de
+     * gente já credenciada nela.
+     *
+     * A lista sai de `CONVENIOS`. A ressalva sobre cobertura fica, porque essa
+     * parte realmente muda por procedimento e por plano, e prometer cobertura
+     * que o plano não dá é pior do que não listar nada.
+     */
+    a: `Sim. Atendemos ${CONVENIOS_POR_EXTENSO}. A cobertura de cada procedimento depende do seu plano e é confirmada na avaliação — mande os dados da carteirinha pelo WhatsApp ${CLINICA.whatsapp} antes da consulta e a recepção confere para você.`,
+  },
+  {
+    q: "Quais são as formas de pagamento?",
+    /** Formas, sem múltiplo — o porquê está em `PAGAMENTO`, em cima. */
+    a: `No particular trabalhamos com ${listaPorExtenso(PAGAMENTO.formas).toLowerCase()}. As condições são apresentadas junto com o plano de tratamento, depois da avaliação.`,
+  },
+  {
+    q: "A clínica é acessível?",
+    a: "Sim. A clínica é acessível e tem barras de apoio. Se você tem alguma necessidade específica de acesso ou de posicionamento durante o atendimento, avise no agendamento: a equipe organiza a consulta antes de você chegar.",
+  },
+  {
+    q: "Vocês atendem pacientes com necessidades especiais?",
+    a: "Sim, é uma das áreas de atuação da clínica. O atendimento é planejado caso a caso — conte a situação no agendamento para a equipe reservar o tempo e as condições necessárias.",
+  },
+  {
+    q: "Tenho muito medo de dentista. Existe sedação?",
+    /**
+     * Sedação consciente com óxido nitroso é procedimento clínico, então a
+     * resposta diz o que é e devolve a decisão para a avaliação. Não promete
+     * conforto nem usa "sem dor", que a Resolução CFO 196/2019 veda.
+     */
+    a: "A clínica trabalha com sedação consciente por óxido nitroso, um recurso usado para reduzir a ansiedade durante o atendimento — inclusive com crianças. A indicação depende de avaliação profissional e do seu histórico de saúde.",
   },
 ];

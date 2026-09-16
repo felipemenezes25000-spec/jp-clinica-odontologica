@@ -1,6 +1,6 @@
 import { ArrowRight } from "lucide-react";
 
-import { TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { CUIDADOS_COMPLEMENTARES, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { TreatmentIcon } from "@/components/site/TreatmentIcons";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 
@@ -199,6 +199,36 @@ export function SpecialtiesSection() {
           {TRATAMENTOS.map((t, i) => (
             <CardEspecialidade key={t.slug} slug={t.slug} titulo={t.titulo} index={i} />
           ))}
+        </div>
+
+        {/* AS ÁREAS SEM PÁGINA.
+
+            A grade acima tem oito cards; a clínica atende quinze áreas. As sete
+            que faltavam não existiam em lugar nenhum do site — a palavra
+            "canal", "gengiva" e "faceta" não aparecia em nenhuma das 12 rotas.
+
+            Entram como lista e não como card porque card promete página, e
+            página de tratamento neste site tem manifesto, etapas e FAQ escritos
+            com a clínica. O que se sabe hoje é que a clínica faz — e é isso que
+            a lista diz, nada além. */}
+        <div className="mt-[18px] rounded-xl border border-border-soft bg-white/75 p-6 sm:p-7">
+          <p className="text-micro font-extrabold uppercase tracking-[0.16em] text-brand-text">
+            Também atendemos
+          </p>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {CUIDADOS_COMPLEMENTARES.map((area) => (
+              <li
+                key={area}
+                className="rounded-full border border-forest/12 bg-secondary/70 px-4 py-2 text-[12.5px] font-bold text-forest-2"
+              >
+                {area}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-5 text-[12.5px] leading-relaxed text-ink-soft">
+            Áreas atendidas na clínica. A indicação depende de avaliação profissional e da
+            necessidade de cada caso.
+          </p>
         </div>
       </div>
     </section>

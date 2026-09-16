@@ -274,9 +274,22 @@ export function HistorySection() {
                   a pergunta e a página não responde. */}
               <p>
                 Boa parte dessa caminhada foi em {HISTORIA.regiaoAnterior}, na{" "}
-                {HISTORIA.bairroAnterior}. Desde {HISTORIA.mudanca} atendemos na{" "}
-                {CLINICA.local.bairro}, na região da {HISTORIA.regiaoAtual} — mesmo cuidado, novo
-                endereço.
+                {HISTORIA.bairroAnterior}. Desde {HISTORIA.mudancaMes} de {HISTORIA.mudanca}{" "}
+                atendemos na {CLINICA.local.bairro}, na região da {HISTORIA.regiaoAtual} — mesmo
+                cuidado, novo endereço.
+              </p>
+              {/* O nome anterior, informado pela clínica em 15/09/2026.
+
+                  Não é curiosidade: quem foi paciente da Sempre Sorrindo lia
+                  "JP, desde 2002" e não tinha como saber que é a mesma casa.
+                  Dizer a troca é o que reconecta essa pessoa — e é também o que
+                  explica por que uma clínica de 24 anos tem uma marca de 2020. */}
+              <p>
+                O nome também mudou no caminho. Até {HISTORIA.renomeacao} a clínica se chamava{" "}
+                <strong className="font-semibold text-white/90">{HISTORIA.nomeAnterior}</strong>. A
+                marca acabou registrada em Ourinhos, no interior de São Paulo, e foi preciso trocar:
+                em {HISTORIA.renomeacaoMes} de {HISTORIA.renomeacao} nascia a JP — mesma equipe,
+                mesmos pacientes, nome novo.
               </p>
             </div>
 
