@@ -89,18 +89,29 @@ function semearCanais(): void {
   ]);
 }
 
-function direct(p: { conta?: string; mid?: string; de?: string; texto?: string; eco?: boolean }) {
+function direct(p: {
+  conta?: string;
+  mid?: string;
+  de?: string;
+  texto?: string;
+  eco?: boolean;
+  /** Quando a pessoa escreveu. Padrão AGORA, que é o que a maioria dos testes
+   *  quer; quem precisa distinguir o carimbo da Meta do relógio da ingestão
+   *  passa outro instante. */
+  em?: Date;
+}) {
+  const em = p.em ?? AGORA;
   return {
     object: "instagram",
     entry: [
       {
         id: p.conta ?? IGID_A,
-        time: Math.floor(AGORA.getTime() / 1000),
+        time: Math.floor(em.getTime() / 1000),
         messaging: [
           {
             sender: { id: p.eco === true ? (p.conta ?? IGID_A) : (p.de ?? IGSID) },
             recipient: { id: p.eco === true ? (p.de ?? IGSID) : (p.conta ?? IGID_A) },
-            timestamp: AGORA.getTime(),
+            timestamp: em.getTime(),
             message: {
               mid: p.mid ?? "mid.1",
               text: p.texto ?? "quanto custa um implante?",
@@ -158,32 +169,46 @@ describe("o direct entra na Inbox", () => {
      * ==========================================================================
      *  `criado_em` É O INSTANTE DA MENSAGEM; `recebido_em` É O DA INGESTÃO.
      *
-     *  E eles usam relógios diferentes de propósito: o primeiro vem do carimbo
-     *  da Meta (o webhook diz quando a pessoa escreveu), o segundo é o relógio
-     *  de parede do servidor — porque o que ele mede é QUANDO A LINHA NASCEU
-     *  AQUI.
+     *  As duas datas vêm de fontes diferentes de propósito: a primeira é o
+     *  carimbo da Meta — o webhook diz quando a pessoa escreveu —, e a segunda é
+     *  o relógio do servidor de aplicação, porque o que ela mede é QUANDO A
+     *  LINHA NASCEU AQUI.
      *
-     *  Por isso a asserção de `recebido_em` não compara com o relógio do banco
-     *  em memória: ele NÃO é o relógio da ingestão, e fixá-lo apagaria a
-     *  distinção que o §49 pede. O que se prova é a forma e a ordem.
+     *  A VERSÃO ANTERIOR DESTE TESTE PROVAVA ISSO ERRADO, de duas maneiras.
+     *
+     *  Ela comparava `recebido_em` com duas leituras de `Date.now()`, e para
+     *  isso carimbava o webhook com o próprio AGORA. Com o mesmo instante dos
+     *  dois lados, os campos só divergiam pelos milissegundos que o teste levava
+     *  para rodar — ou seja, o teste nunca comparou os dois entre si, que é
+     *  exatamente o que o título promete provar.
+     *
+     *  E amarrava a ingestão ao relógio de parede. Foi por aí que a suíte passou
+     *  a ficar vermelha toda noite: `agoraIso()` respeita `definirRelogio`,
+     *  `Date.now()` não, e depois das 21h em Brasília o UTC já virou o dia.
+     *
+     *  Agora a mensagem chega carimbada meia hora ANTES do instante em que o
+     *  servidor a ingere, e o teste afirma as duas datas e a distância entre
+     *  elas. Determinístico, e mais forte do que era.
      * ==========================================================================
      */
-    const antes = Date.now();
+    const ESCRITA_EM = new Date(AGORA.getTime() - 30 * 60_000);
 
-    await processarWebhookMeta(interpretarWebhookMeta(direct({}), AGORA), {
+    await processarWebhookMeta(interpretarWebhookMeta(direct({ em: ESCRITA_EM }), AGORA), {
       organizationId: ORG_A,
       clinicId: CLINICA_A,
     });
 
     const m = conteudo("crc_messages")[0];
 
-    // O INSTANTE DA MENSAGEM vem do carimbo do webhook, e não do agora.
-    expect(m?.["criado_em"]).toBe(AGORA.toISOString());
+    // O INSTANTE DA MENSAGEM vem do carimbo do webhook.
+    expect(m?.["criado_em"]).toBe(ESCRITA_EM.toISOString());
+    // O DA INGESTÃO vem do relógio do servidor, aqui fixo em AGORA.
+    expect(m?.["recebido_em"]).toBe(AGORA.toISOString());
 
-    const recebido = Date.parse(String(m?.["recebido_em"] ?? ""));
-    expect(Number.isFinite(recebido)).toBe(true);
-    expect(recebido).toBeGreaterThanOrEqual(antes);
-    expect(recebido).toBeLessThanOrEqual(Date.now());
+    // E são diferentes — o §49 inteiro mora nesta subtração.
+    const escrita = Date.parse(String(m?.["criado_em"] ?? ""));
+    const recebida = Date.parse(String(m?.["recebido_em"] ?? ""));
+    expect(recebida - escrita).toBe(30 * 60_000);
   });
 
   it("marca o sinal de vida no canal — §39", async () => {

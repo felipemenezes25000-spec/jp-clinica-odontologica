@@ -22,15 +22,16 @@ import { truncar } from "../dominio/formatar";
 import type { Conversa, Mensagem, Paciente } from "../dominio/tipos";
 import type { PortaMensageria } from "../integracoes/whatsapp/porta";
 import {
+  agoraIso,
   atualizar,
   contar,
+  ErroBanco,
   gravar,
   inserir,
   inserirIgnorandoDuplicata,
   rpc,
   selecionar,
   selecionarUm,
-  ErroBanco,
   type Filtro,
   type Linha,
 } from "../servidor/banco";
@@ -347,7 +348,20 @@ export async function receberMensagemDoCanal(
 
   const ehSaida = dados.saida === true;
   const ehHistorico = dados.historico === true;
-  const agora = new Date().toISOString();
+  /*
+   * O RELÓGIO VEM DO ADAPTADOR, e não de `new Date()`.
+   *
+   * `agoraIso()` existe em `servidor/banco` justamente para os testes trocarem
+   * o módulo inteiro por `testes/banco-memoria` e controlarem o tempo com
+   * `definirRelogio`. Lendo o relógio real aqui, o teste que fixa o instante em
+   * `AGORA` fixava só o do banco fake — e as duas datas divergiam a cada noite,
+   * quando o UTC vira o dia antes do horário de Brasília.
+   *
+   * É o mesmo defeito que `automacao/pulso.ts` já tinha corrigido, pela mesma
+   * razão: um teste com prazo de validade, que fica vermelho sozinho sem nada
+   * ter quebrado.
+   */
+  const agora = agoraIso();
 
   const linha = await inserirIgnorandoDuplicata("crc_messages", {
     organization_id: organizationId,

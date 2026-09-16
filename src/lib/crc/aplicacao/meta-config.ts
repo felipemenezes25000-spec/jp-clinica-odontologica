@@ -26,7 +26,13 @@
  * ============================================================================
  */
 import { ehProdutoMeta, type ProdutoMeta } from "../integracoes/meta/config";
-import { apagar, inserirIgnorandoDuplicata, selecionar, selecionarUm } from "../servidor/banco";
+import {
+  agoraIso,
+  apagar,
+  inserirIgnorandoDuplicata,
+  selecionar,
+  selecionarUm,
+} from "../servidor/banco";
 import { auditar, registrar } from "../servidor/registro";
 import { cifrar, cifraConfigurada, dicaDoSegredo } from "../servidor/segredo";
 
@@ -136,7 +142,20 @@ export async function conectarCanalMeta(p: PedidoDeConexao): Promise<ResultadoDa
     }
   }
 
-  const agora = new Date().toISOString();
+  /*
+   * O RELÓGIO VEM DO ADAPTADOR, e não de `new Date()`.
+   *
+   * `agoraIso()` existe em `servidor/banco` justamente para os testes trocarem
+   * o módulo inteiro por `testes/banco-memoria` e controlarem o tempo com
+   * `definirRelogio`. Lendo o relógio real aqui, o teste que fixa o instante em
+   * `AGORA` fixava só o do banco fake — e as duas datas divergiam a cada noite,
+   * quando o UTC vira o dia antes do horário de Brasília.
+   *
+   * É o mesmo defeito que `automacao/pulso.ts` já tinha corrigido, pela mesma
+   * razão: um teste com prazo de validade, que fica vermelho sozinho sem nada
+   * ter quebrado.
+   */
+  const agora = agoraIso();
   const permissoes: Record<string, string> = {};
   for (const perm of p.permissoes) {
     const limpa = perm.trim();
