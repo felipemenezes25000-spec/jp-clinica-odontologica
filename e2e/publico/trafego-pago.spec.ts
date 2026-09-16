@@ -235,10 +235,26 @@ test.describe("o modo anúncio da landing de implante", () => {
   test("a prova social real continua acima da dobra", async ({ page }) => {
     await page.goto(URL_ANUNCIO);
 
-    // Vem de `AVALIACOES` em jp.ts — nenhum número é digitado na página.
-    const selo = page.locator("main").getByText("4,6", { exact: false }).first();
-    await expect(selo).toBeVisible();
-    await expect(page.locator("main").getByText("192", { exact: false }).first()).toBeVisible();
+    /*
+     * POR FORMA, E NÃO POR VALOR.
+     *
+     * Este teste digitava "4,6" e "192". O volume de avaliações sobe toda
+     * semana — passou para 193 em 15/09/2026 — e no dia seguinte o teste ficava
+     * vermelho sem nada ter quebrado na página. Um invariante que precisa de
+     * manutenção semanal deixa de ser lido e passa a ser silenciado.
+     *
+     * Importar `AVALIACOES` de `@/lib/jp` resolveria a duplicação, mas não dá:
+     * aquele módulo importa os retratos em .webp, e o transform do Playwright
+     * tenta ler a imagem como JavaScript.
+     *
+     * Então a pergunta vira a que o teste sempre quis fazer: o selo de prova
+     * social está acima da dobra? Nota com vírgula decimal e um volume de dois
+     * a quatro dígitos seguido de "avaliações". Qual número, é assunto de
+     * `AVALIACOES`, e a home já cobre isso.
+     */
+    const main = page.locator("main");
+    await expect(main.getByText(/\b[45],\d\b/u).first()).toBeVisible();
+    await expect(main.getByText(/\b\d{2,4}\s+avaliações\b/u).first()).toBeVisible();
   });
 
   test("não há saída para 'Todos os tratamentos' na LP paga", async ({ page }) => {
