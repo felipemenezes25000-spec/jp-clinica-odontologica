@@ -36,12 +36,12 @@ const LOGOS = import.meta.glob("../../assets/convenios/*.{svg,png,webp}", {
 
 /**
  * Referências visuais das marcas usadas enquanto os kits oficiais dos
- * credenciados não estão versionados no projeto. São imagens das próprias
- * marcas/operadoras ou reproduções públicas dos respectivos logotipos.
+ * credenciados não estão versionados no projeto.
  *
- * Importante: as cores dessas imagens pertencem às marcas. A UI do ticker
- * continua integralmente na paleta JP; os logos ficam isolados em placas
- * brancas justamente para não contaminar a identidade da clínica.
+ * A Brazil Dental é uma exceção visual: a arte oficial pública disponível no
+ * próprio domínio da marca é a versão branca. Em vez de usar aquele PNG de
+ * terceiros com uma caixa cinza embutida, a placa dela usa o verde profundo da
+ * própria JP e exibe o SVG branco oficial sem adulterar a marca.
  */
 const LOGOS_REMOTOS: Partial<Record<string, string>> = {
   sulamerica:
@@ -54,7 +54,8 @@ const LOGOS_REMOTOS: Partial<Record<string, string>> = {
     "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/odontoprev.png",
   "dental-par":
     "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/dentalpar.png",
-  "rede-brazil-dental": "https://www.seu-convenio.com/images/operadoras/419613-v.png",
+  "rede-brazil-dental":
+    "https://irp.cdn-website.com/c19ccd43/dms3rep/multi/LOgo%2BBD%2BBranco.svg",
   "sempre-odonto":
     "https://raw.githubusercontent.com/MezonTech/radiodent-website/main/public/images/convenios/sempre-odonto.png",
   "odonto-empresas": "https://www.seu-convenio.com/images/operadoras/310981-v.png",
@@ -74,24 +75,50 @@ function logoDe(slug: string): string | undefined {
 }
 
 /**
- * Cada marca fica numa placa branca neutra. O efeito premium pertence à placa
- * e ao fundo JP; a arte da operadora não recebe filtro, recoloração ou
- * distorção. Isso preserva tanto a identidade da clínica quanto a da marca.
+ * Cada marca fica numa placa neutra. A Brazil Dental usa a versão branca oficial
+ * e, por isso, recebe uma placa verde profunda da paleta JP. As demais continuam
+ * em placa branca, preservando o contraste das artes coloridas.
  */
 function Placa({ convenio }: { convenio: Convenio }) {
   const logo = logoDe(convenio.slug);
+  const brazilDental = convenio.slug === "rede-brazil-dental";
 
   return (
     <li className="shrink-0">
-      <div className="convenios-logo-card">
-        <span className="convenios-logo-fallback">{convenio.nome}</span>
+      <div
+        className="convenios-logo-card"
+        style={
+          brazilDental
+            ? {
+                background: "linear-gradient(135deg, #095902 0%, #032F01 100%)",
+                borderColor: "rgba(86, 168, 5, 0.38)",
+              }
+            : undefined
+        }
+      >
+        <span
+          className="convenios-logo-fallback"
+          style={brazilDental ? { color: "white" } : undefined}
+        >
+          {convenio.nome}
+        </span>
         {logo !== undefined && (
           <img
             src={logo}
             alt={convenio.nome}
             loading="lazy"
             decoding="async"
-            className="convenios-logo relative z-[1] bg-white"
+            className={`convenios-logo relative z-[1] ${brazilDental ? "" : "bg-white"}`}
+            style={
+              brazilDental
+                ? {
+                    background: "transparent",
+                    boxShadow: "none",
+                    maxWidth: "86%",
+                    maxHeight: "3.9rem",
+                  }
+                : undefined
+            }
             onError={(event) => {
               event.currentTarget.hidden = true;
             }}
