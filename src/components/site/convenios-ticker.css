@@ -101,8 +101,7 @@
   overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--lime) 16%, white);
   border-radius: 1.15rem;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(252, 253, 249, 0.98));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(252, 253, 249, 0.98));
   padding: 0.9rem 1.35rem;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
@@ -143,15 +142,27 @@
 }
 
 .convenios-logo {
+  position: relative;
+  z-index: 1;
   display: block;
   width: auto;
   max-width: 100%;
   max-height: 3.2rem;
   object-fit: contain;
+  background: white;
+  box-shadow: 0 0 0 4rem white;
   transform: translateZ(0);
 }
 
+/* O nome já está no DOM: se a imagem remota falhar, o onError esconde a img
+   e esta camada aparece imediatamente, sem card quebrado nem ícone de erro. */
 .convenios-logo-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  padding-inline: 1rem;
   white-space: nowrap;
   color: var(--forest-2);
   font-family: var(--font-display);
