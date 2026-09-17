@@ -11,7 +11,7 @@
   isolation: isolate;
   margin-top: 3.5rem;
   overflow: hidden;
-  padding-block: 1.4rem;
+  padding-block: 1.55rem;
   border-block: 1px solid color-mix(in oklab, var(--lime) 16%, transparent);
   background:
     radial-gradient(44rem 8rem at 18% 50%, color-mix(in oklab, var(--lime) 10%, transparent), transparent 72%),
@@ -30,7 +30,6 @@
   pointer-events: none;
 }
 
-/* linha de energia sutil — usa somente o lime da JP */
 .convenios-ticker::before {
   left: -18%;
   top: 50%;
@@ -49,7 +48,6 @@
   animation: convenios-energy 7s ease-in-out infinite alternate;
 }
 
-/* arcos quase invisíveis para dar profundidade sem inventar uma nova linguagem */
 .convenios-ticker::after {
   right: -10rem;
   top: -17rem;
@@ -67,6 +65,7 @@
   position: relative;
   z-index: 1;
   overflow: hidden;
+  padding-block: 0.35rem;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
 }
@@ -74,6 +73,7 @@
 .convenios-ticker-track {
   display: flex;
   width: max-content;
+  align-items: center;
   will-change: transform;
   animation: convenios-marquee 31s linear infinite;
 }
@@ -81,8 +81,16 @@
 .convenios-ticker-group {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding-right: 1rem;
+  gap: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.convenios-ticker-group > li {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  contain: layout paint;
 }
 
 .convenios-ticker:hover .convenios-ticker-track,
@@ -90,24 +98,27 @@
   animation-play-state: paused;
 }
 
+/*
+ * Todos os cards têm exatamente a mesma caixa. Isso é importante para o olho
+ * perceber uma única linha, mesmo quando a imagem da operadora tem canvas ou
+ * margens internas diferentes.
+ */
 .convenios-logo-card {
   position: relative;
-  display: flex;
-  width: clamp(12.5rem, 14vw, 14rem);
+  display: grid;
+  width: clamp(12.75rem, 14vw, 14rem);
   height: 5.65rem;
   flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
+  place-items: center;
   overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--lime) 16%, white);
   border-radius: 1.2rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(252, 253, 249, 0.98));
-  padding: 0.5rem 0.8rem;
+  background: linear-gradient(135deg, #fff, rgba(252, 253, 249, 0.98));
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 18px 42px -28px rgba(0, 0, 0, 0.85),
     0 0 0 1px color-mix(in oklab, var(--forest) 5%, transparent);
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
   transition:
     transform 0.42s var(--ease-out),
     border-color 0.42s var(--ease-out),
@@ -115,11 +126,11 @@
     filter 0.42s var(--ease-out);
 }
 
-/* brilho passa pela superfície, mas nunca altera a logo */
 .convenios-logo-card::after {
   content: "";
   position: absolute;
   inset: -35% auto -35% -55%;
+  z-index: 2;
   width: 42%;
   transform: skewX(-18deg);
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.82), transparent);
@@ -127,8 +138,9 @@
   pointer-events: none;
 }
 
+/* Sem scale no CARD: scale no card era o que invadia visualmente o vizinho. */
 .convenios-logo-card:hover {
-  transform: translateY(-6px) scale(1.025);
+  transform: translate3d(0, -4px, 0);
   border-color: color-mix(in oklab, var(--lime) 42%, white);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.95) inset,
@@ -142,60 +154,69 @@
 }
 
 /*
- * As imagens de origem têm caixas transparentes muito diferentes entre si.
- * Só aumentar `max-height` deixava algumas marcas enormes e outras minúsculas.
- * A base ocupa quase toda a placa e cada arquivo recebe um ajuste óptico curto,
- * sem recortar nem deformar a proporção original.
+ * A imagem agora tem uma JANELA fixa dentro do card. Os ajustes ópticos abaixo
+ * escalam a arte dentro dessa janela, nunca o card e nunca o espaço do vizinho.
+ * `overflow: hidden` do card garante que nenhuma marca possa se sobrepor à
+ * próxima, mesmo que o arquivo original tenha um canvas estranho.
  */
 .convenios-logo {
-  --convenio-logo-scale: 1.18;
-  position: relative;
+  --convenio-logo-scale: 1;
+  --convenio-logo-x: 0px;
+  --convenio-logo-y: 0px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
   z-index: 1;
-  display: block;
-  width: auto;
-  max-width: 92%;
-  max-height: 4.45rem;
+  width: calc(100% - 2rem);
+  height: calc(100% - 1.05rem);
+  max-width: none;
+  max-height: none;
   object-fit: contain;
-  background: white;
-  box-shadow: 0 0 0 5rem white;
-  transform: translateZ(0) scale(var(--convenio-logo-scale));
+  object-position: center;
+  background: #fff;
+  transform: translate(
+      calc(-50% + var(--convenio-logo-x)),
+      calc(-50% + var(--convenio-logo-y))
+    )
+    scale(var(--convenio-logo-scale));
   transform-origin: center;
 }
 
+/* Ajustes ópticos — limitados à janela do card. */
 .convenios-logo[alt="OdontoPrev"] {
-  --convenio-logo-scale: 1.45;
+  --convenio-logo-scale: 1.13;
 }
 
 .convenios-logo[alt="Dental Par"] {
-  --convenio-logo-scale: 1.34;
+  --convenio-logo-scale: 1.1;
+  --convenio-logo-y: -1px;
 }
 
 .convenios-logo[alt="Rede Brazil Dental"] {
-  --convenio-logo-scale: 1.62;
+  --convenio-logo-scale: 1.28;
 }
 
 .convenios-logo[alt="SulAmérica"] {
-  --convenio-logo-scale: 1.48;
+  --convenio-logo-scale: 1.18;
 }
 
 .convenios-logo[alt="Porto Seguro"] {
-  --convenio-logo-scale: 1.5;
+  --convenio-logo-scale: 1.15;
 }
 
 .convenios-logo[alt="Bradesco"] {
-  --convenio-logo-scale: 1.48;
+  --convenio-logo-scale: 1.13;
 }
 
 .convenios-logo[alt="Sempre Odonto"] {
-  --convenio-logo-scale: 1.82;
+  --convenio-logo-scale: 1.55;
 }
 
 .convenios-logo[alt="Odonto Empresas"] {
-  --convenio-logo-scale: 1.4;
+  --convenio-logo-scale: 1.17;
+  --convenio-logo-y: 1px;
 }
 
-/* O nome já está no DOM: se a imagem remota falhar, o onError esconde a img
-   e esta camada aparece imediatamente, sem card quebrado nem ícone de erro. */
 .convenios-logo-fallback {
   position: absolute;
   inset: 0;
@@ -248,7 +269,7 @@
 @media (max-width: 639px) {
   .convenios-ticker {
     margin-top: 2.75rem;
-    padding-block: 1.05rem;
+    padding-block: 1.15rem;
   }
 
   .convenios-ticker-track {
@@ -256,20 +277,19 @@
   }
 
   .convenios-ticker-group {
-    gap: 0.7rem;
-    padding-right: 0.7rem;
+    gap: 0.85rem;
+    padding-right: 0.85rem;
   }
 
   .convenios-logo-card {
     width: 11.5rem;
     height: 5rem;
     border-radius: 1rem;
-    padding: 0.45rem 0.65rem;
   }
 
   .convenios-logo {
-    max-width: 94%;
-    max-height: 3.95rem;
+    width: calc(100% - 1.5rem);
+    height: calc(100% - 0.9rem);
   }
 }
 
