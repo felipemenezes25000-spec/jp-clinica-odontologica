@@ -192,8 +192,14 @@
   --convenio-logo-y: -1px;
 }
 
+/* 1.05, e não mais. O SVG da Brazil Dental não tem margem interna: o 1.28 que
+   estava aqui fazia o desenho passar da janela do card e ser cortado em cima e
+   embaixo. E o fundo branco da logo é o que esconde o nome de fallback por
+   baixo dela — "Rede Brazil Dental" é o nome mais longo da faixa, e com escala
+   menor sobra pouca folga para cobri-lo. Medido a 1440px: 1.05 deixa 9,6px de
+   folga sobre o nome e 7,6px de respiro vertical no card. */
 .convenios-logo[alt="Rede Brazil Dental"] {
-  --convenio-logo-scale: 1.28;
+  --convenio-logo-scale: 1.05;
 }
 
 .convenios-logo[alt="SulAmérica"] {
@@ -230,6 +236,19 @@
   font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.035em;
+}
+
+/* O NOME SÓ APARECE QUANDO A LOGO FALHA.
+   Antes, quem escondia o nome era o fundo branco da <img> por cima dele — e
+   isso só funciona enquanto a caixa da logo for mais larga que o texto. Não é:
+   "Rede Brazil Dental" num card de celular (184px) passava 1,3px da caixa, e
+   uma placa sem fundo branco deixava o nome inteiro sobre a logo. Qualquer
+   ajuste de --convenio-logo-scale podia reabrir o problema sem aviso.
+   Agora o nome some enquanto houver logo visível; o onError da <img> põe
+   `hidden` nela e o nome volta. Navegador sem :has() cai no comportamento
+   antigo, com o fundo branco cobrindo. */
+.convenios-logo-card:has(> .convenios-logo:not([hidden])) > .convenios-logo-fallback {
+  visibility: hidden;
 }
 
 @keyframes convenios-marquee {

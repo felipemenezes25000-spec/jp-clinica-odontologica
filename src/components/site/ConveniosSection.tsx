@@ -38,10 +38,15 @@ const LOGOS = import.meta.glob("../../assets/convenios/*.{svg,png,webp}", {
  * Referências visuais das marcas usadas enquanto os kits oficiais dos
  * credenciados não estão versionados no projeto.
  *
- * A Brazil Dental é uma exceção visual: a arte oficial pública disponível no
- * próprio domínio da marca é a versão branca. Em vez de usar aquele PNG de
- * terceiros com uma caixa cinza embutida, a placa dela usa o verde profundo da
- * própria JP e exibe o SVG branco oficial sem adulterar a marca.
+ * Brazil Dental: `LOgo BD.svg`, a logo do cabeçalho do próprio site da marca
+ * (brazildental.com.br) — texto azul-marinho #243172 e arco amarelo #fc0, feita
+ * para fundo claro. Existe também a `LOgo BD Branco.svg`, com o mesmo desenho
+ * em branco; ela exigia uma placa escura só para esta marca, e sem a cobertura
+ * branca da placa normal o nome de fallback vazava por cima da logo. Não volte
+ * para a branca.
+ *
+ * O nome do arquivo tem espaço: na URL ele é `%20`. `%2B` é um "+" literal, e o
+ * CDN responde 403 para esse caminho.
  */
 const LOGOS_REMOTOS: Partial<Record<string, string>> = {
   sulamerica:
@@ -54,7 +59,7 @@ const LOGOS_REMOTOS: Partial<Record<string, string>> = {
     "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/odontoprev.png",
   "dental-par":
     "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/dentalpar.png",
-  "rede-brazil-dental": "https://irp.cdn-website.com/c19ccd43/dms3rep/multi/LOgo%20BD%20Branco.svg",
+  "rede-brazil-dental": "https://irp.cdn-website.com/c19ccd43/dms3rep/multi/LOgo%20BD.svg",
   "sempre-odonto":
     "https://raw.githubusercontent.com/MezonTech/radiodent-website/main/public/images/convenios/sempre-odonto.png",
   "odonto-empresas": "https://www.seu-convenio.com/images/operadoras/310981-v.png",
@@ -74,50 +79,28 @@ function logoDe(slug: string): string | undefined {
 }
 
 /**
- * Cada marca fica numa placa neutra. A Brazil Dental usa a versão branca oficial
- * e, por isso, recebe uma placa verde profunda da paleta JP. As demais continuam
- * em placa branca, preservando o contraste das artes coloridas.
+ * Cada marca fica numa placa branca neutra. O efeito premium pertence à placa
+ * e ao fundo JP; a arte da operadora não recebe filtro, recoloração ou
+ * distorção. Isso preserva tanto a identidade da clínica quanto a da marca.
+ *
+ * Nenhuma marca tem placa própria. O nome de fallback fica sempre renderizado
+ * por baixo da logo, e quem o esconde é o fundo branco opaco da `<img>`: uma
+ * placa de outra cor tira essa cobertura e o nome aparece por cima da logo.
  */
 function Placa({ convenio }: { convenio: Convenio }) {
   const logo = logoDe(convenio.slug);
-  const brazilDental = convenio.slug === "rede-brazil-dental";
 
   return (
     <li className="shrink-0">
-      <div
-        className="convenios-logo-card"
-        style={
-          brazilDental
-            ? {
-                background: "linear-gradient(135deg, #095902 0%, #032F01 100%)",
-                borderColor: "rgba(86, 168, 5, 0.38)",
-              }
-            : undefined
-        }
-      >
-        <span
-          className="convenios-logo-fallback"
-          style={brazilDental ? { color: "white" } : undefined}
-        >
-          {convenio.nome}
-        </span>
+      <div className="convenios-logo-card">
+        <span className="convenios-logo-fallback">{convenio.nome}</span>
         {logo !== undefined && (
           <img
             src={logo}
             alt={convenio.nome}
             loading="lazy"
             decoding="async"
-            className={`convenios-logo relative z-[1] ${brazilDental ? "" : "bg-white"}`}
-            style={
-              brazilDental
-                ? {
-                    background: "transparent",
-                    boxShadow: "none",
-                    maxWidth: "86%",
-                    maxHeight: "3.9rem",
-                  }
-                : undefined
-            }
+            className="convenios-logo relative z-[1] bg-white"
             onError={(event) => {
               event.currentTarget.hidden = true;
             }}
