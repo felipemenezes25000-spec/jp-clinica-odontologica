@@ -54,8 +54,7 @@ const LOGOS_REMOTOS: Partial<Record<string, string>> = {
     "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/odontoprev.png",
   "dental-par":
     "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/dentalpar.png",
-  "rede-brazil-dental":
-    "https://irp.cdn-website.com/c19ccd43/dms3rep/multi/LOgo%2BBD%2BBranco.svg",
+  "rede-brazil-dental": "https://irp.cdn-website.com/c19ccd43/dms3rep/multi/LOgo%20BD%20Branco.svg",
   "sempre-odonto":
     "https://raw.githubusercontent.com/MezonTech/radiodent-website/main/public/images/convenios/sempre-odonto.png",
   "odonto-empresas": "https://www.seu-convenio.com/images/operadoras/310981-v.png",
