@@ -93,16 +93,16 @@
 .convenios-logo-card {
   position: relative;
   display: flex;
-  width: clamp(10.75rem, 13vw, 12.5rem);
-  height: 5rem;
+  width: clamp(12.5rem, 14vw, 14rem);
+  height: 5.65rem;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--lime) 16%, white);
-  border-radius: 1.15rem;
+  border-radius: 1.2rem;
   background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(252, 253, 249, 0.98));
-  padding: 0.9rem 1.35rem;
+  padding: 0.5rem 0.8rem;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.9) inset,
     0 18px 42px -28px rgba(0, 0, 0, 0.85),
@@ -141,17 +141,57 @@
   animation: convenios-sheen 0.85s var(--ease-out) both;
 }
 
+/*
+ * As imagens de origem têm caixas transparentes muito diferentes entre si.
+ * Só aumentar `max-height` deixava algumas marcas enormes e outras minúsculas.
+ * A base ocupa quase toda a placa e cada arquivo recebe um ajuste óptico curto,
+ * sem recortar nem deformar a proporção original.
+ */
 .convenios-logo {
+  --convenio-logo-scale: 1.18;
   position: relative;
   z-index: 1;
   display: block;
   width: auto;
-  max-width: 100%;
-  max-height: 3.2rem;
+  max-width: 92%;
+  max-height: 4.45rem;
   object-fit: contain;
   background: white;
-  box-shadow: 0 0 0 4rem white;
-  transform: translateZ(0);
+  box-shadow: 0 0 0 5rem white;
+  transform: translateZ(0) scale(var(--convenio-logo-scale));
+  transform-origin: center;
+}
+
+.convenios-logo[alt="OdontoPrev"] {
+  --convenio-logo-scale: 1.45;
+}
+
+.convenios-logo[alt="Dental Par"] {
+  --convenio-logo-scale: 1.34;
+}
+
+.convenios-logo[alt="Rede Brazil Dental"] {
+  --convenio-logo-scale: 1.62;
+}
+
+.convenios-logo[alt="SulAmérica"] {
+  --convenio-logo-scale: 1.48;
+}
+
+.convenios-logo[alt="Porto Seguro"] {
+  --convenio-logo-scale: 1.5;
+}
+
+.convenios-logo[alt="Bradesco"] {
+  --convenio-logo-scale: 1.48;
+}
+
+.convenios-logo[alt="Sempre Odonto"] {
+  --convenio-logo-scale: 1.82;
+}
+
+.convenios-logo[alt="Odonto Empresas"] {
+  --convenio-logo-scale: 1.4;
 }
 
 /* O nome já está no DOM: se a imagem remota falhar, o onError esconde a img
@@ -166,7 +206,7 @@
   white-space: nowrap;
   color: var(--forest-2);
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   font-weight: 800;
   letter-spacing: -0.035em;
 }
@@ -221,14 +261,15 @@
   }
 
   .convenios-logo-card {
-    width: 10.25rem;
-    height: 4.5rem;
+    width: 11.5rem;
+    height: 5rem;
     border-radius: 1rem;
-    padding-inline: 1rem;
+    padding: 0.45rem 0.65rem;
   }
 
   .convenios-logo {
-    max-height: 2.8rem;
+    max-width: 94%;
+    max-height: 3.95rem;
   }
 }
 
