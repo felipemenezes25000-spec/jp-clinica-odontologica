@@ -1,20 +1,32 @@
 import { ArrowUpRight, Check, CreditCard, ShieldCheck } from "lucide-react";
 
-import { CLINICA, CONVENIOS, CONVENIOS_POR_EXTENSO, PAGAMENTO, type Convenio } from "@/lib/jp";
+import { CLINICA, CONVENIOS, PAGAMENTO, type Convenio } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import "./convenios-ticker.css";
 
 /**
- * Os logos que existirem em `src/assets/convenios/`.
- *
- * `import.meta.glob` e não uma lista de `import`: a pasta está vazia hoje e vai
- * sendo preenchida conforme cada operadora mandar o kit de marca do credenciado.
- * Com imports fixos, cada arquivo novo exigiria mexer neste componente — e um
- * import apontando para arquivo inexistente quebra o build inteiro, o que
- * transformaria "ainda não recebemos o logo da Porto Seguro" numa página fora
- * do ar.
- *
- * Com o glob, a pasta vazia resolve para `{}` e a seção desenha as placas
- * tipográficas. Arquivo novo aparece sozinho. Ver `LEIA-ME.md` na pasta.
+ * O ticker publica os convênios confirmados pela clínica e os dois acrescentados
+ * em 16/09/2026. Mantemos a extensão aqui porque, por enquanto, a mudança é
+ * exclusivamente da faixa/site e não deve alterar dados do CRC sem a mesma
+ * confirmação operacional.
+ */
+const CONVENIOS_TICKER: Convenio[] = [
+  ...CONVENIOS,
+  { nome: "Sempre Odonto", slug: "sempre-odonto" },
+  { nome: "Odonto Empresas", slug: "odonto-empresas" },
+];
+
+function porExtenso(itens: string[]): string {
+  if (itens.length <= 1) return itens[0] ?? "";
+  return `${itens.slice(0, -1).join(", ")} e ${itens.at(-1)}`;
+}
+
+const CONVENIOS_POR_EXTENSO_TICKER = porExtenso(CONVENIOS_TICKER.map((c) => c.nome));
+
+/**
+ * Logos locais continuam tendo prioridade. Assim que um kit oficial for salvo
+ * em `src/assets/convenios/<slug>.svg|png|webp`, ele substitui automaticamente
+ * a referência remota abaixo sem exigir outra alteração no componente.
  */
 const LOGOS = import.meta.glob("../../assets/convenios/*.{svg,png,webp}", {
   eager: true,
@@ -22,8 +34,34 @@ const LOGOS = import.meta.glob("../../assets/convenios/*.{svg,png,webp}", {
   import: "default",
 }) as Record<string, string>;
 
+/**
+ * Referências visuais das marcas usadas enquanto os kits oficiais dos
+ * credenciados não estão versionados no projeto. São imagens das próprias
+ * marcas/operadoras ou reproduções públicas dos respectivos logotipos.
+ *
+ * Importante: as cores dessas imagens pertencem às marcas. A UI do ticker
+ * continua integralmente na paleta JP; os logos ficam isolados em placas
+ * brancas justamente para não contaminar a identidade da clínica.
+ */
+const LOGOS_REMOTOS: Partial<Record<string, string>> = {
+  sulamerica:
+    "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/sulamerica.png",
+  "porto-seguro":
+    "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/porto.png",
+  bradesco:
+    "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/bradesco.png",
+  odontoprev:
+    "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/odontoprev.png",
+  "dental-par":
+    "https://raw.githubusercontent.com/codev-desenvolvesoftware/dentista-site/main/public/convenios/dentalpar.png",
+  "rede-brazil-dental": "https://www.seu-convenio.com/images/operadoras/419613-v.png",
+  "sempre-odonto":
+    "https://raw.githubusercontent.com/MezonTech/radiodent-website/main/public/images/convenios/sempre-odonto.png",
+  "odonto-empresas": "https://www.seu-convenio.com/images/operadoras/310981-v.png",
+};
+
 /** `../../assets/convenios/sulamerica.svg` → `sulamerica`. */
-function logoDe(slug: string): string | undefined {
+function logoLocalDe(slug: string): string | undefined {
   for (const [caminho, url] of Object.entries(LOGOS)) {
     const arquivo = caminho.split("/").pop() ?? "";
     if (arquivo.replace(/\.[^.]+$/, "") === slug) return url;
@@ -31,31 +69,32 @@ function logoDe(slug: string): string | undefined {
   return undefined;
 }
 
+function logoDe(slug: string): string | undefined {
+  return logoLocalDe(slug) ?? LOGOS_REMOTOS[slug];
+}
+
 /**
- * Uma placa da faixa.
- *
- * Branca sempre, com ou sem arquivo. Não é decoração: logo de operadora vem em
- * versão colorida, e cor de marca sobre o verde escuro da seção some ou briga.
- * A placa branca é o fundo neutro que faz qualquer uma delas funcionar — e, sem
- * arquivo, é a mesma placa com o nome em tipografia, então a faixa não muda de
- * desenho conforme os logos forem chegando.
+ * Cada marca fica numa placa branca neutra. O efeito premium pertence à placa
+ * e ao fundo JP; a arte da operadora não recebe filtro, recoloração ou
+ * distorção. Isso preserva tanto a identidade da clínica quanto a da marca.
  */
-function Placa({ convenio, copia = false }: { convenio: Convenio; copia?: boolean }) {
+function Placa({ convenio }: { convenio: Convenio }) {
   const logo = logoDe(convenio.slug);
 
   return (
-    <li className={`flex shrink-0 items-center px-3 sm:px-4 ${copia ? "marquee-copia" : ""}`}>
-      <div className="flex h-[76px] min-w-[186px] items-center justify-center rounded-2xl border border-white/10 bg-white px-7 shadow-[0_18px_45px_-28px_rgba(0,0,0,.9)] transition-transform duration-500 hover:-translate-y-1">
-        {logo === undefined ? (
-          <span className="whitespace-nowrap font-display text-[19px] font-extrabold tracking-[-0.035em] text-forest-2 sm:text-[21px]">
-            {convenio.nome}
-          </span>
-        ) : (
+    <li className="shrink-0">
+      <div className="convenios-logo-card">
+        <span className="convenios-logo-fallback">{convenio.nome}</span>
+        {logo !== undefined && (
           <img
             src={logo}
             alt={convenio.nome}
             loading="lazy"
-            className="h-9 w-auto max-w-[170px] object-contain"
+            decoding="async"
+            className="convenios-logo relative z-[1] bg-white"
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
           />
         )}
       </div>
@@ -64,35 +103,27 @@ function Placa({ convenio, copia = false }: { convenio: Convenio; copia?: boolea
 }
 
 /**
- * A faixa que desliza.
- *
- * Duas cópias da mesma lista, e não uma: a animação translada -50%, então o
- * segundo conjunto é o que ocupa o espaço que o primeiro deixou e faz a volta
- * parecer contínua. Se um dia a lista mudar de tamanho, isso continua valendo —
- * o que não pode é ter três cópias, ou uma.
- *
- * As duas são `aria-hidden`: para quem usa leitor de tela, uma faixa que se
- * repete é a mesma informação duas vezes, e nenhuma delas chega em ordem útil.
- * A lista de verdade fica logo abaixo, em `sr-only`.
+ * Duas cópias idênticas fazem a volta contínua. A segunda é puramente visual e
+ * some para quem pediu menos movimento; a lista semântica aparece uma vez logo
+ * abaixo da faixa.
  */
 function Faixa() {
   return (
-    <div
-      className="marquee relative mt-14 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_5%,#000_95%,transparent)] [-webkit-mask-image:linear-gradient(90deg,transparent,#000_5%,#000_95%,transparent)]"
-      /* O hover pausa (regra em styles.css). `group` não serve: a pausa vale
-         para o trilho inteiro, não para a placa sob o cursor. */
-    >
-      <ul className="marquee-track items-center" aria-hidden="true">
-        {CONVENIOS.map((c) => (
-          <Placa key={c.slug} convenio={c} />
-        ))}
-        {/* A segunda cópia existe só para a volta parecer contínua. Quem pediu
-            menos movimento não tem volta nenhuma, e ver os mesmos seis nomes
-            duas vezes seria ruído: `.marquee-copia` some nesse caso. */}
-        {CONVENIOS.map((c) => (
-          <Placa key={`${c.slug}-copia`} convenio={c} copia />
-        ))}
-      </ul>
+    <div className="convenios-ticker" aria-label="Convênios odontológicos atendidos">
+      <div className="convenios-ticker-viewport">
+        <div className="convenios-ticker-track" aria-hidden="true">
+          <ul className="convenios-ticker-group">
+            {CONVENIOS_TICKER.map((c) => (
+              <Placa key={c.slug} convenio={c} />
+            ))}
+          </ul>
+          <ul className="convenios-ticker-group" aria-hidden="true">
+            {CONVENIOS_TICKER.map((c) => (
+              <Placa key={`${c.slug}-copia`} convenio={c} />
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }
@@ -105,18 +136,9 @@ export function ConveniosSection() {
       id="convenios"
       className="jp-section relative isolate overflow-hidden bg-brand-deep text-white"
     >
-      {/* O BRILHO FICA EMBAIXO, e isso é acessibilidade, não gosto.
-
-          Ele começou no topo à esquerda, exatamente sob o rótulo "CONVÊNIOS E
-          PAGAMENTO". Um brilho limão a 7% clareia o verde profundo de #032f01
-          para #093701 — e o contraste do rótulo, que é limão sobre esse fundo,
-          cai de 4,96:1 para 4,49:1. Reprova a WCAG AA por um centésimo, e o axe
-          pega (varredura em 15/09/2026).
-
-          Mudar de lado não resolve: num celular de 375px, um círculo de 520px
-          com 130px de desfoque cobre a largura inteira, esteja ele à esquerda ou
-          à direita. O que resolve é tirá-lo da ALTURA do texto. Aqui embaixo ele
-          ilumina a faixa de placas, que é branca e não depende do fundo. */}
+      {/* O brilho permanece abaixo da área textual para preservar o contraste
+          do eyebrow lime sobre brand-deep, conforme a decisão de acessibilidade
+          já registrada no projeto. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -right-36 bottom-[-150px] h-[520px] w-[520px] rounded-full bg-lime/[0.08] blur-[130px]"
@@ -134,14 +156,12 @@ export function ConveniosSection() {
               O seu plano <span className="text-lime">provavelmente</span> está aqui.
             </h2>
             <p className="mt-6 max-w-xl text-base font-medium leading-relaxed text-white/70">
-              A JP é credenciada em {CONVENIOS.length} convênios odontológicos. A cobertura de cada
-              procedimento depende do seu plano — a recepção confere para você antes da consulta.
+              A JP é credenciada em {CONVENIOS_TICKER.length} convênios odontológicos. A cobertura
+              de cada procedimento depende do seu plano — a recepção confere para você antes da
+              consulta.
             </p>
           </div>
 
-          {/* PARTICULAR — o outro caminho, do mesmo tamanho.
-              Quem não tem plano chega nesta seção e precisa da resposta dela na
-              mesma tela, senão a seção inteira diz "não é para você". */}
           <div className="rounded-2xl border border-white/12 bg-white/[0.04] p-6 backdrop-blur-sm sm:p-7">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-lime/15 text-lime">
               <CreditCard className="h-5 w-5" aria-hidden="true" />
@@ -149,9 +169,6 @@ export function ConveniosSection() {
             <p className="mt-5 font-display text-xl font-extrabold leading-tight">
               Sem convênio? Também atendemos particular.
             </p>
-            {/* Lista, e não frase corrida: os itens são nomes próprios de forma de
-                pagamento e ficavam com maiúscula no meio de uma enumeração. A
-                FAQ, onde eles entram mesmo dentro de uma frase, minúsculas. */}
             <ul className="mt-4 space-y-2">
               {PAGAMENTO.formas.map((forma) => (
                 <li key={forma} className="flex items-start gap-2.5 text-sm text-white/72">
@@ -179,10 +196,8 @@ export function ConveniosSection() {
 
       <Faixa />
 
-      {/* A lista que o leitor de tela lê, uma vez e em ordem. A faixa acima é
-          decoração de uma informação que precisa existir em texto. */}
       <ul className="sr-only">
-        {CONVENIOS.map((c) => (
+        {CONVENIOS_TICKER.map((c) => (
           <li key={c.slug}>{c.nome}</li>
         ))}
       </ul>
@@ -193,7 +208,7 @@ export function ConveniosSection() {
           <span>
             Credenciamentos e coberturas podem mudar. Confirme o seu plano com a recepção pelo
             WhatsApp {CLINICA.whatsapp} antes de agendar. Convênios atendidos hoje:{" "}
-            {CONVENIOS_POR_EXTENSO}.
+            {CONVENIOS_POR_EXTENSO_TICKER}.
           </span>
         </p>
       </div>
