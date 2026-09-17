@@ -1,0 +1,258 @@
+/*
+ * Ticker premium de convênios da JP.
+ *
+ * A seção continua 100% dentro da paleta oficial: brand-deep / forest / lime
+ * no fundo e superfícies brancas para preservar a leitura das marcas de
+ * terceiros. As cores próprias dos logos não viram cor de interface.
+ */
+
+.convenios-ticker {
+  position: relative;
+  isolation: isolate;
+  margin-top: 3.5rem;
+  overflow: hidden;
+  padding-block: 1.4rem;
+  border-block: 1px solid color-mix(in oklab, var(--lime) 16%, transparent);
+  background:
+    radial-gradient(44rem 8rem at 18% 50%, color-mix(in oklab, var(--lime) 10%, transparent), transparent 72%),
+    radial-gradient(38rem 8rem at 82% 50%, color-mix(in oklab, var(--lime) 8%, transparent), transparent 72%),
+    linear-gradient(90deg, color-mix(in oklab, var(--brand-deep) 96%, black), var(--brand-deep) 48%, color-mix(in oklab, var(--forest) 34%, var(--brand-deep)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white 8%, transparent),
+    inset 0 -1px 0 color-mix(in oklab, var(--lime) 8%, transparent);
+}
+
+.convenios-ticker::before,
+.convenios-ticker::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* linha de energia sutil — usa somente o lime da JP */
+.convenios-ticker::before {
+  left: -18%;
+  top: 50%;
+  width: 136%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--lime) 22%, transparent) 20%,
+    color-mix(in oklab, var(--lime) 60%, white) 50%,
+    color-mix(in oklab, var(--lime) 22%, transparent) 80%,
+    transparent
+  );
+  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--lime) 38%, transparent));
+  opacity: 0.45;
+  animation: convenios-energy 7s ease-in-out infinite alternate;
+}
+
+/* arcos quase invisíveis para dar profundidade sem inventar uma nova linguagem */
+.convenios-ticker::after {
+  right: -10rem;
+  top: -17rem;
+  width: 34rem;
+  height: 34rem;
+  border: 1px solid color-mix(in oklab, var(--lime) 13%, transparent);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 5rem color-mix(in oklab, var(--lime) 3%, transparent),
+    0 0 0 10rem color-mix(in oklab, var(--lime) 2%, transparent);
+  opacity: 0.7;
+}
+
+.convenios-ticker-viewport {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+
+.convenios-ticker-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: convenios-marquee 31s linear infinite;
+}
+
+.convenios-ticker-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-right: 1rem;
+}
+
+.convenios-ticker:hover .convenios-ticker-track,
+.convenios-ticker:focus-within .convenios-ticker-track {
+  animation-play-state: paused;
+}
+
+.convenios-logo-card {
+  position: relative;
+  display: flex;
+  width: clamp(10.75rem, 13vw, 12.5rem);
+  height: 5rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--lime) 16%, white);
+  border-radius: 1.15rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(252, 253, 249, 0.98));
+  padding: 0.9rem 1.35rem;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 42px -28px rgba(0, 0, 0, 0.85),
+    0 0 0 1px color-mix(in oklab, var(--forest) 5%, transparent);
+  transform: translateZ(0);
+  transition:
+    transform 0.42s var(--ease-out),
+    border-color 0.42s var(--ease-out),
+    box-shadow 0.42s var(--ease-out),
+    filter 0.42s var(--ease-out);
+}
+
+/* brilho passa pela superfície, mas nunca altera a logo */
+.convenios-logo-card::after {
+  content: "";
+  position: absolute;
+  inset: -35% auto -35% -55%;
+  width: 42%;
+  transform: skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.82), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.convenios-logo-card:hover {
+  transform: translateY(-6px) scale(1.025);
+  border-color: color-mix(in oklab, var(--lime) 42%, white);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 25px 52px -30px rgba(0, 0, 0, 0.9),
+    0 0 30px -12px color-mix(in oklab, var(--lime) 55%, transparent);
+  filter: saturate(1.04);
+}
+
+.convenios-logo-card:hover::after {
+  animation: convenios-sheen 0.85s var(--ease-out) both;
+}
+
+.convenios-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 3.2rem;
+  object-fit: contain;
+  transform: translateZ(0);
+}
+
+.convenios-logo-fallback {
+  white-space: nowrap;
+  color: var(--forest-2);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+@keyframes convenios-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes convenios-energy {
+  from {
+    transform: translateX(-3%);
+    opacity: 0.28;
+  }
+  to {
+    transform: translateX(3%);
+    opacity: 0.55;
+  }
+}
+
+@keyframes convenios-sheen {
+  0% {
+    left: -55%;
+    opacity: 0;
+  }
+  22% {
+    opacity: 0.75;
+  }
+  100% {
+    left: 118%;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .convenios-ticker {
+    margin-top: 2.75rem;
+    padding-block: 1.05rem;
+  }
+
+  .convenios-ticker-track {
+    animation-duration: 36s;
+  }
+
+  .convenios-ticker-group {
+    gap: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  .convenios-logo-card {
+    width: 10.25rem;
+    height: 4.5rem;
+    border-radius: 1rem;
+    padding-inline: 1rem;
+  }
+
+  .convenios-logo {
+    max-height: 2.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .convenios-ticker {
+    padding-inline: 1rem;
+  }
+
+  .convenios-ticker::before,
+  .convenios-logo-card::after {
+    animation: none !important;
+  }
+
+  .convenios-ticker-viewport {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .convenios-ticker-track {
+    width: 100%;
+    animation: none;
+  }
+
+  .convenios-ticker-group {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-right: 0;
+  }
+
+  .convenios-ticker-group[aria-hidden="true"] {
+    display: none;
+  }
+
+  .convenios-logo-card:hover {
+    transform: none;
+  }
+}
