@@ -57,12 +57,28 @@ function sinais(concedido: boolean): Record<string, "granted" | "denied"> {
 }
 
 /**
+ * O MESMO SHIM DO `<head>` — e o formato é o que importa nele.
+ *
+ * O Google só lê como comando o que chega ao `dataLayer` como o objeto
+ * `arguments` de uma função, que é o que `function gtag(){dataLayer.push(arguments);}`
+ * produz. Um Array com o mesmo conteúdo entra no `dataLayer` sem erro nenhum e
+ * é IGNORADO. Era o que acontecia aqui: medido em 18/09/2026 com o gtag.js
+ * oficial, depois do "Aceitar" empurrado como Array o `generate_lead` seguia
+ * saindo negado (gcs=G100); pelo `gtag()`, concedido (G111). Como o lead
+ * costuma acontecer na mesma página do aceite, o defeito atingia justamente a
+ * conversão. `consentimento.test.ts` fixa o formato.
+ */
+function gtag(..._comando: unknown[]): void {
+  // eslint-disable-next-line prefer-rest-params -- o Google exige o objeto `arguments`; um Array é ignorado (ver acima)
+  (window.dataLayer ??= []).push(arguments);
+}
+
+/**
  * Publica a escolha para o Google e para a Meta.
  *
- * O `gtag` daqui é o mesmo shim declarado no script inline do `<head>`: ele só
- * empurra os argumentos para o `dataLayer`. Não há `gtag.js` carregado
- * diretamente — quem carrega é o GTM —, e é isso que mantém a promessa de não
- * espalhar `gtag()` pelos componentes.
+ * Não há `gtag.js` carregado diretamente — quem carrega é o GTM —, e o `gtag`
+ * acima só empurra o comando para o `dataLayer`. É isso que mantém a promessa
+ * de não espalhar `gtag()` pelos componentes.
  */
 function publicar(estado: Exclude<EstadoConsentimento, "pendente">): void {
   try {
@@ -70,9 +86,9 @@ function publicar(estado: Exclude<EstadoConsentimento, "pendente">): void {
     const concedido = estado === "aceito";
 
     window.dataLayer ??= [];
-    // `consent` + `update` é o formato que o Consent Mode espera no dataLayer.
-    window.dataLayer.push(["consent", "update", sinais(concedido)]);
-    // E um evento nomeado, porque é por ele que se aciona tag no GTM.
+    gtag("consent", "update", sinais(concedido));
+    // E um evento nomeado, porque é por ele que se aciona tag no GTM. Vem
+    // DEPOIS do comando: a tag que ele aciona já encontra o consentimento novo.
     window.dataLayer.push({ event: "jp_consentimento", jp_consentimento: estado });
 
     // A Meta tem o próprio interruptor. `revoke` para de enviar sem precisar

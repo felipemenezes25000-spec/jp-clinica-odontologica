@@ -30,8 +30,9 @@ const URL_ANUNCIO =
 
 type EventoDataLayer = Record<string, unknown>;
 
-/** Lê o `dataLayer` como ele está. O `push` de consentimento entra como array;
- *  só os objetos com `event` são eventos nossos. */
+/** Lê o `dataLayer` como ele está. O comando de consentimento entra como
+ *  `arguments` (o formato que o Google lê); só os objetos com `event` são
+ *  eventos nossos. */
 async function eventos(page: Page): Promise<EventoDataLayer[]> {
   return page.evaluate(() => {
     const camada = (window as unknown as { dataLayer?: unknown[] }).dataLayer ?? [];
