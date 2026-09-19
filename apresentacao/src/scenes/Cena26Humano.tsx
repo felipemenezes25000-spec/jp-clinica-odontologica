@@ -13,7 +13,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  *
  * O espelho da cena 14: mesma tela, mesmo canal, resultado oposto. Ali a
  * automação seguiu; aqui ela para, e a etiqueta do balão muda de "Automação"
- * para "Raphaela · CRC".
+ * para "Recepção · CRC".
  *
  * Repetir a composição de propósito é o que faz a diferença ser lida sem
  * narração. Se esta cena tivesse outro layout, o corte pareceria mudança de
@@ -53,8 +53,8 @@ export function Cena26Humano() {
                 {HUMANO.fala}
               </Balao>
 
-              <Balao de="clinica" em={REPASSE + 26} hora="14:09" autor="Raphaela · CRC" entregue>
-                Oi, Ana. Sou a Raphaela, da JP. Sinto muito pela dor — vou falar agora com a
+              <Balao de="clinica" em={REPASSE + 26} hora="14:09" autor="Recepção · CRC" entregue>
+                Oi, Ana. Aqui é a recepção da JP. Sinto muito pela dor — vou falar agora com a
                 dentista e já te retorno com um horário de urgência.
               </Balao>
             </Conversa>

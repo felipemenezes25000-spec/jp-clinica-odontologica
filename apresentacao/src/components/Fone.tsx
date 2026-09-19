@@ -179,7 +179,7 @@ export function Balao({
   em?: number;
   entregue?: boolean;
   lida?: boolean;
-  /** "Automação", "IA", "Raphaela" — quem escreveu do lado da clínica. */
+  /** "Automação", "IA", "Recepção · CRC" — quem escreveu do lado da clínica. */
   autor?: string;
 }) {
   const frame = useFrame();

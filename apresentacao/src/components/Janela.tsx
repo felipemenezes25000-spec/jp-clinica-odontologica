@@ -17,7 +17,7 @@ const NAVEGACAO = ["Home", "Conversas", "Pacientes", "Oportunidades", "Automaç�
 export function Janela({
   ativo,
   children,
-  usuario = "Raphaela",
+  usuario = "Recepção",
   largura = 1640,
   altura = 762,
 }: {

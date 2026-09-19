@@ -16,7 +16,7 @@ import { easeOutQuint, progresso } from "@/motion/timing";
  * peça no chão.
  *
  * A etiqueta "Automação" acima do balão não é detalhe: ela é a diferença entre
- * o sistema fingir ser gente e o sistema dizer o que é. Quando a Raphaela
+ * o sistema fingir ser gente e o sistema dizer o que é. Quando a recepção
  * assume a conversa na cena 20, a etiqueta muda — e isso conta a história
  * sozinho.
  */

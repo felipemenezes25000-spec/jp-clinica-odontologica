@@ -603,7 +603,7 @@ export const HUMANO = {
 /* -------------------------------------------------------------------------- */
 
 export const HOME = {
-  saudacao: "Boa tarde, Raphaela.",
+  saudacao: "Boa tarde.",
   linhaUm: "pacientes precisam de você hoje.",
   linhaDois: "já estão sendo cuidados automaticamente.",
   cartoes: [
