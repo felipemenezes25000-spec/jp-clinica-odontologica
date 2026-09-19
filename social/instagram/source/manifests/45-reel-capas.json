@@ -136,14 +136,6 @@
       "superficie": "escura"
     },
     {
-      "arquivo": "jp_ig_reel_r13_cover_rosto_alt_v01",
-      "tipo": "reel-cover-rosto",
-      "chip": "PRIMEIRA VISITA",
-      "foto": "/src/assets/raphaela-recepcao.webp",
-      "headline": "Como é a\nprimeira [[visita]]?",
-      "escala": "h-m"
-    },
-    {
       "arquivo": "jp_ig_reel_r08_cover_rosto_alt_v01",
       "tipo": "reel-cover-rosto",
       "chip": "AVALIAÇÃO",

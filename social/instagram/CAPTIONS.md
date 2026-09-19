@@ -625,13 +625,11 @@ R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó.
 | `juliana_pelisser` | Dra. Juliana Pelisser Barbosa | CROSP 75.159  | Gestora, fundadora e responsável técnica |
 | `ana_beatriz`      | Dra. Ana Beatriz              | CROSP 177.801 | Coordenadora e cirurgiã-dentista         |
 | `matheus_fraga`    | Dr. Matheus Fraga             | CROSP 168.512 | Odontopediatria e endodontia             |
-| `julia_vargas`     | Dra. Júlia Vargas             | CROSP 175.851 | Odontopediatria e estética               |
 | `hugo_leonardo`    | Dr. Hugo Leonardo             | CROSP 75.157  | Ortodontia                               |
 | `sabrina_vamszer`  | Dra. Sabrina Vamszer Flaquer  | CROSP 162.394 | Endodontia                               |
-| `raphaela`         | Raphaela                      | —             | Recepção                                 |
 | `jeferson_barbosa` | Jeferson Barbosa              | —             | Gestor e fundador · Comunicação Social   |
 
-> Raphaela e Jeferson **não recebem linha de registro**. CRO é dado regulado pelo CFO e atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa real.
+> Jeferson **não recebe linha de registro**. CRO é dado regulado pelo CFO e atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa real.
 
 Para a Dra. Juliana, acrescente ao fim:
 

@@ -98,18 +98,16 @@ Oito retratos reais, todos enviados pela clínica.
 | ------------------------ | -------------------------------------------- | ------- | ---------------- | ------------------------------- |
 | `ana-beatriz.webp`       | Dra. Ana Beatriz — CROSP 177.801             | 600×728 | transparente     | silhueta sobre a forma de marca |
 | `matheus-fraga.webp`     | Dr. Matheus Fraga — CROSP 168.512            | 600×728 | transparente     | silhueta                        |
-| `julia-vargas.webp`      | Dra. Júlia Vargas — CROSP 175.851            | 600×728 | transparente     | silhueta                        |
 | `hugo-leonardo.webp`     | Dr. Hugo Leonardo — CROSP 75.157             | 600×728 | transparente     | silhueta                        |
 | `sabrina-vamszer.webp`   | Dra. Sabrina Vamszer Flaquer — CROSP 162.394 | 600×728 | transparente     | silhueta                        |
-| `raphaela-recepcao.webp` | Raphaela — Recepção (sem CRO, e está certo)  | 600×728 | transparente     | silhueta                        |
 | `juliana-pelisser.webp`  | Dra. Juliana Pelisser Barbosa — CROSP 75.159 | 560×683 | **branco opaco** | moldura reta                    |
 | `jeferson-barbosa.webp`  | Jeferson Barbosa — Gestor e fundador         | 318×336 | **cinza opaco**  | moldura reta                    |
 
 **Por que dois recebem moldura reta.** A silhueta só funciona com PNG vazado. Forçar recorte em foto de fundo opaco inventaria um contorno que a foto não tem — e recorte mal feito em retrato de pessoa real é pior do que moldura honesta.
 
-**Raphaela não tem campo de registro, e isso é regra, não esquecimento.** CRO é dado regulado pela Resolução CFO 196/2019; atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa que existe.
+**Quem não é do conselho não tem campo de registro, e isso é regra, não esquecimento.** CRO é dado regulado pela Resolução CFO 196/2019; atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa que existe.
 
-> Pendências cosméticas anotadas em `src/lib/jp.ts`: falta o sobrenome da Dra. Ana Beatriz e o da Raphaela. E o registro do Dr. Hugo Leonardo (75.157) fica a dois dígitos do da Dra. Juliana (75.159) — vale reconferir antes de publicar em volume.
+> Pendência cosmética anotada em `src/lib/jp.ts`: falta o sobrenome da Dra. Ana Beatriz. O registro do Dr. Hugo Leonardo (75.157), a dois dígitos do da Dra. Juliana (75.159), foi reconfirmado pela clínica em 15/09/2026.
 
 ---
 

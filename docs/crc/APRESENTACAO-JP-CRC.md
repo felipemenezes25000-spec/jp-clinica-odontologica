@@ -792,7 +792,7 @@ casos de teste · vale por 30 dias
 
 > _"A equipe abre o dia sabendo quem precisa dela."_
 
-> **Boa tarde, Raphaela.**
+> **Boa tarde.**
 > **16** pacientes precisam de você hoje.
 > **82** já estão sendo cuidados automaticamente.
 

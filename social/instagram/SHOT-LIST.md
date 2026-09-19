@@ -78,8 +78,8 @@ A recepção é a foto mais usada do kit e a que só existe em 665×480.
 | --- | ------------------------------------------------------- | --------------------- |
 | 2.1 | Recepção vazia, plano aberto, **vertical**              | fundo de Story e Reel |
 | 2.2 | Recepção vazia, plano aberto, **horizontal 4:5**        | janela de feed        |
-| 2.3 | Raphaela atendendo no balcão (plano médio)              | card de equipe, Story |
-| 2.4 | Raphaela ao telefone, de perfil                         | bastidor              |
+| 2.3 | Recepcionista atendendo no balcão (plano médio)         | card de equipe, Story |
+| 2.4 | Recepcionista ao telefone, de perfil                    | bastidor              |
 | 2.5 | Detalhe: mão entregando a ficha / caneta sobre o balcão | B-roll                |
 | 2.6 | As cadeiras verdes em close, com profundidade           | textura               |
 | 2.7 | Alguém sentando na sala de espera (de costas)           | humanização           |
@@ -171,7 +171,7 @@ Estas são as versões faladas dos Reels já produzidos em motion. Grave **uma p
 > Quatro coisas pesam: o tipo de movimento que os dentes precisam fazer, a idade e a fase de crescimento, a sua rotina, e o acompanhamento possível.
 > E vale lembrar: aparelho não é só estética. Mordida desalinhada cobra depois, na mastigação e no desgaste dos dentes."
 
-### Dra. Júlia Vargas — "Clareamento enfraquece?" (R15)
+### Dentista a definir — "Clareamento enfraquece?" (R15)
 
 > "Clareamento enfraquece os dentes? Feito com acompanhamento, não.
 > O agente clareador age na cor. Ele não desgasta o esmalte como uma lixa.
@@ -190,7 +190,7 @@ Estas são as versões faladas dos Reels já produzidos em motion. Grave **uma p
 > O implante não tem cárie mesmo. Mas a gengiva ao redor dele adoece — e é isso que faz implante falhar.
 > Escovação com a técnica certa, fio ou escova interdental na região, atenção ao sangramento. E os retornos, que não são opcionais."
 
-### Raphaela — "Como é a primeira avaliação" (R13)
+### Recepção — "Como é a primeira avaliação" (R13)
 
 > "Se você nunca veio aqui, é assim: você chega, a gente faz a ficha, e você senta.
 > Na consulta, a conversa vem antes do exame — você conta o que está te incomodando, a equipe examina, e se precisar de exame de imagem a gente orienta.

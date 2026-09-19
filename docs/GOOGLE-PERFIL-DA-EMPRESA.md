@@ -100,7 +100,7 @@ O repositório tem 40+ fotos reais em `src/assets/` que nunca chegaram ao Google
 | Recepção e espera | `recepcao.webp`, `recepcao-completa.webp`, `sala-espera-ortodontia-completa.webp`, `cantinho-cafe.webp` |
 | Consultórios | `consultorio-1.webp`, `consultorio-2.webp`, `consultorio-cadeira-lilas.webp`, `consultorio-janela.webp`, `consultorio-implantes-1.webp`, `consultorio-implantes-2.webp`, `consultorio-bancada.webp`, `consultorio-wide.webp` |
 | Estrutura | `esterilizacao.webp`, `equipamento.webp`, `escritorio.webp` |
-| Equipe | `juliana-pelisser.webp`, `jeferson-barbosa.webp`, `ana-beatriz.webp`, `hugo-leonardo.webp`, `julia-vargas.webp`, `matheus-fraga.webp`, `raphaela-recepcao.webp`, `sabrina-vamszer.webp` |
+| Equipe | `juliana-pelisser.webp`, `jeferson-barbosa.webp`, `ana-beatriz.webp`, `hugo-leonardo.webp`, `matheus-fraga.webp`, `sabrina-vamszer.webp` |
 | Logo | `docs/marca/logo-jp.png` |
 
 `esterilizacao.webp` merece destaque: sala de esterilização é o que um paciente novo procura e quase nenhuma clínica mostra.

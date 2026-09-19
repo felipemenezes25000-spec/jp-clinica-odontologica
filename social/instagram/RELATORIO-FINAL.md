@@ -220,7 +220,6 @@ Enquanto os dois não baterem, todo recorte de fachada deste kit para em `x = 63
 | anos de história              | 24           | **17/08/2027** → 25                                            |
 | CRO do Dr. Hugo Leonardo      | CROSP 75.157 | vale reconferir: fica a dois dígitos do 75.159 da Dra. Juliana |
 | sobrenome da Dra. Ana Beatriz | ausente      | quando a clínica informar                                      |
-| sobrenome da Raphaela         | ausente      | quando a clínica informar                                      |
 
 ### Divergência já conhecida e documentada
 

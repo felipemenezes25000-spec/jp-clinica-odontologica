@@ -65,11 +65,6 @@
       "papel": "Odontopediatria e endodontia"
     },
     {
-      "nome": "Dra. Júlia Vargas",
-      "registro": "CROSP 175.851",
-      "papel": "Odontopediatria e estética"
-    },
-    {
       "nome": "Dr. Hugo Leonardo",
       "registro": "CROSP 75.157",
       "papel": "Ortodontia"
@@ -78,11 +73,6 @@
       "nome": "Dra. Sabrina Vamszer Flaquer",
       "registro": "CROSP 162.394",
       "papel": "Endodontia"
-    },
-    {
-      "nome": "Raphaela",
-      "registro": null,
-      "papel": "Recepção"
     }
   ],
   "tratamentos": [
