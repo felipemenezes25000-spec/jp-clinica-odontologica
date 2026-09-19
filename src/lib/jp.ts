@@ -4,9 +4,7 @@ import fotoJeferson from "@/assets/jeferson-barbosa.webp";
 import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
-import fotoJulia from "@/assets/julia-vargas.webp";
 import fotoMatheus from "@/assets/matheus-fraga.webp";
-import fotoRaphaela from "@/assets/raphaela-recepcao.webp";
 import fotoSabrina from "@/assets/sabrina-vamszer.webp";
 
 /**
@@ -417,8 +415,14 @@ export const RESPONSAVEL_TECNICA: Profissional = {
  * A responsável técnica não está aqui — ela tem apresentação própria no bloco
  * de história, e a clínica preferiu não repeti-la nesta grade.
  *
- * A lista não é só de dentistas: quem trabalha na recepção também aparece, sem
- * CRO. Por isso o tipo é MembroEquipe, e não Profissional.
+ * O tipo é MembroEquipe, e não Profissional, para a lista poder receber quem
+ * não é do conselho — recepção, por exemplo — sem afrouxar o registro de
+ * Profissional, que alimenta a linha regulada do rodapé.
+ *
+ * QUEM SAI DA CLÍNICA SAI DESTA LISTA, E A FOTO SAI DE src/assets. Esconder na
+ * exibição não basta: enquanto a foto for importada aqui, o bundler a publica
+ * em /assets/ e o nome segue no JavaScript servido, mesmo sem card na tela. Foi
+ * o que aconteceu entre 13/09 e 18/09/2026 com duas pessoas que tinham saído.
  */
 export const EQUIPE: MembroEquipe[] = [
   /**
@@ -432,11 +436,11 @@ export const EQUIPE: MembroEquipe[] = [
    * 07/09/2026 e os retratos foram recortados do original, no mesmo
    * enquadramento de cabeça (rosto ocupando ~63% da altura do quadro).
    *
-   * Os cinco registros foram informados pela clínica em 07/09/2026 e estão
-   * abaixo, cada um com o número cru ao lado. Todos os retratos chegaram.
+   * Os registros foram informados pela clínica em 07/09/2026 e estão abaixo,
+   * cada um com o número cru ao lado. Todos os retratos chegaram.
    *
-   * O que ainda falta é cosmético: o sobrenome da Dra. Ana Beatriz e o da
-   * Raphaela, que não vieram e não aparecem em crachá nenhum.
+   * O que ainda falta é cosmético: o sobrenome da Dra. Ana Beatriz, que não
+   * veio e não aparece no crachá.
    *
    * O formato "CROSP 000.000" acompanha o da responsável técnica, que já
    * estava no site. As carteiras e os avisos da clínica trazem o número sem
@@ -476,14 +480,6 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 168.512",
     papel: "Odontopediatria e endodontia",
     foto: fotoMatheus,
-  },
-  {
-    /** Crachá: "Dra Júlia Vargas — Cirurgiã-Dentista", com acento no Júlia.
-     *  A especialidade e o registro ("SP-175851") vieram da clínica. */
-    nome: "Dra. Júlia Vargas",
-    registro: "CROSP 175.851",
-    papel: "Odontopediatria e estética",
-    foto: fotoJulia,
   },
   {
     /**
@@ -527,18 +523,6 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 162.394",
     papel: "Endodontia",
     foto: fotoSabrina,
-  },
-  {
-    /**
-     * Recepção — sem registro de propósito, não é do conselho. É por causa
-     * dela que o tipo desta lista é MembroEquipe, e não Profissional.
-     *
-     * ⚠️ NOME INCOMPLETO: a foto veio nomeada só como "Raphaela
-     * recepcionista" e o sobrenome não foi informado.
-     */
-    nome: "Raphaela",
-    papel: "Recepção",
-    foto: fotoRaphaela,
   },
 ];
 

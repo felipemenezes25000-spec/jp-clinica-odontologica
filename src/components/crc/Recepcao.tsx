@@ -5,7 +5,7 @@
  *  ESTA TELA MEDE O PROCESSO, E NÃO A PESSOA. A distinção decide se ela ajuda
  *  ou destrói a equipe.
  *
- *  "A Raphaela tem nota 62" é um ranking, e ranking de atendente numa clínica
+ *  "A Fulana tem nota 62" é um ranking, e ranking de atendente numa clínica
  *  pequena produz uma coisa só: a pessoa para de registrar o que correu mal. A
  *  partir daí o painel fica bonito e cego.
  *
