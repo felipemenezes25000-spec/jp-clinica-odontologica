@@ -21,7 +21,8 @@ import {
   X,
 } from "lucide-react";
 
-import fachadaImg from "@/assets/fachada.webp";
+import fachada2026Img from "@/assets/fachada-2026.webp";
+import fachada2026FullImg from "@/assets/fachada-2026-completa.webp";
 import consultorioRealImg from "@/assets/consultorio-1.webp";
 import consultorioReal800 from "@/assets/consultorio-1-800.webp";
 import consultorioReal1100 from "@/assets/consultorio-1-1100.webp";
@@ -123,7 +124,13 @@ const GALLERY: EspacoFoto[] = [
     title: "Consultório principal",
   },
   {
-    src: fachadaImg,
+    // Foto de 21/09/2026, com o letreiro atual — o anterior ainda mostrava um
+    // WhatsApp que não é mais o da clínica. É vertical (1086x1448) e o card é
+    // 4:3: o corte centralizado arrancava o letreiro. O recorte começa em y=170
+    // da original e deixa o letreiro inteiro na metade de cima, longe do degradê
+    // da legenda. O clique abre a foto inteira.
+    src: fachada2026Img,
+    full: fachada2026FullImg,
     title: "Nossa fachada",
   },
   {
