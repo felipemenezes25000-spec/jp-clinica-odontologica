@@ -104,7 +104,7 @@ jobs:
       # execucao verde e lixo de artefato.
       - name: Relatorio do E2E que falhou
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-publico
           path: |
