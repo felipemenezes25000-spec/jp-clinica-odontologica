@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 
 // Fotos da própria JP. Nenhuma imagem de banco ou gerada.
-import ogImage from "@/assets/fachada.webp";
 import consultorioRealImg from "@/assets/consultorio-1.webp";
 import consultorioReal2Img from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";

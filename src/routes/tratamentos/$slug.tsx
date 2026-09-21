@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
-import ogImage from "@/assets/fachada.webp";
+import ogImage from "@/assets/fachada-2026-previa.jpg";
 import { PaginaDeTratamento } from "@/components/site/PaginaDeTratamento";
 import { SITE_URL, TRATAMENTOS } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";

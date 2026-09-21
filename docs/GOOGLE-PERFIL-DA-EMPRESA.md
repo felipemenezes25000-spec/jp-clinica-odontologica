@@ -10,7 +10,7 @@
 > - **Serviços**: não são oito, são dezessete. Faltavam clínica geral, endodontia, periodontia, facetas, alinhadores, odontologia do esporte, DTM, atendimento a idosos e pacientes com necessidades especiais.
 > - **Acessibilidade**: a clínica é acessível e tem barras de apoio — §3.3 podia ser respondido, e foi.
 > - **Sábado**: não atende. §3.2 fechado.
-> - **WhatsApp da placa**: a placa é que está errada. O número do site, (11) 97616-5117, é o oficial; o antigo foi clonado e desativado. §1.5 e C7 fechados — e isso muda o §1.4, porque uma foto da fachada publica o número errado.
+> - **WhatsApp da placa**: a placa é que estava errada. O número do site, (11) 97616-5117, é o oficial; o antigo foi clonado e desativado. §1.5 e C7 fechados. **A placa foi trocada**: a foto de 21/09/2026 (`fachada-2026-completa.webp`) já mostra o número certo. As fotos antigas da fachada continuam mostrando o clonado — ver §1.4.
 > - **Pontos de referência**: travessa da Av. Edgar Facó, esquina do supermercado Violeta, perto do Hospital Geral de Vila Penteado e das obras da futura estação Penteado. C5 entregue.
 
 ## Por que este documento existe agora
@@ -96,7 +96,7 @@ O repositório tem 40+ fotos reais em `src/assets/` que nunca chegaram ao Google
 
 | Categoria na ficha | Arquivos |
 | --- | --- |
-| Exterior | `fachada-letreiro.webp`, `fachada.webp` — **com a ressalva de 1.5** |
+| Exterior | `fachada-2026-completa.webp` — placa nova, com o WhatsApp certo. **Nunca** `fachada.webp` nem `fachada-letreiro.webp`: mostram a placa antiga, com o número clonado (§1.5) |
 | Recepção e espera | `recepcao.webp`, `recepcao-completa.webp`, `sala-espera-ortodontia-completa.webp`, `cantinho-cafe.webp` |
 | Consultórios | `consultorio-1.webp`, `consultorio-2.webp`, `consultorio-cadeira-lilas.webp`, `consultorio-janela.webp`, `consultorio-implantes-1.webp`, `consultorio-implantes-2.webp`, `consultorio-bancada.webp`, `consultorio-wide.webp` |
 | Estrutura | `esterilizacao.webp`, `equipamento.webp`, `escritorio.webp` |
@@ -109,20 +109,18 @@ O repositório tem 40+ fotos reais em `src/assets/` que nunca chegaram ao Google
 
 O Google converte de webp sem problema, mas se o painel recusar algum arquivo, exporte em JPG antes.
 
-### 1.5 Antes de subir a fachada: resolver o WhatsApp da placa
+### 1.5 WhatsApp da placa — resolvido em 21/09/2026
 
-A mesma auditoria, §1.2, registrou uma divergência ainda aberta:
+A placa antiga mostrava **9 7169-4647**, um número que foi clonado e desativado. O oficial é o do site, **(11) 97616-5117** (`CLINICA.whatsapp` em [`src/lib/jp.ts`](../src/lib/jp.ts)). A clínica trocou a placa, e a foto de 21/09/2026 já mostra o número certo:
 
-| Onde | WhatsApp |
-| --- | --- |
-| Placa da fachada, visível em `fachada.webp` | **9 7169-4647** |
-| `CLINICA.whatsapp` em [`src/lib/jp.ts:80`](../src/lib/jp.ts) | **(11) 97616-5117** |
+| Foto | WhatsApp na placa | Pode publicar? |
+| --- | --- | --- |
+| `fachada-2026-completa.webp` (21/09/2026) | **(11) 97616-5117** | sim, inteira |
+| `fachada.webp`, `fachada-letreiro.webp` (placa antiga) | **9 7169-4647** — clonado | **não**, nem recortada |
 
-O telefone fixo bate nos dois. O WhatsApp não.
+As fotos antigas continuam no repositório porque o kit de Instagram gera derivados a partir de `fachada.webp` (`social/instagram/source/scripts/preparar-fotos.py`), mas saíram do site: a galeria usa a foto nova, e a prévia de link das páginas de tratamento (`og:image`) passou a ser `fachada-2026-previa.jpg`, um recorte horizontal dela.
 
-Publicar a fachada inteira e legível na ficha do Google é publicar dois números de contato para a mesma clínica: a pessoa salva o da foto, manda mensagem, e o lead se perde sem ninguém saber por quê. O kit de Instagram resolveu cortando todo recorte da fachada em `x = 638`, o que preserva toldo, especialidades, marca, "Dra. Juliana Pelisser", o CRO e o telefone certo, e deixa o bloco do WhatsApp de fora.
-
-Duas saídas: usar o mesmo recorte na ficha, ou a clínica confirmar qual número está em uso e corrigir o lado errado. Enquanto não decidir, use o recorte.
+Se a ficha do Google ou alguma rede ainda exibir uma foto da placa antiga, troque: quem salva o número da foto manda mensagem para um número clonado.
 
 ### 1.6 Horário, feriados e link do site — 20 min
 
@@ -159,7 +157,7 @@ Tarefas de repositório, com arquivo. Nenhuma depende do painel para ser feita; 
 | ~~C4~~ | [`src/lib/dadosEstruturados.ts`](../src/lib/dadosEstruturados.ts) | **Parcialmente feito em 15/09/2026.** Entraram `paymentAccepted`, `amenityFeature` (acessibilidade) e `areaServed` com as três regiões; `availableService` passou de 8 para 17. Continuam de fora `priceRange` (que é preço, e o §19 veta) e `isAcceptingNewPatients`. Falta o link do Maps em `sameAs`. |
 | ~~C5~~ | [`src/routes/index.tsx`](../src/routes/index.tsx) | **Feito em 15/09/2026.** Bloco "Pontos de referência" abaixo do mapa, lendo `COMO_CHEGAR` — a mesma fonte alimenta a resposta "Onde fica a clínica, e como eu chego?" da FAQ, que vai para o `FAQPage`. Estacionamento continua de fora: a clínica não foi perguntada. |
 | C6 | [`social/instagram/source/scripts/renderizar.mjs:60`](../social/instagram/source/scripts/renderizar.mjs) | Formato `google` no `VIEWPORT`, para as peças de Post. Ver §6. |
-| ~~C7~~ | [`src/lib/jp.ts:80`](../src/lib/jp.ts) | **Resolvido sem código em 15/09/2026.** A clínica confirmou que o site está certo e a placa errada: o número antigo foi clonado e desativado. Nada a mudar aqui — o que falta é trocar a placa, e não publicar foto da fachada até lá. |
+| ~~C7~~ | [`src/lib/jp.ts:80`](../src/lib/jp.ts) | **Resolvido sem código em 15/09/2026.** A clínica confirmou que o site está certo e a placa errada: o número antigo foi clonado e desativado. Nada a mudar aqui. **A placa foi trocada** — foto de 21/09/2026; ver §1.5. |
 
 **Sobre C3, que é a mais curiosa.** O classificador de eventos já trata cliques em avaliação:
 
@@ -181,7 +179,7 @@ O site mostra a nota em quatro lugares e não pede avaliação em lugar nenhum. 
 
 Nada aqui deve ir ao ar antes de alguém da JP confirmar:
 
-1. **Qual WhatsApp está em uso** — o da placa ou o do site (§1.5).
+1. ~~**Qual WhatsApp está em uso**~~ — respondido: o do site. A placa foi trocada em 21/09/2026 (§1.5).
 2. ~~**Se atende sábado**, e em qual escala.~~ **Respondido em 15/09/2026: não atende.** O horário do site, segunda a sexta das 8h às 18h, está correto e já é o que o `openingHoursSpecification` publica.
 3. **Atributos da ficha**, agora em três estados:
    - **Pode marcar**: a clínica é acessível e tem barras de apoio; aceita cartão de crédito, boleto e parcelamento direto. Informado em 15/09/2026 e já publicado no site.
@@ -330,7 +328,7 @@ O número que importa continua sendo `generate_lead`, e agora ele vai vir carimb
 - **Não oferecer desconto, brinde ou sorteio em troca de avaliação.** Viola a política do Google e esbarra no CFO.
 - **Não filtrar quem recebe o pedido de avaliação** por nota esperada. Chama-se *review gating*, é violação explícita, e o pedido tem que ir para todo mundo.
 - **Não subir `capa-recepcao-*.webp`** (§1.4).
-- **Não subir a fachada sem recorte** enquanto o WhatsApp da placa divergir (§1.5).
+- **Não subir `fachada.webp` nem `fachada-letreiro.webp`**: mostram a placa antiga, com o número clonado. A fachada certa é `fachada-2026-completa.webp` (§1.5).
 - **Não publicar antes/depois** na ficha.
 - **Não pôr preço** em Serviços ou Produtos.
 - **Não mexer em nome, endereço e categoria no mesmo dia.**
@@ -356,7 +354,7 @@ O número que importa continua sendo `generate_lead`, e agora ele vai vir carimb
 | C1 | Sincronizar `AVALIACOES` | código | médio | minutos |
 | C2 | Depoimentos reais da ficha | código | médio | 1 h |
 | C5 | Bloco "como chegar" | código | médio | 2 h |
-| 1.5 | Decidir o WhatsApp da placa | clínica | médio | — |
+| ~~1.5~~ | ~~Decidir o WhatsApp da placa~~ — resolvido: placa trocada em 21/09/2026 | clínica | — | — |
 | 1.1 | Ler as 192 avaliações | painel | insumo | 30 min |
 | 1.7 | Conferir o campo Bairro | painel | baixo | 5 min |
 | C4 | Propriedades novas no JSON-LD | código | baixo | 30 min |
