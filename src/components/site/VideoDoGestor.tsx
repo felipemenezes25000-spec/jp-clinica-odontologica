@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Pause, Play, Quote, Star, Volume2, VolumeX } from "lucide-react";
 
 import { GESTOR, GESTOR_DENTAL_OFFICE } from "@/lib/jp";
@@ -20,70 +20,45 @@ import logoDentalOffice from "@/assets/dental-office.svg";
  * vai se tratar. O selo (cliente há 15 anos, embaixador) é a prova de que não
  * é sistema adotado ontem.
  *
- * Como toca:
+ * Como toca — SÓ QUANDO A PESSOA PEDE:
  *
- * 1. Mudo, em loop, quando entra na tela — a legenda está gravada na imagem,
- *    então o vídeo se entende sem som. `preload="none"` + poster: nada é
- *    baixado antes de a pessoa rolar até aqui.
- * 2. "Ouvir" liga o som E volta ao começo: quem pede som quer a fala inteira,
- *    não o meio de uma frase.
- * 3. `prefers-reduced-motion` desliga o autoplay (fica o poster e o play), e
- *    há sempre um botão de pausar — WCAG 2.2.2, como em TreatmentVideo.
- * 4. A fala está escrita ao lado, por extenso: é a alternativa em texto do
+ * 1. Abre parado, na capa (JP × Dental Office), com o botão de play. Não há
+ *    autoplay nem loop: a primeira versão tocava muda sozinha ao entrar na
+ *    tela, e o cliente pediu em 22/09/2026 que o vídeo só comece no play. É
+ *    também o que o vídeo pede — é um depoimento, e depoimento é com som.
+ * 2. O play já sai COM SOM. Quem clicou quer ouvir; um vídeo que começa mudo
+ *    depois do clique parece quebrado.
+ * 3. `preload="none"`: nada é baixado antes do clique. São 10 MB que quem não
+ *    assiste não paga.
+ * 4. Ao terminar, volta para a capa (`load()`), pronto para dar play de novo.
+ * 5. A fala está escrita ao lado, por extenso: é a alternativa em texto do
  *    vídeo e é o que o buscador lê.
  */
 export function VideoDoGestor() {
   const ref = useRef<HTMLVideoElement>(null);
   const [tocando, setTocando] = useState(false);
-  const [mudo, setMudo] = useState(true);
-  const [podeAnimar, setPodeAnimar] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const aplicar = () => setPodeAnimar(!mq.matches);
-    aplicar();
-    mq.addEventListener("change", aplicar);
-    return () => mq.removeEventListener("change", aplicar);
-  }, []);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !podeAnimar) return;
-    const obs = new IntersectionObserver(
-      ([entrada]) => {
-        if (!entrada) return;
-        // Com som ligado, sair da tela pausa mas voltar não retoma sozinho:
-        // áudio que recomeça sem a pessoa pedir é o que faz fechar a aba.
-        if (entrada.isIntersecting) {
-          if (el.muted) void el.play().catch(() => {});
-        } else {
-          el.pause();
-        }
-      },
-      { threshold: 0.5 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [podeAnimar]);
+  const [mudo, setMudo] = useState(false);
 
   const alternarTocar = () => {
     const el = ref.current;
     if (!el) return;
-    if (el.paused) void el.play().catch(() => {});
-    else el.pause();
+    if (el.paused) {
+      el.muted = false;
+      void el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
   };
 
   const alternarSom = () => {
     const el = ref.current;
     if (!el) return;
-    if (el.muted) {
-      el.muted = false;
-      el.currentTime = 0;
-      void el.play().catch(() => {});
-    } else {
-      el.muted = true;
-    }
-    setMudo(el.muted);
+    el.muted = !el.muted;
+  };
+
+  const voltarParaCapa = () => {
+    setTocando(false);
+    ref.current?.load();
   };
 
   const { anosDeCliente, fala, creditoDaGravacao } = GESTOR_DENTAL_OFFICE;
@@ -109,13 +84,12 @@ export function VideoDoGestor() {
             ref={ref}
             src={videoGestor}
             poster={posterGestor}
-            muted
-            loop
             playsInline
             preload="none"
             aria-label={descricao}
             onPlay={() => setTocando(true)}
             onPause={() => setTocando(false)}
+            onEnded={voltarParaCapa}
             onVolumeChange={(e) => setMudo(e.currentTarget.muted)}
             className="block aspect-[4/5] w-full object-cover"
           />
@@ -124,32 +98,30 @@ export function VideoDoGestor() {
             <button
               type="button"
               onClick={alternarTocar}
-              aria-label={`Reproduzir ${descricao}`}
-              className="absolute inset-0 grid place-items-center bg-brand-deep/25 transition-colors hover:bg-brand-deep/10"
+              aria-label={`Reproduzir com som. ${descricao}`}
+              className="absolute inset-0 grid place-items-center bg-brand-deep/10 transition-colors hover:bg-transparent"
             >
-              <span className="grid h-[72px] w-[72px] place-items-center rounded-full bg-lime text-brand-deep shadow-[0_18px_40px_rgba(0,0,0,.35)] transition-transform duration-300 hover:scale-105">
+              <span className="grid h-[76px] w-[76px] place-items-center rounded-full bg-lime text-white shadow-[0_18px_40px_rgba(0,0,0,.4)] ring-4 ring-white/25 transition-transform duration-300 hover:scale-105">
                 <Play className="ml-1 h-8 w-8 fill-current" aria-hidden="true" />
               </span>
             </button>
           )}
 
-          {/* No canto de cima à direita: embaixo fica a legenda gravada no
-              vídeo, e no canto de cima à esquerda, o logo da JP. */}
-          <div className="absolute right-3 top-3 flex gap-2">
-            <button
-              type="button"
-              onClick={alternarSom}
-              aria-label={mudo ? "Ouvir o vídeo com som, desde o começo" : "Tirar o som do vídeo"}
-              className="flex h-11 items-center gap-2 rounded-full bg-brand-deep/80 px-4 text-[13px] font-bold text-white backdrop-blur transition-colors hover:bg-brand-deep"
-            >
-              {mudo ? (
-                <VolumeX className="h-[18px] w-[18px] text-lime" aria-hidden="true" />
-              ) : (
-                <Volume2 className="h-[18px] w-[18px] text-lime" aria-hidden="true" />
-              )}
-              {mudo ? "Ouvir" : "Som ligado"}
-            </button>
-            {tocando && (
+          {/* Só aparecem depois do play: parado, a capa fica limpa. */}
+          {tocando && (
+            <div className="absolute right-3 top-3 flex gap-2">
+              <button
+                type="button"
+                onClick={alternarSom}
+                aria-label={mudo ? "Ligar o som" : "Tirar o som"}
+                className="grid h-11 w-11 place-items-center rounded-full bg-brand-deep/80 text-lime backdrop-blur transition-colors hover:bg-brand-deep"
+              >
+                {mudo ? (
+                  <VolumeX className="h-[18px] w-[18px]" aria-hidden="true" />
+                ) : (
+                  <Volume2 className="h-[18px] w-[18px]" aria-hidden="true" />
+                )}
+              </button>
               <button
                 type="button"
                 onClick={alternarTocar}
@@ -158,8 +130,8 @@ export function VideoDoGestor() {
               >
                 <Pause className="h-[18px] w-[18px] fill-current" aria-hidden="true" />
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </figure>
 
         <div>
