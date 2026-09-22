@@ -242,6 +242,40 @@ export const GESTOR = {
 };
 
 /**
+ * O vídeo do Jeferson no estande da Dental Office — o sistema de gestão que a
+ * clínica usa (é nele que a recepção agenda, e é dele que o CRC puxa pacientes
+ * e agenda).
+ *
+ * "Cliente há 15 anos e embaixador da marca" foi informado pela agência em
+ * 22/09/2026, junto com o vídeo. É afirmação sobre uma pessoa real e sobre
+ * uma marca de terceiro: se a Dental Office ou ele corrigirem, muda AQUI — o
+ * site lê daqui, e o vídeo (que tem os mesmos dizeres gravados na imagem)
+ * precisa ser refeito junto.
+ *
+ * A gravação original é da Dental Office (Reels do @softwaredentaloffice, 44 s
+ * de fala). O site usa a VERSÃO COMPLETA, por escolha do cliente em 22/09/2026.
+ *
+ * Foi escolha informada: existe também um corte curto (21 s) só com o começo —
+ * o diagnóstico é dos dentistas — e o fim — a tecnologia facilita a
+ * comunicação com o paciente. O miolo da completa (negociação do orçamento,
+ * previsão de honorários, a IA "detectando possíveis problemas" na panorâmica)
+ * é conversa de gestor para gestor, o público da Dental Office, e foi apontado
+ * ao cliente como o trecho que menos conversa com paciente. Se a decisão
+ * mudar, o curto está pronto em Video_Jeferson_Dental_Office/ENTREGA_V2/ — é
+ * trocar o arquivo e a `fala`.
+ *
+ * `fala` é a transcrição do que vai no vídeo, palavra por palavra ("pra" onde
+ * ele diz "pra", "você fechar" sem o "a"), sem as duas gaguejadas que a edição
+ * cortou ("o-o orçamento", "que não, que não somos").
+ */
+export const GESTOR_DENTAL_OFFICE = {
+  anosDeCliente: 15,
+  embaixador: true,
+  fala: "O que seria inteligência artificial pra mim na clínica? Eu, como não sou cirurgião-dentista, facilita pra mim quando os profissionais da clínica fazem o planejamento dos pacientes, fechando o diagnóstico. Quando chega pra mim, na parte administrativa, onde vou fazer a negociação do orçamento, acaba facilitando pra mim em qual sentido? Eu consigo pegar a panorâmica, jogar para dentro do módulo Inteligência Artificial, o sistema, ele faz o parâmetro pra mim, consigo detectar as informações e possíveis problemas que o paciente possa ter. No resumo, a inteligência artificial, ela é fundamental para ajudar você fechar o orçamento, a previsão de honorários, e para nós, que não somos cirurgiões, acaba facilitando a comunicação com o paciente.",
+  creditoDaGravacao: "Dental Office",
+};
+
+/**
  * Apresentação da fundadora, texto da clínica — não reescrever sem confirmar.
  *
  * Só a apresentação mora aqui: nome, CRO, cargo e retrato dela ficam em

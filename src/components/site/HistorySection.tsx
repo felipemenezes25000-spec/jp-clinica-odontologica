@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { CalendarDays, HeartPulse, MapPin, Minus, Plus, Quote, UsersRound } from "lucide-react";
 
 import { CLINICA, FUNDADORA, GESTOR, HISTORIA, MISSAO, RESPONSAVEL_TECNICA } from "@/lib/jp";
+import { VideoDoGestor } from "@/components/site/VideoDoGestor";
 
 /**
  * As duas pessoas à frente da clínica — as duas reais, as duas com o rótulo que
@@ -404,6 +405,12 @@ export function HistorySection() {
             </div>
           </div>
         </div>
+
+        {/* O gestor que o card acima apresenta, agora com voz: o vídeo dele no
+            estande da Dental Office. Fica na largura toda, abaixo das duas
+            colunas — dentro de uma delas, o 4:5 empurrava a coluna para
+            o dobro da altura da outra. */}
+        <VideoDoGestor />
       </div>
     </section>
   );
