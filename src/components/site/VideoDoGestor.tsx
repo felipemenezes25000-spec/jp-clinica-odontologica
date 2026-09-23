@@ -12,8 +12,9 @@ import logoDentalOffice from "@/assets/dental-office.svg";
  *
  * POR QUE AQUI. A seção acabou de apresentar quem faz a clínica; o vídeo é a
  * mesma pessoa, com voz e rosto, dizendo como a gestão trabalha. Solto em
- * outro ponto da home, ele teria de se apresentar de novo. E o cartão final do
- * vídeo é o verde profundo desta seção: o último quadro emenda no fundo.
+ * outro ponto da home, ele teria de se apresentar de novo. O vídeo começa e
+ * termina na mesma capa (JP × Dental Office): o pôster antes do play e o último
+ * quadro depois dele são a mesma imagem.
  *
  * O QUE O PACIENTE LEVA. "Quem fecha o diagnóstico são os dentistas; a
  * tecnologia entra na gestão" — é o que ele diz, e é o que interessa a quem

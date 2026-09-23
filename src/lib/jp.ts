@@ -253,7 +253,11 @@ export const GESTOR = {
  * precisa ser refeito junto.
  *
  * A gravação original é da Dental Office (Reels do @softwaredentaloffice, 44 s
- * de fala). O site usa a VERSÃO COMPLETA, por escolha do cliente em 22/09/2026.
+ * de fala). O site usa a VERSÃO COMPLETA, por escolha do cliente em 22/09/2026,
+ * na edição NATURAL (Video_Jeferson_Dental_Office/edit3): sem IA na imagem nem
+ * na voz, sem zoom, sem efeito. A edição anterior, cheia de cards e com a
+ * imagem subida por IA, foi reprovada no mesmo dia — "exagerado, parece um
+ * robô". Não voltar para ela.
  *
  * Foi escolha informada: existe também um corte curto (21 s) só com o começo —
  * o diagnóstico é dos dentistas — e o fim — a tecnologia facilita a
@@ -264,9 +268,10 @@ export const GESTOR = {
  * mudar, o curto está pronto em Video_Jeferson_Dental_Office/ENTREGA_V2/ — é
  * trocar o arquivo e a `fala`.
  *
- * `fala` é a transcrição do que vai no vídeo, palavra por palavra ("pra" onde
- * ele diz "pra", "você fechar" sem o "a"), sem as duas gaguejadas que a edição
- * cortou ("o-o orçamento", "que não, que não somos").
+ * `fala` é a transcrição do vídeo, palavra por palavra ("pra" onde ele diz
+ * "pra", "você fechar" sem o "a"), limpa das duas gaguejadas ("o-o orçamento",
+ * "que não, que não somos") — que continuam no áudio, como ele falou, e saem
+ * só do texto, igual à legenda.
  */
 export const GESTOR_DENTAL_OFFICE = {
   anosDeCliente: 15,
