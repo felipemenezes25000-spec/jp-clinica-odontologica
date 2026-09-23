@@ -254,8 +254,10 @@ export const GESTOR = {
  *
  * A gravação original é da Dental Office (Reels do @softwaredentaloffice, 44 s
  * de fala). O site usa a VERSÃO COMPLETA, por escolha do cliente em 22/09/2026,
- * na edição NATURAL (Video_Jeferson_Dental_Office/edit3): sem IA na imagem nem
- * na voz, sem zoom, sem efeito. A edição anterior, cheia de cards e com a
+ * na edição NATURAL COM MOTION GRAPHICS (Video_Jeferson_Dental_Office/edit3,
+ * overlay4.html): a imagem dele sem IA, sem zoom e sem desfoque; o movimento
+ * fica só nos gráficos (traço que se desenha, cortina, fade), aprovado pelo
+ * cliente antes de subir. A edição de antes, cheia de cards pulando e com a
  * imagem subida por IA, foi reprovada no mesmo dia — "exagerado, parece um
  * robô". Não voltar para ela.
  *
