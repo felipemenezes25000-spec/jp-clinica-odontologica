@@ -75,6 +75,7 @@ import { formatarDataHora } from "@/lib/rh/formatar";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
 import { escolherGuia, guiaSementeRecepcao } from "@/lib/rh/guia";
 import type { RankingSalvo } from "@/lib/rh/ia/tipos";
+import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
 import { AREAS, statusPor, VINCULOS } from "@/lib/rh/opcoes";
 import { configuracoesPadrao, DIAS_ATE_EXCLUIR } from "@/lib/rh/tipos";
 import type {
@@ -92,7 +93,16 @@ const TITULO = "Portal de RH — JP Clínica Integrada Odontológica";
 /** Motivo devolvido pelas server functions quando o cookie de sessão não vale mais. */
 const NAO_AUTENTICADO = "nao-autenticado";
 
-const ABAS: AbaRh[] = ["resumo", "candidaturas", "triagem", "entrevistas", "vagas", "config"];
+/* "triagem" só vale na URL com a IA ligada: um link salvo para ela cai no
+   Resumo, em vez de abrir uma aba que o menu não mostra. */
+const ABAS: AbaRh[] = [
+  "resumo",
+  "candidaturas",
+  ...(IA_DO_RH_LIGADA ? (["triagem"] as const) : []),
+  "entrevistas",
+  "vagas",
+  "config",
+];
 
 /**
  * O estado da triagem por IA como a tela precisa dele: a resposta do servidor
@@ -1672,7 +1682,7 @@ function Painel({ dados }: { dados: DadosRh }) {
           </>
         ) : null}
 
-        {aba === "triagem" ? (
+        {aba === "triagem" && IA_DO_RH_LIGADA ? (
           <div className="jp-container py-5">
             <AbaTriagem
               itens={itens}

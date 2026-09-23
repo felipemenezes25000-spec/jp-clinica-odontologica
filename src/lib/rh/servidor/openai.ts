@@ -30,7 +30,7 @@ import {
 import { apenasDigitos } from "../formatar";
 import { emAnosMeses } from "../ia/metricas";
 import { CHAVES_CRITERIO, rubricaPara, textoDasAncoras } from "../ia/rubricas";
-import { extracaoVazia } from "../ia/tipos";
+import { extracaoVazia, IA_DO_RH_LIGADA } from "../ia/tipos";
 import type {
   AnaliseIa,
   ChaveCriterio,
@@ -141,6 +141,15 @@ function chaveApi(): string {
  * Sem isso o RH veria "erro na análise" e ficaria tentando de novo para sempre.
  */
 export function iaConfigurada(): { ok: boolean; motivo: string } {
+  // Antes da chave: desligada por decisão, a chave cadastrada não religa nada.
+  // Ver `IA_DO_RH_LIGADA`.
+  if (!IA_DO_RH_LIGADA) {
+    return {
+      ok: false,
+      motivo:
+        "A leitura por IA do RH foi desligada para economizar tokens. O resto do painel continua funcionando normalmente.",
+    };
+  }
   const chave = chaveApi();
   if (chave.length === 0) {
     return {

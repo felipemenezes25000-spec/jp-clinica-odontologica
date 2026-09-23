@@ -49,7 +49,7 @@ import {
   tetoPorRotatividade,
 } from "@/lib/rh/ia/rubricas";
 import { classificarProximidade } from "@/lib/rh/ia/proximidade";
-import { VERSAO_ANALISE, recomendacaoPor } from "@/lib/rh/ia/tipos";
+import { IA_DO_RH_LIGADA, VERSAO_ANALISE, recomendacaoPor } from "@/lib/rh/ia/tipos";
 import type { AnaliseIa, ChaveCriterio, CriterioIa } from "@/lib/rh/ia/tipos";
 import { AREAS } from "@/lib/rh/opcoes";
 import type { Candidatura } from "@/lib/rh/tipos";
@@ -442,6 +442,10 @@ export function LeituraIa(props: {
     if (refTempoCopia.current !== null) clearTimeout(refTempoCopia.current);
     refTempoCopia.current = setTimeout(() => setCopiado(""), 4000);
   }
+
+  // IA desligada: fica só a leitura que já foi feita e deu certo. Convite,
+  // espera e falha levariam todos a um botão que não lê mais nada.
+  if (!IA_DO_RH_LIGADA && (!analise || analise.erro !== "")) return null;
 
   /* ---------------------------------------------------------------- cabeçalho */
 

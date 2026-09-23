@@ -38,7 +38,7 @@ import {
 } from "../ia/rubricas";
 import { comVeredito } from "../ia/veredito";
 import { ordenarSinais, sinaisDeCalculo } from "../ia/sinais";
-import { analiseVazia, extracaoVazia, VERSAO_ANALISE } from "../ia/tipos";
+import { analiseVazia, extracaoVazia, IA_DO_RH_LIGADA, VERSAO_ANALISE } from "../ia/tipos";
 import type {
   AnaliseIa,
   EmpregoExtraido,
@@ -1175,7 +1175,10 @@ export async function gerarFicha(
 
   const ia = await import("./openai");
   const estado = ia.iaConfigurada();
-  if (!estado.ok) return { ok: false, motivo: estado.motivo };
+  if (!estado.ok) {
+    if (IA_DO_RH_LIGADA) return { ok: false, motivo: estado.motivo };
+    return fichaSoDoGuia(inicial);
+  }
 
   // A ficha se apoia na análise: é dela que vêm extração, métricas e sinais. Sem
   // análise, roda a análise antes — o RH que abriu a gaveta de uma candidatura
@@ -1266,6 +1269,48 @@ export async function gerarFicha(
     // sobrescritos, um a um, logo abaixo.
     const base = atual.ficha ?? fichaVazia();
     return { ...atual, ficha: { ...base, ...parteDaIa } };
+  });
+
+  if (item === null || item.ficha === null) {
+    return { ok: false, motivo: "Não foi possível gravar a ficha desta candidatura." };
+  }
+  return { ok: true, ficha: item.ficha };
+}
+
+/**
+ * A ficha com a IA desligada: só o guia da clínica, sem chamada paga.
+ *
+ * Sem isto, desligar a IA travava a entrevista de toda candidata nova — o botão
+ * "Preparar entrevista" só devolvia erro, e sem ficha não há onde anotar
+ * resposta, nota nem decisão. As perguntas gerais e os critérios vêm do guia;
+ * ponto forte, triagem e perguntas tiradas do currículo ficam vazios, e a tela
+ * já não mostra bloco vazio.
+ *
+ * Ficha que a IA já escreveu não é tocada: trocá-la por esta apagaria texto que
+ * já foi pago.
+ */
+async function fichaSoDoGuia(inicial: Candidatura): Promise<ResultadoFichaEntrevista> {
+  if (inicial.ficha !== null && inicial.ficha.geradaEm !== "") {
+    return { ok: true, ficha: inicial.ficha };
+  }
+
+  const armazenamento = await import("./armazenamento");
+  const guia = await guiaParaVaga(inicial.vagaId, areaDaCandidatura(inicial));
+  const item = await armazenamento.atualizarCandidaturaNoDisco(inicial.id, (atual) => {
+    // Mesmo cuidado de `gerarFicha`: o que o entrevistador já escreveu fica.
+    const base = atual.ficha ?? fichaVazia();
+    return {
+      ...atual,
+      ficha: {
+        ...base,
+        versao: VERSAO_FICHA,
+        guiaId: guia.id,
+        guiaTitulo: guia.titulo,
+        geradaEm: new Date().toISOString(),
+        modelo: "",
+        erro: "",
+      },
+    };
   });
 
   if (item === null || item.ficha === null) {

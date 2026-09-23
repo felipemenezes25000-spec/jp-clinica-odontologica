@@ -55,6 +55,7 @@ import {
 import type { FichaEntrevista, RespostaTriagem } from "@/lib/rh/ficha";
 import { totalPossivel } from "@/lib/rh/guia";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
+import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
 import type { Candidatura } from "@/lib/rh/tipos";
 
 /* -------------------------------------------------------------------------- */
@@ -786,7 +787,9 @@ export function BlocoFicha(props: {
               {PASSOS[passo] ?? PASSOS[0]}
             </p>
             <p className="mt-0.5 text-xs text-white/85">
-              A ficha sai no formato do guia da clínica: costuma levar meio minuto.
+              {IA_DO_RH_LIGADA
+                ? "A ficha sai no formato do guia da clínica: costuma levar meio minuto."
+                : "A ficha sai no formato do guia da clínica."}
             </p>
           </div>
         </div>
@@ -796,15 +799,19 @@ export function BlocoFicha(props: {
 
   // Ainda não existe ficha: o convite.
   if (!gerada) {
+    // Com a IA desligada o botão não chama modelo nenhum (ver `fichaSoDoGuia`),
+    // então a falha de uma geração antiga não tem mais o que dizer.
+    const falhou = IA_DO_RH_LIGADA && ficha !== null && ficha.erro !== "";
     return (
       <section aria-labelledby={`${uid}-titulo`} className="rh-vidro p-4 sm:p-5">
         {titulo}
         <p className="mt-2 text-sm leading-relaxed text-white/85">
-          O sistema monta a ficha no formato do guia da clínica: ponto forte, o que validar, 4 itens
-          de triagem objetiva e 4 perguntas tiradas do currículo dela.
+          {IA_DO_RH_LIGADA
+            ? "O sistema monta a ficha no formato do guia da clínica: ponto forte, o que validar, 4 itens de triagem objetiva e 4 perguntas tiradas do currículo dela."
+            : "A ficha sai no formato do guia da clínica: as perguntas gerais e os critérios de nota, com espaço para as respostas, a impressão e a decisão."}
         </p>
 
-        {ficha !== null && ficha.erro !== "" ? (
+        {falhou ? (
           <p className="mt-3 flex items-start gap-2 rounded-xl bg-rose-300/10 p-3 text-sm leading-relaxed text-rose-100 ring-1 ring-rose-200/30">
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>
@@ -819,8 +826,12 @@ export function BlocoFicha(props: {
           disabled={gerando}
           className={`${BOTAO_PRINCIPAL} mt-3 disabled:opacity-60`}
         >
-          <Sparkles className="h-4 w-4" aria-hidden="true" />
-          {ficha !== null && ficha.erro !== "" ? "Tentar de novo" : "Preparar entrevista"}
+          {IA_DO_RH_LIGADA ? (
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <ClipboardList className="h-4 w-4" aria-hidden="true" />
+          )}
+          {falhou ? "Tentar de novo" : "Preparar entrevista"}
         </button>
       </section>
     );
@@ -859,18 +870,22 @@ export function BlocoFicha(props: {
     <section aria-labelledby={`${uid}-titulo`} className="rh-vidro p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         {titulo}
-        <button
-          type="button"
-          onClick={() => aoGerar(true)}
-          disabled={gerando}
-          className={`${BOTAO_SECUNDARIO} min-h-9 px-3 text-xs disabled:opacity-60`}
-        >
-          <RefreshCw
-            className={`h-3.5 w-3.5 ${gerando ? "animate-spin" : ""}`}
-            aria-hidden="true"
-          />
-          Regenerar
-        </button>
+        {/* Sem IA não há o que regenerar: a parte do guia não muda, e a parte
+            que a IA escreveu antes não pode ser trocada por nada. */}
+        {IA_DO_RH_LIGADA ? (
+          <button
+            type="button"
+            onClick={() => aoGerar(true)}
+            disabled={gerando}
+            className={`${BOTAO_SECUNDARIO} min-h-9 px-3 text-xs disabled:opacity-60`}
+          >
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${gerando ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            />
+            Regenerar
+          </button>
+        ) : null}
       </div>
 
       <p className="mt-1 text-xs leading-relaxed text-white/85">
@@ -879,9 +894,13 @@ export function BlocoFicha(props: {
         {relativo === "" ? "" : ` (${relativo})`}
         {/* O aviso do "Regenerar" fica colado nele, e não escondido num tooltip:
             é a pergunta que qualquer pessoa faz antes de clicar. */}
-        <br />
-        Regenerar refaz só o que a IA escreveu. As respostas, notas e observações anotadas aqui
-        ficam.
+        {IA_DO_RH_LIGADA ? (
+          <>
+            <br />
+            Regenerar refaz só o que a IA escreveu. As respostas, notas e observações anotadas aqui
+            ficam.
+          </>
+        ) : null}
       </p>
 
       {gerando ? (
@@ -895,7 +914,7 @@ export function BlocoFicha(props: {
         </p>
       ) : null}
 
-      {atual.erro !== "" ? (
+      {atual.erro !== "" && IA_DO_RH_LIGADA ? (
         <div className="mt-3 rounded-xl bg-rose-300/10 p-3 ring-1 ring-rose-200/30">
           <p className="flex items-start gap-2 text-sm leading-relaxed text-rose-100">
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />

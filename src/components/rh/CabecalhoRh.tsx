@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
+import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
 
 export type AbaRh = "resumo" | "candidaturas" | "triagem" | "entrevistas" | "vagas" | "config";
 
@@ -44,8 +45,11 @@ const ABAS: { valor: AbaRh; rotulo: string; icone: LucideIcon }[] = [
   { valor: "candidaturas", rotulo: "Candidaturas", icone: Users },
   // Logo depois de Candidaturas de propósito: a triagem é a leitura daquela
   // mesma lista, e mantém a ordem do trabalho real — chega currículo, a IA lê,
-  // o RH decide quem chamar.
-  { valor: "triagem", rotulo: "Triagem por IA", icone: Sparkles },
+  // o RH decide quem chamar. Some inteira com a IA desligada: tudo nela
+  // (análise em lote, fila, importação com leitura) depende da IA.
+  ...(IA_DO_RH_LIGADA
+    ? [{ valor: "triagem" as const, rotulo: "Triagem por IA", icone: Sparkles }]
+    : []),
   { valor: "entrevistas", rotulo: "Entrevistas", icone: ClipboardList },
   { valor: "vagas", rotulo: "Vagas", icone: Briefcase },
   { valor: "config", rotulo: "Configurações", icone: Settings },

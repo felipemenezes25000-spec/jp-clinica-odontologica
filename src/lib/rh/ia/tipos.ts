@@ -267,6 +267,23 @@ export type AnaliseIa = {
 export const VERSAO_ANALISE = 2;
 
 /**
+ * Chave geral da IA do RH. DESLIGADA a pedido do cliente (23/09/2026): a
+ * leitura de currículo, o ranking e a ficha gerada estavam gastando token
+ * demais.
+ *
+ * Desligada, nenhuma chamada à OpenAI sai do RH — nem a análise automática de
+ * quem se candidata pelo site, nem os botões do painel, nem o script de
+ * importação —, mesmo com a chave cadastrada no servidor. A tela esconde a aba
+ * "Triagem por IA" e os botões que só devolveriam erro. As leituras que já
+ * foram feitas continuam visíveis na ficha: já estão pagas.
+ *
+ * Vive aqui, e não em `servidor/openai.ts`, porque a tela também precisa
+ * saber: este arquivo é importado pelos dois lados. Religar é trocar para
+ * `true` e publicar.
+ */
+export const IA_DO_RH_LIGADA = false;
+
+/**
  * Análise zerada. É função, e não constante, pelo mesmo motivo de
  * `candidaturaVazia()`: os arrays seriam compartilhados por referência entre
  * todos os registros que caíssem no estado vazio.

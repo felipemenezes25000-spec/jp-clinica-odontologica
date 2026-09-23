@@ -17,6 +17,7 @@ import { Interruptor, ListaEditavel } from "@/components/rh/ControlesRh";
 import { TrocarSenha } from "@/components/rh/TrocarSenha";
 import { formatarDataHora, mascararTelefone } from "@/lib/rh/formatar";
 import { custoEstimado, formatarDolar } from "@/lib/rh/ia/precos";
+import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
 import type { RespostaEstadoSenha } from "@/lib/rh/api";
 import type { ConfiguracoesRh } from "@/lib/rh/tipos";
 import { LIMITES } from "@/lib/rh/tipos";
@@ -284,83 +285,97 @@ export function ConfiguracoesPortal(props: {
             Triagem por IA
           </h3>
 
-          {/* O texto avisa do custo antes do clique, e não depois da fatura:
-              este interruptor nasce DESLIGADO justamente porque divulgar uma
-              vaga e receber 200 currículos dispararia 200 leituras sem que
-              ninguém tenha autorizado o gasto. */}
-          <Interruptor
-            rotulo="Analisar automaticamente as candidaturas que chegarem pelo site"
-            descricao={`Isto custa dinheiro: cada currículo são duas leituras pagas do modelo${custoPorCurriculo}, cobradas na conta da OpenAI da clínica. Ligado, tudo que chega pelo site é lido sozinho — inclusive uma enxurrada de 200 candidaturas no dia em que a vaga viralizar. Desligado (como vem de fábrica), nada é lido até alguém clicar na aba Triagem por IA, que mostra o custo estimado antes de rodar.`}
-            ligado={form.analisarAoReceber}
-            desativado={props.salvando}
-            aoMudar={(v) => trocar("analisarAoReceber", v)}
-          />
+          {IA_DO_RH_LIGADA ? (
+            <>
+              {/* O texto avisa do custo antes do clique, e não depois da fatura:
+                  este interruptor nasce DESLIGADO justamente porque divulgar uma
+                  vaga e receber 200 currículos dispararia 200 leituras sem que
+                  ninguém tenha autorizado o gasto. */}
+              <Interruptor
+                rotulo="Analisar automaticamente as candidaturas que chegarem pelo site"
+                descricao={`Isto custa dinheiro: cada currículo são duas leituras pagas do modelo${custoPorCurriculo}, cobradas na conta da OpenAI da clínica. Ligado, tudo que chega pelo site é lido sozinho — inclusive uma enxurrada de 200 candidaturas no dia em que a vaga viralizar. Desligado (como vem de fábrica), nada é lido até alguém clicar na aba Triagem por IA, que mostra o custo estimado antes de rodar.`}
+                ligado={form.analisarAoReceber}
+                desativado={props.salvando}
+                aoMudar={(v) => trocar("analisarAoReceber", v)}
+              />
 
-          {/*
-            Daqui para baixo é leitura, sem campo nenhum: modelo, se a chave
-            existe e quantas fichas já foram lidas. Nada disso se edita na tela,
-            e é assim de propósito — chave de API não mora em banco de dados de
-            aplicação, mora na hospedagem.
+              {/*
+                Daqui para baixo é leitura, sem campo nenhum: modelo, se a chave
+                existe e quantas fichas já foram lidas. Nada disso se edita na tela,
+                e é assim de propósito — chave de API não mora em banco de dados de
+                aplicação, mora na hospedagem.
 
-            O nome exato da variável não é escrito aqui: este componente vira um
-            arquivo JavaScript estático que qualquer visitante baixa, com ou sem
-            sessão (o mesmo motivo já explicado no bloco de infraestrutura
-            abaixo). Quem precisa do nome o recebe do próprio servidor, dentro
-            de `motivo`, que só é gerado depois do login.
-          */}
-          <dl className="grid gap-3 rounded-2xl border border-border-soft bg-paper p-4 text-sm sm:grid-cols-3">
-            <div className="min-w-0">
-              <dt className="text-xs font-bold uppercase tracking-[0.1em] text-ink">
-                Chave da OpenAI
-              </dt>
-              <dd className="mt-0.5 font-bold text-ink">
-                {props.estadoIa == null
-                  ? "Não foi possível consultar"
-                  : props.estadoIa.configurada
-                    ? "Cadastrada no servidor"
-                    : "Não cadastrada"}
-              </dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs font-bold uppercase tracking-[0.1em] text-ink">
-                Modelo em uso
-              </dt>
-              <dd className="mt-0.5 truncate font-mono text-xs font-bold text-ink">
-                {props.estadoIa?.modelo ?? "—"}
-              </dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs font-bold uppercase tracking-[0.1em] text-ink">
-                Fichas lidas
-              </dt>
-              <dd className="mt-0.5 font-bold tabular-nums text-ink">
-                {props.estadoIa == null
-                  ? "—"
-                  : `${plural(props.estadoIa.analisadas, "lida", "lidas")} · ${props.estadoIa.pendentes} pendentes`}
-              </dd>
-            </div>
-          </dl>
+                O nome exato da variável não é escrito aqui: este componente vira um
+                arquivo JavaScript estático que qualquer visitante baixa, com ou sem
+                sessão (o mesmo motivo já explicado no bloco de infraestrutura
+                abaixo). Quem precisa do nome o recebe do próprio servidor, dentro
+                de `motivo`, que só é gerado depois do login.
+              */}
+              <dl className="grid gap-3 rounded-2xl border border-border-soft bg-paper p-4 text-sm sm:grid-cols-3">
+                <div className="min-w-0">
+                  <dt className="text-xs font-bold uppercase tracking-[0.1em] text-ink">
+                    Chave da OpenAI
+                  </dt>
+                  <dd className="mt-0.5 font-bold text-ink">
+                    {props.estadoIa == null
+                      ? "Não foi possível consultar"
+                      : props.estadoIa.configurada
+                        ? "Cadastrada no servidor"
+                        : "Não cadastrada"}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs font-bold uppercase tracking-[0.1em] text-ink">
+                    Modelo em uso
+                  </dt>
+                  <dd className="mt-0.5 truncate font-mono text-xs font-bold text-ink">
+                    {props.estadoIa?.modelo ?? "—"}
+                  </dd>
+                </div>
+                <div className="min-w-0">
+                  <dt className="text-xs font-bold uppercase tracking-[0.1em] text-ink">
+                    Fichas lidas
+                  </dt>
+                  <dd className="mt-0.5 font-bold tabular-nums text-ink">
+                    {props.estadoIa == null
+                      ? "—"
+                      : `${plural(props.estadoIa.analisadas, "lida", "lidas")} · ${props.estadoIa.pendentes} pendentes`}
+                  </dd>
+                </div>
+              </dl>
 
-          {props.estadoIa != null && !props.estadoIa.configurada ? (
-            <p className="flex items-start gap-2 rounded-2xl bg-amber-50 p-4 text-sm leading-relaxed text-amber-900 ring-1 ring-amber-300">
-              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>
-                <strong className="font-bold">A leitura por IA está desligada.</strong>{" "}
-                {props.estadoIa.motivo.length > 0
-                  ? props.estadoIa.motivo
-                  : "O servidor não encontrou a chave da OpenAI."}
-              </span>
+              {props.estadoIa != null && !props.estadoIa.configurada ? (
+                <p className="flex items-start gap-2 rounded-2xl bg-amber-50 p-4 text-sm leading-relaxed text-amber-900 ring-1 ring-amber-300">
+                  <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>
+                    <strong className="font-bold">A leitura por IA está desligada.</strong>{" "}
+                    {props.estadoIa.motivo.length > 0
+                      ? props.estadoIa.motivo
+                      : "O servidor não encontrou a chave da OpenAI."}
+                  </span>
+                </p>
+              ) : null}
+
+              <p className="rh-ajuda">
+                A chave da OpenAI é cadastrada por quem cuida da hospedagem, nunca por esta tela: no
+                computador de quem desenvolve ela vai no arquivo <code>.env</code> (o
+                <code> .env.example</code> do projeto traz o nome exato de cada variável); na
+                Vercel, em <strong>Settings › Environment Variables</strong>, marcando Production e
+                Preview e publicando de novo, porque variável nova só vale a partir da próxima
+                publicação. O valor da chave não aparece nesta tela nem em nenhuma outra — nem
+                inteiro, nem em pedaço.
+              </p>
+            </>
+          ) : (
+            /* Desligada por decisão, e não por falta de chave: nada de
+               interruptor nem de instrução de cadastro, que só convidariam a
+               religar um gasto que a clínica decidiu cortar. */
+            <p className="rh-ajuda">
+              Desligada para economizar tokens. Nenhum currículo é lido pela IA — nem os que chegam
+              pelo site, nem por botão do painel. As leituras feitas antes continuam visíveis na
+              ficha de cada candidata, e a ficha de entrevista sai só com o guia da clínica.
             </p>
-          ) : null}
-
-          <p className="rh-ajuda">
-            A chave da OpenAI é cadastrada por quem cuida da hospedagem, nunca por esta tela: no
-            computador de quem desenvolve ela vai no arquivo <code>.env</code> (o
-            <code> .env.example</code> do projeto traz o nome exato de cada variável); na Vercel, em{" "}
-            <strong>Settings › Environment Variables</strong>, marcando Production e Preview e
-            publicando de novo, porque variável nova só vale a partir da próxima publicação. O valor
-            da chave não aparece nesta tela nem em nenhuma outra — nem inteiro, nem em pedaço.
-          </p>
+          )}
         </section>
 
         {/* Rodapé de ação: fica no fim do cartão, com o aviso de pendência ao

@@ -67,6 +67,7 @@ import {
 import type { FichaEntrevista } from "@/lib/rh/ficha";
 import { duvidasEmAberto, montarDuvidas } from "@/lib/rh/duvidas";
 import { classificarProximidade, temEnderecoParaRota } from "@/lib/rh/ia/proximidade";
+import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
 import type { GuiaEntrevista } from "@/lib/rh/guia";
 import {
   diasAteVencerGuarda,
@@ -1371,9 +1372,9 @@ function ConteudoGaveta(props: PropsConteudo) {
                 >
                   <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-forest" aria-hidden="true" />
                   <p className="text-sm font-semibold leading-relaxed text-ink">
-                    Formação, experiência, cursos e idiomas ainda não aparecem porque o currículo
-                    não foi lido. O formulário do site pede só nome, WhatsApp e o arquivo — o resto
-                    sai da leitura. Use “Analisar este currículo”, logo abaixo.
+                    {IA_DO_RH_LIGADA
+                      ? "Formação, experiência, cursos e idiomas ainda não aparecem porque o currículo não foi lido. O formulário do site pede só nome, WhatsApp e o arquivo — o resto sai da leitura. Use “Analisar este currículo”, logo abaixo."
+                      : "Formação, experiência, cursos e idiomas não aparecem aqui: o formulário do site pede só nome, WhatsApp e o arquivo, e a leitura por IA está desligada. Abra o currículo anexado para ver o resto."}
                   </p>
                 </div>
               ) : null}
