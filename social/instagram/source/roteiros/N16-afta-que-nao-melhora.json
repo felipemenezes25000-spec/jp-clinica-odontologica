@@ -1,0 +1,77 @@
+{
+  "id": "N16",
+  "arquivo": "16_AFTA_QUE_NAO_MELHORA",
+  "titulo": "Afta que não melhora",
+  "pilar": "duvidas",
+  "ordem": 16,
+  "objetivo": "orientar sem assustar e sem citar diagnóstico",
+  "cenas": [
+    {
+      "chip": "LESÕES NA BOCA",
+      "titulo": "Uma afta que\n[[não melhora]]\nmerece atenção?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "lesao"
+      },
+      "tMin": 6.4,
+      "narracao": "Uma afta que não melhora merece atenção?"
+    },
+    {
+      "titulo": "Lesões na boca\nsão [[comuns]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "arco",
+      "corpo": "E muitas desaparecem sozinhas em poucos dias.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Lesões na boca são comuns, e muitas desaparecem espontaneamente."
+    },
+    {
+      "chip": "O QUE MUDA O QUADRO",
+      "titulo": "O que pede\n[[avaliação]]:",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "A ferida que persiste",
+        "A que volta sempre",
+        "A que está diferente do habitual"
+      ],
+      "narracao": "Mas uma ferida persistente, recorrente ou diferente do habitual merece avaliação profissional."
+    },
+    {
+      "titulo": "Nem toda lesão\né uma simples\n[[afta]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "lesao"
+      },
+      "tMin": 6.8,
+      "narracao": "Nem toda lesão na boca é uma simples afta."
+    },
+    {
+      "titulo": "Não tente\n[[diagnosticar]] sozinho.",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "transicao": "corte",
+      "narracao": "Se algo não parece normal para você, não tente diagnosticar sozinho."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Persistiu ou\n[[mudou]]?",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Persistiu ou mudou? Procure uma avaliação.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

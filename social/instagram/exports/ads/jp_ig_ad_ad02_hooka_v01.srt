@@ -1,19 +1,19 @@
 1
-00:00:00,150 --> 00:00:02,700
+00:00:00,150 --> 00:00:03,400
 Dentadura é a única opção? Para quem perdeu vários dentes, não.
 
 2
-00:00:02,950 --> 00:00:08,700
+00:00:03,650 --> 00:00:09,400
 Três possibilidades aparecem com mais frequência: prótese removível, prótese fixa sobre implantes, e prótese protocolo quando indicada.
 
 3
-00:00:08,950 --> 00:00:13,300
+00:00:09,650 --> 00:00:14,000
 Nenhuma delas é a melhor para todo mundo: volume ósseo, saúde geral e rotina definem o que é possível.
 
 4
-00:00:13,550 --> 00:00:17,300
+00:00:14,250 --> 00:00:18,000
 Quem já usa prótese removível pode avaliar implantes.
 
 5
-00:00:17,550 --> 00:00:21,500
+00:00:18,250 --> 00:00:22,200
 Fale com a equipe da JP. Avaliação com hora marcada, na região da Freguesia do Ó.

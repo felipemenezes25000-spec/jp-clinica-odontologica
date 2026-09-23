@@ -8,14 +8,30 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 3.2,
+      "t": 3.3,
       "chip": "NOSSA HISTÓRIA",
-      "titulo": "{{historia.fundacao}}.",
+      "titulo": "[[{{historia.fundacao}}]].",
       "escala": "v-xg",
-      "corpo": "A Dra. Juliana Pelisser Barbosa abre a JP, em {{historia.regiaoAnterior}}.",
+      "corpo": "A JP abre as portas em {{historia.regiaoAnterior}}.",
       "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
       "zoom": "dentro",
       "narracao": "2002: a Dra. Juliana Pelisser Barbosa abre a JP, em Pirituba."
+    },
+    {
+      "t": 4.8,
+      "tipo": "pessoa",
+      "superficie": "clara",
+      "chip": "A FUNDADORA",
+      "titulo": "Quem começou\ntudo [[isso]].",
+      "escala": "v-p",
+      "pessoa": {
+        "foto": "/src/assets/juliana-pelisser.webp",
+        "opaco": true,
+        "nome": "{{responsavelTecnica.nome}}",
+        "papel": "{{responsavelTecnica.papel}}",
+        "registro": "{{responsavelTecnica.registro}}"
+      },
+      "narracao": "Quem começou tudo isso: a Dra. Juliana Pelisser Barbosa."
     },
     {
       "t": 4.0,
@@ -23,7 +39,14 @@
       "titulo": "Duas décadas\natendendo\nfamílias.",
       "escala": "v-m",
       "corpo": "Crianças que viraram adultos. Adultos que trouxeram os pais.",
-      "narracao": "Duas décadas atendendo famílias: crianças que viraram adultos, adultos que trouxeram os pais."
+      "narracao": "Duas décadas atendendo famílias: crianças que viraram adultos, adultos que trouxeram os pais.",
+      "grafico": {
+        "tipo": "linha-do-tempo",
+        "marcos": [
+          ["{{historia.fundacao}}", "{{historia.regiaoAnterior}}"],
+          ["{{historia.mudanca}}", "{{historia.regiaoAtual}}"]
+        ]
+      }
     },
     {
       "t": 3.6,
@@ -36,23 +59,38 @@
       "narracao": "Em 2024 veio a nova casa, com a mesma equipe."
     },
     {
-      "t": 4.0,
-      "superficie": "escura",
+      "t": 4.8,
+      "tipo": "local",
+      "chip": "ONDE ESTAMOS",
       "titulo": "Hoje, na\n[[{{historia.regiaoAtual}}]].",
-      "escala": "v-g",
+      "escala": "v-m",
       "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}.",
-      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
-      "zoom": "fora",
-      "narracao": "Hoje, na Freguesia do Ó: Rua Rio Verde, 1029, Vila Bruna."
+      "chips": ["Pirituba", "Limão", "Brasilândia"],
+      "narracao": "Hoje, na Freguesia do Ó: Rua Rio Verde, 1029, Vila Bruna — perto de Pirituba, Limão e Brasilândia.",
+      "superficie": "escura",
+      "janela": "/social/instagram/source/assets-derivados/fachada-faixa.webp",
+      "arco": true,
+      "alturaJanela": 520
     },
     {
-      "t": 4.2,
+      "t": 5.2,
+      "tipo": "numeros",
       "superficie": "escura",
-      "chip": "PROVA",
-      "titulo": "{{historia.anos}} anos.\n{{avaliacoes.notaBR}} no Google.\n{{avaliacoes.total}} avaliações.",
-      "escala": "v-m",
-      "corpo": "Números públicos, conferidos em {{avaliacoes.conferidoEmBR}}.",
-      "narracao": "24 anos, 4,6 no Google, 192 avaliações. Números públicos."
+      "chip": "EM NÚMEROS",
+      "numeros": [
+        {
+          "valor": "{{historia.anos}}",
+          "sufixo": "anos",
+          "rotulo": "de história, desde {{historia.fundacao}}"
+        },
+        {
+          "valor": "{{avaliacoes.nota}}",
+          "decimais": 1,
+          "estrelas": "{{avaliacoes.nota}}",
+          "rotulo": "no Google, com {{avaliacoes.total}} avaliações"
+        }
+      ],
+      "narracao": "24 anos de história. 4,6 no Google, com 192 avaliações."
     },
     {
       "t": 4.0,

@@ -1,0 +1,76 @@
+{
+  "id": "N12",
+  "arquivo": "12_TODO_SISO_PRECISA_EXTRAIR",
+  "titulo": "Todo siso precisa ser arrancado?",
+  "pilar": "duvidas",
+  "ordem": 12,
+  "objetivo": "tirar o automatismo da extração e colocar a avaliação no lugar",
+  "cenas": [
+    {
+      "chip": "SISO",
+      "titulo": "Todo siso precisa\nser [[arrancado]]?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "siso",
+        "modo": "inclinado"
+      },
+      "tMin": 5.2,
+      "narracao": "Todo siso precisa ser arrancado?"
+    },
+    {
+      "titulo": "[[Não]].",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "Não. Nem todo dente do siso precisa ser removido."
+    },
+    {
+      "chip": "O QUE A DECISÃO OLHA",
+      "titulo": "A decisão\n[[depende]]:",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Da posição e do espaço",
+        "Da higiene e dos sintomas",
+        "Dos dentes vizinhos"
+      ],
+      "narracao": "A decisão depende da posição, do espaço disponível, da higiene, dos sintomas e dos dentes vizinhos."
+    },
+    {
+      "titulo": "E de como ele\naparece nos\n[[exames]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "tomografia"
+      },
+      "tMin": 7.0,
+      "corpo": "Existem sisos que pedem acompanhamento e casos em que a extração é indicada.",
+      "narracao": "E de como ele aparece nos exames. Há sisos que pedem acompanhamento e casos em que a extração é indicada."
+    },
+    {
+      "titulo": "Avaliar,\nnão [[adivinhar]].",
+      "escala": "v-g",
+      "superficie": "escura",
+      "transicao": "corte",
+      "narracao": "O importante é avaliar, não remover automaticamente."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Seu siso merece\n[[avaliação]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Seu siso merece avaliação, não adivinhação.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

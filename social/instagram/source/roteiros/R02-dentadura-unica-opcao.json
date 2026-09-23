@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.6,
+      "t": 3.5,
       "chip": "PRÓTESES",
       "titulo": "Dentadura é a\n[[única]] opção?",
       "escala": "v-m",
@@ -18,12 +18,13 @@
       "narracao": "Dentadura é a única opção? Quem perdeu vários dentes costuma chegar achando que sim."
     },
     {
-      "t": 3.8,
+      "t": 4.2,
       "superficie": "escura",
       "titulo": "Não.",
       "escala": "v-xg",
       "corpo": "Existem caminhos diferentes, e eles não competem entre si: cada um tem indicação própria.",
-      "narracao": "Não. Existem caminhos diferentes, e cada um tem indicação própria."
+      "narracao": "Não. Existem caminhos diferentes, e cada um tem indicação própria.",
+      "grafico": "protocolo"
     },
     {
       "t": 6.0,

@@ -104,7 +104,7 @@ Abre pela headline institucional. Bonita, mas entrega menos informação de deci
 
 Preencher o endereço é o que coloca a clínica no **mapa do Instagram** e permite que a localização apareça marcada nos Stories. É de graça e quase ninguém faz.
 
-> O WhatsApp aqui é o de `src/lib/jp.ts`. A placa da fachada traz um número diferente — ver [`ASSET-MANIFEST.md`](ASSET-MANIFEST.md), seção "Pendência aberta".
+> O WhatsApp é o de `src/lib/jp.ts`, confirmado pela clínica em 18/09/2026. A placa da fachada ainda traz um número antigo — ver [`ASSET-MANIFEST.md`](ASSET-MANIFEST.md) §1.2.
 
 ---
 
@@ -131,47 +131,49 @@ Se a clínica quiser mais de um destino, o Instagram já permite **até 5 links 
 
 ## 6. Foto de perfil
 
-Use o **símbolo**, não o lockup. O avatar é exibido em 110 px no perfil e em **32 px** no feed; nesse tamanho o nome desenhado vira borrão e o dente continua reconhecível.
+Use a **logo inteira**: JP, "Clínica Odontológica" e a onda. É decisão da clínica (18/09/2026), e vale para tudo, sem exceção: nunca o símbolo sozinho.
 
-Arquivo: `src/assets/marca/marca-jp.svg`.
+O avatar aparece com 110 px no perfil e 32 px no feed. Nesses tamanhos, o nome desenhado não se lê; o que reconhece a clínica é a forma da logo, o JP e a onda. Por isso a logo ocupa 80% do diâmetro: grande o bastante, e inteira dentro do círculo que o Instagram recorta.
+
+Arquivo: `src/assets/marca/logo-jp.svg` (em fundo escuro, `logo-jp-claro.svg`).
 
 As quatro prévias estão em `exports/avatar/`:
 
-| Arquivo                                | O que é                               |
-| -------------------------------------- | ------------------------------------- |
-| `jp_ig_avatar_a_papel_v01.png`         | símbolo sobre papel — **recomendado** |
-| `jp_ig_avatar_b_menta_v01.png`         | símbolo sobre menta                   |
-| `jp_ig_avatar_c_verde_v01.png`         | símbolo claro sobre verde profundo    |
-| `jp_ig_avatar_d_pequeno_teste_v01.png` | o teste de 32 px — é este que decide  |
+| Arquivo                                | O que é                              |
+| -------------------------------------- | ------------------------------------ |
+| `jp_ig_avatar_a_papel_v01.png`         | logo sobre papel — **a escolhida**   |
+| `jp_ig_avatar_b_menta_v01.png`         | logo sobre menta                     |
+| `jp_ig_avatar_c_verde_v01.png`         | logo (versão escura) sobre verde     |
+| `jp_ig_avatar_d_pequeno_teste_v01.png` | o teste de 32 px — é este que decide |
 
-**Recomendação: a versão A.** Fundo quase branco, símbolo em tamanho cheio. A versão verde (C) é bonita em tamanho grande e vira uma bolha escura indistinta no feed.
+**A escolhida é a versão A.** Fundo quase branco, logo nas cores originais. A versão verde (C) é bonita em tamanho grande e vira uma bolha escura indistinta no feed.
 
-O que **não** fazer: não acrescentar disco, moldura, sombra ou borda ao símbolo para "destacar". A marca tem o vão do sorriso vazado — qualquer fundo arbitrário atravessa esse vão e descaracteriza o desenho.
+O que **não** fazer: não acrescentar disco, moldura, sombra ou borda à logo para "destacar". A marca tem o vão do sorriso vazado — qualquer fundo arbitrário atravessa esse vão e descaracteriza o desenho.
 
 ---
 
 ## 7. Destaques — ordem e rótulos
 
-Doze capas estão prontas em `exports/highlights/`. O Instagram mostra **cerca de 5 sem rolagem** no celular, então a ordem é decisão comercial.
+**Decisão da clínica (18/09/2026, [`ORDEM_DE_PUBLICACAO_JP.md`](ORDEM_DE_PUBLICACAO_JP.md) §5 e §6): dez Destaques, nesta ordem no perfil.**
 
-Ordem recomendada:
+| #   | Pasta             | Rótulo       | Stories dentro |
+| --- | ----------------- | ------------ | -------------- |
+| 1   | `01_A-Clinica`    | A Clínica    | 9              |
+| 2   | `02_Implantes`    | Implantes    | 13             |
+| 3   | `03_Proteses`     | Próteses     | 8              |
+| 4   | `04_Ortodontia`   | Ortodontia   | 7              |
+| 5   | `05_Estetica`     | Estética     | 7              |
+| 6   | `06_Criancas`     | Crianças     | 7              |
+| 7   | `07_Avaliacoes`   | Avaliações   | 7              |
+| 8   | `08_Equipe`       | Equipe       | 9              |
+| 9   | `09_Duvidas`      | Dúvidas      | 13             |
+| 10  | `10_Onde-estamos` | Onde estamos | 5              |
 
-| #   | Rótulo           | Por que nesta posição                                        |
-| --- | ---------------- | ------------------------------------------------------------ |
-| 1   | **Implantes**    | é o produto de aquisição desta fase                          |
-| 2   | **A clínica**    | responde "como é lá dentro", que é o que trava o agendamento |
-| 3   | **Avaliações**   | prova social logo depois da estrutura                        |
-| 4   | **Equipe**       | gente com nome e CRO                                         |
-| 5   | **Onde estamos** | fecha a dúvida de deslocamento                               |
-| 6   | Próteses         |                                                              |
-| 7   | Dúvidas          |                                                              |
-| 8   | Ortodontia       |                                                              |
-| 9   | Crianças         |                                                              |
-| 10  | Estética         |                                                              |
-| 11  | Estrutura        |                                                              |
-| 12  | 24 anos          | opcional — entra se a clínica quiser a narrativa em destaque |
+Cada pasta tem também a `CAPA.png`, a capa da bolinha, escolhida em **Editar capa** e nunca publicada. Implantes e Dúvidas passam de 10 imagens porque o documento da clínica pede assim.
 
-Se doze parecer demais, corte **Estrutura** e **24 anos** (o conteúdo deles já vive dentro de "A clínica" e "Avaliações") e fique com dez.
+O cartão de abertura de cada Destaque (`*_01_capa.png` em `exports/highlights/`, o "Entre antes de entrar." da Clínica) ficou fora da entrega: o documento não tem posição para ele. Se a clínica quiser, ele entra como primeiro Story.
+
+**Crie na ordem inversa**, do 10 para o 01: o Instagram joga o Destaque atualizado por último para a frente. As capas de **Estrutura** e **24 anos** existem em `exports/highlights/`, mas ficaram fora do plano.
 
 ---
 
@@ -182,7 +184,7 @@ Se doze parecer demais, corte **Estrutura** e **24 anos** (o conteúdo deles já
 3. trocar o avatar pela versão A;
 4. preencher categoria, endereço, telefone e botão de WhatsApp;
 5. configurar os links da bio;
-6. subir os 12 Destaques, na ordem acima, **com o conteúdo dentro** (os cartões estão em `exports/highlights/<nome>/`, numerados na ordem de publicação);
+6. subir os 10 Destaques, **do 10 para o 01**, **com o conteúdo dentro** (os cartões estão em `ENTREGA/DESTAQUES`, numerados na ordem de publicação, com a `CAPA.png` de cada um);
 7. só então começar a publicar o feed.
 
 O passo 6 é o que a maioria pula. Capa de Destaque sem conteúdo dentro é uma bolinha bonita que não responde nada — e o segundo toque, o de abrir o Destaque, é onde a decisão de agendar realmente acontece.

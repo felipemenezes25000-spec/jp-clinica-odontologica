@@ -30,21 +30,24 @@ const rico = (s) =>
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\n/g, "<br>");
 
+/* A LOGO É SEMPRE A LOGO INTEIRA — JP, "Clínica Odontológica" e a onda.
+   Decisão da clínica (18/09/2026): em tudo, sem exceção, nunca o símbolo
+   sozinho. Os dois arquivos são a mesma arte vetorizada dos EPS oficiais
+   (docs/marca/); a de fundo escuro só troca o verde-floresta, que some sobre
+   o verde profundo, por branco. */
 const MARCA = {
-  claro: "/src/assets/marca/marca-jp.svg", // símbolo para pousar em fundo CLARO
-  escuro: "/src/assets/marca/marca-jp-claro.svg", // símbolo para fundo ESCURO
-  lockupClaro: "/src/assets/marca/logo-jp.svg",
-  lockupEscuro: "/src/assets/marca/logo-jp-claro.svg",
+  claro: "/src/assets/marca/logo-jp.svg", // para pousar em fundo CLARO
+  escuro: "/src/assets/marca/logo-jp-claro.svg", // para fundo ESCURO ou foto
 };
 
 const ESCURAS = new Set(["escura", "floresta"]);
-const simbolo = (sup) => (ESCURAS.has(sup) ? MARCA.escuro : MARCA.claro);
+const logo = (sup) => (ESCURAS.has(sup) ? MARCA.escuro : MARCA.claro);
 
 /** O rodapé que aparece em toda peça. Um só lugar para mudar. */
 function rodape(d) {
   const local = d.rodapeLocal ?? d.regiao ?? "Freguesia do Ó · São Paulo";
   return `<div class="rodape">
-    <img src="${simbolo(d.superficie)}" alt="">
+    <img src="${logo(d.superficie)}" alt="JP Clínica Odontológica">
     <span class="arroba">@jpclinicaodontologica</span>
     ${local ? `<span class="local">${rico(local)}</span>` : ""}
   </div>`;
@@ -326,10 +329,12 @@ export function carouselCta(d) {
    STORY — 1080×1920
    ========================================================================== */
 
+/* O topo do Story é a logo inteira. O nome da clínica já está desenhado nela;
+   texto ao lado só entra se o manifest pedir outro (`topo`). */
 function storyTopo(d) {
   return `<div class="story-topo">
-    <img src="${simbolo(d.superficie)}" alt="">
-    <span>${e(d.topo ?? "JP CLÍNICA ODONTOLÓGICA")}</span>
+    <img src="${logo(d.superficie)}" alt="JP Clínica Odontológica">
+    ${d.topo ? `<span>${e(d.topo)}</span>` : ""}
   </div>`;
 }
 
@@ -349,7 +354,7 @@ export function storyTexto(d) {
 export function storyFoto(d) {
   return `<div class="fundo-foto scrim scrim-topo"><img src="${e(d.foto)}" alt=""></div>
   <div class="pad col gap-m">
-    <div class="story-topo"><img src="${MARCA.escuro}" alt=""><span style="color:#D6E6CF">${e(d.topo ?? "JP CLÍNICA ODONTOLÓGICA")}</span></div>
+    <div class="story-topo"><img src="${MARCA.escuro}" alt="JP Clínica Odontológica">${d.topo ? `<span style="color:#D6E6CF">${e(d.topo)}</span>` : ""}</div>
     <div class="espaco"></div>
     ${d.chip ? chip(d.chip) : ""}
     <h1 class="h ${d.escala ?? "h-m"}" style="color:#F5FAF0">${rico(d.headline)}</h1>
@@ -420,7 +425,7 @@ export function reelCoverTratamento(d) {
     <h1 class="h ${d.escala ?? "h-g"}" style="color:#F6FAF2">${rico(d.headline)}</h1>
     ${d.corpo ? `<p class="p grande larga" style="color:#D6E6CF;margin-top:26px">${rico(d.corpo)}</p>` : ""}
     <div class="linha" style="gap:20px;margin-top:44px">
-      <img src="${MARCA.escuro}" style="height:54px" alt="">
+      <img src="${MARCA.escuro}" style="height:66px" alt="JP Clínica Odontológica">
       <span style="font-size:27px;font-weight:600;color:#D9EAD0">@jpclinicaodontologica</span>
     </div>
   </div>`;
@@ -433,7 +438,7 @@ export function reelCoverTipografica(d) {
     <h1 class="h ${d.escala ?? "h-g"}">${rico(d.headline)}</h1>
     ${d.corpo ? `<p class="p grande larga" style="margin-top:26px">${rico(d.corpo)}</p>` : ""}
     <div class="linha" style="gap:20px;margin-top:44px">
-      <img src="${simbolo(d.superficie)}" style="height:54px" alt="">
+      <img src="${logo(d.superficie)}" style="height:66px" alt="JP Clínica Odontológica">
       <span style="font-size:27px;font-weight:600;color:${ESCURAS.has(d.superficie) ? "#D9EAD0" : "var(--forest)"}">@jpclinicaodontologica</span>
     </div>
   </div>`;
@@ -450,7 +455,7 @@ export function reelCoverRosto(d) {
     <h1 class="h ${d.escala ?? "h-m"}" style="margin-top:36px">${rico(d.headline)}</h1>
     <div class="espaco"></div>
     <div class="linha" style="gap:20px">
-      <img src="${simbolo(d.superficie)}" style="height:54px" alt="">
+      <img src="${logo(d.superficie)}" style="height:66px" alt="JP Clínica Odontológica">
       <span style="font-size:27px;font-weight:600;color:var(--forest)">@jpclinicaodontologica</span>
     </div>
   </div>`;
@@ -487,8 +492,8 @@ export function adEstatico(d) {
     ${d.corpo ? `<p class="p grande larga" style="margin-top:28px${temFoto ? ";color:#D6E6CF" : ""}">${rico(d.corpo)}</p>` : ""}
     <div style="margin-top:44px">${cta(d)}</div>
     <div class="rodape"${temFoto ? ' style="border-top-color:rgba(255,255,255,.22)"' : ""}>
-      <img src="${temFoto ? MARCA.escuro : simbolo(d.superficie)}" alt="">
-      <span class="arroba"${temFoto ? ' style="color:#DDEDD3"' : ""}>${e(d.assinatura ?? "JP Clínica Odontológica")}</span>
+      <img src="${temFoto ? MARCA.escuro : logo(d.superficie)}" alt="JP Clínica Odontológica">
+      <span class="arroba"${temFoto ? ' style="color:#DDEDD3"' : ""}>@jpclinicaodontologica</span>
       <span class="local"${temFoto ? ' style="color:#AEC6A7"' : ""}>${rico(d.rodapeLocal ?? "Freguesia do Ó · São Paulo")}</span>
     </div>
   </div>`;
@@ -508,7 +513,7 @@ export function placeholderProducao(d) {
    PRÉVIAS — não são peças de publicar, são conferência
    ========================================================================== */
 
-/** Avatar: o símbolo dentro do círculo que o Instagram recorta. */
+/** Avatar: a logo inteira dentro do círculo que o Instagram recorta. */
 export function avatarPreview(d) {
   return `<div style="width:1080px;height:1080px;display:flex;align-items:center;justify-content:center;background:${d.fundo ?? "#F7F8F2"}">
     <div style="width:${String(d.diametro ?? 1080)}px;height:${String(d.diametro ?? 1080)}px;border-radius:999px;background:${d.fundoCirculo ?? "#FCFDF9"};display:flex;align-items:center;justify-content:center;overflow:hidden">

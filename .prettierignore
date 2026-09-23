@@ -56,3 +56,10 @@ test-results
 # (`source/manifests`, `source/roteiros`, `source/templates`, `source/scripts`)
 # continua fora do ignore e passa no `npm run check` normalmente.
 social/instagram/content
+
+# O DOCUMENTO DA CLÍNICA, COMO ELA ESCREVEU.
+#
+# `ORDEM_DE_PUBLICACAO_JP.md` vai byte a byte para dentro da pasta de entrega.
+# O Prettier realinhava as colunas da tabela do calendário — nenhuma palavra
+# mudava, mas o arquivo entregue deixava de ser o que a clínica mandou.
+social/instagram/ORDEM_DE_PUBLICACAO_JP.md

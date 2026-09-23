@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.6,
+      "t": 3.3,
       "chip": "IMPLANTES",
       "titulo": "Implante\n[[dói]]?",
       "escala": "v-xg",
@@ -19,12 +19,16 @@
       "narracao": "Implante dói? É a pergunta que mais chega antes da avaliação."
     },
     {
-      "t": 4.2,
-      "titulo": "A cirurgia é feita com\n[[anestesia local]].",
+      "t": 5.0,
+      "titulo": "A cirurgia\né feita com\n[[anestesia local]].",
       "escala": "v-m",
       "corpo": "Durante o procedimento, a região tratada fica anestesiada.",
       "superficie": "escura",
-      "narracao": "A cirurgia é feita com anestesia local: durante o procedimento, a região tratada fica anestesiada."
+      "narracao": "A cirurgia é feita com anestesia local: durante o procedimento, a região tratada fica anestesiada.",
+      "grafico": {
+        "tipo": "implante",
+        "modo": "anestesia"
+      }
     },
     {
       "t": 5.4,

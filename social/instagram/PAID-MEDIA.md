@@ -15,9 +15,9 @@ A primeira fase **não depende do CRC**.
 | Estático 4:5               | 4                              | `exports/ads/jp_ig_ad0[7-9]*.png`, `ad10`    |
 | Carrossel de anúncio       | 2 (5 slides cada)              | `exports/ads/ad11-*/`, `exports/ads/ad12-*/` |
 
-Todos os vídeos são 1080×1920, H.264, ~21 s, com **faixa de áudio silenciosa** — alguns players do Gerenciador de Anúncios engasgam com arquivo sem trilha de áudio.
+Todos os vídeos são 1080×1920, 30 fps, H.264, entre 22 e 27 s, com **trilha sonora própria** em AAC 192k.
 
-> **Sobre música.** Os arquivos saem mudos de propósito: trilha licenciada não pode ser embutida num arquivo que a clínica vai distribuir. Em anúncio, vídeo mudo com texto na tela funciona (85% assiste sem som). Se quiser trilha, use uma faixa com licença comercial verificada — nunca áudio "em alta" do Instagram num anúncio.
+> **Sobre a música.** A trilha é composta por código (`source/scripts/trilha.py`), nota por nota, sem nenhum sample de terceiros. Por isso ela **pode ir para anúncio**, o que não vale para áudio "em alta" do Instagram nem para a maioria das faixas de banco. Ela é sincronizada com o vídeo: a bateria entra no instante em que o arco revela a segunda cena, e o cartão final resolve na tônica. **Os três ganchos de um mesmo conceito têm a mesma música**, para o teste A/B comparar só o gancho. A mixagem foi equalizada para alto-falante de celular, com menos grave e mais presença. Mesmo assim, 85% assiste sem som, e o texto na tela carrega a mensagem sozinho.
 
 ---
 

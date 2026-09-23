@@ -1,0 +1,73 @@
+{
+  "id": "N08",
+  "arquivo": "08_BRUXISMO_SO_DORMINDO",
+  "titulo": "Bruxismo acontece só dormindo?",
+  "pilar": "duvidas",
+  "ordem": 8,
+  "objetivo": "mostrar o bruxismo em vigília sem diagnosticar ninguém",
+  "cenas": [
+    {
+      "chip": "BRUXISMO",
+      "titulo": "Bruxismo acontece\nsó enquanto\n[[dormimos]]?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "bruxismo"
+      },
+      "tMin": 5.4,
+      "narracao": "Bruxismo acontece só enquanto dormimos?"
+    },
+    {
+      "titulo": "[[Não]].",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "narracao": "Não."
+    },
+    {
+      "titulo": "Existe também\no bruxismo\n[[em vigília]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "corpo": "Quando a pessoa aperta ou mantém os dentes em contato durante o dia.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Ele pode acontecer no sono, mas também existe o bruxismo em vigília: apertar os dentes durante o dia."
+    },
+    {
+      "chip": "SINAIS POSSÍVEIS",
+      "titulo": "Sinais que\n[[podem]] aparecer:",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Dor muscular na face",
+        "Desgaste dentário",
+        "Sensação de tensão"
+      ],
+      "narracao": "Dor muscular, desgaste dentário ou sensação de tensão podem aparecer."
+    },
+    {
+      "titulo": "Mas esses sinais\ntêm [[outras causas]]\ntambém.",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "corte",
+      "narracao": "Mas esses sinais também têm outras causas. A avaliação ajuda a entender o quadro."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Sentiu algo\n[[parecido]]?",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Sentiu algo parecido? Vale conversar com um dentista.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

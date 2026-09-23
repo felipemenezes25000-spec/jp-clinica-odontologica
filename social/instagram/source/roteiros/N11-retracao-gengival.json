@@ -1,0 +1,70 @@
+{
+  "id": "N11",
+  "arquivo": "11_RETRACAO_GENGIVAL",
+  "titulo": "Por que a gengiva retrai?",
+  "pilar": "duvidas",
+  "ordem": 11,
+  "objetivo": "explicar retração e derrubar a ideia de que trocar a pasta resolve",
+  "cenas": [
+    {
+      "chip": "GENGIVA",
+      "titulo": "Sua gengiva parece\nestar [[mudando\nde lugar]]?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "gengiva",
+        "modo": "retracao"
+      },
+      "tMin": 6.4,
+      "narracao": "Sua gengiva parece estar mudando de lugar?"
+    },
+    {
+      "titulo": "A margem muda\nde posição e expõe\nmais o [[dente]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "gengiva",
+        "modo": "retracao"
+      },
+      "tMin": 7.4,
+      "narracao": "A retração gengival acontece quando a margem da gengiva muda de posição e deixa uma parte maior do dente exposta."
+    },
+    {
+      "chip": "O QUE PODE CONTRIBUIR",
+      "titulo": "Vários fatores\n[[somam]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Escovação traumática",
+        "Inflamação periodontal",
+        "Posição dos dentes"
+      ],
+      "narracao": "Escovação traumática, inflamação periodontal, posição dos dentes e outros fatores podem contribuir."
+    },
+    {
+      "titulo": "O tratamento\ndepende da [[causa]].",
+      "escala": "v-g",
+      "superficie": "escura",
+      "transicao": "corte",
+      "corpo": "Então trocar a pasta de dente pode não resolver.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "O tratamento depende da causa. Então simplesmente trocar a pasta de dente pode não resolver."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Percebeu mudança\nna [[gengiva]]?",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Percebeu mudança na gengiva? Procure uma avaliação.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

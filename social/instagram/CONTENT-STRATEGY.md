@@ -158,12 +158,12 @@ O que **se responde** no comentário: horário, endereço, se atende criança, s
 
 ## 10. As quatro fases do relançamento
 
-| Fase                       | Duração            | O que acontece                                                         |
-| -------------------------- | ------------------ | ---------------------------------------------------------------------- |
-| **1 — Preparação**         | dias 1–3           | perfil, bio, avatar, 12 Destaques com conteúdo dentro, 3 posts fixados |
-| **2 — Primeiros 12 posts** | dias 4–20          | o novo sistema visual no ar, cadência consistente                      |
-| **3 — Aceleração**         | dias 20–30         | Reels frequentes, Stories diários, caixinha de perguntas, prova social |
-| **4 — Mídia**              | a partir do dia 25 | os criativos que performaram organicamente entram no Meta Ads          |
+| Fase                 | Duração            | O que acontece                                                         |
+| -------------------- | ------------------ | ---------------------------------------------------------------------- |
+| **1 — Preparação**   | dias 1–3           | perfil, bio, avatar, 10 Destaques com conteúdo dentro, 3 posts fixados |
+| **2 — Posts 4 a 15** | dias 4–19          | o novo sistema visual no ar, cadência consistente                      |
+| **3 — Aceleração**   | dias 20–30         | Reels frequentes, Stories diários, caixinha de perguntas, prova social |
+| **4 — Mídia**        | a partir do dia 25 | os criativos que performaram organicamente entram no Meta Ads          |
 
 A Fase 4 começa depois da 3 de propósito: subir anúncio para um perfil sem Destaques e com quatro posts queima verba mostrando um perfil vazio para gente que clicou.
 

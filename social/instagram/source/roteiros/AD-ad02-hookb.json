@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.8,
       "titulo": "Quando há perda\nde vários dentes,\nexiste mais de\num [[caminho]].",
       "escala": "v-g",
       "corpo": "E eles não competem entre si.",
@@ -37,7 +37,8 @@
       "titulo": "Nenhuma delas é\na melhor para\n[[todo mundo]].",
       "escala": "v-p",
       "corpo": "Volume ósseo, saúde geral e rotina definem o que é possível.",
-      "narracao": "Nenhuma delas é a melhor para todo mundo: volume ósseo, saúde geral e rotina definem o que é possível."
+      "narracao": "Nenhuma delas é a melhor para todo mundo: volume ósseo, saúde geral e rotina definem o que é possível.",
+      "grafico": "protocolo"
     },
     {
       "t": 4.0,

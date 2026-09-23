@@ -1,0 +1,78 @@
+{
+  "id": "N01",
+  "arquivo": "01_IMPLANTE_DOI",
+  "titulo": "Implante dói?",
+  "pilar": "implantes",
+  "ordem": 1,
+  "objetivo": "responder a objeção nº 1 antes da avaliação",
+  "cenas": [
+    {
+      "chip": "IMPLANTES",
+      "titulo": "Implante\n[[dói]]?",
+      "escala": "v-xg",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Implante dói? Essa é uma das perguntas que mais recebemos."
+    },
+    {
+      "titulo": "A cirurgia é feita\ncom [[anestesia local]].",
+      "escala": "v-m",
+      "corpo": "Durante o procedimento, a região tratada fica anestesiada.",
+      "superficie": "escura",
+      "transicao": "arco",
+      "grafico": {
+        "tipo": "implante",
+        "modo": "anestesia"
+      },
+      "tMin": 6.2,
+      "narracao": "Durante o procedimento, a região tratada é anestesiada."
+    },
+    {
+      "chip": "E DEPOIS?",
+      "titulo": "O pós-operatório\nvaria de [[caso para caso]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Desconforto e inchaço podem acontecer",
+        "A sensibilidade cede com os dias",
+        "Cada organismo responde de um jeito"
+      ],
+      "narracao": "Depois da cirurgia podem existir desconforto, inchaço e sensibilidade, e isso varia de pessoa para pessoa."
+    },
+    {
+      "titulo": "Por isso o [[acompanhamento]]\nfaz parte do tratamento.",
+      "escala": "v-m",
+      "corpo": "Planejamento, orientação e retornos entram no mesmo pacote.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "cortina",
+      "narracao": "Por isso, planejamento, orientação e acompanhamento fazem parte do tratamento."
+    },
+    {
+      "titulo": "O que não dá\npara dizer [[pela internet]]:",
+      "escala": "v-m",
+      "corpo": "se o implante é indicado para você. Isso depende de exame de imagem, histórico de saúde e avaliação.",
+      "superficie": "escura",
+      "transicao": "corte",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Antes de pensar no implante, precisamos saber se ele é indicado para o seu caso."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[IMPLANTE]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer entender melhor? Comente IMPLANTE.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

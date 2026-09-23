@@ -1,19 +1,19 @@
 1
-00:00:00,150 --> 00:00:02,700
+00:00:00,150 --> 00:00:03,400
 A consulta não começa pelo implante. Começa por você.
 
 2
-00:00:02,950 --> 00:00:09,900
+00:00:03,650 --> 00:00:10,400
 Antes de qualquer plano: histórico de saúde e medicamentos, exame clínico da boca, exame de imagem quando indicado, e o que você espera do tratamento.
 
 3
-00:00:10,150 --> 00:00:14,300
+00:00:10,650 --> 00:00:14,800
 Só depois disso vêm as possibilidades: o que é possível, o que não é, e por quê.
 
 4
-00:00:14,550 --> 00:00:18,500
+00:00:15,050 --> 00:00:19,000
 Plano antes de proposta: é essa ordem que evita refazer tratamento depois.
 
 5
-00:00:18,750 --> 00:00:22,500
+00:00:19,250 --> 00:00:23,000
 Agende a sua avaliação. Fale com a equipe da JP pelo WhatsApp.

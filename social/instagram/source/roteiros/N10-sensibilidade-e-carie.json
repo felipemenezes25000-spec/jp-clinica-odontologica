@@ -1,0 +1,75 @@
+{
+  "id": "N10",
+  "arquivo": "10_SENSIBILIDADE_E_CARIE",
+  "titulo": "Dente sensível é cárie?",
+  "pilar": "duvidas",
+  "ordem": 10,
+  "objetivo": "mostrar que o mesmo sintoma tem várias causas",
+  "cenas": [
+    {
+      "chip": "SENSIBILIDADE",
+      "titulo": "Dente sensível\né [[cárie]]?",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "dente",
+        "modo": "sensibilidade"
+      },
+      "tMin": 5.2,
+      "narracao": "Dente sensível é sempre cárie?"
+    },
+    {
+      "titulo": "[[Nem sempre]].",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "narracao": "Nem sempre."
+    },
+    {
+      "titulo": "O frio e o doce\npodem incomodar\npor [[vários motivos]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "dente",
+        "modo": "sensibilidade"
+      },
+      "tMin": 7.0,
+      "narracao": "Sensibilidade ao frio ou ao doce pode acontecer por diferentes motivos."
+    },
+    {
+      "chip": "CAUSAS POSSÍVEIS",
+      "titulo": "Cárie é [[uma]]\ndas possibilidades.",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Desgaste do esmalte",
+        "Retração gengival",
+        "Trincas no dente"
+      ],
+      "narracao": "Cárie é uma possibilidade, mas desgaste do esmalte, retração gengival e trincas também causam sintomas parecidos."
+    },
+    {
+      "titulo": "Descobrir a causa\nvem [[antes]] de tratar.",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "cortina",
+      "narracao": "É justamente por existirem várias causas que a avaliação vem antes do tratamento."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Descobrir a causa\nvem [[antes]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Descobrir a causa vem antes de tratar.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

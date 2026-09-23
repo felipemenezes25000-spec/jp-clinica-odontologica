@@ -10,7 +10,7 @@
 node social/instagram/source/scripts/conferir.mjs
 ```
 
-Sai com código 1 se houver erro. Dez checagens, todas escolhidas por um critério: **se falharem, o problema só aparece depois de publicado.**
+Sai com código 1 se houver erro. Onze checagens, todas escolhidas por um critério: **se falharem, o problema só aparece depois de publicado.**
 
 | #   | Checagem                                                 | O que ela impede                                                               |
 | --- | -------------------------------------------------------- | ------------------------------------------------------------------------------ |
@@ -24,6 +24,7 @@ Sai com código 1 se houver erro. Dez checagens, todas escolhidas por um critér
 | 8   | todo PNG tem 1080×1350, 1080×1080 ou 1080×1920           | export com medida errada                                                       |
 | 9   | nomenclatura minúscula, sem acento, com prefixo `jp_ig_` | arquivo que ninguém acha em seis meses                                         |
 | 10  | todo MP4 tem `.srt` ao lado                              | Reel sem legenda                                                               |
+| 11  | todo MP4 tem trilha e é mais novo que o motor e a trilha | publicar vídeo mudo, ou feito antes da última correção do motor                |
 
 A checagem 2 é a que mais pega coisa boa. Ela olha **só o texto que vira pixel** — a `descricao` de um manifest pode (e deve) escrever "aqui não se usa promoção" sem que o verificador acuse a própria regra.
 
@@ -35,6 +36,20 @@ A checagem 2 é a que mais pega coisa boa. Ela olha **só o texto que vira pixel
 - **vazamento** — algum elemento saiu da moldura.
 
 Transbordo depois do auto-ajuste significa que o problema é a **copy**, não o layout. Corte palavras.
+
+### O gerador de vídeo também confere
+
+`gerar-videos.mjs --conferir` monta os 34 roteiros no motor, sem gravar nenhum quadro, e acusa:
+
+- **pouco tempo de leitura**: a cena termina de entrar a menos de 1 s do corte;
+- **viúva**: a última palavra de uma linha do título, com até 4 letras, quebrando sozinha para baixo ("Freguesia do / Ó.");
+- **bairro partido**: "do" numa linha e "Ó" na outra, em qualquer texto do vídeo;
+- **área segura**: conteúdo da cena acima de 280 px ou abaixo de 1452 px, onde moram o nome do perfil, a legenda e os botões;
+- **ilustração cortada**: o desfecho do desenho (a coroa assentando, o visto aparecendo) acontecendo depois que a próxima cena começa a entrar.
+
+Para olhar, não só medir: `--quadros=0,0.8,1.3,…` fotografa o palco nesses instantes e monta uma folha de contato. Todo efeito novo do motor passou por ela antes do render.
+
+A viúva foi achada depois da revisão visual, num anúncio já renderizado. Por isso virou checagem: olho humano não pega em 34 vídeos.
 
 ---
 
@@ -172,14 +187,16 @@ O que já está publicado **não muda sozinho**. Republique as peças que citam 
 ```text
 ✓ nenhum ativo proibido referenciado (5 padrões verificados)
 ✓ nenhuma expressão vedada (14 padrões verificados)
-✓ narrativa de localidade correta
+✓ narrativa de localidade correta ("24 anos de história. Hoje, na Freguesia do Ó.")
 ✓ todos os CRO citados existem em src/lib/jp.ts (6 válidos)
-✓ nenhum telefone divergente escrito à mão
+✓ nenhum telefone divergente escrito à mão nos manifests
 ✓ todos os tokens resolvem contra dados-jp.json
 ✓ 26 caminhos de imagem conferidos em disco
+✓ toda peça de anúncio declara `anuncio: true` (desliga a interface orgânica do template)
 ✓ 257 PNG com dimensão válida
 ✓ 294 arquivos com nomenclatura conferida
 ✓ 34 vídeos com legenda .srt ao lado
+✓ 34 vídeos com trilha e gerados pelo motor atual
 
 260 imagens · 34 vídeos · 30 manifests · 34 roteiros — sem erro.
 ```

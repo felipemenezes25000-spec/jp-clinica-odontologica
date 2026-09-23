@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "IMPLANTES",
       "titulo": "Existe idade\nmáxima para\n[[implante]]?",
       "escala": "v-m",
@@ -17,12 +17,13 @@
       "narracao": "Existe idade máxima para implante?"
     },
     {
-      "t": 4.0,
+      "t": 4.4,
       "superficie": "escura",
       "titulo": "Não existe\num número.",
       "escala": "v-g",
       "corpo": "O que pesa na indicação é a condição de saúde, não a data de nascimento.",
-      "narracao": "Não existe um número. O que pesa na indicação é a condição de saúde, não a data de nascimento."
+      "narracao": "Não existe um número. O que pesa na indicação é a condição de saúde, não a data de nascimento.",
+      "grafico": "implante"
     },
     {
       "t": 6.0,

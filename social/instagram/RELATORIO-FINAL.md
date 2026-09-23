@@ -6,27 +6,41 @@
 
 ## 1. O que foi criado
 
-**294 arquivos finais** — 260 imagens e 34 vídeos — mais o sistema que os gera.
+**294 arquivos finais** — 260 imagens e 34 vídeos com trilha sonora — mais o sistema que os gera.
 
-| Entregável                                    | Quantidade                                 | Estado                   |
-| --------------------------------------------- | ------------------------------------------ | ------------------------ |
-| **Reels em vídeo** (1080×1920, H.264, ~21 s)  | **16**                                     | ✅ prontos para publicar |
-| **Anúncios em vídeo** (6 conceitos × 3 hooks) | **18**                                     | ✅ prontos               |
-| **Legendas `.srt`**                           | 34                                         | ✅ uma por vídeo         |
-| **Capas de Reel**                             | 18 (16 + 2 com rosto real)                 | ✅                       |
-| **Capas de Destaque**                         | 12                                         | ✅                       |
-| **Cartões dentro dos Destaques**              | **95**                                     | ✅                       |
-| **Slides de carrossel**                       | 75 (8 do ciclo + 2 fixados + 2 de anúncio) | ✅                       |
-| **Posts estáticos de feed**                   | 12                                         | ✅                       |
-| **Cards de equipe**                           | 8 (um por pessoa real)                     | ✅                       |
-| **Templates de Story**                        | 16, renderizados preenchidos               | ✅                       |
-| **Estáticos de anúncio**                      | 4                                          | ✅                       |
-| **Prévias de avatar**                         | 4                                          | ✅                       |
-| **Prévias de grid**                           | 3                                          | ✅                       |
-| **Documentos operacionais**                   | 17 na raiz + 8 gerados em `content/`       | ✅                       |
-| **Scripts do sistema**                        | 8                                          | ✅                       |
+| Entregável                                                  | Quantidade                                 | Estado                   |
+| ----------------------------------------------------------- | ------------------------------------------ | ------------------------ |
+| **Reels em vídeo** (1080×1920, 30 fps, 22–30 s, com trilha) | **16**                                     | ✅ prontos para publicar |
+| **Anúncios em vídeo** (6 conceitos × 3 hooks, com trilha)   | **18**                                     | ✅ prontos               |
+| **Legendas `.srt`**                                         | 34                                         | ✅ uma por vídeo         |
+| **Capas de Reel**                                           | 18 (16 + 2 com rosto real)                 | ✅                       |
+| **Capas de Destaque**                                       | 12 (10 no plano + 2 de reserva)            | ✅                       |
+| **Cartões dentro dos Destaques**                            | **95** (85 na entrega + 10 de abertura)    | ✅                       |
+| **Slides de carrossel**                                     | 75 (8 do ciclo + 2 fixados + 2 de anúncio) | ✅                       |
+| **Posts estáticos de feed**                                 | 12                                         | ✅                       |
+| **Cards de equipe**                                         | 8 (um por pessoa real)                     | ✅                       |
+| **Templates de Story**                                      | 16, renderizados preenchidos               | ✅                       |
+| **Estáticos de anúncio**                                    | 4                                          | ✅                       |
+| **Prévias de avatar**                                       | 4                                          | ✅                       |
+| **Prévias de grid**                                         | 3                                          | ✅                       |
+| **Documentos operacionais**                                 | 18 na raiz + 8 gerados em `content/`       | ✅                       |
+| **Scripts do sistema**                                      | 9 (incluindo o compositor da trilha)       | ✅                       |
+| **Pasta de publicação `ENTREGA/` + zip**                    | idêntica ao documento da clínica           | ✅                       |
 
 **O que não é arquivo, mas é a entrega principal:** um sistema em que trocar uma headline num JSON e rodar um comando produz a peça nova — e em que **nenhum número é digitado numa arte**.
+
+### Os vídeos: motor 3
+
+Os 34 vídeos saem do terceiro motor (`source/templates/video.html`), feito para parar o polegar sem sair da marca:
+
+- **o primeiro quadro é impacto**: a palavra-chave do gancho ocupa a tela ("dói?", "dentro.", "enxerto?"), segura meio segundo com um grave na trilha e voa para o lugar dela na frase, enquanto a câmera assenta sobre a foto;
+- **32 cenas do meio viraram motion graphics editoriais**, que antes eram texto sobre verde liso: o implante descendo em rosca até a coroa assentar, o enxerto enchendo o osso grão a grão, o exame de imagem varrendo e mostrando o implante planejado, a prótese protocolo assentando sobre quatro pontos, a cicatrização como barra de tempo, o esmalte intacto no clareamento, o plano que vira dente, a linha do tempo de 2002 até hoje, a aspa e as estrelas dos depoimentos;
+- **o sorriso da marca vira linguagem**: sublinha a palavra-chave e se desenha, enorme, no fundo das cenas lisas;
+- **as cenas recuam como cartões** quando a próxima entra;
+- **os números rolam como odômetro**;
+- **o cartão final vende**: logo se montando, WhatsApp, a prova ("★ 4,6 no Google · 24 anos de história") e um toque pulsando no botão.
+
+Cada movimento tem som próprio na trilha: o grave do impacto, os cliques da rosca, o encaixe da coroa, os grãos, o toque no botão. Todo efeito foi revisado quadro a quadro (`--quadros`) antes do render, e o `--conferir` passou nos 34 roteiros com zero aviso de leitura, área segura ou ilustração cortada.
 
 ---
 
@@ -52,17 +66,46 @@ social/instagram/
 ├── QA.md                     conferência antes de publicar
 ├── RELATORIO-FINAL.md        este documento
 │
-├── ENTREGA/                  as 257 imagens em pastas numeradas, para zipar (gerada)
+├── ORDEM_DE_PUBLICACAO_JP.md o documento da clínica: pastas, ordem e datas
+├── ENTREGA/                  a pasta de publicação, idêntica ao documento (gerada)
+├── ENTREGA-INSTAGRAM-JP.zip  a mesma pasta, zipada (gerada)
 ├── content/                  roteiros e textos em formato de leitura (gerados)
 ├── exports/                  os 294 arquivos finais
 └── source/
     ├── dados-jp.json         derivado de src/lib/jp.ts
     ├── manifests/  (30)      o conteúdo de cada peça estática
     ├── roteiros/   (34)      o conteúdo de cada vídeo
-    ├── templates/            o sistema visual executável
+    ├── templates/            o sistema visual executável (inclui o motor de vídeo)
     ├── assets-derivados/     18 recortes e ampliações das fotos reais
-    └── scripts/    (8)       os geradores
+    └── scripts/    (9)       os geradores, incluindo trilha.py
 ```
+
+### A pasta `ENTREGA/`, que é o que a clínica abre
+
+Ela segue ao pé da letra o documento da clínica, [`ORDEM_DE_PUBLICACAO_JP.md`](ORDEM_DE_PUBLICACAO_JP.md) (18/09/2026): nome de cada pasta, o que existe dentro dela, a ordem e o dia.
+
+```text
+ENTREGA-INSTAGRAM-JP/
+├── LEIA-ME.txt                      o passo a passo e o calendário com as datas
+├── ORDEM_DE_PUBLICACAO_JP.md        o documento da clínica
+├── PREVIA_como-o-perfil-fica.png    o grid depois das 22 publicações
+├── POSTAR/
+│   ├── 01_REEL_Conheca-a-JP/        VIDEO.mp4 · CAPA.png · LEGENDA.txt
+│   ├── 02_CARROSSEL_Implantes-na-JP/  01.png … 07.png · LEGENDA.txt
+│   ├── 05_POST_Aqui-comeca-o-cuidado/ POST.png · LEGENDA.txt
+│   └── …  até 22_POST_Sorrir-muda-tudo/
+├── DESTAQUES/
+│   ├── 01_A-Clinica/                CAPA.png · 01_Fachada.png … 09_CTA.png
+│   └── …  até 10_Onde-estamos/
+├── FOTO-DE-PERFIL/                  só a versão escolhida (papel)
+├── STORIES/
+│   ├── 01_Depois-de-publicar/       Novo Reel, Novo carrossel
+│   └── 02_Outros-dias/              bastidor, avaliação, equipe, localização, dica…
+├── ANUNCIOS/                        só quando for impulsionar
+└── PROXIMO-MES/                     o banco para depois de 20/10
+```
+
+O que o documento manda **não** publicar como post separado (capa de Reel, capa de Destaque) nunca tem pasta própria: a `CAPA.png` do Reel mora na pasta do Reel, e a do Destaque, na pasta do Destaque. Depois de montar, o script lê `POSTAR/` e `DESTAQUES/` do disco e compara com a lista exata de arquivos do documento. Arquivo sobrando ou faltando derruba a execução.
 
 ### Os exports, por pasta
 
@@ -88,10 +131,10 @@ social/instagram/
 Concretamente, isto já pode ir ao ar hoje:
 
 - o perfil inteiro: nome, bio, avatar, categoria, endereço, links;
-- os **12 Destaques com os 95 cartões dentro**;
+- os **10 Destaques**, com a capa e 85 cartões dentro;
 - os **3 posts fixados**;
-- **21 publicações de feed** para os primeiros 30 dias;
-- **16 Reels** em vídeo;
+- as **22 publicações de feed** do plano, na ordem, cada uma com a legenda pronta;
+- **16 Reels** em vídeo, com trilha sonora (8 no plano do mês, 8 para o mês seguinte);
 - os **16 templates de Story**, preenchidos;
 - a **campanha inicial de Meta Ads** completa: 18 vídeos, 4 estáticos, 2 carrosséis, copies, headlines e tabela de UTM.
 
@@ -111,26 +154,36 @@ As duas capas de Reel com rosto real (`*_cover_rosto_alt_*`) já estão renderiz
 
 ---
 
-## 5. Os 12 posts que devem sair primeiro
+## 5. As 22 publicações do feed, na ordem da clínica
 
-Nesta ordem de publicação. A prévia de como fica no perfil está em `exports/grid/jp_ig_grid_como_fica_no_perfil.png`.
+A ordem, os nomes e as datas são os do documento da clínica. Um conteúdo por dia útil, de segunda, 21/09, a terça, 20/10/2026. Os Stories de cada dia estão em [`CALENDAR-30D.md`](CALENDAR-30D.md). A prévia do perfil pronto é `ENTREGA/PREVIA_como-o-perfil-fica.png`.
 
-| #   | Peça                              | Arquivo                                                  |
-| --- | --------------------------------- | -------------------------------------------------------- |
-| 1   | Reel — Implante dói?              | `exports/reels/jp_ig_reel_r01_implante_doi_v01.mp4`      |
-| 2   | Foto real da recepção             | `exports/feed/jp_ig_feed_s04_recepcao_v01.png`           |
-| 3   | Sorrir muda tudo.                 | `exports/feed/jp_ig_feed_s01_sorrir_muda_tudo_v01.png`   |
-| 4   | Implantes dentários               | `exports/feed/jp_ig_feed_s09_implantes_v01.png`          |
-| 5   | Dra. Ana Beatriz (equipe)         | `exports/feed/jp_ig_feed_s06_atendimento_humano_v01.png` |
-| 6   | 4,6 no Google                     | `exports/feed/jp_ig_feed_s03_google_v01.png`             |
-| 7   | Reel — Dentadura é a única opção? | `exports/reels/jp_ig_reel_r02_dentadura_opcoes_v01.mp4`  |
-| 8   | 24 anos. Hoje, na Freguesia do Ó  | `exports/feed/jp_ig_feed_s08_freguesia_v01.png`          |
-| 9   | Reel — Precisa de enxerto?        | `exports/reels/jp_ig_reel_r03_enxerto_v01.mp4`           |
-| 10  | 24 anos cuidando de sorrisos      | `exports/feed/jp_ig_feed_s02_24_anos_v01.png`            |
-| 11  | A sala que ninguém mostra         | `exports/feed/jp_ig_feed_s05_estrutura_v01.png`          |
-| 12  | Reel — Conheça a JP por dentro    | `exports/reels/jp_ig_reel_r11_conheca_a_jp_v01.mp4`      |
+| #   | Data      | Pasta em `ENTREGA/POSTAR`                | Publicação                                          |
+| --- | --------- | ---------------------------------------- | --------------------------------------------------- |
+| 01  | seg 21/09 | `01_REEL_Conheca-a-JP`                   | Reel — Conheça a JP por dentro — **fixar**          |
+| 02  | ter 22/09 | `02_CARROSSEL_Implantes-na-JP`           | Implantes na JP: começa pela avaliação — **fixar**  |
+| 03  | qua 23/09 | `03_CARROSSEL_24-anos`                   | 24 anos / prova de confiança — **fixar**            |
+| 04  | qui 24/09 | `04_REEL_Implante-doi`                   | Reel — Implante dói?                                |
+| 05  | sex 25/09 | `05_POST_Aqui-comeca-o-cuidado`          | Post da recepção                                    |
+| 06  | seg 28/09 | `06_REEL_Perdeu-um-dente`                | Reel — Perdeu um dente. E agora?                    |
+| 07  | ter 29/09 | `07_POST_Avaliacoes-Google`              | Post — A nota é pública. E é deles.                 |
+| 08  | qua 30/09 | `08_POST_Todas-as-fases-da-vida`         | Post — Odontologia para todas as fases da vida      |
+| 09  | qui 01/10 | `09_CARROSSEL_5-duvidas-sobre-implantes` | Carrossel — 5 dúvidas sobre implantes               |
+| 10  | sex 02/10 | `10_POST_Equipe-Ana-Beatriz`             | Card — Dra. Ana Beatriz                             |
+| 11  | seg 05/10 | `11_REEL_Implante-precisa-de-enxerto`    | Reel — Todo implante precisa de enxerto?            |
+| 12  | ter 06/10 | `12_POST_Implantes-dentarios`            | Post — Implantes dentários                          |
+| 13  | qua 07/10 | `13_REEL_Primeira-avaliacao`             | Reel — Como é a primeira avaliação?                 |
+| 14  | qui 08/10 | `14_CARROSSEL_Como-funciona-a-avaliacao` | Carrossel — Como funciona a avaliação               |
+| 15  | sex 09/10 | `15_POST_24-anos-na-Freguesia`           | Post — 24 anos de história. Hoje, na Freguesia do Ó |
+| 16  | seg 12/10 | `16_REEL_Dentadura-e-a-unica-opcao`      | Reel — Dentadura é a única opção? (**feriado**)     |
+| 17  | ter 13/10 | `17_POST_Equipe-Matheus-Fraga`           | Card — Dr. Matheus Fraga                            |
+| 18  | qua 14/10 | `18_REEL_Aparelho-ou-alinhador`          | Reel — Aparelho ou alinhador?                       |
+| 19  | qui 15/10 | `19_CARROSSEL_Dentadura-x-protocolo`     | Carrossel — Dentadura x protocolo                   |
+| 20  | sex 16/10 | `20_POST_Esterilizacao`                  | Post — A sala que ninguém mostra                    |
+| 21  | seg 19/10 | `21_REEL_24-anos-em-30-segundos`         | Reel — 24 anos em 30 segundos                       |
+| 22  | ter 20/10 | `22_POST_Sorrir-muda-tudo`               | Post — Sorrir muda tudo                             |
 
-A alternância foi montada para que nenhuma trinca do grid fique com três peças da mesma superfície.
+Cada pasta traz os arquivos da publicação e o `LEGENDA.txt`, com a legenda e as hashtags. **12/10 é feriado nacional.** O documento mantém o Reel nº 16 nesse dia; a alternativa está em [`CALENDAR-30D.md`](CALENDAR-30D.md).
 
 ---
 
@@ -149,17 +202,24 @@ Dois conjuntos de anúncio, não seis. Destino: `/implante-dentario`. Conversão
 
 ---
 
-## 7. Os Destaques que devem subir primeiro
+## 7. Os Destaques, na ordem da clínica
 
-| #   | Destaque         | Cartões |
-| --- | ---------------- | ------- |
-| 1   | **Implantes**    | 14      |
-| 2   | **A clínica**    | 10      |
-| 3   | **Avaliações**   | 8       |
-| 4   | **Equipe**       | 10      |
-| 5   | **Onde estamos** | 6       |
+| #   | Pasta em `ENTREGA/DESTAQUES` | Stories dentro |
+| --- | ---------------------------- | -------------- |
+| 1   | `01_A-Clinica`               | 9              |
+| 2   | `02_Implantes`               | 13             |
+| 3   | `03_Proteses`                | 8              |
+| 4   | `04_Ortodontia`              | 7              |
+| 5   | `05_Estetica`                | 7              |
+| 6   | `06_Criancas`                | 7              |
+| 7   | `07_Avaliacoes`              | 7              |
+| 8   | `08_Equipe`                  | 9              |
+| 9   | `09_Duvidas`                 | 13             |
+| 10  | `10_Onde-estamos`            | 5              |
 
-Os outros sete entram na sequência. O Instagram mostra ~5 sem rolagem — a ordem é decisão comercial, e esta prioriza o produto de aquisição e a redução de incerteza.
+Cada pasta tem ainda a `CAPA.png`, a capa da bolinha. **Crie do 10 para o 01.** O Instagram joga para a frente o Destaque atualizado por último, então Onde estamos sobe primeiro e A Clínica por último.
+
+Implantes e Dúvidas ficam com 13 Stories cada, como o documento pede. O cartão de abertura de cada Destaque (`*_01_capa.png`) ficou fora da entrega, porque o documento não tem posição para ele. As capas **Estrutura** e **24 anos** continuam em `exports/highlights/` como reserva.
 
 ---
 
@@ -200,16 +260,16 @@ Critérios para revisar o que já está publicado no perfil: [`INSTAGRAM-CLEANUP
 
 ## 10. Dados que precisam de revisão
 
-### ⚠️ Pendência que exige decisão da clínica
+### ⚠️ Pendência física: a placa da fachada
 
-**A placa da fachada traz um WhatsApp diferente do de `src/lib/jp.ts`.**
+**A placa traz um WhatsApp antigo.** A clínica confirmou em 18/09/2026 que o correto é o do site, **(11) 97616-5117**.
 
 | Onde             | Telefone            | WhatsApp              |
 | ---------------- | ------------------- | --------------------- |
 | placa da fachada | `3975-9902` ✅      | **`9 7169-4647`**     |
 | `src/lib/jp.ts`  | `(11) 3975-9902` ✅ | **`(11) 97616-5117`** |
 
-Enquanto os dois não baterem, todo recorte de fachada deste kit para em `x = 638`, o que deixa o bloco do WhatsApp fora de qualquer peça. **A clínica precisa dizer qual número está em uso** — se for o do site, a placa precisa de correção; se for o da placa, `src/lib/jp.ts` precisa de correção.
+Todo recorte de fachada deste kit para em `x = 638`, o que deixa o bloco do número antigo fora de qualquer peça. **O que falta é físico: corrigir a placa**, ou cobrir o número antigo, porque quem passa na rua salva o da placa.
 
 ### Revisão periódica
 
@@ -241,15 +301,17 @@ node social/instagram/source/scripts/renderizar.mjs
 node social/instagram/source/scripts/renderizar.mjs 60-estaticos
 node social/instagram/source/scripts/renderizar.mjs 45-reel --qa   # com guias
 
-# 4. renderizar vídeos
-node social/instagram/source/scripts/gerar-videos.mjs
+# 4. renderizar vídeos — SEMPRE com --leve (ver §12)
+node social/instagram/source/scripts/gerar-videos.mjs --leve --pular-prontos
 node social/instagram/source/scripts/gerar-videos.mjs R01 --previa  # teste rápido
+node social/instagram/source/scripts/gerar-videos.mjs R01 --conferir  # mede o tempo de leitura, sem gravar
 
 # 5. montar a prévia do grid
 python social/instagram/source/scripts/montar-grid.py
 
-# 5b. montar a pasta de imagens para enviar (ENTREGA/, pronta para zipar)
+# 5b. montar a pasta de publicação e o zip (e, se quiser, copiar para outro lugar)
 node social/instagram/source/scripts/montar-entrega.mjs
+node social/instagram/source/scripts/montar-entrega.mjs --copiar-para "C:/Users/<você>/Downloads"
 
 # 6. regerar os documentos de leitura
 node social/instagram/source/scripts/gerar-docs.mjs
@@ -264,25 +326,39 @@ Para criar uma peça: copie a mais parecida no manifest, troque `arquivo`, `head
 
 ## 12. Desempenho do sistema
 
-| Operação             | Tempo   |
-| -------------------- | ------- |
-| 260 imagens, do zero | ~55 s   |
-| um grupo de 12 peças | ~3 s    |
-| um Reel de 21 s      | ~40 s   |
-| os 34 vídeos         | ~22 min |
-| conferência completa | < 2 s   |
+| Operação                                   | Tempo                 |
+| ------------------------------------------ | --------------------- |
+| 260 imagens, do zero                       | ~55 s                 |
+| um grupo de 12 peças                       | ~3 s                  |
+| um Reel de 24 s com trilha, `--leve`       | ~45 s + 20 s de pausa |
+| os 34 vídeos, `--leve`, 2 filas            | ~30 min               |
+| folha de quadros de um vídeo (`--quadros`) | ~15 s                 |
+| a pasta `ENTREGA/` + zip                   | ~1 min                |
+| conferência completa                       | < 5 s                 |
+
+### O modo `--leve` existe por causa de uma tela azul
+
+A primeira rodada de vídeos, sem freio, derrubou o computador da clínica. Chromium, Node e ffmpeg disputavam todos os núcleos. Desde então, **vídeo só se gera com `--leve`**, que:
+
+- baixa a prioridade de todos os processos (Windows: abaixo do normal), então o resto da máquina sempre passa na frente;
+- limita o ffmpeg a 2 threads e o Chromium a 1 thread de rasterização;
+- mede o uso de CPU **do sistema inteiro** e pausa a captura quando passa de 60%;
+- abre um navegador novo por vídeo e espera 20 s entre um e outro.
+
+Na rodada final, com duas filas em paralelo, o pico ficou entre 43% e 78% e a média perto de 60%, sem nenhuma queda. `--pular-prontos` retoma de onde parou: só refaz o vídeo cujo roteiro, motor ou trilha mudou depois do MP4.
 
 ---
 
 ## 12b. Defeitos encontrados na revisão — e corrigidos
 
-A varredura final achou três coisas. Duas eram falso positivo do próprio verificador; uma era real e teria ido ao ar.
+A varredura final achou quatro coisas reais, que teriam ido ao ar, além de dois falsos positivos do próprio verificador.
 
-| O que                                                           | Como apareceu                                                                                                               | Correção                                                                                                                                                                         |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **"Arraste para ver" nas capas dos dois carrosséis de anúncio** | a frase nascia dentro do template `carousel-cover`, não em manifest nenhum — por isso passou por uma revisão visual inteira | o template só injeta o elemento quando o manifest não declara `anuncio: true`; `conferir.mjs` ganhou uma checagem que cobra o campo em toda peça que exporta para `exports/ads/` |
-| **Chip "SEM DOR TAMBÉM CONTA"** (carrossel C06)                 | a intenção era o contrário de promessa, mas a expressão recortada num print vira a promessa vedada                          | virou "QUANDO NADA DÓI"                                                                                                                                                          |
-| **Duas capas de Reel com `_ALT_` em caixa alta**                | violavam a própria regra de nomenclatura do kit                                                                             | renomeadas para `_alt_`                                                                                                                                                          |
+| O que                                                           | Como apareceu                                                                                                                                                                 | Correção                                                                                                                                                                                      |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **"Arraste para ver" nas capas dos dois carrosséis de anúncio** | a frase nascia dentro do template `carousel-cover`, não em manifest nenhum — por isso passou por uma revisão visual inteira                                                   | o template só injeta o elemento quando o manifest não declara `anuncio: true`; `conferir.mjs` ganhou uma checagem que cobra o campo em toda peça que exporta para `exports/ads/`              |
+| **Chip "SEM DOR TAMBÉM CONTA"** (carrossel C06)                 | a intenção era o contrário de promessa, mas a expressão recortada num print vira a promessa vedada                                                                            | virou "QUANDO NADA DÓI"                                                                                                                                                                       |
+| **Duas capas de Reel com `_ALT_` em caixa alta**                | violavam a própria regra de nomenclatura do kit                                                                                                                               | renomeadas para `_alt_`                                                                                                                                                                       |
+| **Palavra sozinha na última linha em 5 vídeos**                 | "Freguesia do / Ó." em dois anúncios, "osso.”" num terceiro, "com" no Reel "Implante dói?" e "caso." no R09 — achados depois da revisão visual, com os vídeos já renderizados | os títulos foram quebrados à mão e os 5 vídeos refeitos; `gerar-videos.mjs --conferir` passou a acusar viúva e "do / Ó" partido nos 34 roteiros, e o nome do bairro nunca mais quebra no meio |
 
 O verificador também acusou `capa-recepcao` e `promoção` dentro do campo `descricao` de dois manifests — texto de documentação que existe justamente para dizer "aqui isso não se usa". A checagem passou a olhar só o que vira pixel.
 
@@ -294,7 +370,7 @@ O verificador também acusou `capa-recepcao` e `promoção` dentro do campo `des
 
 **2. Nenhuma imagem de pessoa falando.** Os 16 Reels são motion + texto. Funcionam, e são a metade do conteúdo que não depende de agenda. A outra metade depende, e está roteirizada palavra por palavra.
 
-**3. Sem trilha sonora.** Os MP4 saem mudos de propósito: trilha licenciada não pode ser embutida num arquivo que a clínica distribui. O áudio deve ser escolhido dentro do Instagram, onde a licença é da plataforma. Os arquivos de anúncio levam uma faixa AAC silenciosa por compatibilidade com o player do Gerenciador.
+**3. A trilha é sintetizada, não gravada.** Trilha licenciada não pode ir embutida num arquivo que a clínica distribui. Por isso cada vídeo leva uma trilha **composta por código** (`source/scripts/trilha.py`): pad, dedilhado, baixo, bateria e efeitos sincronizados com os cortes. Sem sample de terceiros, ela pode ir até para anúncio. O limite é de gosto, não de licença: é uma trilha limpa de marca, não uma música que alguém reconheça. Se preferir um áudio em alta no Reel orgânico, é só baixar o volume do som original no editor do Instagram e escolher outro. **Em anúncio, nunca use áudio em alta do Instagram.**
 
 **4. A placa da fachada.** Ver §10. Resolvido por recorte, mas é uma pendência da clínica, não do kit.
 
@@ -318,13 +394,16 @@ A exceção, declarada aqui porque o §60 do briefing pede:
 
   .gitignore
 + social/instagram/ENTREGA/
++ social/instagram/ENTREGA.zip
++ social/instagram/ENTREGA-INSTAGRAM-JP.zip
++ social/instagram/ENTREGA-ORIGEM.txt
 ```
 
 **Por quê.** `social/instagram/content/*.md` é gerado por `gerar-docs.mjs`, que monta tabelas a partir dos manifests. O Prettier alinha coluna de tabela por largura de célula: cada execução do gerador desformata o arquivo, e cada `npm run format` o formata de volta — dois diffs enormes por rodada, num arquivo que ninguém edita à mão. É o mesmo princípio das entradas que já estavam lá (`apresentacao`, `public/crc-tour`, `.agents/skills`): o que é gerado ou não é nosso, não formatamos.
 
 A **fonte** (`source/manifests`, `source/roteiros`, `source/templates`, `source/scripts`) continua fora do ignore.
 
-E `social/instagram/ENTREGA/` entrou no `.gitignore` pelo mesmo raciocínio: ela é uma cópia reorganizada de `exports/`, 77 MB de PNG que já existem ali. Versionar de novo dobraria o peso do repositório para guardar o mesmo pixel duas vezes. Quem precisar dela roda `montar-entrega.mjs`.
+E `social/instagram/ENTREGA/` e o zip entraram no `.gitignore` pelo mesmo raciocínio: são uma cópia reorganizada de `exports/`, arquivos que já existem ali. Versionar de novo dobraria o peso do repositório para guardar o mesmo pixel duas vezes. Quem precisar dela roda `montar-entrega.mjs`.
 
 ### Estado do `npm run check` depois do trabalho
 
@@ -344,16 +423,16 @@ Nenhum dos problemas apontados está em arquivo criado por este trabalho. Eles j
 
 O briefing define que a tarefa só está pronta quando existir estrutura utilizável com documentação, templates, conteúdo, roteiros, copies, assets, exports, organização e QA.
 
-| Requisito    | Estado                                  |
-| ------------ | --------------------------------------- |
-| documentação | 17 documentos + 8 gerados               |
-| templates    | 24 templates de layout, parametrizáveis |
-| conteúdo     | 294 arquivos finais                     |
-| roteiros     | 34, palavra por palavra                 |
-| copies       | legenda pronta para cada peça           |
-| assets       | 18 derivados + inventário auditado      |
-| exports      | PNG e MP4 gerados e conferidos          |
-| organização  | `source/` e `exports/` separados        |
-| QA           | automático (10 checagens) + visual      |
+| Requisito    | Estado                                                             |
+| ------------ | ------------------------------------------------------------------ |
+| documentação | 18 documentos + 8 gerados                                          |
+| templates    | 24 templates de layout, parametrizáveis                            |
+| conteúdo     | 294 arquivos finais                                                |
+| roteiros     | 34, palavra por palavra                                            |
+| copies       | legenda pronta para cada peça                                      |
+| assets       | 18 derivados + inventário auditado                                 |
+| exports      | PNG e MP4 com trilha, gerados e conferidos                         |
+| organização  | `source/` e `exports/` separados; `ENTREGA/` idêntica ao documento |
+| QA           | automático (11 checagens) + visual                                 |
 
 O que falta é o que só a clínica pode fazer: publicar, gravar a sessão de fotos e responder a pendência da placa.

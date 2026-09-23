@@ -1,0 +1,76 @@
+{
+  "id": "N14",
+  "arquivo": "14_BOCA_SECA_E_CARIE",
+  "titulo": "Boca seca e risco de cárie",
+  "teto": 0.68,
+  "pilar": "prevencao",
+  "ordem": 14,
+  "objetivo": "explicar o papel da saliva sem citar marcas de medicamento",
+  "cenas": [
+    {
+      "chip": "PREVENÇÃO",
+      "titulo": "Boca seca aumenta\no risco de [[cárie]]?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "saliva",
+        "modo": "seca"
+      },
+      "tMin": 5.2,
+      "narracao": "Boca seca pode aumentar o risco de cárie?"
+    },
+    {
+      "titulo": "[[Pode]].",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "narracao": "Pode."
+    },
+    {
+      "chip": "O QUE A SALIVA FAZ",
+      "titulo": "Ela trabalha\no [[dia inteiro]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Ajuda a limpar a boca",
+        "Neutraliza ácidos",
+        "Protege os dentes"
+      ],
+      "narracao": "A saliva ajuda a limpar a boca, neutralizar ácidos e proteger os dentes."
+    },
+    {
+      "titulo": "Com menos saliva,\no equilíbrio\npode [[mudar]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "saliva",
+        "modo": "seca"
+      },
+      "tMin": 6.4,
+      "narracao": "Quando a produção de saliva diminui, esse equilíbrio pode mudar."
+    },
+    {
+      "titulo": "Medicamentos,\nhábitos e condições\nde [[saúde]] entram nisso.",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "corte",
+      "narracao": "Medicamentos, hábitos e algumas condições de saúde podem estar envolvidos."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Boca seca com\n[[frequência]]?",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Se a sensação de boca seca é frequente, vale conversar com um profissional.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

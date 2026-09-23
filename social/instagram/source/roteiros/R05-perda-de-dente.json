@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.5,
       "chip": "REABILITAÇÃO",
       "titulo": "Perdeu um dente.\nE [[agora]]?",
       "escala": "v-m",
@@ -36,7 +36,8 @@
       "titulo": "Cada um tem\nindicação, vantagem\ne [[limite]].",
       "escala": "v-p",
       "corpo": "Nenhum deles é o melhor para todo mundo. Quem escolhe é o caso, junto com a equipe.",
-      "narracao": "Cada um tem indicação, vantagem e limite. Nenhum é o melhor para todo mundo."
+      "narracao": "Cada um tem indicação, vantagem e limite. Nenhum é o melhor para todo mundo.",
+      "grafico": "plano"
     },
     {
       "t": 4.4,

@@ -73,3 +73,9 @@ social/instagram/ENTREGA/
 
 # O zip e a MESMA copia comprimida de ENTREGA/ — regenere com montar-entrega.mjs.
 social/instagram/ENTREGA.zip
+social/instagram/ENTREGA-INSTAGRAM-JP.zip
+# De onde veio cada arquivo da ENTREGA — gerado junto com ela.
+social/instagram/ENTREGA-ORIGEM.txt
+# Zip dos Reels de set/out — os mesmos .mp4 de JP_REELS_SET_OUT_2026/, só
+# comprimidos (89 MB). Regenere com source/scripts/montar-reels-set-out.py.
+social/instagram/JP_REELS_SET_OUT_2026/JP_REELS_01_A_17.zip

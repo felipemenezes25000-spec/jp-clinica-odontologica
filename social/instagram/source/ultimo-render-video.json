@@ -1,125 +1,104 @@
 {
   "previa": false,
+  "mudo": false,
   "videos": [
     {
-      "id": "AD01-A",
-      "arquivo": "jp_ig_ad_ad01_hooka_v01.mp4",
-      "duracao": 21,
-      "fps": 30
+      "id": "N02",
+      "arquivo": "02_PERDEU_UM_DENTE.mp4",
+      "duracao": 31.871999999999996,
+      "fps": 30,
+      "trilha": "trilha 31.9s · 100 bpm · pico -1.7 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD01-B",
-      "arquivo": "jp_ig_ad_ad01_hookb_v01.mp4",
-      "duracao": 21,
-      "fps": 30
+      "id": "N03",
+      "arquivo": "03_DENTADURA_UNICA_OPCAO.mp4",
+      "duracao": 28.032,
+      "fps": 30,
+      "trilha": "trilha 28.1s · 96 bpm · pico -1.7 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD01-C",
-      "arquivo": "jp_ig_ad_ad01_hookc_v01.mp4",
-      "duracao": 21,
-      "fps": 30
+      "id": "N04",
+      "arquivo": "04_APARELHO_OU_ALINHADOR.mp4",
+      "duracao": 34.64,
+      "fps": 30,
+      "trilha": "trilha 34.7s · 100 bpm · pico -1.9 dBFS · rms -16.3 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD02-A",
-      "arquivo": "jp_ig_ad_ad02_hooka_v01.mp4",
-      "duracao": 21.599999999999998,
-      "fps": 30
+      "id": "N06",
+      "arquivo": "06_FALTAM_VARIOS_DENTES.mp4",
+      "duracao": 31.552,
+      "fps": 30,
+      "trilha": "trilha 31.6s · 104 bpm · pico -1.8 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD02-B",
-      "arquivo": "jp_ig_ad_ad02_hookb_v01.mp4",
-      "duracao": 21.599999999999998,
-      "fps": 30
+      "id": "N08",
+      "arquivo": "08_BRUXISMO_SO_DORMINDO.mp4",
+      "duracao": 31.432,
+      "fps": 30,
+      "trilha": "trilha 31.5s · 100 bpm · pico -1.9 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD02-C",
-      "arquivo": "jp_ig_ad_ad02_hookc_v01.mp4",
-      "duracao": 21.599999999999998,
-      "fps": 30
+      "id": "N11",
+      "arquivo": "11_RETRACAO_GENGIVAL.mp4",
+      "duracao": 32.784,
+      "fps": 30,
+      "trilha": "trilha 32.8s · 96 bpm · pico -1.8 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD03-A",
-      "arquivo": "jp_ig_ad_ad03_hooka_v01.mp4",
-      "duracao": 21.2,
-      "fps": 30
+      "id": "N12",
+      "arquivo": "12_TODO_SISO_PRECISA_EXTRAIR.mp4",
+      "duracao": 34.072,
+      "fps": 30,
+      "trilha": "trilha 34.1s · 100 bpm · pico -1.9 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD03-B",
-      "arquivo": "jp_ig_ad_ad03_hookb_v01.mp4",
-      "duracao": 21.2,
-      "fps": 30
+      "id": "N13",
+      "arquivo": "13_GENGIVA_SANGRANDO.mp4",
+      "duracao": 33.48,
+      "fps": 30,
+      "trilha": "trilha 33.5s · 104 bpm · pico -1.7 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD03-C",
-      "arquivo": "jp_ig_ad_ad03_hookc_v01.mp4",
-      "duracao": 21.2,
-      "fps": 30
+      "id": "N14",
+      "arquivo": "14_BOCA_SECA_E_CARIE.mp4",
+      "duracao": 30.112000000000002,
+      "fps": 30,
+      "trilha": "trilha 30.2s · 96 bpm · pico -2.1 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD04-A",
-      "arquivo": "jp_ig_ad_ad04_hooka_v01.mp4",
-      "duracao": 22,
-      "fps": 30
+      "id": "N15",
+      "arquivo": "15_ESCOVAR_REMOVE_TARTARO.mp4",
+      "duracao": 34.016,
+      "fps": 30,
+      "trilha": "trilha 34.1s · 100 bpm · pico -1.8 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD04-B",
-      "arquivo": "jp_ig_ad_ad04_hookb_v01.mp4",
-      "duracao": 22,
-      "fps": 30
+      "id": "N16",
+      "arquivo": "16_AFTA_QUE_NAO_MELHORA.mp4",
+      "duracao": 34.36,
+      "fps": 30,
+      "trilha": "trilha 34.4s · 104 bpm · pico -2.0 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     },
     {
-      "id": "AD04-C",
-      "arquivo": "jp_ig_ad_ad04_hookc_v01.mp4",
-      "duracao": 22,
-      "fps": 30
-    },
-    {
-      "id": "AD05-A",
-      "arquivo": "jp_ig_ad_ad05_hooka_v01.mp4",
-      "duracao": 20.599999999999998,
-      "fps": 30
-    },
-    {
-      "id": "AD05-B",
-      "arquivo": "jp_ig_ad_ad05_hookb_v01.mp4",
-      "duracao": 20.599999999999998,
-      "fps": 30
-    },
-    {
-      "id": "AD05-C",
-      "arquivo": "jp_ig_ad_ad05_hookc_v01.mp4",
-      "duracao": 20.599999999999998,
-      "fps": 30
-    },
-    {
-      "id": "AD06-A",
-      "arquivo": "jp_ig_ad_ad06_hooka_v01.mp4",
-      "duracao": 20,
-      "fps": 30
-    },
-    {
-      "id": "AD06-B",
-      "arquivo": "jp_ig_ad_ad06_hookb_v01.mp4",
-      "duracao": 20,
-      "fps": 30
-    },
-    {
-      "id": "AD06-C",
-      "arquivo": "jp_ig_ad_ad06_hookc_v01.mp4",
-      "duracao": 20,
-      "fps": 30
-    },
-    {
-      "id": "R11",
-      "arquivo": "jp_ig_reel_r11_conheca_a_jp_v01.mp4",
-      "duracao": 25.4,
-      "fps": 30
-    },
-    {
-      "id": "R16",
-      "arquivo": "jp_ig_reel_r16_historia_v01.mp4",
-      "duracao": 23,
-      "fps": 30
+      "id": "N17",
+      "arquivo": "17_CLAREAMENTO_TODO_ESCURECIMENTO.mp4",
+      "duracao": 35.016,
+      "fps": 30,
+      "trilha": "trilha 35.1s · 104 bpm · pico -2.1 dBFS · rms -16.4 dBFS · voz pt-BR-Antonio"
     }
+  ],
+  "avisos": [
+    "N02: cena 2 termina de entrar a 0.68s do corte — pouco tempo de leitura",
+    "N02: cena 5 termina de entrar a 0.40s do corte — pouco tempo de leitura",
+    "N03: cena 2 termina de entrar a 0.98s do corte — pouco tempo de leitura",
+    "N03: cena 3 termina de entrar a 0.78s do corte — pouco tempo de leitura",
+    "N03: cena 5 termina de entrar a 0.50s do corte — pouco tempo de leitura",
+    "N03: cena 6 termina de entrar a 0.50s do corte — pouco tempo de leitura",
+    "N04: cena 5 termina de entrar a 0.68s do corte — pouco tempo de leitura",
+    "N06: cena 4 termina de entrar a 0.78s do corte — pouco tempo de leitura",
+    "N06: cena 6 termina de entrar a 0.50s do corte — pouco tempo de leitura",
+    "N08: cena 4 termina de entrar a 0.01s do corte — pouco tempo de leitura",
+    "N16: cena 5 termina de entrar a 0.63s do corte — pouco tempo de leitura",
+    "N17: cena 6 termina de entrar a 0.66s do corte — pouco tempo de leitura"
   ]
 }

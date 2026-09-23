@@ -1,19 +1,19 @@
 1
-00:00:00,150 --> 00:00:02,700
+00:00:00,150 --> 00:00:03,200
 Aparelho ou alinhador?
 
 2
-00:00:02,950 --> 00:00:06,900
-A pergunta certa não é qual é melhor, e sim qual resolve o seu caso. Isso a documentação ortodôntica responde.
+00:00:03,450 --> 00:00:09,800
+Aparelho fixo trabalha vinte e quatro horas; alinhador é removível e depende do uso. Quem escolhe é a documentação ortodôntica.
 
 3
-00:00:07,150 --> 00:00:13,300
+00:00:10,050 --> 00:00:16,200
 Quatro fatores pesam: o tipo de movimento necessário, a idade e a fase de crescimento, a rotina de uso, e o acompanhamento possível.
 
 4
-00:00:13,550 --> 00:00:17,700
+00:00:16,450 --> 00:00:20,600
 Aparelho não é só estética: mordida desalinhada afeta mastigação, higiene e desgaste dos dentes ao longo da vida.
 
 5
-00:00:17,950 --> 00:00:21,700
+00:00:20,850 --> 00:00:24,600
 Comece pela documentação ortodôntica. Fale com a equipe da JP pelo WhatsApp.

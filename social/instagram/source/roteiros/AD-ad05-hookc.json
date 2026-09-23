@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.5,
       "titulo": "Avaliação de\nimplantes na\n[[Vila Bruna]].",
       "escala": "v-g",
       "corpo": "A dois passos da Freguesia do Ó.",
@@ -19,34 +19,61 @@
       "narracao": "Avaliação de implantes na Vila Bruna, a dois passos da Freguesia do Ó."
     },
     {
-      "t": 5.6,
+      "t": 6.2,
+      "tipo": "etapas",
       "superficie": "escura",
       "chip": "COMO FUNCIONA",
-      "titulo": "Começa pela\navaliação —\nnão pelo\norçamento.",
+      "titulo": "Começa pela avaliação,\nnão pelo [[orçamento]].",
       "escala": "v-p",
-      "itens": [
-        "Histórico de saúde e exame clínico",
-        "Exame de imagem, quando indicado",
-        "As possibilidades explicadas com clareza"
+      "etapas": [
+        {
+          "titulo": "Histórico e exame",
+          "texto": "Conversa e exame clínico."
+        },
+        {
+          "titulo": "Imagem, se indicada",
+          "texto": "Para planejar com segurança."
+        },
+        {
+          "titulo": "As possibilidades",
+          "texto": "Explicadas antes de decidir."
+        }
       ],
-      "narracao": "Começa pela avaliação, não pelo orçamento: histórico de saúde, exame clínico, exame de imagem quando indicado, e as possibilidades explicadas com clareza."
+      "narracao": "Começa pela avaliação, não pelo orçamento: histórico e exame, imagem quando indicada, e as possibilidades explicadas antes de decidir."
     },
     {
-      "t": 4.2,
+      "t": 5.2,
+      "tipo": "numeros",
       "superficie": "escura",
-      "titulo": "{{historia.anos}} anos de história.\n{{avaliacoes.notaBR}} no Google.",
-      "escala": "v-m",
-      "corpo": "{{avaliacoes.total}} avaliações públicas de pacientes.",
-      "narracao": "24 anos de história e 4,6 no Google, com 192 avaliações públicas."
+      "chip": "EM NÚMEROS",
+      "numeros": [
+        {
+          "valor": "{{historia.anos}}",
+          "sufixo": "anos",
+          "rotulo": "de história, desde {{historia.fundacao}}"
+        },
+        {
+          "valor": "{{avaliacoes.nota}}",
+          "decimais": 1,
+          "estrelas": "{{avaliacoes.nota}}",
+          "rotulo": "no Google, com {{avaliacoes.total}} avaliações"
+        }
+      ],
+      "narracao": "24 anos de história. 4,6 no Google, com 192 avaliações."
     },
     {
-      "t": 3.8,
-      "titulo": "{{clinica.endereco.logradouro}}\n{{clinica.endereco.bairro}}.",
+      "t": 4.8,
+      "tipo": "local",
+      "chip": "ONDE ESTAMOS",
+      "titulo": "Hoje, na\n[[{{historia.regiaoAtual}}]].",
       "escala": "v-m",
-      "corpo": "Perto de Pirituba, Limão e Brasilândia.",
-      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
-      "zoom": "fora",
-      "narracao": "Rua Rio Verde, 1029, Vila Bruna. Perto de Pirituba, Limão e Brasilândia."
+      "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}.",
+      "chips": ["Pirituba", "Limão", "Brasilândia"],
+      "narracao": "Hoje, na Freguesia do Ó: Rua Rio Verde, 1029, Vila Bruna — perto de Pirituba, Limão e Brasilândia.",
+      "superficie": "escura",
+      "janela": "/social/instagram/source/assets-derivados/fachada-faixa.webp",
+      "arco": true,
+      "alturaJanela": 520
     },
     {
       "t": 4.2,

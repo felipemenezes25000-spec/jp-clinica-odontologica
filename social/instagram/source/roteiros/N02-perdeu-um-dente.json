@@ -1,0 +1,80 @@
+{
+  "id": "N02",
+  "arquivo": "02_PERDEU_UM_DENTE",
+  "titulo": "Perdeu um dente. E agora?",
+  "pilar": "implantes",
+  "ordem": 2,
+  "objetivo": "mostrar que existe mais de um caminho, e que o caminho depende do caso",
+  "cenas": [
+    {
+      "chip": "AUSÊNCIA DENTÁRIA",
+      "titulo": "Perdeu um dente.\n[[E agora]]?",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "arcada",
+        "modo": "falta"
+      },
+      "tMin": 5.4,
+      "narracao": "Perdeu um dente. E agora?"
+    },
+    {
+      "titulo": "Não existe uma\núnica solução\npara [[todos os casos]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "corpo": "O que serve para uma boca pode não servir para outra.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "Quando um dente é perdido, não existe uma única solução para todos os casos."
+    },
+    {
+      "chip": "CAMINHOS POSSÍVEIS",
+      "titulo": "Depende da\n[[avaliação]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Implante",
+        "Prótese fixa",
+        "Prótese removível"
+      ],
+      "narracao": "Dependendo da avaliação, podem existir possibilidades como implante, prótese fixa ou prótese removível."
+    },
+    {
+      "titulo": "E o espaço vazio\nnão fica [[parado]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "corpo": "Os dentes vizinhos podem mudar de posição com o tempo.",
+      "grafico": {
+        "tipo": "arcada",
+        "modo": "falta"
+      },
+      "tMin": 5.2,
+      "narracao": "Com o tempo, o espaço vazio pode mudar a mordida e a posição dos dentes vizinhos."
+    },
+    {
+      "titulo": "O melhor caminho\ncomeça entendendo\n[[o seu caso]].",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "transicao": "cortina",
+      "narracao": "O melhor caminho começa entendendo o seu caso."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[IMPLANTE]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer entender melhor? Comente IMPLANTE.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

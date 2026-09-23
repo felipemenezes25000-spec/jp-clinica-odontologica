@@ -109,7 +109,7 @@ Mesma lógica, com uma ressalva: **não apague o Destaque antes de subir o novo*
 
 Ordem correta:
 
-1. subir os 12 Destaques novos, com o conteúdo dentro;
+1. subir os 10 Destaques novos, do 10 para o 01, com o conteúdo dentro;
 2. conferir que todos abrem e que a ordem está certa;
 3. **só então** apagar os antigos.
 

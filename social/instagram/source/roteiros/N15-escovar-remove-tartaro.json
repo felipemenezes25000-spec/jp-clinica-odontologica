@@ -1,0 +1,75 @@
+{
+  "id": "N15",
+  "arquivo": "15_ESCOVAR_REMOVE_TARTARO",
+  "titulo": "Escovar remove tártaro?",
+  "pilar": "prevencao",
+  "ordem": 15,
+  "objetivo": "separar biofilme de cálculo e justificar a limpeza profissional",
+  "cenas": [
+    {
+      "chip": "TÁRTARO",
+      "titulo": "Escovar bem\nremove [[tártaro]]?",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "tartaro"
+      },
+      "tMin": 6.2,
+      "narracao": "Escovar bem remove tártaro?"
+    },
+    {
+      "titulo": "[[Não]].",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "narracao": "Não."
+    },
+    {
+      "titulo": "A escova age\n[[antes]] de endurecer.",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "corpo": "Escova e fio removem o biofilme antes que ele se mineralize.",
+      "grafico": {
+        "tipo": "tartaro"
+      },
+      "tMin": 8.0,
+      "narracao": "A escova e o fio dental ajudam a remover o biofilme antes que ele se mineralize."
+    },
+    {
+      "titulo": "Depois que vira\ncálculo dental,\na escova [[não alcança]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "Quando esse depósito endurece e vira cálculo dental, o famoso tártaro, a escovação comum não consegue removê-lo."
+    },
+    {
+      "chip": "COMO SAI",
+      "titulo": "A remoção é\n[[profissional]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Com instrumentos adequados",
+        "No consultório",
+        "Com prevenção diária em casa"
+      ],
+      "narracao": "A remoção precisa ser feita profissionalmente, com instrumentos adequados."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Prevenção diária\n+ [[acompanhamento]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Prevenção diária em casa, mais acompanhamento profissional.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

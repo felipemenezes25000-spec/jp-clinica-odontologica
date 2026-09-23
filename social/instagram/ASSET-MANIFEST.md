@@ -22,20 +22,20 @@ Publicá-las como se fossem a JP seria exatamente o que o §22 do briefing proí
 
 > **Ação sugerida:** confirmar com a clínica se elas estão no site público hoje. Se estiverem sendo usadas como foto de recepção, é um problema de site, não só de Instagram.
 
-### 1.2 A placa da fachada traz um WhatsApp diferente do de `src/lib/jp.ts`
+### 1.2 A placa da fachada traz um WhatsApp ANTIGO
 
 | Onde                                   | Número                                               |
 | -------------------------------------- | ---------------------------------------------------- |
 | placa da fachada (foto `fachada.webp`) | telefone `3975-9902` ✅ · WhatsApp **`9 7169-4647`** |
 | `src/lib/jp.ts` → `CLINICA.whatsapp`   | **`(11) 97616-5117`**                                |
 
-O telefone bate. O WhatsApp **não**.
+O telefone bate. O WhatsApp **não**: a clínica confirmou em 18/09/2026 que o correto é o do site, **(11) 97616-5117**. O da placa é antigo.
 
 Publicar a placa inteira em tamanho legível é publicar dois números de contato na mesma conta: a pessoa salva o da foto, manda mensagem, e a clínica perde o lead sem nunca saber por quê.
 
 **Decisão tomada neste kit:** todo recorte derivado da fachada para em `x = 638`, o que deixa de fora o bloco do WhatsApp e o @ do Instagram, e mantém o toldo, as especialidades, a marca, "Dra. Juliana Pelisser", o CRO da responsável técnica e o telefone correto.
 
-> **Ação sugerida:** a clínica confirma qual número está em uso. Se for o do site, a placa precisa de correção; se for o da placa, `src/lib/jp.ts` precisa de correção. Enquanto os dois não baterem, este recorte fica.
+> **Ação da clínica:** corrigir a placa (ou cobrir o número antigo). Até lá, este recorte fica — nenhuma peça do kit mostra o número antigo, e nenhuma pode mostrar.
 
 ### 1.3 Cinco retratos fictícios continuam no repositório
 
@@ -136,12 +136,14 @@ O escurecimento de 10% e a dessaturação de 8% dos fundos não são filtro de e
 
 ## 5. Marca
 
-| Arquivo                               | Uso                                    |
-| ------------------------------------- | -------------------------------------- |
-| `src/assets/marca/marca-jp.svg`       | símbolo para pousar em fundo **claro** |
-| `src/assets/marca/marca-jp-claro.svg` | símbolo para fundo **escuro**          |
-| `src/assets/marca/logo-jp.svg`        | lockup para fundo claro                |
-| `src/assets/marca/logo-jp-claro.svg`  | lockup para fundo escuro               |
+| Arquivo                               | Uso                                                      |
+| ------------------------------------- | -------------------------------------------------------- |
+| `src/assets/marca/logo-jp.svg`        | **a logo**, para fundo claro                             |
+| `src/assets/marca/logo-jp-claro.svg`  | **a logo**, para fundo escuro ou foto                    |
+| `src/assets/marca/marca-jp.svg`       | só o símbolo — **não usar** em peça do kit               |
+| `src/assets/marca/marca-jp-claro.svg` | só o símbolo, fundo escuro — **não usar** em peça do kit |
+
+**A logo é sempre a logo inteira** (decisão da clínica, 18/09/2026). O símbolo sozinho não aparece em nenhuma peça, avatar ou vídeo.
 
 A semântica é a de `src/components/site/Logo.tsx`: o nome da variante descreve **a superfície**, não a arte. O sistema escolhe sozinho pela classe de superfície da peça.
 

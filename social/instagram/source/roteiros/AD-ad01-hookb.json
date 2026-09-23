@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.6,
       "titulo": "A dúvida nº 1\nantes de um\n[[implante]].",
       "escala": "v-g",
       "corpo": "E ela tem resposta — sem promessa.",
@@ -19,12 +19,16 @@
       "narracao": "A dúvida número um antes de um implante. E ela tem resposta."
     },
     {
-      "t": 4.2,
+      "t": 5.0,
       "superficie": "escura",
       "titulo": "A cirurgia é feita\ncom [[anestesia\nlocal]].",
       "escala": "v-m",
       "corpo": "Durante o procedimento, a região tratada fica anestesiada.",
-      "narracao": "A cirurgia é feita com anestesia local: durante o procedimento, a região tratada fica anestesiada."
+      "narracao": "A cirurgia é feita com anestesia local: durante o procedimento, a região tratada fica anestesiada.",
+      "grafico": {
+        "tipo": "implante",
+        "modo": "anestesia"
+      }
     },
     {
       "t": 5.4,

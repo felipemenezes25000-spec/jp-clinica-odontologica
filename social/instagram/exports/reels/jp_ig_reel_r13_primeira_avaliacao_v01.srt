@@ -1,19 +1,19 @@
 1
-00:00:00,150 --> 00:00:02,700
+00:00:00,150 --> 00:00:03,200
 O que acontece na primeira avaliação?
 
 2
-00:00:02,950 --> 00:00:06,100
-Primeiro, a recepção e a ficha de cadastro.
+00:00:03,450 --> 00:00:07,800
+Na chegada, a recepção faz a sua ficha.
 
 3
-00:00:06,350 --> 00:00:13,100
+00:00:08,050 --> 00:00:15,000
 Na consulta, a conversa vem antes do exame: você conta o histórico, a equipe examina, e as possibilidades são explicadas com clareza.
 
 4
-00:00:13,350 --> 00:00:17,500
+00:00:15,250 --> 00:00:19,400
 Por fim, você decide com informação: sem pressa, sem pressão, e com o plano por escrito.
 
 5
-00:00:17,750 --> 00:00:21,500
+00:00:19,650 --> 00:00:23,400
 Agende a sua primeira visita. Fale com a equipe da JP pelo WhatsApp.

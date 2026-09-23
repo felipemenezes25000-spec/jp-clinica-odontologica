@@ -84,9 +84,11 @@ Piso de texto: nada abaixo de 25 px numa peça de 1080. É o equivalente aos 12 
 Aparece em **100% das peças estáticas**, sempre igual:
 
 ```text
-[símbolo]  @jpclinicaodontologica  ·············  Freguesia do Ó · São Paulo
+[logo]  @jpclinicaodontologica  ·············  Freguesia do Ó · São Paulo
 ────────────────────────────────────────────────────────────────────────────
 ```
+
+**A logo é sempre a logo inteira** — JP, "Clínica Odontológica" e a onda (`logo-jp.svg`; em fundo escuro, `logo-jp-claro.svg`). Decisão da clínica em 18/09/2026: em tudo, sem exceção, nunca o símbolo sozinho. Rodapé, topo de Story, capa de Reel, avatar e a assinatura de todas as cenas dos vídeos usam a logo inteira.
 
 É ele, mais do que a cor, que faz trinta peças diferentes parecerem de uma clínica só. Não remova para "limpar" a peça: uma peça sem assinatura viaja no print de alguém e chega em outro perfil sem dono.
 
@@ -128,19 +130,43 @@ O inventário completo, com o que pode e o que não pode, está em [`ASSET-MANIF
 
 ## 7. Movimento
 
-Traduzido em números, que é a única forma de uma regra de motion sobreviver a trinta cenas:
+O motor de vídeo (`source/templates/video.html`, terceira versão) tem um vocabulário próprio, e cada peça dele é da marca. A régua é **impacto de cinema, não efeito de template**: nada pisca, gira ou explode, mas o primeiro segundo tem de parar o polegar.
 
-| Parâmetro                  | Valor                                             |
-| -------------------------- | ------------------------------------------------- |
-| entrada de texto           | 460 ms, sobe 26 px, opacidade 0→1, `easeOutCubic` |
-| saída de texto             | 300 ms, sobe 14 px, `easeInCubic`                 |
-| escalonamento entre linhas | 130 ms                                            |
-| zoom de foto               | 8% ao longo da cena, direção alternada            |
-| corte entre cenas          | 260 ms de dissolução                              |
+| Elemento         | O que faz                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Impacto**      | o primeiro quadro do vídeo é a palavra-chave do gancho ocupando a tela inteira ("dói?", "dentro.", "enxerto?"), com um véu escuro atrás e um grave na trilha. Ela segura meio segundo e **voa** até o seu lugar na frase; o resto da frase sobe enquanto ela pousa, e a câmera assenta sobre a foto em curva exponencial                                                                                                                                                                                                                                    |
+| **Ilustração**   | as cenas do meio ganham motion graphics editoriais em traço de marca, desenhados como livro de consultório (duas cores, traço redondo, corte que esvai nas bordas): o implante descendo em rosca e a coroa assentando; o enxerto enchendo o osso grão a grão; o exame de imagem varrendo, medindo e mostrando o implante planejado; a prótese protocolo assentando sobre quatro pontos; a cicatrização como barra de tempo; o esmalte intacto no clareamento; o plano que vira dente; a linha do tempo de 2002 até hoje; a aspa e as estrelas do depoimento |
+| **Sorriso**      | o sublinhado da palavra-chave é a curva do sorriso, desenhada da esquerda para a direita; a onda da logo se desenha, enorme e quase transparente, atrás das cenas lisas e do cartão final                                                                                                                                                                                                                                                                                                                                                                   |
+| **Arco**         | a transição principal é a curva do sorriso crescendo de baixo para cima, com um filete verde vivo na borda. Duas vezes por vídeo: na virada depois do gancho e na entrada do cartão final                                                                                                                                                                                                                                                                                                                                                                   |
+| **Profundidade** | entre as cenas do meio, a cena que sai recua como um cartão (escala, cantos arredondados, sombra) e a nova sobe por cima dela, de cantos arredondados que se endireitam                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Palavra**      | a headline sobe palavra por palavra de trás de uma máscara; a palavra-chave acende em verde                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Check**        | item de lista entra com o círculo e o visto se desenhando                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Trilho**       | etapas viram uma linha do tempo que se desenha e acende cada estação                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **Roda**         | número não conta, rola: cada dígito na sua coluna, como odômetro. 24 anos, 4,6 com as estrelas enchendo, 192                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **Gente**        | a equipe real sobe para dentro do arco menta, com nome e CRO                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| **Pino**         | a localização cai sobre a placa da fachada e pulsa                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **Decisão**      | o cartão final monta o lockup da marca, assenta a pílula do WhatsApp com reflexo, mostra a prova ("★ 4,6 no Google · 24 anos de história") e um toque pulsa duas vezes no botão                                                                                                                                                                                                                                                                                                                                                                             |
 
-Nenhuma curva é linear: movimento linear é o que faz um Reel parecer apresentação de slides.
+Cada peça tem som: o impacto tem grave, o voo tem ar, a rosca tem cliques que desaceleram, a coroa tem encaixe, os grãos caem em notas curtas, o toque no botão estala. A trilha é composta a partir desses eventos (ver `source/scripts/trilha.py`).
 
-Proibido: glitch, neon, explosão, letra pulando, zoom que "estoura", transição com giro, contagem regressiva piscando.
+Os números que seguram tudo isso:
+
+| Parâmetro                                       | Valor                                                                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| impacto                                         | palavra a 860 px de largura; assenta em 450 ms (`easeOutExpo`), segura até 0,56 s, voa em 550 ms (`easeInOutCubic`) |
+| câmera do gancho                                | parte de 1,38× e assenta em 1,12× em 1,5 s (`easeOutExpo`)                                                          |
+| palavra da headline                             | 560 ms, sobe 135% de trás da máscara, 60 ms entre palavras, `easeOutQuart`                                          |
+| palavra-chave acendendo                         | 450 ms depois da frase inteira; o sorriso se desenha em 550 ms                                                      |
+| transição em arco                               | 620 ms, `easeInOutCubic`                                                                                            |
+| profundidade                                    | 500 ms; a cena de saída recua a 91% com cantos de 64 px e escurece 50%                                              |
+| odômetro                                        | 1,25 s por dígito, 80 ms entre dígitos; o último dá duas voltas                                                     |
+| peça que "assenta" (coroa, pílula, pino, visto) | `easeOutBack` com ~5% de ultrapassagem: dá para sentir, não para ver pular                                          |
+
+Nenhuma curva é linear: movimento linear é o que faz um Reel parecer apresentação de slides. O motor é uma função pura do tempo (`quadro(t)`), então cada quadro sai igual em qualquer máquina.
+
+Proibido: glitch, neon, explosão, letra pulando, zoom que "estoura", transição com giro, contagem regressiva piscando, 3D de catálogo.
+
+Sem barra de progresso nos vídeos: a clínica pediu para tirar (18/09/2026). O Instagram já mostra a dele, e uma segunda linha no pé da tela só disputa com a legenda.
 
 ---
 

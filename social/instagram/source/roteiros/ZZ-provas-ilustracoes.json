@@ -1,0 +1,109 @@
+{
+  "id": "ZZ",
+  "titulo": "Provas — ilustrações novas",
+  "arquivo": "zz_provas_ilustracoes",
+  "pilar": "interno",
+  "objetivo": "folha de contato das ilustrações da segunda leva; não vai para o ar",
+  "interno": true,
+  "fps": 30,
+  "cenas": [
+    {
+      "t": 4.5,
+      "titulo": "dente · canal",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "dente", "modo": "canal" }
+    },
+    {
+      "t": 4.0,
+      "titulo": "dente · sensibilidade",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "dente", "modo": "sensibilidade" }
+    },
+    {
+      "t": 4.2,
+      "titulo": "gengiva · retração",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "gengiva", "modo": "retracao" }
+    },
+    {
+      "t": 4.0,
+      "titulo": "gengiva · inflamação",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "gengiva", "modo": "inflamacao" }
+    },
+    {
+      "t": 4.2,
+      "titulo": "siso · inclinado",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "siso", "modo": "inclinado" }
+    },
+    {
+      "t": 3.8,
+      "titulo": "arcada · falta um",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "arcada", "modo": "falta" }
+    },
+    {
+      "t": 3.8,
+      "titulo": "arcada · faltam vários",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "arcada", "modo": "varios" }
+    },
+    {
+      "t": 3.6,
+      "titulo": "orto · fixo x alinhador",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "orto" }
+    },
+    {
+      "t": 3.6,
+      "titulo": "cor · escala",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "cor", "modo": "escala" }
+    },
+    {
+      "t": 3.4,
+      "titulo": "cor · origens",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "cor", "modo": "origens" }
+    },
+    {
+      "t": 3.4,
+      "titulo": "saliva · seca",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "saliva", "modo": "seca" }
+    },
+    {
+      "t": 4.8,
+      "titulo": "tártaro",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "tartaro" }
+    },
+    {
+      "t": 4.4,
+      "titulo": "lesão · tempo",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "lesao" }
+    },
+    {
+      "t": 4.0,
+      "titulo": "bruxismo",
+      "escala": "v-p",
+      "superficie": "escura",
+      "grafico": { "tipo": "bruxismo" }
+    }
+  ]
+}

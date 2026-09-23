@@ -8,9 +8,9 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "ESTÉTICA",
-      "titulo": "Clareamento\nenfraquece\nos dentes?",
+      "titulo": "Clareamento\n[[enfraquece]]\nos dentes?",
       "escala": "v-m",
       "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
       "zoom": "dentro",
@@ -22,7 +22,8 @@
       "titulo": "Feito com\nacompanhamento,\nnão remove\nestrutura.",
       "escala": "v-p",
       "corpo": "O agente clareador age na cor, não desgasta o esmalte como uma lixa.",
-      "narracao": "Feito com acompanhamento profissional, o clareamento não remove estrutura: o agente age na cor, não desgasta o esmalte."
+      "narracao": "Feito com acompanhamento profissional, o clareamento não remove estrutura: o agente age na cor, não desgasta o esmalte.",
+      "grafico": "esmalte"
     },
     {
       "t": 6.4,
