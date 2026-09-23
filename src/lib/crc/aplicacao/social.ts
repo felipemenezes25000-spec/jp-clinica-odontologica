@@ -47,6 +47,7 @@ import {
 import { avaliarPoliticaDoCanal } from "../dominio/politica-de-canal";
 import type { EventoComentario } from "../integracoes/meta/tipos";
 import {
+  agoraIso,
   atualizar,
   inserirIgnorandoDuplicata,
   selecionar,
@@ -169,7 +170,7 @@ export async function registrarEventoSocial(
     // `ocorrido_em` — medir por `recebido_em` faria um webhook atrasado parecer
     // fresco, e a Meta recusaria o envio com um erro que ninguém explicaria.
     ocorrido_em: evento.ocorridoEm,
-    recebido_em: new Date().toISOString(),
+    recebido_em: agoraIso(),
     processing_status: "PENDENTE",
   });
 
@@ -552,7 +553,9 @@ async function tentarPrivateReply(
     return { ok: false, porque: "O evento não trouxe quem comentou — sem isso não há cooldown." };
   }
 
-  const agora = new Date();
+  // O RELÓGIO É O DO SERVIDOR (`agoraIso`), e não `new Date()`: a janela de 7
+  // dias e o balde do cooldown dependem dele, e os testes precisam fixá-lo.
+  const agora = new Date(agoraIso());
 
   /* ---------------------------------------------------------------------- */
   /* 1. A RESERVA — o anti-spam, decidido pelo BANCO                        */
@@ -718,7 +721,7 @@ async function tentarPrivateReply(
     {
       status: "ENVIADO",
       provider_message_id: envio.providerMessageId,
-      enviado_em: new Date().toISOString(),
+      enviado_em: agoraIso(),
     },
   );
 
