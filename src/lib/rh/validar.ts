@@ -151,7 +151,7 @@ function validarEssencial(dados: Candidatura, contexto: ContextoPortal, erros: E
 
   // Duas palavras: "Maria" sozinho não permite chamar a pessoa pelo nome nem
   // distinguir duas Marias na lista do painel.
-  const partesNome = dados.nome.trim().split(/s+/).filter(Boolean);
+  const partesNome = dados.nome.trim().split(/\s+/).filter(Boolean);
   if (partesNome.length < 2) erros["nome"] = "Informe seu nome completo.";
 
   if (!telefoneValido(dados.telefone)) {
