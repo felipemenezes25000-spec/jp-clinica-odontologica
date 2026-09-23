@@ -18,8 +18,8 @@ import logoDentalOffice from "@/assets/dental-office.svg";
  *
  * O QUE O PACIENTE LEVA. "Quem fecha o diagnóstico são os dentistas; a
  * tecnologia entra na gestão" — é o que ele diz, e é o que interessa a quem
- * vai se tratar. O selo (cliente há 15 anos, embaixador) é a prova de que não
- * é sistema adotado ontem.
+ * vai se tratar. O selo (cliente há 15 anos, parceiro da marca) é a prova de
+ * que não é sistema adotado ontem.
  *
  * Como toca — SÓ QUANDO A PESSOA PEDE:
  *
@@ -62,7 +62,7 @@ export function VideoDoGestor() {
     ref.current?.load();
   };
 
-  const { anosDeCliente, fala, creditoDaGravacao } = GESTOR_DENTAL_OFFICE;
+  const { anosDeCliente, relacao, fala, creditoDaGravacao } = GESTOR_DENTAL_OFFICE;
   const descricao = `Vídeo: ${GESTOR.nome}, ${GESTOR.papel.toLowerCase()} da JP, fala sobre tecnologia na gestão da clínica. Legendado.`;
 
   return (
@@ -150,8 +150,8 @@ export function VideoDoGestor() {
 
           <p className="mt-5 max-w-[560px] text-[15px] leading-[1.7] text-white/75 sm:text-[16px]">
             {GESTOR.nome}, {GESTOR.papel.toLowerCase()} da JP, usa o Dental Office há{" "}
-            {anosDeCliente} anos e é embaixador da marca. No vídeo, gravado no estande deles, conta
-            como a tecnologia apoia a gestão a partir do planejamento e do diagnóstico que os
+            {anosDeCliente} anos e é {relacao.toLowerCase()}. No vídeo, gravado no estande deles,
+            conta como a tecnologia apoia a gestão a partir do planejamento e do diagnóstico que os
             dentistas fazem — e facilita a conversa com você.
           </p>
 
@@ -173,7 +173,7 @@ export function VideoDoGestor() {
               </p>
               <p className="mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-ink-soft">
                 <Star size={13} className="fill-lime text-lime" aria-hidden="true" />
-                Embaixador da marca
+                {relacao}
               </p>
             </div>
           </div>

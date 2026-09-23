@@ -246,11 +246,12 @@ export const GESTOR = {
  * clínica usa (é nele que a recepção agenda, e é dele que o CRC puxa pacientes
  * e agenda).
  *
- * "Cliente há 15 anos e embaixador da marca" foi informado pela agência em
- * 22/09/2026, junto com o vídeo. É afirmação sobre uma pessoa real e sobre
- * uma marca de terceiro: se a Dental Office ou ele corrigirem, muda AQUI — o
- * site lê daqui, e o vídeo (que tem os mesmos dizeres gravados na imagem)
- * precisa ser refeito junto.
+ * "Cliente há 15 anos" foi informado pela agência em 22/09/2026, junto com o
+ * vídeo. A relação com a marca chegou como "embaixador" e foi CORRIGIDA pela
+ * agência no mesmo dia: ele é PARCEIRO, não embaixador. É afirmação sobre uma
+ * pessoa real e sobre uma marca de terceiro: se mudar de novo, muda AQUI — o
+ * site lê daqui —, e o vídeo e a capa (que têm os mesmos dizeres gravados na
+ * imagem) precisam ser refeitos junto.
  *
  * A gravação original é da Dental Office (Reels do @softwaredentaloffice, 44 s
  * de fala). O site usa a VERSÃO COMPLETA, por escolha do cliente em 22/09/2026,
@@ -277,7 +278,7 @@ export const GESTOR = {
  */
 export const GESTOR_DENTAL_OFFICE = {
   anosDeCliente: 15,
-  embaixador: true,
+  relacao: "Parceiro da marca",
   fala: "O que seria inteligência artificial pra mim na clínica? Eu, como não sou cirurgião-dentista, facilita pra mim quando os profissionais da clínica fazem o planejamento dos pacientes, fechando o diagnóstico. Quando chega pra mim, na parte administrativa, onde vou fazer a negociação do orçamento, acaba facilitando pra mim em qual sentido? Eu consigo pegar a panorâmica, jogar para dentro do módulo Inteligência Artificial, o sistema, ele faz o parâmetro pra mim, consigo detectar as informações e possíveis problemas que o paciente possa ter. No resumo, a inteligência artificial, ela é fundamental para ajudar você fechar o orçamento, a previsão de honorários, e para nós, que não somos cirurgiões, acaba facilitando a comunicação com o paciente.",
   creditoDaGravacao: "Dental Office",
 };
