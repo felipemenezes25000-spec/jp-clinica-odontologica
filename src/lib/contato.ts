@@ -19,7 +19,7 @@ import { CLINICA, whatsappLink } from "@/lib/jp";
  */
 
 /** O que a pessoa quer, que é o que muda a frase. */
-export type Intencao = "agendar" | "duvida" | "orientacao";
+export type Intencao = "agendar" | "duvida" | "orientacao" | "informacoes";
 
 /*
  * O TIPO `Origem` SAIU DAQUI, e a ausência dele é a documentação.
@@ -52,6 +52,8 @@ function frase(intencao: Intencao, assunto?: string): string {
       return `${abertura} e fiquei com uma dúvida.`;
     case "orientacao":
       return `${abertura} e gostaria de entender qual tratamento faz sentido para o meu caso.`;
+    case "informacoes":
+      return `${abertura} e gostaria de saber valores, horários e como funciona a avaliação.`;
   }
 }
 
