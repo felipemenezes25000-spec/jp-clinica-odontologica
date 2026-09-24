@@ -142,7 +142,12 @@ const GATILHOS_ESCALONAMENTO: readonly { padrao: RegExp; motivo: MotivoEscalonam
     motivo: "medication_question",
   },
   {
-    padrao: /\b(diagn[óo]stico|é c[áa]rie|tenho c[áa]rie|preciso de canal|é grave)\b/iu,
+    // Sem `\b` aqui: no JS ele só conhece [A-Za-z0-9_], mesmo com a flag `u`,
+    // então `\bé grave` nunca casa depois de espaço, vírgula ou início do texto
+    // — "Doutora, é grave?" passava direto. As lookarounds fazem o papel de
+    // `\b` tratando qualquer letra, acentuada ou não, como parte da palavra.
+    padrao:
+      /(?<![\p{L}\p{N}_])(diagn[óo]stico|é c[áa]rie|tenho c[áa]rie|preciso de canal|é grave)(?![\p{L}\p{N}_])/iu,
     motivo: "diagnosis_request",
   },
   {

@@ -332,9 +332,12 @@ describe("templates", () => {
       /\bpromo(ção|cao)\b/iu,
       /\bgr[áa]tis\b/iu,
       /\b(cura|garantimos|garantia de resultado)\b/iu,
-      /\b(urgente|últimas vagas|ultimas vagas)\b/iu,
+      // `\b` antes de "ú" nunca casa (o JS só conhece [A-Za-z0-9_]).
+      /(?<![\p{L}\p{N}_])(urgente|[úu]ltimas vagas)\b/iu,
       /\bmedicament/iu,
     ];
+    // O filtro precisa pegar o que diz pegar; com `\b`, a forma acentuada passava.
+    expect(proibidos.some((p) => p.test("Garanta já: últimas vagas de março!"))).toBe(true);
     for (const [chave, modelo] of Object.entries(TEMPLATES_PADRAO)) {
       for (const padrao of proibidos) {
         expect(padrao.test(modelo), `${chave} contém termo proibido: ${String(padrao)}`).toBe(

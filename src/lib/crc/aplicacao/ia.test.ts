@@ -147,6 +147,15 @@ describe("escalonamento obrigatório", () => {
     );
   });
 
+  it("pega pedido de diagnóstico, inclusive quando começa por letra acentuada", () => {
+    // `\b` no JS só conhece [A-Za-z0-9_]: antes de "é" ele nunca casa depois
+    // de espaço, vírgula ou início do texto. As três primeiras passavam direto.
+    expect(escalonamentoObrigatorio("Doutora, é grave?")).toBe("diagnosis_request");
+    expect(escalonamentoObrigatorio("é cárie isso?")).toBe("diagnosis_request");
+    expect(escalonamentoObrigatorio("isso é grave?")).toBe("diagnosis_request");
+    expect(escalonamentoObrigatorio("tenho cárie?")).toBe("diagnosis_request");
+  });
+
   it("pega reclamação e questão legal", () => {
     expect(escalonamentoObrigatorio("atendimento péssimo")).toBe("complaint");
     expect(escalonamentoObrigatorio("vou acionar o Procon")).toBe("legal_issue");

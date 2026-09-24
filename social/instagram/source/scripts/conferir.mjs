@@ -157,7 +157,9 @@ const PROIBIDAS = [
   /\bresultado garantido\b/i,
   /\bgarantimos\b/i,
   /\bsorriso perfeito\b/i,
-  /\búltimas vagas\b/i,
+  // `\b` antes de "ú" nunca casa (o JS só conhece [A-Za-z0-9_]); a lookbehind
+  // faz o papel dele. Aceita também "ultimas", sem acento.
+  /(?<![\p{L}\p{N}_])[úu]ltimas vagas\b/iu,
   /\bpromoção\b/i,
   /\bimperdível\b/i,
   /\bdesconto\b/i,
