@@ -72,6 +72,20 @@ export default tseslint.config(
        */
       "playwright-report",
       "test-results",
+
+      /*
+       * AS WORKTREES DAS SESSÕES PARALELAS — e o resto de `.claude/`.
+       *
+       * Cada `.claude/worktrees/<sessão>` é uma cópia inteira do repositório. O
+       * `eslint .` lê o disco, não o índice do git, e os padrões acima só casam
+       * na raiz: dentro de cada cópia, `dist`, `.vercel`, `apresentacao` e o
+       * bundle minificado de `public/crc-tour` voltavam a ser lintados. Em
+       * 24/09/2026 eram 3.833 arquivos em vez de 559, e o lint passava de 10
+       * minutos. Cada worktree se linta pelo próprio `npm run lint`, e o resto
+       * de `.claude/` é configuração de agente. Ver o comentário gêmeo em
+       * `.vercelignore`.
+       */
+      ".claude",
     ],
   },
   {
