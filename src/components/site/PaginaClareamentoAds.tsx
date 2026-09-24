@@ -11,19 +11,14 @@ import {
 } from "lucide-react";
 
 import consultorioImg from "@/assets/consultorio-1.webp";
-import recepcaoImg from "@/assets/recepcao.webp";
 import fachadaImg from "@/assets/fachada-2026.webp";
+import recepcaoImg from "@/assets/recepcao.webp";
 import { CinematicMotion } from "@/components/site/CinematicMotion";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
 import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
-import {
-  CLINICA,
-  DEPOIMENTOS,
-  HISTORIA,
-  RESPONSAVEL_TECNICA,
-} from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { CLINICA, DEPOIMENTOS, HISTORIA, RESPONSAVEL_TECNICA } from "@/lib/jp";
 
 const ASSUNTO = "Clareamento dental";
 
@@ -35,7 +30,8 @@ const BENEFICIOS = [
   },
   {
     titulo: "Planejamento individual",
-    texto: "Sensibilidade, histórico e expectativa entram na conversa para orientar a indicação.",
+    texto:
+      "Sensibilidade, histórico e expectativa entram na conversa para orientar a indicação.",
     icone: Sparkles,
   },
   {
@@ -49,7 +45,8 @@ const ETAPAS = [
   {
     numero: "01",
     titulo: "Converse com a recepção",
-    texto: "Você chama no WhatsApp, informa que tem interesse em clareamento e combina a avaliação.",
+    texto:
+      "Você chama no WhatsApp, informa que tem interesse em clareamento e combina a avaliação.",
   },
   {
     numero: "02",
@@ -59,7 +56,8 @@ const ETAPAS = [
   {
     numero: "03",
     titulo: "Entenda o protocolo",
-    texto: "Depois da avaliação, o profissional explica a abordagem indicada, os cuidados e o acompanhamento.",
+    texto:
+      "Depois da avaliação, o profissional explica a abordagem indicada, os cuidados e o acompanhamento.",
   },
 ] as const;
 
@@ -91,7 +89,13 @@ const FAQ = [
   },
 ] as const;
 
-function BotaoWhatsApp({ href, rotulo = "Quero avaliar meu clareamento" }: { href: string; rotulo?: string }) {
+function BotaoWhatsApp({
+  href,
+  rotulo = "Quero avaliar meu clareamento",
+}: {
+  href: string;
+  rotulo?: string;
+}) {
   return (
     <a
       href={href}
@@ -115,7 +119,9 @@ function ProvaSocial() {
         ))}
       </div>
       <span>{CLINICA.provaSocial}</span>
-      <span className="hidden text-white/30 sm:inline" aria-hidden="true">•</span>
+      <span className="hidden text-white/30 sm:inline" aria-hidden="true">
+        •
+      </span>
       <span>{HISTORIA.anos} anos de clínica</span>
     </div>
   );
@@ -152,13 +158,20 @@ export function PaginaClareamentoAds() {
               </h1>
 
               <p className="mt-6 max-w-2xl text-lg font-medium leading-relaxed text-white/78 sm:text-xl">
-                Quer entender qual protocolo pode fazer sentido para o seu sorriso? Fale com a recepção da JP e agende uma avaliação individual.
+                Quer entender qual protocolo pode fazer sentido para o seu sorriso? Fale com a
+                recepção da JP e agende uma avaliação individual.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-2 text-sm font-bold text-white/82">
-                <span className="rounded-full border border-white/15 bg-white/6 px-3 py-2">Avaliação individual</span>
-                <span className="rounded-full border border-white/15 bg-white/6 px-3 py-2">Acompanhamento profissional</span>
-                <span className="rounded-full border border-white/15 bg-white/6 px-3 py-2">Atendimento local</span>
+                <span className="rounded-full border border-white/15 bg-white/6 px-3 py-2">
+                  Avaliação individual
+                </span>
+                <span className="rounded-full border border-white/15 bg-white/6 px-3 py-2">
+                  Acompanhamento profissional
+                </span>
+                <span className="rounded-full border border-white/15 bg-white/6 px-3 py-2">
+                  Atendimento local
+                </span>
               </div>
 
               <div className="mt-8 flex max-w-xl flex-col gap-3">
@@ -185,7 +198,9 @@ export function PaginaClareamentoAds() {
                 />
               </div>
               <div className="absolute -bottom-5 left-4 right-4 rounded-2xl border border-white/12 bg-brand-deep/95 p-4 shadow-xl backdrop-blur sm:left-8 sm:right-8">
-                <p className="text-sm font-black uppercase tracking-[.16em] text-lime">JP Clínica Integrada Odontológica</p>
+                <p className="text-sm font-black uppercase tracking-[.16em] text-lime">
+                  JP Clínica Integrada Odontológica
+                </p>
                 <p className="mt-1 text-sm font-semibold text-white/78">{CLINICA.endereco}</p>
               </div>
             </div>
@@ -195,15 +210,24 @@ export function PaginaClareamentoAds() {
         <section className="border-b border-border-soft bg-white py-5">
           <div className="jp-container grid gap-4 text-center sm:grid-cols-3 sm:text-left">
             <div className="flex items-center justify-center gap-3 sm:justify-start">
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-text" aria-hidden="true" />
+              <CheckCircle2
+                className="h-5 w-5 shrink-0 text-brand-text"
+                aria-hidden="true"
+              />
               <span className="font-bold">Sem promessa de tom artificial</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:justify-start">
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-text" aria-hidden="true" />
+              <CheckCircle2
+                className="h-5 w-5 shrink-0 text-brand-text"
+                aria-hidden="true"
+              />
               <span className="font-bold">Conduta definida após avaliação</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:justify-start">
-              <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-text" aria-hidden="true" />
+              <CheckCircle2
+                className="h-5 w-5 shrink-0 text-brand-text"
+                aria-hidden="true"
+              />
               <span className="font-bold">WhatsApp direto com a recepção</span>
             </div>
           </div>
@@ -212,22 +236,30 @@ export function PaginaClareamentoAds() {
         <section id="beneficios" className="py-16 sm:py-20">
           <div className="jp-container">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="eyebrow justify-center text-brand-text">Por que começar pela avaliação</p>
+              <p className="eyebrow justify-center text-brand-text">
+                Por que começar pela avaliação
+              </p>
               <h2 className="mt-4 font-display text-4xl font-extrabold tracking-[-.045em] text-ink sm:text-5xl">
                 Você não precisa escolher a técnica sozinho.
               </h2>
               <p className="mt-5 text-lg leading-relaxed text-ink-soft">
-                A primeira conversa serve para entender seu ponto de partida e explicar o que é indicado para o seu caso.
+                A primeira conversa serve para entender seu ponto de partida e explicar o que é
+                indicado para o seu caso.
               </p>
             </div>
 
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {BENEFICIOS.map(({ titulo, texto, icone: Icone }) => (
-                <article key={titulo} className="rounded-3xl border border-border-soft bg-white p-6 shadow-soft sm:p-7">
+                <article
+                  key={titulo}
+                  className="rounded-3xl border border-border-soft bg-white p-6 shadow-soft sm:p-7"
+                >
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-mint text-brand-text">
                     <Icone className="h-5 w-5" aria-hidden="true" />
                   </div>
-                  <h3 className="mt-5 font-display text-2xl font-extrabold tracking-[-.035em]">{titulo}</h3>
+                  <h3 className="mt-5 font-display text-2xl font-extrabold tracking-[-.035em]">
+                    {titulo}
+                  </h3>
                   <p className="mt-3 leading-relaxed text-ink-soft">{texto}</p>
                 </article>
               ))}
@@ -281,7 +313,9 @@ export function PaginaClareamentoAds() {
                   Uma clínica real, perto de você.
                 </h2>
                 <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/68">
-                  A JP atende na região da Freguesia do Ó e reúne {HISTORIA.anos} anos de trajetória clínica. Você pode conhecer a estrutura antes mesmo de decidir pelo tratamento.
+                  A JP atende na região da Freguesia do Ó e reúne {HISTORIA.anos} anos de
+                  trajetória clínica. Você pode conhecer a estrutura antes mesmo de decidir pelo
+                  tratamento.
                 </p>
                 <div className="mt-7">
                   <ProvaSocial />
@@ -290,14 +324,19 @@ export function PaginaClareamentoAds() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {DEPOIMENTOS.slice(0, 2).map((depoimento) => (
-                  <blockquote key={depoimento.autor} className="rounded-3xl border border-white/10 bg-white/6 p-6">
+                  <blockquote
+                    key={depoimento.autor}
+                    className="rounded-3xl border border-white/10 bg-white/6 p-6"
+                  >
                     <div className="flex gap-1 text-lime" aria-hidden="true">
                       {Array.from({ length: 5 }).map((_, index) => (
                         <Star key={index} className="h-4 w-4 fill-current" />
                       ))}
                     </div>
                     <p className="mt-4 leading-relaxed text-white/82">“{depoimento.texto}”</p>
-                    <footer className="mt-4 text-sm font-black text-white">{depoimento.autor}</footer>
+                    <footer className="mt-4 text-sm font-black text-white">
+                      {depoimento.autor}
+                    </footer>
                   </blockquote>
                 ))}
               </div>
@@ -312,7 +351,9 @@ export function PaginaClareamentoAds() {
               <h2 className="mt-4 font-display text-4xl font-extrabold tracking-[-.045em] sm:text-5xl">
                 Freguesia do Ó, com acesso fácil pela Zona Norte.
               </h2>
-              <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-soft">{CLINICA.endereco}</p>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-soft">
+                {CLINICA.endereco}
+              </p>
               <div className="mt-6 space-y-3 text-sm font-bold text-ink">
                 <p className="flex items-center gap-3">
                   <MapPin className="h-5 w-5 text-brand-text" aria-hidden="true" />
@@ -347,13 +388,17 @@ export function PaginaClareamentoAds() {
                 Antes de chamar, veja o essencial.
               </h2>
               <p className="mt-5 leading-relaxed text-ink-soft">
-                A página informa o que é geral. A indicação do seu caso continua dependendo de avaliação profissional individual.
+                A página informa o que é geral. A indicação do seu caso continua dependendo de
+                avaliação profissional individual.
               </p>
             </div>
 
             <div className="space-y-3">
               {FAQ.map((item) => (
-                <details key={item.pergunta} className="group rounded-2xl border border-border-soft bg-cream p-5 open:bg-white">
+                <details
+                  key={item.pergunta}
+                  className="group rounded-2xl border border-border-soft bg-cream p-5 open:bg-white"
+                >
                   <summary className="cursor-pointer list-none pr-8 font-display text-lg font-extrabold marker:content-none">
                     {item.pergunta}
                   </summary>
@@ -371,7 +416,8 @@ export function PaginaClareamentoAds() {
               Quer entender se o clareamento faz sentido para você?
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-white/68">
-              Chame a recepção da JP no WhatsApp. A equipe explica como funciona a avaliação e organiza o próximo passo com você.
+              Chame a recepção da JP no WhatsApp. A equipe explica como funciona a avaliação e
+              organiza o próximo passo com você.
             </p>
             <div className="mx-auto mt-8 max-w-xl">
               <BotaoWhatsApp href={wa} rotulo="Quero falar sobre clareamento" />
@@ -381,16 +427,26 @@ export function PaginaClareamentoAds() {
         </section>
       </main>
 
-      <footer className="bg-[#021f01] py-10 text-white">
+      <footer className="bg-brand-deep py-10 text-white">
         <div className="jp-container grid gap-6 text-sm text-white/62 md:grid-cols-[1fr_auto] md:items-end">
           <div>
             <p className="font-display text-lg font-extrabold text-white">{CLINICA.nome}</p>
             <p className="mt-2">{CLINICA.endereco}</p>
-            <p className="mt-1">Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}</p>
-            <p className="mt-1">{CLINICA.razaoSocial} • CNPJ {CLINICA.cnpj}</p>
-            <p className="mt-3 max-w-3xl text-white/48">Conteúdo informativo. Indicações, técnica e resultados dependem de avaliação profissional individual.</p>
+            <p className="mt-1">
+              Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
+            </p>
+            <p className="mt-1">
+              {CLINICA.razaoSocial} • CNPJ {CLINICA.cnpj}
+            </p>
+            <p className="mt-3 max-w-3xl text-white/48">
+              Conteúdo informativo. Indicações, técnica e resultados dependem de avaliação
+              profissional individual.
+            </p>
           </div>
-          <a href="/politica-de-privacidade" className="font-bold text-white underline decoration-white/30 underline-offset-4 hover:text-lime">
+          <a
+            href="/politica-de-privacidade"
+            className="font-bold text-white underline decoration-white/30 underline-offset-4 hover:text-lime"
+          >
             Política de Privacidade
           </a>
         </div>
