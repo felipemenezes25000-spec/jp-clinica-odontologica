@@ -66,15 +66,42 @@ node social/instagram/source/scripts/renderizar.mjs 45-reel --qa
 
 ### Gerar os vídeos
 
+> ⚠️ **Neste computador, use sempre `--leve`.** Em 18/09/2026 o render a toda velocidade prendeu a CPU em 100% e o PC deu tela azul.
+
 ```bash
-node social/instagram/source/scripts/gerar-videos.mjs
+node social/instagram/source/scripts/gerar-videos.mjs --leve --pular-prontos
 ```
 
-Um Reel de 21 s leva cerca de 40 s para sair. Para testar um roteiro sem esperar, use a prévia em 6 fps:
+O que o modo leve faz:
+
+- **prioridade abaixo do normal**, herdada pelo Chromium, pelo ffmpeg e pelo Python;
+- **ffmpeg em 2 threads** e Chromium com **1 thread de desenho**;
+- **freio** que pausa a captura sempre que a CPU da máquina inteira passa de 60%;
+- **um vídeo por vez**, com o Chromium fechado e 20 s de pausa entre um e outro.
+
+Um Reel de 22 s leva cerca de 45 s. `--pular-prontos` não refaz o que já está atualizado, então dá para interromper e retomar.
+
+Para conferir o tempo de leitura e as quebras de linha (viúvas) de todos os roteiros **sem renderizar nada** (leva um minuto):
+
+```bash
+node social/instagram/source/scripts/gerar-videos.mjs --conferir
+```
+
+Para revisar um efeito quadro a quadro sem gravar vídeo, fotografe o palco em instantes escolhidos (sai uma folha de contato em PNG na pasta temporária):
+
+```bash
+node social/instagram/source/scripts/gerar-videos.mjs R01 --quadros=0,0.8,1.3,4.4,6.8
+```
+
+Para testar um roteiro em prévia de 6 fps:
 
 ```bash
 node social/instagram/source/scripts/gerar-videos.mjs R01 --previa
 ```
+
+**Ilustrações.** Uma cena sem foto pode ganhar um motion graphic com `"grafico"`: `implante` (com `"modo": "anestesia"` ou `"juntos"`), `enxerto`, `tomografia`, `cicatrizacao`, `protocolo`, `plano`, `esmalte`, `linha-do-tempo` (com `"marcos"`) e `aspas`. `"alturaGrafico"` ajusta o tamanho quando a cena também tem lista. O `--conferir` avisa se o desenho ainda estiver acontecendo na hora do corte.
+
+**Trilha sonora.** Cada vídeo sai com trilha composta por `trilha.py`, a partir da lista de eventos do vídeo: a bateria entra na virada do arco, cada item de lista tem uma nota e o cartão final resolve na tônica. É síntese pura, sem sample, e por isso pode ir para post e para anúncio. Os três ganchos de um mesmo anúncio têm a mesma música. Para gerar sem trilha, use `--mudo`.
 
 ### Preparar as fotos derivadas
 
@@ -95,14 +122,34 @@ Monta a prévia de como os 12 primeiros posts ficam no perfil.
 ### Montar a pasta para enviar
 
 ```bash
-node social/instagram/source/scripts/montar-entrega.mjs
+node social/instagram/source/scripts/montar-entrega.mjs --copiar-para "C:/Users/Felipe/Downloads"
 ```
 
-Copia **as 257 imagens** para `ENTREGA/`, organizadas em pastas numeradas na ordem de uso — perfil, Destaques, fixados, feed, capas, Stories, anúncios. É a pasta que se compacta e manda para quem vai publicar.
+Monta `ENTREGA/` e `ENTREGA-INSTAGRAM-JP.zip` seguindo **ao pé da letra** o documento da clínica, [`ORDEM_DE_PUBLICACAO_JP.md`](ORDEM_DE_PUBLICACAO_JP.md): nome de cada pasta, o que existe dentro dela, a ordem e o dia.
 
-Vídeo não entra: são 108 MB contra 77 MB de imagem. Os MP4 ficam em `exports/reels/` e `exports/ads/`.
+| Pasta            | O que tem                                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POSTAR`         | `01_REEL_Conheca-a-JP` … `22_POST_Sorrir-muda-tudo`: Reel com `VIDEO.mp4` + `CAPA.png` + `LEGENDA.txt`; carrossel com `01.png`, `02.png`… + `LEGENDA.txt`; post com `POST.png` + `LEGENDA.txt` |
+| `DESTAQUES`      | `01_A-Clinica` … `10_Onde-estamos`: `CAPA.png` (a capa da bolinha) + os cartões numerados                                                                                                      |
+| `FOTO-DE-PERFIL` | a foto escolhida                                                                                                                                                                               |
+| `STORIES`        | `01_Depois-de-publicar` (Novo Reel, Novo carrossel) e `02_Outros-dias`                                                                                                                         |
+| `ANUNCIOS`       | os 6 conceitos com 3 ganchos cada, o link e a UTM de cada gancho, mais os estáticos e os carrosséis                                                                                            |
+| `PROXIMO-MES`    | o banco para depois de 20/10                                                                                                                                                                   |
 
-A pasta é **descartável**: o script apaga e refaz do zero a cada execução, e confere no fim se a contagem bate com `exports/`. Rode de novo depois de qualquer re-render. Ela está no `.gitignore` — é cópia, não original.
+Na raiz: `LEIA-ME.txt` (passo a passo e calendário com as datas), o próprio `ORDEM_DE_PUBLICACAO_JP.md` e `PREVIA_como-o-perfil-fica.png`.
+
+O script **confere a pasta contra o documento** depois de montar, lendo do disco, e falha se quebrar:
+
+- `POSTAR` e `DESTAQUES` com exatamente as pastas e os arquivos que o documento pede, nem um a mais;
+- slides de carrossel numerados sem buraco;
+- nenhum arquivo vazio, nenhuma hashtag `[MARCA]` por resolver na legenda;
+- no máximo 10 imagens por pasta, exceto Implantes e Dúvidas nos Destaques, onde o documento pede 14;
+- nomes sem acento, porque o zip do Windows estraga acento em nome de arquivo;
+- nenhum arquivo do plano faltando em `exports/`.
+
+A procedência de cada arquivo fica em `ENTREGA-ORIGEM.txt`, fora da pasta de entrega. As legendas vêm de `CAPTIONS.md`, com as hashtags de `HASHTAGS-LOCAL.md` já montadas.
+
+Para mudar a ordem ou o conteúdo, mude primeiro o documento e depois as listas no topo de `montar-entrega.mjs` (`POSTAR`, `DESTAQUES`, `STORIES_…`, `ANUNCIOS`, `MES2_…`). A pasta é **descartável**: o script apaga e refaz do zero a cada execução. Ela e o zip estão no `.gitignore`, porque são cópia e não original.
 
 ---
 

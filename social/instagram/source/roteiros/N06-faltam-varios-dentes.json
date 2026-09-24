@@ -1,0 +1,76 @@
+{
+  "id": "N06",
+  "arquivo": "06_FALTAM_VARIOS_DENTES",
+  "titulo": "Faltam vários dentes",
+  "pilar": "proteses",
+  "ordem": 6,
+  "objetivo": "mostrar o impacto funcional e abrir caminhos de reabilitação",
+  "cenas": [
+    {
+      "chip": "REABILITAÇÃO",
+      "titulo": "Quando faltam\n[[vários dentes]]…",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "arcada",
+        "modo": "varios"
+      },
+      "tMin": 5.4,
+      "narracao": "Quando faltam vários dentes, o que dá para fazer?"
+    },
+    {
+      "chip": "O QUE MUDA",
+      "titulo": "Não é só\na [[aparência]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "arco",
+      "itens": [
+        "A mastigação muda",
+        "A mordida se reorganiza",
+        "A fala e o conforto sentem"
+      ],
+      "narracao": "A ausência de vários dentes pode afetar mastigação, mordida, fala e conforto."
+    },
+    {
+      "titulo": "Existem diferentes\n[[possibilidades]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "corpo": "De próteses removíveis a soluções fixas e tratamentos com implantes.",
+      "grafico": {
+        "tipo": "protocolo"
+      },
+      "tMin": 7.2,
+      "narracao": "Existem diferentes possibilidades, desde próteses removíveis até soluções fixas e tratamentos envolvendo implantes."
+    },
+    {
+      "titulo": "Mas não existe\nopção [[universal]].",
+      "escala": "v-g",
+      "superficie": "escura",
+      "transicao": "corte",
+      "narracao": "Mas não existe uma opção universal."
+    },
+    {
+      "titulo": "A escolha depende\nda [[boca inteira]].",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "cortina",
+      "corpo": "E das necessidades daquela pessoa.",
+      "narracao": "A escolha depende da boca inteira e das necessidades daquela pessoa."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[PRÓTESE]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer conhecer as possibilidades? Comente PRÓTESE.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

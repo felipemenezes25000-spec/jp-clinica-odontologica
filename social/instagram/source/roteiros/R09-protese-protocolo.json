@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "PRÓTESES",
       "titulo": "O que é\n[[protocolo]]?",
       "escala": "v-xg",
@@ -23,7 +23,8 @@
       "titulo": "Uma prótese fixa\napoiada em\nimplantes.",
       "escala": "v-m",
       "corpo": "Para arcadas sem dentes, presa a um número planejado de implantes.",
-      "narracao": "É uma prótese fixa apoiada em implantes, para arcadas sem dentes, presa a um número planejado de implantes."
+      "narracao": "É uma prótese fixa apoiada em implantes, para arcadas sem dentes, presa a um número planejado de implantes.",
+      "grafico": "protocolo"
     },
     {
       "t": 6.2,
@@ -51,7 +52,7 @@
       "t": 4.0,
       "superficie": "clara",
       "chip": "PRÓXIMO PASSO",
-      "titulo": "Descubra o que\ncabe no [[seu caso]].",
+      "titulo": "Descubra\no que cabe\nno [[seu caso]].",
       "escala": "v-g",
       "selo": "WhatsApp {{clinica.whatsapp}}",
       "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.logradouro}}, {{clinica.endereco.bairro}} — região da {{historia.regiaoAtual}}",

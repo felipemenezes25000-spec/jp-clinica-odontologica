@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.6,
       "titulo": "Antes de marcar,\nveja onde você\nvai [[sentar]].",
       "escala": "v-g",
       "corpo": "A clínica por dentro, sem produção.",
@@ -49,12 +49,24 @@
       "narracao": "A esterilização: instrumental processado em rotina própria a cada atendimento."
     },
     {
-      "t": 3.8,
+      "t": 5.2,
+      "tipo": "numeros",
       "superficie": "escura",
-      "titulo": "{{avaliacoes.notaBR}} no Google,\ncom {{avaliacoes.total}}\navaliações.",
-      "escala": "v-m",
-      "corpo": "Números públicos, conferidos em {{avaliacoes.conferidoEmBR}}.",
-      "narracao": "4,6 no Google, com 192 avaliações. Números públicos."
+      "chip": "EM NÚMEROS",
+      "numeros": [
+        {
+          "valor": "{{historia.anos}}",
+          "sufixo": "anos",
+          "rotulo": "de história, desde {{historia.fundacao}}"
+        },
+        {
+          "valor": "{{avaliacoes.nota}}",
+          "decimais": 1,
+          "estrelas": "{{avaliacoes.nota}}",
+          "rotulo": "no Google, com {{avaliacoes.total}} avaliações"
+        }
+      ],
+      "narracao": "24 anos de história. 4,6 no Google, com 192 avaliações."
     },
     {
       "t": 4.2,

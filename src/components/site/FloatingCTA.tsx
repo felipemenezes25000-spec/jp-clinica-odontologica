@@ -1,26 +1,37 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
-import { CLINICA } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import type { Intencao } from "@/lib/contato";
+import { CLINICA } from "@/lib/jp";
 
 const CHAVE_DISPENSA = "jp:cta-dispensado";
+
+type FloatingCTAProps = {
+  assunto?: string;
+  intencao?: Intencao;
+  titulo?: string;
+  subtitulo?: string;
+  rotulo?: string;
+  mostrarNoMobileDesdeInicio?: boolean;
+};
 
 /**
  * O CTA que acompanha a rolagem.
  *
- * `assunto` É O QUE FALTAVA, E CUSTAVA CONVERSA. Na página de implante, o botão
- * do hero abria o WhatsApp dizendo "Vi a página sobre Implantes dentários"; a
- * barra flutuante — que é a que a pessoa vê depois de rolar a página inteira,
- * ou seja, a que ela mais usa — abria com a mensagem genérica do site.
- *
- * A recepção recebia duas conversas diferentes da mesma página, e só uma dizia
- * o que a pessoa estava lendo. Numa campanha de implante, isso é a informação
- * mais cara que existe chegando pela metade.
- *
- * Sem `assunto` (a home, carreiras) a mensagem continua genérica, que é o certo
- * lá: quem está na home não está lendo sobre nada em particular.
+ * `assunto` mantém a conversa ligada ao tratamento lido. As opções de texto e
+ * intenção permitem que uma landing paga reduza a fricção sem mudar o CTA do
+ * restante do site. `mostrarNoMobileDesdeInicio` existe para páginas de
+ * aquisição; contatos com intenção `informacoes` também ganham essa exposição
+ * por padrão, pois já são CTAs de baixa fricção pensados para mídia paga.
  */
-export function FloatingCTA({ assunto }: { assunto?: string }) {
+export function FloatingCTA({
+  assunto,
+  intencao = "agendar",
+  titulo = "Pronto para transformar seu sorriso?",
+  subtitulo = "Agende sua avaliação e veja o que faz sentido para você e sua família.",
+  rotulo = "Agendar avaliação",
+  mostrarNoMobileDesdeInicio = false,
+}: FloatingCTAProps) {
   const [showBar, setShowBar] = useState(false);
   const [dispensado, setDispensado] = useState(false);
 
@@ -60,21 +71,23 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
     }
   };
 
-  const visivel = showBar && !dispensado;
-
-  const wa = useContatoWhatsApp("agendar", assunto);
+  const visivelDesktop = showBar && !dispensado;
+  const focoWhatsApp = intencao === "informacoes";
+  const visivelMobile = (mostrarNoMobileDesdeInicio || focoWhatsApp || showBar) && !dispensado;
+  const wa = useContatoWhatsApp(intencao, assunto);
 
   return (
     <>
-      {/* CTA persistente aprovado: surge depois da capa e acompanha a rolagem. */}
+      {/* CTA persistente de desktop: surge depois da capa e acompanha a rolagem. */}
       <div
+        id="cta-flutuante"
         className={`sticky-booking-shell fixed inset-x-0 bottom-5 z-[58] hidden px-5 transition-all duration-500 md:block ${
-          visivel
+          visivelDesktop
             ? "translate-y-0 opacity-100"
             : "pointer-events-none invisible translate-y-8 opacity-0"
         }`}
-        aria-hidden={!visivel}
-        inert={!visivel}
+        aria-hidden={!visivelDesktop}
+        inert={!visivelDesktop}
       >
         <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-lg border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
@@ -83,10 +96,10 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
             </span>
             <div className="min-w-0">
               <p className="truncate font-display text-base font-extrabold tracking-[-.025em] lg:text-lg">
-                Pronto para transformar seu sorriso?
+                {titulo}
               </p>
               <p className="mt-0.5 hidden truncate text-xs font-medium text-white lg:block">
-                Agende sua avaliação e veja o que faz sentido para você e sua família.
+                {subtitulo}
               </p>
             </div>
           </div>
@@ -98,15 +111,15 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(9,89,2,.9)] transition hover:-translate-y-0.5"
             >
-              <MessageCircle className="h-4 w-4" />
-              Agendar avaliação
-              <ArrowUpRight className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              {rotulo}
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </a>
 
             <button
               type="button"
               onClick={dispensar}
-              aria-label="Fechar convite para agendar"
+              aria-label="Fechar convite para falar com a clínica"
               className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/25 text-white transition hover:border-white/60 hover:bg-white/10"
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -115,18 +128,19 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
         </div>
       </div>
 
-      {/* O balão é o estado compacto. Quando a barra maior aparece ele some:
-          dois CTAs persistentes para a mesma ação só ocupavam área útil e
-          aumentavam a chance de cobrir conteúdo. */}
+      {/* O balão é o estado compacto do desktop. */}
       <a
+        id="whatsapp-flutuante"
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
-        aria-hidden={visivel}
-        tabIndex={visivel ? -1 : undefined}
+        aria-hidden={visivelDesktop}
+        tabIndex={visivelDesktop ? -1 : undefined}
         className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-2xl rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
-          visivel ? "pointer-events-none invisible translate-y-3 opacity-0" : "bottom-7 opacity-100"
+          visivelDesktop
+            ? "pointer-events-none invisible translate-y-3 opacity-0"
+            : "bottom-7 opacity-100"
         }`}
       >
         <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
@@ -134,7 +148,7 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
             aria-hidden="true"
             className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite] motion-reduce:[animation:none]"
           />
-          <MessageCircle className="h-5 w-5" />
+          <MessageCircle className="h-5 w-5" aria-hidden="true" />
         </span>
 
         <span className="text-[15px] font-extrabold tracking-[-.01em]">Fale no WhatsApp</span>
@@ -146,33 +160,36 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
       </a>
 
       <div
+        id="cta-mobile"
         className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/98 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-[translate,visibility] duration-500 sm:hidden ${
-          visivel ? "translate-y-0" : "invisible translate-y-full"
+          visivelMobile ? "translate-y-0" : "invisible translate-y-full"
         }`}
-        aria-hidden={!visivel}
-        inert={!visivel}
+        aria-hidden={!visivelMobile}
+        inert={!visivelMobile}
       >
-        <div className="grid grid-cols-[.34fr_1fr_auto] gap-2">
-          <a
-            href={CLINICA.telefoneHref}
-            className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
-            aria-label="Ligar para a JP Clínica"
-          >
-            <Phone className="h-5 w-5" />
-          </a>
+        <div className={focoWhatsApp ? "grid grid-cols-[1fr_auto] gap-2" : "grid grid-cols-[.34fr_1fr_auto] gap-2"}>
+          {!focoWhatsApp && (
+            <a
+              href={CLINICA.telefoneHref}
+              className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
+              aria-label="Ligar para a JP Clínica"
+            >
+              <Phone className="h-5 w-5" aria-hidden="true" />
+            </a>
+          )}
           <a
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
             className="button-dark min-h-12 py-2.5 text-sm"
           >
-            <MessageCircle className="h-4 w-4" />
-            Agendar avaliação
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            {rotulo}
           </a>
           <button
             type="button"
             onClick={dispensar}
-            aria-label="Fechar convite para agendar"
+            aria-label="Fechar convite para falar com a clínica"
             className="grid min-h-12 w-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
           >
             <X className="h-4 w-4" aria-hidden="true" />

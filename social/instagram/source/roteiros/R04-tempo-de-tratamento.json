@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "IMPLANTES",
       "titulo": "Quanto tempo\nleva um\n[[implante]]?",
       "escala": "v-m",
@@ -17,24 +17,39 @@
       "narracao": "Quanto tempo leva um tratamento com implante?"
     },
     {
-      "t": 4.2,
+      "t": 5.4,
       "superficie": "escura",
       "titulo": "A maior parte\ndo tempo é de\ncicatrização.",
       "escala": "v-m",
       "corpo": "E cicatrização não se acelera com pressa: ela é o que garante o resto.",
-      "narracao": "A maior parte do tempo é de cicatrização, e ela é o que garante o resto do tratamento."
+      "narracao": "A maior parte do tempo é de cicatrização, e ela é o que garante o resto do tratamento.",
+      "grafico": "cicatrizacao",
+      "alturaGrafico": 560
     },
     {
-      "t": 6.4,
+      "t": 6.8,
+      "tipo": "etapas",
       "superficie": "escura",
       "chip": "AS ETAPAS",
-      "titulo": "Quatro fases,\nsempre nesta\nordem.",
+      "titulo": "Quatro fases,\nnesta ordem.",
       "escala": "v-p",
-      "itens": [
-        "Avaliação e exames",
-        "Cirurgia de instalação",
-        "Integração do implante ao osso",
-        "Fase protética e retornos"
+      "etapas": [
+        {
+          "titulo": "Avaliação e exames",
+          "texto": "Histórico, exame clínico e imagem."
+        },
+        {
+          "titulo": "Cirurgia",
+          "texto": "A instalação do implante."
+        },
+        {
+          "titulo": "Integração",
+          "texto": "O tempo do osso se unir ao implante."
+        },
+        {
+          "titulo": "Prótese e retornos",
+          "texto": "A coroa e o acompanhamento."
+        }
       ],
       "narracao": "São quatro fases: avaliação e exames, cirurgia de instalação, integração do implante ao osso, e a fase protética com os retornos."
     },

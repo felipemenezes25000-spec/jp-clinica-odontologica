@@ -20,11 +20,11 @@
  *    passou da safe area é registrado e some do olho quando são 300 arquivos;
  *    aqui ele vira linha vermelha no terminal e entra no relatório de QA.
  */
-import { chromium } from "playwright";
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { dirname, resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { servirRaiz } from "./lib/servidor.mjs";
+import { abrirNavegador } from "./lib/navegador.mjs";
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const KIT = resolve(AQUI, "../..");
@@ -79,7 +79,7 @@ if (manifests.length === 0) {
 }
 
 const servidor = await servirRaiz(RAIZ);
-const navegador = await chromium.launch();
+const navegador = await abrirNavegador();
 const contexto = await navegador.newContext({
   viewport: VIEWPORT.feed,
   deviceScaleFactor: 1,

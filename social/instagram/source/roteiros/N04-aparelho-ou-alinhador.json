@@ -1,0 +1,83 @@
+{
+  "id": "N04",
+  "arquivo": "04_APARELHO_OU_ALINHADOR",
+  "titulo": "Aparelho ou alinhador?",
+  "pilar": "ortodontia",
+  "ordem": 4,
+  "objetivo": "tirar a escolha do campo da estética e levar para o campo do planejamento",
+  "cenas": [
+    {
+      "chip": "ORTODONTIA",
+      "titulo": "Aparelho ou\n[[alinhador]]?",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "orto"
+      },
+      "tMin": 5.6,
+      "narracao": "Aparelho ou alinhador: qual escolher?"
+    },
+    {
+      "titulo": "O alinhador não é\num aparelho\n[[invisível]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "arco",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Alinhador transparente não é simplesmente uma versão invisível do aparelho."
+    },
+    {
+      "titulo": "Cada sistema tem\n[[características\npróprias]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "grafico": {
+        "tipo": "orto"
+      },
+      "tMin": 5.4,
+      "narracao": "Cada sistema possui características próprias."
+    },
+    {
+      "chip": "O QUE PESA NA ESCOLHA",
+      "titulo": "A escolha\n[[depende]]:",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Da posição dos dentes e da mordida",
+        "Dos movimentos necessários",
+        "Da disciplina de uso"
+      ],
+      "narracao": "A escolha depende da posição dos dentes, da mordida, dos movimentos e da disciplina do paciente."
+    },
+    {
+      "titulo": "O primeiro passo\nnão é escolher\no [[aparelho]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "narracao": "Por isso, o primeiro passo não é escolher o aparelho."
+    },
+    {
+      "titulo": "É fazer uma\n[[avaliação]].",
+      "escala": "v-g",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "transicao": "cortina",
+      "narracao": "É fazer uma avaliação ortodôntica."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[APARELHO]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer saber mais? Comente APARELHO.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

@@ -8,34 +8,43 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "IMPLANTES",
-      "titulo": "Implante e prótese\nsão a mesma\ncoisa?",
+      "titulo": "Implante e prótese\nsão a\n[[mesma coisa]]?",
       "escala": "v-m",
       "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp",
       "zoom": "dentro",
       "narracao": "Implante e prótese são a mesma coisa?"
     },
     {
-      "t": 4.4,
+      "t": 6.2,
+      "tipo": "comparar",
       "superficie": "escura",
-      "titulo": "O implante é a\n[[raiz]]. A prótese\né o [[dente]].",
-      "escala": "v-m",
-      "corpo": "Dois componentes com funções diferentes, no mesmo tratamento.",
-      "narracao": "O implante é a raiz. A prótese é o dente. São dois componentes com funções diferentes no mesmo tratamento."
+      "titulo": "Um é raiz.\nO outro é [[dente]].",
+      "escala": "v-p",
+      "a": {
+        "rotulo": "O implante",
+        "titulo": "A raiz",
+        "texto": "Pino instalado no osso. Não aparece."
+      },
+      "b": {
+        "rotulo": "A prótese",
+        "titulo": "O dente",
+        "texto": "A parte visível, que devolve forma e mastigação."
+      },
+      "narracao": "O implante é a raiz, instalada no osso. A prótese é o dente, a parte visível que devolve forma e mastigação."
     },
     {
-      "t": 6.2,
+      "t": 4.8,
       "superficie": "escura",
-      "chip": "NA PRÁTICA",
-      "titulo": "Quem faz\no quê.",
-      "escala": "v-g",
-      "itens": [
-        "Implante: o pino que substitui a raiz no osso",
-        "Prótese: a parte visível, que devolve forma e função",
-        "Na maioria dos casos, os dois trabalham juntos"
-      ],
-      "narracao": "O implante é o pino que substitui a raiz no osso. A prótese é a parte visível, que devolve forma e função. Na maioria dos casos os dois trabalham juntos."
+      "titulo": "Na maioria\ndos casos, os dois\ntrabalham [[juntos]].",
+      "escala": "v-p",
+      "corpo": "Um sustenta. O outro devolve a mastigação.",
+      "narracao": "Na maioria dos casos, os dois trabalham juntos: um sustenta, o outro devolve a mastigação.",
+      "grafico": {
+        "tipo": "implante",
+        "modo": "juntos"
+      }
     },
     {
       "t": 4.6,

@@ -51,3 +51,71 @@ social
 # deixar de ir commitado, ESTA LINHA TEM DE SAIR. O sintoma de esquecer seria um
 # iframe vazio em produção, com o build passando limpo.
 apresentacao
+
+# COMO AS REGRAS DAQUI PARA BAIXO ESTÃO ESCRITAS — não copie do `.gitignore`.
+#
+# `/` na frente prende a regra à raiz. E NUNCA `/` no fim: o CLI testa cada
+# pasta pelo nome, sem barra, antes de entrar nela, e `/.data` a descarta ali
+# mesmo. Já `.data/` não casa com a pasta: o CLI entra e testa item por item,
+# e o `ignore@4.0.6` embutido nele, no Windows, só troca `\` por `/` em caminho
+# SEM acento. Testado em 24/09 com o código do próprio CLI: com `.data/`, uma
+# pasta `.data/currículos/` subiria inteira.
+
+# OS SEGREDOS LOCAIS.
+#
+# `.env` guarda as chaves de servidor — SUPABASE_SERVICE_ROLE, OPENAI_API_KEY,
+# ADMIN_RH_PASSWORD e outras —, e `.senha-painel.txt` guarda a senha do painel.
+# Os dois subiam em todo deploy feito da pasta principal. Os `.tmp` são os que
+# o `.gitignore` também prevê. `.env.local` e `.env.*.local` já estão na lista
+# embutida do CLI, e `.env.example` continua subindo: é o modelo versionado.
+#
+# O BUILD LÊ O `.env`, MAS NÃO PRECISA DELE. Conferido em 24/09:
+#
+#   os plugins do TanStack Start e do Nitro carregam o arquivo em
+#   `process.env` durante o `vite build`, mas nada dele vira código. Nenhuma
+#   chave tem o prefixo `VITE_`, o único caminho até o `import.meta.env`; o
+#   `define` do `vite.config.ts` só lê VITE_GTM_ID e VITE_META_PIXEL_ID, e é
+#   calculado antes de qualquer plugin rodar; e nenhuma rota é pré-renderizada,
+#   então nenhum código de servidor executa no build;
+#
+#   em produção as variáveis vêm do painel: `vercel env ls production` tem
+#   todas as do `.env`, menos SUPABASE_ANON, que nenhum código lê;
+#
+#   o deploy de produção de 24/09 (`dpl_FxpWDohLcmv5XgVLi3aN3PB4VHgE`) saiu de
+#   um checkout limpo, portanto sem `.env`, e ficou Ready.
+#
+# Sem `/` na frente, de propósito: um `.env` em qualquer pasta fica de fora.
+.env
+.senha-painel.txt
+.senha-painel.tmp
+.segredo-sessao.tmp
+
+# OS DADOS DO PORTAL DE RH — dado pessoal.
+#
+# `.data/rh/` é onde o portal grava candidaturas e PDFs de currículo quando
+# roda com armazenamento em disco (`src/lib/rh/servidor/arquivo.ts`), isto é,
+# nesta máquina. Em 24/09 eram 113 arquivos, 21,6 MB, e subiam em todo deploy
+# feito da pasta principal. Nenhum build lê a pasta: o caminho só é montado em
+# runtime, a partir de `process.cwd()`.
+/.data
+
+# AS WORKTREES DAS SESSÕES PARALELAS — e o resto de `.claude/`.
+#
+# O Claude Code cria uma worktree por sessão em `.claude/worktrees/`, e cada
+# uma é uma cópia inteira do repositório. Em 24/09 eram 4, com 141 MB em 3324
+# arquivos: mais da metade do upload. Só o `.git/info/exclude` as escondia, e
+# o CLI também não lê aquele arquivo. O resto de `.claude/` (`launch.json`,
+# `skills/`) é configuração de agente, e o build não usa nada daqui.
+/.claude
+
+# SOBRAS LOCAIS DE BUILD E DE TESTE — tudo regenerável.
+#
+# `.output/` é o build `node-server` que o E2E monta
+# (`scripts/servidor-e2e.mjs`): 27 MB em 24/09. Na Vercel o Nitro grava em
+# `.vercel/output`, e o `.output/` local só engordava o upload. `.tanstack/` é
+# a pasta temporária do gerador de rotas; `playwright-report/` e
+# `test-results/`, a saída do E2E.
+/.output
+/.tanstack
+/playwright-report
+/test-results

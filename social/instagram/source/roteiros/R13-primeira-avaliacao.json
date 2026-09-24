@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "PRIMEIRA VISITA",
       "titulo": "O que acontece\nna primeira\n[[avaliação]]?",
       "escala": "v-m",
@@ -17,26 +17,38 @@
       "narracao": "O que acontece na primeira avaliação?"
     },
     {
-      "t": 3.4,
-      "superficie": "clara",
-      "chip": "1. CHEGADA",
-      "janela": "/social/instagram/source/assets-derivados/recepcao-2x.webp",
-      "arco": true,
-      "titulo": "Recepção e\nficha.",
-      "escala": "v-p",
-      "narracao": "Primeiro, a recepção e a ficha de cadastro."
+      "t": 4.6,
+      "chip": "1 · A CHEGADA",
+      "titulo": "Quem te\n[[recebe]].",
+      "escala": "v-m",
+      "foto": "/src/assets/recepcao-completa.webp",
+      "zoom": "dentro",
+      "narracao": "Na chegada, a recepção faz a sua ficha."
     },
     {
-      "t": 7.0,
+      "t": 7.2,
+      "tipo": "etapas",
       "superficie": "escura",
-      "chip": "2. CONSULTA",
-      "titulo": "A conversa\nvem antes\ndo exame.",
-      "escala": "v-m",
-      "itens": [
-        "Você conta o histórico e o que incomoda",
-        "A equipe examina a boca e a gengiva",
-        "Exames de imagem, quando indicados",
-        "As possibilidades são explicadas com clareza"
+      "chip": "2 · A CONSULTA",
+      "titulo": "A conversa vem\nantes do exame.",
+      "escala": "v-p",
+      "etapas": [
+        {
+          "titulo": "Você conta",
+          "texto": "O histórico e o que incomoda."
+        },
+        {
+          "titulo": "A equipe examina",
+          "texto": "Boca, gengiva e mordida."
+        },
+        {
+          "titulo": "Imagem, se indicada",
+          "texto": "Para ver o que o olho não vê."
+        },
+        {
+          "titulo": "As possibilidades",
+          "texto": "Explicadas com clareza."
+        }
       ],
       "narracao": "Na consulta, a conversa vem antes do exame: você conta o histórico, a equipe examina, e as possibilidades são explicadas com clareza."
     },

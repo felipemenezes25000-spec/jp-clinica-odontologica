@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 3.0,
+      "t": 3.5,
       "chip": "A CLÍNICA",
       "titulo": "Conheça a JP\npor [[dentro]].",
       "escala": "v-g",
@@ -48,23 +48,59 @@
       "narracao": "A esterilização: a sala que ninguém mostra. O instrumental é processado em rotina própria a cada atendimento."
     },
     {
-      "t": 3.4,
-      "superficie": "clara",
-      "chip": "SALA DE ESPERA",
-      "janela": "/social/instagram/source/assets-derivados/cantinho-cafe-2x.webp",
-      "titulo": "E um cantinho\ndo café.",
+      "t": 5.6,
+      "tipo": "pessoas",
+      "superficie": "escura",
+      "chip": "A EQUIPE",
+      "titulo": "Quem cuida de [[você]].",
       "escala": "v-p",
-      "narracao": "E um cantinho do café, para a espera ser mais curta."
+      "pessoas": [
+        {
+          "foto": "/src/assets/ana-beatriz.webp",
+          "nome": "{{equipe.0.nome}}",
+          "papel": "{{equipe.0.papel}}",
+          "registro": "{{equipe.0.registro}}"
+        },
+        {
+          "foto": "/src/assets/sabrina-vamszer.webp",
+          "nome": "{{equipe.3.nome}}",
+          "papel": "{{equipe.3.papel}}",
+          "registro": "{{equipe.3.registro}}"
+        },
+        {
+          "foto": "/src/assets/matheus-fraga.webp",
+          "nome": "{{equipe.1.nome}}",
+          "papel": "{{equipe.1.papel}}",
+          "registro": "{{equipe.1.registro}}"
+        },
+        {
+          "foto": "/src/assets/hugo-leonardo.webp",
+          "nome": "{{equipe.2.nome}}",
+          "papel": "{{equipe.2.papel}}",
+          "registro": "{{equipe.2.registro}}"
+        }
+      ],
+      "narracao": "E quem cuida de você: gente real, com nome e registro."
     },
     {
-      "t": 4.2,
+      "t": 5.2,
+      "tipo": "numeros",
       "superficie": "escura",
-      "titulo": "{{historia.anos}} anos\nde história.",
-      "escala": "v-g",
-      "corpo": "{{avaliacoes.notaBR}} no Google, com {{avaliacoes.total}} avaliações de quem já passou por aqui.",
-      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
-      "zoom": "fora",
-      "narracao": "São 24 anos de história, com nota 4,6 no Google."
+      "chip": "EM NÚMEROS",
+      "numeros": [
+        {
+          "valor": "{{historia.anos}}",
+          "sufixo": "anos",
+          "rotulo": "de história, desde {{historia.fundacao}}"
+        },
+        {
+          "valor": "{{avaliacoes.nota}}",
+          "decimais": 1,
+          "estrelas": "{{avaliacoes.nota}}",
+          "rotulo": "no Google, com {{avaliacoes.total}} avaliações"
+        }
+      ],
+      "narracao": "24 anos de história. 4,6 no Google, com 192 avaliações."
     },
     {
       "t": 4.0,

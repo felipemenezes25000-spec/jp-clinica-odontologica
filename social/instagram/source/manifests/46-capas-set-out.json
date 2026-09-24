@@ -1,0 +1,147 @@
+{
+  "grupo": "capas-set-out",
+  "descricao": "As 17 capas dos Reels de set/out 2026, uma por vídeo. São 1080×1920, mas quem decide o toque é a FAIXA 4:5 CENTRAL — é ela que o grid do perfil mostra. Por isso nada importante encosta no topo nem no pé. A alternância foto / creme / escura segue uma regra: nenhuma capa fica ao lado de outra do mesmo acabamento na sequência de publicação, senão o grid vira um bloco de retângulos iguais e o perfil perde profundidade. Os títulos são curtos de propósito: a capa é lida a 120px de largura no grid.",
+  "saida": "exports/capas-set-out",
+  "padrao": {
+    "formato": "story",
+    "superficie": "creme"
+  },
+  "pecas": [
+    {
+      "arquivo": "01_CAPA",
+      "chip": "IMPLANTES",
+      "headline": "Implante\n[[dói]]?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-implantes-9x16.webp"
+    },
+    {
+      "arquivo": "02_CAPA",
+      "chip": "AUSÊNCIA DENTÁRIA",
+      "headline": "Perdeu\num [[dente]]?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "03_CAPA",
+      "chip": "PRÓTESES",
+      "headline": "Dentadura é\na [[única]]\nopção?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "04_CAPA",
+      "chip": "ORTODONTIA",
+      "headline": "Aparelho ou\n[[alinhador]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp"
+    },
+    {
+      "arquivo": "05_CAPA",
+      "chip": "CLAREAMENTO",
+      "headline": "Clareamento\n[[enfraquece]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "06_CAPA",
+      "chip": "REABILITAÇÃO",
+      "headline": "Faltam\n[[vários]]\ndentes?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "07_CAPA",
+      "chip": "A CLÍNICA",
+      "headline": "Por dentro\nda [[JP]]",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp"
+    },
+    {
+      "arquivo": "08_CAPA",
+      "chip": "BRUXISMO",
+      "headline": "Bruxismo é\nsó [[à noite]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "09_CAPA",
+      "chip": "ENDODONTIA",
+      "headline": "Canal\n[[dói]]?",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "10_CAPA",
+      "chip": "SENSIBILIDADE",
+      "headline": "Sensibilidade\né [[cárie]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp"
+    },
+    {
+      "arquivo": "11_CAPA",
+      "chip": "GENGIVA",
+      "headline": "Por que a\ngengiva\n[[retrai]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "12_CAPA",
+      "chip": "SISO",
+      "headline": "Todo siso\nprecisa\n[[sair]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "13_CAPA",
+      "chip": "SAÚDE GENGIVAL",
+      "headline": "Gengiva\n[[sangrando]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp"
+    },
+    {
+      "arquivo": "14_CAPA",
+      "chip": "PREVENÇÃO",
+      "headline": "Boca seca\ne [[cárie]]",
+      "escala": "h-xg",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    },
+    {
+      "arquivo": "15_CAPA",
+      "chip": "TÁRTARO",
+      "headline": "Escova\nremove\n[[tártaro]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "escura"
+    },
+    {
+      "arquivo": "16_CAPA",
+      "chip": "LESÕES NA BOCA",
+      "headline": "Afta que\n[[não melhora]]",
+      "escala": "h-g",
+      "tipo": "reel-cover-tratamento",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp"
+    },
+    {
+      "arquivo": "17_CAPA",
+      "chip": "COR DO DENTE",
+      "headline": "Todo escuro\n[[clareia]]?",
+      "escala": "h-g",
+      "tipo": "reel-cover-tipografica",
+      "superficie": "creme"
+    }
+  ]
+}

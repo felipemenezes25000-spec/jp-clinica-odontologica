@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "ORTODONTIA",
       "titulo": "Aparelho ou\n[[alinhador]]?",
       "escala": "v-xg",
@@ -17,12 +17,23 @@
       "narracao": "Aparelho ou alinhador?"
     },
     {
-      "t": 4.2,
+      "t": 6.6,
+      "tipo": "comparar",
       "superficie": "escura",
-      "titulo": "A pergunta certa\nnão é qual é\nmelhor.",
-      "escala": "v-m",
-      "corpo": "É qual resolve o seu caso — e isso a documentação ortodôntica responde.",
-      "narracao": "A pergunta certa não é qual é melhor, e sim qual resolve o seu caso. Isso a documentação ortodôntica responde."
+      "titulo": "Mecânicas\n[[diferentes]].",
+      "escala": "v-p",
+      "a": {
+        "rotulo": "Aparelho fixo",
+        "titulo": "Trabalha 24 h",
+        "texto": "Colado aos dentes. Não depende da disciplina de uso."
+      },
+      "b": {
+        "rotulo": "Alinhador",
+        "titulo": "Depende do uso",
+        "texto": "Removível e discreto. Funciona se usado as horas prescritas."
+      },
+      "nota": "Quem escolhe é a documentação ortodôntica.",
+      "narracao": "Aparelho fixo trabalha vinte e quatro horas; alinhador é removível e depende do uso. Quem escolhe é a documentação ortodôntica."
     },
     {
       "t": 6.4,

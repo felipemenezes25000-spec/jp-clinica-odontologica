@@ -8,9 +8,9 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 3.0,
+      "t": 3.5,
       "chip": "PLANEJAMENTO",
-      "titulo": "Duas pessoas.\nO mesmo dente\nausente.",
+      "titulo": "[[Duas pessoas]].\nO mesmo dente\nausente.",
       "escala": "v-m",
       "corpo": "E dois planos de tratamento diferentes.",
       "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
@@ -37,7 +37,8 @@
       "titulo": "Plano é o que\nevita [[refazer]].",
       "escala": "v-g",
       "corpo": "Tratamento refeito custa duas vezes: em dinheiro e em tempo de cadeira.",
-      "narracao": "Plano é o que evita refazer. Tratamento refeito custa duas vezes: em dinheiro e em tempo de cadeira."
+      "narracao": "Plano é o que evita refazer. Tratamento refeito custa duas vezes: em dinheiro e em tempo de cadeira.",
+      "grafico": "plano"
     },
     {
       "t": 4.2,

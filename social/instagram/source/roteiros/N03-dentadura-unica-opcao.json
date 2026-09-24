@@ -1,0 +1,71 @@
+{
+  "id": "N03",
+  "arquivo": "03_DENTADURA_UNICA_OPCAO",
+  "titulo": "Dentadura é a única opção?",
+  "pilar": "proteses",
+  "ordem": 3,
+  "objetivo": "abrir o leque de reabilitação para quem perdeu vários dentes",
+  "cenas": [
+    {
+      "chip": "PRÓTESES",
+      "titulo": "Perdeu vários dentes?\nDentadura é a\n[[única opção]]?",
+      "escala": "v-g",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Perdeu vários dentes. Dentadura é a única opção?"
+    },
+    {
+      "titulo": "[[Não]]\nnecessariamente.",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "narracao": "Não necessariamente."
+    },
+    {
+      "titulo": "Hoje existem\ndiferentes maneiras\nde [[reabilitar]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Próteses removíveis",
+        "Próteses fixas",
+        "Tratamentos com implantes"
+      ],
+      "narracao": "Hoje existem diferentes maneiras de reabilitar a ausência de vários dentes."
+    },
+    {
+      "titulo": "A decisão olha\na [[boca inteira]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "protocolo"
+      },
+      "tMin": 6.4,
+      "corpo": "Quantidade e qualidade do osso, gengiva, mordida e saúde geral.",
+      "narracao": "Osso, gengiva, mordida, saúde geral e as expectativas do paciente fazem parte dessa decisão."
+    },
+    {
+      "titulo": "Por isso a conversa\nvem [[antes]] da escolha.",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "cortina",
+      "narracao": "Por isso a conversa vem antes da escolha."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[PRÓTESE]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer conhecer as possibilidades? Comente PRÓTESE.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

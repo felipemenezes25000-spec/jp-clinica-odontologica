@@ -1,0 +1,68 @@
+{
+  "id": "N09",
+  "arquivo": "09_TRATAMENTO_CANAL_DOI",
+  "titulo": "Tratamento de canal dói?",
+  "pilar": "duvidas",
+  "ordem": 9,
+  "objetivo": "responder sem prometer ausência de dor",
+  "cenas": [
+    {
+      "chip": "ENDODONTIA",
+      "titulo": "Tratamento de canal\n[[dói]]?",
+      "escala": "v-xg",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Tratamento de canal dói?"
+    },
+    {
+      "titulo": "É feito com\n[[anestesia local]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "arco",
+      "corpo": "E trata alterações na parte interna do dente.",
+      "grafico": {
+        "tipo": "dente",
+        "modo": "canal"
+      },
+      "tMin": 7.6,
+      "narracao": "O tratamento de canal é feito com anestesia local e trata alterações na parte interna do dente."
+    },
+    {
+      "titulo": "A experiência\n[[varia]] conforme\ncada situação.",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "corpo": "E conforme o estágio em que o problema chega.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "A experiência varia conforme cada situação e o estágio do problema."
+    },
+    {
+      "chip": "O QUE COSTUMA ACONTECER",
+      "titulo": "Em muitos casos,\na dor [[já estava lá]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "A inflamação é o que dói",
+        "O tratamento trata a origem",
+        "Cada caso tem um percurso"
+      ],
+      "narracao": "Em muitos casos, a dor que levou o paciente ao consultório está relacionada à própria inflamação, e não ao tratamento em si."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[DOR]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Está com dúvida? Comente DOR.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

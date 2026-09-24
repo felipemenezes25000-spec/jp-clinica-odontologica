@@ -66,7 +66,7 @@ O kit atual roda sem nenhuma foto nova. Esta sessão existe para a segunda camad
 | 1.5 | O número 1029 em close                                      | detalhe de localização         |
 | 1.6 | Contra-plongée da placa contra o céu                        | capa de Reel                   |
 
-> ⚠️ Confirmar antes: o WhatsApp da placa (`9 7169-4647`) **não bate** com o de `src/lib/jp.ts` (`(11) 97616-5117`). Ver [`ASSET-MANIFEST.md`](ASSET-MANIFEST.md) §1.2.
+> ⚠️ O WhatsApp da placa (`9 7169-4647`) é **antigo**; o correto é `(11) 97616-5117`. Até a placa ser corrigida, nenhuma foto pode mostrar o bloco do número. Ver [`ASSET-MANIFEST.md`](ASSET-MANIFEST.md) §1.2.
 
 ---
 

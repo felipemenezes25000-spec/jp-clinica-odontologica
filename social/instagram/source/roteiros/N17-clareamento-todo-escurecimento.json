@@ -1,0 +1,77 @@
+{
+  "id": "N17",
+  "arquivo": "17_CLAREAMENTO_TODO_ESCURECIMENTO",
+  "titulo": "Clareamento resolve todo escurecimento?",
+  "pilar": "estetica",
+  "ordem": 17,
+  "objetivo": "mostrar que a causa da cor decide a conduta",
+  "cenas": [
+    {
+      "chip": "COR DO DENTE",
+      "titulo": "Todo dente escuro\nresolve com\n[[clareamento]]?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "cor",
+        "modo": "origens"
+      },
+      "tMin": 5.8,
+      "narracao": "Todo dente escuro resolve com clareamento?"
+    },
+    {
+      "titulo": "[[Não]].",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "transicao": "arco",
+      "narracao": "Não."
+    },
+    {
+      "titulo": "O motivo da\nalteração faz\ntoda [[diferença]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "grafico": {
+        "tipo": "cor",
+        "modo": "origens"
+      },
+      "tMin": 6.6,
+      "narracao": "O motivo da alteração de cor faz toda diferença."
+    },
+    {
+      "chip": "APARÊNCIAS PARECIDAS",
+      "titulo": "Causas\n[[diferentes]]:",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Pigmentos externos e envelhecimento",
+        "Restaurações antigas",
+        "Trauma e alterações internas"
+      ],
+      "narracao": "Os pigmentos externos, o envelhecimento, restaurações e alterações internas podem produzir aparências parecidas."
+    },
+    {
+      "titulo": "Aparências iguais,\ncondutas\n[[diferentes]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "corpo": "Antes de clarear, é preciso entender por que aquele dente mudou de cor.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "Mas exigem abordagens diferentes. Antes de clarear, é preciso entender por que o dente mudou de cor."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[CLAREAMENTO]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer entender como funciona? Comente CLAREAMENTO.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

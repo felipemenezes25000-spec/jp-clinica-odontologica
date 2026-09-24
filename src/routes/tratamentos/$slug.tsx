@@ -1,10 +1,14 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import ogImage from "@/assets/fachada-2026-previa.jpg";
+import { PaginaClareamentoAds } from "@/components/site/PaginaClareamentoAds";
 import { PaginaDeTratamento } from "@/components/site/PaginaDeTratamento";
 import { SITE_URL, TRATAMENTOS } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
+
+const DESCRIPTION_CLAREAMENTO =
+  "Clareamento dental na Freguesia do Ó, Vila Bruna. Fale com a JP no WhatsApp para saber valores, horários e como funciona a avaliação individual.";
 
 export const Route = createFileRoute("/tratamentos/$slug")({
   component: TreatmentPage,
@@ -29,7 +33,10 @@ export const Route = createFileRoute("/tratamentos/$slug")({
     // o bairro na frente, que é o que a pessoa digita, e encolhe a marca até
     // caber. `descricaoLocal` junta só as frases que cabem inteiras.
     const title = tituloLocal(t.titulo);
-    const description = descricaoLocal(t.desc, FECHO_LOCAL);
+    const description =
+      t.slug === "clareamento-dental"
+        ? DESCRIPTION_CLAREAMENTO
+        : descricaoLocal(t.desc, FECHO_LOCAL);
     const url = `${SITE_URL}/tratamentos/${t.slug}`;
     return {
       meta: [
@@ -62,5 +69,11 @@ export const Route = createFileRoute("/tratamentos/$slug")({
 
 function TreatmentPage() {
   const { slug } = Route.useParams();
+
+  // Clareamento ganhou uma experiência dedicada de conversão porque é uma rota
+  // de aquisição ativa. Ela mantém o canonical orgânico, conteúdo informativo,
+  // dados regulados e privacidade, mas concentra a jornada em WhatsApp.
+  if (slug === "clareamento-dental") return <PaginaClareamentoAds />;
+
   return <PaginaDeTratamento slug={slug} />;
 }

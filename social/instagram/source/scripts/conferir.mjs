@@ -335,6 +335,54 @@ for (const p of mp4s) {
 }
 ok.push(`${String(mp4s.length)} vídeos com legenda .srt ao lado`);
 
+/* ==========================================================================
+   11. VÍDEO — todo MP4 tem trilha e é mais novo que o motor
+   A trilha faz parte do produto desde o motor 2: Reel mudo no feed perde
+   distribuição, e um MP4 mais velho que `video.html` ou `trilha.py` é uma
+   versão que o render interrompido deixou para trás. ffprobe lê só o
+   cabeçalho, então a conferência continua levando segundos.
+   ========================================================================== */
+const { execFileSync } = await import("node:child_process");
+const motor = Math.max(
+  (await stat(join(KIT, "source/templates/video.html"))).mtimeMs,
+  (await stat(join(KIT, "source/scripts/trilha.py"))).mtimeMs,
+);
+let semTrilha = 0;
+let antigos = 0;
+for (const p of mp4s) {
+  let audio = "";
+  try {
+    audio = execFileSync(
+      "ffprobe",
+      [
+        "-v",
+        "error",
+        "-select_streams",
+        "a",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "csv=p=0",
+        p,
+      ],
+      { encoding: "utf8" },
+    ).trim();
+  } catch {
+    avisos.push(`ffprobe indisponível — trilha não conferida`);
+    break;
+  }
+  if (!audio) {
+    semTrilha += 1;
+    erros.push(`vídeo sem trilha: ${p.replace(KIT, ".")}`);
+  }
+  if ((await stat(p)).mtimeMs < motor) {
+    antigos += 1;
+    erros.push(`vídeo de versão antiga do motor: ${p.replace(KIT, ".")}`);
+  }
+}
+if (!semTrilha && !antigos)
+  ok.push(`${String(mp4s.length)} vídeos com trilha e gerados pelo motor atual`);
+
 /* ========================================================================== */
 console.log("\n══ CONFERÊNCIA DO KIT ══\n");
 for (const o of ok) console.log(`  ✓ ${o}`);

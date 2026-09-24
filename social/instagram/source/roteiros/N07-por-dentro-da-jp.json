@@ -1,0 +1,74 @@
+{
+  "id": "N07",
+  "arquivo": "07_POR_DENTRO_DA_JP",
+  "titulo": "Por dentro da JP",
+  "teto": 0.6,
+  "pilar": "clinica",
+  "ordem": 7,
+  "trilha": "institucional",
+  "objetivo": "transmitir confiança mostrando a rotina real, com as fotos da clínica",
+  "cenas": [
+    {
+      "chip": "A CLÍNICA",
+      "titulo": "Você conhece\na JP\n[[por dentro]]?",
+      "escala": "v-g",
+      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Você conhece a JP por dentro?"
+    },
+    {
+      "titulo": "Existe muito mais\nque a [[cadeira]]\ndo consultório.",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "cortina",
+      "narracao": "Por trás de cada atendimento existe muito mais do que a cadeira do consultório."
+    },
+    {
+      "chip": "ANTES DE VOCÊ CHEGAR",
+      "titulo": "A rotina que\n[[não aparece]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Preparação das salas",
+        "Organização dos materiais",
+        "Processamento dos instrumentos"
+      ],
+      "narracao": "Preparação das salas, organização dos materiais e processamento dos instrumentos."
+    },
+    {
+      "titulo": "Cada etapa tem\num [[responsável]].",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-esterilizacao-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "transicao": "corte",
+      "corpo": "Prontuários, planejamento e uma equipe acompanhando o processo.",
+      "narracao": "Prontuários, planejamento e uma equipe para que cada etapa aconteça com cuidado."
+    },
+    {
+      "titulo": "Essa é um pouco\nda [[rotina da JP]].",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "lente",
+      "narracao": "Essa é um pouco da rotina da JP Clínica Odontológica."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Cuidando de sorrisos\ndesde [[2002]].",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Cuidando de sorrisos desde dois mil e dois, aqui na região da Freguesia do Ó.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

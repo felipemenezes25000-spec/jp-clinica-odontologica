@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.5,
       "titulo": "Dentadura é a\n[[única]] opção?",
       "escala": "v-g",
       "corpo": "Para quem perdeu vários dentes, não.",
@@ -37,7 +37,8 @@
       "titulo": "Nenhuma delas é\na melhor para\n[[todo mundo]].",
       "escala": "v-p",
       "corpo": "Volume ósseo, saúde geral e rotina definem o que é possível.",
-      "narracao": "Nenhuma delas é a melhor para todo mundo: volume ósseo, saúde geral e rotina definem o que é possível."
+      "narracao": "Nenhuma delas é a melhor para todo mundo: volume ósseo, saúde geral e rotina definem o que é possível.",
+      "grafico": "protocolo"
     },
     {
       "t": 4.0,

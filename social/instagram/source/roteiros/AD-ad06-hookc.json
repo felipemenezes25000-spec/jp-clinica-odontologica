@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.6,
       "titulo": "O que dizem os\nque já sentaram\nna nossa\n[[cadeira]].",
       "escala": "v-g",
       "corpo": "Avaliações reais, públicas, no Google.",
@@ -19,13 +19,33 @@
       "narracao": "O que dizem os que já sentaram na nossa cadeira."
     },
     {
+      "t": 5.2,
+      "tipo": "numeros",
+      "superficie": "escura",
+      "chip": "EM NÚMEROS",
+      "numeros": [
+        {
+          "valor": "{{avaliacoes.nota}}",
+          "decimais": 1,
+          "estrelas": "{{avaliacoes.nota}}",
+          "rotulo": "de nota no Google"
+        },
+        {
+          "valor": "{{avaliacoes.total}}",
+          "rotulo": "avaliações públicas de pacientes"
+        }
+      ],
+      "narracao": "4,6 de nota no Google, com 192 avaliações públicas."
+    },
+    {
       "t": 4.6,
       "superficie": "escura",
       "chip": "AVALIAÇÃO REAL",
       "titulo": "“Um ambiente\nlimpo, organizado\ne aconchegante.”",
       "escala": "v-p",
       "corpo": "Mari Nozzolillo · Google",
-      "narracao": "Um ambiente limpo, organizado e aconchegante. Mari Nozzolillo, no Google."
+      "narracao": "Um ambiente limpo, organizado e aconchegante. Mari Nozzolillo, no Google.",
+      "grafico": "aspas"
     },
     {
       "t": 4.4,
@@ -34,17 +54,22 @@
       "titulo": "“Já faço meus\ntratamentos com\neles há mais de\n3 anos.”",
       "escala": "v-p",
       "corpo": "Valéria C. · Google",
-      "narracao": "Já faço meus tratamentos com eles há mais de três anos. Valéria C., no Google."
+      "narracao": "Já faço meus tratamentos com eles há mais de três anos. Valéria C., no Google.",
+      "grafico": "aspas"
     },
     {
-      "t": 4.0,
-      "superficie": "escura",
-      "titulo": "Desde {{historia.fundacao}}.\nHoje, na\n[[{{historia.regiaoAtual}}]].",
+      "t": 4.8,
+      "tipo": "local",
+      "chip": "ONDE ESTAMOS",
+      "titulo": "Hoje, na\n[[{{historia.regiaoAtual}}]].",
       "escala": "v-m",
       "corpo": "{{clinica.endereco.logradouro}} — {{clinica.endereco.bairro}}, {{clinica.endereco.cidade}}.",
-      "foto": "/social/instagram/source/assets-derivados/fundo-fachada-9x16.webp",
-      "zoom": "fora",
-      "narracao": "Desde 2002. Hoje, na Freguesia do Ó."
+      "chips": ["Pirituba", "Limão", "Brasilândia"],
+      "narracao": "Hoje, na Freguesia do Ó: Rua Rio Verde, 1029, Vila Bruna — perto de Pirituba, Limão e Brasilândia.",
+      "superficie": "escura",
+      "janela": "/social/instagram/source/assets-derivados/fachada-faixa.webp",
+      "arco": true,
+      "alturaJanela": 520
     },
     {
       "t": 4.2,

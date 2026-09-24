@@ -1,0 +1,80 @@
+{
+  "id": "N05",
+  "arquivo": "05_CLAREAMENTO_ENFRAQUECE",
+  "titulo": "Clareamento enfraquece o dente?",
+  "pilar": "estetica",
+  "ordem": 5,
+  "objetivo": "desfazer o mito do desgaste sem prometer resultado",
+  "cenas": [
+    {
+      "chip": "CLAREAMENTO",
+      "titulo": "Clareamento\n[[enfraquece]]\no dente?",
+      "escala": "v-g",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "cor",
+        "modo": "escala"
+      },
+      "tMin": 5.2,
+      "narracao": "Clareamento enfraquece o dente?"
+    },
+    {
+      "titulo": "Ele não funciona\n[[desgastando]]\no dente.",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "lente",
+      "corpo": "Quando corretamente indicado e feito com orientação profissional.",
+      "grafico": {
+        "tipo": "esmalte"
+      },
+      "tMin": 7.0,
+      "narracao": "Quando corretamente indicado e realizado com orientação profissional, o clareamento não funciona desgastando o dente."
+    },
+    {
+      "titulo": "O agente atua sobre\nos [[pigmentos]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "corpo": "São eles os responsáveis pela alteração de cor.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "narracao": "O agente clareador atua sobre os pigmentos responsáveis pela alteração de cor."
+    },
+    {
+      "chip": "ATENÇÃO",
+      "titulo": "Sensibilidade\n[[pode acontecer]]\nem alguns casos.",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Sensibilidade pode acontecer em alguns pacientes."
+    },
+    {
+      "titulo": "Por isso tudo é\n[[individualizado]]:",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "corte",
+      "itens": [
+        "A concentração",
+        "O tempo de uso",
+        "O acompanhamento"
+      ],
+      "narracao": "Por isso concentração, tempo de uso e acompanhamento precisam ser individualizados."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Comente\n[[CLAREAMENTO]]\naqui embaixo.",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Quer entender como funciona? Comente CLAREAMENTO.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}

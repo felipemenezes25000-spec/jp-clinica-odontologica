@@ -10,7 +10,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.5,
       "titulo": "Todo implante\nprecisa de\n[[enxerto]]?",
       "escala": "v-g",
       "corpo": "A objeção que mais adia um tratamento.",
@@ -19,12 +19,13 @@
       "narracao": "Todo implante precisa de enxerto?"
     },
     {
-      "t": 4.4,
+      "t": 5.6,
       "superficie": "escura",
       "titulo": "O enxerto entra\nquando falta\n[[volume ósseo]].",
       "escala": "v-m",
       "corpo": "Não é uma etapa obrigatória de todo implante.",
-      "narracao": "O enxerto entra quando falta volume ósseo na região. Não é uma etapa obrigatória de todo implante."
+      "narracao": "O enxerto entra quando falta volume ósseo na região. Não é uma etapa obrigatória de todo implante.",
+      "grafico": "enxerto"
     },
     {
       "t": 5.6,
@@ -33,7 +34,9 @@
       "titulo": "Quem responde\né o exame de\nimagem.",
       "escala": "v-m",
       "itens": ["Ele mostra o volume disponível", "Quando é necessário, já entra no planejamento"],
-      "narracao": "Quem responde é o exame de imagem: ele mostra o volume disponível, e quando o enxerto é necessário já entra no planejamento."
+      "narracao": "Quem responde é o exame de imagem: ele mostra o volume disponível, e quando o enxerto é necessário já entra no planejamento.",
+      "grafico": "tomografia",
+      "alturaGrafico": 460
     },
     {
       "t": 4.2,

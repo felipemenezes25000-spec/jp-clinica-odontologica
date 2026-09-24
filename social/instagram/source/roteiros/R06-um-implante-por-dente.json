@@ -8,7 +8,7 @@
   "fundo": "#032F01",
   "cenas": [
     {
-      "t": 2.8,
+      "t": 3.3,
       "chip": "IMPLANTES",
       "titulo": "Um implante\npara cada\n[[dente]]?",
       "escala": "v-m",
@@ -17,12 +17,13 @@
       "narracao": "É necessário um implante para cada dente perdido?"
     },
     {
-      "t": 3.8,
+      "t": 4.2,
       "superficie": "escura",
       "titulo": "Não\nnecessariamente.",
       "escala": "v-g",
       "corpo": "Em muitas situações, um implante sustenta mais de um dente.",
-      "narracao": "Não necessariamente. Em muitas situações, um implante sustenta mais de um dente."
+      "narracao": "Não necessariamente. Em muitas situações, um implante sustenta mais de um dente.",
+      "grafico": "protocolo"
     },
     {
       "t": 6.0,

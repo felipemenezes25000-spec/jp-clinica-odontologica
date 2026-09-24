@@ -250,6 +250,15 @@ body {
 .s-floresta .h .vivo {
   color: #8ede2e;
 }
+/* SOBRE FOTO, O DESTAQUE É O VERDE CLARO — pelo mesmo motivo da regra acima.
+   A peça com foto não carrega `s-escura`, então herdava o #56A805 e o punha
+   em cima do véu, que sobre foto clara assenta em meio-tom: verde escuro
+   sobre meio-tom é o pior par possível. Nas capas de set/out isso apagava
+   "alinhador", "sangrando", "não melhora" e o "JP" da fachada — justamente a
+   palavra que a capa existe para gritar no grid. */
+.fundo-foto ~ .pad .h .vivo {
+  color: #8ede2e;
+}
 
 /* Corpo. Inter, e sempre acima do piso de leitura confortável. */
 .p {
@@ -294,8 +303,10 @@ body {
 .s-floresta .rodape {
   border-top-color: rgba(255, 255, 255, 0.16);
 }
+/* A logo inteira (lockup): 64 px de altura = 186 px de largura, o bastante
+   para "Clínica Odontológica" ler no celular sem o rodapé disputar com a peça. */
 .rodape img {
-  height: 56px;
+  height: 64px;
   width: auto;
   flex: none;
 }
@@ -626,7 +637,7 @@ body {
   gap: 18px;
 }
 .story-topo img {
-  height: 50px;
+  height: 76px;
 }
 .story-topo span {
   font-size: 25px;

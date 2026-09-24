@@ -1,0 +1,79 @@
+{
+  "id": "N13",
+  "arquivo": "13_GENGIVA_SANGRANDO",
+  "titulo": "Gengiva sangrando é normal?",
+  "pilar": "prevencao",
+  "ordem": 13,
+  "objetivo": "tirar o sangramento do lugar de normalidade",
+  "cenas": [
+    {
+      "chip": "SAÚDE GENGIVAL",
+      "titulo": "Gengiva sangrando\né [[normal]]?",
+      "escala": "v-xg",
+      "superficie": "escura",
+      "grafico": {
+        "tipo": "gengiva",
+        "modo": "inflamacao"
+      },
+      "tMin": 5.6,
+      "narracao": "Gengiva sangrando é normal?"
+    },
+    {
+      "titulo": "Sangramento\nfrequente não\ndeveria ser [[rotina]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "arco",
+      "corpo": "Nem na escovação, nem no uso do fio dental.",
+      "foto": "/social/instagram/source/assets-derivados/fundo-equipamento-9x16.webp",
+      "veu": "escuro",
+      "zoom": "dentro",
+      "narracao": "Sangramento frequente na escovação ou no fio dental não deve ser tratado como normal."
+    },
+    {
+      "chip": "PODE ESTAR LIGADO A",
+      "titulo": "Vale\n[[investigar]].",
+      "escala": "v-p",
+      "superficie": "escura",
+      "transicao": "empurra",
+      "itens": [
+        "Inflamação gengival",
+        "Acúmulo de biofilme",
+        "Outros fatores de saúde"
+      ],
+      "narracao": "Ele pode estar associado a inflamação gengival, acúmulo de biofilme ou outros fatores."
+    },
+    {
+      "titulo": "Parar de escovar\na região [[não resolve]].",
+      "escala": "v-m",
+      "superficie": "escura",
+      "transicao": "corte",
+      "grafico": {
+        "tipo": "gengiva",
+        "modo": "inflamacao"
+      },
+      "tMin": 6.6,
+      "narracao": "Parar de escovar a região geralmente não resolve o problema."
+    },
+    {
+      "titulo": "O ideal é entender\na [[causa]].",
+      "escala": "v-m",
+      "foto": "/social/instagram/source/assets-derivados/fundo-consultorio-b-9x16.webp",
+      "veu": "escuro",
+      "zoom": "fora",
+      "transicao": "cortina",
+      "narracao": "O ideal é entender a causa e melhorar o controle da saúde gengival."
+    },
+    {
+      "superficie": "clara",
+      "chip": "PRÓXIMO PASSO",
+      "titulo": "Acontece com\n[[frequência]]?",
+      "escala": "v-g",
+      "selo": "WhatsApp {{clinica.whatsapp}}",
+      "corpo": "{{clinica.nomeCurto}} · {{clinica.endereco.bairro}}, região da {{historia.regiaoAtual}}",
+      "narracao": "Se acontece com frequência, vale investigar.",
+      "tMin": 5.2
+    }
+  ],
+  "fps": 30,
+  "fundo": "#032F01"
+}
