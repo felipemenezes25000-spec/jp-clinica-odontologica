@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 
 import ogImage from "@/assets/fachada-2026-previa.jpg";
+import { PaginaClareamentoAds } from "@/components/site/PaginaClareamentoAds";
 import { PaginaDeTratamento } from "@/components/site/PaginaDeTratamento";
 import { SITE_URL, TRATAMENTOS } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
@@ -62,5 +63,11 @@ export const Route = createFileRoute("/tratamentos/$slug")({
 
 function TreatmentPage() {
   const { slug } = Route.useParams();
+
+  // Clareamento ganhou uma experiência dedicada de conversão porque é uma rota
+  // de aquisição ativa. Ela mantém o canonical orgânico, conteúdo informativo,
+  // dados regulados e privacidade, mas concentra a jornada em WhatsApp.
+  if (slug === "clareamento-dental") return <PaginaClareamentoAds />;
+
   return <PaginaDeTratamento slug={slug} />;
 }
