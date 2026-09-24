@@ -14,23 +14,10 @@ import "./visual-fixes.css";
  * `enxuto` é o cabeçalho da LANDING PAGA. A navegação some; a marca, o telefone,
  * o endereço, o CTA e o menu do celular ficam.
  *
- * ============================================================================
- *  POR QUE ESCONDER A NAVEGAÇÃO NUMA PÁGINA, E NÃO EM TODAS.
- *
- *  Os seis itens do menu levam para âncoras da HOME — `/#clinica`,
- *  `/#tratamentos`, `/#equipe`… Numa página orgânica isso é serviço: quem
- *  chegou pela busca pode estar conhecendo a clínica.
- *
- *  Numa LP de implante, são seis saídas no alto da tela, antes do primeiro
- *  parágrafo, para uma pessoa cujo clique a clínica pagou. Ela não veio
- *  conhecer a estrutura; veio saber se resolvem o dente que falta.
- *
- *  O QUE NÃO SAI, E NÃO SAI POR REGRA: a marca (identificação), o telefone
- *  (acesso), o endereço e o horário da barra de cima (confiança e CFO), o CTA
- *  e o `SkipLink` que vem antes dele. No mobile, o botão de menu permanece para
- *  expor telefone e WhatsApp, mas os links de navegação da home não são montados
- *  quando `enxuto=true`.
- * ============================================================================
+ * Na landing de clareamento o cabeçalho é ainda mais direto: não oferece saída
+ * para a home no logotipo e troca o menu móvel por um CTA de WhatsApp. Isso
+ * preserva identificação, endereço e acesso sem transformar o topo em um menu
+ * de dispersão para tráfego pago.
  */
 export function Header({ enxuto = false }: { enxuto?: boolean }) {
   const location = useLocation();
@@ -140,7 +127,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
       }`}
     >
       <div className="bg-brand-deep text-white">
-        <div className="jp-container flex h-[34px] items-center justify-between">
+        <div className="jp-container flex h-[32px] items-center justify-between sm:h-[34px]">
           <span className="flex items-center gap-2">
             <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
             <span className="text-micro font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-micro">
@@ -186,20 +173,26 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
       <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
         <div
           className={`jp-container flex items-center justify-between gap-3 transition-[height] duration-300 sm:gap-5 xl:gap-[clamp(24px,2.2vw,44px)] ${
-            scrolled ? "h-[78px]" : "h-[92px]"
+            clareamentoPago ? "h-[68px] sm:h-[72px]" : scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
           <a
-            href="/#inicio"
+            href={clareamentoPago ? "#conteudo" : "/#inicio"}
             className="flex shrink-0 items-center"
-            aria-label={`${CLINICA.nome} — início`}
+            aria-label={
+              clareamentoPago ? `${CLINICA.nome} — clareamento dental` : `${CLINICA.nome} — início`
+            }
           >
             <Logo
               variante="lockup"
               fundo="claro"
               altura={66}
               className={`w-auto transition-[height] duration-300 ${
-                scrolled ? "h-[44px] lg:h-[56px]" : "h-[50px] lg:h-[66px]"
+                clareamentoPago
+                  ? "h-[42px] sm:h-[48px] lg:h-[52px]"
+                  : scrolled
+                    ? "h-[44px] lg:h-[56px]"
+                    : "h-[50px] lg:h-[66px]"
               }`}
             />
           </a>
@@ -251,93 +244,114 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
             </a>
           </div>
 
-          <div className="flex items-center gap-2 xl:hidden">
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white md:flex"
-            >
-              {rotuloContato}
-            </a>
+          {clareamentoPago ? (
+            <div className="flex items-center xl:hidden">
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex min-h-10 items-center gap-2 rounded-full border border-lime bg-forest px-4 text-[11px] font-black text-white shadow-[0_8px_22px_rgba(9,89,2,.18)] transition hover:-translate-y-0.5 sm:min-h-11 sm:px-5 sm:text-xs"
+              >
+                <span className="sm:hidden">WhatsApp</span>
+                <span className="hidden sm:inline">Ver valores e horários</span>
+                <ArrowUpRight
+                  size={15}
+                  aria-hidden="true"
+                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </a>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 xl:hidden">
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white md:flex"
+              >
+                {rotuloContato}
+              </a>
 
-            <button
-              ref={botaoRef}
-              type="button"
-              onClick={() => setAberto((v) => !v)}
-              aria-label={aberto ? "Fechar menu" : "Abrir menu"}
-              aria-expanded={aberto}
-              aria-controls="menu-mobile"
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-border-soft bg-white text-forest-2"
-            >
-              {aberto ? <X size={20} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}
-            </button>
-          </div>
+              <button
+                ref={botaoRef}
+                type="button"
+                onClick={() => setAberto((v) => !v)}
+                aria-label={aberto ? "Fechar menu" : "Abrir menu"}
+                aria-expanded={aberto}
+                aria-controls="menu-mobile"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-border-soft bg-white text-forest-2"
+              >
+                {aberto ? <X size={20} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div
-        ref={menuRef}
-        id="menu-mobile"
-        className={`absolute left-0 right-0 top-full border-b border-border-soft bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
-          aberto
-            ? "max-h-[80vh] overflow-y-auto opacity-100"
-            : "invisible max-h-0 overflow-hidden opacity-0"
-        }`}
-      >
-        <nav className="jp-container py-6" aria-label="Navegação móvel">
-          {!enxuto && (
-            <div className="grid gap-1 sm:grid-cols-2">
-              {NAV.map((item) => {
-                const ativo = itemAtivo(item.href);
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    onClick={fechar}
-                    aria-current={
-                      ativo ? (item.href.includes("#") ? "location" : "page") : undefined
-                    }
-                    className={`flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold transition ${
-                      ativo
-                        ? "bg-[#EBF5E1] text-forest-2"
-                        : "text-forest hover:bg-[#EBF5E1] hover:text-forest-2"
-                    }`}
-                  >
-                    {item.label}
-                    <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
-                  </a>
-                );
-              })}
-            </div>
-          )}
+      {!clareamentoPago && (
+        <div
+          ref={menuRef}
+          id="menu-mobile"
+          className={`absolute left-0 right-0 top-full border-b border-border-soft bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
+            aberto
+              ? "max-h-[80vh] overflow-y-auto opacity-100"
+              : "invisible max-h-0 overflow-hidden opacity-0"
+          }`}
+        >
+          <nav className="jp-container py-6" aria-label="Navegação móvel">
+            {!enxuto && (
+              <div className="grid gap-1 sm:grid-cols-2">
+                {NAV.map((item) => {
+                  const ativo = itemAtivo(item.href);
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      onClick={fechar}
+                      aria-current={
+                        ativo ? (item.href.includes("#") ? "location" : "page") : undefined
+                      }
+                      className={`flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold transition ${
+                        ativo
+                          ? "bg-[#EBF5E1] text-forest-2"
+                          : "text-forest hover:bg-[#EBF5E1] hover:text-forest-2"
+                      }`}
+                    >
+                      {item.label}
+                      <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
+                    </a>
+                  );
+                })}
+              </div>
+            )}
 
-          <div
-            className={`grid gap-3 sm:grid-cols-2 ${
-              enxuto ? "" : "mt-5 border-t border-border-soft pt-5"
-            }`}
-          >
-            <a
-              href={CLINICA.telefoneHref}
-              onClick={fechar}
-              className="flex items-center justify-center gap-2 rounded-full border border-border-soft px-5 py-4 text-sm font-semibold text-forest-2"
+            <div
+              className={`grid gap-3 sm:grid-cols-2 ${
+                enxuto ? "" : "mt-5 border-t border-border-soft pt-5"
+              }`}
             >
-              <Phone size={16} aria-hidden="true" />
-              {CLINICA.telefone}
-            </a>
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={fechar}
-              className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-lime bg-forest px-5 py-4 text-sm font-bold text-white"
-            >
-              {rotuloContato}
-              <ArrowUpRight size={16} aria-hidden="true" />
-            </a>
-          </div>
-        </nav>
-      </div>
+              <a
+                href={CLINICA.telefoneHref}
+                onClick={fechar}
+                className="flex items-center justify-center gap-2 rounded-full border border-border-soft px-5 py-4 text-sm font-semibold text-forest-2"
+              >
+                <Phone size={16} aria-hidden="true" />
+                {CLINICA.telefone}
+              </a>
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={fechar}
+                className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-lime bg-forest px-5 py-4 text-sm font-bold text-white"
+              >
+                {rotuloContato}
+                <ArrowUpRight size={16} aria-hidden="true" />
+              </a>
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
