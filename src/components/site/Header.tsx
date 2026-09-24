@@ -11,13 +11,10 @@ import "./visual-fixes.css";
 /**
  * O cabeçalho do site.
  *
- * `enxuto` é o cabeçalho da LANDING PAGA. A navegação some; a marca, o telefone,
- * o endereço, o CTA e o menu do celular ficam.
- *
- * Na landing de clareamento o cabeçalho é ainda mais direto: não oferece saída
- * para a home no logotipo e troca o menu móvel por um CTA de WhatsApp. Isso
- * preserva identificação, endereço e acesso sem transformar o topo em um menu
- * de dispersão para tráfego pago.
+ * `enxuto` é o cabeçalho das landings de aquisição. Nas experiências dedicadas
+ * de Clareamento e Implantes ele fica ainda mais direto: não oferece saída para
+ * a home no logotipo e troca o menu móvel por um CTA de WhatsApp. Isso preserva
+ * identificação, endereço e acesso sem transformar o topo em dispersão.
  */
 export function Header({ enxuto = false }: { enxuto?: boolean }) {
   const location = useLocation();
@@ -100,9 +97,10 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
   }, [aberto]);
 
   const assunto = tituloDaRota(location.pathname) ?? undefined;
-  const clareamentoPago = enxuto && assunto === "Clareamento dental";
-  const wa = useContatoWhatsApp(clareamentoPago ? "informacoes" : "agendar", assunto);
-  const rotuloContato = clareamentoPago ? "Ver valores e horários" : "Agendar avaliação";
+  const conversaoDireta =
+    enxuto && (assunto === "Clareamento dental" || assunto === "Implantes dentários");
+  const wa = useContatoWhatsApp(conversaoDireta ? "informacoes" : "agendar", assunto);
+  const rotuloContato = conversaoDireta ? "Ver valores e horários" : "Agendar avaliação";
 
   const fechar = () => setAberto(false);
 
@@ -173,14 +171,16 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
       <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
         <div
           className={`jp-container flex items-center justify-between gap-3 transition-[height] duration-300 sm:gap-5 xl:gap-[clamp(24px,2.2vw,44px)] ${
-            clareamentoPago ? "h-[68px] sm:h-[72px]" : scrolled ? "h-[78px]" : "h-[92px]"
+            conversaoDireta ? "h-[68px] sm:h-[72px]" : scrolled ? "h-[78px]" : "h-[92px]"
           }`}
         >
           <a
-            href={clareamentoPago ? "#conteudo" : "/#inicio"}
+            href={conversaoDireta ? "#conteudo" : "/#inicio"}
             className="flex shrink-0 items-center"
             aria-label={
-              clareamentoPago ? `${CLINICA.nome} — clareamento dental` : `${CLINICA.nome} — início`
+              conversaoDireta
+                ? `${CLINICA.nome} — ${assunto?.toLowerCase() ?? "tratamento"}`
+                : `${CLINICA.nome} — início`
             }
           >
             <Logo
@@ -188,7 +188,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
               fundo="claro"
               altura={66}
               className={`w-auto transition-[height] duration-300 ${
-                clareamentoPago
+                conversaoDireta
                   ? "h-[42px] sm:h-[48px] lg:h-[52px]"
                   : scrolled
                     ? "h-[44px] lg:h-[56px]"
@@ -244,7 +244,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
             </a>
           </div>
 
-          {clareamentoPago ? (
+          {conversaoDireta ? (
             <div className="flex items-center xl:hidden">
               <a
                 href={wa}
@@ -288,7 +288,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         </div>
       </div>
 
-      {!clareamentoPago && (
+      {!conversaoDireta && (
         <div
           ref={menuRef}
           id="menu-mobile"
