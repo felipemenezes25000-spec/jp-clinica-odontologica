@@ -18,7 +18,7 @@
  *  política e da autonomia.
  * ============================================================================
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../servidor/banco", async () => {
   const fake = await import("../testes/banco-memoria");
@@ -100,9 +100,51 @@ function liberarAutonomia(): void {
   ]);
 }
 
+/**
+ * O relógio do CÓDIGO, deslocado para `AGORA`.
+ *
+ * ============================================================================
+ *  `definirRelogio` SÓ MOVE O RELÓGIO DO BANCO FALSO. A janela de 7 dias do
+ *  private reply é medida em `tentarPrivateReply`, com o `new Date()` do
+ *  processo — e, preso ao relógio de parede, o comentário de `AGORA` envelhecia
+ *  sozinho. Sete dias depois dele, em 22/09/2026, todo direct deste arquivo
+ *  passou a sair BLOQUEADO por "mais de 7 dias": oito testes quebraram, e o do
+ *  kill switch seguiu verde pelo motivo errado.
+ *
+ *  DESLOCADO, E NÃO CONGELADO: o relógio começa em `AGORA` e continua andando.
+ *  `vi.setSystemTime` faria dois `new Date()` separados por milissegundos
+ *  devolverem o mesmo instante, e é assim que uma corrida de relógio passa no
+ *  teste e quebra em produção.
+ *
+ *  É UM PROXY, e não uma subclasse, para `instanceof Date` continuar valendo
+ *  nas datas criadas antes da troca — `AGORA` inclusive. `instante`, em
+ *  `dominio/politica-de-canal.ts`, decide por `instanceof Date`.
+ * ============================================================================
+ */
+const DataReal = globalThis.Date;
+
+function deslocarRelogio(para: Date): void {
+  const deslocamento = para.getTime() - DataReal.now();
+  const agora = (): number => DataReal.now() + deslocamento;
+
+  vi.stubGlobal(
+    "Date",
+    new Proxy(DataReal, {
+      // Só o `new Date()` SEM argumento é "agora"; com argumento, é a data pedida.
+      construct: (alvo, args, novoAlvo) =>
+        Reflect.construct(alvo, args.length === 0 ? [agora()] : args, novoAlvo),
+      // `Date()` sem `new` também é "agora", em texto.
+      apply: () => new DataReal(agora()).toString(),
+      get: (alvo, chave, receptor) =>
+        chave === "now" ? agora : Reflect.get(alvo, chave, receptor),
+    }),
+  );
+}
+
 beforeEach(() => {
   limparBanco();
   definirRelogio(AGORA);
+  deslocarRelogio(AGORA);
   _reiniciarSandboxDaMeta();
   process.env["META_SANDBOX"] = "1";
 
@@ -117,6 +159,10 @@ beforeEach(() => {
       ordem: 2,
     },
   ]);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 /* -------------------------------------------------------------------------- */
