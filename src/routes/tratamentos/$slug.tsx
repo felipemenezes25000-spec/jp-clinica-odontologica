@@ -7,6 +7,9 @@ import { SITE_URL, TRATAMENTOS } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
 
+const DESCRIPTION_CLAREAMENTO =
+  "Clareamento dental na Freguesia do Ó, Vila Bruna. Fale com a JP no WhatsApp para saber valores, horários e como funciona a avaliação individual.";
+
 export const Route = createFileRoute("/tratamentos/$slug")({
   component: TreatmentPage,
 
@@ -30,7 +33,10 @@ export const Route = createFileRoute("/tratamentos/$slug")({
     // o bairro na frente, que é o que a pessoa digita, e encolhe a marca até
     // caber. `descricaoLocal` junta só as frases que cabem inteiras.
     const title = tituloLocal(t.titulo);
-    const description = descricaoLocal(t.desc, FECHO_LOCAL);
+    const description =
+      t.slug === "clareamento-dental"
+        ? DESCRIPTION_CLAREAMENTO
+        : descricaoLocal(t.desc, FECHO_LOCAL);
     const url = `${SITE_URL}/tratamentos/${t.slug}`;
     return {
       meta: [
