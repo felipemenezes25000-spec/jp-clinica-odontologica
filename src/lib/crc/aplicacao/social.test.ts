@@ -104,12 +104,16 @@ function liberarAutonomia(): void {
  * O relógio do CÓDIGO, deslocado para `AGORA`.
  *
  * ============================================================================
- *  `definirRelogio` SÓ MOVE O RELÓGIO DO BANCO FALSO. A janela de 7 dias do
- *  private reply é medida em `tentarPrivateReply`, com o `new Date()` do
- *  processo — e, preso ao relógio de parede, o comentário de `AGORA` envelhecia
- *  sozinho. Sete dias depois dele, em 22/09/2026, todo direct deste arquivo
- *  passou a sair BLOQUEADO por "mais de 7 dias": oito testes quebraram, e o do
- *  kill switch seguiu verde pelo motivo errado.
+ *  `definirRelogio` SÓ MOVE O RELÓGIO DO BANCO FALSO — e `agoraIso()`, que o
+ *  lê. A janela de 7 dias do private reply já passa por `agoraIso()`; o resto
+ *  do caminho não: `leads.ts` monta a dedupe "contato + dia" e `oportunidades`
+ *  carimbam as datas com o `new Date()` do processo.
+ *
+ *  FOI ASSIM QUE O ARQUIVO QUEBROU. A janela também media pelo `new Date()`,
+ *  e, preso ao relógio de parede, o comentário de `AGORA` envelhecia sozinho.
+ *  Sete dias depois dele, em 22/09/2026, todo direct deste arquivo passou a
+ *  sair BLOQUEADO por "mais de 7 dias": oito testes quebraram, e o do kill
+ *  switch seguiu verde pelo motivo errado.
  *
  *  DESLOCADO, E NÃO CONGELADO: o relógio começa em `AGORA` e continua andando.
  *  `vi.setSystemTime` faria dois `new Date()` separados por milissegundos
