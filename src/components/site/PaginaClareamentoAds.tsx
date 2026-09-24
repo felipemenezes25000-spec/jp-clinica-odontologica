@@ -160,7 +160,10 @@ export function PaginaClareamentoAds() {
       <Header enxuto />
 
       <main id="conteudo">
-        <section id="hero-clareamento" className="relative isolate overflow-hidden bg-brand-deep text-white">
+        <section
+          id="hero-clareamento"
+          className="relative isolate overflow-hidden bg-brand-deep text-white"
+        >
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-[.16] [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:72px_72px]"
@@ -338,7 +341,10 @@ export function PaginaClareamentoAds() {
           </div>
         </section>
 
-        <section id="video-clareamento" className="relative overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+        <section
+          id="video-clareamento"
+          className="relative overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute -left-44 top-1/2 h-[38rem] w-[38rem] -translate-y-1/2 rounded-full bg-lime/10 blur-[120px]"
@@ -353,7 +359,8 @@ export function PaginaClareamentoAds() {
                 />
               </div>
               <p className="mt-4 text-center text-xs font-semibold leading-relaxed text-white/42 sm:text-sm">
-                Animação ilustrativa. A técnica e a indicação dependem da avaliação de cada paciente.
+                Animação ilustrativa. A técnica e a indicação dependem da avaliação de cada
+                paciente.
               </p>
             </div>
 
@@ -364,8 +371,8 @@ export function PaginaClareamentoAds() {
               </h2>
               <p className="mt-6 max-w-xl text-lg leading-[1.78] text-white/66">
                 Mantivemos a animação explicativa para você visualizar melhor o tratamento antes da
-                conversa com a equipe. Ela ajuda a entender o processo, mas não substitui a avaliação
-                clínica nem define qual protocolo será indicado.
+                conversa com a equipe. Ela ajuda a entender o processo, mas não substitui a
+                avaliação clínica nem define qual protocolo será indicado.
               </p>
 
               <div className="mt-7 space-y-3">
@@ -374,7 +381,10 @@ export function PaginaClareamentoAds() {
                   "Sensibilidade entra no planejamento",
                   "A equipe explica cuidados e acompanhamento",
                 ].map((item) => (
-                  <div key={item} className="flex items-center gap-3 text-sm font-extrabold text-white/82 sm:text-base">
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 text-sm font-extrabold text-white/82 sm:text-base"
+                  >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lime/12 text-lime">
                       <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                     </span>
@@ -390,7 +400,10 @@ export function PaginaClareamentoAds() {
           </div>
         </section>
 
-        <section id="como-funciona" className="relative overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
+        <section
+          id="como-funciona"
+          className="relative overflow-hidden bg-white py-20 sm:py-24 lg:py-28"
+        >
           <div className="jp-container grid gap-12 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:gap-16">
             <div className="relative mx-auto w-full max-w-2xl lg:mx-0">
               <div className="grid grid-cols-[1.15fr_.85fr] gap-3 sm:gap-4">
@@ -432,8 +445,8 @@ export function PaginaClareamentoAds() {
                 Simples para começar. Cuidadoso para decidir.
               </h2>
               <p className="mt-5 max-w-xl text-lg leading-[1.75] text-ink-soft">
-                Você não precisa chegar sabendo qual técnica quer. A jornada começa com informação
-                e avança para a avaliação individual.
+                Você não precisa chegar sabendo qual técnica quer. A jornada começa com informação e
+                avança para a avaliação individual.
               </p>
 
               <div className="mt-9 space-y-3">
@@ -458,7 +471,10 @@ export function PaginaClareamentoAds() {
           </div>
         </section>
 
-        <section id="prova-social" className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+        <section
+          id="prova-social"
+          className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute left-1/2 top-0 h-[36rem] w-[55rem] -translate-x-1/2 rounded-full bg-lime/8 blur-[120px]"
@@ -611,7 +627,10 @@ export function PaginaClareamentoAds() {
           </div>
         </section>
 
-        <section id="cta-final" className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+        <section
+          id="cta-final"
+          className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute left-1/2 top-1/2 h-[38rem] w-[70rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime/10 blur-[130px]"
@@ -625,7 +644,9 @@ export function PaginaClareamentoAds() {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-lime/20 bg-lime/10 text-lime shadow-[0_18px_50px_rgba(86,168,5,.12)]">
               <Sparkles className="h-6 w-6" aria-hidden="true" />
             </div>
-            <p className="eyebrow mt-7 justify-center text-lime">Seu próximo passo pode ser simples</p>
+            <p className="eyebrow mt-7 justify-center text-lime">
+              Seu próximo passo pode ser simples
+            </p>
             <h2 className="mx-auto mt-4 max-w-5xl font-display text-[clamp(2.8rem,6.5vw,6.2rem)] font-extrabold leading-[.88] tracking-[-.068em]">
               Primeiro, entenda.
               <span className="block text-lime">Depois, você decide.</span>

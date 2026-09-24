@@ -249,8 +249,7 @@ function srt(cenas) {
 
   return cues
     .map(
-      (q, i) =>
-        `${String(i + 1)}\n${hhmmss(q.ini)} --> ${hhmmss(q.fim)}\n${duasLinhas(q.texto)}\n`,
+      (q, i) => `${String(i + 1)}\n${hhmmss(q.ini)} --> ${hhmmss(q.fim)}\n${duasLinhas(q.texto)}\n`,
     )
     .join("\n");
 }
