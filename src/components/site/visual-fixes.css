@@ -38,12 +38,12 @@
    para a marca não parecer miniaturizada em telas grandes. */
 @media (min-width: 1024px) {
   body:has(#hero-clareamento) header > div:nth-of-type(2) > .jp-container,
-  body:has(#hero-implante) header > div:nth-of-type(2) > .jp-container {
+  body:has(#hero-implantes) header > div:nth-of-type(2) > .jp-container {
     height: 4.75rem;
   }
 
   body:has(#hero-clareamento) header > div:nth-of-type(2) > .jp-container > a:first-child > img,
-  body:has(#hero-implante) header > div:nth-of-type(2) > .jp-container > a:first-child > img {
+  body:has(#hero-implantes) header > div:nth-of-type(2) > .jp-container > a:first-child > img {
     height: 3.5rem;
   }
 }
@@ -58,6 +58,34 @@
 
   #video-clareamento h2 {
     max-width: 46rem;
+  }
+}
+
+/* Implantes: o render final mostrou que havia espaço útil sobrando à direita do
+   subtítulo do hero. A coluna textual ganha alguns pontos sem sacrificar a foto,
+   deixando a frase local respirar como uma linha editorial, não como legenda. */
+@media (min-width: 1024px) {
+  #hero-implantes > .jp-container {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  }
+
+  #hero-implantes h1 > span:last-child {
+    max-width: 44rem;
+  }
+
+  /* No bloco de confiança, a coluna esquerda estava estreita demais para um
+     título de alto impacto. A nova proporção reduz quebras sem diminuir fonte. */
+  #prova-social-implante > .jp-container > .grid {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 3rem;
+  }
+
+  /* FAQ mais coeso: aproxima a lista de perguntas do texto de abertura e dá
+     presença suficiente ao título sem tirar espaço útil dos accordions. */
+  #faq-implante > .jp-container {
+    grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+    gap: 2.5rem;
+    align-items: start;
   }
 }
 
