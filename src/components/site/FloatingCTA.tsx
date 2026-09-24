@@ -20,9 +20,9 @@ type FloatingCTAProps = {
  *
  * `assunto` mantém a conversa ligada ao tratamento lido. As opções de texto e
  * intenção permitem que uma landing paga reduza a fricção sem mudar o CTA do
- * restante do site. `mostrarNoMobileDesdeInicio` existe só para páginas de
- * aquisição: em tela pequena, onde a maior parte do tráfego pago chega, o
- * WhatsApp fica disponível desde a primeira dobra sem depender de rolagem.
+ * restante do site. `mostrarNoMobileDesdeInicio` existe para páginas de
+ * aquisição; contatos com intenção `informacoes` também ganham essa exposição
+ * por padrão, pois já são CTAs de baixa fricção pensados para mídia paga.
  */
 export function FloatingCTA({
   assunto,
@@ -72,7 +72,8 @@ export function FloatingCTA({
   };
 
   const visivelDesktop = showBar && !dispensado;
-  const visivelMobile = (mostrarNoMobileDesdeInicio || showBar) && !dispensado;
+  const visivelMobile =
+    (mostrarNoMobileDesdeInicio || intencao === "informacoes" || showBar) && !dispensado;
   const wa = useContatoWhatsApp(intencao, assunto);
 
   return (
