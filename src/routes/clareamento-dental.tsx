@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import ogImage from "@/assets/fachada-2026-previa.jpg";
-import { PaginaDeTratamento } from "@/components/site/PaginaDeTratamento";
+import { PaginaClareamentoAds } from "@/components/site/PaginaClareamentoAds";
 import { SITE_URL, TRATAMENTOS } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
@@ -9,25 +9,16 @@ import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
 /**
  * LANDING PAGE DE ANÚNCIO — "Clareamento dental".
  *
- * Mesma página de `/tratamentos/clareamento-dental`, sob a URL que casa com o
- * termo pesquisado. A rota é fina de propósito: o conteúdo mora em
- * `PaginaDeTratamento`, então uma correção vale para as oito URLs de uma vez.
- *
- * POR QUE EXISTE, já que a página orgânica é a mesma: quem clica num anúncio
- * de "clareamento dental" precisa ver, na barra de endereço e no título, a
- * mesma coisa que pesquisou. Message match é o que separa um clique pago que
- * converte de um que volta para a busca — e o Índice de Qualidade do Google
- * cobra por isso no custo por clique.
- *
- * O `canonical` aponta para a página orgânica: as duas URLs servem o mesmo
- * conteúdo, e sem isso elas competiriam entre si na busca. O anúncio manda
- * tráfego para cá; o Google indexa lá.
+ * Esta rota usa a experiência dedicada de conversão do clareamento: message
+ * match com a busca, prova social cedo, objeções comerciais, CTA recorrente e
+ * WhatsApp como saída principal. O canonical continua apontando para a URL
+ * orgânica para não criar competição na indexação.
  */
 const SLUG = "clareamento-dental";
 const CANONICO = `${SITE_URL}/tratamentos/clareamento-dental`;
 
 export const Route = createFileRoute("/clareamento-dental")({
-  component: () => <PaginaDeTratamento slug={SLUG} modo="anuncio" />,
+  component: PaginaClareamentoAds,
   loader: () => {
     const t = TRATAMENTOS.find((x) => x.slug === SLUG);
     return { titulo: t?.titulo ?? "" };
