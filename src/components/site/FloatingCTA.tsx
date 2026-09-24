@@ -34,6 +34,7 @@ export function FloatingCTA({
 }: FloatingCTAProps) {
   const [showBar, setShowBar] = useState(false);
   const [dispensado, setDispensado] = useState(false);
+  const [rodapeVisivel, setRodapeVisivel] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShowBar(window.scrollY > Math.max(520, window.innerHeight * 0.72));
@@ -44,6 +45,26 @@ export function FloatingCTA({
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
+  }, []);
+
+  /**
+   * O CTA deixa de acompanhar a página quando o rodapé entra na viewport.
+   *
+   * O rodapé já oferece contato e dados legais; manter uma barra fixa por cima
+   * dele cria competição visual e pode encobrir conteúdo. IntersectionObserver
+   * resolve sem escutar scroll a cada frame e vale para desktop e mobile.
+   */
+  useEffect(() => {
+    const rodape = document.querySelector("footer");
+    if (!rodape || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      ([entrada]) => setRodapeVisivel(Boolean(entrada?.isIntersecting)),
+      { threshold: 0.08 },
+    );
+
+    observer.observe(rodape);
+    return () => observer.disconnect();
   }, []);
 
   /**
@@ -71,9 +92,11 @@ export function FloatingCTA({
     }
   };
 
-  const visivelDesktop = showBar && !dispensado;
+  const visivelDesktop = showBar && !dispensado && !rodapeVisivel;
   const focoWhatsApp = intencao === "informacoes";
-  const visivelMobile = (mostrarNoMobileDesdeInicio || focoWhatsApp || showBar) && !dispensado;
+  const visivelMobile =
+    (mostrarNoMobileDesdeInicio || focoWhatsApp || showBar) && !dispensado && !rodapeVisivel;
+  const whatsappFlutuanteOculto = visivelDesktop || rodapeVisivel;
   const wa = useContatoWhatsApp(intencao, assunto);
 
   return (
@@ -128,17 +151,17 @@ export function FloatingCTA({
         </div>
       </div>
 
-      {/* O balão é o estado compacto do desktop. */}
+      {/* O balão é o estado compacto do desktop. No rodapé ele também some. */}
       <a
         id="whatsapp-flutuante"
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
-        aria-hidden={visivelDesktop}
-        tabIndex={visivelDesktop ? -1 : undefined}
+        aria-hidden={whatsappFlutuanteOculto}
+        tabIndex={whatsappFlutuanteOculto ? -1 : undefined}
         className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-2xl rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
-          visivelDesktop
+          whatsappFlutuanteOculto
             ? "pointer-events-none invisible translate-y-3 opacity-0"
             : "bottom-7 opacity-100"
         }`}
@@ -167,7 +190,13 @@ export function FloatingCTA({
         aria-hidden={!visivelMobile}
         inert={!visivelMobile}
       >
-        <div className={focoWhatsApp ? "grid grid-cols-[1fr_auto] gap-2" : "grid grid-cols-[.34fr_1fr_auto] gap-2"}>
+        <div
+          className={
+            focoWhatsApp
+              ? "grid grid-cols-[1fr_auto] gap-2"
+              : "grid grid-cols-[.34fr_1fr_auto] gap-2"
+          }
+        >
           {!focoWhatsApp && (
             <a
               href={CLINICA.telefoneHref}
