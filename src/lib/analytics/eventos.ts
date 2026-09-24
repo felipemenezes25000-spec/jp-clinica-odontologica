@@ -22,9 +22,11 @@ import { tratamentoDaRota } from "./rotas";
  * A REGRA, E ELA É CURTA: **`generate_lead` é a única conversão.** Tudo o mais
  * é analítico e não deve ser marcado como conversão em lugar nenhum.
  *
- *   generate_lead   contato com intenção real — agendar. É o que o Google Ads
- *                   otimiza e o que vira `Lead` na Meta.
- *   contact_click   contato genérico, sem pedido de agendamento. Vira `Contact`.
+ *   generate_lead   contato com intenção comercial inequívoca — pedir avaliação
+ *                   ou pedir valores/horários daquela avaliação. É o que o
+ *                   Google Ads otimiza e o que vira `Lead` na Meta.
+ *   contact_click   contato genérico, sem intenção comercial específica. Vira
+ *                   `Contact`.
  *   os demais       leitura de funil. Nenhum vira conversão.
  *
  * `decidirEventoDeClique` devolve **no máximo um** evento. É função pura, e é
@@ -162,14 +164,16 @@ export type EventoPlanejado = { evento: Evento; dados: DadosDeEvento };
 /**
  * A intenção é lida da MENSAGEM, não do rótulo visível.
  *
- * O cartão que mostra o número tem "(11) 97616-5117" escrito nele e mesmo assim
- * abre o WhatsApp pedindo avaliação. Pelo rótulo, esse clique sumiria da conta
- * de agendamentos; pela mensagem, ele conta — e é o que de fato houve.
+ * Um pedido explícito de avaliação é lead. Numa landing paga, pedir valores,
+ * horários e como funciona essa avaliação também é intenção comercial
+ * inequívoca: a pessoa saiu da página de um tratamento para conversar com a
+ * recepção sobre o próximo passo. Já "fiquei com uma dúvida" continua sendo
+ * contato genérico e não vira conversão.
  */
-function pedeAgendamento(href: string): boolean {
+function pedeLeadComercial(href: string): boolean {
   try {
     const texto = decodeURIComponent(href.split("text=")[1] ?? "");
-    return /agendar uma avalia/iu.test(texto);
+    return /agendar uma avalia|saber valores, horários e como funciona a avalia/iu.test(texto);
   } catch {
     return false;
   }
@@ -190,10 +194,10 @@ export function decidirEventoDeClique(clique: Clique): EventoPlanejado | null {
   if (tratamento !== null) comum["treatment"] = tratamento;
 
   if (href.includes("wa.me")) {
-    // Agendar é lead; "tirar uma dúvida" é contato. A diferença é o que permite
-    // responder "quantas pessoas pediram avaliação?" em vez de "quantas
-    // clicaram em algum botão verde?".
-    return pedeAgendamento(href)
+    // Intenção comercial específica é lead; "tirar uma dúvida" continua sendo
+    // contato. Assim a campanha aprende com quem realmente iniciou uma conversa
+    // sobre avaliação, sem inflar qualquer clique genérico em WhatsApp.
+    return pedeLeadComercial(href)
       ? { evento: "generate_lead", dados: { ...comum, channel: "whatsapp" } }
       : { evento: "contact_click", dados: { ...comum, channel: "whatsapp" } };
   }
