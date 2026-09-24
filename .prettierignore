@@ -63,3 +63,18 @@ social/instagram/content
 # O Prettier realinhava as colunas da tabela do calendário — nenhuma palavra
 # mudava, mas o arquivo entregue deixava de ser o que a clínica mandou.
 social/instagram/ORDEM_DE_PUBLICACAO_JP.md
+
+# AS WORKTREES DAS SESSOES PARALELAS, E O RESTO DE `.claude/`.
+#
+# O Claude Code cria uma worktree por sessao em `.claude/worktrees/`, e cada uma
+# e uma copia inteira do repositorio. So o `.git/info/exclude` as esconde, e o
+# Prettier nao le aquele arquivo; e as entradas acima que tem `/` so casam na
+# raiz. Sem esta linha, `npm run format` na pasta principal reescreve as outras
+# sessoes por baixo delas, inclusive as copias de `public/crc-tour` e de
+# `.agents/skills`. Testado em 24/09/2026 com `prettier --file-info`: o bundle
+# do tour dava `ignored: true` na raiz e `ignored: false` numa worktree.
+#
+# Cada worktree se formata pelo proprio `npm run format`, e o resto de
+# `.claude/` e configuracao de agente. Ver as entradas gemeas em
+# `eslint.config.js` e `.vercelignore`.
+.claude
