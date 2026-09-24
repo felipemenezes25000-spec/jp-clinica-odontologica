@@ -34,9 +34,53 @@
   }
 }
 
+/* Landings premium: o cabeçalho continua enxuto, mas ganha presença suficiente
+   para a marca não parecer miniaturizada em telas grandes. */
+@media (min-width: 1024px) {
+  body:has(#hero-clareamento) header > div:nth-of-type(2) > .jp-container,
+  body:has(#hero-implante) header > div:nth-of-type(2) > .jp-container {
+    height: 4.75rem;
+  }
+
+  body:has(#hero-clareamento) header > div:nth-of-type(2) > .jp-container > a:first-child > img,
+  body:has(#hero-implante) header > div:nth-of-type(2) > .jp-container > a:first-child > img {
+    height: 3.5rem;
+  }
+}
+
+/* Clareamento: o texto explicativo do vídeo estava comprimido apesar de haver
+   espaço horizontal disponível. A coluna de conteúdo passa a respirar mais e o
+   título usa uma largura editorial maior sem alterar o mobile. */
+@media (min-width: 1024px) {
+  #video-clareamento > .jp-container {
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  }
+
+  #video-clareamento h2 {
+    max-width: 46rem;
+  }
+}
+
+/* Prova social: os depoimentos continuam integrais e reais; o ajuste é apenas
+   de composição. Os cards passam a ter a mesma altura e a assinatura se alinha
+   na base, evitando que um texto mais curto pareça um bloco secundário. */
+@media (min-width: 640px) {
+  #prova-social blockquote {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    margin-top: 0 !important;
+  }
+
+  #prova-social blockquote footer {
+    margin-top: auto;
+  }
+}
+
 /* Quando o CTA inferior móvel está visível, o rodapé ganha área de escape para
    que links e textos legais possam rolar acima da barra fixa em vez de ficar
-   escondidos atrás dela. */
+   escondidos atrás dela. A barra agora também se recolhe quando o rodapé entra
+   na viewport; esta folga permanece como fallback para navegadores antigos. */
 @media (max-width: 639px) {
   body:has(.mobile-sticky-cta:not(.invisible)) footer {
     padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
