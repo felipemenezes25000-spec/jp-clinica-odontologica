@@ -26,6 +26,9 @@ import { decidirEventoDeClique, type Clique } from "./eventos";
 const MSG_AGENDAR = encodeURIComponent(
   "Olá! Vi a página sobre Implantes dentários no site da JP Clínica Integrada Odontológica e gostaria de agendar uma avaliação.",
 );
+const MSG_INFO_COMERCIAL = encodeURIComponent(
+  "Olá! Vi a página sobre Clareamento dental no site da JP Clínica Integrada Odontológica e gostaria de saber valores, horários e como funciona a avaliação.",
+);
 const MSG_DUVIDA = encodeURIComponent(
   "Olá! Vim pelo site da JP Clínica Integrada Odontológica e fiquei com uma dúvida.",
 );
@@ -93,6 +96,20 @@ describe("a intenção é lida da mensagem, não do rótulo", () => {
       }),
     );
     expect(resultado?.evento).toBe("generate_lead");
+  });
+
+  it("pedido de valores e horários da avaliação também é lead comercial", () => {
+    const resultado = decidirEventoDeClique(
+      clique({
+        href: `https://wa.me/5511976165117?text=${MSG_INFO_COMERCIAL}`,
+        rotulo: "Consultar valores e horários",
+        origem: "hero-clareamento",
+        pathname: "/clareamento-dental",
+      }),
+    );
+    expect(resultado?.evento).toBe("generate_lead");
+    expect(resultado?.dados["treatment"]).toBe("clareamento-dental");
+    expect(resultado?.dados["channel"]).toBe("whatsapp");
   });
 
   it("'fiquei com uma dúvida' é contato, não lead", () => {
