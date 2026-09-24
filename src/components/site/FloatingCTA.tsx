@@ -72,8 +72,8 @@ export function FloatingCTA({
   };
 
   const visivelDesktop = showBar && !dispensado;
-  const visivelMobile =
-    (mostrarNoMobileDesdeInicio || intencao === "informacoes" || showBar) && !dispensado;
+  const focoWhatsApp = intencao === "informacoes";
+  const visivelMobile = (mostrarNoMobileDesdeInicio || focoWhatsApp || showBar) && !dispensado;
   const wa = useContatoWhatsApp(intencao, assunto);
 
   return (
@@ -167,14 +167,16 @@ export function FloatingCTA({
         aria-hidden={!visivelMobile}
         inert={!visivelMobile}
       >
-        <div className="grid grid-cols-[.34fr_1fr_auto] gap-2">
-          <a
-            href={CLINICA.telefoneHref}
-            className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
-            aria-label="Ligar para a JP Clínica"
-          >
-            <Phone className="h-5 w-5" aria-hidden="true" />
-          </a>
+        <div className={focoWhatsApp ? "grid grid-cols-[1fr_auto] gap-2" : "grid grid-cols-[.34fr_1fr_auto] gap-2"}>
+          {!focoWhatsApp && (
+            <a
+              href={CLINICA.telefoneHref}
+              className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
+              aria-label="Ligar para a JP Clínica"
+            >
+              <Phone className="h-5 w-5" aria-hidden="true" />
+            </a>
+          )}
           <a
             href={wa}
             target="_blank"
