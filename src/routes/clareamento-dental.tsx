@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import ogImage from "@/assets/fachada-2026-previa.jpg";
 import { PaginaClareamentoAds } from "@/components/site/PaginaClareamentoAds";
 import { SITE_URL, TRATAMENTOS } from "@/lib/jp";
-import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
+import { tituloLocal } from "@/lib/seo";
 import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
 
 /**
@@ -16,6 +16,8 @@ import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
  */
 const SLUG = "clareamento-dental";
 const CANONICO = `${SITE_URL}/tratamentos/clareamento-dental`;
+const DESCRIPTION =
+  "Clareamento dental na Freguesia do Ó, Vila Bruna. Fale com a JP no WhatsApp para saber valores, horários e como funciona a avaliação individual.";
 
 export const Route = createFileRoute("/clareamento-dental")({
   component: PaginaClareamentoAds,
@@ -27,18 +29,18 @@ export const Route = createFileRoute("/clareamento-dental")({
     const t = TRATAMENTOS.find((x) => x.slug === SLUG);
     if (!t) return {};
     const title = tituloLocal("Clareamento dental");
-    const description = descricaoLocal(t.desc, FECHO_LOCAL);
     const url = `${SITE_URL}/clareamento-dental`;
     return {
       meta: [
         { title },
-        { name: "description", content: description },
+        { name: "description", content: DESCRIPTION },
+        { name: "robots", content: "noindex,follow" },
         { property: "og:title", content: title },
-        { property: "og:description", content: description },
+        { property: "og:description", content: DESCRIPTION },
         { property: "og:url", content: url },
         { property: "og:image", content: `${SITE_URL}${ogImage}` },
         { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
+        { name: "twitter:description", content: DESCRIPTION },
       ],
       links: [{ rel: "canonical", href: CANONICO }],
       scripts: [{ type: "application/ld+json", children: dadosEstruturadosDoTratamento(t) }],
