@@ -1,11 +1,14 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const URL_ANUNCIO =
   "/clareamento-dental?utm_source=google&utm_medium=cpc&utm_campaign=clareamento_search&utm_content=c01&gclid=TESTCLAREAMENTO";
 
-async function esperarReferenciaNoWhatsApp(page: Page, link: ReturnType<Page["locator"]>) {
+async function esperarReferenciaNoWhatsApp(link: Locator) {
   await expect
-    .poll(async () => decodeURIComponent(((await link.getAttribute("href")) ?? "").split("text=")[1] ?? ""))
+    .poll(async () => {
+      const href = (await link.getAttribute("href")) ?? "";
+      return decodeURIComponent(href.split("text=")[1] ?? "");
+    })
     .toContain("Ref.:");
 }
 
@@ -20,7 +23,9 @@ async function eventos(page: Page): Promise<Array<Record<string, unknown>>> {
 }
 
 test.describe("landing de clareamento para Ads", () => {
-  test("a primeira dobra responde à busca e oferece WhatsApp de baixa fricção", async ({ page }) => {
+  test("a primeira dobra responde à busca e oferece WhatsApp de baixa fricção", async ({
+    page,
+  }) => {
     const resposta = await page.goto(URL_ANUNCIO);
     expect(resposta?.status()).toBe(200);
 
@@ -32,9 +37,10 @@ test.describe("landing de clareamento para Ads", () => {
     const cta = page.locator('#hero-clareamento a[href*="wa.me"]').first();
     await expect(cta).toBeVisible();
     await expect(cta).toContainText(/valores e horários/i);
-    await esperarReferenciaNoWhatsApp(page, cta);
+    await esperarReferenciaNoWhatsApp(cta);
 
-    const mensagem = decodeURIComponent(((await cta.getAttribute("href")) ?? "").split("text=")[1] ?? "");
+    const href = (await cta.getAttribute("href")) ?? "";
+    const mensagem = decodeURIComponent(href.split("text=")[1] ?? "");
     expect(mensagem.toLowerCase()).toContain("clareamento dental");
     expect(mensagem.toLowerCase()).toContain("valores");
     expect(mensagem.toLowerCase()).toContain("horários");
@@ -57,7 +63,9 @@ test.describe("landing de clareamento para Ads", () => {
         "click",
         (evento) => {
           const alvo = evento.target;
-          if (alvo instanceof Element && alvo.closest('a[href*="wa.me"]')) evento.preventDefault();
+          if (alvo instanceof Element && alvo.closest('a[href*="wa.me"]')) {
+            evento.preventDefault();
+          }
         },
         { capture: false },
       );
@@ -68,7 +76,10 @@ test.describe("landing de clareamento para Ads", () => {
     await cta.click();
 
     await expect
-      .poll(async () => (await eventos(page)).filter((item) => item["event"] === "generate_lead").length)
+      .poll(
+        async () =>
+          (await eventos(page)).filter((item) => item["event"] === "generate_lead").length,
+      )
       .toBe(1);
 
     const leads = (await eventos(page)).filter((item) => item["event"] === "generate_lead");
@@ -88,9 +99,10 @@ test.describe("landing de clareamento para Ads", () => {
 
     const cta = barra.locator('a[href*="wa.me"]');
     await expect(cta).toContainText(/falar no whatsapp/i);
-    await esperarReferenciaNoWhatsApp(page, cta);
+    await esperarReferenciaNoWhatsApp(cta);
 
-    const mensagem = decodeURIComponent(((await cta.getAttribute("href")) ?? "").split("text=")[1] ?? "");
+    const href = (await cta.getAttribute("href")) ?? "";
+    const mensagem = decodeURIComponent(href.split("text=")[1] ?? "");
     expect(mensagem.toLowerCase()).toContain("valores");
     expect(mensagem.toLowerCase()).toContain("horários");
   });
