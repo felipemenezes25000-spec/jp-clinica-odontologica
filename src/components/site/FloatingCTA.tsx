@@ -48,11 +48,12 @@ export function FloatingCTA({
   }, []);
 
   /**
-   * O CTA deixa de acompanhar a página quando o rodapé entra na viewport.
+   * O CTA deixa de acompanhar a página ANTES de o rodapé ocupar a viewport.
    *
    * O rodapé já oferece contato e dados legais; manter uma barra fixa por cima
-   * dele cria competição visual e pode encobrir conteúdo. IntersectionObserver
-   * resolve sem escutar scroll a cada frame e vale para desktop e mobile.
+   * dele cria competição visual e pode encobrir conteúdo. O `rootMargin`
+   * positivo antecipa a zona de recolhimento em 160px, então a barra some antes
+   * de parecer colada ao rodapé, tanto em desktop quanto em mobile.
    */
   useEffect(() => {
     const rodape = document.querySelector("footer");
@@ -60,7 +61,7 @@ export function FloatingCTA({
 
     const observer = new IntersectionObserver(
       ([entrada]) => setRodapeVisivel(Boolean(entrada?.isIntersecting)),
-      { threshold: 0.08 },
+      { rootMargin: "0px 0px 160px 0px", threshold: 0.01 },
     );
 
     observer.observe(rodape);
