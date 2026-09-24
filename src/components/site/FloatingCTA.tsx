@@ -1,26 +1,35 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
-import { CLINICA } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import type { Intencao } from "@/lib/contato";
+import { CLINICA } from "@/lib/jp";
 
 const CHAVE_DISPENSA = "jp:cta-dispensado";
+
+type FloatingCTAProps = {
+  assunto?: string;
+  intencao?: Intencao;
+  titulo?: string;
+  subtitulo?: string;
+  rotulo?: string;
+};
 
 /**
  * O CTA que acompanha a rolagem.
  *
- * `assunto` É O QUE FALTAVA, E CUSTAVA CONVERSA. Na página de implante, o botão
- * do hero abria o WhatsApp dizendo "Vi a página sobre Implantes dentários"; a
- * barra flutuante — que é a que a pessoa vê depois de rolar a página inteira,
- * ou seja, a que ela mais usa — abria com a mensagem genérica do site.
- *
- * A recepção recebia duas conversas diferentes da mesma página, e só uma dizia
- * o que a pessoa estava lendo. Numa campanha de implante, isso é a informação
- * mais cara que existe chegando pela metade.
- *
- * Sem `assunto` (a home, carreiras) a mensagem continua genérica, que é o certo
- * lá: quem está na home não está lendo sobre nada em particular.
+ * `assunto` mantém a conversa ligada ao tratamento lido. As opções de texto e
+ * intenção permitem que uma landing paga reduza a fricção sem mudar o CTA do
+ * restante do site. Na home e nas páginas comuns, os defaults permanecem os
+ * mesmos; numa campanha, a CTA pode convidar a pedir informações antes de
+ * exigir que a pessoa já tenha decidido agendar.
  */
-export function FloatingCTA({ assunto }: { assunto?: string }) {
+export function FloatingCTA({
+  assunto,
+  intencao = "agendar",
+  titulo = "Pronto para transformar seu sorriso?",
+  subtitulo = "Agende sua avaliação e veja o que faz sentido para você e sua família.",
+  rotulo = "Agendar avaliação",
+}: FloatingCTAProps) {
   const [showBar, setShowBar] = useState(false);
   const [dispensado, setDispensado] = useState(false);
 
@@ -61,13 +70,13 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
   };
 
   const visivel = showBar && !dispensado;
-
-  const wa = useContatoWhatsApp("agendar", assunto);
+  const wa = useContatoWhatsApp(intencao, assunto);
 
   return (
     <>
       {/* CTA persistente aprovado: surge depois da capa e acompanha a rolagem. */}
       <div
+        id="cta-flutuante"
         className={`sticky-booking-shell fixed inset-x-0 bottom-5 z-[58] hidden px-5 transition-all duration-500 md:block ${
           visivel
             ? "translate-y-0 opacity-100"
@@ -83,10 +92,10 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
             </span>
             <div className="min-w-0">
               <p className="truncate font-display text-base font-extrabold tracking-[-.025em] lg:text-lg">
-                Pronto para transformar seu sorriso?
+                {titulo}
               </p>
               <p className="mt-0.5 hidden truncate text-xs font-medium text-white lg:block">
-                Agende sua avaliação e veja o que faz sentido para você e sua família.
+                {subtitulo}
               </p>
             </div>
           </div>
@@ -98,15 +107,15 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
               rel="noopener noreferrer"
               className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(9,89,2,.9)] transition hover:-translate-y-0.5"
             >
-              <MessageCircle className="h-4 w-4" />
-              Agendar avaliação
-              <ArrowUpRight className="h-4 w-4" />
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              {rotulo}
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </a>
 
             <button
               type="button"
               onClick={dispensar}
-              aria-label="Fechar convite para agendar"
+              aria-label="Fechar convite para falar com a clínica"
               className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/25 text-white transition hover:border-white/60 hover:bg-white/10"
             >
               <X className="h-4 w-4" aria-hidden="true" />
@@ -119,6 +128,7 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
           dois CTAs persistentes para a mesma ação só ocupavam área útil e
           aumentavam a chance de cobrir conteúdo. */}
       <a
+        id="whatsapp-flutuante"
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
@@ -134,7 +144,7 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
             aria-hidden="true"
             className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite] motion-reduce:[animation:none]"
           />
-          <MessageCircle className="h-5 w-5" />
+          <MessageCircle className="h-5 w-5" aria-hidden="true" />
         </span>
 
         <span className="text-[15px] font-extrabold tracking-[-.01em]">Fale no WhatsApp</span>
@@ -146,6 +156,7 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
       </a>
 
       <div
+        id="cta-mobile"
         className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/98 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-[translate,visibility] duration-500 sm:hidden ${
           visivel ? "translate-y-0" : "invisible translate-y-full"
         }`}
@@ -158,7 +169,7 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
             className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
             aria-label="Ligar para a JP Clínica"
           >
-            <Phone className="h-5 w-5" />
+            <Phone className="h-5 w-5" aria-hidden="true" />
           </a>
           <a
             href={wa}
@@ -166,13 +177,13 @@ export function FloatingCTA({ assunto }: { assunto?: string }) {
             rel="noopener noreferrer"
             className="button-dark min-h-12 py-2.5 text-sm"
           >
-            <MessageCircle className="h-4 w-4" />
-            Agendar avaliação
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            {rotulo}
           </a>
           <button
             type="button"
             onClick={dispensar}
-            aria-label="Fechar convite para agendar"
+            aria-label="Fechar convite para falar com a clínica"
             className="grid min-h-12 w-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
           >
             <X className="h-4 w-4" aria-hidden="true" />
