@@ -22,20 +22,18 @@ import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
 import { TreatmentVideo } from "@/components/site/TreatmentVideo";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
-import {
-  CLINICA,
-  DEPOIMENTOS,
-  HISTORIA,
-  RESPONSAVEL_TECNICA,
-  TRATAMENTOS,
-} from "@/lib/jp";
+import { CLINICA, DEPOIMENTOS, HISTORIA, RESPONSAVEL_TECNICA, TRATAMENTOS } from "@/lib/jp";
 
 const ASSUNTO = "Implantes dentários";
-const IMPLANTE = TRATAMENTOS.find((item) => item.slug === "implantes-dentarios");
-
-if (!IMPLANTE) {
-  throw new Error("Tratamento de implantes não encontrado em TRATAMENTOS.");
-}
+// Numa IIFE, e não num `if` solto: o componente é uma `function`, e o
+// TypeScript não leva o estreitamento do módulo para dentro dela.
+const IMPLANTE = (() => {
+  const tratamento = TRATAMENTOS.find((item) => item.slug === "implantes-dentarios");
+  if (!tratamento) {
+    throw new Error("Tratamento de implantes não encontrado em TRATAMENTOS.");
+  }
+  return tratamento;
+})();
 
 const PONTOS = [
   {
@@ -250,7 +248,10 @@ export function PaginaImplanteAds() {
           </div>
         </section>
 
-        <section id="planejamento-implante" className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
+        <section
+          id="planejamento-implante"
+          className="relative overflow-hidden py-20 sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute right-[-14rem] top-[-10rem] h-[32rem] w-[32rem] rounded-full bg-mint blur-[100px]"
@@ -301,7 +302,10 @@ export function PaginaImplanteAds() {
           </div>
         </section>
 
-        <section id="video-implante" className="relative overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+        <section
+          id="video-implante"
+          className="relative overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute -left-44 top-1/2 h-[38rem] w-[38rem] -translate-y-1/2 rounded-full bg-lime/10 blur-[120px]"
@@ -355,10 +359,15 @@ export function PaginaImplanteAds() {
           </div>
         </section>
 
-        <section id="duvidas-implante" className="relative overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
+        <section
+          id="duvidas-implante"
+          className="relative overflow-hidden bg-white py-20 sm:py-24 lg:py-28"
+        >
           <div className="jp-container">
             <div className="mx-auto max-w-4xl text-center">
-              <p className="eyebrow justify-center text-brand-text">Dúvidas que aparecem antes da consulta</p>
+              <p className="eyebrow justify-center text-brand-text">
+                Dúvidas que aparecem antes da consulta
+              </p>
               <h2 className="mt-4 font-display text-[clamp(2.5rem,5vw,4.7rem)] font-extrabold leading-[.94] tracking-[-.058em]">
                 Você não precisa saber se “é caso de implante” antes de vir.
               </h2>
@@ -387,7 +396,10 @@ export function PaginaImplanteAds() {
           </div>
         </section>
 
-        <section id="como-funciona-implante" className="relative overflow-hidden py-20 sm:py-24 lg:py-28">
+        <section
+          id="como-funciona-implante"
+          className="relative overflow-hidden py-20 sm:py-24 lg:py-28"
+        >
           <div className="jp-container grid gap-12 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:gap-16">
             <div className="relative mx-auto w-full max-w-2xl lg:mx-0">
               <div className="grid grid-cols-[1.12fr_.88fr] gap-3 sm:gap-4">
@@ -455,7 +467,10 @@ export function PaginaImplanteAds() {
           </div>
         </section>
 
-        <section id="prova-social-implante" className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+        <section
+          id="prova-social-implante"
+          className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute left-1/2 top-0 h-[36rem] w-[55rem] -translate-x-1/2 rounded-full bg-lime/8 blur-[120px]"
@@ -609,7 +624,10 @@ export function PaginaImplanteAds() {
           </div>
         </section>
 
-        <section id="cta-final-implante" className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+        <section
+          id="cta-final-implante"
+          className="relative isolate overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28"
+        >
           <div
             aria-hidden="true"
             className="absolute left-1/2 top-1/2 h-[38rem] w-[70rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime/10 blur-[130px]"

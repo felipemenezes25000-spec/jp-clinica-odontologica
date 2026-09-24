@@ -281,7 +281,11 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
                 aria-controls="menu-mobile"
                 className="flex h-11 w-11 items-center justify-center rounded-full border border-border-soft bg-white text-forest-2"
               >
-                {aberto ? <X size={20} aria-hidden="true" /> : <Menu size={21} aria-hidden="true" />}
+                {aberto ? (
+                  <X size={20} aria-hidden="true" />
+                ) : (
+                  <Menu size={21} aria-hidden="true" />
+                )}
               </button>
             </div>
           )}
