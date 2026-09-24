@@ -30,8 +30,7 @@ const BENEFICIOS = [
   },
   {
     titulo: "Planejamento individual",
-    texto:
-      "Sensibilidade, histórico e expectativa entram na conversa para orientar a indicação.",
+    texto: "Sensibilidade, histórico e expectativa entram na conversa para orientar a indicação.",
     icone: Sparkles,
   },
   {
@@ -210,24 +209,15 @@ export function PaginaClareamentoAds() {
         <section className="border-b border-border-soft bg-white py-5">
           <div className="jp-container grid gap-4 text-center sm:grid-cols-3 sm:text-left">
             <div className="flex items-center justify-center gap-3 sm:justify-start">
-              <CheckCircle2
-                className="h-5 w-5 shrink-0 text-brand-text"
-                aria-hidden="true"
-              />
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-text" aria-hidden="true" />
               <span className="font-bold">Sem promessa de tom artificial</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:justify-start">
-              <CheckCircle2
-                className="h-5 w-5 shrink-0 text-brand-text"
-                aria-hidden="true"
-              />
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-text" aria-hidden="true" />
               <span className="font-bold">Conduta definida após avaliação</span>
             </div>
             <div className="flex items-center justify-center gap-3 sm:justify-start">
-              <CheckCircle2
-                className="h-5 w-5 shrink-0 text-brand-text"
-                aria-hidden="true"
-              />
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-brand-text" aria-hidden="true" />
               <span className="font-bold">WhatsApp direto com a recepção</span>
             </div>
           </div>
@@ -313,9 +303,8 @@ export function PaginaClareamentoAds() {
                   Uma clínica real, perto de você.
                 </h2>
                 <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/68">
-                  A JP atende na região da Freguesia do Ó e reúne {HISTORIA.anos} anos de
-                  trajetória clínica. Você pode conhecer a estrutura antes mesmo de decidir pelo
-                  tratamento.
+                  A JP atende na região da Freguesia do Ó e reúne {HISTORIA.anos} anos de trajetória
+                  clínica. Você pode conhecer a estrutura antes mesmo de decidir pelo tratamento.
                 </p>
                 <div className="mt-7">
                   <ProvaSocial />
