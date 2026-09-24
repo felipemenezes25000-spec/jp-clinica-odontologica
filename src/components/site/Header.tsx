@@ -113,7 +113,9 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
   }, [aberto]);
 
   const assunto = tituloDaRota(location.pathname) ?? undefined;
-  const wa = useContatoWhatsApp("agendar", assunto);
+  const clareamentoPago = enxuto && assunto === "Clareamento dental";
+  const wa = useContatoWhatsApp(clareamentoPago ? "informacoes" : "agendar", assunto);
+  const rotuloContato = clareamentoPago ? "Ver valores e horários" : "Agendar avaliação";
 
   const fechar = () => setAberto(false);
 
@@ -239,7 +241,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
               rel="noopener noreferrer"
               className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-lime bg-forest px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(9,89,2,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#0C7503] hover:shadow-[0_13px_30px_rgba(9,89,2,.32)]"
             >
-              Agendar avaliação
+              {rotuloContato}
               <ArrowUpRight
                 size={16}
                 strokeWidth={2}
@@ -256,7 +258,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
               rel="noopener noreferrer"
               className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white md:flex"
             >
-              Agendar avaliação
+              {rotuloContato}
             </a>
 
             <button
@@ -330,7 +332,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
               onClick={fechar}
               className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-lime bg-forest px-5 py-4 text-sm font-bold text-white"
             >
-              Agendar avaliação
+              {rotuloContato}
               <ArrowUpRight size={16} aria-hidden="true" />
             </a>
           </div>
