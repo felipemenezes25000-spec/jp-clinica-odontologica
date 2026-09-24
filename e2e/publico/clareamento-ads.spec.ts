@@ -22,6 +22,21 @@ async function eventos(page: Page): Promise<Array<Record<string, unknown>>> {
   });
 }
 
+async function impedirSaidaParaWhatsApp(page: Page) {
+  await page.evaluate(() => {
+    document.addEventListener(
+      "click",
+      (evento) => {
+        const alvo = evento.target;
+        if (alvo instanceof Element && alvo.closest('a[href*="wa.me"]')) {
+          evento.preventDefault();
+        }
+      },
+      { capture: false },
+    );
+  });
+}
+
 test.describe("landing de clareamento para Ads", () => {
   test("a primeira dobra responde à busca e oferece WhatsApp de baixa fricção", async ({
     page,
@@ -47,6 +62,21 @@ test.describe("landing de clareamento para Ads", () => {
     expect(mensagem.toLowerCase()).toContain("avaliação");
   });
 
+  test("mantém a animação explicativa de clareamento na experiência premium", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+
+    const secao = page.locator("#video-clareamento");
+    await expect(secao).toBeVisible();
+    await expect(secao.locator("video")).toHaveCount(1);
+    await expect(secao.getByText(/animação ilustrativa/i)).toBeVisible();
+    await expect(secao.getByText(/avaliação de cada paciente/i)).toBeVisible();
+
+    const cta = secao.locator('a[href*="wa.me"]').first();
+    await expect(cta).toBeVisible();
+    await expect(cta).toContainText(/valores e horários/i);
+    await esperarReferenciaNoWhatsApp(cta);
+  });
+
   test("não desvia o clique pago para outros tratamentos nas duas URLs", async ({ page }) => {
     await page.goto(URL_ANUNCIO);
     await expect(page.getByText("Outros caminhos de cuidado")).toHaveCount(0);
@@ -57,19 +87,7 @@ test.describe("landing de clareamento para Ads", () => {
 
   test("um clique no CTA do hero gera exatamente um lead comercial", async ({ page }) => {
     await page.goto(URL_ANUNCIO);
-
-    await page.evaluate(() => {
-      document.addEventListener(
-        "click",
-        (evento) => {
-          const alvo = evento.target;
-          if (alvo instanceof Element && alvo.closest('a[href*="wa.me"]')) {
-            evento.preventDefault();
-          }
-        },
-        { capture: false },
-      );
-    });
+    await impedirSaidaParaWhatsApp(page);
 
     const cta = page.locator('#hero-clareamento a[href*="wa.me"]').first();
     await expect(cta).toBeVisible();
@@ -87,6 +105,26 @@ test.describe("landing de clareamento para Ads", () => {
     expect(String(leads[0]?.["treatment"] ?? "").toLowerCase()).toContain("clareamento");
     expect(String(leads[0]?.["channel"] ?? "")).toBe("whatsapp");
     expect(String(leads[0]?.["origem"] ?? "")).toBe("hero-clareamento");
+  });
+
+  test("o CTA do vídeo gera lead separado com origem própria", async ({ page }) => {
+    await page.goto(URL_ANUNCIO);
+    await impedirSaidaParaWhatsApp(page);
+
+    const cta = page.locator('#video-clareamento a[href*="wa.me"]').first();
+    await expect(cta).toBeVisible();
+    await cta.click();
+
+    await expect
+      .poll(
+        async () =>
+          (await eventos(page)).filter((item) => item["event"] === "generate_lead").length,
+      )
+      .toBe(1);
+
+    const leads = (await eventos(page)).filter((item) => item["event"] === "generate_lead");
+    expect(String(leads[0]?.["origem"] ?? "")).toBe("video-clareamento");
+    expect(String(leads[0]?.["channel"] ?? "")).toBe("whatsapp");
   });
 
   test("o CTA persistente mantém a intenção comercial do clareamento", async ({ page }) => {
