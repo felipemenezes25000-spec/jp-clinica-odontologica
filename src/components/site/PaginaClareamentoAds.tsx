@@ -45,7 +45,7 @@ const ETAPAS = [
     numero: "01",
     titulo: "Converse com a recepção",
     texto:
-      "Você chama no WhatsApp, informa que tem interesse em clareamento e combina a avaliação.",
+      "Você chama no WhatsApp para saber valores, horários e como funciona a avaliação de clareamento.",
   },
   {
     numero: "02",
@@ -90,7 +90,7 @@ const FAQ = [
 
 function BotaoWhatsApp({
   href,
-  rotulo = "Quero avaliar meu clareamento",
+  rotulo = "Consultar valores e horários",
 }: {
   href: string;
   rotulo?: string;
@@ -127,7 +127,7 @@ function ProvaSocial() {
 }
 
 export function PaginaClareamentoAds() {
-  const wa = useContatoWhatsApp("agendar", ASSUNTO);
+  const wa = useContatoWhatsApp("informacoes", ASSUNTO);
 
   return (
     <div className="min-h-dvh bg-cream text-ink">
@@ -157,8 +157,8 @@ export function PaginaClareamentoAds() {
               </h1>
 
               <p className="mt-6 max-w-2xl text-lg font-medium leading-relaxed text-white/78 sm:text-xl">
-                Quer entender qual protocolo pode fazer sentido para o seu sorriso? Fale com a
-                recepção da JP e agende uma avaliação individual.
+                Fale com a recepção da JP para saber valores, horários e como funciona a avaliação
+                antes de decidir pelo tratamento.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-2 text-sm font-bold text-white/82">
@@ -177,7 +177,7 @@ export function PaginaClareamentoAds() {
                 <BotaoWhatsApp href={wa} />
                 <p className="flex items-center gap-2 text-sm font-semibold text-white/62">
                   <Clock3 className="h-4 w-4 text-lime" aria-hidden="true" />
-                  Recepção: {CLINICA.horario.toLowerCase()}
+                  WhatsApp direto com a recepção • {CLINICA.horario.toLowerCase()}
                 </p>
               </div>
 
@@ -256,7 +256,7 @@ export function PaginaClareamentoAds() {
             </div>
 
             <div className="mx-auto mt-9 max-w-xl text-center">
-              <BotaoWhatsApp href={wa} rotulo="Falar com a recepção agora" />
+              <BotaoWhatsApp href={wa} rotulo="Quero saber valores e horários" />
             </div>
           </div>
         </section>
@@ -354,7 +354,7 @@ export function PaginaClareamentoAds() {
                 </p>
               </div>
               <div className="mt-8 max-w-xl">
-                <BotaoWhatsApp href={wa} rotulo="Agendar avaliação pelo WhatsApp" />
+                <BotaoWhatsApp href={wa} rotulo="Consultar valores e horários" />
               </div>
             </div>
 
@@ -405,11 +405,11 @@ export function PaginaClareamentoAds() {
               Quer entender se o clareamento faz sentido para você?
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-white/68">
-              Chame a recepção da JP no WhatsApp. A equipe explica como funciona a avaliação e
-              organiza o próximo passo com você.
+              Chame a recepção da JP no WhatsApp para saber valores, horários e como funciona a
+              avaliação. Depois, você decide o próximo passo.
             </p>
             <div className="mx-auto mt-8 max-w-xl">
-              <BotaoWhatsApp href={wa} rotulo="Quero falar sobre clareamento" />
+              <BotaoWhatsApp href={wa} rotulo="Falar no WhatsApp sobre clareamento" />
             </div>
             <p className="mt-5 text-sm font-semibold text-white/50">WhatsApp {CLINICA.whatsapp}</p>
           </div>
@@ -441,7 +441,13 @@ export function PaginaClareamentoAds() {
         </div>
       </footer>
 
-      <FloatingCTA assunto={ASSUNTO} />
+      <FloatingCTA
+        assunto={ASSUNTO}
+        intencao="informacoes"
+        titulo="Pensando em clareamento?"
+        subtitulo="Veja valores, horários e como funciona a avaliação antes de decidir."
+        rotulo="Falar no WhatsApp"
+      />
     </div>
   );
 }
