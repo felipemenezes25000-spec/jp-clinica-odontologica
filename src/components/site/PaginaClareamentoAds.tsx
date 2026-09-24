@@ -14,10 +14,13 @@ import {
 import consultorioImg from "@/assets/consultorio-1.webp";
 import fachadaImg from "@/assets/fachada-2026.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
+import videoClareamento from "@/assets/video-clareamento.mp4?url";
+import posterClareamento from "@/assets/video-clareamento-poster.webp";
 import { CinematicMotion } from "@/components/site/CinematicMotion";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
 import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
+import { TreatmentVideo } from "@/components/site/TreatmentVideo";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { CLINICA, DEPOIMENTOS, HISTORIA, RESPONSAVEL_TECNICA } from "@/lib/jp";
 
@@ -157,10 +160,7 @@ export function PaginaClareamentoAds() {
       <Header enxuto />
 
       <main id="conteudo">
-        <section
-          id="hero-clareamento"
-          className="relative isolate overflow-hidden bg-brand-deep text-white"
-        >
+        <section id="hero-clareamento" className="relative isolate overflow-hidden bg-brand-deep text-white">
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-[.16] [background-image:linear-gradient(rgba(255,255,255,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.08)_1px,transparent_1px)] [background-size:72px_72px]"
@@ -334,6 +334,58 @@ export function PaginaClareamentoAds() {
 
             <div className="mx-auto mt-10 max-w-xl text-center">
               <BotaoWhatsApp href={wa} rotulo="Quero saber valores e horários" amplo />
+            </div>
+          </div>
+        </section>
+
+        <section id="video-clareamento" className="relative overflow-hidden bg-brand-deep py-20 text-white sm:py-24 lg:py-28">
+          <div
+            aria-hidden="true"
+            className="absolute -left-44 top-1/2 h-[38rem] w-[38rem] -translate-y-1/2 rounded-full bg-lime/10 blur-[120px]"
+          />
+          <div className="jp-container relative grid gap-12 lg:grid-cols-[.94fr_1.06fr] lg:items-center lg:gap-16">
+            <div className="mx-auto w-full max-w-xl lg:mx-0">
+              <div className="rounded-[34px] border border-white/12 bg-white/[.055] p-2 shadow-[0_36px_90px_rgba(0,0,0,.28)] backdrop-blur sm:rounded-[42px] sm:p-3">
+                <TreatmentVideo
+                  src={videoClareamento}
+                  poster={posterClareamento}
+                  descricao="Seringa de gel clareador e a moldeira usada para aplicar o produto nos dentes."
+                />
+              </div>
+              <p className="mt-4 text-center text-xs font-semibold leading-relaxed text-white/42 sm:text-sm">
+                Animação ilustrativa. A técnica e a indicação dependem da avaliação de cada paciente.
+              </p>
+            </div>
+
+            <div>
+              <p className="eyebrow text-lime">Veja antes de decidir</p>
+              <h2 className="mt-4 max-w-2xl font-display text-[clamp(2.6rem,5.3vw,5rem)] font-extrabold leading-[.92] tracking-[-.062em]">
+                Entenda visualmente como o clareamento pode fazer parte do plano.
+              </h2>
+              <p className="mt-6 max-w-xl text-lg leading-[1.78] text-white/66">
+                Mantivemos a animação explicativa para você visualizar melhor o tratamento antes da
+                conversa com a equipe. Ela ajuda a entender o processo, mas não substitui a avaliação
+                clínica nem define qual protocolo será indicado.
+              </p>
+
+              <div className="mt-7 space-y-3">
+                {[
+                  "A indicação é individual",
+                  "Sensibilidade entra no planejamento",
+                  "A equipe explica cuidados e acompanhamento",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3 text-sm font-extrabold text-white/82 sm:text-base">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lime/12 text-lime">
+                      <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-9 max-w-xl">
+                <BotaoWhatsApp href={wa} rotulo="Ver valores e horários no WhatsApp" amplo />
+              </div>
             </div>
           </div>
         </section>
