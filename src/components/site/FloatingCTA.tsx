@@ -12,6 +12,7 @@ type FloatingCTAProps = {
   titulo?: string;
   subtitulo?: string;
   rotulo?: string;
+  mostrarNoMobileDesdeInicio?: boolean;
 };
 
 /**
@@ -19,9 +20,9 @@ type FloatingCTAProps = {
  *
  * `assunto` mantém a conversa ligada ao tratamento lido. As opções de texto e
  * intenção permitem que uma landing paga reduza a fricção sem mudar o CTA do
- * restante do site. Na home e nas páginas comuns, os defaults permanecem os
- * mesmos; numa campanha, a CTA pode convidar a pedir informações antes de
- * exigir que a pessoa já tenha decidido agendar.
+ * restante do site. `mostrarNoMobileDesdeInicio` existe só para páginas de
+ * aquisição: em tela pequena, onde a maior parte do tráfego pago chega, o
+ * WhatsApp fica disponível desde a primeira dobra sem depender de rolagem.
  */
 export function FloatingCTA({
   assunto,
@@ -29,6 +30,7 @@ export function FloatingCTA({
   titulo = "Pronto para transformar seu sorriso?",
   subtitulo = "Agende sua avaliação e veja o que faz sentido para você e sua família.",
   rotulo = "Agendar avaliação",
+  mostrarNoMobileDesdeInicio = false,
 }: FloatingCTAProps) {
   const [showBar, setShowBar] = useState(false);
   const [dispensado, setDispensado] = useState(false);
@@ -69,21 +71,22 @@ export function FloatingCTA({
     }
   };
 
-  const visivel = showBar && !dispensado;
+  const visivelDesktop = showBar && !dispensado;
+  const visivelMobile = (mostrarNoMobileDesdeInicio || showBar) && !dispensado;
   const wa = useContatoWhatsApp(intencao, assunto);
 
   return (
     <>
-      {/* CTA persistente aprovado: surge depois da capa e acompanha a rolagem. */}
+      {/* CTA persistente de desktop: surge depois da capa e acompanha a rolagem. */}
       <div
         id="cta-flutuante"
         className={`sticky-booking-shell fixed inset-x-0 bottom-5 z-[58] hidden px-5 transition-all duration-500 md:block ${
-          visivel
+          visivelDesktop
             ? "translate-y-0 opacity-100"
             : "pointer-events-none invisible translate-y-8 opacity-0"
         }`}
-        aria-hidden={!visivel}
-        inert={!visivel}
+        aria-hidden={!visivelDesktop}
+        inert={!visivelDesktop}
       >
         <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-lg border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
           <div className="flex min-w-0 items-center gap-4">
@@ -124,19 +127,19 @@ export function FloatingCTA({
         </div>
       </div>
 
-      {/* O balão é o estado compacto. Quando a barra maior aparece ele some:
-          dois CTAs persistentes para a mesma ação só ocupavam área útil e
-          aumentavam a chance de cobrir conteúdo. */}
+      {/* O balão é o estado compacto do desktop. */}
       <a
         id="whatsapp-flutuante"
         href={wa}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Falar com a JP Clínica no WhatsApp"
-        aria-hidden={visivel}
-        tabIndex={visivel ? -1 : undefined}
+        aria-hidden={visivelDesktop}
+        tabIndex={visivelDesktop ? -1 : undefined}
         className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-2xl rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
-          visivel ? "pointer-events-none invisible translate-y-3 opacity-0" : "bottom-7 opacity-100"
+          visivelDesktop
+            ? "pointer-events-none invisible translate-y-3 opacity-0"
+            : "bottom-7 opacity-100"
         }`}
       >
         <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
@@ -158,10 +161,10 @@ export function FloatingCTA({
       <div
         id="cta-mobile"
         className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/98 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-[translate,visibility] duration-500 sm:hidden ${
-          visivel ? "translate-y-0" : "invisible translate-y-full"
+          visivelMobile ? "translate-y-0" : "invisible translate-y-full"
         }`}
-        aria-hidden={!visivel}
-        inert={!visivel}
+        aria-hidden={!visivelMobile}
+        inert={!visivelMobile}
       >
         <div className="grid grid-cols-[.34fr_1fr_auto] gap-2">
           <a
