@@ -5,7 +5,6 @@ import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
 import fotoMatheus from "@/assets/matheus-fraga.webp";
-import fotoSabrina from "@/assets/sabrina-vamszer.webp";
 
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
@@ -503,26 +502,6 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 75.157",
     papel: "Ortodontia",
     foto: fotoHugo,
-  },
-  {
-    /**
-     * Nome completo e registro conferidos na carteira do CRO/SP, enviada pela
-     * clínica em 07/09/2026: inscrição SP-162394, categoria cirurgião-dentista,
-     * emitida em 21/02/2024, válida até 03/2027.
-     *
-     * A carteira traz também CPF, RG, nascimento e filiação. Nada disso entra
-     * aqui: o que a publicidade da clínica precisa mostrar, pela Resolução CFO
-     * 196/2019, é nome e número de inscrição.
-     *
-     * "Especialidade: não informado" na carteira — endodontia veio da clínica.
-     *
-     * Retrato enviado pela clínica em 07/09/2026, recortado no mesmo
-     * enquadramento dos demais.
-     */
-    nome: "Dra. Sabrina Vamszer Flaquer",
-    registro: "CROSP 162.394",
-    papel: "Endodontia",
-    foto: fotoSabrina,
   },
 ];
 
