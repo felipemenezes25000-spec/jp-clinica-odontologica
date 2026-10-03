@@ -14,7 +14,7 @@ import { EQUIPE } from "@/lib/jp";
 const EQUIPE_PUBLICA = EQUIPE.filter((pessoa) => !pessoa.ficticio && !pessoa.placeholder);
 
 /**
- * A partir de xl a equipe inteira cabe numa linha só. Antes era 20% cravado —
+ * A partir de xl, até seis pessoas cabem numa linha só. Antes era 20% cravado —
  * cinco por linha —, e com seis pessoas a última descia sozinha para a linha de
  * baixo, menor que as outras porque não tinha ninguém ao lado para esticá-la.
  */
@@ -22,11 +22,20 @@ const LARGURA_XL: Record<number, string> = {
   4: "xl:w-[calc(25%_-_15px)]",
   5: "xl:w-[calc(20%_-_16px)]",
   6: "xl:w-[calc(16.666%_-_17px)]",
-  7: "xl:w-[calc(14.285%_-_18px)]",
-  8: "xl:w-[calc(12.5%_-_18px)]",
+  // Sete ou oito numa linha só deixam o card com ~150 px e o retrato some:
+  // daqui para cima, quatro por linha, e a última linha fica centralizada.
+  7: "xl:w-[calc(25%_-_15px)]",
+  8: "xl:w-[calc(25%_-_15px)]",
 };
 
 const LARGURA_UMA_LINHA = LARGURA_XL[EQUIPE_PUBLICA.length] ?? "";
+
+/**
+ * Entre md e xl a grade é de três por linha, e com exatamente quatro pessoas a
+ * última descia sozinha para a segunda linha (3+1). Com quatro, duas por linha.
+ */
+const LARGURA_MD =
+  EQUIPE_PUBLICA.length === 4 ? "md:w-[calc(50%_-_10px)]" : "md:w-[calc(33.333%_-_14px)]";
 
 function CardProfissional({
   nome,
@@ -41,7 +50,7 @@ function CardProfissional({
 }) {
   return (
     <article
-      className={`group flex w-full flex-col overflow-hidden rounded-xl border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%_-_10px)] md:w-[calc(33.333%_-_14px)] ${LARGURA_UMA_LINHA}`}
+      className={`group flex w-full flex-col overflow-hidden rounded-xl border border-border-soft bg-white/55 px-4 pb-5 pt-5 shadow-[0_14px_42px_rgba(3,47,1,.055)] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-brand-green/55 hover:shadow-[0_22px_55px_rgba(3,47,1,.10)] sm:w-[calc(50%_-_10px)] ${LARGURA_MD} ${LARGURA_UMA_LINHA}`}
     >
       <div className="relative mx-auto aspect-[0.83/1] w-full shrink-0 overflow-hidden rounded-t-[90px] bg-[#EBF5E1]">
         {foto ? (

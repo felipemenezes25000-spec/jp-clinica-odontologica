@@ -5,6 +5,10 @@ import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
 import fotoMatheus from "@/assets/matheus-fraga.webp";
+import fotoAnaLucia from "@/assets/ana-lucia.webp";
+import fotoFelipeMendes from "@/assets/felipe-mendes.webp";
+import fotoGuilherme from "@/assets/guilherme-fazzato.webp";
+import fotoVitorMendes from "@/assets/vitor-mendes.webp";
 
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
@@ -502,6 +506,60 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 75.157",
     papel: "Ortodontia",
     foto: fotoHugo,
+  },
+  {
+    /**
+     * Nome, especialidade e registro vieram no nome do arquivo da foto enviada
+     * pela clínica em 03/10/2026: "Implante e cirurgia — CRO-SP 149313".
+     * Sem carteira do CRO para conferir o número. Sem "Dr." de propósito: o
+     * tratamento não foi informado.
+     *
+     * A foto chegou em JPEG 640×640, com o fundo preto chapado. O recorte foi
+     * refeito a partir dele para ficar sobre o verde do card como os demais; se
+     * a clínica mandar o PNG com fundo transparente, ele é melhor que este.
+     */
+    nome: "Vitor Mendes",
+    registro: "CROSP 149.313",
+    papel: "Implante e cirurgia",
+    foto: fotoVitorMendes,
+  },
+  {
+    /**
+     * Recepção — não é do conselho, então sem `registro`. Nome e função
+     * vieram no nome do arquivo da foto enviada pela clínica em 03/10/2026.
+     * Retrato com fundo transparente, no mesmo enquadramento dos demais.
+     */
+    nome: "Guilherme Fazzato",
+    papel: "Recepcionista",
+    foto: fotoGuilherme,
+  },
+  {
+    /**
+     * Nome, especialidade e registro vieram no nome do arquivo da foto enviada
+     * pela clínica em 03/10/2026: "Prótese e Dentística — CRO-SP 168799".
+     * Sem carteira do CRO para conferir o número. Sem "Dr." de propósito: o
+     * tratamento não foi informado.
+     *
+     * Retrato com fundo transparente, recortado no mesmo enquadramento dos
+     * demais.
+     */
+    nome: "Felipe Mendes",
+    registro: "CROSP 168.799",
+    papel: "Prótese e dentística",
+    foto: fotoFelipeMendes,
+  },
+  {
+    /**
+     * Apoio geral — não é do conselho, então não tem `registro` e o card omite
+     * o bloco "Registro". Sobrenome não informado pela clínica (03/10/2026).
+     *
+     * Retrato enviado pela clínica em 03/10/2026, recortado no mesmo
+     * enquadramento dos demais; o fundo cinza-azulado é o do original, o mesmo
+     * da foto da Dra. Juliana.
+     */
+    nome: "Ana Lúcia",
+    papel: "Apoio geral",
+    foto: fotoAnaLucia,
   },
 ];
 
