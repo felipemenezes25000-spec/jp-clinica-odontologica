@@ -54,9 +54,9 @@ const ENDERECO = {
  */
 export const AVALIACOES = {
   nota: 4.6,
-  total: 196,
-  /** Conferido na ficha do Google em 21/09/2026. */
-  conferidoEm: "2026-09-21",
+  total: 199,
+  /** Total informado pelo Felipe em 04/10/2026; a data anterior (21/09) era de conferência direta na ficha. */
+  conferidoEm: "2026-10-04",
 };
 
 /** "4,6" — a nota como o Brasil escreve, derivada de `AVALIACOES.nota`. */
