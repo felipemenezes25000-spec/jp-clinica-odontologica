@@ -5,12 +5,12 @@
   "siteUrl": "https://www.jpclinicaodontologica.com.br",
   "avaliacoes": {
     "nota": 4.6,
-    "total": 195,
-    "conferidoEm": "2026-09-19",
-    "conferidoEmBR": "19/09/2026",
+    "total": 196,
+    "conferidoEm": "2026-09-21",
+    "conferidoEmBR": "21/09/2026",
     "notaBR": "4,6",
     "provaCurta": "4,6 no Google",
-    "provaLonga": "4,6★ no Google · 195 avaliações"
+    "provaLonga": "4,6★ no Google · 196 avaliações"
   },
   "clinica": {
     "nome": "JP Clínica Integrada Odontológica",
@@ -70,9 +70,24 @@
       "papel": "Ortodontia"
     },
     {
-      "nome": "Dra. Sabrina Vamszer Flaquer",
-      "registro": "CROSP 162.394",
-      "papel": "Endodontia"
+      "nome": "Vitor Mendes",
+      "registro": "CROSP 149.313",
+      "papel": "Implante e cirurgia"
+    },
+    {
+      "nome": "Guilherme Fazzato",
+      "registro": null,
+      "papel": "Recepcionista"
+    },
+    {
+      "nome": "Felipe Mendes",
+      "registro": "CROSP 168.799",
+      "papel": "Prótese e dentística"
+    },
+    {
+      "nome": "Ana Lúcia",
+      "registro": null,
+      "papel": "Apoio geral"
     }
   ],
   "tratamentos": [

@@ -167,7 +167,6 @@ A classificação é **derivada do texto de cada peça**, não digitada. Uma pe�
 | dst-equipe | `jp_ig_dst_equipe_03_ana_beatriz.png` | Dra. Ana Beatriz |
 | dst-equipe | `jp_ig_dst_equipe_04_matheus_fraga.png` | Dr. Matheus Fraga |
 | dst-equipe | `jp_ig_dst_equipe_06_hugo_leonardo.png` | Dr. Hugo Leonardo |
-| dst-equipe | `jp_ig_dst_equipe_07_sabrina_vamszer.png` | Dra. Sabrina Vamszer Flaquer |
 | dst-equipe | `jp_ig_dst_equipe_09_jeferson.png` | Jeferson Barbosa |
 | dst-equipe | `jp_ig_dst_equipe_10_cta.png` | Marque com quem você já conhece. |
 | dst-avaliacoes | `jp_ig_dst_avaliacoes_01_capa.png` | A nota é pública. E é deles. |
@@ -307,7 +306,6 @@ A classificação é **derivada do texto de cada peça**, não digitada. Uma pe�
 | equipe | `jp_ig_feed_equipe_ana_beatriz_v01.png` | Dra. Ana Beatriz |
 | equipe | `jp_ig_feed_equipe_matheus_fraga_v01.png` | Dr. Matheus Fraga |
 | equipe | `jp_ig_feed_equipe_hugo_leonardo_v01.png` | Dr. Hugo Leonardo |
-| equipe | `jp_ig_feed_equipe_sabrina_vamszer_v01.png` | Dra. Sabrina Vamszer Flaquer |
 | equipe | `jp_ig_feed_equipe_jeferson_barbosa_v01.png` | Jeferson Barbosa |
 | story-templates | `jp_ig_st01_bom_dia_v01.png` | A JP está aberta. |
 | story-templates | `jp_ig_st02_bastidor_v01.png` | Sala pronta para o primeiro da manhã. |

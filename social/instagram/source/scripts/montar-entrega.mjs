@@ -376,7 +376,6 @@ const DESTAQUES = [
       ["02_Ana-Beatriz", "03_ana_beatriz"],
       ["03_Matheus-Fraga", "04_matheus_fraga"],
       ["05_Hugo-Leonardo", "06_hugo_leonardo"],
-      ["06_Sabrina", "07_sabrina_vamszer"],
       ["08_Jeferson", "09_jeferson"],
       ["09_CTA", "10_cta"],
     ],
@@ -474,7 +473,6 @@ const MES2_POSTS = [
   ["POST_Fale-com-a-JP", "jp_ig_feed_s12_whatsapp_v01", "S12"],
   ["POST_Equipe-Juliana", "jp_ig_feed_equipe_juliana_pelisser_v01", "equipe:juliana"],
   ["POST_Equipe-Hugo-Leonardo", "jp_ig_feed_equipe_hugo_leonardo_v01", "equipe:hugo"],
-  ["POST_Equipe-Sabrina", "jp_ig_feed_equipe_sabrina_vamszer_v01", "equipe:sabrina"],
   ["POST_Equipe-Jeferson", "jp_ig_feed_equipe_jeferson_barbosa_v01", "equipe:jeferson"],
 ];
 const MES2_STORIES = [

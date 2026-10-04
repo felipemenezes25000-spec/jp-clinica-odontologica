@@ -45,15 +45,6 @@
       "registro": "CROSP 75.157"
     },
     {
-      "arquivo": "jp_ig_feed_equipe_sabrina_vamszer_v01",
-      "tipo": "feed-team",
-      "chip": "EQUIPE",
-      "foto": "/src/assets/sabrina-vamszer.webp",
-      "nome": "Dra. Sabrina Vamszer Flaquer",
-      "papel": "Endodontia",
-      "registro": "CROSP 162.394"
-    },
-    {
       "arquivo": "jp_ig_feed_equipe_jeferson_barbosa_v01",
       "tipo": "feed-team",
       "chip": "GESTÃO",

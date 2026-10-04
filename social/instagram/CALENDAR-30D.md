@@ -110,5 +110,5 @@ O que ficou para o mês 2 está em `ENTREGA/PROXIMO-MES`:
 - **Reels:** Quanto tempo leva · Um implante para cada dente · Idade máxima · O que avaliamos antes · Prótese protocolo · Implante x prótese · Por que planejamento importa · Clareamento
 - **Carrosséis:** Implante x prótese · Cuidados com implantes · Quando marcar uma avaliação · Aparelho x alinhador · Conheça a estrutura
 - **Posts:** 24 anos cuidando de sorrisos · Plano antes de proposta · Próteses e reabilitação · Fale com a JP
-- **Cards da equipe:** Dra. Juliana · Dr. Hugo · Dra. Sabrina · Jeferson
+- **Cards da equipe:** Dra. Juliana · Dr. Hugo · Jeferson
 - **Stories extras:** Bom dia · Pergunta aberta · Quem responde · Conceito educativo · Mito ou verdade

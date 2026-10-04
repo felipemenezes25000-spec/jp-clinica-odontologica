@@ -99,7 +99,6 @@ Oito retratos reais, todos enviados pela clínica.
 | `ana-beatriz.webp`       | Dra. Ana Beatriz — CROSP 177.801             | 600×728 | transparente     | silhueta sobre a forma de marca |
 | `matheus-fraga.webp`     | Dr. Matheus Fraga — CROSP 168.512            | 600×728 | transparente     | silhueta                        |
 | `hugo-leonardo.webp`     | Dr. Hugo Leonardo — CROSP 75.157             | 600×728 | transparente     | silhueta                        |
-| `sabrina-vamszer.webp`   | Dra. Sabrina Vamszer Flaquer — CROSP 162.394 | 600×728 | transparente     | silhueta                        |
 | `juliana-pelisser.webp`  | Dra. Juliana Pelisser Barbosa — CROSP 75.159 | 560×683 | **branco opaco** | moldura reta                    |
 | `jeferson-barbosa.webp`  | Jeferson Barbosa — Gestor e fundador         | 318×336 | **cinza opaco**  | moldura reta                    |
 

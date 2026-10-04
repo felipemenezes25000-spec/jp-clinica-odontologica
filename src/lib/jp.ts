@@ -447,7 +447,7 @@ export const EQUIPE: MembroEquipe[] = [
    *
    * O formato "CROSP 000.000" acompanha o da responsável técnica, que já
    * estava no site. As carteiras e os avisos da clínica trazem o número sem
-   * ponto ("SP-162394") — o ponto é só de exibição.
+   * ponto ("SP-177801") — o ponto é só de exibição.
    *
    * Os cinco dentistas fictícios que ocupavam esta lista (CRO-SP 00.001 a
    * 00.005, retratos de IA) saíram daqui. Os arquivos deles continuam em

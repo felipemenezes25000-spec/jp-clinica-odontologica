@@ -39,5 +39,4 @@
 | `jp_ig_feed_equipe_ana_beatriz_v01` | EQUIPE | Dra. Ana Beatriz | Coordenadora e cirurgiã-dentista<br>CROSP 177.801 |
 | `jp_ig_feed_equipe_matheus_fraga_v01` | EQUIPE | Dr. Matheus Fraga | Odontopediatria e endodontia<br>CROSP 168.512 |
 | `jp_ig_feed_equipe_hugo_leonardo_v01` | EQUIPE | Dr. Hugo Leonardo | Ortodontia<br>CROSP 75.157 |
-| `jp_ig_feed_equipe_sabrina_vamszer_v01` | EQUIPE | Dra. Sabrina Vamszer Flaquer | Endodontia<br>CROSP 162.394 |
 | `jp_ig_feed_equipe_jeferson_barbosa_v01` | GESTÃO | Jeferson Barbosa | Gestor e fundador · Comunicação Social — Relações Públicas |

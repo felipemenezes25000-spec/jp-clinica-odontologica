@@ -184,7 +184,7 @@ Estas são as versões faladas dos Reels já produzidos em motion. Grave **uma p
 > Essa primeira consulta costuma ser de orientação: higiene, mamadeira, chupeta, o que esperar dos primeiros dentes.
 > E um pedido aos pais: não prometam que 'não vai doer nada'. Se doer, a confiança quebra. Prefiram: 'o dentista vai olhar os seus dentes'."
 
-### Dra. Sabrina Vamszer Flaquer — "Cuidados com implante" (C05)
+### Dentista a definir — "Cuidados com implante" (C05)
 
 > "'Implante não tem cárie, então relaxa.' É aqui que o problema começa.
 > O implante não tem cárie mesmo. Mas a gengiva ao redor dele adoece — e é isso que faz implante falhar.

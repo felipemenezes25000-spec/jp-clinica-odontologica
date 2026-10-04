@@ -62,12 +62,6 @@
           "registro": "{{equipe.0.registro}}"
         },
         {
-          "foto": "/src/assets/sabrina-vamszer.webp",
-          "nome": "{{equipe.3.nome}}",
-          "papel": "{{equipe.3.papel}}",
-          "registro": "{{equipe.3.registro}}"
-        },
-        {
           "foto": "/src/assets/matheus-fraga.webp",
           "nome": "{{equipe.1.nome}}",
           "papel": "{{equipe.1.papel}}",

@@ -626,7 +626,6 @@ R. Rio Verde, 1029 — Vila Bruna, região da Freguesia do Ó.
 | `ana_beatriz`      | Dra. Ana Beatriz              | CROSP 177.801 | Coordenadora e cirurgiã-dentista         |
 | `matheus_fraga`    | Dr. Matheus Fraga             | CROSP 168.512 | Odontopediatria e endodontia             |
 | `hugo_leonardo`    | Dr. Hugo Leonardo             | CROSP 75.157  | Ortodontia                               |
-| `sabrina_vamszer`  | Dra. Sabrina Vamszer Flaquer  | CROSP 162.394 | Endodontia                               |
 | `jeferson_barbosa` | Jeferson Barbosa              | —             | Gestor e fundador · Comunicação Social   |
 
 > Jeferson **não recebe linha de registro**. CRO é dado regulado pelo CFO e atribuí-lo a quem não é do conselho seria afirmação falsa sobre uma pessoa real.

@@ -323,7 +323,6 @@ Onde estamos
 ├── 02_Ana-Beatriz.png
 ├── 03_Matheus-Fraga.png
 ├── 05_Hugo-Leonardo.png
-├── 06_Sabrina.png
 ├── 08_Jeferson.png
 └── 09_CTA.png
 ```

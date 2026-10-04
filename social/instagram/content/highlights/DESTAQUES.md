@@ -163,7 +163,6 @@
 | `jp_ig_dst_equipe_03_ana_beatriz` | EQUIPE | Dra. Ana Beatriz | Coordenadora e cirurgiã-dentista<br>CROSP 177.801 |
 | `jp_ig_dst_equipe_04_matheus_fraga` | EQUIPE | Dr. Matheus Fraga | Odontopediatria e endodontia<br>CROSP 168.512 |
 | `jp_ig_dst_equipe_06_hugo_leonardo` | EQUIPE | Dr. Hugo Leonardo | Ortodontia<br>CROSP 75.157 |
-| `jp_ig_dst_equipe_07_sabrina_vamszer` | EQUIPE | Dra. Sabrina Vamszer Flaquer | Endodontia<br>CROSP 162.394 |
 | `jp_ig_dst_equipe_09_jeferson` | GESTÃO | Jeferson Barbosa | Gestor e fundador · Comunicação Social — Relações Públicas |
 | `jp_ig_dst_equipe_10_cta` | PRÓXIMO PASSO | Marque com quem você já conhece. | Segunda a sexta, 08:00 às 18:00. Nossa recepção responde e explica como funciona a avaliação.<br>**CTA:** WhatsApp (11) 97616-5117 |
 
