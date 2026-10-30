@@ -5,7 +5,6 @@ import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
 import fotoMatheus from "@/assets/matheus-fraga.webp";
-import fotoAnaLucia from "@/assets/ana-lucia.webp";
 import fotoFelipeMendes from "@/assets/felipe-mendes.webp";
 import fotoGuilherme from "@/assets/guilherme-fazzato.webp";
 import fotoVitorMendes from "@/assets/vitor-mendes.webp";
@@ -547,19 +546,6 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 168.799",
     papel: "Prótese e dentística",
     foto: fotoFelipeMendes,
-  },
-  {
-    /**
-     * Apoio geral — não é do conselho, então não tem `registro` e o card omite
-     * o bloco "Registro". Sobrenome não informado pela clínica (03/10/2026).
-     *
-     * Retrato enviado pela clínica em 03/10/2026, recortado no mesmo
-     * enquadramento dos demais; o fundo cinza-azulado é o do original, o mesmo
-     * da foto da Dra. Juliana.
-     */
-    nome: "Ana Lúcia",
-    papel: "Apoio geral",
-    foto: fotoAnaLucia,
   },
 ];
 
