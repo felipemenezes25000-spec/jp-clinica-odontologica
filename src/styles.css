@@ -1923,6 +1923,14 @@ textarea.rh-campo {
   --sombra-2: 0 2px 6px rgb(3 47 1 / 0.05), 0 28px 60px -22px rgb(3 47 1 / 0.3);
   --sombra-botao: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 10px 24px -10px rgb(70 140 4 / 0.75);
 
+  /* As quatro distâncias de toda seção, e não existe quinta:
+     sobretítulo → título, título → texto de abertura, cabeça da seção →
+     conteúdo, e o vão entre cartões de uma grade. */
+  --ritmo-1: 0.75rem;
+  --ritmo-2: clamp(0.875rem, 0.75rem + 0.4vw, 1.125rem);
+  --ritmo-3: clamp(1.75rem, 1.25rem + 1.4vw, 2.75rem);
+  --vao-grade: clamp(0.875rem, 0.7rem + 0.5vw, 1.25rem);
+
   --margem: clamp(1rem, 0.4rem + 1.6vw, 2rem);
   --raio-sm: 12px;
   --raio: 20px;
@@ -2009,11 +2017,20 @@ textarea.rh-campo {
     width: min(100% - var(--margem) * 2, 1680px);
     margin-inline: auto;
   }
+  /* Ritmo compacto (06/11/2026, pedido da clínica: "evite espaçamentos").
+     Uma seção ocupa o que o conteúdo pede; o vão entre duas seções nunca
+     passa de ~176px no desktop (88 + 88) nem de ~104px no celular. */
   .secao {
-    padding-block: clamp(4.5rem, 2rem + 6vw, 8.5rem);
+    padding-block: clamp(3.25rem, 1.75rem + 3.5vw, 5.5rem);
   }
   .secao-curta {
-    padding-block: clamp(3.5rem, 2rem + 4vw, 6rem);
+    padding-block: clamp(2.5rem, 1.5rem + 2.5vw, 4rem);
+  }
+  /* Duas seções seguidas no mesmo fundo somariam os dois respiros: a de baixo
+     começa mais perto. */
+  .secao:not(.secao-clara):not(.campo-escuro) + .secao:not(.secao-clara):not(.campo-escuro),
+  .secao-clara + .secao-clara {
+    padding-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
   }
   .secao-clara {
     background: var(--chao-2);

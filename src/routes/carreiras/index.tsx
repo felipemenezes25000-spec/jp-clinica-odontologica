@@ -327,7 +327,7 @@ function PaginaCarreiras() {
 
               <div className="car-fotos">
                 <div data-obturador>
-                  <MolduraCoroa proporcao={0.8}>
+                  <MolduraCoroa proporcao={0.85}>
                     <img
                       src={recepcaoImg}
                       alt="Corredor da recepção da JP, com o balcão e as cadeiras verdes da sala de espera"
@@ -340,7 +340,7 @@ function PaginaCarreiras() {
                   </MolduraCoroa>
                 </div>
                 <div data-obturador>
-                  <MolduraCoroa proporcao={0.9}>
+                  <MolduraCoroa proporcao={0.85}>
                     <img
                       src={cantinhoCafeImg}
                       alt="Cantinho do café da equipe, com o purificador de água e a garrafa térmica"
@@ -408,7 +408,7 @@ function PaginaCarreiras() {
                 <p className="sobretitulo" data-item>
                   Vagas
                 </p>
-                <h2 id="car-vagas" className="text-titulo mt-4" data-item>
+                <h2 id="car-vagas" className="text-titulo mt-[var(--ritmo-1)]" data-item>
                   {total === 0 ? "Nenhuma vaga aberta agora." : "Encontre a sua vaga."}
                 </h2>
               </div>
@@ -432,10 +432,10 @@ function PaginaCarreiras() {
                   <h3 className="text-frase" data-item>
                     Entre no banco de talentos.
                   </h3>
-                  <p className="mt-4 max-w-[46ch] text-tinta-suave" data-item>
+                  <p className="mt-[var(--ritmo-2)] max-w-[46ch] text-tinta-suave" data-item>
                     {config.mensagemSemVagas}
                   </p>
-                  <div className="mt-8" data-item>
+                  <div className="mt-[var(--ritmo-3)]" data-item>
                     <a href="/trabalhe-conosco" className="botao botao-acento" data-ima>
                       Entrar no banco de talentos
                       <ArrowUpRight aria-hidden="true" />
@@ -572,13 +572,13 @@ function PaginaCarreiras() {
                       <h3 className="text-frase">Nenhuma vaga com esses filtros.</h3>
                       {/* A frase inteira entra no ternário: com uma vaga só, trocar
                           apenas o miolo deixaria "As vaga aberta … continuam". */}
-                      <p className="mt-4 max-w-[46ch] text-tinta-suave">
+                      <p className="mt-[var(--ritmo-2)] max-w-[46ch] text-tinta-suave">
                         {total === 1
                           ? "A única vaga aberta da clínica continua no ar — só não bate com o que você marcou."
                           : `As ${total} vagas abertas da clínica continuam no ar — só não batem com o que você marcou.`}{" "}
                         Tire um filtro e veja todas.
                       </p>
-                      <div className="mt-8">
+                      <div className="mt-[var(--ritmo-3)]">
                         <button
                           type="button"
                           onClick={limparFiltros}
@@ -611,16 +611,16 @@ function PaginaCarreiras() {
                 <p className="sobretitulo" data-item>
                   Fale com o RH
                 </p>
-                <h2 id="car-rh" className="text-titulo mt-4" data-item>
+                <h2 id="car-rh" className="text-titulo mt-[var(--ritmo-1)]" data-item>
                   {config.aceitandoEspontanea ? "Não achou a sua vaga?" : "Dúvida sobre uma vaga?"}
                 </h2>
-                <p className="mt-6 max-w-[40ch] text-tinta-suave" data-item>
+                <p className="mt-[var(--ritmo-2)] max-w-[40ch] text-tinta-suave" data-item>
                   {config.aceitandoEspontanea
                     ? "Deixe seu currículo no banco de talentos. A clínica guarda os currículos e chama primeiro quem já se apresentou quando abre uma vaga do perfil."
                     : "Fale com a gente pelos canais ao lado — respondemos em horário comercial, de segunda a sexta."}
                 </p>
                 {config.aceitandoEspontanea ? (
-                  <div className="mt-8" data-item>
+                  <div className="mt-[var(--ritmo-3)]" data-item>
                     <a href="/trabalhe-conosco" className="botao botao-acento" data-ima>
                       Cadastrar meu currículo
                       <ArrowUpRight aria-hidden="true" />

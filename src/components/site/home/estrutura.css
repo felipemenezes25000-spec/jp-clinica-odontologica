@@ -15,8 +15,8 @@
 @layer components {
   .estrutura-cabeca {
     display: grid;
-    gap: 1.25rem 4rem;
-    align-items: end;
+    gap: var(--ritmo-2) clamp(2rem, 1rem + 3vw, 4rem);
+    align-items: start;
   }
   @media (min-width: 1024px) {
     .estrutura-cabeca {
@@ -24,7 +24,7 @@
     }
   }
   .estrutura-titulo {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-1);
     max-width: 14ch;
   }
   .estrutura-lide {
@@ -37,20 +37,18 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-rows: 9rem;
     grid-auto-flow: row dense;
-    gap: 0.75rem;
-    margin-top: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   @media (min-width: 640px) {
     .estrutura-grade {
       grid-auto-rows: clamp(9.5rem, 22vw, 14rem);
-      gap: 1rem;
     }
   }
   @media (min-width: 1024px) {
     .estrutura-grade {
       grid-template-columns: repeat(4, minmax(0, 1fr));
       grid-auto-rows: clamp(11rem, 15.5vw, 17rem);
-      gap: 1.25rem;
     }
   }
 

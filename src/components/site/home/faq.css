@@ -84,8 +84,8 @@
   .faq-ajuda {
     display: grid;
     gap: 1rem;
-    margin-top: 2.25rem;
-    padding: 1.5rem;
+    margin-top: var(--ritmo-3);
+    padding: 1.25rem 1.5rem;
     max-width: 26rem;
   }
   .faq-ajuda-topo {

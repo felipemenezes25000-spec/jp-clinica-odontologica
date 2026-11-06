@@ -8,7 +8,7 @@
 
 @layer components {
   .convenios-secao {
-    padding-block: clamp(2.5rem, 1.5rem + 3vw, 4.5rem) clamp(3rem, 2rem + 3vw, 5rem);
+    padding-block: clamp(2.5rem, 1.5rem + 2.5vw, 4rem);
   }
 
   .convenios-cabeca {
@@ -17,10 +17,10 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 1rem 2rem;
-    margin-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    margin-bottom: var(--ritmo-3);
   }
   .convenios-titulo {
-    margin-top: 0.9rem;
+    margin-top: var(--ritmo-1);
     max-width: 20ch;
     font-size: clamp(1.875rem, 1.3rem + 2vw, 3rem);
     line-height: 1.04;
@@ -46,7 +46,7 @@
   .convenios-faixa {
     --faixa-vao: 0.875rem;
     /* Espaço para a sombra dos cartões não ser cortada pelo overflow da faixa. */
-    padding-block: 0.5rem 1.25rem;
+    padding-block: 0.5rem;
   }
   .convenios-fila {
     display: flex;
@@ -113,7 +113,7 @@
   }
 
   .convenios-ressalva {
-    margin-top: 1.25rem;
+    margin-top: var(--vao-grade);
     max-width: 62rem;
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);

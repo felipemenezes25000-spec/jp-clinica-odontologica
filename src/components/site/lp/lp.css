@@ -33,27 +33,25 @@
     max-width: 48rem;
   }
   .lp-cabeca .text-titulo {
-    margin-top: 0.9rem;
+    margin-top: var(--ritmo-1);
   }
   .lp-intro {
     max-width: 33.7em; /* ~52ch na Bricolage */
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-2);
   }
   .lp-chamada {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75rem 1.5rem;
-    margin-top: 2.25rem;
+    margin-top: var(--ritmo-3);
   }
   .lp-chamada p {
     max-width: 22em; /* ~34ch na Bricolage */
   }
-  .lp-chamada-baixo {
-    margin-top: 2.5rem;
-  }
+  .lp-chamada-baixo,
   .lp-chamada-lado {
-    margin-top: 2rem;
+    margin-top: var(--ritmo-3);
   }
   @media (max-width: 639px) {
     .lp-chamada {
@@ -69,12 +67,12 @@
   /* Duas colunas: o cabeçalho grudado de um lado, o conteúdo do outro. */
   .lp-duas {
     display: grid;
-    gap: 2.5rem;
+    gap: var(--ritmo-3);
   }
   @media (min-width: 1024px) {
     .lp-duas {
       grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(2.5rem, 5vw, 5rem);
       align-items: start;
     }
     .lp-duas-lado {
@@ -87,17 +85,17 @@
   .lp-topo {
     position: relative;
     overflow: clip;
-    padding-block: clamp(1.25rem, 0.75rem + 2.4vw, 4rem) clamp(3rem, 2rem + 4vw, 6rem);
+    padding-block: clamp(1.25rem, 0.75rem + 2.4vw, 4rem) clamp(2.5rem, 1.5rem + 3vw, 4rem);
   }
   .lp-topo-grade {
     display: grid;
-    gap: clamp(2rem, 1.25rem + 3vw, 4rem);
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .lp-topo-grade {
       grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-      gap: clamp(3rem, 1rem + 4vw, 6rem);
+      gap: clamp(2.5rem, 1rem + 4vw, 5rem);
     }
   }
 
@@ -127,7 +125,7 @@
   /* Procedimento em tinta, bairro em verde de texto: a busca inteira numa
      olhada. As duas linhas cabem em 390, 768 e 1440. */
   .lp-h1 {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-2);
     font-size: clamp(2.25rem, 1rem + 3.4vw, 4.25rem);
     line-height: 1;
     letter-spacing: -0.045em;
@@ -144,7 +142,7 @@
 
   .lp-frase {
     max-width: 24.6em; /* ~38ch na Bricolage */
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-2);
     font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
     line-height: 1.5;
     color: var(--tinta-suave);
@@ -170,14 +168,14 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 1.75rem;
+    margin-top: var(--ritmo-3);
   }
 
   /* Três provas curtas numa linha: rostos, convênios, horário. */
   .lp-confianca {
     display: grid;
     gap: 0.5rem 1.75rem;
-    margin-top: 2rem;
+    margin-top: var(--ritmo-3);
     padding-top: 1.5rem;
     border-top: 1px solid var(--borda);
   }
@@ -260,9 +258,9 @@
   }
   @media (min-width: 1024px) {
     .lp-midia {
-      width: calc(100% - 2rem);
+      width: 100%;
       max-width: 33rem;
-      margin-right: 2rem;
+      margin-inline: auto 0;
     }
   }
   .lp-foto-topo {
@@ -306,7 +304,7 @@
 
   .lp-vidro-rt {
     position: absolute;
-    right: -1.5rem;
+    right: 0;
     bottom: 7%;
     display: flex;
     align-items: center;
@@ -370,7 +368,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem 2rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--ritmo-3);
   }
   .lp-convenios-titulo {
     margin-top: 0.4rem;
@@ -408,13 +406,12 @@
   /* ---- Por que a JP: cartões ------------------------------------------------------ */
   .lp-grade {
     display: grid;
-    gap: 1rem;
-    margin-top: 2.75rem;
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   @media (min-width: 768px) {
     .lp-grade {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1.25rem;
     }
   }
   .lp-cartao {
@@ -431,34 +428,35 @@
   }
   .lp-lista {
     display: grid;
-    gap: 1rem;
+    gap: var(--vao-grade);
   }
   .lp-lista .lp-cartao {
     grid-template-columns: auto 1fr;
     align-items: start;
     gap: 1.25rem;
   }
-  .lp-chamada-baixo.lp-chamada {
-    margin-top: 2.5rem;
-  }
 
   /* ---- A animação ilustrativa ------------------------------------------------------ */
   .lp-video {
     display: grid;
-    gap: 2.5rem;
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .lp-video {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(2.5rem, 5vw, 5rem);
     }
     .lp-video-invertido .lp-video-midia {
       order: -1;
+      justify-self: start;
+    }
+    .lp-video:not(.lp-video-invertido) .lp-video-midia {
+      justify-self: end;
     }
   }
   .lp-video-midia {
-    justify-self: center;
+    justify-self: start;
     width: min(100%, 34rem);
   }
   .lp-animacao {
@@ -475,13 +473,13 @@
     scale: 1.24;
   }
   .lp-legenda {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
     padding-inline: 0.5rem;
   }
   .lp-itens {
     display: grid;
     gap: 0.8rem;
-    margin-top: 1.75rem;
+    margin-top: var(--ritmo-3);
   }
   .lp-itens li {
     display: flex;
@@ -509,21 +507,22 @@
   /* ---- Como funciona: foto e passos numerados ------------------------------------- */
   .lp-passos {
     display: grid;
-    gap: 2.5rem;
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .lp-passos {
       grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(2.5rem, 5vw, 5rem);
     }
     .lp-passos-invertido .lp-passos-foto {
       order: 2;
+      justify-self: end;
     }
   }
   .lp-passos-foto {
     position: relative;
-    justify-self: center;
+    justify-self: start;
     width: min(100%, 34rem);
   }
   @media (min-width: 1024px) {
@@ -550,8 +549,8 @@
   }
   .lp-etapas {
     display: grid;
-    gap: 0.9rem;
-    margin-top: 2rem;
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
     counter-reset: passo;
   }
   .lp-etapas li {
@@ -582,8 +581,20 @@
   /* ---- A equipe ------------------------------------------------------------------------ */
   .lp-equipe {
     display: grid;
-    gap: 1.25rem;
-    margin-top: 2.75rem;
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
+  }
+  /* Seis cartões (a responsável e os cinco dentistas) numa grade só: 3x2 no
+     desktop, 2x3 no tablet, sem cartão sozinho na última fileira. */
+  @media (min-width: 640px) {
+    .lp-equipe {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .lp-equipe {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
   /* A responsável técnica abre a seção em cartão deitado: foto de um lado, nome
      e registro do outro. Os demais dentistas vêm embaixo, em grade. */
@@ -592,14 +603,13 @@
     grid-template-columns: 7rem minmax(0, 1fr);
     align-items: center;
     gap: 1rem;
-    max-width: 34rem;
     padding: 0.75rem 1rem 0.75rem 0.75rem;
   }
   @media (min-width: 640px) {
     .lp-rt {
-      grid-template-columns: 11rem minmax(0, 1fr);
-      gap: 1.75rem;
-      padding: 0.9rem 1.75rem 0.9rem 0.9rem;
+      grid-template-columns: 7rem minmax(0, 1fr);
+      gap: 1.25rem;
+      padding: 0.9rem 1.25rem 0.9rem 0.9rem;
     }
   }
   .lp-rt-foto {
@@ -609,11 +619,6 @@
     display: grid;
     gap: 0.2rem;
     line-height: 1.3;
-  }
-  @media (min-width: 640px) {
-    .lp-rt strong {
-      font-size: 1.375rem;
-    }
   }
   .lp-rt strong {
     font-size: 1.125rem;
@@ -631,10 +636,9 @@
     font-weight: 650;
     color: var(--acento-texto);
   }
+  /* A lista some como caixa: os dentistas entram na grade de .lp-equipe. */
   .lp-dentistas {
-    display: grid;
-    gap: 0.9rem;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    display: contents;
   }
   .lp-dentistas li {
     display: flex;
@@ -666,25 +670,20 @@
   /* ---- Avaliações ------------------------------------------------------------------------ */
   .lp-prova-topo {
     display: grid;
-    gap: 2rem;
-    margin-bottom: 2.5rem;
+    gap: var(--ritmo-3);
+    margin-bottom: var(--ritmo-3);
   }
   @media (min-width: 1024px) {
     .lp-prova-topo {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: end;
-      gap: 3rem;
+      gap: clamp(2.5rem, 5vw, 5rem);
     }
   }
   .lp-numeros {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.6rem;
-  }
-  @media (min-width: 640px) {
-    .lp-numeros {
-      gap: 0.9rem;
-    }
+    gap: var(--vao-grade);
   }
   .lp-numeros > div {
     display: flex;
@@ -723,14 +722,14 @@
   /* ---- Endereço ---------------------------------------------------------------------------- */
   .lp-endereco-grade {
     display: grid;
-    gap: 2.5rem;
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .lp-endereco-grade {
       grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
       justify-content: space-between;
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(2.5rem, 5vw, 5rem);
     }
     .lp-endereco-invertido .lp-fachada {
       order: -1;
@@ -738,8 +737,8 @@
   }
   .lp-contatos {
     display: grid;
-    gap: 0.75rem;
-    margin-top: 2rem;
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
     max-width: 38rem;
   }
   .lp-contatos li {
@@ -758,7 +757,7 @@
     color: var(--tinta);
   }
   .lp-fachada {
-    justify-self: center;
+    justify-self: start;
     width: min(100%, 26rem);
   }
   .lp-fachada-moldura {
@@ -778,7 +777,7 @@
   .lp-perguntas {
     display: grid;
     align-content: start;
-    gap: 0.75rem;
+    gap: var(--vao-grade);
   }
   .lp-pergunta {
     border: 1px solid var(--borda);
@@ -864,36 +863,36 @@
   }
   .lp-fechamento-grade {
     display: grid;
-    gap: 3rem;
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .lp-fechamento-grade {
       grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(2.5rem, 5vw, 5rem);
     }
   }
   .lp-fechamento-titulo {
     max-width: 10.4em; /* ~16ch na Bricolage */
-    margin-top: 0.9rem;
+    margin-top: var(--ritmo-1);
   }
   .lp-fechamento-acoes {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 2.25rem;
+    margin-top: var(--ritmo-3);
   }
   .lp-fechamento-nota {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem;
-    margin-top: 1.75rem;
+    margin-top: var(--ritmo-2);
     color: var(--sobre-campo-suave);
   }
   .lp-recepcao {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--vao-grade);
   }
   .lp-recepcao li {
     display: flex;

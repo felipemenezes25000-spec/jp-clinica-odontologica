@@ -44,7 +44,7 @@ export function ComoFunciona() {
           <p className="sobretitulo" data-item>
             Como funciona
           </p>
-          <h2 id="como-funciona-titulo" className="text-titulo mt-4" data-item>
+          <h2 id="como-funciona-titulo" className="text-titulo" data-item>
             Da primeira mensagem à consulta
           </h2>
         </div>

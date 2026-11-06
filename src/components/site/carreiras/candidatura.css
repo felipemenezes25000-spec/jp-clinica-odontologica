@@ -154,20 +154,24 @@
 
   /* ---- A página ----------------------------------------------------------------- */
   .cand-pagina {
-    padding-block: clamp(2rem, 5vw, 4.5rem) clamp(4rem, 9vw, 7rem);
+    padding-block: clamp(2rem, 1rem + 3vw, 3.5rem) clamp(3.25rem, 1.75rem + 3.5vw, 5.5rem);
   }
   .cand-grade {
     display: grid;
-    gap: clamp(2rem, 5vw, 3rem);
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
   }
   .cand-grade > * {
     min-width: 0;
   }
-  .cand-lateral > * + * {
-    margin-top: clamp(1.1rem, 1rem + 0.8vw, 1.6rem);
+  .cand-lateral > p.text-corpo {
+    margin-top: var(--ritmo-2);
+  }
+  .cand-lateral > .cand-lateral-nota,
+  .cand-lateral > .cand-lateral-foto {
+    margin-top: var(--ritmo-3);
   }
   .cand-lateral h1 {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-1);
     font-size: clamp(2.25rem, 1.4rem + 3.2vw, 4rem);
     line-height: 1.02;
   }
@@ -206,7 +210,7 @@
   @media (min-width: 1024px) {
     .cand-grade {
       grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      gap: clamp(3rem, 6vw, 6rem);
+      gap: clamp(2.5rem, 1rem + 3vw, 4.5rem);
       align-items: start;
     }
     .cand-lateral {
@@ -256,7 +260,7 @@
   /* O formulário: um cartão branco; os blocos numerados por contador CSS. */
   .cand-form {
     counter-reset: bloco;
-    padding: clamp(1.25rem, 0.5rem + 3.5vw, 3rem);
+    padding: clamp(1.25rem, 0.75rem + 2vw, 2rem);
     border: 1px solid var(--borda);
     border-radius: var(--raio-lg);
     background: var(--branco);
@@ -264,8 +268,8 @@
   }
   .cand-bloco {
     counter-increment: bloco;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
-    padding-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    margin-top: var(--ritmo-3);
+    padding-top: var(--ritmo-3);
     border-top: 1px solid var(--borda);
   }
   /* O primeiro bloco já ganha respiro do padding do cartão. */
@@ -278,7 +282,7 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: var(--ritmo-2);
     font-size: var(--text-frase);
     line-height: 1.16;
     letter-spacing: -0.02em;
@@ -483,7 +487,7 @@
   .cand-envio {
     display: flex;
     justify-content: flex-end;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    margin-top: var(--ritmo-3);
   }
   .cand-envio .botao {
     width: 100%;
@@ -505,18 +509,18 @@
   .cand-ok-topo {
     position: relative;
     overflow: clip;
-    padding-block: clamp(3rem, 8vw, 6rem);
+    padding-block: clamp(3.25rem, 1.75rem + 3.5vw, 5.5rem);
   }
   .cand-ok-grade {
     display: grid;
-    gap: 2.5rem;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
   }
   .cand-ok-selo {
     display: inline-grid;
     place-items: center;
     width: 3.5rem;
     height: 3.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--ritmo-2);
     border-radius: 999px;
     background: var(--acento);
     box-shadow: var(--sombra-botao);
@@ -555,8 +559,8 @@
   }
   .cand-depois {
     display: grid;
-    gap: 0.75rem;
-    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
     counter-reset: passo;
   }
   .cand-depois li {
@@ -599,7 +603,7 @@
     }
     .cand-depois {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1rem;
+      gap: var(--vao-grade);
     }
   }
 }

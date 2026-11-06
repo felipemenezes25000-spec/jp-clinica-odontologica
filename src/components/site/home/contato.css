@@ -26,16 +26,16 @@
 
   /* ---- O formulário -------------------------------------------------------- */
   .form-contato {
-    --p: clamp(1.5rem, 1rem + 2vw, 3rem);
+    --p: clamp(1.25rem, 0.9rem + 2vw, 2.5rem);
     display: grid;
-    gap: 2rem;
+    gap: var(--ritmo-3);
     padding: var(--p);
     border-radius: var(--raio-lg);
     box-shadow: var(--sombra-2);
   }
   .form-cab {
     display: grid;
-    gap: 1rem;
+    gap: var(--ritmo-2);
     justify-items: start;
   }
   .form-titulo {
@@ -48,11 +48,11 @@
 
   .form-campos {
     display: grid;
-    gap: 1.75rem;
+    gap: 1.5rem;
   }
   .form-dados {
     display: grid;
-    gap: 1rem;
+    gap: var(--vao-grade);
   }
   .form-campo {
     display: grid;
@@ -174,7 +174,7 @@
 
   .form-rodape {
     display: grid;
-    gap: 1.25rem;
+    gap: 1rem;
   }
   .form-rodape p {
     max-width: 62ch;
@@ -208,8 +208,8 @@
   }
   .contato-lista {
     display: grid;
-    gap: 1.5rem;
-    margin-top: 1.75rem;
+    gap: 1.25rem;
+    margin-top: var(--ritmo-2);
   }
   .contato-lista > li {
     display: grid;
@@ -294,10 +294,10 @@
     overflow: clip;
     isolation: isolate;
     display: grid;
-    gap: 2rem;
+    gap: var(--ritmo-3);
     align-items: center;
     margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
-    padding: clamp(2rem, 1rem + 4vw, 4.5rem);
+    padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
     border-radius: var(--raio-lg);
     background:
       radial-gradient(
@@ -309,7 +309,7 @@
   }
   .contato-fecho-titulo {
     max-width: 16ch;
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-1);
     font-size: clamp(2.25rem, 1.3rem + 3.2vw, 4.25rem);
     line-height: 1;
     letter-spacing: -0.04em;
@@ -317,7 +317,7 @@
   }
   .contato-fecho-frase {
     max-width: 44ch;
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-2);
     font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
     line-height: 1.5;
     color: var(--sobre-campo-suave);
@@ -327,7 +327,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.6rem;
-    margin-top: 1.75rem;
+    margin-top: var(--ritmo-3);
     font-size: var(--text-pequeno);
     color: var(--sobre-campo-suave);
   }
@@ -346,7 +346,7 @@
   @media (min-width: 1024px) {
     .contato-fecho {
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-      gap: 4rem;
+      gap: clamp(2rem, 1rem + 3vw, 3rem);
     }
     .contato-fecho-acoes {
       justify-items: stretch;

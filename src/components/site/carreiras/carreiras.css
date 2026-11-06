@@ -35,13 +35,13 @@
     min-width: 0;
   }
   .car-topo-titulo {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-1);
     font-size: clamp(2.5rem, 1.4rem + 3.6vw, 4.75rem);
     line-height: 1;
     letter-spacing: -0.045em;
   }
   .car-chamada {
-    margin-top: 1.5rem;
+    margin-top: var(--ritmo-2);
     max-width: 38ch;
     font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.3125rem);
     line-height: 1.55;
@@ -51,7 +51,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: clamp(1.75rem, 1.25rem + 1.5vw, 2.25rem);
+    margin-top: var(--ritmo-3);
   }
   @media (max-width: 639.98px) {
     .car-acoes > * {
@@ -148,7 +148,7 @@
     grid-template-columns: repeat(3, minmax(0, auto));
     justify-content: start;
     gap: 0.75rem;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    margin-top: var(--ritmo-3);
     max-width: 40rem;
   }
   .car-fatos > div {
@@ -191,11 +191,18 @@
   /* ---- A JP por dentro --------------------------------------------------------- */
   .car-porque {
     display: grid;
-    gap: clamp(2.5rem, 6vw, 4rem);
-    align-items: center;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+    align-items: start;
   }
-  .car-porque-texto > * + * {
-    margin-top: clamp(1.1rem, 1rem + 0.8vw, 1.6rem);
+  /* sobretítulo → título → abertura → citação, nas medidas padrão. */
+  .car-porque-texto > h2 {
+    margin-top: var(--ritmo-1);
+  }
+  .car-porque-texto > .car-sobre {
+    margin-top: var(--ritmo-2);
+  }
+  .car-porque-texto > .car-missao {
+    margin-top: var(--ritmo-3);
   }
   .car-sobre {
     max-width: 44ch;
@@ -207,13 +214,10 @@
   .car-fotos {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: clamp(0.75rem, 0.4rem + 1vw, 1.25rem);
+    gap: var(--vao-grade);
     align-items: start;
     width: min(100%, 38rem);
     justify-self: end;
-  }
-  .car-fotos > :last-child {
-    padding-top: clamp(1.5rem, 8vw, 4rem);
   }
   .car-fotos .moldura-coroa {
     box-shadow: var(--sombra-1);
@@ -224,8 +228,8 @@
   }
   .car-infos {
     display: grid;
-    gap: 0.75rem;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   .car-info {
     display: flex;
@@ -255,7 +259,10 @@
   @media (min-width: 1024px) {
     .car-porque {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(4rem, 7vw, 8rem);
+      gap: clamp(3rem, 1rem + 4vw, 5rem);
+      /* Coluna só de foto, mais baixa que o texto: centrada, a sobra se divide
+         em cima e embaixo em vez de ficar toda sob as fotos. */
+      align-items: center;
     }
   }
 
@@ -263,7 +270,7 @@
   .car-filtros {
     display: grid;
     gap: 1.25rem;
-    margin-top: clamp(1.75rem, 3vw, 2.5rem);
+    margin-top: var(--ritmo-3);
     padding: clamp(1.1rem, 1rem + 1vw, 1.75rem);
     border: 1px solid var(--borda);
     border-radius: var(--raio);
@@ -373,8 +380,8 @@
      teclado e leitor de tela) e sobe no hover. */
   .car-lista {
     display: grid;
-    gap: 0.9rem;
-    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   .car-linha {
     position: relative;
@@ -491,10 +498,10 @@
   /* ---- Estado vazio ------------------------------------------------------------ */
   .car-vazio {
     display: grid;
-    gap: 2.5rem;
-    align-items: center;
-    margin-top: clamp(1.5rem, 3vw, 2.25rem);
-    padding: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    align-items: start;
+    margin-top: var(--ritmo-3);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
     border: 1px solid var(--borda);
     border-radius: var(--raio-lg);
     background: var(--branco);
@@ -509,7 +516,7 @@
   @media (min-width: 900px) {
     .car-vazio {
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-      gap: clamp(2rem, 5vw, 5rem);
+      gap: clamp(2rem, 1rem + 3vw, 3.5rem);
     }
     .car-vazio-foto {
       justify-self: end;
@@ -559,12 +566,12 @@
      disputando (um do paciente, um do candidato). */
   .car-rh {
     display: grid;
-    gap: clamp(2rem, 5vw, 3rem);
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
     align-items: center;
   }
   .car-rh-canais {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--vao-grade);
   }
   .car-rh-canal {
     display: grid;
@@ -596,7 +603,7 @@
   @media (min-width: 1024px) {
     .car-rh {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: clamp(4rem, 7vw, 8rem);
+      gap: clamp(3rem, 1rem + 4vw, 5rem);
     }
   }
 
@@ -645,7 +652,7 @@
      linhas no celular, nunca um `max-width` em `ch`. O texto completo segue no
      JSON-LD. */
   .vg-titulo {
-    margin-top: 1rem;
+    margin-top: var(--ritmo-1);
     max-width: 100%;
     text-wrap: balance;
     hyphens: auto;
@@ -665,7 +672,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
-    margin-top: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+    margin-top: var(--ritmo-2);
   }
   .vg-etiquetas li {
     display: inline-flex;
@@ -700,7 +707,7 @@
     color: var(--acento-texto);
   }
   .vg-resumo-hero {
-    margin-top: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    margin-top: var(--ritmo-2);
     max-width: 44ch;
     color: var(--tinta-suave);
   }
@@ -710,10 +717,10 @@
 
   .vg-corpo {
     display: grid;
-    gap: clamp(2.5rem, 5vw, 4rem);
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
   }
   .vg-prosa > * + * {
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+    margin-top: var(--ritmo-3);
   }
   .vg-prosa h2,
   .vg-resumo h2 {
@@ -722,7 +729,7 @@
     letter-spacing: -0.02em;
   }
   .vg-paragrafos {
-    margin-top: 1rem;
+    margin-top: var(--ritmo-2);
     max-width: 62ch;
   }
   .vg-paragrafos > * + * {
@@ -731,7 +738,7 @@
   .vg-lista {
     display: grid;
     gap: 0.75rem 2rem;
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-2);
   }
   .vg-lista li {
     display: flex;
@@ -786,8 +793,8 @@
      não precisam de dois blocos empilhados com o mesmo desenho. */
   .vg-par {
     display: grid;
-    gap: clamp(2rem, 4vw, 3rem);
-    padding: clamp(1.25rem, 1rem + 2vw, 2.5rem);
+    gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
   }
   .vg-par .vg-lista {
     grid-template-columns: minmax(0, 1fr);
@@ -877,7 +884,7 @@
     .vg-corpo {
       grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
       align-items: start;
-      gap: clamp(3rem, 6vw, 6rem);
+      gap: clamp(3rem, 1rem + 4vw, 5rem);
     }
     /* Grudento, mas nunca mais alto do que a janela útil: um cartão sticky
        maior que a tela esconde justamente o fim dele. Se não couber, rola por

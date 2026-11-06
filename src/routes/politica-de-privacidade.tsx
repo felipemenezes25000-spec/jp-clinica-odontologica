@@ -55,7 +55,7 @@ function Secao({ id, children }: { id: IdSecao; children: ReactNode }) {
       <h2 id={`${id}-titulo`} className="text-frase">
         {titulo}
       </h2>
-      <div className="politica-texto mt-5 space-y-4">{children}</div>
+      <div className="politica-texto mt-[var(--ritmo-2)] space-y-4">{children}</div>
     </section>
   );
 }
@@ -136,12 +136,12 @@ function PoliticaDePrivacidade() {
               <h1 id="politica-titulo" data-item className="politica-titulo">
                 Política de Privacidade
               </h1>
-              <p data-item className="text-corpo mt-6 max-w-[52ch] text-tinta-suave">
+              <p data-item className="text-corpo mt-[var(--ritmo-2)] max-w-[52ch] text-tinta-suave">
                 Esta política explica de forma direta como a {CLINICA.nome} trata os dados enviados
                 pelo site, inclusive quando você pede contato, inicia uma conversa no WhatsApp ou se
                 candidata a uma vaga.
               </p>
-              <p data-item className="selo mt-6">
+              <p data-item className="selo mt-[var(--ritmo-2)]">
                 Última atualização: {ATUALIZADA_EM}
               </p>
             </div>
@@ -150,7 +150,7 @@ function PoliticaDePrivacidade() {
               <h2 id="resumo-titulo" className="text-frase">
                 Em resumo
               </h2>
-              <ul className="mt-5 grid gap-3">
+              <ul className="mt-[var(--ritmo-2)] grid gap-3">
                 {[
                   ["Transparência", "Você sabe o que entra e para quê."],
                   ["Acesso restrito", "Dados internos não ficam expostos no site."],
@@ -171,7 +171,7 @@ function PoliticaDePrivacidade() {
           </div>
         </section>
 
-        <div className="quadro grid gap-12 pt-[clamp(1rem,0.5rem+2vw,2.5rem)] pb-[clamp(5rem,3rem+6vw,9rem)] lg:grid-cols-[17rem_minmax(0,68ch)] lg:justify-between lg:gap-16">
+        <div className="quadro grid gap-8 pt-[var(--ritmo-3)] pb-[clamp(3.25rem,1.75rem+3.5vw,5.5rem)] lg:grid-cols-[17rem_minmax(0,68ch)] lg:justify-start lg:gap-[clamp(3rem,1rem+4vw,5rem)]">
           {/* Dois sumários, um por largura: no celular ele é um <details> fechado
               (dez itens de 44px empurrariam o texto para uma tela abaixo); no
               desktop é a lista aberta e grudada. O conteúdo é o mesmo. */}
@@ -362,14 +362,14 @@ function PoliticaDePrivacidade() {
               <h2 id="duvidas-titulo" className="text-frase">
                 Dúvidas sobre seus dados?
               </h2>
-              <p className="text-corpo mt-3">
+              <p className="text-corpo mt-[var(--ritmo-1)]">
                 Fale diretamente com a JP e informe que o assunto é Privacidade/LGPD.
               </p>
               <a
                 href={CLINICA.whatsappHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="botao botao-acento mt-6"
+                className="botao botao-acento mt-[var(--ritmo-2)] max-sm:w-full"
               >
                 <MessageCircle aria-hidden="true" />
                 Falar pelo WhatsApp

@@ -33,10 +33,10 @@ export function ReviewsSection() {
         <div className="avaliacoes-cabeca" data-entra>
           <div className="avaliacoes-texto" data-item>
             <p className="sobretitulo">Avaliações no Google</p>
-            <h2 id="depoimentos-titulo" className="text-titulo mt-4">
+            <h2 id="depoimentos-titulo" className="text-titulo">
               O que dizem da JP no Google
             </h2>
-            <p className="text-corpo mt-5 max-w-[34ch] text-tinta-suave">
+            <p className="text-corpo max-w-[34ch] text-tinta-suave">
               Palavras de quem já foi atendido, como foram publicadas na ficha da clínica.
             </p>
           </div>

@@ -64,8 +64,12 @@
   .carrossel-janela::-webkit-scrollbar {
     display: none;
   }
+  /* Cada cartão na altura do próprio depoimento (o longo já vem recolhido
+     com "ler avaliação completa"): esticar todos até o mais alto deixava
+     um vão vazio dentro dos curtos. */
   .carrossel-trilho {
     display: flex;
+    align-items: flex-start;
     margin-left: -1rem;
     touch-action: pan-y pinch-zoom;
   }

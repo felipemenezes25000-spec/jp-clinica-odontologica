@@ -5,13 +5,13 @@
 @layer components {
   .clinica-grade {
     display: grid;
-    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    gap: clamp(2rem, 1.25rem + 2.5vw, 3rem);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .clinica-grade {
       grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-      gap: clamp(3rem, 1rem + 4vw, 6rem);
+      gap: clamp(2.5rem, 1rem + 3vw, 4.5rem);
     }
   }
 
@@ -19,6 +19,12 @@
   .clinica-midia {
     margin-inline: auto;
     width: min(100%, 30rem);
+  }
+  /* Desktop: a foto encosta na borda esquerda do quadro. */
+  @media (min-width: 1024px) {
+    .clinica-midia {
+      margin-left: 0;
+    }
   }
   .clinica-midia-miolo {
     position: relative;
@@ -57,7 +63,7 @@
   .clinica-selo-google {
     position: absolute;
     bottom: 6%;
-    left: -1.25rem;
+    left: 1rem;
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
@@ -84,12 +90,12 @@
 
   /* ---- Texto e princípios ----------------------------------------------------- */
   .clinica-titulo {
-    margin-top: 1rem;
+    margin-top: var(--ritmo-1);
     max-width: 14ch;
     font-size: clamp(2.25rem, 1.3rem + 3vw, 4rem);
   }
   .clinica-lead {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-2);
     max-width: 44ch;
     font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
     line-height: 1.55;
@@ -98,8 +104,8 @@
 
   .clinica-pontos {
     display: grid;
-    gap: 1rem;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   @media (min-width: 640px) {
     .clinica-pontos {
@@ -111,10 +117,10 @@
   }
   .clinica-ponto {
     flex: 1;
-    padding: 1.5rem;
+    padding: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
   }
   .clinica-ponto-titulo {
-    margin-top: 1.1rem;
+    margin-top: 0.9rem;
     font-size: clamp(1.1875rem, 1.1rem + 0.35vw, 1.375rem);
     font-weight: 600;
     line-height: 1.2;

@@ -57,21 +57,23 @@ function DeadEnd({
         </a>
       </div>
 
-      <div className="quadro flex flex-1 items-center justify-center py-12 md:py-20">
+      <div className="quadro flex flex-1 items-center justify-start py-[clamp(2rem,1rem+3vw,4rem)]">
         <div
           data-chega
-          className="cartao w-full max-w-[46rem] p-7 sm:p-12"
+          className="cartao w-full max-w-[48rem] p-[clamp(1.25rem,1rem+1.5vw,2rem)]"
           style={{ boxShadow: "var(--sombra-2)" }}
         >
           <p className="selo">{rotulo}</p>
-          <h1 className="text-titulo mt-6">{headline}</h1>
-          <p className="text-corpo mt-5 max-w-[46ch] text-tinta-suave">{body}</p>
-          <div className="mt-8 flex flex-wrap gap-3 max-sm:[&>*]:w-full">{children}</div>
+          <h1 className="text-titulo mt-[var(--ritmo-1)]">{headline}</h1>
+          <p className="text-corpo mt-[var(--ritmo-2)] max-w-[46ch] text-tinta-suave">{body}</p>
+          <div className="mt-[var(--ritmo-3)] flex flex-wrap gap-3 max-sm:[&>*]:w-full">
+            {children}
+          </div>
           {/* Quem cai aqui vindo de um anúncio ainda quer falar com a clínica:
               o contato não depende do resto do site estar de pé, então são
               links diretos, sem passar pelo rastreio de contato. */}
           <p
-            className="text-pequeno mt-8 pt-6 text-tinta-suave"
+            className="text-pequeno mt-[var(--ritmo-3)] pt-[var(--ritmo-2)] text-tinta-suave"
             style={{ borderTop: "1px solid var(--borda)" }}
           >
             Prefere falar agora?{" "}

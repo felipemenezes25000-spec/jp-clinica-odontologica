@@ -70,7 +70,7 @@ export function TeamSection() {
         <div className="equipe-cabeca" data-entra>
           <div data-item>
             <p className="sobretitulo">Quem atende você</p>
-            <h2 id="equipe-titulo" className="text-titulo mt-4">
+            <h2 id="equipe-titulo" className="text-titulo">
               Dentistas com nome e CRO
             </h2>
           </div>

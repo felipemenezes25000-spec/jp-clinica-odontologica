@@ -22,17 +22,17 @@
   .tt-topo {
     position: relative;
     overflow: clip;
-    padding-block: clamp(1.75rem, 1rem + 3vw, 4.5rem) clamp(3.5rem, 2rem + 5vw, 7rem);
+    padding-block: clamp(1.5rem, 1rem + 2vw, 3rem) clamp(3rem, 2rem + 3vw, 5rem);
   }
   .tt-topo-grade {
     display: grid;
-    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
     .tt-topo-grade {
       grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-      gap: clamp(3rem, 1rem + 4vw, 6rem);
+      gap: clamp(2.5rem, 1rem + 3vw, 4.5rem);
     }
   }
 
@@ -41,7 +41,7 @@
     align-items: center;
     gap: 0.5rem;
     min-height: 2.75rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--ritmo-1);
     color: var(--tinta-suave);
     font-size: var(--text-pequeno);
   }
@@ -78,7 +78,7 @@
 
   /* O H1 nasce parado no HTML do servidor: é o LCP de uma página de anúncio. */
   .tt-h1 {
-    margin-top: 1.5rem;
+    margin-top: var(--ritmo-2);
     font-size: clamp(2.5rem, 1.3rem + 4vw, 4.75rem);
     line-height: 1;
     letter-spacing: -0.045em;
@@ -95,7 +95,7 @@
     display: block;
   }
   .tt-frase {
-    margin-top: 1.5rem;
+    margin-top: var(--ritmo-2);
     max-width: 19.4em; /* ~30ch na Bricolage */
     font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.625rem);
     font-weight: 600;
@@ -104,7 +104,7 @@
     color: var(--tinta);
   }
   .tt-desc {
-    margin-top: 0.75rem;
+    margin-top: var(--ritmo-1);
     max-width: 31.1em; /* ~48ch na Bricolage */
     font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
     line-height: 1.55;
@@ -115,7 +115,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 2rem;
+    margin-top: var(--ritmo-3);
   }
   .tt-acoes .button-primary {
     white-space: normal;
@@ -131,8 +131,8 @@
   .tt-confianca {
     display: grid;
     gap: 1rem 1.75rem;
-    margin-top: 2rem;
-    padding-top: 1.5rem;
+    margin-top: var(--ritmo-3);
+    padding-top: var(--ritmo-3);
     border-top: 1px solid var(--borda);
   }
   @media (min-width: 640px) {
@@ -296,22 +296,29 @@
   /* ---- Grades e leitura ------------------------------------------------------ */
   .tt-grade {
     display: grid;
-    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    gap: var(--ritmo-3);
   }
   .tt-leitura {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+    gap: var(--ritmo-2);
   }
+  /* sobretítulo → título é o passo curto; o bloco de conteúdo abre o passo longo. */
   .tt-leitura > .text-titulo {
-    margin-top: -0.25rem;
+    margin-top: calc(var(--ritmo-1) - var(--ritmo-2));
+  }
+  .tt-leitura > div {
+    margin-top: calc(var(--ritmo-3) - var(--ritmo-2));
   }
   .tt-cabeca {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: var(--ritmo-1);
+  }
+  .tt-cabeca > .tt-intro {
+    margin-top: calc(var(--ritmo-2) - var(--ritmo-1));
   }
   .tt-intro {
     max-width: 33.7em; /* ~52ch na Bricolage */
@@ -322,7 +329,7 @@
     font-weight: 500;
   }
   .tt-subtitulo {
-    margin-bottom: 0.9rem;
+    margin-bottom: var(--ritmo-1);
     font-size: var(--text-corpo);
     font-weight: 650;
     letter-spacing: -0.01em;
@@ -366,7 +373,7 @@
   /* ---- O que é -------------------------------------------------------------- */
   .tt-beneficios {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--vao-grade);
     width: 100%;
     max-width: 34rem;
   }
@@ -408,8 +415,8 @@
   @media (min-width: 1024px) {
     .tt-grade-entenda {
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      column-gap: clamp(3rem, 6vw, 7rem);
-      align-items: center;
+      column-gap: clamp(2.5rem, 1rem + 3.5vw, 4.5rem);
+      align-items: start;
     }
     .tt-foto-entenda {
       max-width: none;
@@ -424,8 +431,8 @@
   }
   .tt-cenarios {
     display: grid;
-    align-content: center;
-    gap: 1rem;
+    align-content: start;
+    gap: var(--vao-grade);
   }
   .tt-cenario {
     display: flex;
@@ -438,9 +445,11 @@
     line-height: 1.3;
   }
   @media (min-width: 1024px) {
+    /* A coluna da esquerda (texto + foto) é mais alta que a lista: centrada,
+       a lista não deixa um vão inteiro embaixo dela. */
     .tt-grade-paraquem {
       grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-      column-gap: clamp(3rem, 6vw, 7rem);
+      column-gap: clamp(2.5rem, 1rem + 3.5vw, 4.5rem);
       align-items: center;
     }
   }
@@ -448,8 +457,8 @@
   /* ---- Etapas ---------------------------------------------------------------- */
   .tt-passos {
     display: grid;
-    gap: 1rem;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   .tt-passo {
     display: flex;
@@ -484,7 +493,6 @@
   @media (min-width: 1024px) {
     .tt-passos {
       grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-      gap: 1.25rem;
     }
   }
 
@@ -493,8 +501,8 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
-    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    margin-top: var(--vao-grade);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2.25rem);
     border: 1px solid var(--borda);
     border-radius: var(--raio-lg);
     background: var(--menta);
@@ -545,7 +553,7 @@
   }
   .tt-numeros {
     display: grid;
-    gap: 1rem;
+    gap: var(--vao-grade);
     width: 100%;
     max-width: 34rem;
   }
@@ -586,8 +594,8 @@
   @media (min-width: 1024px) {
     .tt-grade-porque {
       grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-      column-gap: clamp(3rem, 6vw, 7rem);
-      align-items: center;
+      column-gap: clamp(2.5rem, 1rem + 3.5vw, 4.5rem);
+      align-items: start;
     }
     .tt-foto-retrato {
       margin-inline: 0;
@@ -599,8 +607,8 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1.5rem;
-    margin-bottom: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+    gap: var(--ritmo-2);
+    margin-bottom: var(--ritmo-3);
   }
   .tt-selo-google svg {
     width: 1rem;
@@ -623,13 +631,13 @@
   /* ---- Perguntas ------------------------------------------------------------- */
   .tt-leituras {
     display: grid;
-    gap: 1rem;
+    gap: var(--vao-grade);
   }
   .tt-leituras article {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 1.5rem 1.75rem 1.75rem;
+    padding: 1.5rem;
   }
   .tt-leituras article h3 {
     font-weight: 600;
@@ -639,7 +647,7 @@
   }
   .tt-acordeao {
     display: grid;
-    gap: 0.75rem;
+    gap: var(--vao-grade);
     align-content: start;
   }
   .tt-pergunta {
@@ -692,7 +700,7 @@
   @media (min-width: 1024px) {
     .tt-grade-perguntas {
       grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-      column-gap: clamp(3rem, 6vw, 7rem);
+      column-gap: clamp(2.5rem, 1rem + 3.5vw, 4.5rem);
       align-items: start;
     }
     .tt-grade-perguntas > .tt-cabeca {
@@ -707,19 +715,18 @@
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 1.25rem;
-    margin-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+    gap: var(--ritmo-2);
+    margin-bottom: var(--ritmo-3);
   }
   .tt-caminhos {
     display: grid;
-    gap: 1rem;
+    gap: var(--vao-grade);
   }
   .tt-caminho {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    min-height: 11rem;
     padding: 1.5rem 4.25rem 1.5rem 1.75rem;
   }
   .tt-caminho .text-frase {
@@ -765,8 +772,8 @@
     position: relative;
     display: grid;
     align-items: center;
-    gap: clamp(2rem, 1.5rem + 2vw, 3.5rem);
-    padding: clamp(1.75rem, 1rem + 3.5vw, 4.5rem);
+    gap: var(--ritmo-3);
+    padding: clamp(1.5rem, 0.75rem + 3vw, 3.5rem);
     border-radius: var(--raio-lg);
     box-shadow: var(--sombra-2);
   }
@@ -774,7 +781,10 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+    gap: var(--ritmo-2);
+  }
+  .tt-chamada-texto > .text-titulo {
+    margin-top: calc(var(--ritmo-1) - var(--ritmo-2));
   }
   .tt-chamada-texto > .text-frase {
     max-width: 20.7em; /* ~32ch na Bricolage */
@@ -784,7 +794,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-top: 0.5rem;
+    margin-top: calc(var(--ritmo-3) - var(--ritmo-2));
   }
   .tt-chamada-local {
     display: flex;

@@ -9,8 +9,8 @@
 @layer components {
   .historia-cabeca {
     display: grid;
-    gap: 1.25rem 4rem;
-    align-items: end;
+    gap: var(--ritmo-2) clamp(2rem, 1rem + 3vw, 4rem);
+    align-items: start;
   }
   @media (min-width: 1024px) {
     .historia-cabeca {
@@ -18,7 +18,7 @@
     }
   }
   .historia-titulo {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-1);
     max-width: 14ch;
   }
   .historia-lide {
@@ -29,8 +29,8 @@
   /* ---- Fachada + linha do tempo ---------------------------------------------- */
   .historia-corpo {
     display: grid;
-    gap: 2rem;
-    margin-top: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+    gap: var(--ritmo-3);
+    margin-top: var(--ritmo-3);
     align-items: start;
   }
   @media (min-width: 900px) {
@@ -84,7 +84,7 @@
   .historia-linha {
     position: relative;
     display: grid;
-    gap: 0.875rem;
+    gap: var(--vao-grade);
     padding-left: 1.75rem;
   }
   .historia-linha::before {
@@ -152,8 +152,8 @@
     display: grid;
     gap: 1.25rem 2rem;
     align-items: start;
-    margin: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) 0 0;
-    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    margin: calc(var(--ritmo-3) * 1.25) 0 0;
+    padding: clamp(1.5rem, 1.1rem + 1.5vw, 2rem);
     border: 1px solid rgb(47 106 0 / 0.16);
     border-radius: var(--raio-lg);
     background: linear-gradient(135deg, var(--menta), var(--chao-2));
@@ -181,11 +181,11 @@
 
   /* ---- Gestão e fundação ------------------------------------------------------ */
   .historia-pessoas {
-    margin-top: clamp(3.5rem, 2rem + 5vw, 6.5rem);
+    margin-top: calc(var(--ritmo-3) * 1.25);
   }
   .historia-pessoas-lide {
     display: grid;
-    gap: 0.5rem;
+    gap: var(--ritmo-1);
     max-width: 40rem;
   }
   .historia-pessoas-lide p {
@@ -193,14 +193,12 @@
   }
   .historia-pessoas-grade {
     display: grid;
-    gap: 1.25rem;
-    margin-top: 2rem;
-    align-items: start;
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   @media (min-width: 1024px) {
     .historia-pessoas-grade {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1.75rem;
     }
   }
 

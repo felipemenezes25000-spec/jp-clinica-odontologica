@@ -40,7 +40,7 @@ function CartaoDepoimento({ depoimento: d }: { depoimento: Depoimento }) {
   const registro = registroDe(d.cita);
 
   return (
-    <figure className="cartao flex h-full flex-col gap-5 p-6 sm:p-7">
+    <figure className="cartao flex flex-col gap-5 p-6 sm:p-7">
       <Quote aria-hidden="true" className="h-7 w-7 text-[var(--acento)]" />
       <div>
         <blockquote
@@ -61,7 +61,7 @@ function CartaoDepoimento({ depoimento: d }: { depoimento: Depoimento }) {
           </button>
         )}
       </div>
-      <figcaption className="mt-auto flex items-center gap-3">
+      <figcaption className="flex items-center gap-3">
         <span
           aria-hidden="true"
           className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[var(--menta)] font-semibold text-[var(--acento-texto)]"

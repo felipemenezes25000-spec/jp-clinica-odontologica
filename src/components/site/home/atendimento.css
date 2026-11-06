@@ -9,7 +9,7 @@
 @layer components {
   .atendimento-topo {
     display: grid;
-    gap: 2.5rem;
+    gap: var(--ritmo-3);
     align-items: center;
   }
   @media (min-width: 1024px) {
@@ -20,16 +20,16 @@
   }
 
   .atendimento-titulo {
-    margin-top: 1.25rem;
+    margin-top: var(--ritmo-1);
     max-width: 13ch;
   }
   .atendimento-lide {
-    margin-top: 1.5rem;
+    margin-top: var(--ritmo-2);
     max-width: 52ch;
     color: var(--tinta-suave);
   }
   .atendimento-acao {
-    margin-top: 2rem;
+    margin-top: var(--ritmo-3);
   }
   @media (max-width: 639.98px) {
     .atendimento-acao .botao {
@@ -80,8 +80,8 @@
   /* ---- Pilares ---------------------------------------------------------------- */
   .atendimento-pilares {
     display: grid;
-    gap: 1rem;
-    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+    gap: var(--vao-grade);
+    margin-top: var(--ritmo-3);
   }
   @media (min-width: 640px) {
     .atendimento-pilares {
@@ -91,7 +91,9 @@
   @media (min-width: 1280px) {
     .atendimento-pilares {
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1.25rem;
+    }
+    .atendimento-pilar-titulo {
+      min-height: 2.4em;
     }
   }
   .atendimento-pilar {
@@ -120,7 +122,7 @@
     display: grid;
     gap: 1rem 2rem;
     align-items: center;
-    margin-top: 1.25rem;
+    margin-top: var(--vao-grade);
     padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
     border-radius: var(--raio-lg);
     background: var(--chao-2);
@@ -155,7 +157,7 @@
   }
 
   .atendimento-fim {
-    margin-top: 2rem;
+    margin-top: var(--ritmo-3);
   }
   .atendimento-fim .botao {
     width: 100%;

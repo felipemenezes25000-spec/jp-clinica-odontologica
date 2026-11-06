@@ -5,13 +5,13 @@
 @layer components {
   .avaliacoes-cabeca {
     display: grid;
-    gap: 2.5rem;
-    align-items: end;
+    gap: var(--ritmo-3);
+    align-items: start;
   }
   @media (min-width: 1024px) {
     .avaliacoes-cabeca {
       grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-      gap: clamp(3rem, 1rem + 4vw, 6rem);
+      gap: clamp(2.5rem, 1rem + 3vw, 4.5rem);
     }
   }
 
@@ -58,13 +58,20 @@
     height: 1.1em;
   }
 
+  .avaliacoes-texto .text-titulo {
+    margin-top: var(--ritmo-1);
+  }
+  .avaliacoes-texto .text-corpo {
+    margin-top: var(--ritmo-2);
+  }
+
   .avaliacoes-carrossel {
-    margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    margin-top: var(--ritmo-3);
   }
 
   .avaliacoes-fecho {
     display: flex;
     justify-content: center;
-    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    margin-top: var(--ritmo-3);
   }
 }

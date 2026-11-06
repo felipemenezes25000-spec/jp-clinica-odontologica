@@ -528,7 +528,9 @@ function PaginaVaga() {
                 </a>
               </div>
               {publicadoEm.length > 0 && (
-                <p className="mt-5 text-pequeno text-tinta-suave">Publicada em {publicadoEm}</p>
+                <p className="mt-[var(--ritmo-2)] text-pequeno text-tinta-suave">
+                  Publicada em {publicadoEm}
+                </p>
               )}
             </div>
 
@@ -716,7 +718,7 @@ function PaginaVaga() {
                   <p className="sobretitulo" data-item>
                     Mais oportunidades
                   </p>
-                  <h2 id="vaga-outras" className="text-titulo mt-4" data-item>
+                  <h2 id="vaga-outras" className="text-titulo mt-[var(--ritmo-1)]" data-item>
                     Outras vagas abertas.
                   </h2>
                 </div>
@@ -777,16 +779,16 @@ function VagaNaoEncontrada() {
       <Header />
 
       <main id="conteudo" className="fundo-brilho relative overflow-clip">
-        <div className="quadro relative flex min-h-[68vh] items-center py-16">
-          <div className="cartao max-w-2xl p-8 sm:p-12">
+        <div className="quadro relative py-[clamp(3.25rem,1.75rem+3.5vw,5.5rem)]">
+          <div className="cartao max-w-2xl p-[clamp(1.25rem,1rem+1.5vw,2rem)]">
             <p className="sobretitulo">Carreiras na JP</p>
-            <h1 className="text-display mt-5">Vaga indisponível.</h1>
-            <p className="mt-6 max-w-[44ch] text-tinta-suave">
+            <h1 className="text-display mt-[var(--ritmo-1)]">Vaga indisponível.</h1>
+            <p className="mt-[var(--ritmo-2)] max-w-[44ch] text-tinta-suave">
               O processo pode ter sido encerrado ou o endereço mudou. As vagas abertas hoje estão
               todas na página de carreiras — e, se a clínica estiver recebendo currículos
               espontâneos, o caminho para o banco de talentos está lá também.
             </p>
-            <div className="mt-9">
+            <div className="mt-[var(--ritmo-3)]">
               <a href="/carreiras" className="botao botao-acento botao-grande">
                 <ArrowLeft aria-hidden="true" />
                 Ver vagas abertas

@@ -58,7 +58,7 @@ export function TelaDeSucesso(props: {
             >
               Recebemos o seu currículo.
             </h1>
-            <p className="mt-6 max-w-[40ch] text-corpo text-tinta-suave">
+            <p className="mt-[var(--ritmo-2)] max-w-[40ch] text-corpo text-tinta-suave">
               Guarde o número do protocolo. É por ele que a equipe encontra a sua candidatura se
               você quiser falar com a gente.
             </p>
@@ -99,13 +99,13 @@ export function TelaDeSucesso(props: {
           {/* Sem prazo em número: o painel é operado por uma pessoa só e não
               mede nada parecido com um SLA — prometer "15 dias úteis" era um
               compromisso por escrito que ninguém no sistema garante. */}
-          <p className="mt-10 max-w-[56ch]">
+          <p className="mt-[var(--ritmo-3)] max-w-[56ch]">
             <strong className="font-semibold">Retorno:</strong> a equipe entra em contato assim que
             concluir a triagem. Se o seu perfil servir para uma vaga futura, seu currículo fica no
             banco de talentos por {MESES_RETENCAO_LGPD} meses.
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-[var(--ritmo-2)] flex flex-wrap gap-3">
             <a
               href={whatsappLink(
                 `Olá! Enviei minha candidatura pelo site. Meu protocolo é ${props.protocolo}.`,
@@ -124,7 +124,7 @@ export function TelaDeSucesso(props: {
           </div>
 
           {email.length > 0 ? (
-            <p className="mt-6 text-pequeno text-tinta-suave">
+            <p className="mt-[var(--ritmo-2)] text-pequeno text-tinta-suave">
               Dúvidas sobre o processo? Escreva para{" "}
               <a href={`mailto:${email}`} className="link font-semibold text-tinta">
                 {email}

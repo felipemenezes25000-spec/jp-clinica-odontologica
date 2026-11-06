@@ -24,15 +24,15 @@ export function FaqSection() {
 
   return (
     <section id="faq" aria-labelledby="faq-titulo" className="secao secao-clara text-tinta">
-      <div className="quadro grid gap-x-[var(--margem)] gap-y-12 lg:grid-cols-12">
+      <div className="quadro grid gap-x-[var(--margem)] gap-y-[var(--ritmo-3)] lg:grid-cols-12">
         {/* O título acompanha a leitura no desktop: a lista é bem mais alta que
             ele, e o lado esquerdo não fica vazio ao lado das respostas. */}
         <div className="lg:sticky lg:top-[calc(var(--altura-cabecalho)+2rem)] lg:col-span-5 lg:self-start">
           <p className="sobretitulo">Dúvidas</p>
-          <h2 id="faq-titulo" className="text-titulo mt-5">
+          <h2 id="faq-titulo" className="text-titulo mt-[var(--ritmo-1)]">
             Perguntas frequentes
           </h2>
-          <p className="mt-6 max-w-[38ch] text-corpo text-tinta-suave">
+          <p className="mt-[var(--ritmo-2)] max-w-[38ch] text-corpo text-tinta-suave">
             As dúvidas mais comuns que a recepção recebe, respondidas em poucas linhas.
           </p>
 
@@ -66,7 +66,7 @@ export function FaqSection() {
           </div>
         </div>
 
-        <div data-entra className="grid content-start gap-3 lg:col-span-7">
+        <div data-entra className="grid content-start gap-[var(--vao-grade)] lg:col-span-7">
           {FAQ_SITE.map((item) => (
             <details key={item.q} name="faq" data-item className="faq-item">
               <summary>
