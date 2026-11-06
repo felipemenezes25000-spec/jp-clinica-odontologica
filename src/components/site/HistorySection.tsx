@@ -84,7 +84,7 @@ const PESSOAS = [
 ];
 
 /**
- * Uma pessoa do bloco: retrato em coroa, identificação e a apresentação dela.
+ * Uma pessoa do bloco: retrato, identificação e a apresentação dela.
  *
  * O primeiro parágrafo fica sempre visível e o resto abre no <details>. As duas
  * apresentações somam doze parágrafos — inteiras e abertas, transformavam o

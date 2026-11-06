@@ -67,7 +67,7 @@ function Marcados({ itens, className = "" }: { itens: readonly string[]; classNa
 }
 
 /**
- * O QUE É — a foto em coroa à esquerda, a leitura à direita.
+ * O QUE É — a foto à esquerda, a leitura à direita.
  *
  * O `manifesto` é a frase que se acende palavra por palavra com a rolagem (a
  * única `data-tinta` da página), e a nota de que a página não substitui a
@@ -108,7 +108,7 @@ export function Entenda({ tratamento, foto }: { tratamento: Tratamento; foto: Fo
 }
 
 /**
- * PARA QUEM — os cenários em frase grande à esquerda, a foto em coroa à direita.
+ * PARA QUEM — os cenários em frase grande à esquerda, a foto à direita.
  *
  * É a seção com o fundo um degrau acima do chão: separa a leitura do conceito
  * da leitura de "isso é para mim?". O título é "Quem procura <tratamento>"
@@ -319,7 +319,7 @@ export function PorQueJP() {
 
 /**
  * O fecho: o painel em verde-maçã com a frase de próxima etapa e o botão, e a
- * fachada em coroa cortada pela borda do painel. No celular a foto sai (o
+ * fachada cortada pela borda do painel. No celular a foto sai (o
  * painel já é todo texto e botão) e fica uma coroa pequena no canto, atrás do
  * botão, longe do título.
  */

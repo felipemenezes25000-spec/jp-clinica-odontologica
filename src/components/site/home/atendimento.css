@@ -3,9 +3,8 @@
  * A foto sangra pela borda esquerda da tela. O quadro do site tem margem igual
  * dos dois lados (`--margem`, e mais que isso acima de 1680px), então a
  * "sangria" é a distância real da borda da tela até o início do quadro. No
- * desktop a moldura ainda avança `--corte` (6vw, para os dois lobos da coroa
- * continuarem à vista) para fora da tela: é isso que faz a borda cortar o
- * lobo esquerdo em vez de só encostar nele.
+ * desktop a moldura ainda avança `--corte` (6vw) para fora da tela: é isso que
+ * faz a borda cortar a foto em vez de só encostar nela.
  */
 
 @layer theme, base, components, utilities;

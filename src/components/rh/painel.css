@@ -364,23 +364,9 @@
   color: var(--sobre-campo);
 }
 
-.rh-lateral__marca-dagua {
-  position: absolute;
-  right: -22px;
-  bottom: -24px;
-  z-index: 0;
-  display: none;
-  width: 190px;
-  color: var(--chao-2);
-  pointer-events: none;
-}
-
 @media (min-width: 1024px) {
   .rh-lateral {
     overflow: hidden;
-  }
-  .rh-lateral__marca-dagua {
-    display: block;
   }
 }
 
@@ -888,12 +874,6 @@
   background: var(--chao-2);
 }
 
-.rh-primeira-vez__coroa {
-  width: 64px;
-  flex: none;
-  color: var(--acento);
-}
-
 .rh-primeira-vez > div {
   min-width: min(100%, 280px);
   flex: 1 1 320px;
@@ -1157,17 +1137,6 @@
   letter-spacing: -0.02em;
 }
 
-/* A coroa gigante da casa, INTEIRA: no celular numa faixa à direita da frase,
-   no desktop no alto da metade escura, longe do pé do título. */
-.rh-entrada__coroa {
-  position: absolute;
-  top: 50%;
-  right: var(--margem);
-  width: 88px;
-  color: var(--acento);
-  transform: translateY(-50%);
-}
-
 .rh-entrada__form {
   display: flex;
   align-items: center;
@@ -1293,13 +1262,6 @@
   .rh-entrada__frase {
     max-width: 16ch;
     font-size: clamp(2.25rem, 1.4rem + 2vw, 3.25rem);
-  }
-  .rh-entrada__coroa {
-    top: 22%;
-    right: auto;
-    left: var(--margem);
-    width: min(46%, 320px);
-    transform: none;
   }
 }
 
@@ -1475,7 +1437,7 @@
   }
 }
 
-/* Estado vazio: a coroa grande em tom, a frase e o botão. Sem tracejado. */
+/* Estado vazio: a frase e o botão, num degrau de tom. Sem tracejado. */
 .rh-vazio {
   display: flex;
   flex-direction: column;
@@ -1485,11 +1447,6 @@
   border-radius: 20px;
   background: var(--chao-2);
   text-align: center;
-}
-
-.rh-vazio__coroa {
-  width: 96px;
-  color: var(--chao-3);
 }
 
 /* "Mais" do celular (Candidaturas): seleção, visão e exportar atrás de um

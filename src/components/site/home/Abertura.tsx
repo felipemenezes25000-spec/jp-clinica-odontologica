@@ -10,22 +10,21 @@ import fotoConsultorio2 from "@/assets/consultorio-2.webp";
 import { AVALIACOES, CLINICA, HISTORIA, notaBR } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { FormaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
-import { caminhoCoroaPx } from "@/components/site/sistema/geometria";
 import { comGsap, querMenosMovimento } from "@/components/site/sistema/gsap";
 import { useSituacao } from "@/components/site/sistema/horario";
 import "./abertura.css";
 
 /**
- * O TOPO DA HOME — "a janela em forma de coroa".
+ * O TOPO DA HOME — "a janela para o consultório".
  *
  * Primeira tela: à esquerda, o que a pessoa veio saber (dentista, onde, como
- * marcar); à direita, o consultório de verdade visto por uma janela com o topo
- * da coroa da marca, sobre a mesma coroa gigante em verde-maçã, cortada pela
- * borda da tela. As fotos se revezam devagar, como luz mudando na sala.
+ * marcar); à direita, o consultório de verdade visto por uma janela de cantos
+ * suaves, sobre um bloco grande em verde-maçã, cortado pela borda da tela. As
+ * fotos se revezam devagar, como luz mudando na sala.
  *
- * Rolando no desktop, a janela cresce até a tela inteira e os lobos se desfazem
- * no caminho — a pessoa "entra" no consultório —, e o endereço aparece sobre a
- * foto. É a cena-assinatura do site. No celular e com "reduzir movimento" a
+ * Rolando no desktop, a janela cresce até a tela inteira e os cantos se
+ * endireitam no caminho — a pessoa "entra" no consultório —, e o endereço
+ * aparece sobre a foto. É a cena-assinatura do site. No celular e com "reduzir movimento" a
  * cena não existe: o topo é a composição final, parada, com tudo legível.
  */
 
@@ -114,16 +113,21 @@ export function Abertura() {
               h: a.height - (b.top - a.top),
             };
           };
+          // O raio dos cartões (`--raio`), lido uma vez: o canto da janela no
+          // quadro 0 é o mesmo que o CSS do servidor desenhou.
+          const raio = parseFloat(getComputedStyle(secao).getPropertyValue("--raio")) || 20;
           const desenhar = () => {
             const W = palco.clientWidth;
             const H = palco.clientHeight;
-            // A janela cresce até a tela e os lobos somem até 0 no fim do trecho.
+            // A janela cresce até a tela e os cantos chegam a 0 no fim do trecho.
             const t = gsap.parseEase("power2.inOut")(Math.min(estado.p / 0.5, 1));
             const x = inicio.x * (1 - t);
             const y = inicio.y * (1 - t);
             const w = inicio.w + (W - inicio.w) * t;
             const h = inicio.h + (H - inicio.h) * t;
-            janela.style.clipPath = `path('${caminhoCoroaPx(x, y, w, h, 1 - t)}')`;
+            const r = raio * (1 - t);
+            // A base fica reta: a janela é cortada pelo pé da tela.
+            janela.style.clipPath = `inset(${y}px ${W - x - w}px ${H - y - h}px ${x}px round ${r}px ${r}px 0 0)`;
           };
           medir();
           desenhar();

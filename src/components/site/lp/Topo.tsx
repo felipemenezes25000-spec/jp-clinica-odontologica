@@ -30,13 +30,13 @@ function textoDoHorario(situacao: Situacao | null): string {
 }
 
 /**
- * O TOPO DAS LANDINGS PAGAS — a janela em forma de coroa, sem a cena.
+ * O TOPO DAS LANDINGS PAGAS — a janela de cantos suaves, sem a cena.
  *
  * Quem chega por anúncio decidiu a busca antes de abrir a página, então a
  * primeira tela responde só ao que ela precisa: é disso? é perto? dá para
  * confiar? como falo com eles? — H1 com procedimento e bairro, uma frase, o
  * botão de WhatsApp, a nota no Google e o endereço. A foto real do consultório
- * entra pela mesma janela em coroa da home, com o eco verde deslocado atrás.
+ * entra pela mesma janela da home, com o eco verde deslocado atrás.
  * Cena de rolagem aqui só atrapalharia o clique, por isso a janela não cresce.
  *
  * Tudo que decide o clique (H1, frase, botão, nota) está desenhado desde o
@@ -70,8 +70,8 @@ export function Topo({
   const caixaRef = useRef<HTMLDivElement>(null);
   const [proporcao, setProporcao] = useState(0.95);
 
-  // O eco verde é a mesma coroa da janela. A janela muda de proporção entre
-  // celular e desktop, e os lobos não podem esticar: mede a caixa e refaz.
+  // O eco verde é a mesma forma da janela. A janela muda de proporção entre
+  // celular e desktop, e o canto não pode ficar oval: mede a caixa e refaz.
   useEffect(() => {
     const el = caixaRef.current;
     if (!el || !("ResizeObserver" in window)) return;

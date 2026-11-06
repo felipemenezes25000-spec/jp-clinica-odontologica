@@ -1876,10 +1876,10 @@ textarea.rh-campo {
 /* =============================================================================
  *  SISTEMA JP 2026 — o redesenho de novembro de 2026.
  *
- *  Direção "One motif" (taste-skill, semente 2147397342): uma forma só tirada
- *  da marca — a COROA de dois lobos do dente do símbolo, que é também o topo da
- *  maçã verde do material impresso — faz tudo o que um designer faria com um
- *  retângulo arredondado genérico. Ver src/components/site/sistema/.
+ *  Uma forma só, o retângulo de cantos suaves (raio dos cartões), em toda foto
+ *  e forma chapada. A "coroa" de dois lobos do lançamento foi reprovada pela
+ *  clínica em 06/11/2026 e saiu do site; os nomes dos componentes ficaram.
+ *  Ver src/components/site/sistema/.
  *
  *  Regras da casa que este bloco sustenta (e que o redesenho inteiro segue):
  *   - um chão, uma tinta, um acento; o acento (verde-maçã) só na ação e na
@@ -2005,10 +2005,15 @@ textarea.rh-campo {
     padding-block: clamp(4rem, 2rem + 5vw, 8rem);
   }
 
-  /* ---- A coroa ----------------------------------------------------------------- */
+  /* ---- A moldura das fotos ---------------------------------------------------------
+     O raio dos cartões, limitado a 10% da peça: um retrato de 64px não vira
+     círculo. `isolation` faz o Safari respeitar o canto quando a foto de dentro
+     está sendo escalada por transform. */
   .moldura-coroa {
     position: relative;
     overflow: clip;
+    isolation: isolate;
+    border-radius: min(var(--raio), 10%);
     background: var(--chao-2);
   }
   .moldura-coroa > img,

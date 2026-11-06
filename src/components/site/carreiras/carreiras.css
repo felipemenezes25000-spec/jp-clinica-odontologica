@@ -1,6 +1,6 @@
 /* Portal de carreiras: /carreiras e /carreiras/<vaga>. Ver DESIGN.md.
  *
- * As três peças que se repetem — o topo com foto em coroa, a lista de vagas
+ * As três peças que se repetem — o topo com foto, a lista de vagas
  * em linhas e o bloco escuro de contato — moram aqui; o resto é utilitário
  * do Tailwind com os tokens do sistema.
  */
@@ -9,7 +9,7 @@
 
 @layer components {
   /* ---- Topo de /carreiras e da página de vaga --------------------------------
-     Celular: a foto em coroa vem primeiro (a pessoa vê o lugar antes de ler
+     Celular: a foto vem primeiro (a pessoa vê o lugar antes de ler
      sobre ele), texto embaixo. Desktop: texto à esquerda, coroa à direita,
      com o "eco" verde-maçã deslocado atrás, a mesma impressão fora de
      registro do topo da home. */

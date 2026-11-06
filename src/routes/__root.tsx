@@ -9,8 +9,6 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 
-import { FormaCoroa } from "@/components/site/sistema/Coroa";
-import "@/components/site/global/sem-saida.css";
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, SITE_URL } from "@/lib/jp";
 import appCss from "../styles.css?url";
@@ -45,13 +43,8 @@ function DeadEnd({
   return (
     <main
       id="conteudo"
-      className="site campo-escuro sem-saida relative isolate flex min-h-dvh items-start overflow-hidden md:items-center"
+      className="site campo-escuro relative isolate flex min-h-dvh items-start overflow-hidden md:items-center"
     >
-      {/* Verde institucional atrás do texto no celular (contraste do texto
-          manda); acento cheio no desktop, onde ela fica ao lado, sem texto
-          por cima. */}
-      <FormaCoroa proporcao={1} className="sem-saida-coroa text-campo-marca md:text-acento" />
-
       <a
         href="/"
         aria-label={`${CLINICA.nome} — início`}

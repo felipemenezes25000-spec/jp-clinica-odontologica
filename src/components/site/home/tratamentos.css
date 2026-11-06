@@ -2,7 +2,7 @@
  *
  * O cardápio é só tipo e espaço: nenhuma caixa, nenhum filete. O que separa
  * uma linha da outra é o respiro vertical; o que diz "isto é um link" é a
- * seta, que anda no hover, e a miniatura em coroa no lugar do marcador.
+ * seta, que anda no hover, e a miniatura no lugar do marcador.
  */
 
 @layer theme, base, components, utilities;

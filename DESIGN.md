@@ -8,18 +8,19 @@
 
 ## A ideia
 
-**A coroa de dois lobos do dente da marca JP vira a forma única do site.**
+**Uma forma só: o retângulo de cantos suaves, no raio dos cartões (`--raio`, 20px).**
 
-O dente do símbolo da JP é desenhado por dois traços que se encontram numa covinha no alto; a maçã
-verde do material impresso tem o mesmo topo de dois lobos. Esse topo — laterais retas, base cortada pela
-moldura — é a única forma "com caráter" da página. Ela aparece em quatro escalas, e em nenhum outro
-lugar se usa um retângulo arredondado genérico para dar personalidade:
+O lançamento de 11/2026 usava uma "coroa" de dois lobos tirada do dente da marca. A clínica reprovou o
+desenho em 06/11/2026 e ele saiu do site inteiro. Os nomes dos componentes ficaram por histórico; o
+desenho é este:
 
-1. **gigante** — a coroa chapada em verde-maçã do topo da home, o "eco" deslocado atrás da janela;
-2. **máscara de toda fotografia** — `<MolduraCoroa>`;
-3. **marcador de lista e item ativo** — `<MarcaCoroa>`, na altura da letra;
-4. **faixa** — `<FaixaDeCoroas>`, uma arcada de coroas lado a lado que separa as duas metades da página e
-   fecha o rodapé.
+1. **gigante** — o bloco chapado em verde-maçã atrás da janela do topo e os "ecos" deslocados atrás das
+   fotos: `<FormaCoroa>`;
+2. **toda fotografia** — `<MolduraCoroa>`, com `border-radius: min(var(--raio), 10%)`;
+3. **marcador de lista e item ativo** — `<MarcaCoroa>`, um ponto na altura da letra;
+4. **a fileira do rodapé** — blocos de topo arredondado com o J e o P vazados (`ArcadaDoRodape`).
+
+Nenhuma forma com lobos, recortes ou silhueta figurativa em moldura de foto.
 
 Direção de arte sorteada pela taste-skill: **One motif** (semente `2147397342`), paleta da marca mantida,
 tipo Bricolage Grotesque. Folha completa: `node <taste-skill>/scripts/draw.mjs --show` (arquivo em
@@ -87,7 +88,7 @@ próprio não usa a classe de texto: as utilitárias vencem o CSS de componente 
 
 - **Quadro**: `.quadro` — largura `min(100% − 2×margem, 1680px)`, margem de 16→32px. Uma só para o site.
 - **Ritmo**: `.secao` (88→200px de respiro vertical) e `.secao-curta`.
-- **Raio**: `var(--raio)` = 20px para ladrilho e campo de formulário. Fotos usam a coroa, não raio.
+- **Raio**: `var(--raio)` = 20px para ladrilho, campo de formulário e foto (na foto, limitado a 10% da peça).
 - **Botões**: pílula cheia, um formato. `botao botao-acento` (ação principal), `botao botao-tinta`,
   `botao botao-chao` (secundária), `botao botao-claro` (sobre campo escuro). Do nome antigo sobrou só
   `button-primary` (= acento) — **o E2E procura `main a.button-primary[href*="wa.me"]` no topo das LPs**.
@@ -98,9 +99,9 @@ próprio não usa a classe de texto: as utilitárias vencem o CSS de componente 
   (`--altura-aviso`) e somem antes do rodapé.
 - **Link de texto**: `.link` (o sublinhado acende no hover; o peso não muda).
 - **Ladrilho**: `.ladrilho` — um degrau de tom, sem borda, sem sombra.
-- **Coroa**: `<MolduraCoroa proporcao={4/5}>` (ou `medir` quando a caixa não tem proporção fixa),
-  `<FormaCoroa>`, `<MarcaCoroa>`, `<FaixaDeCoroas>` — em `sistema/Coroa.tsx`. Geometria pura em
-  `sistema/geometria.ts` (`caminhoCoroa`, `caminhoCoroaPx` para animar quadro a quadro).
+- **Peças**: `<MolduraCoroa proporcao={4/5}>` (ou `medir` quando a caixa não tem proporção fixa),
+  `<FormaCoroa>`, `<MarcaCoroa>` — em `sistema/Coroa.tsx`. Geometria pura em `sistema/geometria.ts`
+  (`caminhoCoroa` para o retângulo arredondado, `caminhoCoroaPx` para os blocos do rodapé).
 
 ## Movimento
 
@@ -128,13 +129,13 @@ desktop com mouse), palco `position: sticky` numa seção mais alta que a tela. 
 "reduzir movimento" a seção é a **composição final, parada**, desenhada com o mesmo cuidado. Modelo:
 `home/Abertura.tsx`.
 
-1. **Topo da home** — a janela em coroa cresce até a tela inteira.
-2. **História** — os anos passam numa coroa parada: 2002 (Sempre Sorrindo) → 2020 (JP) → 2024 (a
+1. **Topo da home** — a janela cresce até a tela inteira e os cantos se endireitam.
+2. **História** — os anos passam numa moldura parada: 2002 (Sempre Sorrindo) → 2020 (JP) → 2024 (a
    fachada abre) → hoje. A altura da cena vem do CSS servido, para não haver salto quando o JS chega.
 3. **Estrutura** — galeria de lado: a rolagem atravessa as salas da clínica. Só liga com tela de pelo
    menos 700px de altura; abaixo disso é a fileira nativa com setas.
 
-Fora da home, as LPs têm uma cena só (o Fechamento: a coroa gigante cresce com a rolagem).
+Fora da home, as LPs têm uma cena só (o Fechamento: o bloco gigante cresce com a rolagem).
 
 **Troca de página**: View Transition só quando o caminho muda (filtro, aba e busca não esmaecem a página)
 e nunca dentro de `/rh` e `/crc`. Com "reduzir movimento" a troca é seca.
@@ -142,7 +143,7 @@ e nunca dentro de `/rh` e `/crc`. Com "reduzir movimento" a troca é seca.
 ## Fotografia
 
 Só fotos reais da clínica e retratos reais da equipe (`src/assets`). Nada de imagem de gerador com
-pessoa, nada de banco de imagem no lugar da clínica. Toda foto dentro da coroa; `width`/`height`
+pessoa, nada de banco de imagem no lugar da clínica. Toda foto dentro da moldura; `width`/`height`
 sempre; `loading="lazy"` fora da primeira dobra; `alt` que diz o que é.
 
 Código de Ética do CFO e Resolução 196/2019 (ver memória do projeto): nenhuma imagem de procedimento
@@ -151,27 +152,27 @@ promessa de resultado, desconto artificial ou "últimas vagas".
 
 Fora do site por enquanto: o banner de ortodontia da sala de espera (`sala-espera-ortodontia*`: rostos
 de crianças e marca comercial) e a animação da harmonização (rosto de pessoa gerada). Os arquivos ficam
-em `src/assets` porque o kit do Instagram ainda os cita. Os retratos da equipe ficam na coroa sem
+em `src/assets` porque o kit do Instagram ainda os cita. Os retratos da equipe ficam na moldura sem
 filtro; "Dentistas com nome e CRO" só lista quem tem CRO, e a recepção vai em bloco próprio.
 
 ## Seções da home (ordem e composição)
 
-1. **Topo** (`#inicio`) — texto à esquerda, janela em coroa à direita com eco verde; cena 1.
-2. **A clínica** (`#clinica`) — frase de efeito com miniaturas de foto em coroa dentro da linha;
+1. **Topo** (`#inicio`) — texto à esquerda, janela à direita com eco verde; cena 1.
+2. **A clínica** (`#clinica`) — frase de efeito com miniaturas de foto dentro da linha;
    `data-tinta`.
-3. **Tratamentos** (`#tratamentos`) — cardápio em duas colunas, cada item com miniatura em coroa no lugar
+3. **Tratamentos** (`#tratamentos`) — cardápio em duas colunas, cada item com miniatura no lugar
    do marcador; no desktop, a prévia grande segue o mouse sobre a lista.
 4. **Convênios** (`#convenios`) — quadro de ladrilhos, um ladrilho em acento com o título.
-5. **Equipe** (`#equipe`) — painel escuro recuado, retratos em coroa, nome e CRO.
+5. **Equipe** (`#equipe`) — painel escuro recuado, retratos, nome e CRO.
 6. **História** (`#historia`) — campo escuro; cena 2.
-7. **Avaliações** (`#depoimentos`) — foto em coroa e citação deslocada; nota que rola.
-8. **Faixa de coroas** — divide a página em duas metades.
+7. **Avaliações** (`#depoimentos`) — foto e citação deslocada; nota que rola.
+8. _(A faixa de coroas que dividia a página saiu em 06/11/2026.)_
 9. **Estrutura** (`#estrutura`) — cena 3; clique abre a foto inteira.
-10. **Atendimento** (`#atendimento`) — foto grande em coroa cortada pela borda + pontos marcados pela coroa.
+10. **Atendimento** (`#atendimento`) — foto grande cortada pela borda + pontos marcados.
 11. **Perguntas** (`#faq`) — título grudado à esquerda, acordeão de ladrilhos à direita (`<details name>`).
 12. **Contato** (`#fale`) — o cupom: monte a mensagem e abra o WhatsApp já escrita; mapa e pontos de
     referência.
-13. **Rodapé** — a marca construída grande, em blocos de coroa.
+13. **Rodapé** — a marca construída grande, em blocos de topo arredondado.
 
 ## Landing pages pagas
 

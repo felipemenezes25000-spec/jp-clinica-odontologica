@@ -3,17 +3,17 @@ import { caminhoCoroaPx } from "../sistema/geometria";
 /**
  * A marca construída grande — o fecho da página.
  *
- * Uma fileira de coroas de alturas diferentes, lado a lado com 4px de vão e
- * as bases na mesma linha: uma arcada. Duas delas carregam as letras J e P
- * vazadas (a cor do campo aparece pelo furo), então o nome da clínica fecha o
- * site como construção, e não como texto solto.
+ * Uma fileira de blocos de alturas diferentes, lado a lado com 4px de vão, o
+ * topo de cantos suaves e as bases na mesma linha: uma arcada. Dois deles
+ * carregam as letras J e P vazadas (a cor do campo aparece pelo furo), então o
+ * nome da clínica fecha o site como construção, e não como texto solto.
  *
- * É um `<svg>` com `viewBox` fixo em vez de coroas em flex: cada coroa é
- * desenhada por `caminhoCoroaPx` com a largura e a altura reais dela, então os
- * lobos têm sempre a mesma proporção — esticar uma `FormaCoroa` por CSS
- * achataria os lobos das mais baixas. O `viewBox` escala inteiro com a largura.
+ * É um `<svg>` com `viewBox` fixo em vez de blocos em flex: cada bloco é
+ * desenhado por `caminhoCoroaPx` com a largura e a altura reais dele, então o
+ * canto tem sempre o mesmo raio — esticar uma `FormaCoroa` por CSS deixaria
+ * o canto oval nos mais baixos. O `viewBox` escala inteiro com a largura.
  *
- * Duas versões, trocadas por breakpoint: no celular quatro coroas largas (oito
+ * Duas versões, trocadas por breakpoint: no celular quatro blocos largos (oito
  * deixariam as letras do tamanho de um selo) e a faixa fica em ~22svh.
  */
 

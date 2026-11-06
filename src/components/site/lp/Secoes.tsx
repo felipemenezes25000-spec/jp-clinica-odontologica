@@ -2,12 +2,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { BotaoWhatsApp } from "@/components/site/lp/BotaoWhatsApp";
 import type { Foto } from "@/components/site/lp/Topo";
-import {
-  FaixaDeCoroas,
-  FormaCoroa,
-  MarcaCoroa,
-  MolduraCoroa,
-} from "@/components/site/sistema/Coroa";
+import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { comGsap } from "@/components/site/sistema/gsap";
 import { TreatmentVideo } from "@/components/site/TreatmentVideo";
 import { AVALIACOES, CLINICA, HISTORIA, RESPONSAVEL_TECNICA, notaBR } from "@/lib/jp";
@@ -20,10 +15,10 @@ import "./lp.css";
  *   Escada ...... três pontos descendo em diagonal, a foto no vão embaixo;
  *   Linhas ...... assunto à esquerda de cada afirmação, texto na coluna 8;
  *   SecaoVideo .. campo escuro, a animação dentro da coroa;
- *   Etapas ...... foto em coroa de um lado, lista ordenada do outro;
+ *   Etapas ...... foto de um lado, lista ordenada do outro;
  *   Confianca ... campo escuro, citação que acende com a rolagem, números que
  *                 rolam e o retrato da responsável técnica, com nome e registro;
- *   Endereco .... o caminho até a porta, foto em coroa;
+ *   Endereco .... o caminho até a porta, foto;
  *   Perguntas ... título grudado, acordeão de ladrilhos;
  *   Fechamento .. o último convite, campo verde da marca, coroa gigante que
  *                 cresce com a rolagem, arcada de coroas.
@@ -240,7 +235,7 @@ export function SecaoVideo({
   );
 }
 
-/** Foto em coroa de um lado, lista ordenada do outro. */
+/** Foto de um lado, lista ordenada do outro. */
 export function Etapas({
   id,
   titulo,
@@ -388,7 +383,7 @@ export function Confianca({
   );
 }
 
-/** O caminho até a porta: endereço, horário e a fachada em coroa. */
+/** O caminho até a porta: endereço, horário e a fachada. */
 export function Endereco({
   id,
   titulo,
@@ -576,36 +571,29 @@ export function Fechamento({
 }
 
 /**
- * O pé da página. A arcada de coroas sobe do rodapé para dentro do campo verde
- * do fechamento: é a faixa que fecha as páginas do sistema. O rodapé guarda o
+ * O pé da página, no campo escuro logo abaixo do fechamento verde. Guarda o
  * que a lei pede (responsável técnica com registro, razão social, CNPJ) e o
  * aviso de que o conteúdo é informativo. Fica fora do `<main>`.
  */
 export function Rodape({ aviso }: { aviso: string }) {
   return (
-    <>
-      <div className="campo-marca" aria-hidden="true">
-        <FaixaDeCoroas altura={96} largura={112} className="text-campo" />
-      </div>
-
-      <footer className="campo-escuro lp-rodape">
-        <div className="quadro grid gap-8 pb-10 pt-4 text-pequeno text-sobre-campo-suave md:grid-cols-[1fr_auto] md:items-end">
-          <div className="grid gap-1">
-            <p className="text-corpo font-semibold text-sobre-campo">{CLINICA.nome}</p>
-            <p>{CLINICA.endereco}</p>
-            <p>
-              Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
-            </p>
-            <p>
-              {CLINICA.razaoSocial} · CNPJ {CLINICA.cnpj}
-            </p>
-            <p className="mt-3 max-w-[70ch]">{aviso}</p>
-          </div>
-          <a href="/politica-de-privacidade" className="link text-sobre-campo">
-            Política de Privacidade
-          </a>
+    <footer className="campo-escuro lp-rodape">
+      <div className="quadro grid gap-8 pb-10 pt-14 text-pequeno text-sobre-campo-suave md:grid-cols-[1fr_auto] md:items-end">
+        <div className="grid gap-1">
+          <p className="text-corpo font-semibold text-sobre-campo">{CLINICA.nome}</p>
+          <p>{CLINICA.endereco}</p>
+          <p>
+            Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
+          </p>
+          <p>
+            {CLINICA.razaoSocial} · CNPJ {CLINICA.cnpj}
+          </p>
+          <p className="mt-3 max-w-[70ch]">{aviso}</p>
         </div>
-      </footer>
-    </>
+        <a href="/politica-de-privacidade" className="link text-sobre-campo">
+          Política de Privacidade
+        </a>
+      </div>
+    </footer>
   );
 }

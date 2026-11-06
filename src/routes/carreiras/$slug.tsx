@@ -444,7 +444,7 @@ function PaginaVaga() {
       <Header />
 
       <main id="conteudo">
-        {/* TOPO — título, resumo, a ação e a foto da área em coroa. */}
+        {/* TOPO — título, resumo, a ação e a foto da área. */}
         <section className="car-topo" aria-labelledby="vaga-titulo">
           <div className="quadro car-topo-grade car-topo-grade--vaga">
             <div>

@@ -13,8 +13,8 @@
 @layer components {
   .abertura {
     --vao: clamp(0.75rem, 0.4rem + 1vw, 1.5rem);
-    /* Distância do topo da janela ao cabeçalho: deixa ar para os lobos do eco
-       verde, que sobe 4svh acima dela. */
+    /* Distância do topo da janela ao cabeçalho: deixa ar para o eco verde,
+       que sobe 4svh acima dela. */
     --janela-topo: clamp(2.25rem, 6.5vh, 4.5rem);
     position: relative;
     background: var(--chao);
@@ -29,8 +29,8 @@
     padding-bottom: clamp(3rem, 8vw, 5rem);
   }
 
-  /* ---- A coroa gigante, chapada, cortada pela borda da tela ---------------- */
-  /* O "eco": a mesma coroa da janela, em verde-maçã chapado, deslocada para a
+  /* ---- O bloco gigante, chapado, cortado pela borda da tela --------------- */
+  /* O "eco": a mesma forma da janela, em verde-maçã chapado, deslocada para a
      direita e para cima como impressão fora de registro. A caixa é a da
      janela; o deslocamento é o `translate` (a entrada anima a partir dele). */
   .abertura-forma {
@@ -142,7 +142,7 @@
     display: none;
   }
 
-  /* ---- Entrada: a foto sobe dentro da coroa; a coroa verde chega de lado ---- */
+  /* ---- Entrada: a foto sobe dentro da janela; o bloco verde chega de lado --- */
   @media (prefers-reduced-motion: no-preference) {
     .abertura-sobe {
       transform: translateY(102%);
@@ -208,55 +208,38 @@
   }
 
   /* ---- Desktop com cena, desde o HTML do servidor ---------------------------
-     Quando a cena vai acontecer (desktop, movimento permitido, JS ligado e
-     navegador com `clip-path: shape()`), a seção já nasce no estado inicial
-     dela: alta, palco grudado e a janela do tamanho da tela, recortada por
-     `shape()` na coroa de meia tela. É o mesmo desenho que o JS faz no
-     quadro 0 (`caminhoCoroaPx` com k = 1), com as mesmas contas da grade:
-     `100cqw` é a largura do palco, que é o que o JS mede. Sem isso a janela
-     trocava de caixa depois da hidratação e a home acumulava ~0,2 de CLS.
-     Se o GSAP não carregar, o JS marca `data-sem-cena` e tudo volta à
-     composição parada. Sem `shape()`, a cena continua ligada pelo JS. */
+     Quando a cena vai acontecer (desktop, movimento permitido e JS ligado), a
+     seção já nasce no estado inicial dela: alta, palco grudado e a janela do
+     tamanho da tela, recortada por `inset()` no lugar da coluna da direita,
+     com os cantos de cima no raio dos cartões. É o mesmo recorte que o JS faz
+     no quadro 0, com as mesmas contas da grade: `100cqw` é a largura do palco,
+     que é o que o JS mede. Sem isso a janela trocava de caixa depois da
+     hidratação e a home acumulava ~0,2 de CLS. Se o GSAP não carregar, o JS
+     marca `data-sem-cena` e tudo volta à composição parada. */
   @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-    @supports (clip-path: shape(from 0 0, line to 1px 1px)) {
-      .abertura:not([data-sem-cena]) {
-        height: 240svh;
-      }
-      .abertura:not([data-sem-cena]) .abertura-palco {
-        position: sticky;
-        top: 0;
-        container-type: inline-size;
-      }
-      .abertura:not([data-sem-cena]) .abertura-janela {
-        --cw: calc((min(100cqw - var(--margem) * 2, 1680px) - var(--vao)) / 2);
-        --cx: calc(100cqw - max(var(--margem), (100cqw - 1680px) / 2) - var(--cw));
-        --cy: var(--janela-topo);
-        inset: 0;
-        width: auto;
-        right: 0;
-        clip-path: shape(
-          from var(--cx) 100%,
-          line to var(--cx) calc(var(--cy) + var(--cw) * 0.3),
-          curve to calc(var(--cx) + var(--cw) * 0.27) var(--cy) with var(--cx)
-            calc(var(--cy) + var(--cw) * 0.12) / calc(var(--cx) + var(--cw) * 0.12) var(--cy),
-          curve to calc(var(--cx) + var(--cw) * 0.5) calc(var(--cy) + var(--cw) * 0.11) with
-            calc(var(--cx) + var(--cw) * 0.38) var(--cy) / calc(var(--cx) + var(--cw) * 0.45)
-            calc(var(--cy) + var(--cw) * 0.05),
-          curve to calc(var(--cx) + var(--cw) * 0.73) var(--cy) with
-            calc(var(--cx) + var(--cw) * 0.55) calc(var(--cy) + var(--cw) * 0.05) /
-            calc(var(--cx) + var(--cw) * 0.62) var(--cy),
-          curve to calc(var(--cx) + var(--cw)) calc(var(--cy) + var(--cw) * 0.3) with
-            calc(var(--cx) + var(--cw) * 0.88) var(--cy) / calc(var(--cx) + var(--cw))
-            calc(var(--cy) + var(--cw) * 0.12),
-          line to calc(var(--cx) + var(--cw)) 100%,
-          close
-        );
-      }
-      .abertura:not([data-sem-cena]) .abertura-moldura {
-        position: absolute;
-        inset: 0;
-        clip-path: none !important;
-      }
+    .abertura:not([data-sem-cena]) {
+      height: 240svh;
+    }
+    .abertura:not([data-sem-cena]) .abertura-palco {
+      position: sticky;
+      top: 0;
+      container-type: inline-size;
+    }
+    .abertura:not([data-sem-cena]) .abertura-janela {
+      --cw: calc((min(100cqw - var(--margem) * 2, 1680px) - var(--vao)) / 2);
+      --cx: calc(100cqw - max(var(--margem), (100cqw - 1680px) / 2) - var(--cw));
+      inset: 0;
+      width: auto;
+      right: 0;
+      clip-path: inset(
+        var(--janela-topo) calc(100cqw - var(--cx) - var(--cw)) 0 var(--cx) round var(--raio)
+          var(--raio) 0 0
+      );
+    }
+    .abertura:not([data-sem-cena]) .abertura-moldura {
+      position: absolute;
+      inset: 0;
+      border-radius: 0;
     }
   }
 
@@ -273,11 +256,11 @@
     width: auto;
     right: 0;
   }
-  /* A máscara agora é o `clip-path: path()` da janela, desenhado pelo JS. */
+  /* O recorte agora é o `clip-path: inset()` da janela, desenhado pelo JS. */
   .abertura[data-cena] .abertura-moldura {
     position: absolute;
     inset: 0;
-    clip-path: none !important;
+    border-radius: 0;
   }
   .abertura[data-cena] .abertura-cartela {
     display: block;

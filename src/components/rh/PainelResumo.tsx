@@ -19,7 +19,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import { ArrowRight, ShieldAlert } from "lucide-react";
 
 import type { AbaRh } from "@/components/rh/CabecalhoRh";
-import { FormaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { diasAteVencerGuarda, iniciais, tempoRelativo } from "@/lib/rh/formatar";
 import { AREAS, STATUS, statusPor } from "@/lib/rh/opcoes";
 import type { Candidatura, StatusCandidatura, Vaga } from "@/lib/rh/tipos";
@@ -587,7 +587,6 @@ export function PainelResumo({
 
       {vazio ? (
         <section className="rh-primeira-vez">
-          <FormaCoroa proporcao={0.86} className="rh-primeira-vez__coroa" />
           <div>
             <h2>Ainda não chegou nenhuma candidatura</h2>
             <p>

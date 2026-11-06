@@ -1,7 +1,7 @@
 /* As landings pagas de implante e clareamento — ver Topo.tsx e Secoes.tsx.
  *
  * O que está aqui é só o que o Tailwind não diz bem: a janela do topo, a
- * diagonal da Escada, os marcadores em coroa, o acordeão. O resto das páginas
+ * diagonal da Escada, os marcadores em ponto, o acordeão. O resto das páginas
  * é utilitário com os tokens do sistema.
  */
 
@@ -122,7 +122,7 @@
     height: 1.1em;
   }
 
-  /* ---- A janela em coroa, com o eco verde ---------------------------------- */
+  /* ---- A janela, com o eco verde ---------------------------------- */
   .lp-janela {
     --eco-x: clamp(14px, 2.2vw, 40px);
     --eco-y: calc(var(--eco-x) * -0.8);
@@ -205,7 +205,7 @@
     }
   }
 
-  /* ---- Marcadores em coroa, na altura da letra ------------------------------ */
+  /* ---- Marcadores em ponto, na altura da letra ------------------------------ */
   .lp-itens {
     display: grid;
     gap: 0.9rem;
@@ -224,7 +224,7 @@
   /* ---- Escada: três pontos descendo em diagonal ------------------------------ */
   /* O degrau é o recuo de cada ponto. No celular ele anda para a direita (0,
      1 e 2 degraus) e vira uma escada de verdade; no desktop anda para baixo, e a
-     foto em coroa ocupa o vão que a diagonal deixa embaixo à esquerda, com o
+     foto ocupa o vão que a diagonal deixa embaixo à esquerda, com o
      botão alinhado à base da foto, no vão da direita. */
   .lp-escada {
     --degrau: 1.25rem;
@@ -428,8 +428,8 @@
   }
 
   /* ---- A animação: o quadro do vídeo tem moldura escura em cima ------------------------- */
-  /* Dentro da coroa o topo preto do quadro aparecia nos dois lobos como um
-     recorte vazado. Ampliar 18% a partir da base empurra o preto para fora. */
+  /* O topo preto do quadro aparecia como uma faixa escura no alto da moldura.
+     Ampliar 18% a partir da base empurra o preto para fora. */
   .lp-animacao :is(img, video) {
     transform-origin: 50% 100%;
     scale: 1.18;
@@ -442,15 +442,15 @@
     margin-top: 1.25rem;
   }
 
-  /* ---- Fechamento: a coroa gigante, cortada pela borda ------------------------------------ */
+  /* ---- Fechamento: o bloco gigante, cortado pela borda ------------------------------------ */
   .lp-fechamento {
     position: relative;
     overflow: clip;
   }
-  /* A forma ocupa o canto direito e sai pela borda: lê-se como coroa, não como
-     enfeite. Fica em --campo (mais escuro que o fundo): o texto claro por cima
-     ganha contraste, não perde. Alta (135%) e baixada 12%: os lobos ficam à vista no alto e a base sai pela
-     borda, como a arcada que sobe do rodapé. */
+  /* A forma ocupa o canto direito e sai pela borda. Fica em --campo (mais
+     escuro que o fundo): o texto claro por cima ganha contraste, não perde.
+     Alta (135%) e baixada 12%: os cantos de cima ficam à vista e a base sai
+     pela borda. */
   .lp-coroa-gigante {
     position: absolute;
     top: 12%;

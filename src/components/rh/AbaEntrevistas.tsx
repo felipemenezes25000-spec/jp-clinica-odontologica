@@ -35,7 +35,7 @@ import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import { CabecalhoPagina } from "@/components/rh/CabecalhoPagina";
-import { FormaCoroa, MarcaCoroa } from "@/components/site/sistema/Coroa";
+import { MarcaCoroa } from "@/components/site/sistema/Coroa";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDown,
@@ -1438,7 +1438,6 @@ function Agenda(props: {
 
       {total === 0 ? (
         <div className="rh-vazio mt-4">
-          <FormaCoroa proporcao={0.86} className="rh-vazio__coroa" />
           <p className="text-base font-semibold text-white">Nenhuma entrevista por aqui ainda.</p>
           <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-relaxed text-white/85">
             A ficha nasce na gaveta da candidata: abra a aba Candidaturas, escolha alguém e mande
@@ -2371,7 +2370,6 @@ export function AbaEntrevistas(props: {
             />
           ) : guia === null ? (
             <div className="rh-vazio">
-              <FormaCoroa proporcao={0.86} className="rh-vazio__coroa" />
               <div>
                 <h4 className="text-base font-semibold text-white">Nenhum guia cadastrado</h4>
                 <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-relaxed text-white/85">

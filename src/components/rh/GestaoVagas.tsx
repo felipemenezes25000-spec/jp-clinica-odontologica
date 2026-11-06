@@ -31,7 +31,6 @@ import {
 } from "lucide-react";
 import { CabecalhoPagina } from "@/components/rh/CabecalhoPagina";
 import { EditorVaga } from "@/components/rh/EditorVaga";
-import { FormaCoroa } from "@/components/site/sistema/Coroa";
 import { formatarData, tempoRelativo } from "@/lib/rh/formatar";
 import { MODELOS_TRABALHO, STATUS_VAGA, VINCULOS, statusVagaPor } from "@/lib/rh/opcoes";
 import type { Candidatura, ConfiguracoesRh, StatusVaga, Vaga } from "@/lib/rh/tipos";
@@ -275,7 +274,6 @@ export function GestaoVagas(props: {
 
       {semVagaNenhuma ? (
         <div className="rh-vazio">
-          <FormaCoroa proporcao={0.86} className="rh-vazio__coroa" />
           <div>
             <h2 className="font-display text-xl font-extrabold text-white">
               Nenhuma vaga cadastrada ainda

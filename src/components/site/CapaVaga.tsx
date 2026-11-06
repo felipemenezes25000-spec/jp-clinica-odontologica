@@ -17,7 +17,7 @@ import { capaDaArea } from "@/components/site/carreiras/capas";
 import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 
 /**
- * A foto dentro da moldura em coroa.
+ * A foto dentro da moldura.
  *
  * `proporcao` é largura / altura da peça; quem precisa de proporção diferente
  * no celular e no desktop passa `medir` e dá o `aspect-ratio` por CSS (a coroa

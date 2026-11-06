@@ -7,7 +7,6 @@ import { SkipLink } from "@/components/site/SkipLink";
 import { Abertura } from "@/components/site/home/Abertura";
 import { Clinica } from "@/components/site/home/clinica";
 import { Estrutura } from "@/components/site/home/estrutura";
-import { FaixaDaPagina } from "@/components/site/home/estrutura-faixa";
 import { Contato } from "@/components/site/home/contato";
 import { SpecialtiesSection } from "@/components/site/SpecialtiesSection";
 import { ConveniosSection } from "@/components/site/ConveniosSection";
@@ -71,9 +70,9 @@ export const Route = createFileRoute("/")({
  * A home, na ordem do redesenho de 11/2026 (ver DESIGN.md, "Seções da home"):
  * a pergunta da pessoa vem antes da história da casa. Tratamentos e convênios
  * respondem "vocês fazem o que eu preciso, e aceitam meu plano?"; a equipe, a
- * história e as avaliações respondem "posso confiar?"; só então a faixa de
- * coroas vira a página para o lugar (estrutura, atendimento adaptado), as
- * dúvidas e o contato.
+ * história e as avaliações respondem "posso confiar?"; só então o campo verde
+ * vira a página para o lugar (estrutura, atendimento adaptado), as dúvidas e o
+ * contato.
  */
 function Home() {
   return (
@@ -95,7 +94,6 @@ function Home() {
         <HistorySection />
         <ReviewsSection />
 
-        <FaixaDaPagina />
         <Estrutura />
         <AtendimentoSection />
         <FaqSection />

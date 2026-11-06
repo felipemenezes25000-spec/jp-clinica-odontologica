@@ -14,7 +14,7 @@ const RUA = CLINICA.local.logradouro.replace(/^R\.\s/, "Rua ");
 /**
  * O TOPO DE UMA PÁGINA DE TRATAMENTO.
  *
- * Texto à esquerda, janela em coroa à direita com o eco verde — a mesma
+ * Texto à esquerda, janela à direita com o eco verde — a mesma
  * linguagem do topo da home, sem a cena de rolagem (a pessoa aqui veio por um
  * assunto e quer ler, não atravessar uma sala).
  *

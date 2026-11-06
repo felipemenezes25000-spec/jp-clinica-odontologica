@@ -10,7 +10,6 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ArrowLeft, Eye, EyeOff, TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
-import { FormaCoroa } from "@/components/site/sistema/Coroa";
 
 import "./painel.css";
 
@@ -101,7 +100,6 @@ export function LoginRh({
           <span>JP Clínica Integrada</span>
         </div>
         <p className="rh-entrada__frase">Candidaturas e vagas num só lugar.</p>
-        <FormaCoroa proporcao={0.86} className="rh-entrada__coroa" />
       </div>
 
       <main className="rh-entrada__form">

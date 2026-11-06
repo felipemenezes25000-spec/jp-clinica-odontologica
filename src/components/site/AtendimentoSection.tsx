@@ -21,7 +21,7 @@ import "./home/atendimento.css";
  * Por isso a seção termina em contato, e não em "saiba mais": a próxima coisa
  * útil para ela é falar com alguém que possa organizar a consulta.
  *
- * COMPOSIÇÃO — "pontos marcados pela coroa". Em cima, a fachada em coroa
+ * COMPOSIÇÃO — "pontos marcados". Em cima, a fachada
  * cortada pela borda da tela (a placa diz "Pessoas com deficiência", o que a
  * seção afirma) e o convite; embaixo, uma grade 2×2 com os quatro pilares de
  * `ATENDIMENTO` — que têm texto e dividem as mesmas linhas, para os títulos

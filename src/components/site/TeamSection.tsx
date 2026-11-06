@@ -24,7 +24,7 @@ const SEM_REGISTRO = EQUIPE_PUBLICA.filter((pessoa) => !pessoa.registro);
 const funcaoDe = (pessoa: (typeof EQUIPE)[number]) => pessoa.papel ?? pessoa.especialidade ?? "";
 
 /**
- * Retrato em coroa. O `data-obturador` (opcional) vai num `div` próprio e não
+ * Retrato. O `data-obturador` (opcional) vai num `div` próprio e não
  * na moldura: o motor anima o `clip-path` do elemento marcado, e o da moldura é
  * a máscara da coroa — trocá-lo por um `inset()` deixaria a foto retangular
  * para sempre depois da entrada. Só o retrato grande abre em obturador; os

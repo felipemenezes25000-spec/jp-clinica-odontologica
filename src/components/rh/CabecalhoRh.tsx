@@ -19,7 +19,7 @@ import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react
 import { LogOut, Menu, RefreshCw, X } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
-import { FormaCoroa, MarcaCoroa } from "@/components/site/sistema/Coroa";
+import { MarcaCoroa } from "@/components/site/sistema/Coroa";
 import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
 
 import "./painel.css";
@@ -237,9 +237,6 @@ export function CabecalhoRh({
           </button>
         </div>
       </div>
-      {/* Peça de acabamento: a coroa grande, cortada pelo pé da lateral, num
-          degrau de tom. Não diz nada e não recebe foco. */}
-      <FormaCoroa proporcao={0.86} className="rh-lateral__marca-dagua" />
     </aside>
   );
 }

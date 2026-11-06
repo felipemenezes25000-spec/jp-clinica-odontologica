@@ -1,7 +1,7 @@
 /* A história da home — ver HistorySection.tsx.
  *
  * Três estados, e os três são composições acabadas:
- *   celular ............ título, foto da fachada em coroa e a linha do tempo
+ *   celular ............ título, foto da fachada e a linha do tempo
  *                        como lista vertical, anos grandes, tudo no fluxo;
  *   desktop sem cena ... duas colunas: lista à esquerda, foto grudada à direita
  *                        (sem JS, "reduzir movimento" ou GSAP que não chegou);

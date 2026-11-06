@@ -200,7 +200,7 @@ function PaginaCarreiras() {
       <Header />
 
       <main id="conteudo">
-        {/* TOPO — o H1 diz o que a página é; a foto é o consultório, em coroa. */}
+        {/* TOPO — o H1 diz o que a página é; a foto é o consultório. */}
         <section className="car-topo" aria-labelledby="car-titulo">
           <div className="quadro car-topo-grade">
             <div>
