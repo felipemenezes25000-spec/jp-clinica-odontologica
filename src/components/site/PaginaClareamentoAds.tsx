@@ -1,7 +1,6 @@
 import { HeartHandshake, ShieldCheck, UserRoundCheck } from "lucide-react";
 
 import consultorio1Img from "@/assets/consultorio-1.webp";
-import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import fachadaImg from "@/assets/fachada-2026-completa.webp";
 import videoClareamento from "@/assets/video-clareamento.mp4?url";
 import posterClareamento from "@/assets/video-clareamento-poster.webp";
@@ -22,6 +21,7 @@ import {
 import { Topo } from "@/components/site/lp/Topo";
 import { SkipLink } from "@/components/site/SkipLink";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { fotoDoTratamento } from "@/components/site/tratamento/fotos-dos-tratamentos";
 import { DEPOIMENTOS } from "@/lib/jp";
 
 /**
@@ -102,6 +102,9 @@ const FAQ = [
 /** Depoimento real da ficha do Google, curto e sobre o atendimento, para o cartão do topo. */
 const DEPOIMENTO_PRINCIPAL = DEPOIMENTOS[4];
 
+/** A foto do clareamento, a mesma do cartão da home, no "Como funciona". */
+const FOTO_CLAREAMENTO = fotoDoTratamento("clareamento-dental");
+
 export function PaginaClareamentoAds() {
   const wa = useContatoWhatsApp("informacoes", ASSUNTO);
 
@@ -174,14 +177,8 @@ export function PaginaClareamentoAds() {
           titulo="Simples para começar"
           texto="Você não precisa chegar sabendo qual técnica quer. A jornada começa com informação e avança para a avaliação individual."
           etapas={ETAPAS}
-          foto={{
-            src: esterilizacaoImg,
-            largura: 1200,
-            altura: 967,
-            alt: "Sala de esterilização da JP, com a bancada, a autoclave, as pias e os armários",
-            posicao: "35% 50%",
-          }}
-          legendaFoto="Sala de esterilização da JP"
+          foto={FOTO_CLAREAMENTO}
+          legendaFoto="Clareamento dental"
           rotulo="Começar pela conversa"
           href={wa}
         />

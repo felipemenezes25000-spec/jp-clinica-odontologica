@@ -3,43 +3,8 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { CUIDADOS_COMPLEMENTARES, TRATAMENTOS } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { MolduraCoroa } from "@/components/site/sistema/Coroa";
-import fotoLimpeza from "@/assets/tratamentos/limpeza-profilaxia.jpg";
-import fotoClareamento from "@/assets/tratamentos/clareamento-dental.jpg";
-import fotoRestauracoes from "@/assets/tratamentos/restauracoes.jpg";
-import fotoImplantes from "@/assets/tratamentos/implantes-dentarios.jpg";
-import fotoProteses from "@/assets/tratamentos/proteses-dentarias.jpg";
-import fotoOrtodontia from "@/assets/tratamentos/ortodontia.jpg";
-import fotoOdontopediatria from "@/assets/tratamentos/odontopediatria.jpg";
-import fotoHarmonizacao from "@/assets/tratamentos/harmonizacao-orofacial.jpg";
+import { FOTO_DO_TRATAMENTO } from "@/components/site/tratamento/fotos-dos-tratamentos";
 import "./home/tratamentos.css";
-
-type Foto = { src: string; largura: number; altura: number; pos: string };
-
-/**
- * Foto de cada tratamento, por slug: o que o tratamento é, para o cartão
- * conversar com o título.
- *
- * Antes eram salas do consultório, e o cliente reclamou que a foto não dizia
- * nada sobre o tratamento. Estas foram enviadas pelo Felipe em 06/11/2026. Nas
- * de odontopediatria e harmonização, olhos e nariz estão desfocados no próprio
- * arquivo, a pedido dele, para ninguém ser reconhecido. As outras seis não
- * mostram rosto identificável.
- *
- * Cinco mostram o procedimento sendo feito. O alerta sobre a Res. CFO
- * 196/2019, art. 3, foi dado, e a decisão foi manter. Os arquivos têm cerca de
- * 550×180 px; se vierem versões maiores, troque mantendo o nome. `pos` é o
- * `object-position` que segura o assunto no recorte do cartão estreito.
- */
-const FOTOS: Record<string, Foto> = {
-  "limpeza-profilaxia": { src: fotoLimpeza, largura: 550, altura: 192, pos: "60% 50%" },
-  "clareamento-dental": { src: fotoClareamento, largura: 554, altura: 192, pos: "55% 50%" },
-  restauracoes: { src: fotoRestauracoes, largura: 550, altura: 183, pos: "55% 50%" },
-  "implantes-dentarios": { src: fotoImplantes, largura: 554, altura: 183, pos: "62% 50%" },
-  "proteses-dentarias": { src: fotoProteses, largura: 550, altura: 172, pos: "25% 50%" },
-  ortodontia: { src: fotoOrtodontia, largura: 554, altura: 172, pos: "50% 50%" },
-  odontopediatria: { src: fotoOdontopediatria, largura: 550, altura: 184, pos: "52% 50%" },
-  "harmonizacao-orofacial": { src: fotoHarmonizacao, largura: 554, altura: 184, pos: "60% 50%" },
-};
 
 /**
  * Resumo curto de cada item — o `desc` de jp.ts é longo demais para o cartão.
@@ -72,7 +37,8 @@ const LARGOS = new Set([
 ]);
 
 function CartaoTratamento({ slug, titulo }: { slug: string; titulo: string }) {
-  const foto = FOTOS[slug];
+  // A foto do tratamento (fonte única: `fotos-dos-tratamentos.ts`).
+  const foto = FOTO_DO_TRATAMENTO[slug];
 
   return (
     <li data-item className="trat-item" data-largo={LARGOS.has(slug) ? "" : undefined}>
@@ -87,7 +53,7 @@ function CartaoTratamento({ slug, titulo }: { slug: string; titulo: string }) {
               height={foto.altura}
               loading="lazy"
               decoding="async"
-              style={{ objectPosition: foto.pos }}
+              style={{ objectPosition: foto.posicao }}
             />
           )}
         </MolduraCoroa>

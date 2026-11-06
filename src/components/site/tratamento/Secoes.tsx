@@ -119,7 +119,7 @@ export function Entenda({ tratamento, foto }: { tratamento: Tratamento; foto: Fo
 }
 
 /**
- * PARA QUEM — cenários em cartões, com o consultório ao lado.
+ * PARA QUEM — cenários em cartões, com a foto do tratamento ao lado.
  * Fundo um degrau acima do chão: separa o conceito de "isso é para mim?".
  */
 export function ParaQuem({ tratamento, foto }: { tratamento: Tratamento; foto: Foto }) {
@@ -145,7 +145,7 @@ export function ParaQuem({ tratamento, foto }: { tratamento: Tratamento; foto: F
           <div data-item style={passo(3)} className="w-full">
             <FotoMedia
               foto={foto}
-              proporcao={16 / 10}
+              proporcao={foto.proporcao ?? 16 / 10}
               tamanhos="(min-width: 1024px) 34vw, 92vw"
               className="tt-foto-paraquem"
             />

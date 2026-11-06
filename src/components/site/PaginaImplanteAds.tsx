@@ -1,7 +1,6 @@
 import { Bone, ClipboardList, FileSearch, HeartHandshake, Puzzle, Smile } from "lucide-react";
 
 import consultorioImplantes1Img from "@/assets/consultorio-implantes-1.webp";
-import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import fachadaImg from "@/assets/fachada-2026-completa.webp";
 import videoImplante from "@/assets/video-implante.mp4?url";
 import posterImplante from "@/assets/video-implante-poster.webp";
@@ -22,6 +21,7 @@ import {
 import { Topo } from "@/components/site/lp/Topo";
 import { SkipLink } from "@/components/site/SkipLink";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { fotoDoTratamento } from "@/components/site/tratamento/fotos-dos-tratamentos";
 import { DEPOIMENTOS, TRATAMENTOS } from "@/lib/jp";
 
 /**
@@ -90,6 +90,9 @@ const DUVIDAS_CHAVE = [
 
 /** Depoimento real da ficha do Google, curto e sobre o cuidado, para o cartão do topo. */
 const DEPOIMENTO_PRINCIPAL = DEPOIMENTOS[1];
+
+/** A foto do implante, a mesma do cartão da home, no "Como funciona". */
+const FOTO_IMPLANTE = fotoDoTratamento("implantes-dentarios");
 
 export function PaginaImplanteAds() {
   const wa = useContatoWhatsApp("informacoes", ASSUNTO);
@@ -172,14 +175,8 @@ export function PaginaImplanteAds() {
           titulo="Um passo de cada vez"
           texto="O cronograma muda conforme o caso. A lógica do cuidado, porém, continua sendo avaliação, planejamento, tratamento e acompanhamento."
           etapas={IMPLANTE.etapas}
-          foto={{
-            src: esterilizacaoImg,
-            largura: 1200,
-            altura: 967,
-            alt: "Sala de esterilização da JP, com a bancada, a autoclave, as pias e os armários",
-            posicao: "35% 50%",
-          }}
-          legendaFoto="Sala de esterilização da JP"
+          foto={FOTO_IMPLANTE}
+          legendaFoto="Implante dentário com a coroa"
           rotulo="Começar pela avaliação"
           href={wa}
           invertido

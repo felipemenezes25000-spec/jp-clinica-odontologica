@@ -18,6 +18,7 @@ import cadeiraLilasImg from "@/assets/consultorio-cadeira-lilas.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
 import fachadaImg from "@/assets/fachada-2026.webp";
 import retratoImg from "@/assets/juliana-pelisser.webp";
+import { FOTO_DO_TRATAMENTO, fotoEmFaixa } from "./fotos-dos-tratamentos";
 
 import videoClareamento from "@/assets/video-clareamento.mp4?url";
 import posterClareamento from "@/assets/video-clareamento-poster.webp";
@@ -91,7 +92,15 @@ export const ANIMACOES: Record<string, Animacao> = {
  *  clínica (consultório 1, amplo, implantes 1 e 2) vêm no arquivo `-sem-teto`:
  *  o original com o ar-condicionado colado no teto foi recortado abaixo dele,
  *  porque `object-position` não esconde nada numa foto que já cobre a altura. */
-export type Foto = { src: string; largura: number; altura: number; alt: string; posicao?: string };
+export type Foto = {
+  src: string;
+  largura: number;
+  altura: number;
+  alt: string;
+  posicao?: string;
+  /** Largura / altura do quadro, quando a foto pede um diferente do padrão da seção. */
+  proporcao?: number;
+};
 
 const CONSULTORIO: Foto = {
   src: consultorioRealImg,
@@ -186,24 +195,29 @@ export function fotoDoTopo(): Foto {
 }
 
 /**
- * As duas fotos de apoio de cada página, escolhidas pelo tratamento e não pela
- * posição na lista: a de `entenda` abre a leitura, a de `paraQuem` mora na
- * seção seguinte, e as duas nunca repetem na mesma página. Só ambientes da
- * clínica — nenhuma mostra procedimento sendo feito (Res. CFO 196/2019).
+ * As duas fotos de apoio de cada página.
+ *
+ * A de `entenda` é um ambiente da clínica: ela leva o selo "Consultório da JP",
+ * então só pode ser foto da clínica. A de `paraQuem` é a foto do tratamento, a
+ * mesma do cartão da home (`fotos-dos-tratamentos.ts`), num quadro em faixa
+ * porque o arquivo é largo e baixo.
  */
-const FOTOS: Record<string, { entenda: Foto; paraQuem: Foto }> = {
-  "limpeza-profilaxia": { entenda: RECEPCAO, paraQuem: CONSULTORIO },
-  "clareamento-dental": { entenda: JANELA, paraQuem: CONSULTORIO_2 },
-  restauracoes: { entenda: BANCADA, paraQuem: CONSULTORIO_AMPLO },
-  "implantes-dentarios": { entenda: CADEIRA_LUZ, paraQuem: CADEIRA },
-  "proteses-dentarias": { entenda: ESTERILIZACAO, paraQuem: CONSULTORIO },
-  ortodontia: { entenda: JANELA, paraQuem: CADEIRA_LILAS },
-  odontopediatria: { entenda: CADEIRA_LILAS, paraQuem: RECEPCAO },
-  "harmonizacao-orofacial": { entenda: CONSULTORIO_AMPLO, paraQuem: CONSULTORIO_2 },
+const AMBIENTE: Record<string, Foto> = {
+  "limpeza-profilaxia": RECEPCAO,
+  "clareamento-dental": JANELA,
+  restauracoes: BANCADA,
+  "implantes-dentarios": CADEIRA_LUZ,
+  "proteses-dentarias": ESTERILIZACAO,
+  ortodontia: JANELA,
+  odontopediatria: CADEIRA_LILAS,
+  "harmonizacao-orofacial": CONSULTORIO_AMPLO,
 };
 
 export function fotosDaPagina(slug: string): { entenda: Foto; paraQuem: Foto } {
-  return FOTOS[slug] ?? { entenda: CONSULTORIO, paraQuem: CONSULTORIO_2 };
+  return {
+    entenda: AMBIENTE[slug] ?? CONSULTORIO,
+    paraQuem: slug in FOTO_DO_TRATAMENTO ? fotoEmFaixa(slug) : CONSULTORIO_2,
+  };
 }
 
 /**
