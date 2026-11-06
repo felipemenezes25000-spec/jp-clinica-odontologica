@@ -36,7 +36,7 @@
     margin-top: 0.9rem;
   }
   .lp-intro {
-    max-width: 52ch;
+    max-width: 33.7em; /* ~52ch na Bricolage */
     margin-top: 1.25rem;
   }
   .lp-chamada {
@@ -47,7 +47,7 @@
     margin-top: 2.25rem;
   }
   .lp-chamada p {
-    max-width: 34ch;
+    max-width: 22em; /* ~34ch na Bricolage */
   }
   .lp-chamada-baixo {
     margin-top: 2.5rem;
@@ -143,7 +143,7 @@
   }
 
   .lp-frase {
-    max-width: 38ch;
+    max-width: 24.6em; /* ~38ch na Bricolage */
     margin-top: 1.25rem;
     font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
     line-height: 1.5;
@@ -810,7 +810,7 @@
   }
   .lp-pergunta p {
     padding: 0 1.5rem 1.5rem;
-    max-width: 60ch;
+    max-width: 38.9em; /* ~60ch na Bricolage */
   }
   /* O mais que vira menos: duas barras, a vertical gira ao abrir. */
   .lp-mais {
@@ -874,7 +874,7 @@
     }
   }
   .lp-fechamento-titulo {
-    max-width: 16ch;
+    max-width: 10.4em; /* ~16ch na Bricolage */
     margin-top: 0.9rem;
   }
   .lp-fechamento-acoes {

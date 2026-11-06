@@ -240,3 +240,34 @@
     U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
+
+/* RESERVA COM AS MÉTRICAS DA BRICOLAGE — para a troca de fonte não mexer no
+ * layout. Com `font-display: swap`, num celular lento o texto aparece primeiro
+ * na fonte do sistema e troca quando a Bricolage chega; com larguras diferentes,
+ * as linhas quebravam em outro lugar e o topo da home pulava 27px (CLS 0,25).
+ * Estas duas faces são a Arial (ou a Roboto, no Android) redimensionadas para
+ * ocupar o mesmo espaço da Bricolage nos pesos que o site usa. Medido no
+ * Chrome em 06/11/2026, com os textos do topo: a Bricolage 400–500 sai 2–3,7%
+ * mais larga que a Arial; a 600 dos títulos (44–64px) sai 4,4–6,9% mais
+ * estreita que a Arial Bold. Ascendente 930 e descendente 270 (em 1000),
+ * divididos pelo size-adjust. */
+@font-face {
+  font-family: "Bricolage Reserva";
+  font-weight: 100 549;
+  src: local("Arial"), local("ArialMT"), local("Roboto"), local("Helvetica");
+  size-adjust: 102.5%;
+  ascent-override: 90.7%;
+  descent-override: 26.3%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Bricolage Reserva";
+  font-weight: 550 900;
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Roboto Bold"), local("Roboto-Bold"),
+    local("Helvetica Bold");
+  size-adjust: 94.5%;
+  ascent-override: 98.4%;
+  descent-override: 28.6%;
+  line-gap-override: 0%;
+}

@@ -96,7 +96,7 @@
   }
   .tt-frase {
     margin-top: 1.5rem;
-    max-width: 30ch;
+    max-width: 19.4em; /* ~30ch na Bricolage */
     font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.625rem);
     font-weight: 600;
     line-height: 1.25;
@@ -105,7 +105,7 @@
   }
   .tt-desc {
     margin-top: 0.75rem;
-    max-width: 48ch;
+    max-width: 31.1em; /* ~48ch na Bricolage */
     font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
     line-height: 1.55;
     color: var(--tinta-suave);
@@ -201,7 +201,7 @@
   }
   .tt-rotulo {
     margin-top: 1rem;
-    max-width: 52ch;
+    max-width: 33.7em; /* ~52ch na Bricolage */
     color: var(--tinta-suave);
   }
   .tt-rotulo strong {
@@ -314,11 +314,11 @@
     gap: 1rem;
   }
   .tt-intro {
-    max-width: 52ch;
+    max-width: 33.7em; /* ~52ch na Bricolage */
     color: var(--tinta-suave);
   }
   .tt-manifesto {
-    max-width: 32ch;
+    max-width: 20.7em; /* ~32ch na Bricolage */
     font-weight: 500;
   }
   .tt-subtitulo {
@@ -390,7 +390,7 @@
   .tt-nota {
     display: flex;
     gap: 0.75rem;
-    max-width: 52ch;
+    max-width: 33.7em; /* ~52ch na Bricolage */
     padding: 1rem 1.15rem;
     border-radius: var(--raio-sm);
     background: var(--chao-2);
@@ -568,7 +568,7 @@
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
-    max-width: 44ch;
+    max-width: 28.5em; /* ~44ch na Bricolage */
     color: var(--tinta-suave);
   }
   .tt-endereco svg {
@@ -663,7 +663,7 @@
   }
   .tt-pergunta p {
     padding: 0 1.5rem 1.4rem;
-    max-width: 62ch;
+    max-width: 40.2em; /* ~62ch na Bricolage */
     color: var(--tinta-suave);
   }
   .tt-mais {
@@ -777,7 +777,7 @@
     gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
   }
   .tt-chamada-texto > .text-frase {
-    max-width: 32ch;
+    max-width: 20.7em; /* ~32ch na Bricolage */
     color: var(--sobre-campo-suave);
   }
   .tt-chamada-acoes {

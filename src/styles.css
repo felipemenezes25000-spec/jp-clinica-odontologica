@@ -70,8 +70,8 @@
    * óptico ligado. Ela faz título e corpo — o eixo `opsz` aperta o desenho nos
    * tamanhos grandes e abre nos pequenos. Manrope e Inter seguem declaradas em
    * _faces.css para o CRC, que tem as próprias variáveis de fonte. */
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Bricolage Reserva", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Bricolage Grotesque", "Bricolage Reserva", ui-sans-serif, system-ui, sans-serif;
 
   /* SISTEMA 2026 — chão, tinta, acento e os dois campos escuros. Ver o bloco
    * "SISTEMA JP 2026" no fim deste arquivo. */
