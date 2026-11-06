@@ -91,6 +91,10 @@ test.describe("landing de clareamento para Ads", () => {
 
     const cta = page.locator('#hero-clareamento a[href*="wa.me"]').first();
     await expect(cta).toBeVisible();
+    // O botão sai visível no HTML servido, antes de o ouvinte de clique existir.
+    // A referência da campanha só entra depois da hidratação: é o sinal de que
+    // o clique já será contado (sem isso, falhava 1 vez em 3 no desktop).
+    await esperarReferenciaNoWhatsApp(cta);
     await cta.click();
 
     await expect
@@ -113,6 +117,7 @@ test.describe("landing de clareamento para Ads", () => {
 
     const cta = page.locator('#video-clareamento a[href*="wa.me"]').first();
     await expect(cta).toBeVisible();
+    await esperarReferenciaNoWhatsApp(cta);
     await cta.click();
 
     await expect

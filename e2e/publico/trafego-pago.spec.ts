@@ -28,6 +28,17 @@ import { expect, test, type Page } from "@playwright/test";
 const URL_ANUNCIO =
   "/implante-dentario?utm_source=google&utm_medium=cpc&utm_campaign=implante_search&utm_content=a01&gclid=TEST123";
 
+/**
+ * O PAR "MESMA PÁGINA, OUTRO MODO" É ORTODONTIA.
+ *
+ * Desde 7f7b09a, `/tratamentos/implantes-dentarios` também serve a landing
+ * premium de implante (e `implante-ads.spec.ts` confere as duas URLs). Para
+ * provar que o modo anúncio, e não a página, é o que corta as saídas, a
+ * comparação usa a LP curta de ortodontia contra a orgânica dela.
+ */
+const LP_CURTA = "/ortodontia";
+const ORGANICA = "/tratamentos/ortodontia";
+
 type EventoDataLayer = Record<string, unknown>;
 
 /** Lê o `dataLayer` como ele está. O comando de consentimento entra como
@@ -159,9 +170,11 @@ test.describe("a landing page de anúncio", () => {
     // O cross-sell é a maior saída de uma LP paga: quem clicou em implante não
     // pode terminar a página sendo convidado a ler sobre ortodontia.
     await expect(page.getByText("Outros caminhos de cuidado")).toHaveCount(0);
+    await page.goto(LP_CURTA);
+    await expect(page.getByText("Outros caminhos de cuidado")).toHaveCount(0);
 
     // E a orgânica continua oferecendo — o modo é o que muda, não a página.
-    await page.goto("/tratamentos/implantes-dentarios");
+    await page.goto(ORGANICA);
     await expect(page.getByText("Outros caminhos de cuidado")).toHaveCount(1);
   });
 });
@@ -197,11 +210,16 @@ test.describe("o modo anúncio da landing de implante", () => {
   });
 
   test("a orgânica NÃO usa o H1 de anúncio — o modo é o que muda", async ({ page }) => {
-    await page.goto("/tratamentos/implantes-dentarios");
-    const texto = ((await page.locator("h1").textContent()) ?? "").toLowerCase();
+    const h1 = async () => ((await page.locator("h1").textContent()) ?? "").toLowerCase();
 
-    expect(texto).toContain("implante");
-    // A orgânica abre com a promessa do tratamento, não com o bairro.
+    await page.goto(LP_CURTA);
+    expect(await h1()).toContain("ortodontia");
+    expect(await h1()).toContain("freguesia do ó");
+
+    await page.goto(ORGANICA);
+    const texto = await h1();
+    expect(texto).toContain("ortodontia");
+    // A orgânica abre com o nome do tratamento, não com o bairro.
     expect(texto).not.toContain("freguesia do ó");
   });
 
@@ -261,9 +279,11 @@ test.describe("o modo anúncio da landing de implante", () => {
   test("não há saída para 'Todos os tratamentos' na LP paga", async ({ page }) => {
     await page.goto(URL_ANUNCIO);
     await expect(page.getByRole("link", { name: /todos os tratamentos/iu })).toHaveCount(0);
+    await page.goto(LP_CURTA);
+    await expect(page.getByRole("link", { name: /todos os tratamentos/iu })).toHaveCount(0);
 
     // Na orgânica ela continua: quem chegou pela busca pode estar comparando.
-    await page.goto("/tratamentos/implantes-dentarios");
+    await page.goto(ORGANICA);
     await expect(page.getByRole("link", { name: /todos os tratamentos/iu })).toHaveCount(1);
   });
 
@@ -290,7 +310,7 @@ test.describe("o modo anúncio da landing de implante", () => {
     await page.goto("/");
     await expect(page.locator('nav[aria-label="Navegação principal"]')).toHaveCount(1);
 
-    await page.goto("/tratamentos/implantes-dentarios");
+    await page.goto(ORGANICA);
     await expect(page.locator('nav[aria-label="Navegação principal"]')).toHaveCount(1);
   });
 
@@ -353,12 +373,23 @@ test.describe("a atribuição da campanha", () => {
 test.describe("o WhatsApp mantém o contexto do implante", () => {
   test("o CTA do hero fala de implantes e traz a referência curta", async ({ page }) => {
     await page.goto(URL_ANUNCIO);
+    /*
+     * O CTA DO HERO, e não o primeiro link visível: na landing de implante o
+     * WhatsApp do cabeçalho aparece em toda largura e vem antes no documento.
+     * A intenção é "informacoes" (6334b23) — quem clica num anúncio de
+     * implante quer saber valor e horário antes de marcar.
+     */
+    const hero = page.locator('main a.button-primary[href*="wa.me"]').first();
+    const mensagemDoHero = async () => {
+      await expect(hero).toBeVisible();
+      return decodeURIComponent(((await hero.getAttribute("href")) ?? "").split("text=")[1] ?? "");
+    };
     // A referência só existe depois da hidratação — por isso o `poll`.
-    await expect.poll(async () => mensagemDoPrimeiroCTA(page)).toContain("Ref.:");
+    await expect.poll(mensagemDoHero).toContain("Ref.:");
 
-    const mensagem = await mensagemDoPrimeiroCTA(page);
+    const mensagem = await mensagemDoHero();
     expect(mensagem.toLowerCase()).toContain("implante");
-    expect(mensagem).toContain("agendar uma avaliação");
+    expect(mensagem).toContain("valores, horários e como funciona a avaliação");
     // `IMP` = implante, `G` = Google, `A01` = o criativo de `utm_content`.
     expect(mensagem).toContain("Ref.: IMP-G-A01");
   });
