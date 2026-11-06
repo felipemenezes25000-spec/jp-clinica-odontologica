@@ -11,7 +11,7 @@
 import consultorioImg from "@/assets/consultorio-1.webp";
 import consultorioJovemImg from "@/assets/consultorio-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
-import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
+import cantinhoCafeImg from "@/assets/cantinho-cafe-frente.webp";
 import escritorioImg from "@/assets/escritorio.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
@@ -82,9 +82,9 @@ const SEGUNDAS: Record<string, Capa> = {
   recepcao: CAPAS["outra"] as Capa,
   administrativo: {
     src: cantinhoCafeImg,
-    largura: 665,
-    altura: 480,
-    alt: "Cantinho do café da equipe, com o purificador de água e a garrafa térmica",
+    largura: 1200,
+    altura: 900,
+    alt: "Cantinho do café da clínica, com o purificador de água, a garrafa térmica e a bandeja de café",
   },
   estagio: CAPAS["asb-tsb"] as Capa,
   outra: CAPAS["dentista"] as Capa,

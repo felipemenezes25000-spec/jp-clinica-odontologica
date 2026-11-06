@@ -75,10 +75,12 @@ export const GALLERY: EspacoFoto[] = [
   { src: recepcaoImg, full: recepcaoFullImg, largura: 665, altura: 480, title: "Recepção" },
   { src: escritorioImg, full: escritorioFullImg, largura: 665, altura: 480, title: "Escritório" },
   {
+    // Foto atual do cantinho (06/11/2026). Na grade vai o recorte do letreiro e
+    // da mesa; o clique abre a foto inteira, com Missão, Visão e Valores.
     src: cantinhoCafeImg,
     full: cantinhoCafeFullImg,
-    largura: 665,
-    altura: 480,
+    largura: 1200,
+    altura: 900,
     title: "Cantinho do café",
     forma: "grande",
   },

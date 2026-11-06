@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import consultorioImg from "@/assets/consultorio-1.webp";
-import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
+import cantinhoCafeImg from "@/assets/cantinho-cafe-lateral.webp";
 import entradaClinicaImg from "@/assets/entrada-clinica.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
 
@@ -343,13 +343,12 @@ function PaginaCarreiras() {
                   <MolduraCoroa proporcao={0.85}>
                     <img
                       src={cantinhoCafeImg}
-                      alt="Cantinho do café da equipe, com o purificador de água e a garrafa térmica"
-                      width={665}
-                      height={480}
+                      alt="Cantinho do café da clínica visto de lado, com o letreiro na parede e a bandeja de café"
+                      width={900}
+                      height={1200}
                       sizes="(min-width: 1024px) 18rem, 44vw"
-                      /* Âncora alta: a 0,9 de proporção o corte central comia o
-                         letreiro da parede. */
-                      style={{ objectPosition: "50% 30%" }}
+                      /* Foto vertical, de lado: o centro pega o letreiro e a mesa. */
+                      style={{ objectPosition: "50% 50%" }}
                       loading="lazy"
                       decoding="async"
                     />

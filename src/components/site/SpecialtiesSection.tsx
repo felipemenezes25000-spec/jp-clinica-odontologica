@@ -1,38 +1,44 @@
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 
-import fotoJanela from "@/assets/consultorio-janela.webp";
-import fotoBancada from "@/assets/consultorio-bancada.webp";
-import fotoEsterilizacao from "@/assets/esterilizacao.webp";
-import fotoEquipamento from "@/assets/equipamento.webp";
-import fotoImplantes from "@/assets/consultorio-implantes-1.webp";
-import fotoConsultorio from "@/assets/consultorio-2.webp";
-import fotoOrtodontia from "@/assets/consultorio-1.webp";
-import fotoLilas from "@/assets/consultorio-cadeira-lilas.webp";
-
 import { CUIDADOS_COMPLEMENTARES, TRATAMENTOS } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { MolduraCoroa } from "@/components/site/sistema/Coroa";
+import fotoLimpeza from "@/assets/tratamentos/limpeza-profilaxia.jpg";
+import fotoClareamento from "@/assets/tratamentos/clareamento-dental.jpg";
+import fotoRestauracoes from "@/assets/tratamentos/restauracoes.jpg";
+import fotoImplantes from "@/assets/tratamentos/implantes-dentarios.jpg";
+import fotoProteses from "@/assets/tratamentos/proteses-dentarias.jpg";
+import fotoOrtodontia from "@/assets/tratamentos/ortodontia.jpg";
+import fotoOdontopediatria from "@/assets/tratamentos/odontopediatria.jpg";
+import fotoHarmonizacao from "@/assets/tratamentos/harmonizacao-orofacial.jpg";
 import "./home/tratamentos.css";
 
-type Foto = { src: string; largura: number; altura: number; pos?: string };
+type Foto = { src: string; largura: number; altura: number; pos: string };
 
 /**
- * Foto de cada tratamento, por slug.
+ * Foto de cada tratamento, por slug: o que o tratamento é, para o cartão
+ * conversar com o título.
  *
- * Só fotos reais do consultório, sem paciente e sem procedimento (Resolução
- * CFO 196/2019). O que muda de um item para outro é o enquadramento (`pos`),
- * escolhido para o recorte do cartão pegar a peça certa: cadeira, equipo,
- * bancada.
+ * Antes eram salas do consultório, e o cliente reclamou que a foto não dizia
+ * nada sobre o tratamento. Estas foram enviadas pelo Felipe em 06/11/2026. Nas
+ * de odontopediatria e harmonização, olhos e nariz estão desfocados no próprio
+ * arquivo, a pedido dele, para ninguém ser reconhecido. As outras seis não
+ * mostram rosto identificável.
+ *
+ * Cinco mostram o procedimento sendo feito. O alerta sobre a Res. CFO
+ * 196/2019, art. 3, foi dado, e a decisão foi manter. Os arquivos têm cerca de
+ * 550×180 px; se vierem versões maiores, troque mantendo o nome. `pos` é o
+ * `object-position` que segura o assunto no recorte do cartão estreito.
  */
 const FOTOS: Record<string, Foto> = {
-  "limpeza-profilaxia": { src: fotoEsterilizacao, largura: 1200, altura: 967, pos: "50% 40%" },
-  "clareamento-dental": { src: fotoJanela, largura: 665, altura: 480, pos: "60% 50%" },
-  restauracoes: { src: fotoEquipamento, largura: 1200, altura: 967, pos: "50% 50%" },
-  "implantes-dentarios": { src: fotoImplantes, largura: 1200, altura: 1500, pos: "50% 45%" },
-  "proteses-dentarias": { src: fotoConsultorio, largura: 1200, altura: 896, pos: "70% 55%" },
-  ortodontia: { src: fotoOrtodontia, largura: 1400, altura: 1045, pos: "75% 50%" },
-  odontopediatria: { src: fotoLilas, largura: 665, altura: 480, pos: "50% 60%" },
-  "harmonizacao-orofacial": { src: fotoBancada, largura: 665, altura: 480, pos: "45% 50%" },
+  "limpeza-profilaxia": { src: fotoLimpeza, largura: 550, altura: 192, pos: "60% 50%" },
+  "clareamento-dental": { src: fotoClareamento, largura: 554, altura: 192, pos: "55% 50%" },
+  restauracoes: { src: fotoRestauracoes, largura: 550, altura: 183, pos: "55% 50%" },
+  "implantes-dentarios": { src: fotoImplantes, largura: 554, altura: 183, pos: "62% 50%" },
+  "proteses-dentarias": { src: fotoProteses, largura: 550, altura: 172, pos: "25% 50%" },
+  ortodontia: { src: fotoOrtodontia, largura: 554, altura: 172, pos: "50% 50%" },
+  odontopediatria: { src: fotoOdontopediatria, largura: 550, altura: 184, pos: "52% 50%" },
+  "harmonizacao-orofacial": { src: fotoHarmonizacao, largura: 554, altura: 184, pos: "60% 50%" },
 };
 
 /**
@@ -72,13 +78,13 @@ function CartaoTratamento({ slug, titulo }: { slug: string; titulo: string }) {
     <li data-item className="trat-item" data-largo={LARGOS.has(slug) ? "" : undefined}>
       <a href={`/tratamentos/${slug}`} className="trat-cartao cartao">
         <MolduraCoroa medir className="trat-foto">
+          {/* `alt` vazio: o nome do tratamento vem logo abaixo, no mesmo link. */}
           {foto && (
             <img
               src={foto.src}
               alt=""
               width={foto.largura}
               height={foto.altura}
-              sizes="(min-width: 1024px) 28vw, (min-width: 640px) 46vw, 92vw"
               loading="lazy"
               decoding="async"
               style={{ objectPosition: foto.pos }}
