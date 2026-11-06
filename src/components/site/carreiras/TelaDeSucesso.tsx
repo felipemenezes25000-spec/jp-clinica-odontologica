@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { ArrowLeft, Check, Copy, MessageCircle } from "lucide-react";
 
-import { FormaCoroa, MarcaCoroa } from "@/components/site/sistema/Coroa";
 import { whatsappLink } from "@/lib/jp";
 import { MESES_RETENCAO_LGPD } from "@/lib/rh/tipos";
 import "./candidatura.css";
@@ -24,10 +23,8 @@ const DEPOIS = [
 /**
  * A confirmação: protocolo grande para copiar, o que acontece agora e os dois
  * caminhos de saída. O protocolo é o único dado que a pessoa precisa levar
- * embora, então é o maior elemento do bloco escuro.
- *
- * A coroa chapada atrás só existe no desktop e é decoração: no celular a tela
- * é protocolo e texto, sem enfeite disputando a leitura.
+ * embora, então é o maior elemento do topo. Fundo claro, um selo verde com o
+ * ✓ e o protocolo num cartão branco: sem enfeite disputando a leitura.
  */
 export function TelaDeSucesso(props: {
   protocolo: string;
@@ -47,25 +44,27 @@ export function TelaDeSucesso(props: {
 
   return (
     <>
-      <section className="campo-escuro cand-ok-topo" aria-labelledby="cand-ok-titulo">
-        <FormaCoroa proporcao={0.9} className="cand-ok-forma" />
+      <section className="fundo-brilho cand-ok-topo" aria-labelledby="cand-ok-titulo">
         <div className="quadro cand-ok-grade">
           <div>
+            <span className="cand-ok-selo" aria-hidden="true">
+              <Check />
+            </span>
             <h1
               ref={tituloRef}
               id="cand-ok-titulo"
               tabIndex={-1}
-              className="text-display outline-none"
+              className="text-titulo outline-none"
             >
               Recebemos o seu currículo.
             </h1>
-            <p className="mt-6 max-w-[40ch] text-sobre-campo-suave">
+            <p className="mt-6 max-w-[40ch] text-corpo text-tinta-suave">
               Guarde o número do protocolo. É por ele que a equipe encontra a sua candidatura se
               você quiser falar com a gente.
             </p>
           </div>
 
-          <div className="cand-protocolo ladrilho">
+          <div className="cand-protocolo cartao">
             <small>Protocolo</small>
             <strong>{props.protocolo}</strong>
             <button type="button" onClick={props.aoCopiar} className="botao botao-acento">
@@ -88,8 +87,7 @@ export function TelaDeSucesso(props: {
 
           <ol className="cand-depois">
             {DEPOIS.map((p) => (
-              <li key={p.titulo}>
-                <MarcaCoroa />
+              <li key={p.titulo} className="cartao">
                 <div>
                   <strong>{p.titulo}</strong>
                   <span className="t">{p.texto}</span>

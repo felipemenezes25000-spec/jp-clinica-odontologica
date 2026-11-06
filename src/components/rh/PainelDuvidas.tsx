@@ -731,10 +731,16 @@ export function PainelDuvidas(props: {
         </header>
       )}
 
-      <div className={`flex flex-wrap items-center gap-2 ${semCabecalho ? "" : "mt-3"}`}>
-        <ResumoDuvidas item={item} leituras={leituras} />
-        <span className="text-xs font-semibold leading-relaxed text-white/85">{resumo.frase}</span>
-      </div>
+      {/* Sem dúvida nenhuma, quem fala é o cartão abaixo: a pílula e a frase
+          curta repetiam o mesmo aviso, e eram três em sequência. */}
+      {duvidas.length > 0 && (
+        <div className={`flex flex-wrap items-center gap-2 ${semCabecalho ? "" : "mt-3"}`}>
+          <ResumoDuvidas item={item} leituras={leituras} />
+          <span className="text-xs font-semibold leading-relaxed text-white/85">
+            {resumo.frase}
+          </span>
+        </div>
+      )}
 
       {duvidas.length === 0 ? (
         /* Vazio nunca é silêncio: "não sobrou nada para perguntar" é uma

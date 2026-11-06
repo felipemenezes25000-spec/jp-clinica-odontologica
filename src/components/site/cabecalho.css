@@ -3,13 +3,26 @@
 @layer theme, base, components, utilities;
 
 @layer components {
+  /* Vidro claro: no topo da página ele se confunde com o fundo; depois de
+     rolar (`data-rolou`) ganha borda fina e sombra, e o conteúdo passa por
+     baixo desfocado. */
   .cabecalho {
     view-transition-name: cabecalho;
-    background: var(--chao);
+    background: rgb(251 252 248 / 0.82);
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+    backdrop-filter: blur(18px) saturate(1.6);
+    border-bottom: 1px solid transparent;
     color: var(--tinta);
     transition:
       transform 420ms var(--ease-in-out),
-      background-color 300ms ease;
+      background-color 300ms ease,
+      border-color 300ms ease,
+      box-shadow 300ms ease;
+  }
+  .cabecalho[data-rolou] {
+    background: rgb(255 255 255 / 0.86);
+    border-bottom-color: var(--borda);
+    box-shadow: 0 8px 30px -18px rgb(3 47 1 / 0.25);
   }
   .cabecalho[data-escondido] {
     transform: translateY(-100%);

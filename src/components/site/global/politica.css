@@ -1,18 +1,80 @@
-/* A página da Política de Privacidade — redesenho de 11/2026. */
+/* A página da Política de Privacidade — direção "Clínica luminosa" (11/2026):
+ * topo claro com o resumo num cartão, sumário grudado, leitura em coluna única. */
 
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* Leitura longa: texto em tinta, medida de ~68ch vinda da grade da página. */
+  .politica-hero {
+    position: relative;
+    overflow: clip;
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 6rem) clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+  }
+  .politica-topo-grade {
+    display: grid;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+    align-items: center;
+  }
+  .politica-topo-grade > * {
+    min-width: 0;
+  }
+  @media (min-width: 1024px) {
+    .politica-topo-grade {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
+    }
+  }
+  .politica-titulo {
+    margin-top: 1.25rem;
+    font-size: clamp(2.5rem, 1.4rem + 3.6vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
+  }
+  .politica-resumo {
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    box-shadow: var(--sombra-2);
+  }
+  /* ✓ em círculo menta, o mesmo marcador das listas de vaga. */
+  .politica-check {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-top: 0.1rem;
+    border-radius: 999px;
+    background: var(--menta);
+    color: var(--acento-texto);
+  }
+  .politica-check svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    stroke-width: 3;
+  }
+
+  /* Leitura longa: texto em tinta, medida de ~68ch vinda da grade da página.
+     Cada seção abre com um filete fino, e a primeira não tem nada em cima. */
   .politica-secao {
-    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+    padding-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+    border-top: 1px solid var(--borda);
+  }
+  .politica-secao:first-child {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
   .politica-texto {
     font-size: var(--text-corpo);
-    line-height: 1.6;
+    line-height: 1.65;
   }
   .politica-texto strong {
     font-weight: 600;
+  }
+
+  /* Cartão de fechamento: dúvidas e o botão do WhatsApp. */
+  .politica-fecho {
+    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
   }
 
   /* Sumário grudado no desktop, abaixo do cabeçalho que fica fixo no alto. */
@@ -44,12 +106,12 @@
     transition: color var(--t-hover) ease;
   }
   .politica-sumario-link[aria-current] {
-    background: var(--chao-2);
+    background: var(--menta);
     color: var(--tinta);
     font-weight: 600;
   }
   .politica-sumario-link[aria-current] .politica-sumario-marca {
-    color: var(--acento);
+    color: var(--acento-texto);
   }
   @media (hover: hover) and (pointer: fine) {
     .politica-sumario-link:hover {
@@ -58,32 +120,14 @@
     }
   }
 
-  /* A coroa do topo: ancorada na direita, sobe da base e é cortada por ela.
-     Fica atrás do título (z-index 0 contra 10) e em chao-3, um tom acima do
-     chão, para o texto manter o contraste da tinta. */
-  .politica-coroa {
-    position: absolute;
-    z-index: 0;
-    right: 2vw;
-    bottom: -22%;
-    width: min(24vw, 22rem);
-    height: auto;
-    pointer-events: none;
-  }
-  @media (max-width: 1023.98px) {
-    .politica-coroa {
-      right: -4vw;
-      bottom: -30%;
-      width: 46vw;
-    }
-  }
-
   /* No celular o sumário é um <details> fechado: o resumo vem antes de dez
      itens de lista. O summary tem os 44px de alvo e o marcador nativo troca por
      uma seta que gira, só transform. */
   .politica-sumario-recolhido {
-    background: var(--chao-2);
-    border-radius: 16px;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-sm);
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
     padding: 0 1rem 0.5rem;
   }
   .politica-sumario-recolhido summary {
@@ -110,8 +154,7 @@
   .politica-sumario-recolhido[open] summary::after {
     transform: translateY(20%) rotate(-135deg);
   }
-  .politica-sumario-recolhido .politica-sumario-link:hover,
-  .politica-sumario-recolhido .politica-sumario-link[aria-current] {
-    background: var(--chao-3);
+  .politica-sumario-recolhido .politica-sumario-link:hover {
+    background: var(--chao-2);
   }
 }

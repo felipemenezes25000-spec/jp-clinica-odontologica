@@ -3,96 +3,126 @@
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* O respiro de baixo é metade: a seção seguinte (tratamentos) já traz o seu de cima. */
-  .clinica.secao {
-    padding-bottom: clamp(2.75rem, 1rem + 4.5vw, 6.25rem);
-  }
-
-  .clinica-frase {
-    margin-top: clamp(1.5rem, 1rem + 2vw, 3rem);
-    /* A medida certa para duas a três linhas no desktop e quatro ou cinco no celular. */
-    max-width: 38em;
-  }
-
-  /* A miniatura acompanha a letra: pouco mais de 1em de altura, largura pela proporção. */
-  .clinica-mini {
-    display: inline-block;
-    height: 1.02em;
-    vertical-align: -0.14em;
-    margin-inline: 0.06em;
-    background: var(--chao-3);
-  }
-
-  .clinica-corpo {
+  .clinica-grade {
     display: grid;
     gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
-    margin-top: clamp(3.5rem, 2rem + 5vw, 7rem);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .clinica-grade {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
+    }
+  }
+
+  /* ---- Foto e selos ----------------------------------------------------------- */
+  .clinica-midia {
+    margin-inline: auto;
+    width: min(100%, 30rem);
+  }
+  .clinica-midia-miolo {
+    position: relative;
   }
   .clinica-foto {
-    aspect-ratio: 1.1;
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
-  .clinica-moldura {
-    width: 100%;
-    height: 100%;
+  .clinica-selo-anos {
+    position: absolute;
+    top: 8%;
+    right: -1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem 0.85rem 1rem;
   }
-  .clinica-pontos {
-    display: grid;
-    gap: clamp(2rem, 1.5rem + 2vw, 3.5rem) clamp(2rem, 1rem + 3vw, 4rem);
-  }
-  /* O título do princípio é de corpo, em negrito: quem lidera a seção é a frase. */
-  .clinica-ponto-titulo {
+  .clinica-selo-numero {
+    font-size: 2.75rem;
     font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--acento-texto);
+  }
+  .clinica-selo-texto {
+    display: grid;
+    line-height: 1.25;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  .clinica-selo-texto strong {
+    font-size: 1rem;
+    font-weight: 650;
     color: var(--tinta);
   }
-  .clinica-pontos h3 {
-    display: flex;
-    align-items: baseline;
-    gap: 0.45em;
+  .clinica-selo-google {
+    position: absolute;
+    bottom: 6%;
+    left: -1.25rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.1rem;
+    font-size: var(--text-pequeno);
+    line-height: 1.25;
+    color: var(--tinta-suave);
   }
-  .clinica-pontos .clinica-marca {
-    color: var(--acento);
-    /* A coroa do título é um pouco menor que a letra, para a linha de base. */
-    width: 0.62em;
-    height: 0.62em;
-    transform: translateY(0.02em);
+  .clinica-selo-google strong {
+    font-weight: 700;
+    color: var(--tinta);
   }
-  .clinica-pontos p {
-    margin-top: 0.75rem;
-    max-width: 34ch;
+  @media (max-width: 639.98px) {
+    .clinica-selo-anos {
+      right: 0.75rem;
+    }
+    .clinica-selo-google {
+      left: 0.75rem;
+      right: 0.75rem;
+      bottom: 0.75rem;
+      justify-content: center;
+    }
+  }
+
+  /* ---- Texto e princípios ----------------------------------------------------- */
+  .clinica-titulo {
+    margin-top: 1rem;
+    max-width: 14ch;
+    font-size: clamp(2.25rem, 1.3rem + 3vw, 4rem);
+  }
+  .clinica-lead {
+    margin-top: 1.25rem;
+    max-width: 44ch;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    line-height: 1.55;
     color: var(--tinta-suave);
   }
 
+  .clinica-pontos {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
   @media (min-width: 640px) {
-    .clinica-foto {
-      aspect-ratio: 1.6;
-    }
-  }
-  /* No tablet a foto é uma faixa mais baixa: o texto útil vem logo depois. */
-  @media (min-width: 640px) and (max-width: 1023px) {
-    .clinica-foto {
-      aspect-ratio: 2;
-    }
-  }
-  @media (min-width: 768px) {
     .clinica-pontos {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  @media (min-width: 1024px) {
-    .clinica-corpo {
-      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
-      align-items: center;
-      gap: clamp(3rem, 2rem + 4vw, 6rem);
-    }
-    .clinica-foto {
-      aspect-ratio: 1.1;
-    }
-    /* Uma coluna ao lado da foto: quatro princípios de corpo, com gap fixo,
-       centrados na altura da foto, sem vãos esticados. */
-    .clinica-pontos {
-      grid-template-columns: 1fr;
-      align-content: center;
-      gap: 2.5rem;
-    }
+  .clinica-pontos > li {
+    display: flex;
+  }
+  .clinica-ponto {
+    flex: 1;
+    padding: 1.5rem;
+  }
+  .clinica-ponto-titulo {
+    margin-top: 1.1rem;
+    font-size: clamp(1.1875rem, 1.1rem + 0.35vw, 1.375rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+  }
+  .clinica-ponto p {
+    margin-top: 0.5rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
   }
 }

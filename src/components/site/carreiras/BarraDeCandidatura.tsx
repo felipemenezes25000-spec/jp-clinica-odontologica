@@ -1,7 +1,6 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
-import { MarcaCoroa } from "@/components/site/sistema/Coroa";
 import "./candidatura.css";
 
 export type EtapaDaCandidatura = { rotulo: string; feita: boolean };
@@ -15,9 +14,9 @@ export type EtapaDaCandidatura = { rotulo: string; feita: boolean };
  * tarefa isso é obstáculo, não navegação.
  *
  * O PROGRESSO É CONTADO PELO QUE ESTÁ PREENCHIDO, não pelo passo em que a
- * pessoa está: o formulário é uma tela só, em três partes, e cada coroa acende
+ * pessoa está: o formulário é uma tela só, em três partes, e cada etapa acende
  * quando a sua parte está completa. Quem usa leitor de tela ouve a mesma coisa
- * pelo `aria-valuetext`; a fileira de coroas é só visual (`aria-hidden`).
+ * pelo `aria-valuetext`; a fileira de etapas é só visual (`aria-hidden`).
  */
 export function BarraDeCandidatura({
   etapas,
@@ -52,7 +51,7 @@ export function BarraDeCandidatura({
                   key={e.rotulo}
                   data-estado={e.feita ? "feito" : i === atual ? "atual" : "futuro"}
                 >
-                  <MarcaCoroa />
+                  <span className="cand-etapa-no">{e.feita ? <Check /> : i + 1}</span>
                   <span className="cand-etapa-rotulo">{e.rotulo}</span>
                 </li>
               ))}

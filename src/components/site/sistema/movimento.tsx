@@ -1,46 +1,85 @@
 import { useEffect } from "react";
 
+import { ponteiroFino, querMenosMovimento, registrarRolagem } from "./ambiente";
+
 /**
  * O MOTOR DE MOVIMENTO DO SITE.
  *
  * Uma peça só, montada uma vez por página (vive dentro do <Header>, que todas
  * as páginas públicas usam). Ela cuida da camada "quieta" de movimento,
- * declarada por atributos no JSX — ninguém precisa importar GSAP para ganhar
- * entrada, linha que sobe ou número que rola:
+ * declarada por atributos no JSX:
  *
  *   data-entra            grupo que entra quando aparece na tela. Os filhos
  *     data-item           marcados sobem 28px e acendem, em cascata de 80ms.
  *                         Não aninhe um data-entra dentro de outro.
- *   data-linhas           título cujas linhas sobem de trás da própria linha
- *                         de base (SplitText, máscara por linha).
- *   data-tinta            frase que se acende palavra por palavra conforme a
- *                         rolagem. UMA por página.
- *   data-numero="210"     número que rola de 0 até o valor ao aparecer.
+ *   data-linhas           título que sobe e acende ao aparecer.
+ *   data-numero="211"     número que rola de 0 até o valor ao aparecer.
  *     data-casas="1"      casas decimais (vírgula, à brasileira).
  *   data-obturador        moldura cuja foto abre de baixo para cima.
- *   data-deriva           foto que deriva poucos % dentro da moldura.
+ *   data-deriva           foto que deriva poucos % dentro da moldura (CSS
+ *                         ligado à rolagem, em styles.css; aqui não há nada).
  *   data-ima              botão que puxa levemente na direção do cursor.
  *
- * Sem JavaScript, ou com "reduzir movimento", tudo já está no lugar: os
- * estados escondidos só existem em `@media (scripting: enabled)` com
- * `prefers-reduced-motion: no-preference`, e a regra de segurança do CSS
- * revela tudo em 2,5s se este motor nunca chegar (bundle quebrado, rede ruim).
+ * SEM GSAP desde 06/11/2026. Tudo aqui é IntersectionObserver, Web Animations
+ * e CSS: o GSAP com ScrollTrigger e SplitText eram ~110 KB baixados em toda
+ * página, inclusive nas landings pagas, para efeitos que o redesenho quase não
+ * usa mais.
  *
- * GSAP, ScrollTrigger, SplitText e Lenis entram por import dinâmico, depois da
- * hidratação: não pesam no primeiro desenho nem no LCP.
+ * Sem JavaScript, ou com "reduzir movimento", tudo já está no lugar: os
+ * estados escondidos de `data-entra` só existem em `@media (scripting:
+ * enabled)` com `prefers-reduced-motion: no-preference`, a regra de segurança
+ * do CSS revela tudo em 2,5s se este motor nunca chegar, e os outros efeitos
+ * só escondem algo depois que o motor montou e viu que está fora da tela.
+ *
+ * A Lenis (rolagem com peso, só mouse/trackpad) entra por import dinâmico.
  */
 
-import { carregarGsap, ponteiroFino, querMenosMovimento, registrarRolagem, type Kit } from "./gsap";
+const EXPO = "cubic-bezier(0.16, 1, 0.3, 1)";
+const IN_OUT = "cubic-bezier(0.76, 0, 0.24, 1)";
 
 const formatar = (valor: number, casas: number) =>
   valor.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
 
+const foraDaTela = (el: Element) => {
+  const r = el.getBoundingClientRect();
+  return r.top >= window.innerHeight || r.bottom <= 0;
+};
+
+/**
+ * Chama `aoEntrar` uma vez, quando o elemento aparece. `preparar` roda já, e
+ * só para quem está fora da tela: o que a pessoa já está vendo não some para
+ * reaparecer.
+ */
+function umaVezAoAparecer(
+  seletor: string,
+  preparar: (el: HTMLElement) => void,
+  aoEntrar: (el: HTMLElement) => void,
+  rootMargin = "0px 0px -12% 0px",
+): () => void {
+  const io = new IntersectionObserver(
+    (entradas) => {
+      for (const e of entradas) {
+        if (!e.isIntersecting) continue;
+        io.unobserve(e.target);
+        aoEntrar(e.target as HTMLElement);
+      }
+    },
+    { rootMargin, threshold: 0.08 },
+  );
+  for (const el of Array.from(document.querySelectorAll<HTMLElement>(seletor))) {
+    if (!foraDaTela(el)) continue;
+    preparar(el);
+    io.observe(el);
+  }
+  return () => io.disconnect();
+}
+
 /* ------------------------------------------------------------------ */
-/* Entradas — IntersectionObserver puro, sem GSAP.                     */
+/* Entradas — o CSS esconde e revela; aqui só se marca quem entrou.     */
 /* ------------------------------------------------------------------ */
 
-function prepararEntradas(raiz: ParentNode): IntersectionObserver | null {
-  const grupos = Array.from(raiz.querySelectorAll<HTMLElement>("[data-entra]"));
+function prepararEntradas(): IntersectionObserver | null {
+  const grupos = Array.from(document.querySelectorAll<HTMLElement>("[data-entra]"));
   for (const grupo of grupos) {
     const itens = Array.from(grupo.querySelectorAll<HTMLElement>("[data-item]")).filter(
       (item) => item.closest("[data-entra]") === grupo,
@@ -68,134 +107,106 @@ function prepararEntradas(raiz: ParentNode): IntersectionObserver | null {
 }
 
 /* ------------------------------------------------------------------ */
-/* Camada GSAP                                                          */
+/* Os efeitos pontuais                                                   */
 /* ------------------------------------------------------------------ */
 
-function montarCamadaGsap(kit: Kit): () => void {
-  const { gsap, ScrollTrigger, SplitText } = kit;
+function montarEfeitos(): () => void {
   const desfazer: Array<() => void> = [];
 
-  const ctx = gsap.context(() => {
-    // Linhas que sobem: só títulos fora da primeira dobra. O topo tem a sua
-    // própria sequência de entrada em CSS, que roda antes do JS chegar.
-    for (const el of gsap.utils.toArray<HTMLElement>("[data-linhas]")) {
-      const split = SplitText.create(el, {
-        type: "lines",
-        mask: "lines",
-        linesClass: "linha-split",
-        autoSplit: true,
-        onSplit: (self) =>
-          gsap.from(self.lines, {
-            yPercent: 108,
-            duration: 1,
-            ease: "expo.out",
-            stagger: 0.09,
-            scrollTrigger: { trigger: el, start: "top 86%", once: true },
-          }),
-      });
-      desfazer.push(() => split.revert());
-    }
+  // Título que sobe e acende.
+  desfazer.push(
+    umaVezAoAparecer(
+      "[data-linhas]",
+      (el) => {
+        el.style.opacity = "0";
+        el.style.translate = "0 0.5em";
+      },
+      (el) => {
+        el.style.opacity = "";
+        el.style.translate = "";
+        el.animate(
+          [
+            { opacity: 0, translate: "0 0.5em" },
+            { opacity: 1, translate: "0 0" },
+          ],
+          { duration: 900, easing: EXPO },
+        );
+      },
+      "0px 0px -14% 0px",
+    ),
+  );
 
-    // Tinta: as palavras começam a 22% e chegam a 100% ao longo da rolagem.
-    // `aria: "none"` e `<span>`: a tinta mora num <p>, onde `aria-label` é
-    // proibido. Com o padrão ("auto") o SplitText rotulava o <p> e escondia as
-    // palavras, e a frase sumia para o leitor de tela. Assim o texto continua
-    // texto, só que palavra a palavra.
-    for (const el of gsap.utils.toArray<HTMLElement>("[data-tinta]")) {
-      const split = SplitText.create(el, {
-        type: "words",
-        wordsClass: "palavra-tinta",
-        tag: "span",
-        aria: "none",
-      });
-      gsap.fromTo(
-        split.words,
-        { opacity: 0.22 },
-        {
-          opacity: 1,
-          ease: "none",
-          stagger: 0.12,
-          scrollTrigger: { trigger: el, start: "top 78%", end: "bottom 42%", scrub: true },
-        },
-      );
-      desfazer.push(() => split.revert());
-    }
+  // Número que rola. O texto final é o que o servidor escreveu.
+  desfazer.push(
+    umaVezAoAparecer(
+      "[data-numero]",
+      (el) => {
+        const alvo = Number(el.dataset["numero"]);
+        if (!Number.isFinite(alvo)) return;
+        el.dataset["final"] = el.textContent ?? "";
+        el.textContent = formatar(0, Number(el.dataset["casas"] ?? 0));
+      },
+      (el) => {
+        const alvo = Number(el.dataset["numero"]);
+        const final = el.dataset["final"];
+        if (!Number.isFinite(alvo) || final === undefined) return;
+        const casas = Number(el.dataset["casas"] ?? 0);
+        const inicio = performance.now();
+        const passo = (agora: number) => {
+          const t = Math.min((agora - inicio) / 1600, 1);
+          const v = alvo * (1 - 2 ** (-10 * t));
+          el.textContent = t >= 1 ? final : formatar(v, casas);
+          if (t < 1) requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
+      },
+    ),
+  );
 
-    // Números que rolam.
-    for (const el of gsap.utils.toArray<HTMLElement>("[data-numero]")) {
-      const alvo = Number(el.dataset["numero"]);
-      if (!Number.isFinite(alvo)) continue;
-      const casas = Number(el.dataset["casas"] ?? 0);
-      const final = el.textContent ?? "";
-      const estado = { v: alvo > 1000 ? alvo - 40 : 0 };
-      ScrollTrigger.create({
-        trigger: el,
-        start: "top 88%",
-        once: true,
-        onEnter: () =>
-          gsap.to(estado, {
-            v: alvo,
-            duration: 1.6,
-            ease: "expo.out",
-            onUpdate: () => {
-              el.textContent = formatar(estado.v, casas);
-            },
-            onComplete: () => {
-              el.textContent = final;
-            },
-          }),
-      });
-    }
+  // Obturador: a moldura abre de baixo para cima e a foto assenta.
+  desfazer.push(
+    umaVezAoAparecer(
+      "[data-obturador]",
+      (el) => {
+        el.style.clipPath = "inset(100% 0% 0% 0%)";
+      },
+      (el) => {
+        el.style.clipPath = "";
+        el.animate([{ clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)" }], {
+          duration: 1200,
+          easing: IN_OUT,
+        });
+        el.querySelector("img, video")?.animate([{ scale: "1.14" }, { scale: "1" }], {
+          duration: 1600,
+          easing: EXPO,
+        });
+      },
+      "0px 0px -15% 0px",
+    ),
+  );
 
-    // Obturador: a moldura abre de baixo para cima e a foto assenta.
-    for (const el of gsap.utils.toArray<HTMLElement>("[data-obturador]")) {
-      const img = el.querySelector("img, video");
-      const tl = gsap.timeline({ scrollTrigger: { trigger: el, start: "top 85%", once: true } });
-      tl.fromTo(
-        el,
-        { clipPath: "inset(100% 0% 0% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "power4.inOut" },
-      );
-      if (img) tl.fromTo(img, { scale: 1.14 }, { scale: 1, duration: 1.6, ease: "expo.out" }, 0);
-    }
-
-    // Deriva: a foto anda até 6% dentro da moldura (a moldura corta).
-    for (const el of gsap.utils.toArray<HTMLElement>("[data-deriva]")) {
-      gsap.fromTo(
-        el,
-        { yPercent: -5, scale: 1.1 },
-        {
-          yPercent: 5,
-          scale: 1.1,
-          ease: "none",
-          scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: true },
-        },
-      );
-    }
-  });
-  desfazer.push(() => ctx.revert());
-
-  // Ímã: só com mouse. O botão anda no máximo 6px, o texto 3px.
+  // Ímã: só com mouse. O botão anda no máximo ~12px; a volta, com a mola, é
+  // a transição de `translate` em styles.css.
   if (ponteiroFino()) {
     for (const el of Array.from(document.querySelectorAll<HTMLElement>("[data-ima]"))) {
       const mover = (e: PointerEvent) => {
         const r = el.getBoundingClientRect();
         const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
         const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
-        gsap.to(el, { x: dx * 12, y: dy * 10, duration: 0.5, ease: "power3.out" });
+        el.style.translate = `${(dx * 12).toFixed(1)}px ${(dy * 10).toFixed(1)}px`;
       };
-      const soltar = () => gsap.to(el, { x: 0, y: 0, duration: 0.7, ease: "elastic.out(1, 0.5)" });
+      const soltar = () => {
+        el.style.translate = "";
+      };
       el.addEventListener("pointermove", mover);
       el.addEventListener("pointerleave", soltar);
       desfazer.push(() => {
         el.removeEventListener("pointermove", mover);
         el.removeEventListener("pointerleave", soltar);
+        el.style.translate = "";
       });
     }
   }
-
-  // Depois que as fontes chegam, as medidas mudam: recalcula tudo uma vez.
-  void document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
   return () => desfazer.reverse().forEach((f) => f());
 }
@@ -204,7 +215,7 @@ function montarCamadaGsap(kit: Kit): () => void {
 /* Rolagem com peso (Lenis) — só mouse/trackpad, nunca toque.            */
 /* ------------------------------------------------------------------ */
 
-async function montarRolagem(kit: Kit): Promise<() => void> {
+async function montarRolagem(): Promise<() => void> {
   if (!ponteiroFino()) return () => {};
   const { default: Lenis } = await import("lenis");
   const cabecalho = document.querySelector<HTMLElement>("header");
@@ -212,16 +223,12 @@ async function montarRolagem(kit: Kit): Promise<() => void> {
     lerp: 0.12,
     anchors: { offset: -((cabecalho?.offsetHeight ?? 80) + 16) },
     allowNestedScroll: true,
+    autoRaf: true,
   });
-  lenis.on("scroll", kit.ScrollTrigger.update);
-  const tique = (t: number) => lenis.raf(t * 1000);
-  kit.gsap.ticker.add(tique);
-  kit.gsap.ticker.lagSmoothing(0);
   document.documentElement.classList.add("rolagem-suave");
   registrarRolagem(lenis);
   return () => {
     registrarRolagem(null);
-    kit.gsap.ticker.remove(tique);
     lenis.destroy();
     document.documentElement.classList.remove("rolagem-suave");
   };
@@ -234,36 +241,26 @@ export function Movimento() {
   useEffect(() => {
     const raiz = document.documentElement;
     raiz.dataset["movimento"] = "pronto";
-    const io = prepararEntradas(document);
+    const io = prepararEntradas();
 
     let vivo = true;
-    let desmontar: Array<() => void> = [];
+    const desmontar: Array<() => void> = [];
 
-    if (!querMenosMovimento()) {
-      void carregarGsap()
-        .then(async (kit) => {
-          if (!vivo) return;
-          desmontar.push(montarCamadaGsap(kit));
-          // A Lenis é um enfeite: se o import dela falhar, a rolagem nativa
-          // continua e a camada do GSAP, já montada, segue valendo.
-          const parar = await montarRolagem(kit).catch(() => () => {});
-          if (!vivo) {
-            parar();
-            return;
-          }
-          desmontar.push(parar);
+    if (!querMenosMovimento() && "IntersectionObserver" in window) {
+      desmontar.push(montarEfeitos());
+      // A Lenis é um enfeite: se o import dela falhar, a rolagem nativa segue.
+      void montarRolagem()
+        .then((parar) => {
+          if (vivo) desmontar.push(parar);
+          else parar();
         })
-        .catch(() => {
-          // Sem GSAP a página fica na composição parada; o CSS de segurança
-          // já revelou o que dependia das entradas.
-        });
+        .catch(() => {});
     }
 
     return () => {
       vivo = false;
       io?.disconnect();
       desmontar.forEach((f) => f());
-      desmontar = [];
       delete raiz.dataset["movimento"];
     };
   }, []);

@@ -1,7 +1,8 @@
 /* A animação ilustrativa de um tratamento — ver TreatmentVideo.tsx.
  *
- * Mora dentro da coroa, como toda fotografia do site. Sem sombra, sem vidro,
- * sem degradê: o botão é um círculo chapado e a legenda é texto no chão. */
+ * Mora numa moldura de cantos suaves, como toda fotografia do site. O botão de
+ * reproduzir é o círculo verde-maçã da ação, com o relevo dos botões do sistema;
+ * a legenda é texto no chão. */
 
 @layer theme, base, components, utilities;
 
@@ -47,6 +48,7 @@
     margin: -2.125rem 0 0 -2.125rem;
     background: var(--acento);
     color: var(--tinta);
+    box-shadow: var(--sombra-botao);
   }
   .animacao-botao[data-estado="tocando"] {
     right: 1rem;

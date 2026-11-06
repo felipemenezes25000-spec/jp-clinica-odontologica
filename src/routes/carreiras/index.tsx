@@ -11,7 +11,17 @@
  */
 import { useMemo, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowUpRight, Check, Search, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarDays,
+  Check,
+  Clock3,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Search,
+  X,
+} from "lucide-react";
 
 import consultorioImg from "@/assets/consultorio-1.webp";
 import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
@@ -22,9 +32,12 @@ import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
 import { LinhaDeVaga } from "@/components/site/carreiras/LinhaDeVaga";
-import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
+import { AvataresEquipe } from "@/components/site/ui/AvataresEquipe";
+import { DENTISTAS } from "@/components/site/ui/avatares";
+import { Estrelas } from "@/components/site/ui/Estrelas";
 
-import { CLINICA, HISTORIA, MISSAO, SITE_URL, whatsappLink } from "@/lib/jp";
+import { AVALIACOES, CLINICA, HISTORIA, MISSAO, SITE_URL, notaBR, whatsappLink } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
 import { listarVagasPublicas } from "@/lib/rh/api-portal";
 import { apenasDigitos } from "@/lib/rh/formatar";
@@ -201,20 +214,19 @@ function PaginaCarreiras() {
 
       <main id="conteudo">
         {/* TOPO — o H1 diz o que a página é; a foto é o consultório. */}
-        <section className="car-topo" aria-labelledby="car-titulo">
+        <section className="car-topo fundo-brilho" aria-labelledby="car-titulo">
           <div className="quadro car-topo-grade">
             <div>
-              <h1 id="car-titulo" className="linhas-topo text-display">
+              <p className="sobretitulo" data-chega>
+                Carreiras na JP
+              </p>
+              <h1 id="car-titulo" className="car-topo-titulo linhas-topo">
                 <span className="linha">
                   <span>{titulo}</span>
                 </span>
               </h1>
               {chamada.length > 0 ? (
-                <p
-                  className="car-chamada text-corpo"
-                  data-chega
-                  style={{ "--d": "260ms" } as CSSProperties}
-                >
+                <p className="car-chamada" data-chega style={{ "--d": "260ms" } as CSSProperties}>
                   {chamada}
                 </p>
               ) : null}
@@ -222,14 +234,14 @@ function PaginaCarreiras() {
               <div className="car-acoes" data-chega style={{ "--d": "360ms" } as CSSProperties}>
                 <a
                   href={total > 0 ? "#vagas" : "/trabalhe-conosco"}
-                  className="botao botao-acento"
+                  className="botao botao-acento botao-grande"
                   data-ima
                 >
                   {total > 0 ? "Ver vagas abertas" : "Entrar no banco de talentos"}
                   <ArrowUpRight aria-hidden="true" />
                 </a>
                 {total > 0 ? (
-                  <a href="/trabalhe-conosco" className="botao botao-chao">
+                  <a href="/trabalhe-conosco" className="botao botao-chao botao-grande">
                     Banco de talentos
                   </a>
                 ) : null}
@@ -261,80 +273,130 @@ function PaginaCarreiras() {
             </div>
 
             <div className="car-topo-foto">
-              <FormaCoroa proporcao={1} className="car-topo-eco" />
               <MolduraCoroa medir className="car-topo-moldura">
                 <img
                   src={consultorioImg}
                   alt="Consultório da JP Clínica Odontológica, com a cadeira pronta para o próximo paciente"
                   width={1400}
                   height={1045}
+                  sizes="(min-width: 1024px) 36rem, 92vw"
                   fetchPriority="high"
                   decoding="async"
                 />
               </MolduraCoroa>
+              <div className="vidro flutua car-selo car-selo--alto">
+                <AvataresEquipe max={3} tamanho={36} />
+                <span>
+                  <strong>{DENTISTAS.length} dentistas</strong>
+                  <small>com registro no CRO</small>
+                </span>
+              </div>
+              <div className="vidro flutua-2 car-selo car-selo--base">
+                <span>
+                  <Estrelas tamanho="0.95rem" />
+                  <strong>{notaBR} no Google</strong>
+                  <small>{AVALIACOES.total} avaliações de pacientes</small>
+                </span>
+              </div>
             </div>
           </div>
         </section>
 
         {/* POR QUE A JP */}
         <section id="a-jp" className="secao-curta" aria-labelledby="car-porque">
-          <div className="quadro car-porque">
-            <div className="car-porque-texto" data-entra>
-              <h2 id="car-porque" className="text-titulo" data-linhas>
-                Equipe que se apoia de verdade.
-              </h2>
-              {sobre.length > 0 ? (
-                <p className="car-sobre text-corpo" data-item>
-                  {sobre}
+          <div className="quadro">
+            <div className="car-porque">
+              <div className="car-porque-texto" data-entra>
+                <p className="sobretitulo" data-item>
+                  A clínica por dentro
                 </p>
-              ) : null}
-              {mostrarMissao ? (
-                <figure className="ladrilho car-missao" data-item>
-                  <blockquote className="text-frase">{MISSAO}</blockquote>
-                </figure>
-              ) : null}
-              <p className="car-endereco" data-item>
-                <MarcaCoroa />
-                <span>{CLINICA.endereco}</span>
-              </p>
+                <h2 id="car-porque" className="text-titulo" data-item>
+                  Onde você vai trabalhar.
+                </h2>
+                {sobre.length > 0 ? (
+                  <p className="car-sobre text-corpo" data-item>
+                    {sobre}
+                  </p>
+                ) : null}
+                {mostrarMissao ? (
+                  <figure className="cartao car-missao" data-item>
+                    <blockquote className="text-frase">{MISSAO}</blockquote>
+                  </figure>
+                ) : null}
+              </div>
+
+              <div className="car-fotos">
+                <div data-obturador>
+                  <MolduraCoroa proporcao={0.8}>
+                    <img
+                      src={recepcaoImg}
+                      alt="Corredor da recepção da JP, com o balcão e as cadeiras verdes da sala de espera"
+                      width={665}
+                      height={480}
+                      sizes="(min-width: 1024px) 18rem, 44vw"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </MolduraCoroa>
+                </div>
+                <div data-obturador>
+                  <MolduraCoroa proporcao={0.9}>
+                    <img
+                      src={cantinhoCafeImg}
+                      alt="Cantinho do café da equipe, com o purificador de água e a garrafa térmica"
+                      width={665}
+                      height={480}
+                      sizes="(min-width: 1024px) 18rem, 44vw"
+                      /* Âncora alta: a 0,9 de proporção o corte central comia o
+                         letreiro da parede. */
+                      style={{ objectPosition: "50% 30%" }}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </MolduraCoroa>
+                </div>
+              </div>
             </div>
 
-            <div className="car-fotos">
-              <div data-obturador>
-                <MolduraCoroa proporcao={0.8}>
-                  <img
-                    src={recepcaoImg}
-                    alt="Corredor da recepção da JP, com o balcão e as cadeiras verdes da sala de espera"
-                    width={665}
-                    height={480}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </MolduraCoroa>
-              </div>
-              <div data-obturador>
-                <MolduraCoroa proporcao={0.9}>
-                  <img
-                    src={cantinhoCafeImg}
-                    alt="Cantinho do café da equipe, com o purificador de água e a garrafa térmica"
-                    width={665}
-                    height={480}
-                    /* Âncora alta: a 0,9 de proporção o corte central comia o
-                       letreiro da parede. */
-                    style={{ objectPosition: "50% 30%" }}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </MolduraCoroa>
-              </div>
-            </div>
+            {/* Onde, quando e desde quando: só dado que já está no site. */}
+            <ul className="car-infos" data-entra>
+              <li className="cartao car-info" data-item>
+                <span className="pastilha" aria-hidden="true">
+                  <MapPin />
+                </span>
+                <span>
+                  <small>Onde fica</small>
+                  <strong>{CLINICA.endereco}</strong>
+                </span>
+              </li>
+              <li className="cartao car-info" data-item>
+                <span className="pastilha" aria-hidden="true">
+                  <Clock3 />
+                </span>
+                <span>
+                  <small>Horário da clínica</small>
+                  <strong>{CLINICA.horario}</strong>
+                </span>
+              </li>
+              <li className="cartao car-info" data-item>
+                <span className="pastilha" aria-hidden="true">
+                  <CalendarDays />
+                </span>
+                <span>
+                  <small>Fundada em</small>
+                  <strong>
+                    {HISTORIA.fundacao} · {HISTORIA.anos} anos de clínica
+                  </strong>
+                </span>
+              </li>
+            </ul>
           </div>
         </section>
 
         {/* VAGAS */}
         <section
           id="vagas"
-          className="secao-curta scroll-mt-24 bg-chao-2"
+          className="secao-curta secao-clara scroll-mt-24"
           aria-labelledby="car-vagas"
         >
           <div className="quadro">
@@ -342,9 +404,14 @@ function PaginaCarreiras() {
               className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"
               data-entra
             >
-              <h2 id="car-vagas" className="text-titulo" data-linhas>
-                {total === 0 ? "Nenhuma vaga aberta agora." : "Encontre a sua vaga."}
-              </h2>
+              <div>
+                <p className="sobretitulo" data-item>
+                  Vagas
+                </p>
+                <h2 id="car-vagas" className="text-titulo mt-4" data-item>
+                  {total === 0 ? "Nenhuma vaga aberta agora." : "Encontre a sua vaga."}
+                </h2>
+              </div>
               {mostrarBusca ? (
                 <p aria-live="polite" className="car-total" data-item>
                   {filtradas.length === 1
@@ -382,7 +449,6 @@ function PaginaCarreiras() {
                   />
                 </div>
                 <div className="car-vazio-foto">
-                  <FormaCoroa proporcao={1.05} className="car-topo-eco" />
                   <MolduraCoroa proporcao={1.05}>
                     <img
                       src={entradaClinicaImg}
@@ -525,7 +591,7 @@ function PaginaCarreiras() {
                     </div>
                   </div>
                 ) : (
-                  <ul className="car-lista" data-sobre="chao-2">
+                  <ul className="car-lista">
                     {filtradas.map((vaga) => (
                       <LinhaDeVaga key={vaga.id} vaga={vaga} agora={agora} />
                     ))}
@@ -542,7 +608,10 @@ function PaginaCarreiras() {
           <section className="secao-curta" aria-labelledby="car-rh">
             <div className="quadro car-rh">
               <div data-entra>
-                <h2 id="car-rh" className="text-titulo" data-linhas>
+                <p className="sobretitulo" data-item>
+                  Fale com o RH
+                </p>
+                <h2 id="car-rh" className="text-titulo mt-4" data-item>
                   {config.aceitandoEspontanea ? "Não achou a sua vaga?" : "Dúvida sobre uma vaga?"}
                 </h2>
                 <p className="mt-6 max-w-[40ch] text-tinta-suave" data-item>
@@ -552,7 +621,7 @@ function PaginaCarreiras() {
                 </p>
                 {config.aceitandoEspontanea ? (
                   <div className="mt-8" data-item>
-                    <a href="/trabalhe-conosco" className="botao botao-tinta" data-ima>
+                    <a href="/trabalhe-conosco" className="botao botao-acento" data-ima>
                       Cadastrar meu currículo
                       <ArrowUpRight aria-hidden="true" />
                     </a>
@@ -564,9 +633,11 @@ function PaginaCarreiras() {
                 {emailRh.length > 0 ? (
                   <a
                     href={`mailto:${emailRh}?subject=${encodeURIComponent("Candidatura — site da JP")}`}
-                    className="car-rh-canal ladrilho"
+                    className="car-rh-canal cartao cartao-vivo"
                   >
-                    <MarcaCoroa />
+                    <span className="pastilha" aria-hidden="true">
+                      <Mail />
+                    </span>
                     <span className="min-w-0">
                       <small>E-mail do RH</small>
                       <span className="valor">{emailRh}</span>
@@ -582,9 +653,11 @@ function PaginaCarreiras() {
                   href={linkRh.length > 0 ? linkRh : whatsappLink(MENSAGEM_WHATSAPP)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="car-rh-canal ladrilho"
+                  className="car-rh-canal cartao cartao-vivo"
                 >
-                  <MarcaCoroa />
+                  <span className="pastilha" aria-hidden="true">
+                    <MessageCircle />
+                  </span>
                   <span className="min-w-0">
                     <small>{linkRh.length > 0 ? "WhatsApp do RH" : "WhatsApp da clínica"}</small>
                     <span className="valor">
@@ -625,7 +698,7 @@ function CanaisDoRh({
     <p className={className}>
       {emailRh.length > 0 ? (
         <a href={`mailto:${emailRh}?subject=${encodeURIComponent("Candidatura — site da JP")}`}>
-          <MarcaCoroa />
+          <Mail aria-hidden="true" />
           {emailRh}
         </a>
       ) : null}
@@ -634,7 +707,7 @@ function CanaisDoRh({
         target="_blank"
         rel="noopener noreferrer"
       >
-        <MarcaCoroa />
+        <MessageCircle aria-hidden="true" />
         {linkRh.length > 0
           ? `WhatsApp do RH: ${whatsappRh}`
           : `WhatsApp da clínica: ${CLINICA.whatsapp}`}

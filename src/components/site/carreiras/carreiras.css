@@ -1,29 +1,28 @@
-/* Portal de carreiras: /carreiras e /carreiras/<vaga>. Ver DESIGN.md.
+/* Portal de carreiras: /carreiras e /carreiras/<vaga>. Direção "Clínica
+ * luminosa" (ver o bloco "SISTEMA JP 2026" em styles.css): chão claro, cartões
+ * brancos com borda fina e sombra suave, selos sobre as fotos, verde-maçã só
+ * na ação. Nada de verde profundo aqui: o fechamento é o rodapé do site.
  *
- * As três peças que se repetem — o topo com foto, a lista de vagas
- * em linhas e o bloco escuro de contato — moram aqui; o resto é utilitário
- * do Tailwind com os tokens do sistema.
+ * As peças que se repetem — o topo com foto, o cartão de vaga, o cartão de
+ * canais do RH e o resumo lateral da vaga — moram aqui; o resto é utilitário do
+ * Tailwind com os tokens do sistema.
  */
 
 @layer theme, base, components, utilities;
 
 @layer components {
   /* ---- Topo de /carreiras e da página de vaga --------------------------------
-     Celular: a foto vem primeiro (a pessoa vê o lugar antes de ler
-     sobre ele), texto embaixo. Desktop: texto à esquerda, coroa à direita,
-     com o "eco" verde-maçã deslocado atrás, a mesma impressão fora de
-     registro do topo da home. */
+     Texto primeiro (o H1 responde "é uma vaga para mim?"), foto do consultório
+     em tamanho médio com dois selos de vidro por cima. Desktop: texto à
+     esquerda, foto à direita. */
   .car-topo {
     position: relative;
     overflow: clip;
-    padding-top: clamp(1.5rem, 4vw, 3.5rem);
-    /* Menos chão embaixo do que em cima da seção seguinte: o respiro de 7rem
-       deixava ~120px de vazio entre a foto e o bloco seguinte em 1440. */
-    padding-bottom: clamp(2rem, 5vw, 4.5rem);
+    padding-block: clamp(1.75rem, 1rem + 3vw, 4rem) clamp(3rem, 2rem + 4vw, 5.5rem);
   }
   .car-topo-grade {
     display: grid;
-    gap: clamp(2rem, 5vw, 3rem);
+    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
     align-items: center;
   }
   /* Todo filho de grade começa com `min-width: auto`, e um filho com conteúdo
@@ -35,56 +34,106 @@
   .vg-corpo > * {
     min-width: 0;
   }
-  /* O "eco" verde-maçã é a mesma caixa da foto deslocada para cima e para a
-     direita. A caixa da foto reserva esse deslocamento com padding, e o eco
-     ocupa exatamente o espaço reservado: assim a coroa verde termina na
-     margem do quadro, e não 13px antes da borda da janela como acontecia
-     com um `translate` solto (quebrava "margens externas iguais"). */
-  .car-topo-foto,
-  .car-vazio-foto {
-    --eco-x: 12px;
-    --eco-y: 10px;
-    position: relative;
-    padding: var(--eco-y) var(--eco-x) 0 0;
+  .car-topo-titulo {
+    margin-top: 1.25rem;
+    font-size: clamp(2.5rem, 1.4rem + 3.6vw, 4.75rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
   }
+  .car-chamada {
+    margin-top: 1.5rem;
+    max-width: 38ch;
+    font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.3125rem);
+    line-height: 1.55;
+    color: var(--tinta-suave);
+  }
+  .car-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: clamp(1.75rem, 1.25rem + 1.5vw, 2.25rem);
+  }
+  @media (max-width: 639.98px) {
+    .car-acoes > * {
+      width: 100%;
+    }
+  }
+
   .car-topo-foto {
-    order: -1;
-  }
-  .car-topo-eco {
-    position: absolute;
-    left: var(--eco-x);
-    top: 0;
-    width: calc(100% - var(--eco-x));
-    height: calc(100% - var(--eco-y));
-    color: var(--acento);
-    pointer-events: none;
+    position: relative;
+    width: min(100%, 36rem);
+    margin-inline: auto;
   }
   .car-topo-moldura {
     position: relative;
-    /* Celular mais baixo: com 1.2 a foto tomava a primeira tela inteira e o H1
-       só começava em y=550. */
-    aspect-ratio: 1.6;
+    aspect-ratio: 1.3;
     background: var(--chao-3);
+    box-shadow: var(--sombra-2);
   }
   .car-topo-moldura > img {
     position: absolute;
     inset: 0;
   }
+  /* Selos de vidro sobre a foto: um embaixo à esquerda, outro em cima à
+     direita. No celular encolhem e ficam por dentro da moldura para não
+     provocar rolagem lateral. */
+  .car-selo {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem 0.7rem 0.75rem;
+    border-radius: var(--raio-sm);
+    font-size: var(--text-pequeno);
+    line-height: 1.25;
+    color: var(--tinta);
+  }
+  .car-selo > span:last-child {
+    display: grid;
+  }
+  .car-selo strong {
+    font-weight: 650;
+  }
+  .car-selo small {
+    font-size: 0.8125rem;
+    color: var(--tinta-suave);
+  }
+  .car-selo .pastilha {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+  }
+  .car-selo .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  .car-selo--base {
+    left: 0.75rem;
+    bottom: 0.75rem;
+  }
+  .car-selo--alto {
+    right: 0.75rem;
+    top: 0.75rem;
+  }
   @media (min-width: 1024px) {
     .car-topo-grade {
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
     }
     .car-topo-foto {
-      order: 0;
-    }
-    .car-topo-foto,
-    .car-vazio-foto {
-      --eco-x: 16px;
-      --eco-y: 14px;
+      margin-inline: 0 0;
+      justify-self: end;
     }
     .car-topo-moldura {
-      aspect-ratio: 0.95;
+      aspect-ratio: 1.12;
+    }
+    .car-selo--base {
+      left: -1.75rem;
+      bottom: 2rem;
+    }
+    .car-selo--alto {
+      right: -1.25rem;
+      top: 2rem;
     }
     /* Vaga: título é digitado no painel e pode ser longo. Coluna de texto mais
        larga e foto mais estreita antes de qualquer corte de fonte. */
@@ -93,54 +142,49 @@
     }
   }
 
-  .car-chamada {
-    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
-    max-width: 36ch;
-  }
-  .car-acoes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: clamp(1.75rem, 1.25rem + 1.5vw, 2.5rem);
-  }
-
-  /* Os três fatos do topo: número grande, nota pequena embaixo. Sem caixa. */
+  /* Os fatos do topo: três cartões pequenos, número em cima e nota embaixo. */
   .car-fatos {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 1.5rem 2.5rem;
-    margin-top: clamp(2.25rem, 4vw, 4rem);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, auto));
+    justify-content: start;
+    gap: 0.75rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
     max-width: 40rem;
-  }
-  .car-fatos dd {
-    white-space: nowrap;
-    font-size: var(--text-frase);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    font-weight: 600;
-  }
-  .car-fatos dt {
-    margin-top: 0.35rem;
-    font-size: var(--text-pequeno);
-    color: var(--tinta-suave);
   }
   .car-fatos > div {
     display: flex;
     flex-direction: column-reverse;
     justify-content: flex-end;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-sm);
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
   }
-  /* Celular: três colunas, com a nota embaixo quebrando em duas linhas se
-     precisar. Em fila de flex, "Vila Bruna" caía sozinho numa terceira linha. */
-  @media (max-width: 639px) {
+  .car-fatos dd {
+    white-space: nowrap;
+    font-size: var(--text-frase);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    font-weight: 650;
+  }
+  .car-fatos dt {
+    margin-top: 0.3rem;
+    font-size: 0.8125rem;
+    line-height: 1.3;
+    color: var(--tinta-suave);
+  }
+  @media (max-width: 639.98px) {
     .car-fatos {
-      display: grid;
-      grid-template-columns: repeat(3, auto);
-      justify-content: space-between;
-      gap: 1.25rem 1rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+    .car-fatos > div {
+      padding: 0.75rem 0.7rem;
     }
     .car-fatos dd {
-      font-size: var(--text-corpo);
+      font-size: 1.0625rem;
+      white-space: normal;
     }
   }
 
@@ -151,39 +195,62 @@
     align-items: center;
   }
   .car-porque-texto > * + * {
-    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
+    margin-top: clamp(1.1rem, 1rem + 0.8vw, 1.6rem);
   }
   .car-sobre {
-    max-width: 40ch;
-  }
-  .car-missao {
-    padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-  }
-  .car-endereco {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-    font-size: var(--text-pequeno);
+    max-width: 44ch;
     color: var(--tinta-suave);
   }
-  .car-endereco .marca-coroa {
-    margin-top: 0.3em;
-    color: var(--acento);
+  .car-missao {
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
   }
-  /* Duas coroas lado a lado, a segunda mais baixa: o ritmo vem do degrau, não de
-     enfeite. No celular o degrau diminui para as duas continuarem lado a lado. */
   .car-fotos {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap: clamp(0.75rem, 0.4rem + 1vw, 1.5rem);
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.75rem, 0.4rem + 1vw, 1.25rem);
     align-items: start;
+    width: min(100%, 38rem);
+    justify-self: end;
   }
   .car-fotos > :last-child {
-    padding-top: clamp(2.5rem, 12vw, 9rem);
+    padding-top: clamp(1.5rem, 8vw, 4rem);
+  }
+  .car-fotos .moldura-coroa {
+    box-shadow: var(--sombra-1);
   }
   .car-fotos .moldura-coroa > img {
     position: absolute;
     inset: 0;
+  }
+  .car-infos {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+  .car-info {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.25rem;
+  }
+  .car-info > span:last-child {
+    display: grid;
+    min-width: 0;
+    line-height: 1.3;
+  }
+  .car-info small {
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  .car-info strong {
+    font-size: 1rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  @media (min-width: 640px) {
+    .car-infos {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
   @media (min-width: 1024px) {
     .car-porque {
@@ -196,7 +263,12 @@
   .car-filtros {
     display: grid;
     gap: 1.25rem;
-    margin-top: clamp(2rem, 4vw, 3rem);
+    margin-top: clamp(1.75rem, 3vw, 2.5rem);
+    padding: clamp(1.1rem, 1rem + 1vw, 1.75rem);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
   }
   .car-busca {
     position: relative;
@@ -221,19 +293,23 @@
     width: 100%;
     min-height: 3.25rem;
     padding: 0.6rem 1rem 0.6rem 2.75rem;
-    /* tinta-suave: 7,7:1 sobre o chão; os 38% de tinta davam 2,2:1, abaixo
-       dos 3:1 de WCAG 1.4.11 para o limite do campo. */
-    border: 1.5px solid var(--tinta-suave);
-    border-radius: var(--raio);
+    border: 1.5px solid var(--borda-forte);
+    border-radius: var(--raio-sm);
     background: var(--chao);
     color: var(--tinta);
     font: inherit;
+    transition:
+      border-color var(--t-hover) ease,
+      box-shadow var(--t-hover) ease,
+      background-color var(--t-hover) ease;
   }
   .car-busca input::placeholder {
     color: var(--tinta-suave);
   }
   .car-busca input:focus {
-    border-color: var(--tinta);
+    border-color: var(--acento-texto);
+    background: var(--branco);
+    box-shadow: 0 0 0 4px rgb(86 168 5 / 0.2);
   }
   .car-grupo {
     display: grid;
@@ -248,7 +324,7 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  /* O estado ativo se diz de três jeitos: tom, peso e o ✓ — nunca só a cor. */
+  /* O estado ativo se diz de três jeitos: tom, borda e o ✓ — nunca só a cor. */
   .car-chip {
     display: inline-flex;
     align-items: center;
@@ -256,7 +332,8 @@
     min-height: 2.75rem;
     padding: 0.4rem 1.1rem;
     border-radius: 999px;
-    background: var(--chao);
+    background: var(--branco);
+    box-shadow: inset 0 0 0 1px var(--borda-forte);
     color: var(--tinta);
     font-size: var(--text-pequeno);
     font-weight: 500;
@@ -264,23 +341,25 @@
     transition:
       transform var(--t-press) var(--ease-out),
       background-color var(--t-hover) ease,
-      color var(--t-hover) ease;
+      box-shadow var(--t-hover) ease;
   }
   .car-chip:active {
     transform: scale(0.97);
   }
   .car-chip[data-ativo="true"] {
-    background: var(--tinta);
-    color: var(--sobre-campo);
-    font-weight: 600;
+    background: var(--menta);
+    box-shadow: inset 0 0 0 1.5px var(--acento-texto);
+    font-weight: 650;
   }
   .car-chip svg {
     width: 1em;
     height: 1em;
+    color: var(--acento-texto);
   }
   @media (hover: hover) and (pointer: fine) {
     .car-chip[data-ativo="false"]:hover {
-      background: var(--chao-3);
+      background: var(--chao-2);
+      box-shadow: inset 0 0 0 1px var(--tinta);
     }
   }
   .car-total {
@@ -288,44 +367,43 @@
     color: var(--tinta-suave);
   }
 
-  /* ---- A lista de vagas: o cardápio --------------------------------------------
-     Uma linha por vaga, marcador de coroa na altura do título. A linha inteira
-     é clicável por `.stretch-link` no título (um único link para teclado e
-     leitor de tela). Um degrau de tom separa uma da outra — sem filete. */
+  /* ---- A lista de vagas ----------------------------------------------------------
+     Um cartão branco por vaga: ícone da área, título, resumo, etiquetas. O
+     cartão inteiro é clicável por `.stretch-link` no título (um único link para
+     teclado e leitor de tela) e sobe no hover. */
   .car-lista {
     display: grid;
-    gap: 0.5rem;
-    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+    gap: 0.9rem;
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
   }
   .car-linha {
     position: relative;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    column-gap: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+    column-gap: clamp(0.9rem, 0.6rem + 1vw, 1.5rem);
     row-gap: 1rem;
-    padding: clamp(1.25rem, 1rem + 1.2vw, 2rem);
-    border-radius: var(--raio);
-    background: var(--chao);
+    padding: clamp(1.15rem, 1rem + 1.2vw, 1.9rem);
     color: var(--tinta);
-    transition: background-color var(--t-hover) ease;
-  }
-  /* A linha é um degrau de tom contra o fundo da seção: `chao` sobre `chao-2`
-     e vice-versa. Quem monta a lista diz sobre qual fundo ela está. */
-  .car-lista[data-sobre="chao"] .car-linha {
-    background: var(--chao-2);
   }
   .car-linha:has(a:focus-visible) {
     outline: 3px solid var(--tinta);
     outline-offset: 3px;
   }
-  .car-linha-marca {
-    font-size: var(--text-frase);
-    line-height: 1.16;
-    padding-top: 0.1em;
-    color: var(--acento);
+  .car-linha-icone {
+    align-self: start;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 16px;
+  }
+  .car-linha-icone svg {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .car-linha-corpo {
+    min-width: 0;
   }
   .car-linha-corpo > * + * {
-    margin-top: 0.65rem;
+    margin-top: 0.7rem;
   }
   .car-linha h3 a {
     outline: none;
@@ -339,56 +417,72 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .car-linha-meta {
+  .car-linha-tags {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem 1.25rem;
-    font-size: var(--text-pequeno);
-    color: var(--tinta-suave);
+    gap: 0.4rem;
   }
-  .car-linha-meta strong {
-    color: var(--tinta);
-    font-weight: 600;
-  }
-  /* "Em destaque" é a coroa + o peso 600, sem fundo: pílula-selo é proibida. */
-  .car-linha-destaque {
+  .car-linha-tags li {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    min-height: 1.875rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    background: var(--chao-2);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
     color: var(--tinta);
-    font-weight: 600;
   }
-  .car-linha-destaque .marca-coroa {
-    color: var(--acento);
+  .car-linha-tags li[data-destaque] {
+    background: var(--menta);
+    font-weight: 650;
+    color: var(--acento-texto);
   }
   .car-linha-fim {
-    grid-column: 2;
+    grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem 1.5rem;
+    gap: 0.5rem 1.5rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--borda);
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
   .car-linha-ver {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     font-size: var(--text-corpo);
-    font-weight: 600;
-    color: var(--tinta);
+    font-weight: 650;
+    color: var(--acento-texto);
   }
   .car-linha-ver svg {
     width: 1.1em;
     height: 1.1em;
     transition: transform var(--t-ui) var(--ease-out);
   }
-  @media (hover: hover) and (pointer: fine) {
-    .car-lista .car-linha:hover {
-      background: var(--chao-3);
+  @media (min-width: 900px) {
+    .car-linha {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
     }
+    .car-linha-fim {
+      grid-column: 3;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      min-width: 13rem;
+      padding: 0 0 0 1.5rem;
+      border-top: 0;
+      border-left: 1px solid var(--borda);
+      align-self: stretch;
+      text-align: right;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
     .car-linha:hover .car-linha-ver svg {
       transform: translate(2px, -2px);
     }
@@ -399,13 +493,16 @@
     display: grid;
     gap: 2.5rem;
     align-items: center;
-    margin-top: clamp(1.5rem, 3vw, 2.5rem);
-    padding: clamp(1.5rem, 1rem + 3vw, 4rem);
-    border-radius: var(--raio);
-    background: var(--chao);
+    margin-top: clamp(1.5rem, 3vw, 2.25rem);
+    padding: clamp(1.5rem, 1rem + 3vw, 3.5rem);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-lg);
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
   }
   .car-vazio-foto {
-    max-width: 26rem;
+    position: relative;
+    max-width: 20rem;
     justify-self: center;
     width: 100%;
   }
@@ -427,8 +524,8 @@
   .car-vazio-canais {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.25rem 1.5rem;
-    margin-top: 1.75rem;
+    gap: 0.5rem 1.5rem;
+    margin-top: 1.5rem;
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
@@ -444,8 +541,11 @@
     text-underline-offset: 0.22em;
     overflow-wrap: anywhere;
   }
-  .car-vazio-canais .marca-coroa {
-    color: var(--acento);
+  .car-vazio-canais svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    color: var(--acento-texto);
   }
   @media (hover: hover) and (pointer: fine) {
     .car-vazio-canais a:hover {
@@ -454,13 +554,13 @@
   }
 
   /* ---- Contato com o RH ----------------------------------------------------------
-     Em tom de chão, e não em campo escuro: o rodapé do site já é escuro, e um
-     bloco escuro colado nele formava uma massa de ~800px com dois botões
-     verdes disputando (um do paciente, um do candidato). */
+     Em tom de chão, nunca em campo escuro: o rodapé do site já é escuro, e um
+     bloco escuro colado nele formava uma massa com dois botões verdes
+     disputando (um do paciente, um do candidato). */
   .car-rh {
     display: grid;
     gap: clamp(2rem, 5vw, 3rem);
-    align-items: start;
+    align-items: center;
   }
   .car-rh-canais {
     display: grid;
@@ -469,17 +569,10 @@
   .car-rh-canal {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 0.9rem;
-    align-items: start;
-    padding: clamp(1.1rem, 1rem + 1vw, 1.75rem);
+    column-gap: 1rem;
+    align-items: center;
+    padding: clamp(1rem, 0.9rem + 0.9vw, 1.5rem);
     color: var(--tinta);
-    transition: background-color var(--t-hover) ease;
-  }
-  .car-rh-canal .marca-coroa {
-    margin-top: 0.4em;
-    color: var(--acento);
-    width: 1.2rem;
-    height: 1.2rem;
   }
   .car-rh-canal small {
     display: block;
@@ -488,17 +581,12 @@
   }
   .car-rh-canal span.valor {
     display: block;
-    margin-top: 0.15rem;
+    margin-top: 0.1rem;
     font-size: var(--text-frase);
     line-height: 1.16;
     letter-spacing: -0.02em;
     font-weight: 600;
     overflow-wrap: anywhere;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    a.car-rh-canal:hover {
-      background: var(--chao-3);
-    }
   }
   .car-rh-horario {
     padding-left: 0.25rem;
@@ -554,10 +642,10 @@
     }
   }
   /* Título longo: a medida é a da coluna inteira; quem corta é a quantidade de
-     linhas no celular, nunca um `max-width` em `ch` (que fazia o H1 de uma vaga
-     realista virar cinco linhas). O texto completo segue no JSON-LD. */
+     linhas no celular, nunca um `max-width` em `ch`. O texto completo segue no
+     JSON-LD. */
   .vg-titulo {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
     max-width: 100%;
     text-wrap: balance;
     hyphens: auto;
@@ -572,29 +660,52 @@
       overflow: hidden;
     }
   }
-  .vg-tipo {
+  /* Área, vínculo e modelo viram etiquetas; o local vem logo abaixo. */
+  .vg-etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
     margin-top: clamp(1rem, 0.75rem + 1vw, 1.5rem);
-    font-size: var(--text-corpo);
+  }
+  .vg-etiquetas li {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding: 0.3rem 0.9rem;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
+    font-size: var(--text-pequeno);
     font-weight: 600;
+  }
+  .vg-etiquetas li:first-child {
+    background: var(--menta);
+    border-color: transparent;
+    color: var(--acento-texto);
   }
   .vg-local {
     display: flex;
     align-items: flex-start;
     gap: 0.55rem;
-    margin-top: 0.35rem;
+    margin-top: 0.9rem;
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
-  .vg-local .marca-coroa {
-    margin-top: 0.3em;
-    color: var(--acento);
+  .vg-local svg {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.1rem;
+    color: var(--acento-texto);
   }
   .vg-resumo-hero {
-    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
-    max-width: 38ch;
+    margin-top: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    max-width: 44ch;
+    color: var(--tinta-suave);
   }
   .vg-resumo-hero[data-longo="true"] {
-    max-width: 52ch;
+    max-width: 56ch;
   }
 
   .vg-corpo {
@@ -602,7 +713,7 @@
     gap: clamp(2.5rem, 5vw, 4rem);
   }
   .vg-prosa > * + * {
-    margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3.25rem);
   }
   .vg-prosa h2,
   .vg-resumo h2 {
@@ -627,12 +738,21 @@
     align-items: flex-start;
     gap: 0.75rem;
   }
-  .vg-lista .marca-coroa {
+  .vg-check {
+    display: inline-grid;
+    place-items: center;
     flex: none;
-    margin-top: 0.4em;
-    width: 0.9rem;
-    height: 0.9rem;
-    color: var(--acento);
+    width: 1.375rem;
+    height: 1.375rem;
+    margin-top: 0.15rem;
+    border-radius: 999px;
+    background: var(--menta);
+    color: var(--acento-texto);
+  }
+  .vg-check svg {
+    width: 0.8rem;
+    height: 0.8rem;
+    stroke-width: 3;
   }
   .vg-lista li[hidden] {
     display: none;
@@ -649,28 +769,25 @@
     transform: rotate(180deg);
   }
   /* A segunda foto da página: quebra o corredor de listas e põe o lugar na
-     leitura. Larga no desktop, 4:3 no celular. */
+     leitura. Tamanho médio, com cantos do sistema. */
   .vg-foto {
     position: relative;
+    max-width: 34rem;
   }
   .vg-foto .moldura-coroa {
     aspect-ratio: 4 / 3;
+    box-shadow: var(--sombra-1);
   }
   .vg-foto .moldura-coroa > img {
     position: absolute;
     inset: 0;
   }
-  @media (min-width: 640px) {
-    .vg-foto .moldura-coroa {
-      aspect-ratio: 1.8;
-    }
-  }
-  /* Requisitos e diferenciais lado a lado num ladrilho: duas listas do mesmo
-     peso não precisam de dois blocos empilhados com o mesmo desenho. */
+  /* Requisitos e diferenciais lado a lado num cartão: duas listas do mesmo peso
+     não precisam de dois blocos empilhados com o mesmo desenho. */
   .vg-par {
     display: grid;
     gap: clamp(2rem, 4vw, 3rem);
-    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    padding: clamp(1.25rem, 1rem + 2vw, 2.5rem);
   }
   .vg-par .vg-lista {
     grid-template-columns: minmax(0, 1fr);
@@ -683,20 +800,27 @@
   .vg-aviso {
     display: flex;
     align-items: flex-start;
-    gap: 0.6rem;
+    gap: 0.75rem;
     max-width: 62ch;
+    padding: 1rem 1.25rem;
+    border-radius: var(--raio-sm);
+    background: var(--menta);
     font-size: var(--text-pequeno);
-    color: var(--tinta-suave);
+    color: var(--tinta);
   }
-  .vg-aviso .marca-coroa {
-    margin-top: 0.3em;
-    color: var(--acento);
+  .vg-aviso svg {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: 0.1rem;
+    color: var(--acento-texto);
   }
 
   /* Resumo: o botão abre o cartão (é a ação que deve acompanhar a leitura) e o
      que já está no topo da página (área, vínculo, modelo, local) não se repete. */
   .vg-resumo {
-    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+    box-shadow: var(--sombra-2);
   }
   .vg-resumo .botao {
     margin-top: 1.25rem;
@@ -704,26 +828,36 @@
   }
   .vg-resumo dl {
     display: grid;
-    gap: 1.1rem;
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
+  }
+  .vg-resumo dl > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.15rem 1rem;
+    padding-block: 0.8rem;
+    border-top: 1px solid var(--borda);
   }
   .vg-resumo dt {
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
   .vg-resumo dd {
-    margin-top: 0.1rem;
     font-weight: 600;
+    text-align: right;
   }
   .vg-resumo h3 {
-    margin-top: 1.75rem;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--borda);
     font-size: var(--text-corpo);
     font-weight: 600;
   }
   .vg-resumo ul {
     display: grid;
     gap: 0.6rem;
-    margin-top: 0.75rem;
+    margin-top: 0.85rem;
   }
   .vg-resumo li {
     display: flex;
@@ -732,13 +866,10 @@
     font-size: var(--text-pequeno);
     line-height: 1.4;
   }
-  .vg-resumo li .marca-coroa {
-    flex: none;
-    margin-top: 0.2em;
-    color: var(--acento);
-  }
   .vg-duvida {
     margin-top: 1.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--borda);
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
@@ -746,7 +877,7 @@
     .vg-corpo {
       grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
       align-items: start;
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(3rem, 6vw, 6rem);
     }
     /* Grudento, mas nunca mais alto do que a janela útil: um cartão sticky
        maior que a tela esconde justamente o fim dele. Se não couber, rola por
@@ -768,16 +899,19 @@
       grid-template-columns: minmax(0, 1fr);
     }
   }
-  /* Barra do celular: cor chapada, sem vidro nem filete. Só entra depois que o
-     botão do topo sai da tela (senão cobre a linha de tipo e local logo na
-     primeira dobra e repete o botão que está ali em cima). Entra por
+  /* Barra do celular: branca, com sombra para cima, sem vidro. Só entra depois
+     que o botão do topo sai da tela (senão cobre a linha de tipo e local logo
+     na primeira dobra e repete o botão que está ali em cima). Entra por
      `transform`; sem movimento permitido, aparece sem deslizar. */
   .vg-barra {
     position: fixed;
     inset: auto 0 0;
     z-index: 80;
     padding: 0.625rem var(--margem) 0;
-    background: var(--campo);
+    background: var(--branco);
+    box-shadow:
+      0 -1px 0 var(--borda),
+      0 -12px 32px -16px rgb(3 47 1 / 0.25);
     visibility: hidden;
     transform: translateY(100%);
   }

@@ -1,5 +1,6 @@
+import { Bone, ClipboardList, FileSearch, HeartHandshake, Puzzle, Smile } from "lucide-react";
+
 import consultorioImplantes1Img from "@/assets/consultorio-implantes-1.webp";
-import equipamentoImg from "@/assets/equipamento.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import fachadaImg from "@/assets/fachada-2026-completa.webp";
 import videoImplante from "@/assets/video-implante.mp4?url";
@@ -7,20 +8,21 @@ import posterImplante from "@/assets/video-implante-poster.webp";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
 import { Header } from "@/components/site/Header";
 import {
-  Confianca,
+  Avaliacoes,
+  Convenios,
   Endereco,
-  Escada,
-  Etapas,
+  Equipe,
   Fechamento,
-  Linhas,
+  Passos,
   Perguntas,
+  PorQue,
   Rodape,
   SecaoVideo,
 } from "@/components/site/lp/Secoes";
 import { Topo } from "@/components/site/lp/Topo";
 import { SkipLink } from "@/components/site/SkipLink";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
-import { DEPOIMENTOS, HISTORIA, TRATAMENTOS } from "@/lib/jp";
+import { DEPOIMENTOS, TRATAMENTOS } from "@/lib/jp";
 
 /**
  * LANDING PAGE DE ANÚNCIO — implantes dentários.
@@ -46,16 +48,19 @@ const IMPLANTE = (() => {
 
 const PONTOS = [
   {
+    icone: FileSearch,
     titulo: "Exames antes da indicação",
     texto:
       "Histórico, condição bucal e exames necessários entram no planejamento antes de indicar qualquer caminho.",
   },
   {
+    icone: ClipboardList,
     titulo: "Plano explicado por etapas",
     texto:
       "A equipe conversa sobre possibilidades, sequência do tratamento, cuidados e o que precisa ser confirmado por exames.",
   },
   {
+    icone: HeartHandshake,
     titulo: "Acompanhamento profissional",
     texto:
       "Cirurgia, fase protética e manutenção fazem parte de um cuidado que continua depois do procedimento.",
@@ -64,23 +69,26 @@ const PONTOS = [
 
 const DUVIDAS_CHAVE = [
   {
+    icone: Smile,
     titulo: "Falta só um dente",
     texto:
       "Um dente isolado também pode ser avaliado para implante. A indicação depende da região, dos dentes vizinhos e das condições clínicas.",
   },
   {
+    icone: Puzzle,
     titulo: "Uso prótese removível",
     texto:
       "Quem usa prótese pode conversar sobre alternativas com implantes para melhorar estabilidade, quando houver indicação.",
   },
   {
+    icone: Bone,
     titulo: "Não sei se tenho osso",
     texto:
       "O volume ósseo é analisado por exame. Quando necessário, a equipe explica quais possibilidades podem preparar a região.",
   },
 ] as const;
 
-/** Depoimento real da ficha do Google, escolhido pelo que diz do cuidado. */
+/** Depoimento real da ficha do Google, curto e sobre o cuidado, para o cartão do topo. */
 const DEPOIMENTO_PRINCIPAL = DEPOIMENTOS[1];
 
 export function PaginaImplanteAds() {
@@ -108,26 +116,27 @@ export function PaginaImplanteAds() {
             altura: 1500,
             alt: "Consultório da JP Clínica Odontológica preparado para o atendimento, com a cadeira e o equipamento",
           }}
+          depoimento={DEPOIMENTO_PRINCIPAL}
+          provaId="prova-social-implante"
+          conveniosId="convenios-implante"
         />
 
-        <Escada
+        <Convenios id="convenios-implante" rotulo="Perguntar pelo meu convênio" href={wa} />
+
+        <PorQue
           id="planejamento-implante"
+          sobre="Por que fazer na JP"
           titulo="Implante começa pelo diagnóstico"
           intro="A decisão depende da condição bucal, da região a ser reabilitada, dos exames e dos objetivos de cada paciente. O tratamento só faz sentido quando essas peças se encaixam."
-          pontos={PONTOS}
-          foto={{
-            src: equipamentoImg,
-            largura: 1200,
-            altura: 967,
-            alt: "Painel do equipamento odontológico da JP, com as canetas e os comandos organizados",
-            posicao: "50% 38%",
-          }}
+          itens={PONTOS}
           rotulo="Quero entender meu caso"
           href={wa}
+          apoio="Sem compromisso: a conversa começa pelo WhatsApp."
         />
 
         <SecaoVideo
           id="video-implante"
+          sobre="Entenda o conceito"
           titulo="Implante, pilar e coroa"
           texto="A animação ajuda a visualizar como as partes da reabilitação se relacionam. Ela explica o conceito, mas não determina o procedimento do seu caso nem substitui exames ou avaliação clínica."
           itens={[
@@ -146,15 +155,20 @@ export function PaginaImplanteAds() {
           href={wa}
         />
 
-        <Linhas
+        <PorQue
           id="duvidas-implante"
+          sobre="Seu caso"
           titulo="Não sabe se é caso de implante?"
           intro="A avaliação existe justamente para entender o que está faltando, quais exames ajudam e quais alternativas precisam ser consideradas."
           itens={DUVIDAS_CHAVE}
+          rotulo="Tirar minha dúvida"
+          href={wa}
+          layout="lista"
         />
 
-        <Etapas
+        <Passos
           id="como-funciona-implante"
+          sobre="Como funciona"
           titulo="Um passo de cada vez"
           texto="O cronograma muda conforme o caso. A lógica do cuidado, porém, continua sendo avaliação, planejamento, tratamento e acompanhamento."
           etapas={IMPLANTE.etapas}
@@ -165,15 +179,25 @@ export function PaginaImplanteAds() {
             alt: "Sala de esterilização da JP, com a bancada, a autoclave, as pias e os armários",
             posicao: "35% 50%",
           }}
+          legendaFoto="Sala de esterilização da JP"
+          rotulo="Começar pela avaliação"
+          href={wa}
           invertido
         />
 
-        <Confianca
+        <Equipe
+          id="equipe-implante"
+          titulo="Dentistas identificados pelo CRO"
+          texto="Cada profissional aparece com o registro no conselho. A responsável técnica da clínica responde pelo atendimento."
+          rotulo="Falar com a recepção"
+          href={wa}
+        />
+
+        <Avaliacoes
           id="prova-social-implante"
-          titulo={`Há ${String(HISTORIA.anos)} anos na Freguesia do Ó`}
-          texto="A JP atende na região da Freguesia do Ó. Você pode conhecer a estrutura e conversar com a equipe antes de decidir."
-          principal={DEPOIMENTO_PRINCIPAL}
-          invertido
+          titulo="O que pacientes dizem da JP"
+          rotulo="Quero conversar com a recepção"
+          href={wa}
         />
 
         <Endereco
@@ -194,6 +218,8 @@ export function PaginaImplanteAds() {
           titulo="Perguntas sobre implantes"
           texto="As respostas são gerais. Exames, indicação, técnica e cronograma dependem da avaliação profissional individual."
           itens={IMPLANTE.faq.map((item) => ({ pergunta: item.q, resposta: item.a }))}
+          rotulo="Perguntar no WhatsApp"
+          href={wa}
         />
 
         <Fechamento

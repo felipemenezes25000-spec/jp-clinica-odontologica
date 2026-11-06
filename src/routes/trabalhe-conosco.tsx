@@ -17,7 +17,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, CircleAlert, RotateCcw, Send } from "lucide-react";
+import { Check, CircleAlert, RotateCcw, Send, ShieldCheck } from "lucide-react";
 
 import consultorioImg from "@/assets/consultorio-2.webp";
 
@@ -713,7 +713,7 @@ function PaginaCandidatura() {
 
       <BarraDeCandidatura etapas={etapas} enviado={enviado} />
 
-      <main id="conteudo">
+      <main id="conteudo" className="fundo-brilho">
         {enviado ? (
           <TelaDeSucesso
             protocolo={protocolo}
@@ -724,11 +724,26 @@ function PaginaCandidatura() {
         ) : (
           <div className="quadro cand-pagina cand-grade">
             <div className="cand-lateral">
+              <p className="sobretitulo">Trabalhe conosco</p>
               <h1 className="text-titulo">Envie sua candidatura.</h1>
-              <p className="text-pequeno text-tinta-suave">
-                O que você preenche fica guardado neste navegador por 12 horas, então dá para parar
-                e voltar depois.
+              <p className="text-corpo">
+                São três partes rápidas. O que você preenche fica guardado neste navegador por 12
+                horas, então dá para parar e voltar depois.
               </p>
+
+              <div className="cartao cand-lateral-nota">
+                <span className="pastilha" aria-hidden="true">
+                  <ShieldCheck />
+                </span>
+                <p>
+                  <strong>Seus dados protegidos</strong>
+                  Usamos o currículo só para processos seletivos, conforme a LGPD.{" "}
+                  <a href="/politica-de-privacidade" className="link font-semibold text-tinta">
+                    Política de privacidade
+                  </a>
+                  .
+                </p>
+              </div>
 
               <div className="cand-lateral-foto">
                 <MolduraCoroa proporcao={1.45}>
@@ -737,6 +752,7 @@ function PaginaCandidatura() {
                     alt="Consultório da JP, com a cadeira odontológica e o armário de apoio"
                     width={1200}
                     height={896}
+                    sizes="24rem"
                     loading="lazy"
                     decoding="async"
                   />
@@ -840,7 +856,12 @@ function PaginaCandidatura() {
                 </section>
 
                 <div className="cand-envio">
-                  <button type="submit" disabled={enviando} className="botao botao-acento" data-ima>
+                  <button
+                    type="submit"
+                    disabled={enviando}
+                    className="botao botao-acento botao-grande"
+                    data-ima
+                  >
                     {enviando ? "Enviando..." : "Enviar candidatura"}
                     <Send aria-hidden="true" />
                   </button>

@@ -1,72 +1,70 @@
-/* As avaliações — ver ReviewsSection.tsx e GoogleRating.tsx.
- *
- * Três coisas moram aqui: a revelação das estrelas, a sangria da foto pela
- * borda direita e o desenho da lista de citações.
- */
+/* As avaliações — ver ReviewsSection.tsx. */
 
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* A foto sangra pela borda DIREITA da tela, espelhando a do atendimento. O
-     quadro tem margem igual dos dois lados (`--margem`, e mais acima de
-     1680px); a "sangria" é a distância real da borda da tela até o quadro. */
-  .avaliacoes {
-    --sangria: max(var(--margem), calc((100vw - 1680px) / 2));
-    --corte: 0px;
-    overflow-x: clip;
+  .avaliacoes-cabeca {
+    display: grid;
+    gap: 2.5rem;
+    align-items: end;
   }
-
-  /* Abaixo de 1024 a foto vem depois da citação e avança só até a borda, com
-     proporção própria: uma coroa 3:4 de largura cheia ocuparia duas telas. */
-  .avaliacoes-foto {
-    margin-right: calc((var(--sangria) + var(--corte)) * -1);
-    aspect-ratio: 5 / 4;
-  }
-  @media (max-width: 639px) {
-    .avaliacoes-foto {
-      aspect-ratio: 1 / 1;
-    }
-  }
-
   @media (min-width: 1024px) {
-    .avaliacoes {
-      --corte: 6vw;
-    }
-    .avaliacoes-foto {
-      aspect-ratio: auto;
-      height: min(78svh, 52rem);
-      min-height: 32rem;
+    .avaliacoes-cabeca {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
     }
   }
 
-  /* Hover só com mouse: o marcador da citação desloca 4px. Sem sombra, sem caixa. */
-  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .avaliacao-item .marca-coroa {
-      transition: transform var(--t-ui) var(--ease-out);
-    }
-    .avaliacao-item:hover .marca-coroa {
-      transform: translateX(4px) scale(1.15);
-    }
+  /* O cartão da nota: o número que a pessoa procura primeiro. */
+  .avaliacoes-nota {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
-}
+  .avaliacoes-nota-linha {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 0.5rem + 2vw, 1.75rem);
+  }
+  .avaliacoes-nota-numero {
+    font-size: clamp(4.75rem, 3rem + 6vw, 7.5rem);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    color: var(--tinta);
+  }
+  .avaliacoes-nota-lado {
+    display: grid;
+    gap: 0.6rem;
+  }
+  .avaliacoes-nota-total {
+    font-size: var(--text-corpo);
+    line-height: 1.3;
+    color: var(--tinta-suave);
+  }
+  .avaliacoes-ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--borda);
+    font-weight: 600;
+  }
+  .avaliacoes-ver svg {
+    width: 1.1em;
+    height: 1.1em;
+  }
 
-/* As estrelas cheias se revelam da esquerda para a direita quando entram na
-   tela. É CSS puro, preso à rolagem pela linha do tempo `view()`: onde o
-   navegador não suporta, ou com movimento reduzido, a camada já está completa. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .estrelas-google-cheias {
-      animation: estrelas-revela linear both;
-      animation-timeline: view();
-      animation-range: entry 20% entry 80%;
-    }
+  .avaliacoes-carrossel {
+    margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
   }
-}
-@keyframes estrelas-revela {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-  to {
-    clip-path: inset(0 0 0 0);
+
+  .avaliacoes-fecho {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
   }
 }

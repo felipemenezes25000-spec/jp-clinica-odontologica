@@ -1,142 +1,87 @@
-/* Contato — o cupom (ContactForm.tsx) e o "onde estamos" (contato.tsx).
+/* Contato — o formulário (ContactForm.tsx), o "onde estamos" e o fecho
+ * (contato.tsx).
  *
- * O cupom tem dois desenhos, ambos completos:
- *   celular ... uma coluna: título, picote horizontal, escolhas, prévia, botão;
- *   desktop ... canhoto à esquerda (título + prévia), picote vertical, escolhas
- *               e botão à direita.
- * Os entalhes são círculos da cor do chão sobre a borda do cupom; o chão da
- * seção é chapado, então o recorte parece vazado sem máscara nem degradê.
+ * Desenho: cartão branco grande com o formulário; ao lado, o cartão do lugar e
+ * o mapa; embaixo, a faixa de fechamento em verde profundo. No celular tudo
+ * empilha em uma coluna, na mesma ordem.
  */
 
 @layer theme, base, components, utilities;
 
 @layer components {
-  /* ---- O cupom ----------------------------------------------------------- */
-  .cupom {
+  .contato {
+    padding-bottom: clamp(2rem, 1rem + 2vw, 3rem);
+  }
+  .contato-grade {
+    display: grid;
+    gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+    align-items: start;
+  }
+  @media (min-width: 1024px) {
+    .contato-grade {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      align-items: stretch;
+    }
+  }
+
+  /* ---- O formulário -------------------------------------------------------- */
+  .form-contato {
     --p: clamp(1.5rem, 1rem + 2vw, 3rem);
-    /* Metade do entalhe tem de caber na margem da página (16px no celular),
-       senão o círculo cria rolagem horizontal. */
-    --entalhe: 1.75rem;
-    position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    border-radius: var(--raio);
-    background: var(--acento);
-    color: var(--tinta);
+    gap: 2rem;
+    padding: var(--p);
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
-  .cupom-esq {
-    display: contents;
-  }
-  .cupom-cab {
-    order: 1;
+  .form-cab {
     display: grid;
-    gap: 1.25rem;
-    padding: var(--p) var(--p) 1.5rem;
+    gap: 1rem;
+    justify-items: start;
   }
-  .cupom-cab p {
-    max-width: 38ch;
+  .form-titulo {
+    font-size: clamp(2.25rem, 1.4rem + 2.6vw, 3.75rem);
   }
-  .cupom-perfura {
-    order: 2;
-    position: relative;
-    height: 2.75rem;
+  .form-frase {
+    max-width: 46ch;
+    color: var(--tinta-suave);
   }
-  .cupom-campos {
-    order: 3;
+
+  .form-campos {
     display: grid;
     gap: 1.75rem;
-    padding: 1.5rem var(--p) 1.75rem;
   }
-  .cupom-previa {
-    order: 4;
-    padding: 0 var(--p) 1.75rem;
-  }
-  .cupom-rodape {
-    order: 5;
-    display: grid;
-    justify-items: stretch;
-    gap: 1.25rem;
-    padding: 0 var(--p) var(--p);
-  }
-  .cupom-rodape p {
-    max-width: 62ch;
-  }
-  /* No celular o rótulo do botão pode quebrar: ele nunca passa da largura do cupom. */
-  .cupom-rodape .botao {
-    white-space: normal;
-    text-align: center;
-  }
-
-  /* Entalhes e picote */
-  .cupom-perfura::before,
-  .cupom-perfura::after {
-    content: "";
-    position: absolute;
-    width: var(--entalhe);
-    height: var(--entalhe);
-    border-radius: 50%;
-    background: var(--chao);
-    top: 50%;
-  }
-  .cupom-perfura::before {
-    left: 0;
-    translate: -50% -50%;
-  }
-  .cupom-perfura::after {
-    left: 100%;
-    translate: -50% -50%;
-  }
-  .cupom-picote {
-    position: absolute;
-    color: var(--tinta);
-    opacity: 0.55;
-  }
-  .cupom-picote-h {
-    left: calc(var(--entalhe) + 0.5rem);
-    top: 50%;
-    width: calc(100% - var(--entalhe) * 2 - 1rem);
-    /* Múltiplo do passo de 14px do padrão: o último furo nunca fica cortado. */
-    width: round(down, calc(100% - var(--entalhe) * 2 - 1rem), 14px);
-    height: 14px;
-    translate: 0 -50%;
-  }
-  .cupom-picote-v {
-    display: none;
-  }
-
-  /* Escolhas */
-  .cupom-dados {
+  .form-dados {
     display: grid;
     gap: 1rem;
   }
-  .cupom-campo {
+  .form-campo {
     display: grid;
     gap: 0.5rem;
   }
-  .cupom-campo > span,
-  .cupom-grupo legend {
+  .form-campo > span,
+  .form-grupo legend {
     font-weight: 600;
   }
-  .cupom-grupo {
+  .form-grupo {
     min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
   }
-  .cupom-grupo legend {
+  .form-grupo legend {
     margin-bottom: 0.625rem;
     padding: 0;
   }
-  .cupom-opcoes {
+  .form-opcoes {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  .cupom-opcao {
+  .form-opcao {
     position: relative;
     cursor: pointer;
   }
-  .cupom-opcao input {
+  .form-opcao input {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -146,168 +91,131 @@
     /* O clique vai para a etiqueta (que ativa o campo); o teclado segue no campo. */
     pointer-events: none;
   }
-  .cupom-opcao span {
+  .form-opcao span {
     display: inline-flex;
     align-items: center;
     min-height: 2.75rem;
     padding: 0.4rem 1.1rem;
     border-radius: 999px;
-    background: var(--chao);
+    background: var(--branco);
+    box-shadow: inset 0 0 0 1px var(--borda-forte);
     color: var(--tinta);
     font-weight: 500;
     transition:
       background-color var(--t-hover) ease,
       color var(--t-hover) ease,
+      box-shadow var(--t-hover) ease,
       transform var(--t-press) var(--ease-out);
   }
-  .cupom-opcao input:checked + span {
+  .form-opcao input:checked + span {
     background: var(--tinta);
+    box-shadow: none;
     color: var(--sobre-campo);
   }
-  .cupom-opcao input:active + span {
+  .form-opcao input:active + span {
     transform: scale(0.97);
   }
-  .cupom-opcao input:focus-visible + span {
-    outline: 3px solid var(--tinta);
+  .form-opcao input:focus-visible + span {
+    outline: 3px solid var(--acento-texto);
     outline-offset: 3px;
   }
   @media (hover: hover) and (pointer: fine) {
-    .cupom-opcao:hover input:not(:checked) + span {
-      background: var(--chao-3);
+    .form-opcao:hover input:not(:checked) + span {
+      background: var(--menta);
+      box-shadow: inset 0 0 0 1px var(--acento-texto);
     }
   }
 
-  .campo-cupom {
+  .form-input {
     width: 100%;
-    min-height: 3.25rem;
+    min-height: 3.5rem;
     padding: 0.75rem 1.1rem;
     border: 0;
-    border-radius: var(--raio);
+    border-radius: var(--raio-sm);
     background: var(--chao);
+    box-shadow: inset 0 0 0 1px var(--borda-forte);
     color: var(--tinta);
     font: inherit;
     font-size: var(--text-corpo);
     line-height: 1.4;
+    transition:
+      box-shadow var(--t-hover) ease,
+      background-color var(--t-hover) ease;
   }
-  .campo-cupom::placeholder {
+  .form-input::placeholder {
     color: var(--tinta-suave);
-    opacity: 1;
+    opacity: 0.85;
   }
-  .campo-cupom:focus-visible {
-    outline: 3px solid var(--tinta);
+  .form-input:focus-visible {
+    background: var(--branco);
+    box-shadow: inset 0 0 0 2px var(--acento-texto);
+    outline: 3px solid color-mix(in oklab, var(--acento) 35%, transparent);
     outline-offset: 2px;
   }
-  textarea.campo-cupom {
+  textarea.form-input {
     resize: vertical;
   }
 
   /* Prévia: a mensagem tal como o WhatsApp vai recebê-la. */
-  .cupom-previa-rotulo {
+  .form-previa-rotulo {
     margin-bottom: 0.625rem;
     font-weight: 600;
   }
-  .cupom-bolha {
+  .form-bolha {
     padding: 1.1rem 1.25rem;
     border-radius: var(--raio);
     border-bottom-left-radius: 0.375rem;
-    background: var(--chao);
+    background: var(--menta);
+    box-shadow: inset 0 0 0 1px rgb(47 106 0 / 0.14);
     color: var(--tinta);
     white-space: pre-line;
     overflow-wrap: anywhere;
   }
 
-  @media (min-width: 640px) {
-    .cupom-dados {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
+  .form-rodape {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .form-rodape p {
+    max-width: 62ch;
+    color: var(--tinta-suave);
+  }
+  /* No celular o rótulo do botão pode quebrar: ele nunca passa da largura do cartão. */
+  .form-rodape .button-primary {
+    white-space: normal;
+    text-align: center;
   }
 
-  @media (min-width: 1024px) {
-    .cupom {
-      grid-template-columns: minmax(0, 0.8fr) 3.5rem minmax(0, 1.4fr);
+  @media (min-width: 640px) {
+    .form-dados {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .cupom-esq {
-      display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
-      grid-column: 1;
-      grid-row: 1;
-    }
-    /* O canhoto: título em cima; a prévia e o botão descem juntos, como a parte
-       que se destaca do cupom. */
-    .cupom-previa {
-      margin-top: auto;
-    }
-    .cupom-cab {
-      order: 0;
-      padding: var(--p) 0 0 var(--p);
-    }
-    .cupom-previa {
-      order: 0;
-      padding: 0 0 0 var(--p);
-    }
-    .cupom-perfura {
-      order: 0;
-      grid-column: 2;
-      grid-row: 1;
-      height: auto;
-    }
-    .cupom-campos {
-      order: 0;
-      grid-column: 3;
-      grid-row: 1;
-      padding: var(--p) var(--p) var(--p) 0;
-    }
-    .cupom-rodape .botao {
+    .form-rodape .button-primary {
       justify-self: start;
       white-space: nowrap;
     }
-    .cupom-rodape {
-      order: 0;
-      padding: 0 0 var(--p) var(--p);
-    }
-    .cupom-perfura::before {
-      top: 0;
-      left: 50%;
-    }
-    .cupom-perfura::after {
-      top: 100%;
-      left: 50%;
-    }
-    .cupom-picote-h {
-      display: none;
-    }
-    .cupom-picote-v {
-      display: block;
-      top: calc(var(--entalhe) + 0.5rem);
-      left: 50%;
-      width: 14px;
-      height: calc(100% - var(--entalhe) * 2 - 1rem);
-      height: round(down, calc(100% - var(--entalhe) * 2 - 1rem), 14px);
-      translate: -50% 0;
-    }
   }
 
-  /* ---- Onde estamos --------------------------------------------------------- */
+  /* ---- Onde estamos ---------------------------------------------------------- */
   .contato-onde {
     display: grid;
-    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
-    margin-top: clamp(3.5rem, 2rem + 5vw, 7rem);
+    gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+    grid-template-rows: auto 1fr;
+  }
+  .contato-info {
+    padding: clamp(1.5rem, 1rem + 1.6vw, 2.25rem);
+    border-radius: var(--raio-lg);
   }
   .contato-lista {
     display: grid;
-    gap: 1.75rem;
-    margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+    gap: 1.5rem;
+    margin-top: 1.75rem;
   }
   .contato-lista > li {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 0.75rem;
-    align-items: baseline;
-  }
-  .contato-lista .marca-coroa {
-    color: var(--acento);
-    transform: translateY(0.1em);
+    column-gap: 1rem;
+    align-items: start;
   }
   .contato-rotulo {
     color: var(--tinta-suave);
@@ -315,10 +223,10 @@
   .contato-valor {
     font-weight: 600;
   }
-  .contato-valor a {
-    display: inline-block;
+  .contato-acao {
+    display: inline-flex;
+    align-items: center;
     min-height: 2.75rem;
-    padding-block: 0.4rem;
   }
   .contato-ponto {
     display: inline-block;
@@ -330,28 +238,31 @@
   }
   .contato-ponto[data-aberto] {
     background: var(--acento);
+    box-shadow: 0 0 0 4px var(--menta);
   }
   .contato-refs {
     display: grid;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    color: var(--tinta-suave);
   }
-  .contato-refs li {
-    display: flex;
-    align-items: baseline;
-    gap: 0.6rem;
+  .contato-refs strong {
+    color: var(--tinta);
   }
 
-  /* O mapa na coroa. O iframe é 60px mais alto que a moldura e sobe 60px: isso
-     corta o painel que o Google desenha no canto de cima, e o pino (nosso, o
-     embed não desenha marcador) desce os mesmos 30px para ficar sobre o
-     endereço. A atribuição do Google fica na base, inteira e visível. */
+  /* O mapa. O iframe é 60px mais alto que a moldura e sobe 60px: isso corta o
+     painel que o Google desenha no canto de cima, e o pino (nosso, o embed não
+     desenha marcador) desce os mesmos 30px para ficar sobre o endereço. A
+     atribuição do Google fica na base, inteira e visível. */
   .contato-mapa {
     /* O quanto o iframe sobe para esconder o painel do embed. Mora aqui, num
        só lugar: iframe e pino derivam dele, e se o Google mudar o painel basta
        ajustar este valor. */
     --corte: 60px;
-    height: 26rem;
+    height: 22rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-1);
     background: var(--chao-3);
   }
   .contato-mapa iframe {
@@ -371,13 +282,74 @@
   }
 
   @media (min-width: 1024px) {
-    .contato-onde {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      align-items: stretch;
-    }
     .contato-mapa {
       height: auto;
-      min-height: 34rem;
+      min-height: 17rem;
+    }
+  }
+
+  /* ---- O fecho em verde profundo --------------------------------------------- */
+  .contato-fecho {
+    position: relative;
+    overflow: clip;
+    isolation: isolate;
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
+    padding: clamp(2rem, 1rem + 4vw, 4.5rem);
+    border-radius: var(--raio-lg);
+    background:
+      radial-gradient(
+        60% 90% at 100% 0%,
+        color-mix(in oklab, var(--campo-marca) 80%, transparent),
+        transparent 70%
+      ),
+      var(--campo);
+  }
+  .contato-fecho-titulo {
+    max-width: 16ch;
+    margin-top: 1.25rem;
+    font-size: clamp(2.25rem, 1.3rem + 3.2vw, 4.25rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--sobre-campo);
+  }
+  .contato-fecho-frase {
+    max-width: 44ch;
+    margin-top: 1.25rem;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+    line-height: 1.5;
+    color: var(--sobre-campo-suave);
+  }
+  .contato-fecho-nota {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+    font-size: var(--text-pequeno);
+    color: var(--sobre-campo-suave);
+  }
+  .contato-fecho-nota strong {
+    color: var(--sobre-campo);
+  }
+  .contato-fecho-acoes {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .contato-fecho-acoes .botao {
+    white-space: normal;
+    text-align: center;
+  }
+
+  @media (min-width: 1024px) {
+    .contato-fecho {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 4rem;
+    }
+    .contato-fecho-acoes {
+      justify-items: stretch;
     }
   }
 }

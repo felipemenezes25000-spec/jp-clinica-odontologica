@@ -22,11 +22,11 @@
  *    enquanto um humano não confirmar. A folha que decide contratação não pode
  *    somar um palpite de máquina como se fosse observação de quem estava lá.
  *
- * Cor: o fundo é o verde profundo da clínica, então toda letra aqui é branca —
- * e o texto de apoio não desce de 85% de opacidade. Não é preciosismo: esta tela
- * é lida de relance, de lado, com uma pessoa esperando resposta, muitas vezes num
- * monitor de recepção com brilho baixo. Cinza claro sobre verde some. O lime
- * continua onde não é letra: ícone, borda, anel, régua de nota.
+ * Cor: tela clara, como o resto do painel (cartão branco, borda fina, tinta
+ * sobre chão). Era verde profundo com letra branca, e o remapeamento do tema
+ * claro do painel pintava de tinta o que era branco: título e apoio sumiam. O
+ * verde-maçã fica só na ação (Avançar, Salvar) e a tinta marca o que está
+ * escolhido. O visual inteiro mora em `entrevista.css`, em classes `.me-*`.
  *
  * Nada de `new Date()` no render: `agora` desce por prop, congelado pela rota.
  * O cronômetro conta segundos a partir da montagem, num efeito — nunca a partir
@@ -37,6 +37,8 @@ import type { ChangeEvent } from "react";
 import {
   Check,
   ClipboardCheck,
+  Clock,
+  Eye,
   Flag,
   ListChecks,
   LoaderCircle,
@@ -45,12 +47,14 @@ import {
   Phone,
   Save,
   Search,
+  Sparkles,
   TriangleAlert,
   UserRound,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
+import "./entrevista.css";
 import { PainelDuvidas, ResumoDuvidas } from "@/components/rh/PainelDuvidas";
 import { duvidasImportantesDe } from "@/lib/rh/duvidas";
 import { apenasDigitos, mascararTelefone } from "@/lib/rh/formatar";
@@ -83,20 +87,10 @@ import type { Candidatura } from "@/lib/rh/tipos";
 /* Constantes                                                                 */
 /* -------------------------------------------------------------------------- */
 
-/* Branco, e não lime: sobre verde a letra é branca. */
-const ROTULO = "text-[0.7rem] font-bold uppercase tracking-[0.14em] text-white";
-
-const BOTAO =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold ring-1 transition";
-const BOTAO_PRINCIPAL = `${BOTAO} bg-lime text-brand-deep ring-lime hover:bg-lime/85`;
-const BOTAO_SECUNDARIO = `${BOTAO} bg-white/10 text-white ring-white/20 hover:bg-white/20`;
-
-/* Campo escuro em corpo maior que o da gaveta: aqui se digita olhando para a
-   pessoa, não para a tela. A métrica de raio e respiro é a de `.rh-campo`. */
-const CAMPO =
-  "block w-full min-h-12 rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-2.5 " +
-  "text-base leading-relaxed text-white placeholder:text-white/85 transition-colors " +
-  "hover:border-white/30 focus:border-lime";
+/* O visual mora em `entrevista.css` (classes `.me-*`). Aqui ficam só os nomes
+   que o componente repete, para o botão ter uma definição só. */
+const BOTAO_PRINCIPAL = "me-btn me-btn--acento";
+const BOTAO_SECUNDARIO = "me-btn";
 
 /** Igual ao da gaveta: a anotação sobe por pausa, nunca por tecla. */
 const ESPERA_SALVAR = 1200;
@@ -177,6 +171,17 @@ function fichaInicial(item: Candidatura, guia: GuiaEntrevista, agora: Date): Fic
 /* Peças                                                                      */
 /* -------------------------------------------------------------------------- */
 
+/** "Marina Teste" -> "MT": o avatar da candidata, só de enfeite de identidade. */
+function iniciaisDe(nome: string): string {
+  const partes = nome
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p !== "");
+  const primeira = partes[0]?.charAt(0) ?? "";
+  const ultima = partes.length > 1 ? (partes[partes.length - 1]?.charAt(0) ?? "") : "";
+  return `${primeira}${ultima}`.toLocaleUpperCase("pt-BR");
+}
+
 /**
  * Textarea que cresce com o texto.
  *
@@ -218,7 +223,7 @@ function CampoAnotacao(props: {
         placeholder={placeholder}
         onChange={(e: ChangeEvent<HTMLTextAreaElement>) => aoMudar(e.target.value)}
         onBlur={aoSair}
-        className={`${CAMPO} resize-none overflow-hidden`}
+        className="me-campo me-campo--texto"
       />
     </>
   );
@@ -233,7 +238,7 @@ function Escolha<T extends string>(props: {
 }) {
   const { legenda, opcoes, valor, aoEscolher } = props;
   return (
-    <div role="group" aria-label={legenda} className="flex flex-wrap gap-2">
+    <div role="group" aria-label={legenda} className="me-opcoes">
       {opcoes.map((o) => {
         const ativo = valor === o.valor;
         return (
@@ -244,12 +249,9 @@ function Escolha<T extends string>(props: {
             // Clicar no que já está marcado desmarca: "ainda não avaliei" é um
             // estado legítimo, e diferente de "avaliei e foi fraca".
             onClick={() => aoEscolher(ativo ? ("" as T) : o.valor)}
-            className={`inline-flex min-h-12 items-center justify-center rounded-full px-6 text-base font-bold ring-1 transition ${
-              ativo
-                ? "bg-lime text-brand-deep ring-lime"
-                : "bg-white/10 text-white ring-white/20 hover:bg-white/20"
-            }`}
+            className="me-opcao"
           >
+            {ativo ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
             {o.rotulo}
           </button>
         );
@@ -290,7 +292,7 @@ function BotoesNota(props: {
         e.preventDefault();
         aoEscolher(n);
       }}
-      className="flex flex-wrap gap-1.5"
+      className="me-notas"
     >
       {notas.map((n) => {
         const ativo = valor === n;
@@ -302,17 +304,11 @@ function BotoesNota(props: {
             aria-pressed={ativo}
             aria-label={`${legenda}: nota ${n}${proposta ? " (sugestão da IA, ainda não confirmada)" : ""}`}
             onClick={() => aoEscolher(ativo ? null : n)}
-            className={[
-              "inline-flex h-12 w-12 items-center justify-center rounded-xl text-lg font-extrabold tabular-nums transition",
-              ativo
-                ? "bg-lime text-brand-deep ring-1 ring-lime"
-                : proposta
-                  ? // Tracejado, e não preenchido: a diferença entre "o
-                    // currículo indica 4" e "nós avaliamos 4" precisa ser
-                    // visível de longe, inclusive para quem só olha a forma.
-                    "border-2 border-dashed border-lime/70 bg-lime/10 text-white"
-                  : "bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/20",
-            ].join(" ")}
+            // Tracejado, e não preenchido: a diferença entre "o currículo
+            // indica 4" e "nós avaliamos 4" precisa ser visível de longe,
+            // inclusive para quem só olha a forma.
+            data-proposta={proposta ? "true" : undefined}
+            className="me-nota"
           >
             {n}
           </button>
@@ -333,29 +329,44 @@ function Pergunta(props: {
   aoSair: () => void;
 }) {
   const { numero, pergunta, porque = "", id, valor, aoMudar, aoSair } = props;
+  const respondida = valor.trim() !== "";
   return (
-    <li className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10">
-      <div className="flex gap-3">
-        <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-lime/15 text-sm font-extrabold tabular-nums text-white ring-1 ring-lime/30">
-          {numero}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-base font-semibold leading-relaxed text-white sm:text-lg">
-            {pergunta}
-          </p>
-          {porque.trim() === "" ? null : (
-            <p className="mt-1 text-sm leading-relaxed text-white/85">para saber: {porque}</p>
-          )}
-          <div className="mt-3">
-            <CampoAnotacao
-              id={id}
-              rotulo={`Anotação: ${pergunta}`}
-              valor={valor}
-              aoMudar={aoMudar}
-              aoSair={aoSair}
-            />
-          </div>
+    <li className="me-cartao me-pergunta" data-respondida={respondida ? "true" : undefined}>
+      <span className="me-num" aria-hidden="true">
+        {numero}
+      </span>
+      <div className="min-w-0">
+        <p className="me-pergunta__texto">{pergunta}</p>
+        {porque.trim() === "" ? null : <p className="me-apoio">para saber: {porque}</p>}
+        <div className="mt-3">
+          <CampoAnotacao
+            id={id}
+            rotulo={`Anotação: ${pergunta}`}
+            valor={valor}
+            aoMudar={aoMudar}
+            aoSair={aoSair}
+          />
         </div>
+      </div>
+    </li>
+  );
+}
+
+/** Uma linha do quadro de andamento: rótulo, "3/4" e a barra fina. */
+function LinhaAndamento(props: { rotulo: string; feitos: number; total: number }) {
+  const { rotulo, feitos, total } = props;
+  if (total <= 0) return null;
+  const pct = Math.min(100, Math.round((feitos / total) * 100));
+  return (
+    <li>
+      <div className="me-andamento__texto">
+        <span>{rotulo}</span>
+        <span className="tabular-nums">
+          {feitos}/{total}
+        </span>
+      </div>
+      <div className="me-barra" aria-hidden="true">
+        <span style={{ width: `${pct}%` }} />
       </div>
     </li>
   );
@@ -575,33 +586,81 @@ export function ModoEntrevista(props: {
   const atual = PASSOS[passo] ?? PASSOS[0];
   const ultimo = passo === PASSOS.length - 1;
 
+  /* O que cada passo já tem de feito: alimenta o visto nos passos e o quadro de
+     andamento ao lado. Só leitura do que a ficha já guarda. */
+  const triagemFeita = rascunho.triagem.filter(
+    (t) => (respostaDaTriagem(rascunho, t.pergunta)?.resposta ?? "") !== "",
+  ).length;
+  const geraisFeitas = guia.perguntasGerais.filter(
+    (p) => (respostaDaPergunta(rascunho, p)?.resposta ?? "").trim() !== "",
+  ).length;
+  const especificasFeitas = rascunho.perguntasEspecificas.filter(
+    (p) => (respostaDaPergunta(rascunho, p.pergunta)?.resposta ?? "").trim() !== "",
+  ).length;
+  const feitoPorPasso: Record<ChavePasso, boolean> = {
+    abertura: rascunho.triagem.length > 0 && triagemFeita === rascunho.triagem.length,
+    gerais: guia.perguntasGerais.length > 0 && geraisFeitas === guia.perguntasGerais.length,
+    especificas:
+      rascunho.perguntasEspecificas.length > 0 &&
+      especificasFeitas === rascunho.perguntasEspecificas.length,
+    duvidas: false,
+    pontuacao: guia.criterios.length > 0 && avaliados === guia.criterios.length,
+    fechamento: rascunho.decisao !== "",
+  };
+
   /* ------------------------------------------------------------ os passos */
+
+  /** Ponto forte e "o que validar": a leitura rápida do currículo. */
+  const leituraRapida =
+    rascunho.pontoForte.trim() === "" && rascunho.oQueValidar.trim() === "" ? null : (
+      <>
+        {rascunho.pontoForte.trim() === "" ? null : (
+          <section className="me-leitura me-leitura--forte">
+            <h3 className="me-leitura__titulo">
+              <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
+              Ponto forte
+            </h3>
+            <p>{rascunho.pontoForte}</p>
+          </section>
+        )}
+        {rascunho.oQueValidar.trim() === "" ? null : (
+          <section className="me-leitura me-leitura--validar">
+            <h3 className="me-leitura__titulo">
+              <Eye className="h-4 w-4 shrink-0" aria-hidden="true" />O que validar
+            </h3>
+            <p>{rascunho.oQueValidar}</p>
+          </section>
+        )}
+      </>
+    );
 
   function conteudo(chave: ChavePasso) {
     if (chave === "abertura") {
       return (
-        <div className="space-y-5">
-          <section className="rounded-2xl bg-white/[0.05] p-4 ring-1 ring-white/10">
-            <h2 className="font-display text-2xl font-extrabold leading-tight text-white">
-              {nome}
-            </h2>
-            <p className="mt-1 text-sm text-white/85">
-              {item.vagaTitulo.trim() === "" ? "Candidatura espontânea" : item.vagaTitulo}
-              {item.protocolo === "" ? "" : ` · protocolo ${item.protocolo}`}
-            </p>
-            {digitos === "" ? null : (
-              <a
-                href={`tel:+55${digitos}`}
-                className="mt-3 inline-flex min-h-12 items-center gap-2 rounded-full bg-white/10 px-4 text-base font-bold text-white ring-1 ring-white/20 hover:bg-white/20"
-              >
-                <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
-                {mascararTelefone(item.telefone)}
-              </a>
-            )}
+        <div className="me-pilha">
+          <section className="me-cartao me-identidade">
+            <div className="me-identidade__topo">
+              <span className="me-avatar" aria-hidden="true">
+                {iniciaisDe(nome)}
+              </span>
+              <div className="min-w-0">
+                <p className="me-nome">{nome}</p>
+                <p className="me-meta">
+                  {item.vagaTitulo.trim() === "" ? "Candidatura espontânea" : item.vagaTitulo}
+                  {item.protocolo === "" ? "" : ` · protocolo ${item.protocolo}`}
+                </p>
+              </div>
+              {digitos === "" ? null : (
+                <a href={`tel:+55${digitos}`} className="me-btn me-identidade__ligar">
+                  <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {mascararTelefone(item.telefone)}
+                </a>
+              )}
+            </div>
 
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="me-campos">
               <div>
-                <label htmlFor={`${uid}-data`} className={ROTULO}>
+                <label htmlFor={`${uid}-data`} className="me-rotulo">
                   Data
                 </label>
                 <input
@@ -610,11 +669,11 @@ export function ModoEntrevista(props: {
                   value={rascunho.entrevistaEm}
                   onChange={(e) => editar({ ...rascunho, entrevistaEm: e.target.value }, false)}
                   onBlur={salvarPendente}
-                  className={`${CAMPO} mt-1.5`}
+                  className="me-campo"
                 />
               </div>
               <div>
-                <label htmlFor={`${uid}-hora`} className={ROTULO}>
+                <label htmlFor={`${uid}-hora`} className="me-rotulo">
                   Horário
                 </label>
                 <input
@@ -623,11 +682,11 @@ export function ModoEntrevista(props: {
                   value={rascunho.horario}
                   onChange={(e) => editar({ ...rascunho, horario: e.target.value }, false)}
                   onBlur={salvarPendente}
-                  className={`${CAMPO} mt-1.5`}
+                  className="me-campo"
                 />
               </div>
               <div>
-                <label htmlFor={`${uid}-quem`} className={ROTULO}>
+                <label htmlFor={`${uid}-quem`} className="me-rotulo">
                   Entrevistadores
                 </label>
                 <input
@@ -636,84 +695,74 @@ export function ModoEntrevista(props: {
                   value={rascunho.entrevistadores}
                   onChange={(e) => editar({ ...rascunho, entrevistadores: e.target.value }, false)}
                   onBlur={salvarPendente}
-                  className={`${CAMPO} mt-1.5`}
+                  className="me-campo"
                 />
               </div>
             </div>
           </section>
 
-          {rascunho.pontoForte.trim() === "" ? null : (
-            <section className="rounded-2xl border-l-4 border-lime bg-white/[0.05] p-4">
-              <h3 className={ROTULO}>Ponto forte</h3>
-              <p className="mt-2 text-base leading-relaxed text-white/90">{rascunho.pontoForte}</p>
-            </section>
-          )}
-          {rascunho.oQueValidar.trim() === "" ? null : (
-            <section className="rounded-2xl border-l-4 border-amber-300 bg-white/[0.05] p-4">
-              <h3 className="text-[0.7rem] font-bold uppercase tracking-[0.14em] text-amber-200">
-                O que validar
-              </h3>
-              <p className="mt-2 text-base leading-relaxed text-white/90">{rascunho.oQueValidar}</p>
-            </section>
+          {/* Em tela larga a leitura rápida mora no quadro ao lado, sempre à
+              vista; aqui ela só aparece onde não há quadro. */}
+          {leituraRapida === null ? null : (
+            <div className="me-pilha me-so-estreita">{leituraRapida}</div>
           )}
 
           <section>
-            <h3 className={ROTULO}>Triagem objetiva</h3>
-            <p className="mt-1 text-sm leading-relaxed text-white/85">
+            <h3 className="me-secao-titulo">Triagem objetiva</h3>
+            <p className="me-apoio">
               Confirme os quatro antes de aprofundar. Se a resposta vier errada aqui, não adianta
               seguir para as perguntas abertas.
             </p>
 
             {rascunho.triagem.length === 0 ? (
-              <p className="mt-3 rounded-2xl bg-white/[0.04] p-4 text-sm text-white/85 ring-1 ring-white/10">
+              <p className="me-vazio">
                 Esta ficha ainda não tem triagem objetiva. Prepare a ficha na gaveta da candidata
                 para o sistema montar os quatro itens a partir do currículo dela.
               </p>
             ) : (
-              <ol className="mt-3 space-y-4">
+              <ol className="me-lista">
                 {rascunho.triagem.map((t, i) => {
                   const r = respostaDaTriagem(rascunho, t.pergunta);
                   return (
                     <li
                       key={t.pergunta}
-                      className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10"
+                      className="me-cartao me-pergunta"
+                      data-respondida={(r?.resposta ?? "") !== "" ? "true" : undefined}
                     >
-                      <p className="text-base font-semibold leading-relaxed text-white sm:text-lg">
-                        <span className="mr-2 font-extrabold tabular-nums text-white">
-                          {i + 1}.
-                        </span>
-                        {t.pergunta}
-                      </p>
-                      {t.porque.trim() === "" ? null : (
-                        <p className="mt-1 text-sm leading-relaxed text-white/85">{t.porque}</p>
-                      )}
-                      <div className="mt-3">
-                        <Escolha<RespostaTriagem>
-                          legenda={`Resposta: ${t.pergunta}`}
-                          opcoes={RESPOSTAS_TRIAGEM}
-                          valor={r?.resposta ?? ""}
-                          aoEscolher={(valor) =>
-                            editar(
-                              comRespostaDeTriagem(rascunho, t.pergunta, { resposta: valor }),
-                              true,
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="mt-3">
-                        <CampoAnotacao
-                          id={`${uid}-tri-${i}`}
-                          rotulo={`Observação: ${t.pergunta}`}
-                          valor={r?.observacao ?? ""}
-                          placeholder="o que ela respondeu…"
-                          aoMudar={(valor) =>
-                            editar(
-                              comRespostaDeTriagem(rascunho, t.pergunta, { observacao: valor }),
-                              false,
-                            )
-                          }
-                          aoSair={salvarPendente}
-                        />
+                      <span className="me-num" aria-hidden="true">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="me-pergunta__texto">{t.pergunta}</p>
+                        {t.porque.trim() === "" ? null : <p className="me-apoio">{t.porque}</p>}
+                        <div className="mt-3">
+                          <Escolha<RespostaTriagem>
+                            legenda={`Resposta: ${t.pergunta}`}
+                            opcoes={RESPOSTAS_TRIAGEM}
+                            valor={r?.resposta ?? ""}
+                            aoEscolher={(valor) =>
+                              editar(
+                                comRespostaDeTriagem(rascunho, t.pergunta, { resposta: valor }),
+                                true,
+                              )
+                            }
+                          />
+                        </div>
+                        <div className="mt-3">
+                          <CampoAnotacao
+                            id={`${uid}-tri-${i}`}
+                            rotulo={`Observação: ${t.pergunta}`}
+                            valor={r?.observacao ?? ""}
+                            placeholder="o que ela respondeu…"
+                            aoMudar={(valor) =>
+                              editar(
+                                comRespostaDeTriagem(rascunho, t.pergunta, { observacao: valor }),
+                                false,
+                              )
+                            }
+                            aoSair={salvarPendente}
+                          />
+                        </div>
                       </div>
                     </li>
                   );
@@ -728,11 +777,11 @@ export function ModoEntrevista(props: {
     if (chave === "gerais") {
       return (
         <div>
-          <p className="text-sm leading-relaxed text-white/85">
+          <p className="me-apoio me-apoio--corpo">
             As mesmas perguntas, na mesma ordem, com todas as candidatas — é isso que permite
             comparar evidência com evidência no fim, em vez de impressão com impressão.
           </p>
-          <ol className="mt-4 space-y-4">
+          <ol className="me-lista">
             {guia.perguntasGerais.map((p, i) => (
               <Pergunta
                 key={p}
@@ -752,7 +801,7 @@ export function ModoEntrevista(props: {
     if (chave === "especificas") {
       if (rascunho.perguntasEspecificas.length === 0) {
         return (
-          <p className="rounded-2xl bg-white/[0.04] p-4 text-sm leading-relaxed text-white/85 ring-1 ring-white/10">
+          <p className="me-vazio">
             Esta ficha ainda não tem as perguntas do currículo. Prepare a ficha na gaveta da
             candidata: elas saem do que este currículo específico não prova.
           </p>
@@ -760,10 +809,10 @@ export function ModoEntrevista(props: {
       }
       return (
         <div>
-          <p className="text-sm leading-relaxed text-white/85">
+          <p className="me-apoio me-apoio--corpo">
             Estas quatro existem por causa deste currículo, e só dele.
           </p>
-          <ol className="mt-4 space-y-4">
+          <ol className="me-lista">
             {rascunho.perguntasEspecificas.map((p, i) => (
               <Pergunta
                 key={p.pergunta}
@@ -785,7 +834,7 @@ export function ModoEntrevista(props: {
 
     if (chave === "duvidas") {
       return (
-        <div>
+        <div className="me-duvidas">
           {/* Aqui NÃO é somente leitura: este é o momento em que a resposta
               existe. Marcar durante a conversa, e não depois, é o que faz o
               registro valer alguma coisa — quinze minutos depois já virou
@@ -805,39 +854,45 @@ export function ModoEntrevista(props: {
 
     if (chave === "pontuacao") {
       return (
-        <div className="space-y-5">
-          <ol className="space-y-4">
+        <div className="me-pilha">
+          <ol className="me-lista">
             {guia.criterios.map((c, i) => {
               const n = notaDaFicha(rascunho, c.chave);
               const sugerida = notaSugeridaPara(rascunho, c.chave);
+              const pontuado = n !== null && n.nota !== null;
               return (
-                <li key={c.chave} className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10">
-                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <h3 className="text-base font-bold text-white sm:text-lg">
-                      <span className="mr-2 font-extrabold tabular-nums text-white">{i + 1}.</span>
+                <li
+                  key={c.chave}
+                  className="me-cartao me-criterio"
+                  data-respondida={pontuado ? "true" : undefined}
+                >
+                  <div className="me-criterio__topo">
+                    <h3 className="me-criterio__titulo">
+                      <span className="me-num" aria-hidden="true">
+                        {i + 1}
+                      </span>
                       {c.rotulo}
                     </h3>
-                    <p className="text-sm font-extrabold tabular-nums text-white">
-                      {n === null || n.nota === null ? "—" : `${n.nota}/${guia.notaMaxima}`}
+                    <p className="me-criterio__valor" data-vazio={pontuado ? undefined : "true"}>
+                      {pontuado ? `${n.nota}/${guia.notaMaxima}` : "—"}
                     </p>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-white/85">{c.descricao}</p>
+                  <p className="me-apoio">{c.descricao}</p>
 
                   {c.soNaEntrevista ? (
-                    <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-300/10 px-3 py-1 text-xs font-bold text-amber-100 ring-1 ring-amber-200/30">
+                    <p className="me-selo me-selo--aviso">
                       <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       só você pode avaliar isto
                     </p>
-                  ) : sugerida !== null && (n === null || n.nota === null) ? (
-                    <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-lime/10 px-3 py-1 text-xs font-bold text-white ring-1 ring-lime/30">
+                  ) : sugerida !== null && !pontuado ? (
+                    <p className="me-selo">
+                      <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       sugestão da IA: {sugerida.nota} — confirme
                     </p>
                   ) : null}
 
                   {sugerida !== null && sugerida.evidencia.trim() !== "" ? (
-                    <p className="mt-1.5 text-sm leading-relaxed text-white/85">
-                      {sugerida.evidencia}
-                    </p>
+                    <p className="me-apoio">{sugerida.evidencia}</p>
                   ) : null}
 
                   <div className="mt-3">
@@ -872,19 +927,18 @@ export function ModoEntrevista(props: {
           </ol>
 
           {guia.sinaisObservacao.length === 0 ? null : (
-            <section className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10">
-              <h3 className={ROTULO}>Sinais observados na conversa</h3>
-              <ul className="mt-3 grid gap-1 sm:grid-cols-2">
+            <section className="me-cartao me-bloco">
+              <h3 className="me-secao-titulo">Sinais observados na conversa</h3>
+              <ul className="me-sinais">
                 {guia.sinaisObservacao.map((s) => {
                   const marcado = rascunho.sinaisObservados.includes(s);
                   return (
                     <li key={s}>
-                      <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-2 text-base leading-snug text-white hover:bg-white/5">
+                      <label className="me-sinal">
                         <input
                           type="checkbox"
                           checked={marcado}
                           onChange={(e) => editar(comSinal(rascunho, s, e.target.checked), true)}
-                          className="h-6 w-6 shrink-0 accent-lime"
                         />
                         <span className="min-w-0">{s}</span>
                       </label>
@@ -899,10 +953,10 @@ export function ModoEntrevista(props: {
     }
 
     return (
-      <div className="space-y-5">
-        <section>
-          <h3 className={ROTULO}>Impressão</h3>
-          <div className="mt-2">
+      <div className="me-pilha">
+        <section className="me-cartao me-bloco">
+          <h3 className="me-secao-titulo">Impressão</h3>
+          <div className="mt-3">
             <Escolha
               legenda="Impressão geral"
               opcoes={IMPRESSOES}
@@ -912,9 +966,9 @@ export function ModoEntrevista(props: {
           </div>
         </section>
 
-        <section>
-          <h3 className={ROTULO}>Decisão</h3>
-          <div className="mt-2">
+        <section className="me-cartao me-bloco">
+          <h3 className="me-secao-titulo">Decisão</h3>
+          <div className="mt-3">
             <Escolha
               legenda="Decisão"
               opcoes={DECISOES}
@@ -929,20 +983,20 @@ export function ModoEntrevista(props: {
               sem resposta some da cabeça de quem vai escrever "recomendo". Isto
               não trava nada e não opina sobre a candidata: repete o que o
               próprio entrevistador marcou, no instante em que ele decide. */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="me-saldo">
             <ResumoDuvidas item={item} leituras={leiturasDeDuvidas(rascunho)} />
             <button
               type="button"
               onClick={() => setPasso(PASSOS.findIndex((p) => p.chave === "duvidas"))}
-              className="min-h-11 rounded-full px-3 text-xs font-bold text-white underline underline-offset-4 hover:text-white"
+              className="me-link"
             >
               rever o roteiro
             </button>
           </div>
 
           {duvidasImportantesDe(item, leiturasDeDuvidas(rascunho)) > 0 ? (
-            <p className="mt-2 flex items-start gap-2 rounded-xl bg-rose-300/15 px-3 py-2.5 text-sm font-semibold leading-relaxed text-white ring-1 ring-rose-200/45">
-              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-200" aria-hidden="true" />
+            <p className="me-alerta">
+              <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 Ficou dúvida importante sem "Convenceu" no roteiro. Nada aqui impede a decisão —
                 quem entrevistou manda —, mas se for avançar assim, escreva embaixo o que fez você
@@ -953,12 +1007,13 @@ export function ModoEntrevista(props: {
           ) : null}
         </section>
 
-        <section className="space-y-4">
-          <div>
-            <label htmlFor={`${uid}-ev-pos`} className={ROTULO}>
-              Principal evidência positiva
-            </label>
-            <div className="mt-2">
+        <section className="me-cartao me-bloco">
+          <h3 className="me-secao-titulo">Resumo dos entrevistadores</h3>
+          <div className="me-campos me-campos--coluna">
+            <div>
+              <label htmlFor={`${uid}-ev-pos`} className="me-rotulo">
+                Principal evidência positiva
+              </label>
               <CampoAnotacao
                 id={`${uid}-ev-pos`}
                 rotulo="Principal evidência positiva"
@@ -968,13 +1023,11 @@ export function ModoEntrevista(props: {
                 aoSair={salvarPendente}
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor={`${uid}-duvida`} className={ROTULO}>
-              Principal dúvida / risco em aberto
-            </label>
-            <div className="mt-2">
+            <div>
+              <label htmlFor={`${uid}-duvida`} className="me-rotulo">
+                Principal dúvida / risco em aberto
+              </label>
               <CampoAnotacao
                 id={`${uid}-duvida`}
                 rotulo="Principal dúvida ou risco em aberto"
@@ -984,13 +1037,11 @@ export function ModoEntrevista(props: {
                 aoSair={salvarPendente}
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor={`${uid}-motivo`} className={ROTULO}>
-              Motivo para avançar
-            </label>
-            <div className="mt-2">
+            <div>
+              <label htmlFor={`${uid}-motivo`} className="me-rotulo">
+                Motivo para avançar
+              </label>
               <CampoAnotacao
                 id={`${uid}-motivo`}
                 rotulo="Motivo para avançar"
@@ -1000,13 +1051,11 @@ export function ModoEntrevista(props: {
                 aoSair={salvarPendente}
               />
             </div>
-          </div>
 
-          <div>
-            <label htmlFor={`${uid}-checar`} className={ROTULO}>
-              O que checar antes da contratação
-            </label>
-            <div className="mt-2">
+            <div>
+              <label htmlFor={`${uid}-checar`} className="me-rotulo">
+                O que checar antes da contratação
+              </label>
               <CampoAnotacao
                 id={`${uid}-checar`}
                 rotulo="O que checar antes da contratação"
@@ -1020,12 +1069,14 @@ export function ModoEntrevista(props: {
         </section>
 
         {guia.regrasDesempate.length === 0 ? null : (
-          <section className="rounded-2xl bg-white/[0.04] p-4 ring-1 ring-white/10">
-            <h3 className={ROTULO}>Como a clínica desempata no fim</h3>
-            <ol className="mt-2 space-y-1.5">
+          <section className="me-cartao me-bloco">
+            <h3 className="me-secao-titulo">Como a clínica desempata no fim</h3>
+            <ol className="me-desempate">
               {guia.regrasDesempate.map((r, i) => (
-                <li key={r} className="flex gap-2 text-sm leading-relaxed text-white/85">
-                  <span className="font-extrabold tabular-nums text-white">{i + 1}.</span>
+                <li key={r}>
+                  <span className="me-num me-num--pequeno" aria-hidden="true">
+                    {i + 1}
+                  </span>
                   <span className="min-w-0">{r}</span>
                 </li>
               ))}
@@ -1033,7 +1084,11 @@ export function ModoEntrevista(props: {
           </section>
         )}
 
-        <button type="button" onClick={salvarEEncerrar} className={`${BOTAO_PRINCIPAL} w-full`}>
+        <button
+          type="button"
+          onClick={salvarEEncerrar}
+          className={`${BOTAO_PRINCIPAL} me-btn--grande`}
+        >
           <Save className="h-5 w-5" aria-hidden="true" />
           Salvar e encerrar
         </button>
@@ -1051,39 +1106,31 @@ export function ModoEntrevista(props: {
       aria-labelledby={idTitulo}
       tabIndex={-1}
       /* z acima da gaveta (z-90): esta tela nasce de dentro dela e precisa
-         cobri-la por inteiro. O contorno global de foco some no verde profundo,
-         então o painel usa outline-none — ele recebe foco por código e não é um
-         controle; os controles mantêm o anel. */
-      className="rh-superficie-escura fixed inset-0 z-[95] flex flex-col bg-brand-deep text-white outline-none"
+         cobri-la por inteiro. O painel recebe foco por código e não é um
+         controle, então não desenha anel; os controles mantêm o deles. */
+      className="me"
     >
       {/* ---------- Topo ---------- */}
-      <header className="shrink-0 border-b border-lime/20 px-3 py-3 sm:px-5">
-        <div className="flex items-start gap-3">
+      <header className="me-topo">
+        <div className="me-topo__linha">
           {/* A marca oficial, discreta: o símbolo e não o lockup, porque aqui ela
               é assinatura de tela e não cabeçalho de documento — o nome da
-              candidata é que precisa da largura. `fundo="escuro"` porque a
-              superfície é o verde profundo: a arte de fundo claro tem contorno
-              #095902 e sumiria. Decorativa (`alt=""`): quem usa esta tela sabe
-              onde está, e o leitor de tela já anuncia o título ao lado. */}
-          <Logo variante="simbolo" fundo="escuro" altura={30} className="mt-0.5 shrink-0" />
+              candidata é que precisa da largura. Decorativa (`alt=""`): quem usa
+              esta tela sabe onde está, e o leitor de tela já anuncia o título. */}
+          <Logo variante="simbolo" fundo="claro" altura={32} className="me-topo__marca" />
 
           <div className="min-w-0 flex-1">
-            <h1
-              id={idTitulo}
-              className="truncate font-display text-base font-extrabold leading-tight text-white sm:text-lg"
-            >
+            <h1 id={idTitulo} className="me-topo__titulo">
               {nome}
             </h1>
-            <p className="truncate text-xs text-white/85">Entrevista pelo guia: {guia.titulo}</p>
+            <p className="me-topo__sub">Entrevista pelo guia: {guia.titulo}</p>
           </div>
 
           {/* Cronômetro discreto. `aria-hidden` de propósito: um número que muda
               a cada segundo dentro de uma região viva faria o leitor de tela
               interromper a conversa sessenta vezes por minuto. */}
-          <p
-            aria-hidden="true"
-            className="shrink-0 rounded-full bg-white/10 px-3 py-1 font-mono text-sm font-bold tabular-nums text-white"
-          >
+          <p aria-hidden="true" className="me-timer">
+            <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             {duracao(segundos)}
           </p>
 
@@ -1091,7 +1138,7 @@ export function ModoEntrevista(props: {
             type="button"
             onClick={tentarFechar}
             aria-label="Fechar o modo entrevista"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/20 transition hover:bg-white/20"
+            className="me-fechar"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -1100,10 +1147,11 @@ export function ModoEntrevista(props: {
         {/* Passos. Rolam na horizontal a partir de 360px, sem quebrar linha:
             a sequência é a espinha da entrevista e precisa continuar lida como
             uma sequência. */}
-        <nav aria-label="Passos da entrevista" className="rh-scroll mt-3 overflow-x-auto">
-          <ol className="flex min-w-max gap-1.5">
+        <nav aria-label="Passos da entrevista" className="me-passos rh-scroll">
+          <ol>
             {PASSOS.map((p, i) => {
               const ativo = i === passo;
+              const feito = feitoPorPasso[p.chave] && !ativo;
               const Icone = p.icone;
               return (
                 <li key={p.chave}>
@@ -1111,15 +1159,17 @@ export function ModoEntrevista(props: {
                     type="button"
                     onClick={() => setPasso(i)}
                     aria-current={ativo ? "step" : undefined}
-                    className={`inline-flex min-h-11 items-center gap-2 rounded-full px-3.5 text-sm font-bold ring-1 transition ${
-                      ativo
-                        ? "bg-lime text-brand-deep ring-lime"
-                        : "bg-white/[0.06] text-white ring-white/15 hover:bg-white/15"
-                    }`}
+                    data-feito={feito ? "true" : undefined}
+                    className="me-passo"
                   >
-                    <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    {feito ? (
+                      <Check className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    ) : (
+                      <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    )}
                     <span className="tabular-nums">{i + 1}.</span>
                     {p.rotulo}
+                    {feito ? <span className="sr-only"> (concluído)</span> : null}
                   </button>
                 </li>
               );
@@ -1129,48 +1179,89 @@ export function ModoEntrevista(props: {
       </header>
 
       {/* ---------- Corpo ---------- */}
-      <main ref={refCorpo} className="rh-scroll min-h-0 flex-1 overflow-y-auto px-3 py-5 sm:px-5">
-        <div className="mx-auto w-full max-w-3xl">
-          {/* Grudento no topo da área rolável: a pontuação tem dez critérios e
-              passa de uma tela, e o total precisa continuar à vista enquanto se
-              desce a lista — é ele que a clínica compara no fim. */}
-          <h2 className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-2 bg-brand-deep px-1 py-2 font-display text-xl font-extrabold text-white">
-            {atual?.rotulo ?? ""}
-            {atual?.chave === "pontuacao" ? (
-              <span className="rounded-full bg-lime/15 px-3 py-1 text-sm font-extrabold tabular-nums text-white ring-1 ring-lime/30">
-                {total}/{maximo} · {avaliados} de {guia.criterios.length}
-              </span>
+      <main ref={refCorpo} className="me-corpo rh-scroll">
+        <div className="me-grade">
+          <div className="me-principal">
+            {/* Grudento no topo da área rolável: a pontuação tem dez critérios e
+                passa de uma tela, e o total precisa continuar à vista enquanto
+                se desce a lista — é ele que a clínica compara no fim. */}
+            <h2 className="me-etapa">
+              {atual?.rotulo ?? ""}
+              {atual?.chave === "pontuacao" ? (
+                <span className="me-total">
+                  {total}/{maximo} · {avaliados} de {guia.criterios.length}
+                </span>
+              ) : null}
+            </h2>
+
+            {atual?.chave === "pontuacao" && porConfirmar > 0 ? (
+              <p className="me-apoio me-apoio--corpo">
+                {porConfirmar === 1
+                  ? "1 critério está com sugestão da IA ainda não confirmada — ela não entra no total até você marcar a nota."
+                  : `${porConfirmar} critérios estão com sugestão da IA ainda não confirmada — elas não entram no total até você marcar a nota.`}
+              </p>
             ) : null}
-          </h2>
 
-          {atual?.chave === "pontuacao" && porConfirmar > 0 ? (
-            <p className="mt-2 text-sm leading-relaxed text-white/85">
-              {porConfirmar === 1
-                ? "1 critério está com sugestão da IA ainda não confirmada — ela não entra no total até você marcar a nota."
-                : `${porConfirmar} critérios estão com sugestão da IA ainda não confirmada — elas não entram no total até você marcar a nota.`}
-            </p>
-          ) : null}
+            <div className="me-passo-corpo">{conteudo(atual?.chave ?? "abertura")}</div>
+          </div>
 
-          <div className="mt-4 pb-4">{conteudo(atual?.chave ?? "abertura")}</div>
+          {/* Quadro de apoio, só em tela larga: o andamento e a leitura rápida do
+              currículo ficam à vista em qualquer passo, sem precisar voltar. */}
+          <aside className="me-lateral" aria-label="Andamento e leitura do currículo">
+            <section className="me-cartao me-andamento">
+              <h3 className="me-secao-titulo">Andamento</h3>
+              <ul>
+                <LinhaAndamento
+                  rotulo="Triagem objetiva"
+                  feitos={triagemFeita}
+                  total={rascunho.triagem.length}
+                />
+                <LinhaAndamento
+                  rotulo="Perguntas gerais"
+                  feitos={geraisFeitas}
+                  total={guia.perguntasGerais.length}
+                />
+                <LinhaAndamento
+                  rotulo="Do currículo"
+                  feitos={especificasFeitas}
+                  total={rascunho.perguntasEspecificas.length}
+                />
+                <LinhaAndamento
+                  rotulo="Critérios pontuados"
+                  feitos={avaliados}
+                  total={guia.criterios.length}
+                />
+              </ul>
+              {avaliados > 0 ? (
+                <p className="me-andamento__total">
+                  <span>Pontuação</span>
+                  <strong className="tabular-nums">
+                    {total}/{maximo}
+                  </strong>
+                </p>
+              ) : null}
+            </section>
+            {leituraRapida}
+          </aside>
         </div>
       </main>
 
       {/* ---------- Rodapé ----------
           A nota ética do guia fica aqui, fixa, em todos os passos: é durante a
           conversa que a pergunta proibida escapa, não depois dela. */}
-      <footer className="shrink-0 border-t border-lime/20 px-3 py-3 sm:px-5">
-        <div className="mx-auto w-full max-w-3xl">
-          <p className="flex items-start gap-2 text-[0.7rem] leading-relaxed text-white/85">
-            <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      <footer className="me-rodape">
+        <div className="me-rodape__miolo">
+          <p className="me-etica">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{guia.notaEtica}</span>
           </p>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <div className="me-rodape__acoes">
             <button
               type="button"
               onClick={() => setPasso((p) => Math.max(0, p - 1))}
               disabled={passo === 0}
-              className={`${BOTAO_SECUNDARIO} disabled:opacity-40`}
+              className={BOTAO_SECUNDARIO}
             >
               Voltar
             </button>
@@ -1190,21 +1281,17 @@ export function ModoEntrevista(props: {
               </button>
             )}
 
-            <p
-              role="status"
-              aria-live="polite"
-              className="ml-auto text-xs font-semibold text-white"
-            >
+            <p role="status" aria-live="polite" className="me-estado">
               {salvando ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
                   salvando…
                 </span>
               ) : sujo ? (
                 "anotando…"
               ) : (
                 <span className="inline-flex items-center gap-1.5">
-                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                  <Check className="h-4 w-4" aria-hidden="true" />
                   anotações salvas
                 </span>
               )}
@@ -1215,13 +1302,13 @@ export function ModoEntrevista(props: {
 
       {/* ---------- Confirmação de saída ---------- */}
       {confirmandoSaida ? (
-        <div className="absolute inset-0 z-10 grid place-items-center bg-brand-deep/85 p-4 backdrop-blur-[2px]">
-          <div className="w-full max-w-md rounded-2xl bg-brand-deep p-5 ring-1 ring-lime/30">
-            <p className="flex items-start gap-2 text-base font-bold leading-relaxed text-white">
-              <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0 text-lime" aria-hidden="true" />
+        <div className="me-confirma">
+          <div className="me-confirma__caixa">
+            <p className="me-confirma__titulo">
+              <ClipboardCheck className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               Há anotação desta entrevista ainda não salva.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="me-confirma__acoes">
               <button
                 type="button"
                 ref={refContinuar}
@@ -1234,11 +1321,7 @@ export function ModoEntrevista(props: {
                 <Save className="h-4 w-4" aria-hidden="true" />
                 Salvar e sair
               </button>
-              <button
-                type="button"
-                onClick={aoFechar}
-                className={`${BOTAO_SECUNDARIO} text-rose-100`}
-              >
+              <button type="button" onClick={aoFechar} className="me-btn me-btn--perigo">
                 Sair sem salvar
               </button>
             </div>

@@ -1,7 +1,7 @@
-import { ChangeEvent, FormEvent, useId, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, MessageCircle } from "lucide-react";
 
-import { CONVENIOS, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { CONVENIOS_SITE, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { useReferenciaDeCampanha } from "@/components/site/useContatoWhatsApp";
 import { rastrearEnvioDeFormulario } from "@/lib/analytics/formulario";
 import "@/components/site/home/contato.css";
@@ -10,7 +10,7 @@ const PERIODOS = ["Manhã", "Tarde", "Qualquer horário"];
 const TRATAMENTO_INDEFINIDO = "Ainda não sei";
 const CONVENIO_INDEFINIDO = "Não sei";
 const OPCOES_TRATAMENTO = [...TRATAMENTOS.map((t) => t.titulo), TRATAMENTO_INDEFINIDO];
-const OPCOES_CONVENIO = [...CONVENIOS.map((c) => c.nome), "Particular", CONVENIO_INDEFINIDO];
+const OPCOES_CONVENIO = [...CONVENIOS_SITE.map((c) => c.nome), "Particular", CONVENIO_INDEFINIDO];
 
 /**
  * Registra o lead no CRC antes de abrir o WhatsApp.
@@ -75,11 +75,11 @@ function Escolhas({
   aoMudar: (v: string) => void;
 }) {
   return (
-    <fieldset className="cupom-grupo">
+    <fieldset className="form-grupo">
       <legend className="text-corpo">{legenda}</legend>
-      <div className="cupom-opcoes">
+      <div className="form-opcoes">
         {opcoes.map((opcao) => (
-          <label key={opcao} className="cupom-opcao">
+          <label key={opcao} className="form-opcao">
             <input
               type="radio"
               name={nome}
@@ -95,26 +95,10 @@ function Escolhas({
   );
 }
 
-/** O fio de furos entre o canhoto e o cupom: bolinhas num padrão, não um filete. */
-function Picote({ eixo }: { eixo: "v" | "h" }) {
-  const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
-  return (
-    <svg className={`cupom-picote cupom-picote-${eixo}`} aria-hidden="true" focusable="false">
-      <defs>
-        <pattern id={`picote-${id}`} width="14" height="14" patternUnits="userSpaceOnUse">
-          <circle cx="7" cy="7" r="2.6" fill="currentColor" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill={`url(#picote-${id})`} />
-    </svg>
-  );
-}
-
 /**
- * O CUPOM — o formulário de contato da home.
+ * O FORMULÁRIO DE CONTATO da home, num cartão branco grande.
  *
- * Um cupom em verde-maçã, com entalhes e picote: no canhoto, o título; do outro
- * lado, as escolhas. A PRÉVIA mostra, ao vivo, a mesma mensagem que o botão vai
+ * Título e frase em cima, nome e telefone, as escolhas em etiquetas, a PRÉVIA mostra, ao vivo, a mesma mensagem que o botão vai
  * abrir no WhatsApp — é só texto na tela, não envia dado a lugar nenhum.
  *
  * Nome e telefone seguem obrigatórios: o lead do CRC exige nome e um contato, e
@@ -193,52 +177,21 @@ export function ContactForm() {
   };
 
   return (
-    <form onSubmit={onSubmit} className="cupom" data-rastreio-proprio>
-      <div className="cupom-esq">
-        <div className="cupom-cab">
-          <h2 id="fale-titulo" className="text-titulo" data-linhas>
-            Monte sua mensagem
-          </h2>
-          <p className="text-corpo">
-            Escolha o que você procura e abra o WhatsApp com a mensagem pronta. A recepção responde
-            no horário de atendimento.
-          </p>
-        </div>
+    <form onSubmit={onSubmit} className="cartao form-contato" data-rastreio-proprio>
+      <header className="form-cab">
+        <p className="sobretitulo">Fale com a gente</p>
+        <h2 id="fale-titulo" className="text-titulo form-titulo">
+          Monte sua mensagem
+        </h2>
+        <p className="text-corpo form-frase">
+          Escolha o que você procura e abra o WhatsApp com a mensagem pronta. A recepção responde no
+          horário de atendimento.
+        </p>
+      </header>
 
-        <div className="cupom-previa">
-          <p className="text-corpo cupom-previa-rotulo">Prévia do que vai ser enviado</p>
-          <p className="cupom-bolha text-pequeno" data-testid="previa-mensagem">
-            {mensagem}
-          </p>
-        </div>
-
-        <div className="cupom-rodape">
-          <button type="submit" className="botao botao-tinta" data-ima>
-            <MessageCircle aria-hidden="true" />
-            Abrir conversa no WhatsApp
-            <ArrowUpRight aria-hidden="true" />
-          </button>
-          <p className="text-pequeno">
-            Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
-            quando houver parâmetros de campanha no endereço acessado, registrar a origem da
-            solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem.
-            Veja os detalhes na{" "}
-            <a href="/politica-de-privacidade" className="link">
-              Política de Privacidade
-            </a>
-            .
-          </p>
-        </div>
-      </div>
-
-      <div className="cupom-perfura" aria-hidden="true">
-        <Picote eixo="v" />
-        <Picote eixo="h" />
-      </div>
-
-      <div className="cupom-campos">
-        <div className="cupom-dados">
-          <label className="cupom-campo">
+      <div className="form-campos">
+        <div className="form-dados">
+          <label className="form-campo">
             <span className="text-corpo">Seu nome</span>
             <input
               ref={nomeRef}
@@ -253,10 +206,10 @@ export function ContactForm() {
                 setNome(e.target.value);
               }}
               placeholder="Como podemos te chamar?"
-              className="campo-cupom"
+              className="form-input"
             />
           </label>
-          <label className="cupom-campo">
+          <label className="form-campo">
             <span className="text-corpo">Telefone com DDD</span>
             <input
               ref={telefoneRef}
@@ -273,7 +226,7 @@ export function ContactForm() {
                 setTelefone(e.target.value);
               }}
               placeholder="(11) 90000-0000"
-              className="campo-cupom"
+              className="form-input"
             />
           </label>
         </div>
@@ -300,7 +253,7 @@ export function ContactForm() {
           aoMudar={setConvenio}
         />
 
-        <label className="cupom-campo">
+        <label className="form-campo">
           <span className="text-corpo">Quer contar mais alguma coisa? (opcional)</span>
           <textarea
             name="message"
@@ -309,9 +262,34 @@ export function ContactForm() {
             value={obs}
             onChange={(e) => setObs(e.target.value)}
             placeholder="Uma dúvida, uma queixa, um horário que ajude."
-            className="campo-cupom"
+            className="form-input"
           />
         </label>
+      </div>
+
+      <div className="form-previa">
+        <p className="text-corpo form-previa-rotulo">Prévia do que vai ser enviado</p>
+        <p className="form-bolha text-pequeno" data-testid="previa-mensagem">
+          {mensagem}
+        </p>
+      </div>
+
+      <div className="form-rodape">
+        <button type="submit" className="button-primary botao-grande" data-ima>
+          <MessageCircle aria-hidden="true" />
+          Abrir conversa no WhatsApp
+          <ArrowUpRight aria-hidden="true" />
+        </button>
+        <p className="text-pequeno form-aviso">
+          Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
+          quando houver parâmetros de campanha no endereço acessado, registrar a origem da
+          solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja
+          os detalhes na{" "}
+          <a href="/politica-de-privacidade" className="link">
+            Política de Privacidade
+          </a>
+          .
+        </p>
       </div>
     </form>
   );

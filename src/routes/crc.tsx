@@ -113,12 +113,7 @@ import { Aviso, Botao, Campo, Entrada, useAcao } from "@/components/crc/base";
  *  `crc-agenda.css` continua em `Agenda.tsx`: essa é de fato da tela.
  * ============================================================================
  */
-import "@/components/crc/crc.css";
-import "@/components/crc/crc-premium.css";
-import "@/components/crc/crc-screens.css";
-import "@/components/crc/crc-polish.css";
-import "@/components/crc/crc-qa.css";
-import "@/components/crc/crc-shell-harmony.css";
+import { CLASSE_CRC } from "@/components/crc/estilos-crc";
 
 /**
  * As telas que a recepção abre logo depois da Home.
@@ -2004,7 +1999,7 @@ function PortalCrc() {
 
   if (sessao === null) {
     return (
-      <div className="crc-app">
+      <div className={CLASSE_CRC}>
         <div style={{ display: "grid", placeItems: "center", minHeight: "100dvh" }}>
           <p className="crc-meta">Carregando…</p>
         </div>
@@ -2014,7 +2009,7 @@ function PortalCrc() {
 
   if (!sessao.configurado) {
     return (
-      <div className="crc-app">
+      <div className={CLASSE_CRC}>
         <div
           style={{
             display: "grid",
@@ -2033,7 +2028,7 @@ function PortalCrc() {
 
   if (!sessao.autenticado || sessao.usuario === null) {
     return (
-      <div className="crc-app">
+      <div className={CLASSE_CRC}>
         <TelaDeEntrada aoEntrar={() => void carregarSessao()} />
       </div>
     );
@@ -2083,7 +2078,7 @@ function PortalCrc() {
      * metade do encanamento que o contexto veio desmontar.
      */
     <ProvedorDoCrc valor={{ usuario, abrirPaciente }}>
-      <div className="crc-app">
+      <div className={CLASSE_CRC}>
         <Paleta
           acoes={acoesDaPaleta}
           aoAbrirPaciente={abrirPaciente}

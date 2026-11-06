@@ -1,5 +1,4 @@
-import fachada2026Img from "@/assets/fachada-2026.webp";
-import fachada2026FullImg from "@/assets/fachada-2026-completa.webp";
+import consultorioVerticalImg from "@/assets/consultorio-implantes-2.webp";
 import consultorioWideImg from "@/assets/consultorio-wide.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import equipamentoImg from "@/assets/equipamento.webp";
@@ -19,7 +18,7 @@ import consultorioCadeiraLilasImg from "@/assets/consultorio-cadeira-lilas.webp"
 import consultorioCadeiraLilasFullImg from "@/assets/consultorio-cadeira-lilas-completa.webp";
 
 /**
- * `src` é a versão que aparece na trilha: as fotos vindas do Instagram entram
+ * `src` é a versão que aparece na grade: as fotos vindas do Instagram entram
  * ali já recortadas para fora da moldura decorativa, senão o logo e o rótulo
  * impressos nelas brigam com os do site.
  *
@@ -34,6 +33,13 @@ export type EspacoFoto = {
   /** Dimensões reais de `src`: o atributo width/height não pode mentir para o navegador. */
   largura: number;
   altura: number;
+  /**
+   * O lugar da foto na grade (bento): `grande` ocupa 2x2 e `alto` 1x2. Sem o
+   * campo, é um ladrilho. Quem manda nas posições é o CSS (estrutura.css).
+   */
+  forma?: "grande" | "alto";
+  /** Versão própria para o ladrilho `alto` (vertical), quando `src` é paisagem. */
+  capa?: { src: string; largura: number; altura: number };
 };
 
 /*
@@ -46,17 +52,23 @@ export type EspacoFoto = {
  */
 
 export const GALLERY: EspacoFoto[] = [
-  { src: consultorioWideImg, largura: 1500, altura: 800, title: "Consultório principal" },
   {
-    // Foto de 21/09/2026, com o letreiro atual — o anterior ainda mostrava um
-    // WhatsApp que não é mais o da clínica. É vertical (1086x1448) e a peça é
-    // paisagem: o recorte começa em y=170 da original e deixa o letreiro inteiro
-    // na metade de cima. O clique abre a foto inteira.
-    src: fachada2026Img,
-    full: fachada2026FullImg,
-    largura: 1086,
-    altura: 814,
-    title: "Nossa fachada",
+    src: consultorioWideImg,
+    largura: 1500,
+    altura: 800,
+    title: "Consultório principal",
+    forma: "grande",
+  },
+  {
+    // Vertical, inteira no ladrilho alto. A fachada saiu daqui em 06/11/2026:
+    // ela já aparece na história e no atendimento, e esta seção é a clínica
+    // por dentro.
+    src: consultorioVerticalImg,
+    largura: 1200,
+    altura: 1500,
+    title: "Sala de atendimento",
+    forma: "alto",
+    capa: { src: consultorioVerticalImg, largura: 1200, altura: 1500 },
   },
   { src: esterilizacaoImg, largura: 1200, altura: 967, title: "Esterilização" },
   { src: equipamentoImg, largura: 1200, altura: 967, title: "Equipamentos" },
@@ -68,6 +80,7 @@ export const GALLERY: EspacoFoto[] = [
     largura: 665,
     altura: 480,
     title: "Cantinho do café",
+    forma: "grande",
   },
   {
     src: consultorioJanelaImg,
@@ -98,6 +111,3 @@ export const GALLERY: EspacoFoto[] = [
     title: "Consultório — outra sala",
   },
 ];
-
-/** As fotos de exibição têm 665x480; a coroa da trilha segue a mesma proporção. */
-export const PROPORCAO_FOTO = 665 / 480;

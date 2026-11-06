@@ -2,29 +2,32 @@
  *
  * Acordeão nativo: `<details name="faq">` dá o teclado, o "só um aberto por
  * vez" e o leitor de tela sem uma linha de JavaScript. O que é desenho fica
- * aqui: o sinal de mais feito de duas barras, o ladrilho que acende em verde e
- * a resposta. A abertura anima a altura da área de conteúdo do `<details>`
- * (`::details-content` + `interpolate-size`, Chrome 131+): sem isso o ladrilho
- * dá um salto seco enquanto só o texto desliza. É a única altura animada do
- * site e fica restrita a este pedaço; onde não há suporte, abre sem transição.
- * Todas as transições só existem com movimento permitido.
+ * aqui: cartão branco com borda fina, o ícone "+" num círculo que gira e vira
+ * "×" ao abrir, e a resposta. A abertura anima a altura da área de conteúdo do
+ * `<details>` (`::details-content` + `interpolate-size`, Chrome 131+): onde não
+ * há suporte, abre sem transição. Todas as transições só existem com movimento
+ * permitido.
  */
 
 @layer theme, base, components, utilities;
 
 @layer components {
   .faq-item {
-    background: var(--chao-2);
+    background: var(--branco);
+    border: 1px solid var(--borda);
     border-radius: var(--raio);
+    box-shadow: var(--sombra-1);
     color: var(--tinta);
     interpolate-size: allow-keywords;
   }
   .faq-item[open] {
-    background: var(--acento);
+    border-color: color-mix(in oklab, var(--acento) 55%, transparent);
+    box-shadow: var(--sombra-2);
   }
   @media (hover: hover) and (pointer: fine) {
     .faq-item:not([open]):hover {
-      background: var(--chao-3);
+      border-color: var(--borda-forte);
+      box-shadow: var(--sombra-2);
     }
   }
 
@@ -34,11 +37,12 @@
     justify-content: space-between;
     gap: 1.25rem;
     min-height: 4.5rem;
-    padding: 1rem 1.5rem;
+    padding: 0.875rem 1rem 0.875rem 1.5rem;
     border-radius: var(--raio);
     font-size: var(--text-corpo);
     font-weight: 600;
     line-height: 1.3;
+    letter-spacing: -0.01em;
     cursor: pointer;
     list-style: none;
   }
@@ -50,50 +54,69 @@
     outline-offset: 3px;
   }
 
-  /* O sinal: duas barras. A vertical deita e o conjunto gira meia volta, então
-     o "+" vira "−" girando, em vez de trocar de ícone. */
   .faq-sinal {
-    position: relative;
+    display: grid;
+    place-items: center;
     flex: none;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    background: var(--menta);
+    color: var(--acento-texto);
   }
-  .faq-sinal::before,
-  .faq-sinal::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: calc(50% - 1px);
-    width: 100%;
-    height: 2px;
-    border-radius: 2px;
-    background: currentColor;
-  }
-  .faq-sinal::after {
-    transform: rotate(90deg);
+  .faq-sinal svg {
+    width: 1.2rem;
+    height: 1.2rem;
   }
   .faq-item[open] .faq-sinal {
-    transform: rotate(180deg);
-  }
-  .faq-item[open] .faq-sinal::after {
-    transform: rotate(0deg);
+    background: var(--acento);
+    color: var(--tinta);
+    transform: rotate(135deg);
   }
 
   .faq-resposta {
-    max-width: 52ch;
-    padding: 0 1.5rem 1.75rem;
+    max-width: 58ch;
+    padding: 0 1.5rem 1.5rem;
+    color: var(--tinta-suave);
+  }
+
+  /* O cartão de "ainda tem dúvida?" sob o título. */
+  .faq-ajuda {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2.25rem;
+    padding: 1.5rem;
+    max-width: 26rem;
+  }
+  .faq-ajuda-topo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .faq-ajuda-titulo {
+    font-size: var(--text-corpo);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .faq-ajuda a.link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   @layer components {
     .faq-item {
-      transition: background-color var(--t-ui) ease;
+      transition:
+        border-color var(--t-ui) ease,
+        box-shadow var(--t-ui) var(--ease-out);
     }
-    .faq-sinal,
-    .faq-sinal::before,
-    .faq-sinal::after {
-      transition: transform var(--t-ui) var(--ease-out);
+    .faq-sinal {
+      transition:
+        transform 360ms var(--ease-out),
+        background-color var(--t-ui) ease,
+        color var(--t-ui) ease;
     }
     .faq-item::details-content {
       block-size: 0;

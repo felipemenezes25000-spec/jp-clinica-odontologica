@@ -1,16 +1,18 @@
 /* A página de um tratamento — ver PaginaDeTratamento.tsx.
  *
- * Oito seções, cada uma com um desenho diferente da vizinha e os dois campos
- * escuros separados por uma seção clara:
- *   topo ........ texto + janela com o eco verde (a animação)
- *   entenda ..... foto (grudada) à esquerda, frase que se acende e lista à direita
- *   para quem ... fundo um degrau acima; cenários em frase grande + foto à direita
- *   etapas ...... campo escuro, quatro colunas em degraus, coroas que se enchem em cascata
- *   perguntas ... título em largura total; leitura em colunas (poucas) ou acordeão (muitas)
- *   por que a JP  campo verde-marca: números em manchete + retrato da responsável
- *   chamada ..... painel verde-maçã com a fachada cortada pela borda
- *   outros ...... três ladrilhos lado a lado, o primeiro mais largo (só na orgânica)
- * No celular todas viram uma coluna, na mesma ordem de leitura.
+ * Direção "Clínica luminosa": chão claro, cartões brancos com borda fina e
+ * sombra suave, selos de prova social sobre as fotos, o verde profundo só no
+ * fecho. Seções, de cima para baixo (o fundo alterna chão / chão-2):
+ *   topo ........... texto + janela (animação ou foto) com dois cartões de vidro
+ *   entenda ........ leitura + cartões de benefícios | consultório em tamanho médio
+ *   para quem ...... (chão-2) título, foto e cenários em cartões
+ *   etapas ......... cartões numerados em fileira + faixa de CTA
+ *   responsável .... (chão-2) retrato com selo | números reais em cartões
+ *   avaliações ..... carrossel do Google
+ *   perguntas ...... (chão-2) leitura em cartões ou acordeão
+ *   outros ......... (só orgânica) três cartões-link
+ *   fecho .......... painel verde profundo com a fachada
+ * No celular tudo vira uma coluna, na mesma ordem de leitura.
  */
 
 @layer theme, base, components, utilities;
@@ -20,19 +22,26 @@
   .tt-topo {
     position: relative;
     overflow: clip;
-    background: var(--chao);
-    padding-block: clamp(1.75rem, 1rem + 2.5vw, 3rem) clamp(3.5rem, 2rem + 6vw, 7rem);
+    padding-block: clamp(1.75rem, 1rem + 3vw, 4.5rem) clamp(3.5rem, 2rem + 5vw, 7rem);
   }
   .tt-topo-grade {
     display: grid;
-    gap: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    align-items: center;
   }
+  @media (min-width: 1024px) {
+    .tt-topo-grade {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
+    }
+  }
+
   .tt-voltar {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     min-height: 2.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     color: var(--tinta-suave);
     font-size: var(--text-pequeno);
   }
@@ -40,35 +49,71 @@
     width: 1.05em;
     height: 1.05em;
   }
-  .tt-topo h1 {
-    font-weight: 600;
+
+  .tt-selo {
+    display: flex;
+    width: fit-content;
+    transition:
+      box-shadow var(--t-ui) var(--ease-out),
+      transform var(--t-ui) var(--ease-out);
+  }
+  .tt-selo strong,
+  .tt-selo-google strong {
+    font-weight: 700;
+  }
+  .tt-selo-estrelas {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    background: #fff8e6;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tt-selo:hover,
+    .tt-selo-google:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--sombra-2);
+    }
+  }
+
+  /* O H1 nasce parado no HTML do servidor: é o LCP de uma página de anúncio. */
+  .tt-h1 {
+    margin-top: 1.5rem;
+    font-size: clamp(2.5rem, 1.3rem + 4vw, 4.75rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
   }
   /* O H1 da LP paga tem medida própria: o termo do anúncio ("Aparelho e
-     ortodontia", "Harmonização orofacial") precisa caber numa linha para o
-     bairro fechar a segunda, em 390, 768 e 1440. É a única exceção à escala de
-     títulos do sistema, e existe para não cortar a palavra que a pessoa buscou. */
+     ortodontia", "Harmonização facial") precisa caber numa linha para o bairro
+     fechar a segunda, em 390, 768 e 1440. Existe para não cortar a palavra que
+     a pessoa buscou. */
   .tt-h1-anuncio {
-    font-size: clamp(1.875rem, 0.9rem + 2.9vw, 4rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
+    font-size: clamp(2.125rem, 1rem + 3.4vw, 4.25rem);
+    line-height: 1.02;
   }
   .tt-h1-bairro {
     display: block;
   }
   .tt-frase {
-    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
-    max-width: 24ch;
-    font-weight: 500;
+    margin-top: 1.5rem;
+    max-width: 30ch;
+    font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.625rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+    color: var(--tinta);
   }
   .tt-desc {
-    margin-top: 1.25rem;
-    max-width: 52ch;
+    margin-top: 0.75rem;
+    max-width: 48ch;
+    font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+    line-height: 1.55;
     color: var(--tinta-suave);
   }
+
   .tt-acoes {
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 2rem;
   }
@@ -76,65 +121,83 @@
     white-space: normal;
     text-align: center;
   }
-  @media (min-width: 720px) {
-    .tt-acoes {
-      flex-direction: row;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.75rem 0.75rem;
+  @media (max-width: 639.98px) {
+    .tt-acoes > * {
+      width: 100%;
     }
   }
-  .tt-fatos {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
+
+  /* Três provas curtas: rostos, lugar, horário. */
+  .tt-confianca {
+    display: grid;
+    gap: 1rem 1.75rem;
     margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--borda);
+  }
+  @media (min-width: 640px) {
+    .tt-confianca {
+      grid-template-columns: repeat(2, auto);
+      justify-content: start;
+    }
+  }
+  .tt-confianca li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .tt-confianca li > span:last-child {
+    display: grid;
+    line-height: 1.3;
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
-  .tt-fatos li {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 2.75rem;
-  }
-  .tt-fatos svg {
-    width: 1.05em;
-    height: 1.05em;
-    flex: none;
-  }
-  .tt-fatos a {
+  .tt-confianca strong {
+    font-size: 1rem;
+    font-weight: 650;
     color: var(--tinta);
   }
+  .tt-confianca .pastilha {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+  }
+  .tt-confianca .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
 
-  /* A janela: a coroa com a animação, e o eco verde deslocado atrás, como no
-     topo da home. A altura é dada aqui (a coroa mede a caixa). O eco anda
-     poucos pixels para a direita e para cima: a margem externa direita (16px no
-     celular, 29px em 1440) o engole, e a assinatura continua dentro dela. */
+  /* ---- Mídia: a janela e os cartões de vidro ---------------------------------- */
+  .tt-midia {
+    position: relative;
+    margin-inline: auto;
+    width: min(100%, 34rem);
+  }
+  @media (min-width: 1024px) {
+    .tt-midia {
+      width: calc(100% - 2rem);
+      max-width: 33rem;
+      margin-right: 2rem;
+    }
+  }
+  .tt-pecas {
+    position: relative;
+  }
   .tt-janela {
     position: relative;
-    height: min(104vw, 62svh);
-    min-height: 20rem;
+    aspect-ratio: 1 / 1.08;
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
-  .tt-eco {
-    --eco-x: 8px;
-    --eco-y: -10px;
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    color: var(--acento);
-    translate: var(--eco-x) var(--eco-y);
-    pointer-events: none;
-  }
-  .tt-abre {
-    position: relative;
+  .tt-janela > .animacao {
     height: 100%;
   }
-  .tt-abre > .animacao,
-  .tt-abre > .moldura-coroa {
-    height: 100%;
+  .tt-janela .animacao-moldura {
+    border-radius: var(--raio-lg);
+  }
+  .tt-foto-topo {
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
   .tt-rotulo {
     margin-top: 1rem;
@@ -146,280 +209,475 @@
     font-weight: 600;
   }
 
-  @media (min-width: 1024px) {
-    .tt-topo {
-      padding-block: clamp(1.5rem, 3vh, 2.5rem) clamp(4rem, 8vh, 6.5rem);
-    }
-    .tt-topo-grade {
-      grid-template-columns: 1.1fr 0.9fr;
-      column-gap: clamp(2rem, 4vw, 5rem);
-      align-items: center;
-    }
-    .tt-janela {
-      height: min(74svh, 46rem);
-    }
-    .tt-eco {
-      --eco-x: 14px;
-      --eco-y: -14px;
-    }
+  .tt-cartao-horario {
+    position: absolute;
+    top: 6%;
+    right: -1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1.1rem 0.7rem 0.7rem;
+  }
+  .tt-cartao-horario > span:last-child {
+    display: grid;
+    line-height: 1.25;
+    font-size: 0.8125rem;
+    color: var(--tinta-suave);
+  }
+  .tt-cartao-horario strong {
+    font-size: 0.9375rem;
+    font-weight: 650;
+    color: var(--tinta);
+  }
+  .tt-cartao-horario .pastilha {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+  }
+  .tt-cartao-horario .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
   }
 
-  /* Entrada do topo: a janela abre de baixo para cima e o eco chega de lado.
-     CSS puro, roda antes do JS e some com "reduzir movimento". 700ms e sem
-     atraso: o poster da animação é o maior elemento da dobra, e o LCP só fecha
-     quando a janela termina de abrir. */
-  @media (prefers-reduced-motion: no-preference) {
-    .tt-abre {
-      clip-path: inset(100% 0 0 0);
-      animation: tt-abre 700ms var(--ease-expo) forwards;
+  .tt-cartao-rt {
+    position: absolute;
+    left: -2.5rem;
+    bottom: 7%;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.1rem 0.8rem 0.8rem;
+  }
+  .tt-cartao-rt img {
+    width: 3rem;
+    height: 3rem;
+    flex: none;
+    border-radius: 999px;
+    object-fit: cover;
+  }
+  .tt-cartao-rt > span {
+    display: grid;
+    line-height: 1.25;
+  }
+  .tt-cartao-rt strong {
+    font-size: 0.9375rem;
+    font-weight: 650;
+  }
+  .tt-cartao-papel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tinta-suave);
+  }
+  .tt-cartao-cro {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--acento-texto);
+  }
+
+  /* Celular: os cartões encostam na borda da peça em vez de sair dela. O botão
+     de pausar da animação mora no canto de baixo à direita e fica livre. */
+  @media (max-width: 1023.98px) {
+    .tt-cartao-horario {
+      top: 0.75rem;
+      right: 0.75rem;
     }
-    .tt-eco {
-      opacity: 0;
-      translate: 0 0;
-      animation: tt-eco 900ms var(--ease-expo) 200ms forwards;
+    .tt-cartao-rt {
+      left: 0.75rem;
+      right: 4.5rem;
+      bottom: 0.75rem;
+    }
+  }
+  @media (max-width: 479.98px) {
+    .tt-cartao-horario {
+      display: none;
     }
   }
 
   /* ---- Grades e leitura ------------------------------------------------------ */
   .tt-grade {
     display: grid;
-    gap: clamp(2rem, 1rem + 3vw, 3.5rem);
+    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
   }
   .tt-leitura {
     display: flex;
     flex-direction: column;
-    gap: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    align-items: flex-start;
+    gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
   }
-  .tt-leitura > p {
-    max-width: 56ch;
+  .tt-leitura > .text-titulo {
+    margin-top: -0.25rem;
   }
-  .tt-nota {
+  .tt-cabeca {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .tt-intro {
     max-width: 52ch;
     color: var(--tinta-suave);
   }
-  .tt-lista {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    max-width: 48ch;
-  }
-  .tt-lista li {
-    display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-  }
-  .tt-lista .marca-coroa {
-    color: var(--acento);
-    translate: 0 0.04em;
+  .tt-manifesto {
+    max-width: 32ch;
+    font-weight: 500;
   }
   .tt-subtitulo {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.9rem;
+    font-size: var(--text-corpo);
+    font-weight: 650;
+    letter-spacing: -0.01em;
   }
+
+  /* Foto: tamanho médio, cantos do sistema, selo de vidro por cima. */
   .tt-foto {
+    position: relative;
     width: 100%;
-    max-width: 30rem;
+    max-width: 36rem;
     margin-inline: auto;
+  }
+  .tt-foto-moldura {
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
   .tt-foto img {
     height: 100%;
     object-fit: cover;
   }
+  .tt-foto-selo {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: calc(100% - 2rem);
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .tt-foto-selo svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    color: var(--acento-texto);
+  }
 
   /* ---- O que é -------------------------------------------------------------- */
-  .tt-manifesto {
-    max-width: 30ch;
-    font-weight: 500;
+  .tt-beneficios {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 34rem;
   }
-  .tt-grade-entenda .tt-leitura > [data-entra] {
-    margin-top: 0.5rem;
+  .tt-beneficios li {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.8rem 1.1rem 0.8rem 0.8rem;
+    font-weight: 550;
+    line-height: 1.35;
+  }
+  .tt-beneficios .pastilha {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+  }
+  .tt-beneficios .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  .tt-nota {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 52ch;
+    padding: 1rem 1.15rem;
+    border-radius: var(--raio-sm);
+    background: var(--chao-2);
+    font-size: var(--text-pequeno);
+    line-height: 1.5;
+    color: var(--tinta-suave);
+  }
+  .tt-nota svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--acento-texto);
   }
   @media (min-width: 1024px) {
     .tt-grade-entenda {
-      grid-template-columns: 0.8fr 1.2fr;
-      column-gap: clamp(2.5rem, 6vw, 8rem);
-      align-items: start;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      column-gap: clamp(3rem, 6vw, 7rem);
+      align-items: center;
     }
-    /* A foto vem depois no código (no celular a leitura abre a seção) e passa
-       para a esquerda aqui; fica grudada enquanto a leitura rola. */
     .tt-foto-entenda {
-      order: -1;
       max-width: none;
       margin-inline: 0;
-      position: sticky;
-      top: calc(var(--altura-cabecalho) + 2rem);
     }
   }
 
   /* ---- Para quem ------------------------------------------------------------- */
-  .tt-paraquem {
-    background: var(--chao-2);
+  .tt-foto-paraquem {
+    max-width: 30rem;
+    margin-inline: 0;
   }
-  .tt-paraquem .tt-leitura > p {
-    color: var(--tinta-suave);
+  .tt-cenarios {
+    display: grid;
+    align-content: center;
+    gap: 1rem;
   }
-  .tt-lista-grande {
-    max-width: 30ch;
-    gap: 1.25rem;
+  .tt-cenario {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1.25rem 1.5rem 1.25rem 1.25rem;
   }
-  .tt-lista-grande li {
-    font-weight: 500;
+  .tt-cenario .text-frase {
+    font-weight: 550;
+    line-height: 1.3;
   }
   @media (min-width: 1024px) {
     .tt-grade-paraquem {
-      grid-template-columns: 1.1fr 0.9fr;
-      column-gap: clamp(2.5rem, 7vw, 9rem);
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      column-gap: clamp(3rem, 6vw, 7rem);
       align-items: center;
-    }
-    .tt-foto-paraquem {
-      max-width: none;
-      margin-inline: 0;
     }
   }
 
   /* ---- Etapas ---------------------------------------------------------------- */
-  .tt-etapas {
-    position: relative;
-    overflow: clip;
-  }
-  .tt-etapas-corpo {
-    position: relative;
-  }
-  /* A forma grande no canto de baixo, brotando da borda como um dente: dá corpo
-     ao campo escuro e fica atrás da última etapa, a mais baixa da escada. Mais
-     clara que o campo, sem degradê, e atrás de tudo. */
-  .tt-etapas-forma {
-    position: absolute;
-    right: -16%;
-    bottom: -10%;
-    height: 34%;
-    width: auto;
-    color: var(--campo-marca);
-    pointer-events: none;
-  }
   .tt-passos {
     display: grid;
-    gap: 2.5rem;
-    margin-top: clamp(2.5rem, 2rem + 3vw, 5rem);
+    gap: 1rem;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3.25rem);
   }
   .tt-passo {
-    display: grid;
-    grid-template-columns: 3rem 1fr;
-    column-gap: 1.25rem;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem 1.5rem 1.75rem;
   }
-  .tt-passo-forma {
-    width: 3rem;
-    color: var(--acento);
+  .tt-passo-numero {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 999px;
+    background: var(--menta);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--acento-texto);
   }
   .tt-passo h3 {
     font-weight: 600;
   }
-  .tt-passo p {
-    margin-top: 0.75rem;
-    max-width: 34ch;
-    color: var(--sobre-campo-suave);
+  .tt-passo p:last-child {
+    color: var(--tinta-suave);
+  }
+  @media (min-width: 640px) {
+    .tt-passos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .tt-passos {
+      grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+      gap: 1.25rem;
+    }
+  }
+
+  .tt-faixa-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-lg);
+    background: var(--menta);
+  }
+  .tt-faixa-cta .text-frase {
+    font-weight: 600;
+  }
+  .tt-faixa-cta .text-corpo {
+    margin-top: 0.25rem;
+    color: var(--tinta-suave);
+  }
+  .tt-faixa-cta .button-primary {
+    white-space: normal;
+    text-align: center;
   }
   @media (min-width: 720px) {
-    .tt-passos {
-      grid-template-columns: repeat(2, 1fr);
-      column-gap: clamp(2rem, 4vw, 4rem);
+    .tt-faixa-cta {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
     }
   }
-  /* No desktop os quatro passos sobem em degraus, uma arcada em escala: a
-     ordem se lê pela posição, sem número. */
-  @media (min-width: 1100px) {
-    .tt-etapas-forma {
-      right: 3%;
-      bottom: -34%;
-      height: 76%;
+
+  /* ---- Responsável técnica --------------------------------------------------- */
+  .tt-retrato {
+    margin: 0;
+  }
+  .tt-foto-retrato {
+    max-width: 24rem;
+  }
+  .tt-retrato-selo {
+    position: absolute;
+    inset: auto 0.75rem 0.75rem;
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.8rem 1rem;
+    line-height: 1.3;
+  }
+  .tt-retrato-selo strong {
+    font-size: 1rem;
+    font-weight: 650;
+  }
+  .tt-retrato-selo span {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--acento-texto);
+  }
+  .tt-numeros {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    max-width: 34rem;
+  }
+  .tt-numeros .cartao {
+    padding: 1.25rem 1.5rem;
+  }
+  .tt-numeros .text-corpo {
+    margin-top: 0.15rem;
+    color: var(--tinta-suave);
+  }
+  .tt-numero {
+    font-size: clamp(2.75rem, 2rem + 2.5vw, 4rem);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+    color: var(--tinta);
+  }
+  .tt-endereco {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    max-width: 44ch;
+    color: var(--tinta-suave);
+  }
+  .tt-endereco svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--acento-texto);
+  }
+  @media (min-width: 640px) {
+    .tt-numeros {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .tt-passos {
-      grid-template-columns: repeat(4, 1fr);
-      align-items: start;
+  }
+  @media (min-width: 1024px) {
+    .tt-grade-porque {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      column-gap: clamp(3rem, 6vw, 7rem);
+      align-items: center;
     }
-    .tt-passo {
-      display: block;
-      margin-top: calc(var(--degrau, 0) * clamp(1.5rem, 3vw, 3.5rem));
+    .tt-foto-retrato {
+      margin-inline: 0;
     }
-    .tt-passo-forma {
-      margin-bottom: 1.5rem;
+  }
+
+  /* ---- Avaliações ------------------------------------------------------------ */
+  .tt-avaliacoes-topo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    margin-bottom: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+  }
+  .tt-selo-google svg {
+    width: 1rem;
+    height: 1rem;
+    flex: none;
+    color: var(--tinta-suave);
+  }
+  .tt-selo-google {
+    min-height: 2.75rem;
+    padding-right: 1.1rem;
+  }
+  @media (min-width: 768px) {
+    .tt-avaliacoes-topo {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
     }
   }
 
   /* ---- Perguntas ------------------------------------------------------------- */
-  .tt-leituras,
-  .tt-acordeao {
-    margin-top: clamp(2rem, 1.5rem + 2.5vw, 4rem);
-  }
   .tt-leituras {
     display: grid;
-    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+    gap: 1rem;
   }
-  .tt-leituras h3 {
+  .tt-leituras article {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.5rem 1.75rem 1.75rem;
+  }
+  .tt-leituras article h3 {
     font-weight: 600;
-    max-width: 22ch;
   }
-  .tt-leituras p {
-    margin-top: 1rem;
-    max-width: 44ch;
+  .tt-leituras article p {
     color: var(--tinta-suave);
-  }
-  @media (min-width: 900px) {
-    .tt-leituras {
-      grid-template-columns: repeat(var(--colunas, 2), minmax(0, 1fr));
-      column-gap: clamp(2rem, 5vw, 6rem);
-    }
   }
   .tt-acordeao {
     display: grid;
     gap: 0.75rem;
-    align-items: start;
-  }
-  @media (min-width: 1024px) {
-    .tt-acordeao {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1rem;
-    }
+    align-content: start;
   }
   .tt-pergunta {
-    border-radius: var(--raio);
-    background: var(--chao-2);
+    padding: 0;
+    transition: box-shadow var(--t-ui) var(--ease-out);
   }
   .tt-pergunta summary {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.25rem;
-    min-height: 3.5rem;
-    padding: 1.1rem 1.5rem;
+    min-height: 3.75rem;
+    padding: 0.9rem 1.25rem 0.9rem 1.5rem;
     font-weight: 600;
+    line-height: 1.3;
     cursor: pointer;
     list-style: none;
-    border-radius: var(--raio);
   }
   .tt-pergunta summary::-webkit-details-marker {
     display: none;
   }
-  /* O contorno de foco acompanha o ladrilho (raio de 20px), e não o summary
-     com o raio do foco global: fica na forma que a pessoa vê. */
-  .tt-pergunta summary:focus-visible {
-    outline: none;
-  }
-  .tt-pergunta:has(summary:focus-visible) {
-    outline: 3px solid var(--tinta);
-    outline-offset: 3px;
+  .tt-pergunta p {
+    padding: 0 1.5rem 1.4rem;
+    max-width: 62ch;
+    color: var(--tinta-suave);
   }
   .tt-mais {
-    flex: none;
     display: grid;
     place-items: center;
     width: 2.25rem;
     height: 2.25rem;
+    flex: none;
     border-radius: 999px;
-    background: var(--acento);
-    color: var(--tinta);
-    transition: transform var(--t-ui) var(--ease-out);
+    background: var(--menta);
+    color: var(--acento-texto);
+    transition:
+      transform var(--t-ui) var(--ease-out),
+      background-color var(--t-hover) ease;
   }
   .tt-mais svg {
     width: 1.1rem;
@@ -428,248 +686,145 @@
   .tt-pergunta[open] .tt-mais {
     transform: rotate(45deg);
   }
-  .tt-pergunta p {
-    padding: 0 1.5rem 1.5rem;
-    max-width: 60ch;
-    color: var(--tinta-suave);
-  }
-
-  /* ---- Por que a JP ---------------------------------------------------------- */
-  .tt-numeros {
-    display: grid;
-    gap: 2rem clamp(1.5rem, 4vw, 4rem);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: clamp(0.5rem, 1rem + 1vw, 2rem);
-  }
-  .tt-numero {
-    font-size: var(--text-display);
-    line-height: var(--text-display--line-height);
-    letter-spacing: var(--text-display--letter-spacing);
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .tt-numero-legenda {
-    margin-top: 0.75rem;
-    max-width: 22ch;
-    color: var(--sobre-campo-suave);
-  }
-  .tt-porque .tt-leitura > p {
-    max-width: 34ch;
-  }
-  .tt-retrato {
-    width: 100%;
-    max-width: 24rem;
-    margin-inline: auto;
-  }
-  .tt-retrato .tt-foto {
-    max-width: none;
-  }
-  .tt-responsavel {
-    display: flex;
-    flex-direction: column;
-    margin-top: 1.5rem;
-  }
-  .tt-responsavel strong {
-    font-weight: 600;
-  }
-  .tt-responsavel span {
-    color: var(--sobre-campo-suave);
-  }
-  .tt-endereco {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    color: var(--sobre-campo-suave);
-  }
-  .tt-endereco svg {
-    width: 1.05em;
-    height: 1.05em;
-    flex: none;
-    margin-top: 0.2em;
+  .tt-pergunta[open] {
+    box-shadow: var(--sombra-2);
   }
   @media (min-width: 1024px) {
-    .tt-grade-porque {
-      grid-template-columns: 1.25fr 0.75fr;
-      column-gap: clamp(2.5rem, 7vw, 9rem);
-      align-items: center;
+    .tt-grade-perguntas {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      column-gap: clamp(3rem, 6vw, 7rem);
+      align-items: start;
     }
-    .tt-retrato {
-      max-width: none;
-      margin-inline: 0;
-    }
-  }
-
-  /* ---- Chamada final: o painel em verde-maçã -------------------------------- */
-  .tt-chamada {
-    position: relative;
-    overflow: clip;
-    padding: clamp(2rem, 1.25rem + 4vw, 5rem);
-    border-radius: var(--raio);
-    background: var(--acento);
-    color: var(--tinta);
-  }
-  .tt-chamada-forma {
-    position: absolute;
-    right: -12%;
-    bottom: -26%;
-    height: 66%;
-    width: auto;
-    color: var(--acento-claro);
-    pointer-events: none;
-  }
-  .tt-chamada-foto {
-    display: none;
-  }
-  .tt-chamada-texto {
-    position: relative;
-    max-width: 38rem;
-  }
-  .tt-chamada .text-frase {
-    margin-top: 1.25rem;
-    font-weight: 500;
-  }
-  .tt-chamada .botao {
-    margin-top: 2rem;
-  }
-  /* Do tablet para cima a fachada entra, cortada pela borda de baixo, com o eco
-     em verde-claro deslocado atrás — a mesma assinatura do topo. */
-  @media (min-width: 900px) {
-    .tt-chamada {
-      min-height: 28rem;
-      display: flex;
-      align-items: center;
-    }
-    .tt-chamada-texto {
-      max-width: min(38rem, 52%);
-    }
-    .tt-chamada-forma {
-      --lado: min(30vw, 30rem);
-      right: calc(clamp(1.5rem, 5vw, 6rem) - 1.5rem);
-      bottom: -6%;
-      top: auto;
-      width: var(--lado);
-      height: auto;
-    }
-    .tt-chamada-foto {
-      --lado: min(30vw, 30rem);
-      display: block;
-      position: absolute;
-      right: clamp(1.5rem, 5vw, 6rem);
-      bottom: -16%;
-      width: var(--lado);
+    .tt-grade-perguntas > .tt-cabeca {
+      position: sticky;
+      top: calc(var(--altura-cabecalho) + 2rem);
     }
   }
 
-  /* ---- Outros caminhos ------------------------------------------------------- */
+  /* ---- Outros caminhos (só orgânica) ------------------------------------------ */
   .tt-outros-topo {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
     justify-content: space-between;
-    gap: 1.5rem 3rem;
+    gap: 1.25rem;
+    margin-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
   }
   .tt-caminhos {
     display: grid;
-    gap: 0.75rem;
-    margin-top: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+    gap: 1rem;
   }
   .tt-caminho {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-    min-height: 13rem;
-    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
-    color: var(--tinta);
-    transition: background-color var(--t-hover) ease;
-  }
-  .tt-caminho:first-child {
-    background: var(--acento);
+    min-height: 11rem;
+    padding: 1.5rem 4.25rem 1.5rem 1.75rem;
   }
   .tt-caminho .text-frase {
     font-weight: 600;
   }
   .tt-caminho .text-corpo {
-    max-width: 34ch;
     color: var(--tinta-suave);
   }
-  .tt-caminho:first-child .text-corpo {
-    color: var(--tinta);
+  .tt-caminho-seta {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: var(--menta);
+    color: var(--acento-texto);
+    transition:
+      transform var(--t-ui) var(--ease-out),
+      background-color var(--t-hover) ease;
   }
-  .tt-caminho svg {
-    width: 1.75rem;
-    height: 1.75rem;
-    margin-top: auto;
-    align-self: flex-end;
-    transition: transform var(--t-ui) var(--ease-out);
-  }
-  .tt-caminho:focus-visible {
-    outline: 3px solid var(--tinta);
-    outline-offset: 3px;
-    background: var(--acento);
-  }
-  .tt-caminho:focus-visible .text-corpo {
-    color: var(--tinta);
+  .tt-caminho-seta svg {
+    width: 1.25rem;
+    height: 1.25rem;
   }
   @media (hover: hover) and (pointer: fine) {
-    .tt-caminho:hover {
+    .tt-caminho:hover .tt-caminho-seta {
+      transform: translate(2px, -2px);
       background: var(--acento);
-    }
-    .tt-caminho:hover .text-corpo {
       color: var(--tinta);
     }
-    .tt-caminho:hover svg {
-      transform: translate(3px, -3px);
-    }
   }
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
     .tt-caminhos {
-      grid-template-columns: 1.35fr 1fr 1fr;
-      gap: 1rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 
-  /* ---- Página inexistente ------------------------------------------------------ */
+  /* ---- O fecho em verde -------------------------------------------------------- */
+  .tt-chamada {
+    position: relative;
+    display: grid;
+    align-items: center;
+    gap: clamp(2rem, 1.5rem + 2vw, 3.5rem);
+    padding: clamp(1.75rem, 1rem + 3.5vw, 4.5rem);
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
+  }
+  .tt-chamada-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(1rem, 0.75rem + 1vw, 1.5rem);
+  }
+  .tt-chamada-texto > .text-frase {
+    max-width: 32ch;
+    color: var(--sobre-campo-suave);
+  }
+  .tt-chamada-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .tt-chamada-local {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    color: var(--sobre-campo-suave);
+  }
+  .tt-chamada-local svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--acento-claro);
+  }
+  .tt-chamada-foto {
+    display: none;
+  }
+  .tt-chamada-foto .moldura-coroa {
+    border-radius: var(--raio);
+  }
+  @media (max-width: 639.98px) {
+    .tt-chamada-acoes > * {
+      width: 100%;
+    }
+  }
+  @media (min-width: 1024px) {
+    .tt-chamada {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    }
+    .tt-chamada-foto {
+      display: block;
+    }
+  }
+
+  /* Slug que não existe: título e botão, num campo calmo. */
   .tt-vazia {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: flex-start;
-    gap: 1.75rem;
-    min-height: 70svh;
-  }
-}
-
-/* As coroas das etapas se enchem de baixo para cima, uma depois da outra, quando
-   a lista entra na tela (o motor marca `data-entrou` no `<ol>`). Só `clip-path`.
-   O estado vazio só existe com script e com movimento permitido; se o motor
-   nunca chegar, a regra de segurança enche tudo em 2,6s, como a do sistema. */
-@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
-  .tt-passo-forma {
-    clip-path: inset(100% 0 0 0);
-    transition: clip-path 1000ms var(--ease-expo) calc(260ms + var(--i, 0) * 80ms);
-  }
-  [data-entrou] .tt-passo-forma {
-    clip-path: inset(0 0 0 0);
-  }
-  :root:not([data-movimento]) .tt-passo-forma {
-    animation: tt-enche 0.01s 2.6s forwards;
-  }
-}
-
-@keyframes tt-abre {
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-@keyframes tt-eco {
-  to {
-    opacity: 1;
-    translate: var(--eco-x) var(--eco-y);
-  }
-}
-@keyframes tt-enche {
-  to {
-    clip-path: inset(0 0 0 0);
+    gap: 1.5rem;
+    padding-block: clamp(4rem, 3rem + 6vw, 8rem);
   }
 }

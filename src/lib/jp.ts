@@ -53,9 +53,9 @@ const ENDERECO = {
  */
 export const AVALIACOES = {
   nota: 4.6,
-  total: 210,
-  /** Total informado pelo Felipe em 30/10/2026; a última conferência direta na ficha foi em 21/09. */
-  conferidoEm: "2026-10-30",
+  total: 211,
+  /** Total informado pelo Felipe em 06/11/2026; a última conferência direta na ficha foi em 21/09. */
+  conferidoEm: "2026-11-06",
 };
 
 /** "4,6" — a nota como o Brasil escreve, derivada de `AVALIACOES.nota`. */
@@ -1194,6 +1194,22 @@ export const CONVENIOS: Convenio[] = [
 export const CONVENIOS_POR_EXTENSO = listaPorExtenso(CONVENIOS.map((c) => c.nome));
 
 /**
+ * Os convênios publicados no SITE: `CONVENIOS` (o que o CRC também usa) e os
+ * dois acrescentados em 16/09/2026. A extensão é só do site: o CRC continua
+ * com `CONVENIOS` até a clínica confirmar a mudança operacional. Tudo o que o
+ * site mostra (seção, landings, formulário, FAQ da página e JSON-LD) lê
+ * daqui, para a página nunca dizer 8 num lugar e 6 no outro.
+ */
+export const CONVENIOS_SITE: readonly Convenio[] = [
+  ...CONVENIOS,
+  { nome: "Sempre Odonto", slug: "sempre-odonto" },
+  { nome: "Odonto Empresas", slug: "odonto-empresas" },
+];
+
+/** "SulAmérica, Porto Seguro, … e Odonto Empresas". */
+export const CONVENIOS_SITE_POR_EXTENSO = listaPorExtenso(CONVENIOS_SITE.map((c) => c.nome));
+
+/**
  * Formas de pagamento.
  *
  * ============================================================================
@@ -1451,3 +1467,14 @@ export const FAQ = [
     a: "A clínica trabalha com sedação consciente por óxido nitroso, um recurso usado para reduzir a ansiedade durante o atendimento — inclusive com crianças. A indicação depende de avaliação profissional e do seu histórico de saúde.",
   },
 ];
+
+/**
+ * A FAQ como o SITE a publica: igual à `FAQ` (que o CRC usa como base de
+ * conhecimento), só que a resposta sobre convênio lista os do site
+ * (`CONVENIOS_SITE`). A seção de perguntas e o JSON-LD leem esta.
+ */
+export const FAQ_SITE = FAQ.map((item) =>
+  item.a.includes(CONVENIOS_POR_EXTENSO)
+    ? { ...item, a: item.a.replace(CONVENIOS_POR_EXTENSO, CONVENIOS_SITE_POR_EXTENSO) }
+    : item,
+);

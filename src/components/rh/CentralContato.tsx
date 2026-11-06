@@ -10,12 +10,10 @@
  * o RH pode editar antes de mandar, que o histórico dela passa a registrar o
  * envio sozinho e que a entrevista entra na agenda em um clique.
  *
- * SUPERFÍCIE: este componente vive dentro da gaveta, sobre o verde profundo da
- * marca. Vale a regra do cliente sem exceção — **fundo verde, letra branca**.
- * Nenhum texto aqui é `text-lime`, `text-forest` ou branco abaixo de 85% de
- * opacidade; lime aparece só onde não é letra (ícone, anel, ponto). O botão
- * principal usa `bg-forest` com `text-white` em vez de `bg-lime`, que é o mesmo
- * desenho de `.button-primary` e o que dá contraste de verdade.
+ * SUPERFÍCIE: vive no cabeçalho da gaveta, que é clara. O visual mora em
+ * `triagem.css` (classes `.cc-*`): degrau de tom em vez de filete, tinta como
+ * letra, acento só como fundo do WhatsApp. Nada de `text-lime` nem de branco
+ * translúcido: aqui o texto é tinta sobre claro.
  *
  * RELÓGIO: `agora` desce por prop e é ele que monta todo texto que aparece na
  * tela — nada de `new Date()` no render, senão servidor e navegador escreveriam
@@ -64,28 +62,19 @@ import {
   nomeArquivoIcs,
 } from "@/lib/rh/mensagens";
 import type { Candidatura } from "@/lib/rh/tipos";
+import "@/components/rh/triagem.css";
 
 /* -------------------------------------------------------------------------- */
 /* Constantes de estilo                                                       */
 /* -------------------------------------------------------------------------- */
 
-/** Alvo de 44px (min-h-11) em tudo que se clica — a recepção usa isto no celular. */
-const BOTAO =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold " +
-  "ring-1 transition focus-visible:outline-2 focus-visible:outline-offset-2";
+/** Alvo de 44px em tudo que se clica — a recepção usa isto no celular. */
+const BOTAO_PRIMARIO = "cc-btn cc-btn--forte";
+const BOTAO_SECUNDARIO = "cc-btn cc-btn--vidro";
+/** Indisponível: continua legível, mas sem convite ao clique. */
+const BOTAO_MORTO = "cc-btn cc-btn--vidro";
 
-/** Ação principal. `bg-forest` + branco, nunca `bg-lime` + branco: ver o cabeçalho. */
-const BOTAO_PRIMARIO = `${BOTAO} bg-forest text-white ring-lime hover:bg-forest/80`;
-const BOTAO_SECUNDARIO = `${BOTAO} bg-white/10 text-white ring-white/25 hover:bg-white/20`;
-/** Indisponível: continua legível (85% é o piso da regra), mas sem convite ao clique. */
-const BOTAO_MORTO = `${BOTAO} cursor-not-allowed bg-white/5 text-white/85 ring-white/15`;
-
-const AJUDA = "text-xs leading-relaxed text-white/85";
-
-const CAMPO_TEXTO =
-  "block w-full rounded-xl border border-white/15 bg-white/[0.07] px-3.5 py-3 text-sm " +
-  "leading-relaxed text-white placeholder:text-white/85 transition-colors " +
-  "hover:border-white/30 focus:border-lime";
+const AJUDA = "cc-ajuda";
 
 /** Duração do "copiado!" — tempo de ler sem virar poluição na tela. */
 const MS_AVISO = 2000;
@@ -184,7 +173,7 @@ function Acao(props: PropsAcao) {
   if (indisponivel) {
     return (
       <button type="button" disabled aria-describedby={motivoId} className={classe}>
-        <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <Icone aria-hidden="true" />
         {rotulo}
       </button>
     );
@@ -198,7 +187,7 @@ function Acao(props: PropsAcao) {
         onClick={aoClicar ?? undefined}
         className={classe}
       >
-        <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <Icone aria-hidden="true" />
         {rotulo}
       </a>
     );
@@ -206,7 +195,7 @@ function Acao(props: PropsAcao) {
 
   return (
     <button type="button" onClick={aoClicar ?? undefined} className={classe}>
-      <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <Icone aria-hidden="true" />
       {rotulo}
     </button>
   );
@@ -241,8 +230,8 @@ function DadoContato(props: {
 
   if (props.valor === "") {
     return (
-      <span className="rh-alvo-toque inline-flex max-w-full items-center gap-2 rounded-full bg-white/5 px-3 text-xs font-semibold text-white/85 ring-1 ring-white/15">
-        <Icone className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <span className="cc-dado cc-dado--vazio">
+        <Icone className="h-4 w-4" aria-hidden="true" />
         {props.vazio}
       </span>
     );
@@ -253,16 +242,16 @@ function DadoContato(props: {
       type="button"
       onClick={props.aoCopiar}
       aria-label={`Copiar ${props.rotulo} ${props.valor}`}
-      className="rh-alvo-toque inline-flex max-w-full items-center gap-2 rounded-full bg-white/10 px-3 text-xs font-bold text-white ring-1 ring-white/20 transition hover:bg-white/20"
+      className="cc-dado"
     >
-      <Icone className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+      <Icone className="h-4 w-4" aria-hidden="true" />
       {/* `select-text` porque copiar com o botão é o caminho rápido, não o
           único: quem prefere marcar com o mouse e dar Ctrl+C continua podendo. */}
-      <span className="min-w-0 select-text truncate font-mono tracking-tight">{props.valor}</span>
+      <span className="cc-dado__valor">{props.valor}</span>
       {props.copiado ? (
-        <Check className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
+        <Check className="h-4 w-4" aria-hidden="true" />
       ) : (
-        <Copy className="h-4 w-4 shrink-0 text-white/85" aria-hidden="true" />
+        <Copy className="h-4 w-4" aria-hidden="true" />
       )}
     </button>
   );
@@ -458,7 +447,7 @@ export function CentralContato(props: {
        O título e a explicação continuam no HTML para quem usa leitor de tela.
        Para quem enxerga, "WhatsApp", "E-mail" e "Ligar" já dizem o que fazem —
        e o texto só se lia uma vez na vida. */
-    <section aria-labelledby={`${uid}-titulo`}>
+    <section aria-labelledby={`${uid}-titulo`} className="cc">
       <h3 id={`${uid}-titulo`} className="sr-only">
         Central de contato
       </h3>
@@ -472,7 +461,7 @@ export function CentralContato(props: {
           "copiar" preso nele. Ver o comentário de `DadoContato` — é aqui que
           moram o telefone e o e-mail da candidata, e não mais lá embaixo em
           "Dados pessoais". */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="cc-dados">
         <DadoContato
           icone={Phone}
           rotulo="telefone"
@@ -501,7 +490,7 @@ export function CentralContato(props: {
           telefone", "Copiar e-mail") sem nada a ver com abrir conversa. Separar
           o que É o dado do que FAZ alguma coisa é a organização inteira desta
           faixa. */}
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="cc-canais">
         <Acao
           icone={MessageCircle}
           rotulo="WhatsApp"
@@ -543,7 +532,7 @@ export function CentralContato(props: {
           aria-controls={`${uid}-painel`}
           className={BOTAO_SECUNDARIO}
         >
-          <PenLine className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <PenLine aria-hidden="true" />
           Escrever mensagem
         </button>
 
@@ -552,12 +541,12 @@ export function CentralContato(props: {
 
       {/* Motivos visíveis, e ligados por aria-describedby a cada botão morto. */}
       {semTelefone ? (
-        <p id={idSemTelefone} className={`mt-2 ${AJUDA}`}>
+        <p id={idSemTelefone} className={AJUDA}>
           Sem telefone no currículo — WhatsApp e Ligar ficam indisponíveis.
         </p>
       ) : null}
       {semEmail ? (
-        <p id={idSemEmail} className={`mt-2 ${AJUDA}`}>
+        <p id={idSemEmail} className={AJUDA}>
           Sem e-mail no currículo — o botão de e-mail fica indisponível.
         </p>
       ) : null}
@@ -566,7 +555,7 @@ export function CentralContato(props: {
           aparecer no próprio botão. O sucesso da cópia vira "check" lá, e por
           isso não repete aqui. */}
       {aviso === "" ? null : (
-        <p role="alert" className="mt-2 text-xs font-bold text-white">
+        <p role="alert" className="cc-aviso">
           {aviso}
         </p>
       )}
@@ -592,32 +581,32 @@ export function CentralContato(props: {
             e.stopPropagation();
             fecharPainel();
           }}
-          className="mt-3 rounded-2xl border border-white/15 bg-black/20 p-3 sm:p-4"
+          className="cc-painel"
         >
           {modelo === null ? (
             <>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-bold text-white">Escolha um modelo</p>
+              <div className="cc-painel__topo">
+                <p className="cc-painel__titulo">Escolha um modelo</p>
                 <button
                   type="button"
                   onClick={fecharPainel}
                   aria-label="Fechar modelos de mensagem"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/25 transition hover:bg-white/20"
+                  className="cc-fechar"
                 >
                   <X className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
-              <p className={`mt-1 ${AJUDA}`}>
+              <p className={AJUDA}>
                 Só aparecem os modelos que fazem sentido para o momento desta candidatura, do mais
                 provável para o menos.
               </p>
 
               {aplicaveis.length === 0 ? (
-                <p className={`mt-3 ${AJUDA}`}>
+                <p className={AJUDA}>
                   Nenhum modelo se aplica a este estado. Use o WhatsApp ou o e-mail direto acima.
                 </p>
               ) : (
-                <ul className="mt-3 space-y-2">
+                <ul className="cc-modelos">
                   {aplicaveis.map((m, i) => {
                     const Icone = ICONES[m.icone] ?? MessageCircle;
                     return (
@@ -626,12 +615,12 @@ export function CentralContato(props: {
                           ref={i === 0 ? refPrimeiroModelo : undefined}
                           type="button"
                           onClick={() => escolherModelo(m.chave)}
-                          className="flex w-full min-h-11 items-start gap-3 rounded-xl bg-white/[0.07] p-3 text-left ring-1 ring-white/15 transition hover:bg-white/15"
+                          className="cc-modelo"
                         >
-                          <Icone className="mt-0.5 h-5 w-5 shrink-0 text-lime" aria-hidden="true" />
+                          <Icone className="h-5 w-5" aria-hidden="true" />
                           <span className="min-w-0">
-                            <span className="block text-sm font-bold text-white">{m.rotulo}</span>
-                            <span className={`mt-0.5 block ${AJUDA}`}>{m.quandoUsar}</span>
+                            <strong>{m.rotulo}</strong>
+                            <span>{m.quandoUsar}</span>
                           </span>
                         </button>
                       </li>
@@ -642,7 +631,7 @@ export function CentralContato(props: {
             </>
           ) : (
             <>
-              <div className="flex items-center justify-between gap-2">
+              <div className="cc-painel__topo">
                 <button
                   type="button"
                   onClick={() => {
@@ -651,23 +640,23 @@ export function CentralContato(props: {
                   }}
                   className={BOTAO_SECUNDARIO}
                 >
-                  <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <ArrowLeft aria-hidden="true" />
                   Outros modelos
                 </button>
                 <button
                   type="button"
                   onClick={fecharPainel}
                   aria-label="Fechar escrita de mensagem"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/25 transition hover:bg-white/20"
+                  className="cc-fechar"
                 >
                   <X className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
 
-              <label htmlFor={`${uid}-texto`} className="mt-3 block text-sm font-bold text-white">
+              <label htmlFor={`${uid}-texto`} className="cc-rotulo">
                 {modelo.rotulo}
               </label>
-              <p className={`mb-2 mt-0.5 ${AJUDA}`}>{modelo.descricao}</p>
+              <p className={AJUDA}>{modelo.descricao}</p>
 
               {/* Editável sempre: o texto é um bom começo, não um decreto. Quem
                   conhece a candidata ajusta uma frase antes de mandar. */}
@@ -677,10 +666,10 @@ export function CentralContato(props: {
                 rows={10}
                 value={texto}
                 onChange={(e) => setTexto(e.target.value)}
-                className={CAMPO_TEXTO}
+                className="cc-texto"
               />
 
-              <p className={`mt-1.5 ${AJUDA}`}>
+              <p className={AJUDA}>
                 {texto.length} caracteres
                 {texto.length > 900 ? " — longo para WhatsApp; considere encurtar." : ""}
                 {modelo.canais[0] === "email"
@@ -688,7 +677,7 @@ export function CentralContato(props: {
                   : " · Recomendado por WhatsApp."}
               </p>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="cc-envio">
                 <Acao
                   icone={MessageCircle}
                   rotulo="Abrir no WhatsApp"
@@ -728,27 +717,27 @@ export function CentralContato(props: {
 
       {/* ---------- Agenda ---------- */}
       {marcada !== null ? (
-        <div className="mt-4 rounded-2xl border border-white/15 bg-white/[0.05] p-3 sm:p-4">
-          <p className="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-white">
-            <Clock className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-            Agenda
-          </p>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-white">
-              Entrevista em {dataPorExtenso(marcada.data)}
-              {marcada.hora === "" ? "" : `, às ${marcada.hora}`}
+        <div className="cc-agenda">
+          <div className="cc-agenda__quando">
+            <Clock className="h-5 w-5" aria-hidden="true" />
+            <p>
+              <small>Agenda</small>
+              <strong>
+                Entrevista em {dataPorExtenso(marcada.data)}
+                {marcada.hora === "" ? "" : `, às ${marcada.hora}`}
+              </strong>
             </p>
-            {marcada.hora === "" ? (
-              <p className={AJUDA}>
-                Sem horário definido — combine a hora na gestão do processo para gerar o convite.
-              </p>
-            ) : (
-              <button type="button" onClick={baixarConvite} className={BOTAO_SECUNDARIO}>
-                <CalendarPlus className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Adicionar à agenda
-              </button>
-            )}
           </div>
+          {marcada.hora === "" ? (
+            <p className={AJUDA}>
+              Sem horário definido — combine a hora na gestão do processo para gerar o convite.
+            </p>
+          ) : (
+            <button type="button" onClick={baixarConvite} className={BOTAO_SECUNDARIO}>
+              <CalendarPlus aria-hidden="true" />
+              Adicionar à agenda
+            </button>
+          )}
         </div>
       ) : null}
     </section>

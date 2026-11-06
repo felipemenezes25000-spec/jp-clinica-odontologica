@@ -1,11 +1,9 @@
 import type { CSSProperties, ReactNode } from "react";
 
-import { caminhoCoroa } from "./geometria";
-
 /*
  * As peças do sistema. Os nomes vêm da "coroa" de dois lobos que o redesenho
- * de 11/2026 usou e a clínica reprovou em 06/11/2026; o desenho hoje é o
- * retângulo de cantos suaves (ver `geometria.ts`).
+ * de 11/2026 usou e a clínica reprovou em 06/11/2026; hoje a moldura é só o
+ * canto arredondado e o marcador é um ponto.
  */
 
 /**
@@ -44,34 +42,6 @@ export function MolduraCoroa({
     >
       {children}
     </Tag>
-  );
-}
-
-/**
- * A forma chapada, sem foto: o bloco grande atrás da janela do topo, os ecos
- * deslocados atrás dos retratos, a marca d'água do RH. A cor vem de
- * `currentColor`.
- */
-export function FormaCoroa({
-  proporcao = 4 / 5,
-  className = "",
-  style,
-}: {
-  proporcao?: number;
-  className?: string;
-  style?: CSSProperties;
-}) {
-  return (
-    <svg
-      viewBox="0 0 1 1"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-      className={className}
-      style={{ aspectRatio: String(proporcao), ...style }}
-    >
-      <path d={caminhoCoroa(proporcao)} fill="currentColor" />
-    </svg>
   );
 }
 

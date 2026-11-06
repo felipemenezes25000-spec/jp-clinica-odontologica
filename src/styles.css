@@ -1881,41 +1881,52 @@ textarea.rh-campo {
  *  clínica em 06/11/2026 e saiu do site; os nomes dos componentes ficaram.
  *  Ver src/components/site/sistema/.
  *
- *  Regras da casa que este bloco sustenta (e que o redesenho inteiro segue):
- *   - um chão, uma tinta, um acento; o acento (verde-maçã) só na ação e na
- *     forma grande; seções podem trocar o campo inteiro para o verde profundo;
- *   - sem sombra em coisa parada, sem degradê, sem vidro, sem filete de 1px,
- *     sem rótulo miúdo em caixa-alta acima de título;
- *   - cinco medidas de texto (ver @theme), uma família;
- *   - um par de margens externas, igual nos dois lados, em toda largura;
- *   - botão: pílula cheia, um formato só.
+ *  Direção "Clínica luminosa" (06/11/2026, depois de a clínica achar o
+ *  lançamento chapado e amador): fundo claro e arejado, cartões brancos com
+ *  borda fina e sombra suave, selos de prova social flutuando sobre as fotos,
+ *  o verde profundo reservado para o fechamento e o rodapé, e o verde-maçã só
+ *  na ação. Interação em CSS; carrossel com Embla; números com um contador
+ *  próprio; entradas sem GSAP. Ver DESIGN.md.
  *
  *  Contraste (fórmula WCAG sobre os hexadecimais, 06/11/2026):
- *   tinta #032F01 sobre chão #F4F5EC ........ 13,55:1
- *   tinta-suave #3F523B sobre chão .......... 7,7:1
+ *   tinta #032F01 sobre chão #FBFCF8 ........ 14,45:1 (branco 14,88; chão-2 13,46)
+ *   tinta-suave #44573F sobre chão .......... 7,6:1 (chão-2 7,08; menta 6,86)
+ *   acento-texto #2F6A00 sobre chão ......... 6,4:1 (chão-2 5,97; menta 5,78)
  *   tinta sobre acento #56A805 (botão) ...... 4,96:1
  *   sobre-campo #F4F5EC sobre campo #032F01 . 13,55:1
  *   sobre-campo-suave #C9D6C2 sobre campo ... 9,84:1
- *   tinta-suave sobre chão-2 #E9ECDF ........ 7,06:1
- *   tinta sobre acento-claro (hover) ........ 6,76:1
- *   acento como TEXTO só sobre o campo #032F01 (4,96:1), nunca sobre o chão.
+ *   acento #56A805 como TEXTO só sobre o campo (4,96:1), nunca sobre o claro:
+ *   no claro o verde de texto é `--acento-texto`.
  * ============================================================================= */
 
 :root {
-  --chao: #f4f5ec;
-  --chao-2: #e9ecdf;
-  --chao-3: #dce3ce;
+  --chao: #fbfcf8;
+  --chao-2: #f1f5ea;
+  --chao-3: #e2e9d6;
+  --branco: #ffffff;
+  --menta: #e8f4da;
   --tinta: #032f01;
-  --tinta-suave: #3f523b;
+  --tinta-suave: #44573f;
   --acento: #56a805;
   --acento-claro: #6cc414;
+  --acento-texto: #2f6a00;
+  --estrela: #f2a516;
+  --estrela-vazia: #e3e6dc;
   --campo: #032f01;
   --campo-marca: #095902;
   --sobre-campo: #f4f5ec;
   --sobre-campo-suave: #c9d6c2;
 
+  --borda: rgb(3 47 1 / 0.09);
+  --borda-forte: rgb(3 47 1 / 0.16);
+  --sombra-1: 0 1px 2px rgb(3 47 1 / 0.05), 0 8px 24px -10px rgb(3 47 1 / 0.14);
+  --sombra-2: 0 2px 6px rgb(3 47 1 / 0.05), 0 28px 60px -22px rgb(3 47 1 / 0.3);
+  --sombra-botao: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 10px 24px -10px rgb(70 140 4 / 0.75);
+
   --margem: clamp(1rem, 0.4rem + 1.6vw, 2rem);
+  --raio-sm: 12px;
   --raio: 20px;
+  --raio-lg: 28px;
   --altura-cabecalho: 76px;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -1999,10 +2010,13 @@ textarea.rh-campo {
     margin-inline: auto;
   }
   .secao {
-    padding-block: clamp(5.5rem, 2rem + 9vw, 12.5rem);
+    padding-block: clamp(4.5rem, 2rem + 6vw, 8.5rem);
   }
   .secao-curta {
-    padding-block: clamp(4rem, 2rem + 5vw, 8rem);
+    padding-block: clamp(3.5rem, 2rem + 4vw, 6rem);
+  }
+  .secao-clara {
+    background: var(--chao-2);
   }
 
   /* ---- A moldura das fotos ---------------------------------------------------------
@@ -2032,21 +2046,24 @@ textarea.rh-campo {
     vertical-align: -0.04em;
   }
 
-  /* ---- Botões: pílula cheia, um formato só ------------------------------------
+  /* ---- Botões: pílula cheia --------------------------------------------------
      Os nomes antigos (`button-primary` e família) continuam valendo — o E2E do
-     funil procura `main a.button-primary[href*="wa.me"]` —, só que agora vestem o
-     sistema novo. Sem sombra, sem borda, sem degradê: a cor cheia separa. */
+     funil procura `main a.button-primary[href*="wa.me"]`. O principal tem
+     relevo (brilho em cima, sombra verde embaixo) e um reflexo que atravessa
+     no hover; o secundário é branco com borda. */
   .botao,
   .button-primary {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    min-height: 3.25rem;
-    padding: 0.5rem 1.6rem;
+    min-height: 3.5rem;
+    padding: 0.5rem 1.75rem;
     border: 0;
     border-radius: 999px;
-    box-shadow: none;
     font-family: var(--font-sans);
     font-size: var(--text-corpo);
     font-weight: 600;
@@ -2055,7 +2072,8 @@ textarea.rh-campo {
     white-space: nowrap;
     cursor: pointer;
     transition:
-      transform var(--t-press) var(--ease-out),
+      transform var(--t-ui) var(--ease-out),
+      box-shadow var(--t-ui) var(--ease-out),
       background-color var(--t-hover) ease,
       color var(--t-hover) ease;
   }
@@ -2065,8 +2083,8 @@ textarea.rh-campo {
   }
   .botao svg,
   .button-primary svg {
-    width: 1.1em;
-    height: 1.1em;
+    width: 1.15em;
+    height: 1.15em;
     flex: none;
     transition: transform var(--t-ui) var(--ease-out);
   }
@@ -2075,35 +2093,72 @@ textarea.rh-campo {
   .button-primary {
     background: var(--acento);
     color: var(--tinta);
+    box-shadow: var(--sombra-botao);
+  }
+  /* O reflexo: uma faixa clara que cruza o botão no hover. Fica entre o fundo
+     e o texto (z-index -1 dentro do `isolation`). */
+  .botao-acento::after,
+  .button-primary::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.45) 50%,
+      transparent 65%
+    );
+    translate: -110% 0;
+    transition: translate 900ms var(--ease-out);
+    pointer-events: none;
   }
   .botao-tinta {
     background: var(--tinta);
     color: var(--sobre-campo);
+    box-shadow: 0 10px 24px -12px rgb(3 47 1 / 0.6);
   }
   .botao-chao {
-    background: var(--chao-2);
+    background: var(--branco);
     color: var(--tinta);
+    box-shadow:
+      inset 0 0 0 1px var(--borda-forte),
+      var(--sombra-1);
   }
   .botao-claro {
     background: color-mix(in oklab, var(--sobre-campo) 12%, transparent);
     color: var(--sobre-campo);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18);
+  }
+  .botao-grande {
+    min-height: 3.875rem;
+    padding-inline: 2rem;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
   }
 
   @media (hover: hover) and (pointer: fine) {
     .botao:hover,
     .button-primary:hover {
-      transform: none;
-      box-shadow: none;
+      transform: translateY(-2px);
     }
     .botao-acento:hover,
     .button-primary:hover {
       background: var(--acento-claro);
+      box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.45),
+        0 16px 32px -12px rgb(70 140 4 / 0.8);
+    }
+    .botao-acento:hover::after,
+    .button-primary:hover::after {
+      translate: 110% 0;
     }
     .botao-tinta:hover {
       background: #000f00;
     }
     .botao-chao:hover {
-      background: var(--chao-3);
+      box-shadow:
+        inset 0 0 0 1px var(--tinta),
+        var(--sombra-2);
     }
     .botao-claro:hover {
       background: var(--sobre-campo);
@@ -2112,6 +2167,16 @@ textarea.rh-campo {
     .botao:hover svg:last-child,
     .button-primary:hover svg:last-child {
       transform: translate(2px, -2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .botao,
+    .button-primary {
+      transition: none;
+    }
+    .botao::after,
+    .button-primary::after {
+      display: none;
     }
   }
 
@@ -2129,13 +2194,126 @@ textarea.rh-campo {
     }
   }
 
-  /* Ladrilho: um degrau de tom acima do chão, sem borda, sem sombra. */
-  .ladrilho {
-    background: var(--chao-2);
+  /* Ladrilho e cartão: branco, borda fina e sombra suave sobre o chão claro. */
+  .ladrilho,
+  .cartao {
+    background: var(--branco);
+    border: 1px solid var(--borda);
     border-radius: var(--raio);
+    box-shadow: var(--sombra-1);
   }
-  .campo-escuro .ladrilho {
-    background: color-mix(in oklab, var(--sobre-campo) 8%, var(--campo));
+  .campo-escuro .ladrilho,
+  .campo-escuro .cartao {
+    background: color-mix(in oklab, var(--sobre-campo) 7%, var(--campo));
+    border-color: rgb(255 255 255 / 0.1);
+    box-shadow: none;
+  }
+  /* Cartão que reage ao ponteiro: sobe um pouco e a sombra cresce. */
+  .cartao-vivo {
+    transition:
+      transform 420ms var(--ease-out),
+      box-shadow 420ms var(--ease-out),
+      border-color 420ms var(--ease-out);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cartao-vivo:hover {
+      transform: translateY(-4px);
+      border-color: var(--borda-forte);
+      box-shadow: var(--sombra-2);
+    }
+  }
+
+  /* Vidro: SÓ no que flutua sobre foto (selos de prova social, cartão da
+     responsável técnica). Nunca em bloco de texto corrido. */
+  .vidro {
+    background: rgb(255 255 255 / 0.86);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid rgb(255 255 255 / 0.75);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra-2);
+  }
+
+  /* Selo: pílula branca com borda, para prova social curta ("4,6 no Google"). */
+  .selo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.5rem;
+    padding: 0.35rem 1rem 0.35rem 0.45rem;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
+    font-size: var(--text-pequeno);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--tinta);
+  }
+
+  /* Sobretítulo: uma linha curta em verde acima do título da seção, com o
+     ponto da marca. Diz o assunto; o título diz a promessa. */
+  .sobretitulo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: var(--text-pequeno);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--acento-texto);
+  }
+  .sobretitulo::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--acento);
+    box-shadow: 0 0 0 4px var(--menta);
+  }
+  .campo-escuro .sobretitulo {
+    color: var(--acento-claro);
+  }
+  .campo-escuro .sobretitulo::before {
+    box-shadow: 0 0 0 4px rgb(86 168 5 / 0.18);
+  }
+
+  /* Ícone em pastilha: o ícone do lucide num quadrado menta. */
+  .pastilha {
+    display: inline-grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    flex: none;
+    border-radius: 14px;
+    background: var(--menta);
+    color: var(--acento-texto);
+  }
+  .pastilha svg {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+  .campo-escuro .pastilha {
+    background: rgb(86 168 5 / 0.16);
+    color: var(--acento-claro);
+  }
+
+  /* Brilho de fundo: duas manchas de luz menta, para a primeira dobra não ser
+     uma folha lisa. Só cor, nada de textura. */
+  .fundo-brilho {
+    background:
+      radial-gradient(55% 60% at 88% 8%, #e1f1cc 0%, transparent 70%),
+      radial-gradient(45% 50% at 0% 95%, #eef6e3 0%, transparent 70%), var(--chao);
+  }
+
+  /* Flutuar: o selo sobre a foto respira devagar. */
+  @media (prefers-reduced-motion: no-preference) {
+    .flutua {
+      animation: jp-flutua 7s ease-in-out infinite;
+    }
+    .flutua-2 {
+      animation: jp-flutua 8s ease-in-out -3s infinite;
+    }
   }
 }
 
@@ -2201,15 +2379,39 @@ textarea.rh-campo {
   }
 }
 
-/* SplitText: a máscara de cada linha não pode cortar o "g" nem o "ç". */
-.linha-split {
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
+/* Deriva: a foto anda de -5% a 5% dentro da moldura enquanto atravessa a
+   tela, ligada à rolagem pelo próprio navegador (`view()`), sem JavaScript.
+   Onde não há suporte, ou com "reduzir movimento", a foto fica parada. Usa
+   `translate`/`scale`, e não `transform`, para não brigar com outros efeitos. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-deriva] {
+      scale: 1.1;
+      animation: jp-deriva linear both;
+      animation-timeline: view();
+    }
+  }
+}
+@keyframes jp-deriva {
+  from {
+    translate: 0 -5%;
+  }
+  to {
+    translate: 0 5%;
+  }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-deriva] {
-    transform: none !important;
+/* Ímã (data-ima, ver sistema/movimento.tsx): o motor escreve o `translate`
+   seguindo o cursor; a volta tem um leve passo além, como mola. As outras
+   transições repetem as do botão, porque esta regra substitui a lista. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-ima] {
+    transition:
+      transform var(--t-ui) var(--ease-out),
+      box-shadow var(--t-ui) var(--ease-out),
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease,
+      translate 650ms cubic-bezier(0.34, 1.45, 0.64, 1);
   }
 }
 
@@ -2248,5 +2450,15 @@ textarea.rh-campo {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+}
+
+@keyframes jp-flutua {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }

@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { MessageCircle } from "lucide-react";
+import { Check, MessageCircle } from "lucide-react";
 
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
-import { FormaCoroa, MarcaCoroa } from "@/components/site/sistema/Coroa";
+import { MarcaCoroa } from "@/components/site/sistema/Coroa";
 import { TOPO_DA_POLITICA } from "@/components/site/global/estilo-politica";
 import { CLINICA, SITE_URL } from "@/lib/jp";
 import { descricaoLocal } from "@/lib/seo";
@@ -127,32 +127,51 @@ function PoliticaDePrivacidade() {
       <Header />
 
       <main id="conteudo">
-        <section className={`${TOPO_DA_POLITICA} relative isolate overflow-hidden`}>
-          {/* A coroa gigante, chapada, ancorada à direita e cortada pela base: a
-              página de leitura continua parte do site e a metade direita do
-              topo não fica vazia ao lado do título. Decorativa e atrás do texto. */}
-          <FormaCoroa proporcao={1} className="politica-coroa text-chao-3" />
-          <div
-            data-entra
-            className="quadro relative z-10 pb-[clamp(3rem,2rem+4vw,6rem)] pt-[clamp(3.5rem,2rem+5vw,8rem)]"
-          >
-            <div className="max-w-[68rem]">
-              <h1 data-item className="text-display">
+        <section className={`${TOPO_DA_POLITICA} fundo-brilho`} aria-labelledby="politica-titulo">
+          <div data-entra className="quadro politica-topo-grade">
+            <div>
+              <p data-item className="sobretitulo">
+                Privacidade e LGPD
+              </p>
+              <h1 id="politica-titulo" data-item className="politica-titulo">
                 Política de Privacidade
               </h1>
-              <p data-item className="text-corpo mt-8 max-w-[56ch]">
+              <p data-item className="text-corpo mt-6 max-w-[52ch] text-tinta-suave">
                 Esta política explica de forma direta como a {CLINICA.nome} trata os dados enviados
                 pelo site, inclusive quando você pede contato, inicia uma conversa no WhatsApp ou se
                 candidata a uma vaga.
               </p>
-              <p data-item className="text-pequeno mt-4 text-tinta-suave">
+              <p data-item className="selo mt-6">
                 Última atualização: {ATUALIZADA_EM}
               </p>
             </div>
+
+            <section data-item aria-labelledby="resumo-titulo" className="cartao politica-resumo">
+              <h2 id="resumo-titulo" className="text-frase">
+                Em resumo
+              </h2>
+              <ul className="mt-5 grid gap-3">
+                {[
+                  ["Transparência", "Você sabe o que entra e para quê."],
+                  ["Acesso restrito", "Dados internos não ficam expostos no site."],
+                  ["Retenção limitada", "Guardamos pelo tempo necessário ou exigido."],
+                  ["Direitos LGPD", "Você pode pedir acesso, correção ou exclusão."],
+                ].map(([titulo, texto]) => (
+                  <li key={titulo} className="flex items-start gap-3">
+                    <span className="politica-check" aria-hidden="true">
+                      <Check />
+                    </span>
+                    <span>
+                      <strong className="font-semibold">{titulo}.</strong> {texto}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
         </section>
 
-        <div className="quadro grid gap-12 pb-[clamp(5rem,3rem+6vw,10rem)] lg:grid-cols-[17rem_minmax(0,68ch)] lg:justify-between lg:gap-16">
+        <div className="quadro grid gap-12 pt-[clamp(1rem,0.5rem+2vw,2.5rem)] pb-[clamp(5rem,3rem+6vw,9rem)] lg:grid-cols-[17rem_minmax(0,68ch)] lg:justify-between lg:gap-16">
           {/* Dois sumários, um por largura: no celular ele é um <details> fechado
               (dez itens de 44px empurrariam o texto para uma tela abaixo); no
               desktop é a lista aberta e grudada. O conteúdo é o mesmo. */}
@@ -173,27 +192,6 @@ function PoliticaDePrivacidade() {
           </nav>
 
           <div className="min-w-0">
-            <section aria-labelledby="resumo-titulo" className="ladrilho p-6 sm:p-8">
-              <h2 id="resumo-titulo" className="text-frase">
-                Em resumo
-              </h2>
-              <ul className="text-corpo mt-5 grid gap-3">
-                {[
-                  ["Transparência", "Você sabe o que entra e para quê."],
-                  ["Acesso restrito", "Dados internos não ficam expostos no site."],
-                  ["Retenção limitada", "Guardamos pelo tempo necessário ou exigido."],
-                  ["Direitos LGPD", "Você pode pedir acesso, correção ou exclusão."],
-                ].map(([titulo, texto]) => (
-                  <li key={titulo} className="flex items-baseline gap-3">
-                    <MarcaCoroa className="shrink-0 text-acento" />
-                    <span>
-                      <strong className="font-semibold">{titulo}.</strong> {texto}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
             <Secao id="responsavel">
               <p>
                 A controladora dos dados tratados por este site é{" "}
@@ -360,10 +358,7 @@ function PoliticaDePrivacidade() {
               </p>
             </Secao>
 
-            <section
-              aria-labelledby="duvidas-titulo"
-              className="ladrilho mt-[clamp(3rem,2rem+3vw,5rem)] p-6 sm:p-8"
-            >
+            <section aria-labelledby="duvidas-titulo" className="cartao politica-fecho">
               <h2 id="duvidas-titulo" className="text-frase">
                 Dúvidas sobre seus dados?
               </h2>

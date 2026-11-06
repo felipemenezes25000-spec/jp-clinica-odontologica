@@ -20,22 +20,24 @@ import {
   iframeNoscriptDoGTM,
   scriptDoGTM,
   scriptDoPixel,
+  SCRIPT_CLIQUES_ANTES,
 } from "@/lib/analytics/scripts";
 
 /**
- * A moldura dos dois becos sem saída (404 e erro). Eles levam a marca em vez de
- * uma página padrão do navegador: campo escuro, uma coroa gigante chapada
- * cortada pela borda de baixo — a mesma forma do topo da home — e um caminho
- * óbvio de volta.
+ * A moldura dos dois becos sem saída (404 e erro): fundo claro com o brilho da
+ * marca, a logo no alto e um cartão branco com o recado e o caminho de volta.
+ * Simples de propósito — quem cai aqui quer sair, não admirar a página.
  *
  * Não monta o cabeçalho, então a entrada é CSS puro (`data-chega`), que roda
  * sem esperar o motor de movimento.
  */
 function DeadEnd({
+  rotulo,
   headline,
   body,
   children,
 }: {
+  rotulo: string;
   headline: ReactNode;
   body: string;
   children: ReactNode;
@@ -43,47 +45,41 @@ function DeadEnd({
   return (
     <main
       id="conteudo"
-      className="site campo-escuro relative isolate flex min-h-dvh items-start overflow-hidden md:items-center"
+      className="site fundo-brilho relative isolate flex min-h-dvh flex-col overflow-hidden"
     >
-      <a
-        href="/"
-        aria-label={`${CLINICA.nome} — início`}
-        className="absolute left-[var(--margem)] top-6 z-10 inline-flex min-h-11 items-center"
-      >
-        <Logo variante="lockup" fundo="escuro" altura={48} alt="" className="h-12 w-auto" />
-      </a>
-
-      <div className="quadro relative z-10 py-28">
-        <h1 data-chega className="text-display max-w-[11ch] text-sobre-campo">
-          {headline}
-        </h1>
-        <p
-          data-chega
-          style={{ "--d": "560ms" } as React.CSSProperties}
-          className="text-corpo mt-8 max-w-[44ch] text-sobre-campo-suave"
+      <div className="quadro pt-6">
+        <a
+          href="/"
+          aria-label={`${CLINICA.nome} — início`}
+          className="inline-flex min-h-11 items-center"
         >
-          {body}
-        </p>
+          <Logo variante="lockup" fundo="claro" altura={44} alt="" className="h-11 w-auto" />
+        </a>
+      </div>
+
+      <div className="quadro flex flex-1 items-center justify-center py-12 md:py-20">
         <div
           data-chega
-          style={{ "--d": "700ms" } as React.CSSProperties}
-          className="mt-10 flex flex-wrap gap-3"
+          className="cartao w-full max-w-[46rem] p-7 sm:p-12"
+          style={{ boxShadow: "var(--sombra-2)" }}
         >
-          {children}
+          <p className="selo">{rotulo}</p>
+          <h1 className="text-titulo mt-6">{headline}</h1>
+          <p className="text-corpo mt-5 max-w-[46ch] text-tinta-suave">{body}</p>
+          <div className="mt-8 flex flex-wrap gap-3 max-sm:[&>*]:w-full">{children}</div>
+          {/* Quem cai aqui vindo de um anúncio ainda quer falar com a clínica:
+              o contato não depende do resto do site estar de pé, então são
+              links diretos, sem passar pelo rastreio de contato. */}
+          <p
+            className="text-pequeno mt-8 pt-6 text-tinta-suave"
+            style={{ borderTop: "1px solid var(--borda)" }}
+          >
+            Prefere falar agora?{" "}
+            <a href={CLINICA.telefoneHref} className="link font-semibold text-tinta">
+              {CLINICA.telefone}
+            </a>
+          </p>
         </div>
-        {/* Quem cai aqui vindo de um anúncio ainda quer falar com a clínica:
-            o contato não depende do resto do site estar de pé, então são
-            links diretos, sem passar pelo rastreio de contato. */}
-        <p
-          data-chega
-          style={{ "--d": "840ms" } as React.CSSProperties}
-          className="text-pequeno mt-8 text-sobre-campo-suave"
-        >
-          Prefere falar agora?{" "}
-          <a href={CLINICA.telefoneHref} className="font-semibold text-sobre-campo underline">
-            {CLINICA.telefone}
-          </a>
-        </p>
       </div>
     </main>
   );
@@ -92,20 +88,21 @@ function DeadEnd({
 function NotFoundComponent() {
   return (
     <DeadEnd
+      rotulo="Erro 404"
       headline="Esta página não existe."
       body="O endereço pode ter mudado ou sido digitado com algum caractere a mais. O caminho de volta está logo abaixo."
     >
       <Link to="/" className="botao botao-acento">
         Voltar para o início
       </Link>
-      <Link to="/" hash="tratamentos" className="botao botao-claro">
+      <Link to="/" hash="tratamentos" className="botao botao-chao">
         Ver tratamentos
       </Link>
       <a
         href={CLINICA.whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="botao botao-claro"
+        className="botao botao-chao"
       >
         Falar no WhatsApp
       </a>
@@ -119,6 +116,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
 
   return (
     <DeadEnd
+      rotulo="Falha temporária"
       headline="Esta página não carregou."
       body="Foi uma falha do nosso lado, não sua. Tentar de novo costuma resolver — e o WhatsApp da clínica continua funcionando normalmente."
     >
@@ -132,14 +130,14 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
       >
         Tentar novamente
       </button>
-      <a href="/" className="botao botao-claro">
+      <a href="/" className="botao botao-chao">
         Ir para o início
       </a>
       <a
         href={CLINICA.whatsappHref}
         target="_blank"
         rel="noopener noreferrer"
-        className="botao botao-claro"
+        className="botao botao-chao"
       >
         Falar no WhatsApp
       </a>
@@ -221,6 +219,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
      */
     scripts: [
       { children: SCRIPT_CONSENTIMENTO },
+      { children: SCRIPT_CLIQUES_ANTES },
       ...(scriptDoGTM() !== null ? [{ children: scriptDoGTM() as string }] : []),
       ...(scriptDoPixel() !== null ? [{ children: scriptDoPixel() as string }] : []),
     ],

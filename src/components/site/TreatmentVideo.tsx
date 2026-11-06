@@ -86,13 +86,28 @@ export function TreatmentVideo({
     return () => obs.disconnect();
   }, [autoPlay, podeAnimar]);
 
+  /* O botão de reproduzir e o de pausar são DOIS elementos (`key` diferente),
+     e não um que muda de lugar: o mesmo botão saindo do centro para o canto
+     quando a animação começa sozinha contava como mudança de layout (CLS
+     ~0,16 em /ortodontia). Quando a troca vem de um clique, o foco passa para
+     o botão novo, para quem usa teclado não ficar sem foco. */
+  const botaoRef = useRef<HTMLButtonElement>(null);
+  const trocaPeloUsuario = useRef(false);
+  useEffect(() => {
+    if (!trocaPeloUsuario.current) return;
+    trocaPeloUsuario.current = false;
+    botaoRef.current?.focus();
+  }, [tocando]);
+
   const tocarManual = () => {
     pausadoPeloUsuario.current = false;
+    trocaPeloUsuario.current = true;
     void ref.current?.play().catch(() => {});
   };
 
   const pausarManual = () => {
     pausadoPeloUsuario.current = true;
+    trocaPeloUsuario.current = true;
     ref.current?.pause();
   };
 
@@ -116,6 +131,8 @@ export function TreatmentVideo({
             de um jeito de pausar. Em repouso o botão é a chamada para
             reproduzir; tocando, encolhe para o canto e vira Pausar. */}
         <button
+          key={tocando ? "pausar" : "reproduzir"}
+          ref={botaoRef}
           type="button"
           className="animacao-botao"
           data-estado={tocando ? "tocando" : "parado"}

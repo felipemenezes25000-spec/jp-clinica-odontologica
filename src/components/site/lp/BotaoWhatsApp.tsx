@@ -10,18 +10,22 @@ import { ArrowUpRight } from "lucide-react";
  * clique conta uma vez só.
  *
  * `principal` usa o nome antigo `button-primary`: o E2E procura
- * `main a.button-primary[href*="wa.me"]` para achar o CTA do topo.
+ * `main a.button-primary[href*="wa.me"]` para achar o CTA do topo. Todos os
+ * outros usam `botao-acento`, que desenha o mesmo botão.
  */
 export function BotaoWhatsApp({
   href,
   children,
   principal = false,
+  grande = false,
   ima = false,
   className = "",
 }: {
   href: string;
   children: ReactNode;
   principal?: boolean;
+  /** Um degrau acima: o CTA do topo e o do fechamento. */
+  grande?: boolean;
   ima?: boolean;
   className?: string;
 }) {
@@ -30,7 +34,9 @@ export function BotaoWhatsApp({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${principal ? "button-primary" : "botao botao-acento"} lp-botao ${className}`}
+      className={`${principal ? "button-primary" : "botao botao-acento"} ${
+        grande ? "botao-grande" : ""
+      } lp-botao ${className}`}
       data-ima={ima ? "" : undefined}
     >
       <span>{children}</span>

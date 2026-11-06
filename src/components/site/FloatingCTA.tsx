@@ -93,7 +93,7 @@ export function FloatingCTA({
    * A chamada fixa cede quando a página já mostra a sua própria.
    *
    * Duas chamadas iguais na mesma tela competem, e a fixa ainda cobre o que
-   * está embaixo dela (o botão de Convênios, os campos do cupom de #fale).
+   * está embaixo dela (o botão de Convênios, os campos do formulário de #fale).
    * Dois níveis:
    *  - a pílula do desktop sai sempre que um botão de ação de dentro do
    *    <main> (ou algo marcado com `data-cede-cta`) estiver na tela;
@@ -238,7 +238,7 @@ export function FloatingCTA({
         aria-label={titulo}
         aria-hidden={!visivelDesktop}
         inert={!visivelDesktop}
-        className={`cta-pilula fixed right-6 z-[58] hidden items-center gap-1 rounded-full bg-campo p-1.5 text-sobre-campo md:flex ${
+        className={`cta-pilula fixed right-6 z-[58] hidden items-center gap-1 rounded-full p-1.5 md:flex ${
           visivelDesktop ? "" : "invisible"
         }`}
         data-visivel={visivelDesktop ? "" : undefined}
@@ -264,12 +264,12 @@ export function FloatingCTA({
         </button>
       </aside>
 
-      {/* Barra do celular: lisa, no campo escuro, com a área segura embaixo. */}
+      {/* Barra do celular: branca, com filete e sombra para cima, e a área segura embaixo. */}
       <aside
         ref={barraRef}
         id="cta-mobile"
         aria-label={titulo}
-        className={`cta-barra fixed inset-x-0 z-[60] bg-campo text-sobre-campo transition-[translate,visibility] duration-500 md:hidden ${
+        className={`cta-barra fixed inset-x-0 z-[60] transition-[translate,visibility] duration-500 md:hidden ${
           visivelMobile ? "translate-y-0" : "invisible translate-y-full"
         }`}
         aria-hidden={!visivelMobile}
@@ -280,7 +280,7 @@ export function FloatingCTA({
             <a
               href={CLINICA.telefoneHref}
               aria-label="Ligar para a JP Clínica"
-              className="botao botao-claro !min-h-12 !w-12 !p-0"
+              className="botao botao-chao !min-h-12 !w-12 !p-0"
             >
               <Phone aria-hidden="true" />
             </a>

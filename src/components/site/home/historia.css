@@ -1,403 +1,294 @@
 /* A história da home — ver HistorySection.tsx.
  *
- * Três estados, e os três são composições acabadas:
- *   celular ............ título, foto da fachada e a linha do tempo
- *                        como lista vertical, anos grandes, tudo no fluxo;
- *   desktop sem cena ... duas colunas: lista à esquerda, foto grudada à direita
- *                        (sem JS, "reduzir movimento" ou GSAP que não chegou);
- *   desktop com cena ... [data-cena]: a seção fica ~5 telas alta, o palco gruda
- *                        e a rolagem troca os capítulos. Tudo isso é CSS no
- *                        HTML do servidor — altura reservada e primeiro
- *                        capítulo à vista antes de qualquer JavaScript —; o
- *                        GSAP só liga a rolagem.
- * Depois da cena vêm a fundadora e o gestor, sempre no fluxo normal.
+ * Seção compacta, sem cena de rolagem: cabeça, fachada + linha do tempo,
+ * missão em destaque e as duas pessoas à frente da clínica.
  */
 
 @layer theme, base, components, utilities;
 
 @layer components {
-  .historia {
-    position: relative;
-  }
-
-  /* ---- Palco: título, linha do tempo e foto ------------------------------------ */
-  .historia-palco {
-    padding-top: clamp(5.5rem, 2rem + 9vw, 12.5rem);
-  }
-  .historia-grade {
+  .historia-cabeca {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "titulo"
-      "foto"
-      "caps";
-    row-gap: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+    gap: 1.25rem 4rem;
+    align-items: end;
+  }
+  @media (min-width: 1024px) {
+    .historia-cabeca {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    }
   }
   .historia-titulo {
-    grid-area: titulo;
+    margin-top: 1.25rem;
     max-width: 14ch;
   }
-
-  /* A foto da fachada: coroa grande, o retrato vertical (1086x1448) quase
-     inteiro. O eco em verde-maçã atrás dá a profundidade que a sombra não
-     pode dar — mesma jogada da equipe e do topo. */
-  .historia-foto {
-    grid-area: foto;
-    position: relative;
-    isolation: isolate;
-    width: min(100%, 34rem);
-    aspect-ratio: 0.75;
+  .historia-lide {
+    max-width: 44ch;
+    color: var(--tinta-suave);
   }
-  .historia-eco {
-    position: absolute;
-    z-index: -1;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    color: var(--acento);
-    /* Só para cima: a foto encosta nas duas margens externas, e um eco
-       deslocado para o lado as invadiria. */
-    translate: 0 -0.9rem;
-    pointer-events: none;
+
+  /* ---- Fachada + linha do tempo ---------------------------------------------- */
+  .historia-corpo {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(2rem, 1.2rem + 3vw, 3.5rem);
+    align-items: start;
+  }
+  @media (min-width: 900px) {
+    .historia-corpo {
+      grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+      gap: clamp(2rem, 0.5rem + 4vw, 4.5rem);
+    }
+  }
+
+  .historia-foto {
+    position: relative;
+    margin: 0;
   }
   .historia-moldura {
-    width: 100%;
-    height: 100%;
-    background: var(--campo-marca);
+    aspect-ratio: 4 / 3;
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
   }
-  .historia-quadro,
-  .historia-quadro img {
-    display: block;
-    width: 100%;
-    height: 100%;
+  .historia-moldura > img {
+    object-position: 50% 28%;
   }
-  .historia-quadro img {
-    object-fit: cover;
-    object-position: 50% 70%;
+  @media (min-width: 900px) {
+    .historia-moldura {
+      aspect-ratio: 3 / 4;
+    }
   }
-  /* Os nomes da coroa vazia só existem na cena. */
-  .historia-nome {
-    display: none;
+  /* O selo de vidro sobre a foto: endereço, não promessa. */
+  .historia-selo {
+    position: absolute;
+    left: 0.875rem;
+    bottom: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    max-width: calc(100% - 1.75rem);
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--raio-sm);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--tinta);
+  }
+  .historia-selo svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    color: var(--acento-texto);
   }
 
-  /* ---- Linha do tempo: a versão parada é a lista vertical -------------------- */
-  .historia-caps {
-    grid-area: caps;
+  /* O trilho: uma linha fina por trás de pontos, um cartão por capítulo. */
+  .historia-linha {
     position: relative;
+    display: grid;
+    gap: 0.875rem;
+    padding-left: 1.75rem;
   }
-  .historia-lista {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .historia-linha::before {
+    content: "";
+    position: absolute;
+    left: 0.4rem;
+    top: 1.75rem;
+    bottom: 1.75rem;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(to bottom, var(--acento), var(--chao-3));
   }
   .historia-cap {
-    padding-block: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    position: relative;
+    display: grid;
+    gap: 0.5rem 1.5rem;
+    padding: clamp(1.1rem, 0.8rem + 1vw, 1.6rem) clamp(1.1rem, 0.8rem + 1.2vw, 1.75rem);
   }
-  .historia-cap:first-child {
-    padding-top: 0;
+  .historia-cap::before {
+    content: "";
+    position: absolute;
+    left: -1.75rem;
+    top: 1.45rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    margin-left: calc(0.4rem + 1px - 0.45rem);
+    border-radius: 999px;
+    background: var(--branco);
+    border: 3px solid var(--acento);
+    box-shadow: 0 0 0 4px var(--chao);
   }
-  /* O ano não leva a classe .text-display: a camada de utilitários venceria o
-     tamanho próprio que a cena lhe dá. Os valores são os mesmos do token. */
+  .historia-cap:last-child {
+    background: var(--menta);
+    border-color: rgb(47 106 0 / 0.18);
+  }
+  @media (min-width: 640px) {
+    .historia-cap {
+      grid-template-columns: 5.5rem minmax(0, 1fr);
+      align-items: start;
+    }
+  }
   .historia-ano {
-    font-size: max(var(--text-display), 4.5rem);
-    line-height: var(--text-display--line-height);
-    letter-spacing: var(--text-display--letter-spacing);
-    color: var(--acento);
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 1.2rem + 1vw, 2.1rem);
     font-weight: 600;
-    font-variant-numeric: tabular-nums;
-    /* A máscara da troca de ano não pode cortar o "j" de "Hoje". */
-    overflow: clip;
-    padding-bottom: 0.12em;
-    margin-bottom: -0.12em;
-  }
-  .historia-ano > span {
-    display: block;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--acento-texto);
   }
   .historia-frase {
-    margin-top: clamp(0.75rem, 0.5rem + 0.8vw, 1.25rem);
-    max-width: 26ch;
-    font-weight: 500;
+    font-size: clamp(1.1875rem, 1.05rem + 0.45vw, 1.4rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
   }
   .historia-nota {
-    margin-top: 0.9rem;
-    max-width: 44ch;
-    color: var(--sobre-campo-suave);
+    margin-top: 0.4rem;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--tinta-suave);
   }
 
+  /* ---- Missão ----------------------------------------------------------------- */
   .historia-missao {
-    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-    padding-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    display: grid;
+    gap: 1.25rem 2rem;
+    align-items: start;
+    margin: clamp(2.5rem, 1.5rem + 4vw, 4.5rem) 0 0;
+    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    border: 1px solid rgb(47 106 0 / 0.16);
+    border-radius: var(--raio-lg);
+    background: linear-gradient(135deg, var(--menta), var(--chao-2));
+  }
+  @media (min-width: 720px) {
+    .historia-missao {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+  }
+  .historia-aspas {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 999px;
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
   }
   .historia-missao blockquote {
-    max-width: 30ch;
+    max-width: 48ch;
     font-weight: 500;
   }
   .historia-missao figcaption {
     margin-top: 1rem;
-    color: var(--sobre-campo-suave);
+    color: var(--tinta-suave);
   }
 
-  /* Só existe na cena: os anos, com a coroa do capítulo em curso acesa. */
-  .historia-marcas {
-    display: none;
-  }
-
-  @media (min-width: 1024px) {
-    .historia-grade {
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-      grid-template-areas:
-        "titulo foto"
-        "caps foto";
-      grid-template-rows: auto 1fr;
-      column-gap: clamp(2.5rem, 5vw, 6rem);
-    }
-    /* Sem cena, a foto acompanha a leitura da lista. */
-    .historia-foto {
-      position: sticky;
-      top: calc(var(--altura-cabecalho) + 1rem);
-      align-self: start;
-      justify-self: end;
-      width: min(100%, 34rem);
-      aspect-ratio: 0.75;
-      max-height: calc(100svh - var(--altura-cabecalho) - 2rem);
-    }
-  }
-
-  /* ---- Desktop com cena ------------------------------------------------------- */
-  /* Os três juntos: tela larga, movimento permitido e JavaScript ligado. Fora
-     disso a seção é a lista de cima, inteira e legível. */
-  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-    .historia-cena[data-cena] {
-      height: 480svh;
-    }
-    .historia-cena[data-cena] .historia-palco {
-      position: sticky;
-      top: 0;
-      box-sizing: border-box;
-      height: 100svh;
-      min-height: 640px;
-      padding-top: calc(var(--altura-cabecalho) + clamp(1rem, 3vh, 2.5rem));
-      overflow: clip;
-    }
-    .historia-cena[data-cena] .historia-grade {
-      height: 100%;
-    }
-    .historia-cena[data-cena] .historia-titulo {
-      padding-bottom: clamp(1rem, 3vh, 2.5rem);
-    }
-
-    /* A foto fica parada e sobe da borda de baixo da tela: a base da coroa é o
-       fim do palco. */
-    .historia-cena[data-cena] .historia-foto {
-      position: relative;
-      top: auto;
-      align-self: end;
-      width: 100%;
-      max-width: calc((100svh - var(--altura-cabecalho) - 3rem) * 0.75);
-      max-height: none;
-      aspect-ratio: auto;
-      height: 100%;
-    }
-    /* Antes de 2024 a coroa está vazia — a fachada de hoje não é a casa de 2002
-       nem a de 2020 — e leva o nome que a clínica tinha. A fachada abre depois. */
-    .historia-cena[data-cena] .historia-quadro {
-      position: absolute;
-      inset: 0;
-      clip-path: inset(100% 0% 0% 0%);
-    }
-    .historia-cena[data-cena] .historia-nome {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      margin: 0;
-      padding: 1.5rem;
-      text-align: center;
-      color: var(--sobre-campo);
-      font-weight: 600;
-    }
-    .historia-cena[data-cena] .historia-nome > span {
-      grid-area: 1 / 1;
-    }
-    .historia-cena[data-cena] .historia-nome > span:last-child {
-      font-size: clamp(6rem, 12vw, 11rem);
-      line-height: 1;
-      letter-spacing: var(--text-display--letter-spacing);
-      opacity: 0;
-    }
-
-    /* Os capítulos se empilham e o texto fica no meio da coluna, abaixo do
-       título; o primeiro já nasce à vista. */
-    .historia-cena[data-cena] .historia-caps {
-      align-self: stretch;
-    }
-    .historia-cena[data-cena] .historia-cap,
-    .historia-cena[data-cena] .historia-missao {
-      position: absolute;
-      inset: 0 0 3.5rem 0;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      margin: 0;
-      padding: 0;
-    }
-    .historia-cena[data-cena] .historia-cap:not(:first-child),
-    .historia-cena[data-cena] .historia-missao {
-      opacity: 0;
-    }
-    .historia-cena[data-cena] .historia-cap:not(:first-child) :is(.historia-frase, .historia-nota),
-    .historia-cena[data-cena] .historia-missao :is(blockquote, figcaption) {
-      opacity: 0;
-    }
-    /* O ano do capítulo seguinte NÃO é escondido por CSS (um translate aqui
-       seria lido pelo GSAP como pixels e somado ao yPercent dele): o <li>
-       inteiro já está transparente, e o GSAP posiciona o ano ao carregar. */
-    /* O ano é o protagonista: cresce com a largura e se contém pela altura,
-       para ano + frase + nota caberem numa tela de notebook. */
-    .historia-cena[data-cena] .historia-ano {
-      font-size: clamp(5rem, min(17vw, 27svh), 15rem);
-      line-height: 0.92;
-    }
-    .historia-cena[data-cena] .historia-frase {
-      max-width: 22ch;
-    }
-    .historia-cena[data-cena] .historia-missao blockquote {
-      max-width: 22ch;
-    }
-
-    .historia-cena[data-cena] .historia-marcas {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: clamp(0.5rem, 3vh, 2rem);
-      display: flex;
-      gap: clamp(1rem, 2.4vw, 2.5rem);
-      margin: 0;
-      padding: 0;
-      list-style: none;
-      color: var(--acento);
-      font-weight: 600;
-    }
-    .historia-cena[data-cena] .historia-marcas > li {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      opacity: 0.5;
-    }
-    .historia-cena[data-cena] .historia-marcas > :first-child {
-      opacity: 1;
-    }
-  }
-
-  /* ---- Fundadora e gestor ----------------------------------------------------- */
+  /* ---- Gestão e fundação ------------------------------------------------------ */
   .historia-pessoas {
-    padding-block: clamp(4rem, 2rem + 6vw, 9rem) clamp(5.5rem, 2rem + 9vw, 12.5rem);
+    margin-top: clamp(3.5rem, 2rem + 5vw, 6.5rem);
   }
   .historia-pessoas-lide {
-    max-width: 30ch;
-  }
-  .historia-pessoas-lide h3 {
-    font-weight: 600;
+    display: grid;
+    gap: 0.5rem;
+    max-width: 40rem;
   }
   .historia-pessoas-lide p {
-    margin-top: 0.75rem;
-    max-width: 40ch;
-    color: var(--sobre-campo-suave);
+    color: var(--tinta-suave);
   }
   .historia-pessoas-grade {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: clamp(3rem, 2rem + 4vw, 5rem) clamp(2rem, 1rem + 3vw, 4rem);
-    margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
-    list-style: none;
-    padding: 0;
+    gap: 1.25rem;
+    margin-top: 2rem;
+    align-items: start;
   }
+  @media (min-width: 1024px) {
+    .historia-pessoas-grade {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.75rem;
+    }
+  }
+
   .historia-pessoa {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1.5rem;
-    align-content: start;
+    gap: 1.25rem;
+    padding: clamp(1.25rem, 0.8rem + 1.5vw, 2rem);
+    border-radius: var(--raio-lg);
+  }
+  @media (min-width: 560px) {
+    .historia-pessoa {
+      grid-template-columns: 8.5rem minmax(0, 1fr);
+      gap: 1.5rem;
+    }
   }
   .historia-retrato {
-    width: min(70%, 16rem);
-    background: var(--campo-marca);
+    width: 7.5rem;
+    border-radius: var(--raio);
   }
-  .historia-retrato img {
-    object-position: 50% 12%;
-  }
-  .historia-pessoa h4 {
-    font-weight: 600;
+  @media (min-width: 560px) {
+    .historia-retrato {
+      width: 100%;
+    }
   }
   .historia-pessoa-papel {
     margin-top: 0.35rem;
-  }
-  .historia-pessoa-registro {
-    margin-top: 0.35rem;
-    color: var(--acento);
     font-weight: 600;
+    color: var(--acento-texto);
   }
-  .historia-pessoa-formacao {
-    margin-top: 0.35rem;
-    color: var(--sobre-campo-suave);
+  .historia-pessoa-detalhe {
+    margin-top: 0.15rem;
+    color: var(--tinta-suave);
   }
   .historia-pessoa-ligacao {
     display: inline-flex;
     align-items: center;
     min-height: 2.75rem;
-    color: var(--acento);
+    color: var(--acento-texto);
+    font-weight: 600;
   }
   .historia-pessoa-titulo {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
     font-weight: 600;
+    line-height: 1.35;
   }
   .historia-pessoa-texto {
     margin-top: 0.75rem;
-    max-width: 52ch;
+    color: var(--tinta-suave);
+    line-height: 1.6;
   }
+
   .historia-mais {
-    max-width: 52ch;
+    margin-top: 0.5rem;
   }
   .historia-mais summary {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     min-height: 2.75rem;
-    margin-top: 0.5rem;
-    color: var(--acento);
+    padding: 0 1rem 0 1.1rem;
+    border-radius: 999px;
+    background: var(--chao-2);
+    box-shadow: inset 0 0 0 1px var(--borda-forte);
     font-weight: 600;
+    font-size: var(--text-pequeno);
     cursor: pointer;
     list-style: none;
+    transition: background-color var(--t-hover) ease;
   }
   .historia-mais summary::-webkit-details-marker {
     display: none;
   }
   .historia-mais summary svg {
-    width: 1.1em;
-    height: 1.1em;
+    width: 1.1rem;
+    height: 1.1rem;
     transition: transform var(--t-ui) var(--ease-out);
   }
   .historia-mais[open] summary svg {
     transform: rotate(180deg);
   }
+  @media (hover: hover) and (pointer: fine) {
+    .historia-mais summary:hover {
+      background: var(--menta);
+    }
+  }
   .historia-mais p {
-    margin-top: 0.9rem;
-  }
-
-  @media (min-width: 640px) {
-    .historia-pessoa {
-      grid-template-columns: clamp(9rem, 24vw, 15rem) minmax(0, 1fr);
-      column-gap: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-    }
-    .historia-retrato {
-      width: 100%;
-    }
-  }
-  @media (min-width: 1024px) {
-    .historia-pessoas-grade {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .historia-pessoa {
-      grid-template-columns: clamp(10rem, 15vw, 16rem) minmax(0, 1fr);
-    }
+    margin-top: 1rem;
+    color: var(--tinta-suave);
+    line-height: 1.6;
   }
 }

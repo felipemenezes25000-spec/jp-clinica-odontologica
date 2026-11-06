@@ -1,0 +1,1575 @@
+/*
+ * MODO ENTREVISTA E FICHA — "Clínica luminosa" no painel de RH.
+ *
+ * Duas telas, um arquivo: o modo entrevista (`.me-*`, tela cheia que roda com a
+ * candidata sentada na frente) e o bloco da ficha dentro da gaveta (`.fe-*`).
+ * Cartão branco, borda fina, sombra suave, tinta sobre chão; o verde-maçã só na
+ * ação e a tinta chapada no que está escolhido — a mesma lógica das telas já
+ * redesenhadas (`painel.css`).
+ *
+ * POR QUE FORA DE `@layer`: o painel ainda carrega a camada antiga de
+ * `styles.css` (tema claro empilhado, com `!important` em `[role="dialog"]`), e
+ * regra de camada perde para regra sem camada. É a mesma decisão de
+ * `painel.css`. Para não brigar com aquela folha, nada aqui usa as utilitárias
+ * `text-white`, `bg-white/10` etc.: tudo é classe `.me-*` / `.fe-*`, com os
+ * tokens do sistema (`--tinta`, `--chao`, `--acento`...).
+ */
+
+/* ========================================================================== */
+/* MODO ENTREVISTA                                                            */
+/* ========================================================================== */
+
+.me {
+  --me-controle: color-mix(in oklab, var(--tinta) 32%, white);
+  --me-largura: 76rem;
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  background: var(--chao);
+  color: var(--tinta);
+  outline: none;
+}
+
+/* ---------------------------------------------------------------- Topo --- */
+
+.me-topo {
+  flex: none;
+  border-bottom: 1px solid var(--borda);
+  background: var(--branco);
+  padding: 0.75rem 1rem 0.625rem;
+}
+
+.me-topo__linha {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: var(--me-largura);
+  margin-inline: auto;
+}
+
+.me-topo__marca {
+  flex: none;
+  width: auto;
+  height: 32px;
+}
+
+.me-topo__titulo {
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.me-topo__sub {
+  overflow: hidden;
+  margin: 0.125rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.me-timer {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--chao-2);
+  padding: 0.375rem 0.75rem;
+  color: var(--tinta);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.me-fechar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  color: var(--tinta);
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out);
+}
+
+.me-fechar:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+/* Passos: uma fileira que rola na horizontal, sem quebrar. */
+.me-passos {
+  max-width: var(--me-largura);
+  margin: 0.75rem auto 0;
+  overflow-x: auto;
+  padding-bottom: 0.125rem;
+}
+
+.me-passos ol {
+  display: flex;
+  min-width: max-content;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.me-passo {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  padding: 0 1rem;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out);
+}
+
+.me-passo:hover {
+  background: var(--chao-2);
+}
+
+.me-passo[data-feito="true"] {
+  border-color: transparent;
+  background: var(--menta);
+  color: var(--acento-texto);
+  font-weight: 600;
+}
+
+.me-passo[aria-current="step"] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--sobre-campo);
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- Corpo --- */
+
+.me-corpo {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1rem 2rem;
+}
+
+.me-grade {
+  display: grid;
+  max-width: var(--me-largura);
+  margin-inline: auto;
+  gap: 1.5rem;
+}
+
+.me-principal {
+  min-width: 0;
+}
+
+.me-lateral {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  /* Cabeçalho, corpo e rodapé compartilham a mesma largura: 46rem de leitura +
+     21rem de quadro + 2rem de vão. */
+  .me {
+    --me-largura: 69rem;
+  }
+  .me-corpo {
+    padding-inline: 1.5rem;
+  }
+  .me-grade {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: 2rem;
+    align-items: start;
+  }
+  .me-lateral {
+    position: sticky;
+    top: 1.25rem;
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .me-pilha.me-so-estreita {
+    display: none;
+  }
+}
+
+/* O título do passo gruda no topo da área rolável, num fundo opaco: a lista de
+   pontuação passa de uma tela e o total precisa continuar à vista. */
+.me-etapa {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0;
+  background: var(--chao);
+  padding: 1.25rem 0 0.75rem;
+  font-family: var(--font-display, inherit);
+  font-size: 1.625rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.me-total {
+  border-radius: 999px;
+  background: var(--menta);
+  padding: 0.375rem 0.875rem;
+  color: var(--acento-texto);
+  font-family: var(--font-sans, inherit);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.me-passo-corpo {
+  margin-top: 0.5rem;
+}
+
+.me-pilha {
+  display: grid;
+  gap: 1rem;
+}
+
+.me-lista {
+  display: grid;
+  gap: 0.875rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ------------------------------------------------------------- Cartões --- */
+
+.me-cartao {
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra-1);
+  padding: 1rem;
+}
+
+.me-bloco {
+  padding: 1.125rem 1.25rem 1.25rem;
+}
+
+.me-secao-titulo {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.me-apoio {
+  margin: 0.375rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.me-apoio--corpo {
+  margin: 0;
+  max-width: 62ch;
+}
+
+.me-vazio {
+  margin: 1rem 0 0;
+  border: 1px dashed var(--borda-forte);
+  border-radius: 16px;
+  background: var(--chao-2);
+  padding: 1rem 1.125rem;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+/* Identidade: quem está sentado na frente. */
+.me-identidade {
+  padding: 1.25rem;
+}
+
+.me-identidade__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.me-avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--menta);
+  color: var(--acento-texto);
+  font-family: var(--font-display, inherit);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.me-nome {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  overflow-wrap: anywhere;
+}
+
+.me-meta {
+  margin: 0.125rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+}
+
+.me-identidade__ligar {
+  margin-left: auto;
+}
+
+@media (max-width: 520px) {
+  .me-identidade__ligar {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+.me-campos {
+  display: grid;
+  gap: 0.875rem;
+  margin-top: 1.125rem;
+  border-top: 1px solid var(--borda);
+  padding-top: 1.125rem;
+}
+
+.me-campos--coluna {
+  margin-top: 0.875rem;
+  border-top: 0;
+  padding-top: 0;
+  gap: 1.125rem;
+}
+
+@media (min-width: 640px) {
+  .me-campos:not(.me-campos--coluna) {
+    grid-template-columns: 1fr 1fr 1.6fr;
+  }
+}
+
+.me-rotulo {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Perguntas e critérios: número em pastilha menta, texto grande o bastante
+   para ser lido de relance. */
+.me-pergunta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.875rem;
+  align-items: start;
+  transition: border-color var(--t-ui) var(--ease-out);
+}
+
+.me-pergunta[data-respondida="true"],
+.me-criterio[data-respondida="true"] {
+  border-color: color-mix(in oklab, var(--acento-texto) 38%, white);
+}
+
+.me-pergunta__texto {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+@media (min-width: 640px) {
+  .me-pergunta {
+    padding: 1.125rem 1.25rem;
+  }
+  .me-pergunta__texto {
+    font-size: 1.125rem;
+  }
+}
+
+.me-num {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--menta);
+  color: var(--acento-texto);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.me-num--pequeno {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.me-criterio__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 0.75rem;
+}
+
+.me-criterio__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.me-criterio__valor {
+  margin: 0;
+  border-radius: 999px;
+  background: var(--menta);
+  padding: 0.25rem 0.75rem;
+  color: var(--acento-texto);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.me-criterio__valor[data-vazio="true"] {
+  background: var(--chao-2);
+  color: var(--tinta-suave);
+}
+
+.me-criterio .me-apoio {
+  padding-left: 2.75rem;
+}
+
+.me-criterio .me-selo {
+  margin-left: 2.75rem;
+}
+
+.me-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0.625rem 0 0;
+  border-radius: 999px;
+  background: var(--menta);
+  padding: 0.25rem 0.75rem;
+  color: var(--acento-texto);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.me-selo--aviso {
+  background: var(--rh-aviso-fundo, #fffbeb);
+  color: var(--rh-aviso-texto, #92400e);
+}
+
+/* ------------------------------------------------------------- Controles --- */
+
+.me-campo {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--me-controle);
+  border-radius: 12px;
+  background: var(--branco);
+  padding: 0.65rem 0.875rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color var(--t-hover) var(--ease-out);
+}
+
+.me-campo:hover {
+  border-color: var(--tinta-suave);
+}
+
+.me-campo:focus {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+  outline: none;
+}
+
+.me-campo:focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.me-campo::placeholder {
+  color: var(--tinta-suave);
+  opacity: 1;
+}
+
+.me-campo--texto {
+  resize: none;
+  overflow: hidden;
+}
+
+/* Botões. O principal é o único verde-maçã da tela. */
+.me-btn {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  padding: 0 1.375rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
+}
+
+.me-btn:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.me-btn:active {
+  transform: scale(0.97);
+}
+
+.me-btn--acento {
+  border-color: transparent;
+  background: var(--acento);
+  box-shadow: var(--sombra-botao);
+  color: var(--tinta);
+}
+
+.me-btn--acento:hover {
+  border-color: transparent;
+  background: var(--acento-claro);
+}
+
+.me-btn--grande {
+  min-height: 56px;
+  width: 100%;
+  font-size: 1.0625rem;
+}
+
+.me-btn--perigo {
+  color: var(--rh-erro-texto, #831c1e);
+}
+
+.me-btn--perigo:hover {
+  border-color: var(--rh-erro-texto, #831c1e);
+  background: var(--rh-erro-fundo, #ffedea);
+}
+
+.me-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.me-link {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  padding: 0 0.5rem;
+  color: var(--acento-texto);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.me-link:hover {
+  color: var(--tinta);
+}
+
+/* Sim / Não / Parcial, impressão, decisão. Escolhido = tinta chapada + visto:
+   a forma carrega o estado, não só a cor. */
+.me-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.me-opcao {
+  display: inline-flex;
+  min-height: 48px;
+  min-width: 5.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  padding: 0 1.5rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
+}
+
+.me-opcao:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.me-opcao:active {
+  transform: scale(0.97);
+}
+
+.me-opcao[aria-pressed="true"] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+.me-notas {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* No celular a régua inteira (0 a 5) cabe numa linha: os botões encolhem até o
+   piso de 44px de alvo em vez de quebrar a escala em duas. */
+.me-nota {
+  display: inline-grid;
+  flex: 1 1 44px;
+  place-items: center;
+  min-width: 44px;
+  max-width: 56px;
+  height: 48px;
+  border: 1px solid var(--borda-forte);
+  border-radius: 12px;
+  background: var(--branco);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
+}
+
+.me-nota:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.me-nota:active {
+  transform: scale(0.95);
+}
+
+.me-nota[aria-pressed="true"] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+/* Sugestão da IA ainda não confirmada: tracejado, nunca preenchido. */
+.me-nota[data-proposta="true"] {
+  border: 2px dashed var(--acento-texto);
+  background: var(--menta);
+  color: var(--acento-texto);
+}
+
+.me-sinais {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .me-sinais {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.me-sinal {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 12px;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.me-sinal:hover {
+  background: var(--chao-2);
+}
+
+.me-sinal input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  accent-color: var(--campo-marca);
+}
+
+.me-saldo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+.me-alerta {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0.75rem 0 0;
+  border-radius: 12px;
+  background: var(--rh-erro-fundo, #ffedea);
+  padding: 0.75rem 1rem;
+  color: var(--rh-erro-texto, #831c1e);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.me-desempate {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.me-desempate li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* ----------------------------------------------------------- Lateral/leitura */
+
+.me-andamento {
+  padding: 1.125rem 1.25rem;
+}
+
+.me-andamento ul {
+  display: grid;
+  gap: 0.875rem;
+  margin: 0.875rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.me-andamento__texto {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.me-andamento__texto span:last-child {
+  color: var(--tinta-suave);
+  font-weight: 600;
+}
+
+.me-barra {
+  height: 6px;
+  margin-top: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--chao-3);
+}
+
+.me-barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--campo-marca);
+  transition: width var(--t-ui) var(--ease-out);
+}
+
+.me-andamento__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 1rem 0 0;
+  border-top: 1px solid var(--borda);
+  padding-top: 0.875rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.me-andamento__total strong {
+  font-family: var(--font-display, inherit);
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.me-leitura {
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  padding: 1rem 1.125rem;
+}
+
+.me-leitura p {
+  margin: 0.5rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.me-leitura__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.me-leitura--forte {
+  background: var(--menta);
+  color: var(--tinta);
+}
+
+.me-leitura--forte .me-leitura__titulo {
+  color: var(--acento-texto);
+}
+
+.me-leitura--validar {
+  border-color: transparent;
+  background: var(--rh-aviso-fundo, #fffbeb);
+  color: var(--tinta);
+}
+
+.me-leitura--validar .me-leitura__titulo {
+  color: var(--rh-aviso-texto, #92400e);
+}
+
+/* O roteiro de dúvidas (`PainelDuvidas`) é uma peça compartilhada com a gaveta e
+   foi escrita para fundo escuro: as regras do tema claro do painel já trocam
+   letra e anel, mas os translúcidos brancos (cartão, campo, botão de leitura)
+   somem sobre branco. Aqui, e só aqui, eles viram cartão, campo e botão do
+   sistema. O estado marcado do botão de leitura é `aria-checked`. */
+.me-duvidas li[class*="bg-white"] {
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra-1);
+}
+
+.me-duvidas textarea {
+  border: 1px solid var(--me-controle);
+  border-radius: 12px;
+  background: var(--branco);
+  color: var(--tinta);
+  font-size: 1rem;
+}
+
+.me-duvidas textarea:focus {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+  outline: none;
+}
+
+.me-duvidas textarea::placeholder {
+  color: var(--tinta-suave);
+  opacity: 1;
+}
+
+.me-duvidas [role="radio"] {
+  border: 1px solid var(--borda-forte);
+  background: var(--branco);
+  box-shadow: none;
+  color: var(--tinta);
+}
+
+.me-duvidas [role="radio"]:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.me-duvidas [role="radio"][aria-checked="true"] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+/* --------------------------------------------------------------- Rodapé --- */
+
+.me-rodape {
+  flex: none;
+  border-top: 1px solid var(--borda);
+  background: var(--branco);
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.me-rodape__miolo {
+  max-width: var(--me-largura);
+  margin-inline: auto;
+}
+
+.me-etica {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.me-rodape__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+.me-estado {
+  display: inline-flex;
+  margin: 0 0 0 auto;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------- Confirmação --- */
+
+.me-confirma {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgb(3 47 1 / 0.5);
+  padding: 1rem;
+}
+
+.me-confirma__caixa {
+  width: 100%;
+  max-width: 30rem;
+  border: 1px solid var(--borda);
+  border-radius: 20px;
+  background: var(--branco);
+  box-shadow: var(--sombra-2);
+  padding: 1.5rem;
+}
+
+.me-confirma__titulo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.me-confirma__titulo svg {
+  color: var(--acento-texto);
+}
+
+.me-confirma__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+/* Telas estreitas: a nota ética fica inteira, mas o miolo respira menos. */
+@media (max-width: 640px) {
+  .me-topo__linha {
+    gap: 0.5rem;
+  }
+  .me-topo__marca {
+    display: none;
+  }
+  .me-rodape {
+    padding-top: 0.625rem;
+  }
+  .me-etica {
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+  .me-topo__sub {
+    font-size: 0.75rem;
+  }
+  .me-timer {
+    padding-inline: 0.5rem;
+  }
+  .me-etapa {
+    font-size: 1.375rem;
+    padding-top: 1rem;
+  }
+  .me-btn {
+    padding-inline: 1.125rem;
+  }
+  .me-criterio .me-apoio {
+    padding-left: 0;
+  }
+  .me-criterio .me-selo {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .me *,
+  .me *::before,
+  .me *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================================================== */
+/* FICHA DE ENTREVISTA (dentro da gaveta da candidata)                        */
+/* ========================================================================== */
+
+.fe {
+  --fe-controle: color-mix(in oklab, var(--tinta) 32%, white);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra-1);
+  padding: 1.25rem;
+  color: var(--tinta);
+}
+
+@media (min-width: 640px) {
+  .fe {
+    padding: 1.5rem;
+  }
+}
+
+.fe-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.fe-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.fe-titulo__icone {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--menta);
+  color: var(--acento-texto);
+}
+
+.fe-sub {
+  margin: 0.5rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.fe-apoio {
+  margin: 0.25rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.fe-apoio--corpo {
+  margin-top: 0.75rem;
+  max-width: 62ch;
+  font-size: 0.9375rem;
+}
+
+/* Botões: o principal é o único verde-maçã do bloco. */
+.fe-btn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  padding: 0 1.125rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
+}
+
+.fe-btn:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.fe-btn:active {
+  transform: scale(0.97);
+}
+
+.fe-btn--acento {
+  border-color: transparent;
+  background: var(--acento);
+  box-shadow: var(--sombra-botao);
+  color: var(--tinta);
+}
+
+.fe-btn--acento:hover {
+  border-color: transparent;
+  background: var(--acento-claro);
+}
+
+.fe-btn--grande {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 1.25rem;
+  font-size: 1.0625rem;
+}
+
+.fe-btn--pequeno {
+  min-height: 44px;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+}
+
+.fe-btn--solta {
+  margin-top: 1rem;
+}
+
+.fe-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.fe-espera {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-top: 1rem;
+  border-radius: 12px;
+  background: var(--chao-2);
+  padding: 1rem 1.125rem;
+  color: var(--acento-texto);
+}
+
+.fe-espera__titulo {
+  margin: 0;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.fe-gerando {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  border-radius: 12px;
+  background: var(--menta);
+  padding: 0.625rem 0.875rem;
+  color: var(--acento-texto);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.fe-erro {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 1rem 0 0;
+  border-radius: 12px;
+  background: var(--rh-erro-fundo, #ffedea);
+  padding: 0.75rem 1rem;
+  color: var(--rh-erro-texto, #831c1e);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.fe-erro--bloco {
+  display: grid;
+  justify-items: start;
+  gap: 0.625rem;
+}
+
+.fe-erro--bloco p {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+/* Leitura rápida: ponto forte (menta) e o que validar (âmbar), sem filete. */
+.fe-leituras {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.125rem;
+}
+
+@media (min-width: 720px) {
+  .fe-leituras {
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  }
+}
+
+.fe-leitura {
+  border-radius: 14px;
+  padding: 0.875rem 1rem;
+}
+
+.fe-leitura p {
+  margin: 0.375rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.fe-leitura__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.fe-leitura--forte {
+  background: var(--menta);
+}
+
+.fe-leitura--forte .fe-leitura__titulo {
+  color: var(--acento-texto);
+}
+
+.fe-leitura--validar {
+  background: var(--rh-aviso-fundo, #fffbeb);
+}
+
+.fe-leitura--validar .fe-leitura__titulo {
+  color: var(--rh-aviso-texto, #92400e);
+}
+
+.fe-progresso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+}
+
+.fe-contador {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 999px;
+  background: var(--chao-2);
+  padding: 0.3125rem 0.75rem;
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.fe-contador[data-completo="true"],
+.fe-contador--total {
+  background: var(--menta);
+  color: var(--acento-texto);
+}
+
+.fe-contador--decisao {
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+.fe-secao {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--borda);
+  padding-top: 1.25rem;
+}
+
+.fe-secao__titulo {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.fe-lista {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0.875rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fe-lista--solta {
+  gap: 1rem;
+}
+
+.fe-item {
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  background: var(--chao);
+  padding: 0.875rem 1rem 1rem;
+}
+
+.fe-item__texto {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* O que vem embaixo da pergunta alinha com o texto dela, não com o número. */
+.fe-item__recuo {
+  margin-left: 2.5rem;
+}
+
+.fe-item .fe-campo.fe-item__recuo {
+  width: calc(100% - 2.5rem);
+}
+
+@media (max-width: 520px) {
+  .fe-item__recuo {
+    margin-left: 0;
+  }
+  .fe-item .fe-campo.fe-item__recuo {
+    width: 100%;
+  }
+}
+
+.fe-num {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--menta);
+  color: var(--acento-texto);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fe-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fe-opcao {
+  display: inline-flex;
+  min-height: 44px;
+  min-width: 5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  padding: 0 1.25rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
+}
+
+.fe-opcao:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.fe-opcao:active {
+  transform: scale(0.97);
+}
+
+.fe-opcao[aria-pressed="true"] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+.fe-campo {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.625rem;
+  border: 1px solid var(--fe-controle);
+  border-radius: 12px;
+  background: var(--branco);
+  padding: 0.6rem 0.875rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color var(--t-hover) var(--ease-out);
+}
+
+.fe-campo:hover {
+  border-color: var(--tinta-suave);
+}
+
+.fe-campo:focus {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+  outline: none;
+}
+
+.fe-campo::placeholder {
+  color: var(--tinta-suave);
+  opacity: 1;
+}
+
+.fe-pergunta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.fe-pergunta__texto {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.fe-resposta {
+  margin: 0.5rem 0 0;
+  border-radius: 12px;
+  background: var(--chao-2);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.fe-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--borda);
+  padding-top: 1.25rem;
+}
+
+.fe-estado {
+  margin: 0;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.fe-estado--erro {
+  color: var(--rh-aviso-texto, #92400e);
+}
+
+.fe-estado:empty {
+  display: none;
+}
+
+.fe-etica {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 1.25rem 0 0;
+  border-radius: 12px;
+  background: var(--chao-2);
+  padding: 0.75rem 0.875rem;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fe *,
+  .fe *::before,
+  .fe *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -8,7 +8,7 @@ import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { tituloDaRota } from "@/lib/analytics/rotas";
 import { Movimento } from "@/components/site/sistema/movimento";
 import { MarcaCoroa } from "@/components/site/sistema/Coroa";
-import { pausarRolagem } from "@/components/site/sistema/gsap";
+import { pausarRolagem } from "@/components/site/sistema/ambiente";
 import { useSituacao } from "@/components/site/sistema/horario";
 import "./cabecalho.css";
 

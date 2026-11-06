@@ -4,9 +4,20 @@
 
 @layer components {
   /* Barra do celular: lisa. O respiro de baixo é a área segura do aparelho
-     (iPhone com barra de gesto) e o `bottom` sobe pela faixa de cookies. */
+     (iPhone com barra de gesto). Ela sobe pela faixa de cookies com
+     `transform`, e não com `bottom`: mudar `bottom` depois que a página
+     pintou conta como mudança de layout (CLS ~0,05 nas landings), mover por
+     transform não conta. A entrada e a saída usam a propriedade `translate`
+     (utilitárias no JSX), que compõe com este `transform`. */
   .cta-barra {
-    bottom: var(--altura-aviso, 0px);
+    bottom: 0;
+    transform: translateY(calc(-1 * var(--altura-aviso, 0px)));
+    background: rgb(255 255 255 / 0.94);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border-top: 1px solid var(--borda);
+    box-shadow: 0 -10px 30px -18px rgb(3 47 1 / 0.3);
+    color: var(--tinta);
     padding: 0.625rem var(--margem) max(0.625rem, env(safe-area-inset-bottom));
   }
 
@@ -18,7 +29,7 @@
     height: 3rem;
     flex: none;
     border-radius: 999px;
-    color: var(--sobre-campo-suave);
+    color: var(--tinta-suave);
     transition:
       background-color var(--t-hover) ease,
       color var(--t-hover) ease,
@@ -33,16 +44,24 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .cta-fechar:hover {
-      background: color-mix(in oklab, var(--sobre-campo) 12%, transparent);
-      color: var(--sobre-campo);
+      background: var(--menta);
+      color: var(--tinta);
     }
   }
 
-  /* A pílula do desktop é a única peça do site que flutua de verdade: sombra
-     sutil, e só ela. Entra subindo e some descendo — transform e opacidade. */
+  /* A pílula do desktop é a única peça do site que flutua de verdade: vidro
+     branco com sombra, e só ela. Entra subindo e some descendo — transform e opacidade. */
   .cta-pilula {
-    bottom: calc(var(--altura-aviso, 0px) + 1.5rem);
-    box-shadow: 0 14px 36px -18px rgb(3 47 1 / 0.55);
+    bottom: 1.5rem;
+    /* Sobe pela faixa de cookies com `translate` (não conta como mudança de
+       layout); a entrada e a saída usam `transform`, que compõe com ele. */
+    translate: 0 calc(-1 * var(--altura-aviso, 0px));
+    background: rgb(255 255 255 / 0.92);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid var(--borda);
+    color: var(--tinta);
+    box-shadow: var(--sombra-2);
     opacity: 0;
     transform: translateY(1.25rem);
     transition:

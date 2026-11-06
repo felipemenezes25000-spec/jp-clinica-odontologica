@@ -9,6 +9,7 @@ import {
   ehFerramentaInterna,
   rastrearEnvioDeFormulario,
 } from "@/lib/analytics/formulario";
+import { NOME_FILA_DE_CLIQUES } from "@/lib/analytics/scripts";
 import { tratamentoDaRota } from "@/lib/analytics/rotas";
 
 /**
@@ -88,12 +89,7 @@ export function RastreioDeContato() {
       return "outro";
     };
 
-    const aoClicar = (e: MouseEvent) => {
-      const alvo = e.target;
-      if (!(alvo instanceof Element)) return;
-      const link = alvo.closest("a");
-      if (!link) return;
-
+    const processarLink = (link: Element) => {
       const planejado = decidirEventoDeClique({
         href: link.getAttribute("href") ?? "",
         rotulo: (link.textContent ?? "").trim().replace(/\s+/gu, " ").slice(0, 60),
@@ -104,6 +100,13 @@ export function RastreioDeContato() {
       // UM evento, ou nenhum. Não existe segundo `rastrear` neste caminho, e é
       // essa ausência que impede a conversão de ser contada duas vezes.
       if (planejado !== null) rastrear(planejado.evento, planejado.dados);
+    };
+
+    const aoClicar = (e: MouseEvent) => {
+      const alvo = e.target;
+      if (!(alvo instanceof Element)) return;
+      const link = alvo.closest("a");
+      if (link) processarLink(link);
     };
 
     const aoIniciarFormulario = (e: FocusEvent) => {
@@ -131,6 +134,14 @@ export function RastreioDeContato() {
     document.addEventListener("click", aoClicar, { capture: true });
     document.addEventListener("focusin", aoIniciarFormulario, { capture: true });
     document.addEventListener("submit", aoEnviarFormulario, { capture: true });
+
+    // Os cliques anotados antes da hidratação (ver SCRIPT_CLIQUES_ANTES): a
+    // escuta provisória sai no mesmo instante em que esta entra, então nenhum
+    // clique é contado duas vezes nem fica sem contar.
+    const pararFila = (window as unknown as Record<string, unknown>)[NOME_FILA_DE_CLIQUES];
+    if (typeof pararFila === "function") {
+      for (const link of (pararFila as () => Element[])()) processarLink(link);
+    }
 
     return () => {
       document.removeEventListener("click", aoClicar, { capture: true });

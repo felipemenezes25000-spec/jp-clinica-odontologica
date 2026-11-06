@@ -1,10 +1,18 @@
 import { useLocation } from "@tanstack/react-router";
-import { ArrowUp, ArrowUpRight, MessageCircle } from "lucide-react";
+import {
+  ArrowUp,
+  ArrowUpRight,
+  Clock,
+  Facebook,
+  Instagram,
+  MapPin,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, HISTORIA, NAV_RODAPE, RESPONSAVEL_TECNICA } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { BotaoRevisarConsentimento } from "@/components/site/AvisoDeCookies";
-import { ArcadaDoRodape } from "@/components/site/global/ArcadaDoRodape";
 import { tituloDaRota } from "@/lib/analytics/rotas";
 import "@/components/site/global/rodape.css";
 
@@ -28,7 +36,12 @@ function subir() {
   window.scrollTo({ top: 0, behavior: reduzido ? "auto" : "smooth" });
 }
 
-export function Footer() {
+/**
+ * `chamada={false}` tira o convite final do topo do rodapé. A home usa: ela já
+ * termina numa faixa verde de contato logo acima, e duas chamadas seguidas
+ * pareciam repetição. As landings e as outras páginas ficam com o convite.
+ */
+export function Footer({ chamada = true }: { chamada?: boolean }) {
   /*
    * Um link só para os dois CTAs do rodapé — eram duas chamadas idênticas, e
    * duas chamadas idênticas são duas chances de uma delas ficar para trás.
@@ -53,38 +66,101 @@ export function Footer() {
 
   return (
     <footer className="rodape campo-escuro">
-      <div className="quadro pt-[clamp(4rem,2rem+6vw,9rem)]">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <p className="text-frase max-w-[20ch] font-semibold text-sobre-campo">
-            {CLINICA.assinatura}
-          </p>
-          <a
-            href={waAgendar}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-ima
-            className="botao botao-acento self-start"
-          >
-            <MessageCircle aria-hidden="true" />
-            Agendar avaliação
-            <ArrowUpRight aria-hidden="true" />
-          </a>
-        </div>
+      <div className="quadro rodape-quadro">
+        {/* A última chamada da página. Nas landings não há faixa de contato
+            antes dele, então é este o convite final. */}
+        {chamada && (
+          <div className="rodape-topo" data-entra>
+            <p className="rodape-assinatura" data-item>
+              {CLINICA.assinatura}
+            </p>
+            <div className="rodape-acoes" data-item>
+              <a
+                href={waAgendar}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-ima
+                className="botao botao-acento"
+              >
+                <MessageCircle aria-hidden="true" />
+                Agendar avaliação
+                <ArrowUpRight aria-hidden="true" />
+              </a>
+              <a href={CLINICA.telefoneHref} className="botao botao-claro">
+                <Phone aria-hidden="true" />
+                {CLINICA.telefone}
+              </a>
+            </div>
+          </div>
+        )}
 
-        <div
-          data-entra
-          className="mt-[clamp(3rem,2rem+3vw,5rem)] grid gap-x-8 gap-y-12 lg:grid-cols-12 lg:gap-x-10 lg:gap-y-0"
-        >
-          <nav
-            aria-label="Navegação do rodapé"
-            className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:col-span-8"
-          >
+        <div data-entra className="rodape-grade">
+          <div data-item className="rodape-marca">
+            {/* Com alt, diferente das outras telas: aqui a marca não vem dentro
+                de um link nomeado nem ao lado do nome escrito, então ela é a
+                única coisa que apresenta o bloco de contato. */}
+            <Logo
+              variante="lockup"
+              fundo="escuro"
+              altura={80}
+              alt={CLINICA.nome}
+              className="h-[72px] w-auto"
+            />
+            <address className="rodape-endereco text-pequeno not-italic">
+              <a
+                href={CLINICA.mapsHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rodape-link rodape-link-linha"
+              >
+                <MapPin aria-hidden="true" />
+                <span>{CLINICA.endereco}</span>
+              </a>
+              <a href={CLINICA.telefoneHref} className="rodape-link rodape-link-linha">
+                <Phone aria-hidden="true" />
+                <span>{CLINICA.telefone}</span>
+              </a>
+              <a
+                href={waAgendar}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rodape-link rodape-link-linha"
+              >
+                <MessageCircle aria-hidden="true" />
+                <span>WhatsApp {CLINICA.whatsapp}</span>
+              </a>
+              <p className="rodape-horario">
+                <Clock aria-hidden="true" />
+                <span>{CLINICA.horario}</span>
+              </p>
+            </address>
+            <div className="rodape-redes">
+              <a
+                href={CLINICA.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram da JP Clínica"
+                className="rodape-rede"
+              >
+                <Instagram aria-hidden="true" />
+              </a>
+              <a
+                href={CLINICA.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook da JP Clínica"
+                className="rodape-rede"
+              >
+                <Facebook aria-hidden="true" />
+              </a>
+            </div>
+          </div>
+
+          <nav aria-label="Navegação do rodapé" className="rodape-nav">
             {COLUNAS_DE_LINKS.map((coluna, i) => (
               <div key={coluna.titulo} data-item>
-                <h2 className="text-pequeno font-semibold text-sobre-campo-suave">
-                  {coluna.titulo}
-                </h2>
-                <ul className="mt-3">
+                <h2 className="rodape-titulo">{coluna.titulo}</h2>
+                <ul>
                   {itensDe(coluna.destinos).map((item) => (
                     <li key={item.href}>
                       <a href={item.href} className="rodape-link text-pequeno">
@@ -108,8 +184,8 @@ export function Footer() {
             {/* O portal de vagas vive fora da conversa com paciente: coluna
                 própria, junto com o que é da casa e não do tratamento. */}
             <div data-item>
-              <h2 className="text-pequeno font-semibold text-sobre-campo-suave">A casa</h2>
-              <ul className="mt-3">
+              <h2 className="rodape-titulo">A casa</h2>
+              <ul>
                 {carreiras ? (
                   <li>
                     <a href={carreiras.href} className="rodape-link text-pequeno">
@@ -129,76 +205,13 @@ export function Footer() {
                       não escolheu — nesse caso a faixa já está na tela. */}
                   <BotaoRevisarConsentimento className="rodape-link text-pequeno text-left" />
                 </li>
-                <li>
-                  <a
-                    href={CLINICA.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Instagram da JP Clínica"
-                    className="rodape-link text-pequeno"
-                  >
-                    Instagram
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={CLINICA.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Facebook da JP Clínica"
-                    className="rodape-link text-pequeno"
-                  >
-                    Facebook
-                  </a>
-                </li>
               </ul>
             </div>
           </nav>
-
-          <div data-item className="lg:col-span-4">
-            {/* Com alt, diferente das outras telas: aqui a marca não vem dentro
-                de um link nomeado nem ao lado do nome escrito, então ela é a
-                única coisa que apresenta o bloco de contato. */}
-            <Logo
-              variante="lockup"
-              fundo="escuro"
-              altura={80}
-              alt={CLINICA.nome}
-              className="h-[72px] w-auto"
-            />
-            <address className="mt-6 text-pequeno not-italic text-sobre-campo">
-              <a
-                href={CLINICA.mapsHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rodape-link !inline-block !min-h-0 py-1 leading-snug"
-              >
-                {CLINICA.endereco}
-              </a>
-              <ul className="mt-3">
-                <li>
-                  <a href={CLINICA.telefoneHref} className="rodape-link">
-                    {CLINICA.telefone}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={waAgendar}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rodape-link"
-                  >
-                    WhatsApp {CLINICA.whatsapp}
-                  </a>
-                </li>
-              </ul>
-              <p className="mt-2 text-sobre-campo-suave">{CLINICA.horario}</p>
-            </address>
-          </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-8 text-pequeno text-sobre-campo-suave lg:mt-20 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-[68ch] space-y-1.5">
+        <div className="rodape-legal text-pequeno">
+          <div className="rodape-legal-texto">
             {/* Fonte explícita, não mais EQUIPE[0]: esta linha é exigida pela
                 Resolução CFO 196/2019 e não pode depender da ordem de uma
                 lista que a clínica edita. */}
@@ -214,19 +227,11 @@ export function Footer() {
             </p>
             <p>© {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.</p>
           </div>
-          <button
-            type="button"
-            onClick={subir}
-            className="botao botao-claro self-start lg:self-auto"
-          >
+          <button type="button" onClick={subir} className="botao botao-claro rodape-topo-botao">
             <ArrowUp aria-hidden="true" />
             Voltar ao topo
           </button>
         </div>
-
-        {/* A marca construída fecha a página: as bases das coroas tocam a borda
-            de baixo e o texto legal fica acima, inteiro, sem competir com ela. */}
-        <ArcadaDoRodape className="mt-[clamp(3rem,2rem+4vw,6rem)]" />
       </div>
     </footer>
   );

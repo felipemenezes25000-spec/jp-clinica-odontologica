@@ -73,6 +73,27 @@ export const SCRIPT_CONSENTIMENTO = [
   "}catch(e){}",
 ].join("");
 
+/**
+ * Os cliques feitos ANTES de o React hidratar.
+ *
+ * O ouvinte de conversão (`RastreioDeContato`) só existe depois da hidratação,
+ * e num celular lento isso leva segundos. Quem tocava no WhatsApp do topo
+ * nesse intervalo abria a conversa sem gerar `generate_lead`: o lead mais
+ * rápido, justamente o mais quente, sumia da medição. Este script, no
+ * `<head>`, só ANOTA o link clicado (não decide nada, não envia nada); ao
+ * montar, o rastreio desliga esta escuta e processa a fila com a mesma regra
+ * dos cliques normais. Sem React, a fila fica parada e não pesa nada.
+ */
+export const NOME_FILA_DE_CLIQUES = "__jpPararCliquesAntes";
+
+export const SCRIPT_CLIQUES_ANTES = [
+  "(function(){var f=[];",
+  "function o(e){var t=e.target,a=t&&t.closest&&t.closest('a[href]');if(a)f.push(a);}",
+  "document.addEventListener('click',o,true);",
+  `window.${NOME_FILA_DE_CLIQUES}=function(){document.removeEventListener('click',o,true);var r=f.slice();f.length=0;return r;};`,
+  "})();",
+].join("");
+
 /** Passo 4. Devolve `null` quando não há ID — e aí nada é pedido à rede. */
 export function scriptDoGTM(): string | null {
   const id = idDoGTM();

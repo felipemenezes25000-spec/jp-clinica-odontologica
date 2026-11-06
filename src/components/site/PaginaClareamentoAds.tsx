@@ -1,3 +1,5 @@
+import { HeartHandshake, ShieldCheck, UserRoundCheck } from "lucide-react";
+
 import consultorio1Img from "@/assets/consultorio-1.webp";
 import esterilizacaoImg from "@/assets/esterilizacao.webp";
 import fachadaImg from "@/assets/fachada-2026-completa.webp";
@@ -6,19 +8,21 @@ import posterClareamento from "@/assets/video-clareamento-poster.webp";
 import { FloatingCTA } from "@/components/site/FloatingCTA";
 import { Header } from "@/components/site/Header";
 import {
-  Confianca,
+  Avaliacoes,
+  Convenios,
   Endereco,
-  Etapas,
+  Equipe,
   Fechamento,
-  Linhas,
+  Passos,
   Perguntas,
+  PorQue,
   Rodape,
   SecaoVideo,
 } from "@/components/site/lp/Secoes";
 import { Topo } from "@/components/site/lp/Topo";
 import { SkipLink } from "@/components/site/SkipLink";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
-import { DEPOIMENTOS, HISTORIA } from "@/lib/jp";
+import { DEPOIMENTOS } from "@/lib/jp";
 
 /**
  * LANDING PAGE DE ANÚNCIO — clareamento dental.
@@ -34,14 +38,17 @@ const ASSUNTO = "Clareamento dental";
 
 const BENEFICIOS = [
   {
+    icone: ShieldCheck,
     titulo: "Saúde bucal em primeiro lugar",
     texto: "A condição dos dentes e da gengiva é observada antes de definir o protocolo.",
   },
   {
+    icone: UserRoundCheck,
     titulo: "Planejamento individual",
     texto: "Sensibilidade, histórico e expectativa entram na conversa para orientar a indicação.",
   },
   {
+    icone: HeartHandshake,
     titulo: "Acompanhamento profissional",
     texto: "A equipe orienta os cuidados antes, durante e depois do clareamento.",
   },
@@ -92,7 +99,7 @@ const FAQ = [
   },
 ] as const;
 
-/** Depoimento real da ficha do Google, escolhido pelo que diz do atendimento. */
+/** Depoimento real da ficha do Google, curto e sobre o atendimento, para o cartão do topo. */
 const DEPOIMENTO_PRINCIPAL = DEPOIMENTOS[4];
 
 export function PaginaClareamentoAds() {
@@ -121,17 +128,27 @@ export function PaginaClareamentoAds() {
             alt: "Consultório da JP Clínica Odontológica, com a cadeira de atendimento junto à janela",
             posicao: "64% 50%",
           }}
+          depoimento={DEPOIMENTO_PRINCIPAL}
+          provaId="prova-social"
+          conveniosId="convenios"
         />
 
-        <Linhas
+        <Convenios id="convenios" rotulo="Perguntar pelo meu convênio" href={wa} />
+
+        <PorQue
           id="beneficios"
+          sobre="Por que fazer na JP"
           titulo="O plano começa pelo seu sorriso"
           intro="Antes de falar em técnica, a equipe considera sua saúde bucal, sensibilidade, histórico e expectativa. É isso que transforma uma escolha estética em um planejamento individual."
           itens={BENEFICIOS}
+          rotulo="Valores e horários do clareamento"
+          href={wa}
+          apoio="Sem compromisso: a conversa começa pelo WhatsApp."
         />
 
         <SecaoVideo
           id="video-clareamento"
+          sobre="Entenda o processo"
           titulo="Veja como funciona"
           texto="A animação mostra, de forma geral, como o gel e a moldeira são usados, para você visualizar o tratamento antes da conversa com a equipe. Ela ajuda a entender o processo, mas não substitui o exame clínico nem define qual protocolo será indicado."
           itens={[
@@ -151,8 +168,9 @@ export function PaginaClareamentoAds() {
           invertido
         />
 
-        <Etapas
+        <Passos
           id="como-funciona"
+          sobre="Como funciona"
           titulo="Simples para começar"
           texto="Você não precisa chegar sabendo qual técnica quer. A jornada começa com informação e avança para a avaliação individual."
           etapas={ETAPAS}
@@ -163,13 +181,24 @@ export function PaginaClareamentoAds() {
             alt: "Sala de esterilização da JP, com a bancada, a autoclave, as pias e os armários",
             posicao: "35% 50%",
           }}
+          legendaFoto="Sala de esterilização da JP"
+          rotulo="Começar pela conversa"
+          href={wa}
         />
 
-        <Confianca
+        <Equipe
+          id="equipe-clareamento"
+          titulo="Dentistas identificados pelo CRO"
+          texto="Cada profissional aparece com o registro no conselho. A responsável técnica da clínica responde pelo atendimento."
+          rotulo="Falar com a recepção"
+          href={wa}
+        />
+
+        <Avaliacoes
           id="prova-social"
-          titulo={`Há ${String(HISTORIA.anos)} anos na Freguesia do Ó`}
-          texto="A JP atende na região da Freguesia do Ó. Você pode conhecer a estrutura e conversar com a equipe antes de decidir."
-          principal={DEPOIMENTO_PRINCIPAL}
+          titulo="O que pacientes dizem da JP"
+          rotulo="Quero conversar com a recepção"
+          href={wa}
         />
 
         <Endereco
@@ -191,6 +220,8 @@ export function PaginaClareamentoAds() {
           titulo="Dúvidas antes de chamar"
           texto="Aqui você encontra o que é geral. A indicação do seu caso depende de avaliação profissional individual."
           itens={FAQ}
+          rotulo="Perguntar no WhatsApp"
+          href={wa}
         />
 
         <Fechamento

@@ -13,6 +13,11 @@ import { useEffect, useState } from "react";
  */
 export const EXPEDIENTE = { abre: 8, fecha: 18, dias: [1, 2, 3, 4, 5] } as const;
 
+/** O expediente por escrito, para os cartões que mostram o horário fixo. */
+export const DIAS_DO_EXPEDIENTE = "Segunda a sexta";
+export const DIAS_DO_EXPEDIENTE_CURTO = "Seg. a sex.";
+export const FAIXA_DO_EXPEDIENTE = `das ${String(EXPEDIENTE.abre)}h às ${String(EXPEDIENTE.fecha)}h`;
+
 const DIAS = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
 
 function agoraEmSaoPaulo(): { dia: number; minutos: number } {

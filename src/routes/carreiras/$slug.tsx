@@ -1,5 +1,13 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { ArrowLeft, ArrowUpRight, ChevronDown } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  Clock3,
+  MapPin,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { CapaVaga } from "@/components/site/CapaVaga";
@@ -8,7 +16,7 @@ import { Header } from "@/components/site/Header";
 import { SkipLink } from "@/components/site/SkipLink";
 import { LinhaDeVaga } from "@/components/site/carreiras/LinhaDeVaga";
 import { capaDaArea, segundaCapaDaArea } from "@/components/site/carreiras/capas";
-import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { CLINICA, SITE_URL } from "@/lib/jp";
 import { obterVagaPublica } from "@/lib/rh/api-portal";
 import { formatarData } from "@/lib/rh/formatar";
@@ -317,6 +325,15 @@ export const Route = createFileRoute("/carreiras/$slug")({
  */
 const ITENS_VISIVEIS = 8;
 
+/** O marcador de item: um ✓ pequeno em círculo menta. Decorativo. */
+function Marcador() {
+  return (
+    <span className="vg-check" aria-hidden="true">
+      <Check />
+    </span>
+  );
+}
+
 /** Bloco de lista da coluna larga. Some inteiro quando a lista está vazia. */
 function BlocoLista({
   titulo,
@@ -351,7 +368,7 @@ function BlocoLista({
                recolhido, e volta sem custo de re-render ao expandir. */
             hidden={!expandido && i >= ITENS_VISIVEIS}
           >
-            <MarcaCoroa />
+            <Marcador />
             <span>{item}</span>
           </li>
         ))}
@@ -445,7 +462,7 @@ function PaginaVaga() {
 
       <main id="conteudo">
         {/* TOPO — título, resumo, a ação e a foto da área. */}
-        <section className="car-topo" aria-labelledby="vaga-titulo">
+        <section className="car-topo fundo-brilho" aria-labelledby="vaga-titulo">
           <div className="quadro car-topo-grade car-topo-grade--vaga">
             <div>
               <nav aria-label="Trilha de navegação" className="vg-trilha">
@@ -474,13 +491,15 @@ function PaginaVaga() {
                 {vaga.titulo}
               </h1>
 
-              <p className="vg-tipo">
-                {[rotuloArea(vaga, "Equipe JP"), rotuloVinculo(vaga), rotuloModelo(vaga)].join(
-                  " · ",
+              <ul className="vg-etiquetas">
+                {[rotuloArea(vaga, "Equipe JP"), rotuloVinculo(vaga), rotuloModelo(vaga)].map(
+                  (e) => (
+                    <li key={e}>{e}</li>
+                  ),
                 )}
-              </p>
+              </ul>
               <p className="vg-local">
-                <MarcaCoroa />
+                <MapPin aria-hidden="true" />
                 <span>{local}</span>
               </p>
 
@@ -497,13 +516,13 @@ function PaginaVaga() {
                 <a
                   ref={botaoTopoRef}
                   href={linkCandidatura}
-                  className="botao botao-acento"
+                  className="botao botao-acento botao-grande"
                   data-ima
                 >
                   Quero me candidatar
                   <ArrowUpRight aria-hidden="true" />
                 </a>
-                <a href="/carreiras" className="botao botao-chao">
+                <a href="/carreiras" className="botao botao-chao botao-grande">
                   <ArrowLeft aria-hidden="true" />
                   Ver todas as vagas
                 </a>
@@ -514,22 +533,30 @@ function PaginaVaga() {
             </div>
 
             <div className="car-topo-foto">
-              <FormaCoroa proporcao={1} className="car-topo-eco" />
               {capaDaArea(vaga.area) !== null ? (
                 <CapaVaga area={vaga.area} medir className="car-topo-moldura" />
               ) : (
-                /* Área sem foto: a coroa chapada em verde-maçã segura o lugar,
-                   com a mesma caixa da foto — o layout não depende de imagem. */
+                /* Área sem foto: um painel menta segura o lugar, com a mesma
+                   caixa da foto — o layout não depende de imagem. */
                 <MolduraCoroa medir className="car-topo-moldura" aria-hidden="true">
-                  <span className="absolute inset-0 bg-acento" />
+                  <span className="absolute inset-0" style={{ background: "var(--menta)" }} />
                 </MolduraCoroa>
               )}
+              <div className="vidro flutua car-selo car-selo--base">
+                <span className="pastilha" aria-hidden="true">
+                  <Clock3 />
+                </span>
+                <span>
+                  <strong>{posicoes}</strong>
+                  <small>{jornada.length > 0 ? jornada : "Vaga aberta agora"}</small>
+                </span>
+              </div>
             </div>
           </div>
         </section>
 
         {/* CORPO */}
-        <section className="secao-curta pt-0" aria-label="Detalhes da vaga">
+        <section className="secao-curta pt-4 sm:pt-6" aria-label="Detalhes da vaga">
           <div className="quadro vg-corpo">
             <div className="vg-prosa">
               {blocos.length > 0 && (
@@ -574,7 +601,7 @@ function PaginaVaga() {
               )}
 
               {(vaga.requisitos.length > 0 || vaga.diferenciais.length > 0) && (
-                <div className="vg-par ladrilho">
+                <div className="vg-par cartao">
                   <BlocoLista
                     titulo="O que precisamos"
                     itens={vaga.requisitos}
@@ -596,7 +623,7 @@ function PaginaVaga() {
                   <ul className="vg-lista" data-item>
                     {vaga.especialidades.map((esp) => (
                       <li key={esp}>
-                        <MarcaCoroa />
+                        <Marcador />
                         <span>{esp}</span>
                       </li>
                     ))}
@@ -605,7 +632,7 @@ function PaginaVaga() {
               )}
 
               <p className="vg-aviso">
-                <MarcaCoroa />
+                <ShieldCheck aria-hidden="true" />
                 <span>
                   Todo o processo seletivo da {CLINICA.nome} é gratuito. Nunca pedimos depósito,
                   taxa de cadastro ou compra de material em nenhuma etapa.
@@ -615,7 +642,7 @@ function PaginaVaga() {
 
             {/* Coluna estreita, grudenta a partir do desktop. */}
             <div className="vg-resumo-lado">
-              <aside className="vg-resumo ladrilho" aria-labelledby="vaga-resumo">
+              <aside className="vg-resumo cartao" aria-labelledby="vaga-resumo">
                 <h2 id="vaga-resumo">Resumo da vaga</h2>
 
                 {/* O botão abre o cartão: é a ação que acompanha a leitura, e
@@ -642,7 +669,7 @@ function PaginaVaga() {
                     <ul>
                       {turnos.map((t) => (
                         <li key={t}>
-                          <MarcaCoroa />
+                          <Marcador />
                           <span>{t}</span>
                         </li>
                       ))}
@@ -656,7 +683,7 @@ function PaginaVaga() {
                     <ul>
                       {beneficios.map((b) => (
                         <li key={b}>
-                          <MarcaCoroa />
+                          <Marcador />
                           <span>{b}</span>
                         </li>
                       ))}
@@ -679,22 +706,27 @@ function PaginaVaga() {
 
         {/* OUTRAS VAGAS */}
         {relacionadas.length > 0 && (
-          <section className="secao-curta bg-chao-2" aria-labelledby="vaga-outras">
+          <section className="secao-curta secao-clara" aria-labelledby="vaga-outras">
             <div className="quadro">
               <div
                 className="flex flex-col justify-between gap-4 md:flex-row md:items-end"
                 data-entra
               >
-                <h2 id="vaga-outras" className="text-titulo" data-linhas>
-                  Outras vagas abertas.
-                </h2>
-                <a href="/carreiras" className="botao botao-tinta self-start" data-item>
+                <div>
+                  <p className="sobretitulo" data-item>
+                    Mais oportunidades
+                  </p>
+                  <h2 id="vaga-outras" className="text-titulo mt-4" data-item>
+                    Outras vagas abertas.
+                  </h2>
+                </div>
+                <a href="/carreiras" className="botao botao-chao self-start" data-item>
                   Ver todas
                   <ArrowUpRight aria-hidden="true" />
                 </a>
               </div>
 
-              <ul className="car-lista" data-sobre="chao-2">
+              <ul className="car-lista">
                 {relacionadas.map((outra) => (
                   <LinhaDeVaga key={outra.id} vaga={outra} agora={agora} />
                 ))}
@@ -744,21 +776,18 @@ function VagaNaoEncontrada() {
       <SkipLink />
       <Header />
 
-      <main id="conteudo" className="campo-escuro relative overflow-clip">
-        <FormaCoroa
-          proporcao={0.9}
-          className="pointer-events-none absolute -right-[12%] bottom-0 hidden h-[78%] text-acento opacity-100 lg:block"
-        />
+      <main id="conteudo" className="fundo-brilho relative overflow-clip">
         <div className="quadro relative flex min-h-[68vh] items-center py-16">
-          <div>
-            <h1 className="text-display">Vaga indisponível.</h1>
-            <p className="mt-6 max-w-[44ch] text-sobre-campo-suave">
+          <div className="cartao max-w-2xl p-8 sm:p-12">
+            <p className="sobretitulo">Carreiras na JP</p>
+            <h1 className="text-display mt-5">Vaga indisponível.</h1>
+            <p className="mt-6 max-w-[44ch] text-tinta-suave">
               O processo pode ter sido encerrado ou o endereço mudou. As vagas abertas hoje estão
               todas na página de carreiras — e, se a clínica estiver recebendo currículos
               espontâneos, o caminho para o banco de talentos está lá também.
             </p>
             <div className="mt-9">
-              <a href="/carreiras" className="botao botao-acento">
+              <a href="/carreiras" className="botao botao-acento botao-grande">
                 <ArrowLeft aria-hidden="true" />
                 Ver vagas abertas
               </a>

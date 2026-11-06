@@ -1,0 +1,474 @@
+/*
+ * EDITOR DE VAGA — "Clínica luminosa" no painel de RH.
+ *
+ * Diálogo centrado sobre um véu de tinta, corpo em chão claro, o formulário em
+ * quatro cartões brancos com título (Identificação, Perfil, Atividades e
+ * requisitos, Condições) e a prévia do card do site num cartão fixo ao lado.
+ * Os campos continuam sendo os `.rh-campo` do painel (CampoTexto etc.).
+ *
+ * Fora de `@layer` pelo mesmo motivo de `painel.css` e `entrevista.css`: a
+ * camada antiga de `styles.css` tem regras sem camada para `[role="dialog"]`.
+ */
+
+.ev-raiz {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .ev-raiz {
+    align-items: center;
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ev-raiz {
+    padding: 1.5rem;
+  }
+}
+
+/* Véu opaco o bastante para separar o diálogo da lista, sem desfoque. */
+.ev-fundo {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(3 47 1 / 0.55);
+  cursor: default;
+}
+
+.ev {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  width: 100%;
+  max-width: 100rem;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--chao);
+  color: var(--tinta);
+  outline: none;
+  box-shadow: var(--sombra-2);
+}
+
+@media (min-width: 640px) {
+  .ev {
+    height: auto;
+    max-height: min(94dvh, 64rem);
+    border-radius: var(--raio);
+  }
+}
+
+/* ---------------------------------------------------------------- Cabeçalho */
+
+.ev-cab {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.875rem;
+  border-bottom: 1px solid var(--borda);
+  background: var(--branco);
+  padding: 1rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .ev-cab {
+    padding: 1.125rem 1.5rem;
+  }
+}
+
+.ev-cab__icone {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--menta);
+  color: var(--acento-texto);
+}
+
+.ev-cab > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.ev-cab__titulo {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+.ev-cab__sub {
+  margin: 0.25rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.ev-status {
+  flex: none;
+  border-radius: 999px;
+  background: var(--chao-2);
+  padding: 0.3125rem 0.75rem;
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ev-status[data-status="aberta"] {
+  background: var(--menta);
+  color: var(--acento-texto);
+}
+
+.ev-status[data-status="pausada"],
+.ev-status[data-status="encerrada"] {
+  background: var(--rh-aviso-fundo, #fffbeb);
+  color: var(--rh-aviso-texto, #92400e);
+}
+
+@media (max-width: 520px) {
+  .ev-status {
+    display: none;
+  }
+}
+
+.ev-fechar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  color: var(--tinta);
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out);
+}
+
+.ev-fechar:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+/* Abas Editar/Prévia: só no celular. */
+.ev-abas {
+  display: flex;
+  flex: none;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--borda);
+  background: var(--branco);
+  padding: 0.625rem 1rem;
+}
+
+@media (min-width: 1024px) {
+  .ev-abas {
+    display: none;
+  }
+}
+
+.ev-aba {
+  display: inline-flex;
+  min-height: 44px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ev-aba[data-ativa="true"] {
+  border-color: var(--tinta);
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+/* --------------------------------------------------------------------- Corpo */
+
+.ev-corpo {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.ev-grade {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .ev-grade {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .ev-grade {
+    grid-template-columns: minmax(0, 1fr) 23rem;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1536px) {
+  .ev-grade {
+    grid-template-columns: minmax(0, 1fr) 27rem;
+    gap: 2rem;
+  }
+}
+
+.ev-form {
+  display: grid;
+  min-width: 0;
+  gap: 1.125rem;
+}
+
+@media (min-width: 1536px) {
+  .ev-form {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.ev-cartao {
+  min-width: 0;
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra-1);
+  padding: 1.125rem 1rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .ev-cartao {
+    padding: 1.375rem 1.5rem 1.5rem;
+  }
+}
+
+.ev-cartao__cab {
+  margin-bottom: 1.125rem;
+  border-bottom: 1px solid var(--borda);
+  padding-bottom: 0.875rem;
+}
+
+.ev-cartao__titulo {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.ev-cartao__sub {
+  margin: 0.25rem 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+/* O miolo de cada cartão: o espaçamento vertical que as seções tinham. */
+.ev-cartao__corpo {
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* No celular só uma das duas colunas aparece, conforme a aba. */
+@media (max-width: 1023px) {
+  .ev-form[data-oculta="true"],
+  .ev-lateral[data-oculta="true"] {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------- Prévia */
+
+.ev-lateral {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .ev-lateral__fixo {
+    position: sticky;
+    top: 0;
+  }
+}
+
+.ev-previa {
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  background: var(--branco);
+  box-shadow: var(--sombra-1);
+  padding: 1.125rem;
+}
+
+.ev-previa__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--acento-texto);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.ev-previa__ajuda {
+  margin: 0.25rem 0 0.875rem;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ev-previa__vazio {
+  margin: 0;
+  border: 1px dashed var(--borda-forte);
+  border-radius: 12px;
+  background: var(--chao);
+  padding: 1.5rem 1rem;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.ev-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.875rem 0 0;
+  border-radius: 12px;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.ev-aviso--ok {
+  background: var(--menta);
+  color: var(--acento-texto);
+}
+
+.ev-aviso--atencao {
+  background: var(--rh-aviso-fundo, #fffbeb);
+  color: var(--rh-aviso-texto, #92400e);
+}
+
+/* ------------------------------------------------------------------- Rodapé */
+
+.ev-rodape {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid var(--borda);
+  background: var(--branco);
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 640px) {
+  .ev-rodape {
+    padding-inline: 1.5rem;
+  }
+}
+
+.ev-rodape__nota {
+  display: none;
+  margin: 0 auto 0 0;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .ev-rodape__nota {
+    display: block;
+  }
+}
+
+.ev-btn {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--borda-forte);
+  border-radius: 999px;
+  background: var(--branco);
+  padding: 0 1.375rem;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--t-hover) var(--ease-out),
+    border-color var(--t-hover) var(--ease-out),
+    transform var(--t-press) var(--ease-out);
+}
+
+.ev-btn:hover {
+  border-color: var(--tinta);
+  background: var(--chao-2);
+}
+
+.ev-btn:active {
+  transform: scale(0.97);
+}
+
+/* A ação principal (publicar/salvar) é o único verde-maçã do diálogo. */
+.ev-btn--acento {
+  border-color: transparent;
+  background: var(--acento);
+  box-shadow: var(--sombra-botao);
+  color: var(--tinta);
+}
+
+.ev-btn--acento:hover {
+  border-color: transparent;
+  background: var(--acento-claro);
+}
+
+.ev-btn--pequeno {
+  min-height: 44px;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+}
+
+.ev-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 520px) {
+  .ev-rodape .ev-btn {
+    flex: 1 1 auto;
+    padding-inline: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev *,
+  .ev *::before,
+  .ev *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

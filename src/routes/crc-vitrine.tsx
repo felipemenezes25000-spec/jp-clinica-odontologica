@@ -50,8 +50,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Suspense, lazy, useEffect, useMemo, useState, type ReactElement } from "react";
 
-import "@/components/crc/crc.css";
-import "@/components/crc/crc-premium.css";
+import { CLASSE_CRC } from "@/components/crc/estilos-crc";
 
 export const Route = createFileRoute("/crc-vitrine")({
   component: Vitrine,
@@ -274,7 +273,7 @@ function Vitrine(): ReactElement {
 
   return (
     <div
-      className="crc-app"
+      className={CLASSE_CRC}
       style={{ display: "grid", gridTemplateColumns: "230px 1fr", minHeight: "100dvh" }}
     >
       <nav

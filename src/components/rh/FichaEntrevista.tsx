@@ -14,10 +14,11 @@
  * única coisa que este arquivo envia. Regenerar refaz a primeira metade sem
  * encostar na segunda, e é isso que o aviso do botão "Regenerar" promete.
  *
- * A superfície é o verde profundo da gaveta, e a regra de contraste do cliente
- * vale sem exceção: sobre verde, LETRA BRANCA. O lime continua em ícone, borda,
- * anel e barra — que não são letra —, mas todo texto legível é `text-white`, e
- * o texto de apoio não desce de `text-white/85`. E `agora` desce por prop, como
+ * Visual: cartão branco de borda fina sobre o chão claro da gaveta, tinta no que
+ * está escolhido e verde-maçã só na ação (Iniciar entrevista). Tudo em classes
+ * `.fe-*` de `entrevista.css`; as utilitárias de letra branca do tempo da gaveta
+ * escura saíram, porque o tema claro do painel as remapeava e os botões de
+ * resposta ficavam invisíveis. E `agora` desce por prop, como
  * no resto da gaveta: `new Date()` no render sai diferente no servidor e no
  * navegador e derruba a hidratação.
  */
@@ -27,6 +28,7 @@ import {
   CircleAlert,
   ClipboardList,
   Copy,
+  Eye,
   ListChecks,
   LoaderCircle,
   Play,
@@ -36,6 +38,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { CabecalhoFolha } from "@/components/rh/CabecalhoFolha";
+import "./entrevista.css";
 import { LEITURAS, montarDuvidas } from "@/lib/rh/duvidas";
 import { formatarData, formatarDataHora, tempoRelativo } from "@/lib/rh/formatar";
 import {
@@ -62,22 +65,9 @@ import type { Candidatura } from "@/lib/rh/tipos";
 /* Constantes de estilo                                                       */
 /* -------------------------------------------------------------------------- */
 
-/* Métrica de `.rh-rotulo` sobre o vidro escuro. Branco, e não lime: sobre verde
-   a letra é branca — o lime fica para o que não é letra (ícone, borda, anel). */
-const ROTULO = "text-[0.68rem] font-bold uppercase tracking-[0.14em] text-white";
-
-const BOTAO =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-bold ring-1 transition";
-const BOTAO_PRINCIPAL = `${BOTAO} bg-lime text-brand-deep ring-lime hover:bg-lime/85`;
-const BOTAO_SECUNDARIO = `${BOTAO} bg-white/10 text-white ring-white/20 hover:bg-white/20`;
-
-/* Campo escuro. Não é `.rh-campo`: aquela classe é branca, desenhada para o
-   formulário público, e no vidro escuro da gaveta cada campo viraria um bloco
-   de luz. A métrica (altura, raio, respiro) é a mesma. */
-const CAMPO =
-  "block w-full min-h-11 rounded-xl border border-white/15 bg-white/[0.07] px-3 py-2 " +
-  "text-sm leading-relaxed text-white placeholder:text-white/85 transition-colors " +
-  "hover:border-white/30 focus:border-lime";
+/* O visual mora em `entrevista.css` (classes `.fe-*`). */
+const BOTAO_PRINCIPAL = "fe-btn fe-btn--acento";
+const BOTAO_SECUNDARIO = "fe-btn";
 
 /**
  * Quanto tempo a tela espera antes de mandar a anotação ao servidor.
@@ -259,7 +249,7 @@ function BotoesResposta(props: {
 }) {
   const { legenda, valor, aoEscolher } = props;
   return (
-    <div role="group" aria-label={legenda} className="flex flex-wrap gap-1.5">
+    <div role="group" aria-label={legenda} className="fe-opcoes">
       {RESPOSTAS_TRIAGEM.map((o) => {
         const ativo = valor === o.valor;
         return (
@@ -268,13 +258,9 @@ function BotoesResposta(props: {
             type="button"
             aria-pressed={ativo}
             onClick={() => aoEscolher(ativo ? "" : o.valor)}
-            className={[
-              "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-bold ring-1 transition",
-              ativo
-                ? "bg-lime text-brand-deep ring-lime"
-                : "bg-white/10 text-white ring-white/20 hover:bg-white/20",
-            ].join(" ")}
+            className="fe-opcao"
           >
+            {ativo ? <Check className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
             {o.rotulo}
           </button>
         );
@@ -289,11 +275,7 @@ function Contador(props: { rotulo: string; feitos: number; total: number }) {
   if (total === 0) return null;
   const completo = feitos >= total;
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ring-1 ${
-        completo ? "bg-lime/15 text-white ring-lime/30" : "bg-white/10 text-white ring-white/20"
-      }`}
-    >
+    <span className="fe-contador" data-completo={completo ? "true" : undefined}>
       {completo ? <Check className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /> : null}
       {rotulo} {feitos}/{total}
     </span>
@@ -760,15 +742,12 @@ export function BlocoFicha(props: {
   /* ---------------------------------------------------------------- topo */
 
   const titulo = (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <h3
-        id={`${uid}-titulo`}
-        className="flex items-center gap-2 font-display text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-white"
-      >
-        <ClipboardList className="h-4 w-4 shrink-0" aria-hidden="true" />
-        Ficha de entrevista
-      </h3>
-    </div>
+    <h3 id={`${uid}-titulo`} className="fe-titulo">
+      <span className="fe-titulo__icone" aria-hidden="true">
+        <ClipboardList className="h-[18px] w-[18px]" />
+      </span>
+      Ficha de entrevista
+    </h3>
   );
 
   /* -------------------------------------------------------------- estados */
@@ -778,15 +757,15 @@ export function BlocoFicha(props: {
   // Gerando pela primeira vez: a seção inteira é a espera.
   if (gerando && !gerada) {
     return (
-      <section aria-labelledby={`${uid}-titulo`} className="rh-vidro p-4 sm:p-5">
-        {titulo}
-        <div className="mt-3 flex items-center gap-3">
-          <LoaderCircle className="h-5 w-5 shrink-0 animate-spin text-lime" aria-hidden="true" />
+      <section aria-labelledby={`${uid}-titulo`} className="fe">
+        <header className="fe-cab">{titulo}</header>
+        <div className="fe-espera">
+          <LoaderCircle className="h-5 w-5 shrink-0 animate-spin" aria-hidden="true" />
           <div className="min-w-0">
-            <p role="status" aria-live="polite" className="text-sm font-bold text-white">
+            <p role="status" aria-live="polite" className="fe-espera__titulo">
               {PASSOS[passo] ?? PASSOS[0]}
             </p>
-            <p className="mt-0.5 text-xs text-white/85">
+            <p className="fe-apoio">
               {IA_DO_RH_LIGADA
                 ? "A ficha sai no formato do guia da clínica: costuma levar meio minuto."
                 : "A ficha sai no formato do guia da clínica."}
@@ -803,19 +782,19 @@ export function BlocoFicha(props: {
     // então a falha de uma geração antiga não tem mais o que dizer.
     const falhou = IA_DO_RH_LIGADA && ficha !== null && ficha.erro !== "";
     return (
-      <section aria-labelledby={`${uid}-titulo`} className="rh-vidro p-4 sm:p-5">
-        {titulo}
-        <p className="mt-2 text-sm leading-relaxed text-white/85">
+      <section aria-labelledby={`${uid}-titulo`} className="fe">
+        <header className="fe-cab">{titulo}</header>
+        <p className="fe-apoio fe-apoio--corpo">
           {IA_DO_RH_LIGADA
             ? "O sistema monta a ficha no formato do guia da clínica: ponto forte, o que validar, 4 itens de triagem objetiva e 4 perguntas tiradas do currículo dela."
             : "A ficha sai no formato do guia da clínica: as perguntas gerais e os critérios de nota, com espaço para as respostas, a impressão e a decisão."}
         </p>
 
         {falhou ? (
-          <p className="mt-3 flex items-start gap-2 rounded-xl bg-rose-300/10 p-3 text-sm leading-relaxed text-rose-100 ring-1 ring-rose-200/30">
+          <p className="fe-erro">
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>
-              <strong className="font-bold">A ficha não ficou pronta.</strong> {ficha.erro}
+              <strong>A ficha não ficou pronta.</strong> {ficha.erro}
             </span>
           </p>
         ) : null}
@@ -824,7 +803,7 @@ export function BlocoFicha(props: {
           type="button"
           onClick={() => aoGerar(false)}
           disabled={gerando}
-          className={`${BOTAO_PRINCIPAL} mt-3 disabled:opacity-60`}
+          className={`${BOTAO_PRINCIPAL} fe-btn--solta`}
         >
           {IA_DO_RH_LIGADA ? (
             <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -867,9 +846,25 @@ export function BlocoFicha(props: {
   const relativo = tempoRelativo(atual.geradaEm, agora);
 
   return (
-    <section aria-labelledby={`${uid}-titulo`} className="rh-vidro p-4 sm:p-5">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        {titulo}
+    <section aria-labelledby={`${uid}-titulo`} className="fe">
+      <header className="fe-cab">
+        <div className="min-w-0">
+          {titulo}
+          <p className="fe-sub">
+            {atual.guiaTitulo === "" ? "Guia da clínica" : atual.guiaTitulo}
+            {atual.geradaEm === "" ? "" : ` · preparada em ${formatarDataHora(atual.geradaEm)}`}
+            {relativo === "" ? "" : ` (${relativo})`}
+            {/* O aviso do "Regenerar" fica colado nele, e não escondido num
+                tooltip: é a pergunta que qualquer pessoa faz antes de clicar. */}
+            {IA_DO_RH_LIGADA ? (
+              <>
+                <br />
+                Regenerar refaz só o que a IA escreveu. As respostas, notas e observações anotadas
+                aqui ficam.
+              </>
+            ) : null}
+          </p>
+        </div>
         {/* Sem IA não há o que regenerar: a parte do guia não muda, e a parte
             que a IA escreveu antes não pode ser trocada por nada. */}
         {IA_DO_RH_LIGADA ? (
@@ -877,7 +872,7 @@ export function BlocoFicha(props: {
             type="button"
             onClick={() => aoGerar(true)}
             disabled={gerando}
-            className={`${BOTAO_SECUNDARIO} min-h-9 px-3 text-xs disabled:opacity-60`}
+            className={`${BOTAO_SECUNDARIO} fe-btn--pequeno`}
           >
             <RefreshCw
               className={`h-3.5 w-3.5 ${gerando ? "animate-spin" : ""}`}
@@ -886,48 +881,29 @@ export function BlocoFicha(props: {
             Regenerar
           </button>
         ) : null}
-      </div>
-
-      <p className="mt-1 text-xs leading-relaxed text-white/85">
-        {atual.guiaTitulo === "" ? "Guia da clínica" : atual.guiaTitulo}
-        {atual.geradaEm === "" ? "" : ` · preparada em ${formatarDataHora(atual.geradaEm)}`}
-        {relativo === "" ? "" : ` (${relativo})`}
-        {/* O aviso do "Regenerar" fica colado nele, e não escondido num tooltip:
-            é a pergunta que qualquer pessoa faz antes de clicar. */}
-        {IA_DO_RH_LIGADA ? (
-          <>
-            <br />
-            Regenerar refaz só o que a IA escreveu. As respostas, notas e observações anotadas aqui
-            ficam.
-          </>
-        ) : null}
-      </p>
+      </header>
 
       {gerando ? (
-        <p
-          role="status"
-          aria-live="polite"
-          className="mt-3 flex items-center gap-2 rounded-xl bg-lime/10 px-3 py-2 text-sm font-semibold text-white ring-1 ring-lime/25"
-        >
+        <p role="status" aria-live="polite" className="fe-gerando">
           <LoaderCircle className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
           {PASSOS[passo] ?? PASSOS[0]}
         </p>
       ) : null}
 
       {atual.erro !== "" && IA_DO_RH_LIGADA ? (
-        <div className="mt-3 rounded-xl bg-rose-300/10 p-3 ring-1 ring-rose-200/30">
-          <p className="flex items-start gap-2 text-sm leading-relaxed text-rose-100">
+        <div className="fe-erro fe-erro--bloco">
+          <p>
             <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>
-              <strong className="font-bold">A última geração falhou.</strong> {atual.erro} O que
-              está abaixo é a versão anterior.
+              <strong>A última geração falhou.</strong> {atual.erro} O que está abaixo é a versão
+              anterior.
             </span>
           </p>
           {!gerando ? (
             <button
               type="button"
               onClick={() => aoGerar(true)}
-              className={`${BOTAO_SECUNDARIO} mt-2.5 min-h-9 px-3 text-xs`}
+              className={`${BOTAO_SECUNDARIO} fe-btn--pequeno`}
             >
               <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
               Tentar de novo
@@ -937,22 +913,27 @@ export function BlocoFicha(props: {
       ) : null}
 
       {/* ---------- Leitura rápida ---------- */}
-      <div className="mt-4 grid gap-3">
-        {atual.pontoForte.trim() === "" ? null : (
-          <div className="rounded-xl border-l-4 border-lime bg-white/[0.05] p-3.5">
-            <h4 className={ROTULO}>Ponto forte</h4>
-            <p className="mt-1.5 text-sm leading-relaxed text-white/90">{atual.pontoForte}</p>
-          </div>
-        )}
-        {atual.oQueValidar.trim() === "" ? null : (
-          <div className="rounded-xl border-l-4 border-amber-300 bg-white/[0.05] p-3.5">
-            <h4 className="text-[0.68rem] font-bold uppercase tracking-[0.14em] text-amber-200">
-              O que validar
-            </h4>
-            <p className="mt-1.5 text-sm leading-relaxed text-white/90">{atual.oQueValidar}</p>
-          </div>
-        )}
-      </div>
+      {atual.pontoForte.trim() === "" && atual.oQueValidar.trim() === "" ? null : (
+        <div className="fe-leituras">
+          {atual.pontoForte.trim() === "" ? null : (
+            <div className="fe-leitura fe-leitura--forte">
+              <h4 className="fe-leitura__titulo">
+                <Sparkles className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Ponto forte
+              </h4>
+              <p>{atual.pontoForte}</p>
+            </div>
+          )}
+          {atual.oQueValidar.trim() === "" ? null : (
+            <div className="fe-leitura fe-leitura--validar">
+              <h4 className="fe-leitura__titulo">
+                <Eye className="h-4 w-4 shrink-0" aria-hidden="true" />O que validar
+              </h4>
+              <p>{atual.oQueValidar}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ---------- O botão grande ----------
           Ele é o caminho principal desta seção: a ficha existe para ser usada
@@ -960,14 +941,14 @@ export function BlocoFicha(props: {
       <button
         type="button"
         onClick={aoAbrirModoEntrevista}
-        className={`${BOTAO_PRINCIPAL} mt-4 min-h-14 w-full text-base`}
+        className={`${BOTAO_PRINCIPAL} fe-btn--grande`}
       >
         <Play className="h-5 w-5" aria-hidden="true" />
         Iniciar entrevista
       </button>
 
       {/* ---------- Progresso ---------- */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="fe-progresso">
         <Contador rotulo="triagem" feitos={triagemFeita} total={atual.triagem.length} />
         <Contador
           rotulo="perguntas"
@@ -976,13 +957,13 @@ export function BlocoFicha(props: {
         />
         <Contador rotulo="critérios" feitos={pontuados} total={criterios.length} />
         {maximo > 0 && pontuados > 0 ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-lime/15 px-3 py-1 text-xs font-extrabold tabular-nums text-white ring-1 ring-lime/30">
+          <span className="fe-contador fe-contador--total">
             <ListChecks className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             {total}/{maximo} pontos
           </span>
         ) : null}
         {atual.decisao === "" ? null : (
-          <span className="inline-flex items-center rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-white ring-1 ring-white/20">
+          <span className="fe-contador fe-contador--decisao">
             {rotuloDe(DECISOES, atual.decisao)}
           </span>
         )}
@@ -990,30 +971,29 @@ export function BlocoFicha(props: {
 
       {/* ---------- Triagem objetiva ---------- */}
       {atual.triagem.length > 0 ? (
-        <div className="mt-4 border-t border-white/10 pt-4">
-          <h4 className={ROTULO}>Triagem objetiva</h4>
-          <p className="mt-1 text-xs leading-relaxed text-white/85">
+        <div className="fe-secao">
+          <h4 className="fe-secao__titulo">Triagem objetiva</h4>
+          <p className="fe-apoio">
             Confirme estes quatro antes de aprofundar — é o que o guia manda fazer primeiro.
           </p>
 
-          <ol className="mt-3 space-y-4">
+          <ol className="fe-lista">
             {atual.triagem.map((t, i) => {
               const r = respostaDaTriagem(atual, t.pergunta);
               const idObs = `${uid}-obs-${i}`;
               return (
-                <li
-                  key={t.pergunta}
-                  className="rounded-xl bg-white/[0.04] p-3 ring-1 ring-white/10"
-                >
-                  <p className="text-sm font-semibold leading-relaxed text-white">
-                    <span className="mr-1.5 font-extrabold tabular-nums text-white">{i + 1}.</span>
-                    {t.pergunta}
+                <li key={t.pergunta} className="fe-item">
+                  <p className="fe-item__texto">
+                    <span className="fe-num" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0">{t.pergunta}</span>
                   </p>
                   {t.porque.trim() === "" ? null : (
-                    <p className="mt-0.5 text-xs leading-relaxed text-white/85">{t.porque}</p>
+                    <p className="fe-apoio fe-item__recuo">{t.porque}</p>
                   )}
 
-                  <div className="mt-2.5">
+                  <div className="fe-item__recuo mt-3">
                     <BotoesResposta
                       legenda={`Resposta: ${t.pergunta}`}
                       valor={r?.resposta ?? ""}
@@ -1044,7 +1024,7 @@ export function BlocoFicha(props: {
                       const pendente = refPendente.current;
                       if (pendente !== null) despachar(pendente);
                     }}
-                    className={`${CAMPO} mt-2 resize-y`}
+                    className="fe-campo fe-item__recuo"
                   />
                 </li>
               );
@@ -1055,29 +1035,25 @@ export function BlocoFicha(props: {
 
       {/* ---------- As quatro perguntas deste currículo ---------- */}
       {atual.perguntasEspecificas.length > 0 ? (
-        <div className="mt-4 border-t border-white/10 pt-4">
-          <h4 className={ROTULO}>Perguntas deste currículo</h4>
-          <ol className="mt-2 space-y-3">
+        <div className="fe-secao">
+          <h4 className="fe-secao__titulo">Perguntas deste currículo</h4>
+          <ol className="fe-lista fe-lista--solta">
             {atual.perguntasEspecificas.map((p, i) => {
               const r = respostaDaPergunta(atual, p.pergunta);
               return (
-                <li key={p.pergunta} className="flex gap-2.5">
-                  <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-lime/15 text-xs font-extrabold tabular-nums text-white ring-1 ring-lime/30">
+                <li key={p.pergunta} className="fe-pergunta">
+                  <span className="fe-num" aria-hidden="true">
                     {i + 1}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold leading-relaxed text-white">{p.pergunta}</p>
+                    <p className="fe-pergunta__texto">{p.pergunta}</p>
                     {p.porque.trim() === "" ? null : (
-                      <p className="mt-0.5 text-xs leading-relaxed text-white/85">
-                        para saber: {p.porque}
-                      </p>
+                      <p className="fe-apoio">para saber: {p.porque}</p>
                     )}
                     {/* A anotação aparece aqui em leitura: quem escreve é o modo
                         entrevista, com a candidata na frente e a tela inteira. */}
                     {r !== null && r.resposta.trim() !== "" ? (
-                      <p className="mt-1.5 rounded-lg border-l-2 border-lime/40 bg-white/[0.05] px-2.5 py-1.5 text-sm leading-relaxed text-white">
-                        {r.resposta}
-                      </p>
+                      <p className="fe-resposta">{r.resposta}</p>
                     ) : null}
                   </div>
                 </li>
@@ -1088,11 +1064,11 @@ export function BlocoFicha(props: {
       ) : null}
 
       {/* ---------- Ações de papel ---------- */}
-      <div className="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4">
+      <div className="fe-acoes">
         <button
           type="button"
           onClick={() => window.print()}
-          className={`${BOTAO_SECUNDARIO} min-h-10 px-3 text-xs`}
+          className={`${BOTAO_SECUNDARIO} fe-btn--pequeno`}
         >
           <Printer className="h-3.5 w-3.5" aria-hidden="true" />
           Imprimir ficha
@@ -1100,7 +1076,7 @@ export function BlocoFicha(props: {
         <button
           type="button"
           onClick={() => void copiar(textoDaFicha(item, guia, atual))}
-          className={`${BOTAO_SECUNDARIO} min-h-10 px-3 text-xs`}
+          className={`${BOTAO_SECUNDARIO} fe-btn--pequeno`}
         >
           {copiado === "sim" ? (
             <Check className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1109,21 +1085,20 @@ export function BlocoFicha(props: {
           )}
           Copiar ficha
         </button>
+        <p role="status" aria-live="polite" className="fe-estado">
+          {copiado === "sim" ? "Ficha copiada para a área de transferência." : ""}
+          {copiado === "nao" ? (
+            <span className="fe-estado--erro">
+              Não consegui copiar neste navegador — imprima ou selecione o texto à mão.
+            </span>
+          ) : null}
+          {salvando ? <span>Salvando…</span> : ""}
+        </p>
       </div>
 
-      <p role="status" aria-live="polite" className="mt-1.5 text-xs font-semibold text-white">
-        {copiado === "sim" ? "Ficha copiada para a área de transferência." : ""}
-        {copiado === "nao" ? (
-          <span className="text-amber-200">
-            Não consegui copiar neste navegador — imprima ou selecione o texto à mão.
-          </span>
-        ) : null}
-        {salvando ? <span className="text-white/85">Salvando…</span> : ""}
-      </p>
-
       {guia === null ? null : (
-        <p className="mt-3 flex items-start gap-2 border-t border-white/10 pt-3 text-[0.7rem] leading-relaxed text-white/85">
-          <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        <p className="fe-etica">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{guia.notaEtica}</span>
         </p>
       )}

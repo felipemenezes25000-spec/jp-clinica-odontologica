@@ -1,4 +1,6 @@
-/* O formulário de candidatura — /trabalhe-conosco. Ver DESIGN.md.
+/* O formulário de candidatura — /trabalhe-conosco. Direção "Clínica luminosa":
+ * barra branca com etapas numeradas, formulário num cartão branco, campos com
+ * foco em verde e erro em vermelho. Ver DESIGN.md.
  *
  * Duas camadas de CSS, de propósito:
  *
@@ -19,10 +21,15 @@
     position: sticky;
     top: 0;
     z-index: 40;
-    background: var(--chao);
+    background: rgb(255 255 255 / 0.94);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow:
+      0 1px 0 var(--borda),
+      0 8px 24px -16px rgb(3 47 1 / 0.18);
   }
   /* Uma linha só em qualquer largura: duas linhas gastavam ~85px (10%) da tela
-     do celular durante todo o preenchimento. No celular o rótulo das coroas e o
+     do celular durante todo o preenchimento. No celular o rótulo das etapas e o
      texto do "Ver vagas" saem (o botão vira um alvo de 44px só com a seta); o
      progresso continua dito pelo `aria-valuetext` da barra. */
   .cand-barra-linha {
@@ -56,7 +63,7 @@
   }
   .cand-etapas ol {
     display: flex;
-    gap: 0.9rem;
+    align-items: center;
   }
   .cand-etapas li {
     display: inline-flex;
@@ -66,28 +73,61 @@
     color: var(--tinta-suave);
     transition: color var(--t-ui) ease;
   }
-  /* A coroa ainda por fazer precisa ser vista: chao-3 sobre chao dava ~1,3:1 e
-     sumia. */
-  .cand-etapas .marca-coroa {
-    width: 1.4rem;
-    height: 1.4rem;
-    color: color-mix(in oklab, var(--tinta-suave) 40%, var(--chao));
-    transition: color var(--t-ui) ease;
+  /* O fio entre uma etapa e a seguinte. */
+  .cand-etapas li + li::before {
+    content: "";
+    width: clamp(1rem, 6vw, 2.5rem);
+    height: 2px;
+    margin-inline: 0.5rem;
+    border-radius: 2px;
+    background: var(--borda-forte);
+    transition: background-color var(--t-ui) ease;
   }
-  /* Três estados, e nenhum é só cor: o peso do rótulo muda no atual, e o feito
-     ganha o ✓ do leitor de tela pelo `aria-valuetext` da barra. */
+  .cand-etapas li[data-estado="feito"] + li::before {
+    background: var(--acento);
+  }
+  /* A bolinha da etapa: número, ou ✓ quando a parte está completa. */
+  .cand-etapa-no {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--chao-2);
+    box-shadow: inset 0 0 0 1.5px var(--borda-forte);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    color: var(--tinta-suave);
+    transition:
+      background-color var(--t-ui) ease,
+      color var(--t-ui) ease,
+      box-shadow var(--t-ui) ease;
+  }
+  .cand-etapa-no svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    stroke-width: 3;
+  }
+  /* Três estados, e nenhum é só cor: o feito traz o ✓, o atual traz o número
+     em círculo cheio e o rótulo mais pesado, o futuro fica vazado. */
   .cand-etapas li[data-estado="feito"] {
     color: var(--tinta);
   }
-  .cand-etapas li[data-estado="feito"] .marca-coroa {
-    color: var(--acento);
+  .cand-etapas li[data-estado="feito"] .cand-etapa-no {
+    background: var(--acento);
+    box-shadow: none;
+    color: var(--tinta);
   }
   .cand-etapas li[data-estado="atual"] {
     color: var(--tinta);
-    font-weight: 600;
+    font-weight: 650;
   }
-  .cand-etapas li[data-estado="atual"] .marca-coroa {
-    color: var(--tinta);
+  .cand-etapas li[data-estado="atual"] .cand-etapa-no {
+    background: var(--tinta);
+    box-shadow: 0 0 0 4px var(--menta);
+    color: var(--sobre-campo);
   }
   @media (min-width: 640px) {
     .cand-voltar {
@@ -97,8 +137,9 @@
     .cand-etapa-rotulo {
       display: inline;
     }
-    .cand-etapas ol {
-      gap: 1.5rem;
+    .cand-etapas li + li::before {
+      width: 2.5rem;
+      margin-inline: 0.9rem;
     }
   }
   @media (min-width: 900px) {
@@ -109,14 +150,11 @@
     .cand-voltar {
       justify-self: end;
     }
-    .cand-etapas ol {
-      gap: 2rem;
-    }
   }
 
   /* ---- A página ----------------------------------------------------------------- */
   .cand-pagina {
-    padding-block: clamp(2rem, 5vw, 4.5rem) clamp(4rem, 9vw, 8rem);
+    padding-block: clamp(2rem, 5vw, 4.5rem) clamp(4rem, 9vw, 7rem);
   }
   .cand-grade {
     display: grid;
@@ -126,10 +164,41 @@
     min-width: 0;
   }
   .cand-lateral > * + * {
-    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
+    margin-top: clamp(1.1rem, 1rem + 0.8vw, 1.6rem);
   }
-  .cand-lateral p {
-    max-width: 36ch;
+  .cand-lateral h1 {
+    margin-top: 1.25rem;
+    font-size: clamp(2.25rem, 1.4rem + 3.2vw, 4rem);
+    line-height: 1.02;
+  }
+  .cand-lateral > p {
+    max-width: 38ch;
+    color: var(--tinta-suave);
+  }
+  .cand-lateral-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    max-width: 26rem;
+    padding: 1rem 1.1rem;
+    font-size: var(--text-pequeno);
+    line-height: 1.45;
+    color: var(--tinta-suave);
+  }
+  .cand-lateral-nota .pastilha {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 12px;
+  }
+  .cand-lateral-nota .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  .cand-lateral-nota strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 650;
+    color: var(--tinta);
   }
   .cand-lateral-foto {
     display: none;
@@ -137,7 +206,7 @@
   @media (min-width: 1024px) {
     .cand-grade {
       grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      gap: clamp(3rem, 6vw, 7rem);
+      gap: clamp(3rem, 6vw, 6rem);
       align-items: start;
     }
     .cand-lateral {
@@ -147,8 +216,10 @@
     .cand-lateral-foto {
       display: block;
       position: relative;
-      max-width: 26rem;
-      margin-top: 3rem;
+      max-width: 24rem;
+    }
+    .cand-lateral-foto .moldura-coroa {
+      box-shadow: var(--sombra-1);
     }
     .cand-lateral-foto .moldura-coroa > img {
       position: absolute;
@@ -162,8 +233,9 @@
     gap: 1rem;
     margin-bottom: 1rem;
     padding: 1.25rem;
+    border: 1px solid color-mix(in oklab, var(--acento) 35%, transparent);
     border-radius: var(--raio);
-    background: var(--chao-3);
+    background: var(--menta);
   }
   .cand-rascunho p {
     max-width: 52ch;
@@ -181,23 +253,49 @@
     }
   }
 
+  /* O formulário: um cartão branco; os blocos numerados por contador CSS. */
   .cand-form {
+    counter-reset: bloco;
     padding: clamp(1.25rem, 0.5rem + 3.5vw, 3rem);
-    border-radius: var(--raio);
-    background: var(--chao-2);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-lg);
+    background: var(--branco);
+    box-shadow: var(--sombra-2);
   }
   .cand-bloco {
+    counter-increment: bloco;
     margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    padding-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+    border-top: 1px solid var(--borda);
   }
-  /* O primeiro bloco já ganha respiro do padding do painel. */
+  /* O primeiro bloco já ganha respiro do padding do cartão. */
   .cand-bloco:first-of-type {
     margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
   }
   .cand-bloco > h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
     margin-bottom: 1.25rem;
     font-size: var(--text-frase);
     line-height: 1.16;
     letter-spacing: -0.02em;
+  }
+  .cand-bloco > h3::before {
+    content: counter(bloco);
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--menta);
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: 0;
+    color: var(--acento-texto);
   }
   .cand-bloco > * + * {
     margin-top: 1.5rem;
@@ -210,16 +308,17 @@
     gap: 0.75rem;
     margin-bottom: 1.5rem;
     padding: 1rem 1.25rem;
-    border-radius: var(--raio);
+    border-radius: var(--raio-sm);
     font-size: var(--text-pequeno);
     font-weight: 500;
   }
   .cand-alerta {
-    background: color-mix(in oklab, var(--destructive) 9%, var(--chao));
+    background: color-mix(in oklab, var(--destructive) 9%, var(--branco));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--destructive) 35%, transparent);
     color: var(--destructive);
   }
   .cand-aviso {
-    background: var(--chao-3);
+    background: var(--menta);
     color: var(--tinta);
   }
   .cand-alerta svg,
@@ -232,12 +331,12 @@
 
   /* ---- Escolhas: vaga e área ------------------------------------------------------
      Rádios nativos escondidos (`sr-only`) dentro de um <label>: a opção inteira
-     é o alvo, e o navegador cuida de Tab único e setas. O estado escolhido sai
-     de `:has(input:checked)`: tinta chapada, coroa em verde-maçã e, nas áreas,
-     o ✓ — o tom, o ✓ e o próprio rádio dizem a mesma coisa, nenhum só pela cor. */
+     é o alvo, e o navegador cuida de Tab único e setas. O escolhido sai de
+     `:has(input:checked)`: fundo menta, borda verde e o rádio preenchido — o
+     tom, a borda e o próprio rádio dizem a mesma coisa, nenhum só pela cor. */
   .cand-opcoes {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.6rem;
   }
   .cand-opcao {
     position: relative;
@@ -248,25 +347,33 @@
     width: 100%;
     min-height: 3.5rem;
     padding: 1rem 1.25rem;
-    border-radius: var(--raio);
-    background: var(--chao);
+    border-radius: var(--raio-sm);
+    background: var(--branco);
+    box-shadow: inset 0 0 0 1.5px var(--borda-forte);
     color: var(--tinta);
     text-align: left;
     cursor: pointer;
     transition:
       transform var(--t-press) var(--ease-out),
       background-color var(--t-hover) ease,
-      color var(--t-hover) ease;
+      box-shadow var(--t-hover) ease;
   }
   .cand-opcao:active {
-    transform: scale(0.985);
+    transform: scale(0.99);
   }
+  /* O rádio: um anel que se enche. A coroa-ponto vira o miolo. */
   .cand-opcao .marca-coroa {
+    box-sizing: content-box;
     width: 1.1rem;
     height: 1.1rem;
-    margin-top: 0.2em;
-    color: color-mix(in oklab, var(--tinta-suave) 40%, var(--chao));
-    transition: color var(--t-ui) ease;
+    margin-top: 0.1em;
+    padding: 0.12rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 2px var(--tinta-suave);
+    color: transparent;
+    transition:
+      color var(--t-ui) ease,
+      box-shadow var(--t-ui) ease;
   }
   .cand-opcao-titulo {
     display: block;
@@ -282,14 +389,12 @@
     color: var(--tinta-suave);
   }
   .cand-opcao:has(input:checked) {
-    background: var(--tinta);
-    color: var(--sobre-campo);
+    background: var(--menta);
+    box-shadow: inset 0 0 0 2px var(--acento-texto);
   }
   .cand-opcao:has(input:checked) .marca-coroa {
-    color: var(--acento);
-  }
-  .cand-opcao:has(input:checked) .cand-opcao-meta {
-    color: var(--sobre-campo-suave);
+    box-shadow: inset 0 0 0 2px var(--acento-texto);
+    color: var(--acento-texto);
   }
   .cand-opcao:has(input:focus-visible),
   .cand-area:has(input:focus-visible) {
@@ -299,7 +404,8 @@
   @media (hover: hover) and (pointer: fine) {
     .cand-opcao:not(:has(input:checked)):hover,
     .cand-area:not(:has(input:checked)):hover {
-      background: var(--chao-3);
+      background: var(--chao-2);
+      box-shadow: inset 0 0 0 1.5px var(--tinta);
     }
   }
 
@@ -317,7 +423,8 @@
     min-height: 2.75rem;
     padding: 0.4rem 1.1rem;
     border-radius: 999px;
-    background: var(--chao);
+    background: var(--branco);
+    box-shadow: inset 0 0 0 1.5px var(--borda-forte);
     color: var(--tinta);
     font-size: var(--text-pequeno);
     font-weight: 500;
@@ -325,7 +432,7 @@
     transition:
       transform var(--t-press) var(--ease-out),
       background-color var(--t-hover) ease,
-      color var(--t-hover) ease;
+      box-shadow var(--t-hover) ease;
   }
   .cand-area:active {
     transform: scale(0.97);
@@ -334,11 +441,12 @@
     display: none;
     width: 1em;
     height: 1em;
+    color: var(--acento-texto);
   }
   .cand-area:has(input:checked) {
-    background: var(--tinta);
-    color: var(--sobre-campo);
-    font-weight: 600;
+    background: var(--menta);
+    box-shadow: inset 0 0 0 2px var(--acento-texto);
+    font-weight: 650;
   }
   .cand-area:has(input:checked) svg {
     display: block;
@@ -357,8 +465,9 @@
   /* ---- Consentimento e envio --------------------------------------------------- */
   .cand-consent {
     padding: clamp(1.1rem, 1rem + 1vw, 1.75rem);
+    border: 1px solid var(--borda);
     border-radius: var(--raio);
-    background: var(--chao);
+    background: var(--chao-2);
   }
   .cand-consent label {
     display: flex;
@@ -381,13 +490,14 @@
   }
   .cand-envio .botao:disabled {
     background: var(--chao-3);
+    box-shadow: none;
     color: var(--tinta-suave);
     cursor: progress;
   }
   @media (min-width: 640px) {
     .cand-envio .botao {
       width: auto;
-      min-width: 16rem;
+      min-width: 18rem;
     }
   }
 
@@ -395,32 +505,37 @@
   .cand-ok-topo {
     position: relative;
     overflow: clip;
-    padding-block: clamp(3rem, 8vw, 7rem);
+    padding-block: clamp(3rem, 8vw, 6rem);
   }
   .cand-ok-grade {
-    position: relative;
-    z-index: 1;
     display: grid;
     gap: 2.5rem;
   }
-  .cand-ok-forma {
-    position: absolute;
-    right: -6%;
-    bottom: -2rem;
-    z-index: 0;
-    display: none;
-    width: min(38vw, 34rem);
-    color: var(--acento);
-    pointer-events: none;
+  .cand-ok-selo {
+    display: inline-grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 999px;
+    background: var(--acento);
+    box-shadow: var(--sombra-botao);
+    color: var(--tinta);
+  }
+  .cand-ok-selo svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    stroke-width: 3;
   }
   .cand-protocolo {
     max-width: 30rem;
     padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+    box-shadow: var(--sombra-2);
   }
   .cand-protocolo small {
     display: block;
     font-size: var(--text-pequeno);
-    color: var(--sobre-campo-suave);
+    color: var(--tinta-suave);
   }
   .cand-protocolo strong {
     display: block;
@@ -440,19 +555,27 @@
   }
   .cand-depois {
     display: grid;
-    gap: 2rem;
+    gap: 0.75rem;
     margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    counter-reset: passo;
   }
   .cand-depois li {
+    counter-increment: passo;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 0.9rem;
+    column-gap: 1rem;
+    padding: clamp(1.1rem, 1rem + 1vw, 1.6rem);
   }
-  .cand-depois .marca-coroa {
-    width: 1.2rem;
-    height: 1.2rem;
-    margin-top: 0.3em;
-    color: var(--acento);
+  .cand-depois li::before {
+    content: counter(passo);
+    display: inline-grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    background: var(--menta);
+    font-weight: 650;
+    color: var(--acento-texto);
   }
   .cand-depois strong {
     display: block;
@@ -469,14 +592,14 @@
   @media (min-width: 1024px) {
     .cand-ok-grade {
       grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-      align-items: end;
+      align-items: center;
     }
-    .cand-ok-forma {
-      display: block;
+    .cand-ok-grade > :last-child {
+      justify-self: end;
     }
     .cand-depois {
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: clamp(2rem, 4vw, 4rem);
+      gap: 1rem;
     }
   }
 }
@@ -497,13 +620,13 @@
   color: var(--tinta-suave);
 }
 .candidatura .rh-campo {
-  min-height: 3.25rem;
+  min-height: 3.5rem;
   padding: 0.7rem 1rem;
-  /* tinta-suave: 7,7:1 sobre o chão. Os 38% de tinta davam ~2,2:1, abaixo dos
-     3:1 de WCAG 1.4.11 para o limite do campo. */
+  /* A borda do campo passa de 3:1 contra o branco (WCAG 1.4.11): tinta-suave
+     sobre branco mede 7,6:1. O foco é que acende em verde. */
   border: 1.5px solid var(--tinta-suave);
-  border-radius: var(--raio);
-  background: var(--chao);
+  border-radius: var(--raio-sm);
+  background: var(--branco);
   color: var(--tinta);
   font-size: var(--text-corpo);
   box-shadow: none;
@@ -511,16 +634,20 @@
 .candidatura .rh-campo::placeholder {
   color: var(--tinta-suave);
 }
-.candidatura .rh-campo:focus {
+.candidatura .rh-campo:hover {
   border-color: var(--tinta);
-  box-shadow: none;
+}
+.candidatura .rh-campo:focus {
+  border-color: var(--acento-texto);
+  background: var(--branco);
+  box-shadow: 0 0 0 4px rgb(86 168 5 / 0.22);
 }
 .candidatura .rh-campo[aria-invalid="true"] {
   border-color: var(--destructive);
-  background: color-mix(in oklab, var(--destructive) 6%, var(--chao));
+  background: color-mix(in oklab, var(--destructive) 5%, var(--branco));
 }
 .candidatura .rh-campo[aria-invalid="true"]:focus {
-  box-shadow: none;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--destructive) 20%, transparent);
 }
 .candidatura textarea.rh-campo {
   min-height: 8rem;
@@ -545,14 +672,14 @@
 }
 .candidatura .rh-dropzone:hover,
 .candidatura .rh-dropzone[data-sobre="true"] {
-  border-color: var(--tinta);
-  background: var(--chao-3);
+  border-color: var(--acento-texto);
+  background: var(--menta);
   transform: none;
 }
 .candidatura .rh-dropzone[data-preenchido="true"] {
   border-style: solid;
-  border-color: var(--tinta);
-  background: var(--chao);
+  border-color: var(--acento-texto);
+  background: var(--menta);
 }
 .candidatura .rh-dropzone span {
   font-size: var(--text-pequeno);
@@ -565,16 +692,16 @@
   color: var(--tinta);
 }
 .candidatura .rh-dropzone svg {
-  color: var(--tinta);
+  color: var(--acento-texto);
 }
 .candidatura label.rh-dropzone + button {
   border: 0;
   border-radius: 999px;
-  background: var(--chao-3);
+  background: var(--chao-2);
   color: var(--tinta);
   font-size: var(--text-pequeno);
   font-weight: 600;
 }
 .candidatura label.rh-dropzone + button:hover {
-  background: var(--chao);
+  background: var(--chao-3);
 }

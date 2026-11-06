@@ -1,144 +1,116 @@
 # Design system — JP Clínica Odontológica
 
-> **Documento vivo. Redesenho de novembro de 2026.**
+> **Documento vivo. Direção "Clínica luminosa", de 06/11/2026.**
 >
-> Fonte executável: o bloco "SISTEMA JP 2026" no fim de `src/styles.css`, os componentes de
-> `src/components/site/sistema/` e as peças de referência `src/components/site/Header.tsx` e
-> `src/components/site/home/Abertura.tsx`. Dados públicos: `src/lib/jp.ts`. Marca: `docs/marca/LEIA-ME.md`.
+> Fonte executável: o bloco "SISTEMA JP 2026" no fim de `src/styles.css`, as peças de
+> `src/components/site/ui/` e `src/components/site/sistema/`, e a peça de referência
+> `src/components/site/home/TopoHome.tsx`. Dados públicos: `src/lib/jp.ts`. Marca: `docs/marca/LEIA-ME.md`.
 
 ## A ideia
 
-**Uma forma só: o retângulo de cantos suaves, no raio dos cartões (`--raio`, 20px).**
+**Clínica de bairro com acabamento de clínica premium: clara, arejada, com gente de verdade e prova
+social à vista.**
 
-O lançamento de 11/2026 usava uma "coroa" de dois lobos tirada do dente da marca. A clínica reprovou o
-desenho em 06/11/2026 e ele saiu do site inteiro. Os nomes dos componentes ficaram por histórico; o
-desenho é este:
+O primeiro lançamento de 11/2026 era chapado e escuro, com uma "coroa" de dois lobos em toda foto, e a
+clínica o reprovou em 06/11/2026: pareceu amador e sem força para converter anúncio. A direção atual:
 
-1. **gigante** — o bloco chapado em verde-maçã atrás da janela do topo e os "ecos" deslocados atrás das
-   fotos: `<FormaCoroa>`;
-2. **toda fotografia** — `<MolduraCoroa>`, com `border-radius: min(var(--raio), 10%)`;
-3. **marcador de lista e item ativo** — `<MarcaCoroa>`, um ponto na altura da letra;
-4. **a fileira do rodapé** — blocos de topo arredondado com o J e o P vazados (`ArcadaDoRodape`).
+1. **fundo claro** (`chao`, quase branco) com seções alternando para `chao-2`; o verde profundo (`campo`)
+   só no fechamento e no rodapé;
+2. **cartões brancos** com borda fina e sombra suave (`.cartao`, `.cartao-vivo` sobe no hover);
+3. **prova social em selo**: a nota do Google antes do H1, rostos reais da equipe, CRO à vista, número de
+   convênios, horário de agora; sobre a foto, cartões de **vidro** com um depoimento real e a responsável
+   técnica;
+4. **o verde-maçã só na ação** (o botão principal, com relevo e reflexo no hover) e em pontos de realce;
+5. **movimento de interação**: CSS (hover, acordeão), Embla (carrossel de avaliações), contador próprio
+   (números que sobem), faixa rolante de convênios; entradas discretas ao rolar, sem GSAP.
 
-Nenhuma forma com lobos, recortes ou silhueta figurativa em moldura de foto.
-
-Direção de arte sorteada pela taste-skill: **One motif** (semente `2147397342`), paleta da marca mantida,
-tipo Bricolage Grotesque. Folha completa: `node <taste-skill>/scripts/draw.mjs --show` (arquivo em
-`.taste-skill/direction.json`, fora do Git).
+Nenhuma forma com lobos, recortes ou silhueta figurativa em moldura de foto. Nada de bloco verde chapado
+decorativo sem função.
 
 ## Regras da casa (valem em todas as páginas públicas)
 
-| Não                                                                             | Em vez disso                                                           |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Rótulo miúdo em caixa-alta acima do título ("eyebrow"), pílula-selo acima do H1 | A informação vai no título ou na primeira frase                        |
-| Numeração 01/02/03                                                              | Ordem pela posição; `<ol>` quando a ordem importa                      |
-| Filete de 1px, caixa contornada, grade de linhas                                | Espaço, ou um degrau de tom (`chao` → `chao-2`)                        |
-| Degradê em fundo, botão ou texto                                                | Cor chapada ou foto real. Única exceção: véu chapado sob texto em foto |
-| Sombra em coisa parada, brilho, `blur` decorativo                               | Degrau de tom. Sombra só no que flutua de verdade (menu, diálogo)      |
-| Vidro (`backdrop-filter`), pílula de navegação flutuante                        | Barra lisa                                                             |
-| Card com ícone no topo, fileira de cards idênticos                              | O desenho da seção (ver "Seções")                                      |
-| Palavra destacada no título (cor, itálico, sublinhado)                          | Uma cor, um peso: as palavras carregam a ênfase                        |
-| Monoespaçada, emoji, bolha decorativa                                           | Nada                                                                   |
-| Título com mais de duas linhas em qualquer largura                              | Cortar palavras, depois alargar a medida, por último reduzir           |
+| Não                                                     | Em vez disso                                                   |
+| ------------------------------------------------------- | -------------------------------------------------------------- |
+| Número, avaliação, prêmio, preço ou promessa inventados | Só o que está em `jp.ts`; o que faltar fica de fora            |
+| Estrelas em depoimento individual                       | Estrelas só na nota geral do Google                            |
+| Foto de celular esticada em tela cheia                  | Foto média, bem enquadrada, com selo ou cartão por cima        |
+| Vidro em bloco de texto corrido                         | Vidro só no que flutua sobre foto                              |
+| Mais de um botão principal por dobra                    | Um principal (WhatsApp) + um secundário (telefone ou ver mais) |
+| Seção sem saída                                         | CTA a cada uma ou duas seções, sempre o mesmo destino          |
+| Monoespaçada, emoji, bolha decorativa, degradê em texto | Nada                                                           |
+| Título com mais de duas linhas em qualquer largura      | Cortar palavras, depois alargar a medida, por último reduzir   |
 
-Também: um H1 por página dizendo o que é a página; título em toda seção; margens externas iguais nos
-dois lados em toda largura; nenhum trecho vazio maior que meia tela; nenhuma metade de tela vazia ao
-lado de texto.
+Também: um H1 por página dizendo o que é a página; sobretítulo curto (`.sobretitulo`) + título em toda
+seção; margens externas iguais nos dois lados em toda largura; nenhum trecho vazio maior que meia tela.
 
 ## Cor
 
-| Token (Tailwind)                    | Valor                 | Uso                                                                                      |
-| ----------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
-| `chao`                              | `#F4F5EC`             | fundo da página                                                                          |
-| `chao-2` / `chao-3`                 | `#E9ECDF` / `#DCE3CE` | ladrilho, botão secundário, hover                                                        |
-| `tinta`                             | `#032F01`             | todo texto corrido e títulos no chão                                                     |
-| `tinta-suave`                       | `#3F523B`             | notas secundárias (7,7:1 no chão) — nunca o texto principal                              |
-| `acento`                            | `#56A805`             | o botão principal, a forma gigante, os marcadores. **Nunca texto sobre o chão (2,73:1)** |
-| `acento-claro`                      | `#6CC414`             | hover do botão principal                                                                 |
-| `campo`                             | `#032F01`             | seção escura inteira (`.campo-escuro`)                                                   |
-| `campo-marca`                       | `#095902`             | verde institucional, segundo campo escuro                                                |
-| `sobre-campo` / `sobre-campo-suave` | `#F4F5EC` / `#C9D6C2` | texto sobre campo escuro                                                                 |
+| Token (CSS)                     | Valor                 | Uso                                                                     |
+| ------------------------------- | --------------------- | ----------------------------------------------------------------------- |
+| `--chao`                        | `#FBFCF8`             | fundo da página                                                         |
+| `--chao-2` / `--chao-3`         | `#F1F5EA` / `#E2E9D6` | seção alternada (`.secao-clara`) / divisória, trilho                    |
+| `--branco`                      | `#FFFFFF`             | cartão, botão secundário, selo                                          |
+| `--menta`                       | `#E8F4DA`             | fundo de pastilha de ícone e de realce                                  |
+| `--tinta`                       | `#032F01`             | texto corrido e títulos                                                 |
+| `--tinta-suave`                 | `#44573F`             | notas secundárias                                                       |
+| `--acento`                      | `#56A805`             | fundo do botão principal e realces. **Nunca texto sobre claro (2,9:1)** |
+| `--acento-texto`                | `#2F6A00`             | verde de TEXTO sobre claro (CRO, sobretítulo, link de destaque)         |
+| `--campo` / `--campo-marca`     | `#032F01` / `#095902` | fechamento e rodapé (`.campo-escuro`)                                   |
+| `--sobre-campo` / `-suave`      | `#F4F5EC` / `#C9D6C2` | texto sobre campo escuro                                                |
+| `--borda` / `--borda-forte`     | tinta a 9% / 16%      | borda de cartão e de botão secundário                                   |
+| `--sombra-1` / `--sombra-2`     | —                     | cartão parado / cartão no hover, vidro, foto do topo                    |
+| `--estrela` / `--estrela-vazia` | `#F2A516` / `#E3E6DC` | estrelas da nota geral                                                  |
 
-Pares de texto aprovados: tinta/chão 13,55:1 · tinta-suave/chão 7,7:1 · tinta-suave/chão-2 7,06:1 ·
-tinta/acento 4,96:1 · sobre-campo/campo 13,55:1 · sobre-campo-suave/campo 9,84:1 · acento/campo 4,96:1 ·
-sobre-campo/campo-marca 7,83:1. Qualquer outro par: medir antes.
+Pares de texto aprovados: tinta/chão 14,45:1 · tinta-suave/chão 7,6:1 · tinta-suave/menta 6,86:1 ·
+acento-texto/chão 6,4:1 · acento-texto/menta 5,78:1 · tinta/acento 4,96:1 · sobre-campo/campo 13,55:1 ·
+sobre-campo-suave/campo 9,84:1 · acento/campo 4,96:1. Qualquer outro par: medir antes.
 
 ## Tipo
 
 Uma família: **Bricolage Grotesque** (variável, peso 200–800, tamanho óptico automático), hospedada em
-`src/assets/fontes`. Cinco medidas, e não existe sexta:
+`src/assets/fontes`. Medidas:
 
-| Classe         | Faixa      | Uso                                                                     |
-| -------------- | ---------- | ----------------------------------------------------------------------- |
-| `text-display` | 44 → 116px | o H1 do topo                                                            |
-| `text-titulo`  | 40 → 76px  | título de seção (H2)                                                    |
-| `text-frase`   | 24 → 36px  | frase de efeito, citação, subtítulo grande. Teto de 36px e ~25 palavras |
-| `text-corpo`   | 17 → 19px  | texto corrido, botões, links do menu                                    |
-| `text-pequeno` | 14 → 15px  | nota, legenda, rodapé. Nunca abaixo de 13px                             |
+| Classe         | Faixa      | Uso                                                   |
+| -------------- | ---------- | ----------------------------------------------------- |
+| `text-display` | 44 → 116px | H1 de página com espaço; o topo da home usa 44 → 88px |
+| `text-titulo`  | 40 → 76px  | título de seção (H2)                                  |
+| `text-frase`   | 24 → 36px  | frase de efeito, citação, subtítulo grande            |
+| `text-corpo`   | 17 → 19px  | texto corrido, botões, links do menu                  |
+| `text-pequeno` | 14 → 15px  | nota, legenda, rodapé. Nunca abaixo de 13px           |
 
-Títulos: peso 600, entrelinha 0,92–0,96, `letter-spacing` já vem da classe. Corpo: peso 400 (500 para
-ênfase), entrelinha 1,5. Sentença, nunca caixa-alta espaçada.
-
-Uma exceção, e só uma: o **H1 das landings pagas** (LPs de implante e clareamento e o modo anúncio das
-páginas de tratamento) tem escala própria, entre `text-titulo` e `text-display`, porque precisa levar o
-termo buscado + o bairro em até duas linhas a 390px, e o `text-display` não cabe. Quem precisa de tamanho
-próprio não usa a classe de texto: as utilitárias vencem o CSS de componente na cascata.
+Títulos: peso 600, entrelinha justa, `letter-spacing` negativo. Corpo: peso 400 (500–650 para ênfase),
+entrelinha 1,5. Sentença, nunca caixa-alta espaçada. O H1 das landings pagas tem escala própria para
+caber termo + bairro em duas linhas a 390px.
 
 ## Forma e componentes
 
-- **Quadro**: `.quadro` — largura `min(100% − 2×margem, 1680px)`, margem de 16→32px. Uma só para o site.
-- **Ritmo**: `.secao` (88→200px de respiro vertical) e `.secao-curta`.
-- **Raio**: `var(--raio)` = 20px para ladrilho, campo de formulário e foto (na foto, limitado a 10% da peça).
-- **Botões**: pílula cheia, um formato. `botao botao-acento` (ação principal), `botao botao-tinta`,
-  `botao botao-chao` (secundária), `botao botao-claro` (sobre campo escuro). Do nome antigo sobrou só
-  `button-primary` (= acento) — **o E2E procura `main a.button-primary[href*="wa.me"]` no topo das LPs**.
+- **Quadro**: `.quadro` — largura `min(100% − 2×margem, 1680px)`, margem de 16→32px.
+- **Ritmo**: `.secao` (72→136px de respiro vertical), `.secao-curta`, `.secao-clara` (fundo `chao-2`).
+- **Raio**: `--raio-sm` 12px, `--raio` 20px (cartão, campo, foto — na foto limitado a 10% da peça),
+  `--raio-lg` 28px (foto grande do topo).
+- **Botões**: pílula. `button-primary`/`botao botao-acento` (principal, com relevo e reflexo no hover),
+  `botao botao-chao` (secundário branco com borda), `botao botao-tinta`, `botao botao-claro` (sobre escuro),
+  `botao-grande` (topo). **O E2E procura `main a.button-primary[href*="wa.me"]` no topo das LPs.**
+- **Cartão**: `.cartao` / `.ladrilho` (branco, borda, sombra 1), `.cartao-vivo` (sobe 4px no hover).
+- **Vidro**: `.vidro` — só sobre foto. **Selo**: `.selo` (pílula de prova social). **Sobretítulo**:
+  `.sobretitulo`. **Pastilha**: `.pastilha` (ícone lucide em quadrado menta). **Fundo**: `.fundo-brilho`.
+- **Peças** (`src/components/site/ui/`): `Estrelas`, `Contador` (sobe o número por requestAnimationFrame; o HTML do servidor já traz o
+  valor real; nunca na primeira dobra das LPs), `CarrosselAvaliacoes` (Embla), `FaixaRolante` (marquee),
+  `AvataresEquipe` (miniaturas reais de 112px).
+- **Moldura**: `<MolduraCoroa proporcao={4/5}>` (nome histórico; hoje é só o canto arredondado).
 - **Chamada fixa** (`FloatingCTA`): no celular, barra embaixo (`#cta-mobile`); a partir de 768px, pílula
-  no canto que só existe com o cabeçalho escondido. A pílula sai sempre que a página já mostra um botão
-  de ação seu; a barra do celular só sai diante do que tem `data-cede-cta` (o formulário de `#fale`).
-  Nas LPs pagas a barra do celular fica sempre (invariante do E2E). As duas sobem pela faixa de cookies
-  (`--altura-aviso`) e somem antes do rodapé.
-- **Link de texto**: `.link` (o sublinhado acende no hover; o peso não muda).
-- **Ladrilho**: `.ladrilho` — um degrau de tom, sem borda, sem sombra.
-- **Peças**: `<MolduraCoroa proporcao={4/5}>` (ou `medir` quando a caixa não tem proporção fixa),
-  `<FormaCoroa>`, `<MarcaCoroa>` — em `sistema/Coroa.tsx`. Geometria pura em `sistema/geometria.ts`
-  (`caminhoCoroa` para o retângulo arredondado, `caminhoCoroaPx` para os blocos do rodapé).
+  no canto que só existe com o cabeçalho escondido. Some diante do que tem `data-cede-cta`; nas LPs pagas a
+  barra do celular fica sempre (invariante do E2E).
+- **Link de texto**: `.link`.
 
 ## Movimento
 
-O site se move muito, e com regra. Tudo em `transform`, `opacity` e `clip-path`; tudo com versão parada
-para `prefers-reduced-motion`; nada escondido se o JavaScript falhar.
+Tudo em `transform`/`opacity`; tudo com versão parada para `prefers-reduced-motion`; nada escondido se o
+JavaScript falhar. Entradas ao rolar pelo motor `sistema/movimento.tsx` (montado pelo `<Header>`, sem
+GSAP): `data-entra` no grupo + `data-item` nos filhos (cascata), `data-ima` no botão. Interação em CSS. Sem
+cena de rolagem que segure a página: o topo carrega parado e inteiro.
 
-**Camada quieta, declarada por atributo** (o motor `sistema/movimento.tsx`, montado pelo `<Header>`):
-
-| Atributo                           | Efeito                                                                      |
-| ---------------------------------- | --------------------------------------------------------------------------- |
-| `data-entra` + filhos `data-item`  | o grupo entra ao aparecer; itens sobem 28px em cascata de 80ms. Não aninhar |
-| `data-linhas`                      | as linhas do título sobem de trás da própria linha de base (SplitText)      |
-| `data-tinta`                       | a frase acende palavra por palavra com a rolagem — **uma por página**       |
-| `data-numero="210" data-casas="0"` | o número rola até o valor ao aparecer                                       |
-| `data-obturador`                   | a moldura abre de baixo para cima e a foto assenta                          |
-| `data-deriva`                      | a foto anda até 5% dentro da moldura (a moldura corta)                      |
-| `data-ima`                         | botão puxa levemente na direção do mouse                                    |
-
-Hover/press: botões escalam 0,97 ao apertar; a seta do botão anda 2px no hover; hover só em
-`(hover: hover) and (pointer: fine)`.
-
-**Cenas** (o que muda a tela inteira): no máximo três na home, com uma seção quieta entre elas. Feitas
-com `carregarGsap()` + `gsap.matchMedia("(min-width: 1024px)")`, rolagem nativa (Lenis só suaviza no
-desktop com mouse), palco `position: sticky` numa seção mais alta que a tela. No celular e com
-"reduzir movimento" a seção é a **composição final, parada**, desenhada com o mesmo cuidado. Modelo:
-`home/Abertura.tsx`.
-
-1. **Topo da home** — a janela cresce até a tela inteira e os cantos se endireitam.
-2. **História** — os anos passam numa moldura parada: 2002 (Sempre Sorrindo) → 2020 (JP) → 2024 (a
-   fachada abre) → hoje. A altura da cena vem do CSS servido, para não haver salto quando o JS chega.
-3. **Estrutura** — galeria de lado: a rolagem atravessa as salas da clínica. Só liga com tela de pelo
-   menos 700px de altura; abaixo disso é a fileira nativa com setas.
-
-Fora da home, as LPs têm uma cena só (o Fechamento: o bloco gigante cresce com a rolagem).
-
-**Troca de página**: View Transition só quando o caminho muda (filtro, aba e busca não esmaecem a página)
-e nunca dentro de `/rh` e `/crc`. Com "reduzir movimento" a troca é seca.
+**Troca de página**: View Transition só quando o caminho muda e nunca dentro de `/rh` e `/crc`.
 
 ## Fotografia
 
@@ -153,31 +125,39 @@ promessa de resultado, desconto artificial ou "últimas vagas".
 Fora do site por enquanto: o banner de ortodontia da sala de espera (`sala-espera-ortodontia*`: rostos
 de crianças e marca comercial) e a animação da harmonização (rosto de pessoa gerada). Os arquivos ficam
 em `src/assets` porque o kit do Instagram ainda os cita. Os retratos da equipe ficam na moldura sem
-filtro; "Dentistas com nome e CRO" só lista quem tem CRO, e a recepção vai em bloco próprio.
+filtro; "Dentistas com nome e CRO" só lista quem tem CRO, e a recepção vai em bloco próprio. Miniaturas
+de 112px dos retratos (para pilhas de rostos) ficam em `src/assets/avatares` e são recortes dos originais.
+Logos de convênio: `src/assets/convenios` (origem de cada arquivo no LEIA-ME da pasta).
 
 ## Seções da home (ordem e composição)
 
-1. **Topo** (`#inicio`) — texto à esquerda, janela à direita com eco verde; cena 1.
-2. **A clínica** (`#clinica`) — frase de efeito com miniaturas de foto dentro da linha;
-   `data-tinta`.
-3. **Tratamentos** (`#tratamentos`) — cardápio em duas colunas, cada item com miniatura no lugar
-   do marcador; no desktop, a prévia grande segue o mouse sobre a lista.
-4. **Convênios** (`#convenios`) — quadro de ladrilhos, um ladrilho em acento com o título.
-5. **Equipe** (`#equipe`) — painel escuro recuado, retratos, nome e CRO.
-6. **História** (`#historia`) — campo escuro; cena 2.
-7. **Avaliações** (`#depoimentos`) — foto e citação deslocada; nota que rola.
-8. _(A faixa de coroas que dividia a página saiu em 06/11/2026.)_
-9. **Estrutura** (`#estrutura`) — cena 3; clique abre a foto inteira.
-10. **Atendimento** (`#atendimento`) — foto grande cortada pela borda + pontos marcados.
-11. **Perguntas** (`#faq`) — título grudado à esquerda, acordeão de ladrilhos à direita (`<details name>`).
-12. **Contato** (`#fale`) — o cupom: monte a mensagem e abra o WhatsApp já escrita; mapa e pontos de
-    referência.
-13. **Rodapé** — a marca construída grande, em blocos de topo arredondado.
+A ordem segue a pergunta de quem procura dentista, e cada uma ou duas seções devolvem para o WhatsApp.
+
+1. **Topo** (`#inicio`, `home/TopoHome.tsx`) — selo da nota do Google, H1, frase com rua e bairro,
+   WhatsApp + telefone, faixa de confiança (rostos e nº de dentistas com CRO, nº de convênios, horário de
+   agora); foto real com dois cartões de vidro (depoimento real e responsável técnica).
+2. **Convênios** (`#convenios`) — faixa rolante com as logos oficiais (ou o nome, sem arquivo) e o
+   cartão "Sem convênio? Atendimento particular".
+3. **Tratamentos** (`#tratamentos`) — grade de cartões com foto, frase e link para a página de cada um;
+   "Também atendemos" em chips; CTA "a avaliação indica".
+4. **A clínica** (`#clinica`) — foto com selos e os quatro princípios em cartões com ícone.
+5. **Avaliações** (`#depoimentos`) — cartão da nota (Contador) e carrossel de depoimentos reais.
+6. **Equipe** (`#equipe`) — responsável técnica em destaque, dentistas em cartões com CRO, recepção à
+   parte.
+7. **Como funciona** (`#como-funciona`) — três passos até a consulta.
+8. **História** (`#historia`) — linha do tempo 2002 → 2020 → 2024 → hoje, missão, gestão e fundação.
+9. **Estrutura** (`#estrutura`) — galeria em grade com visor; só a clínica por dentro.
+10. **Atendimento** (`#atendimento`) — pilares em cartões e a fachada acessível.
+11. **Perguntas** (`#faq`) — acordeão de cartões.
+12. **Contato** (`#fale`) — o cupom que monta a mensagem do WhatsApp, onde estamos, mapa e a faixa verde
+    de fechamento. Na home o rodapé entra sem a chamada própria (`<Footer chamada={false} />`).
 
 ## Landing pages pagas
 
 `PaginaDeTratamento` com `modo="anuncio"`, `PaginaImplanteAds` e `PaginaClareamentoAds` seguem o mesmo
-sistema, com o cabeçalho enxuto. Invariantes cobertas pelo E2E (`npm run e2e:site`) que **não podem
+sistema, com o cabeçalho enxuto e a mesma lógica de conversão: topo no padrão do `TopoHome`, faixa de
+convênios, por que fazer na JP, passos, animação ilustrativa (quando existe), equipe com CRO, avaliações,
+perguntas que derrubam objeções e fechamento verde, com CTA a cada uma ou duas seções. Invariantes cobertas pelo E2E (`npm run e2e:site`) que **não podem
 quebrar**: um H1 por página no HTML servido, com procedimento + bairro na LP; `#hero-implantes` e
 `#hero-clareamento` com link `wa.me`; `#video-implante`/`#video-clareamento` com um `<video>` e o texto
 "animação ilustrativa"; `#cta-mobile` com link `wa.me`; nenhum "Outros caminhos de cuidado" nem link
@@ -190,8 +170,8 @@ a nota ("4,6") e "N avaliações" visíveis na primeira dobra da LP; nenhuma pro
 `/rh` é tela de trabalho: segue o mesmo tipo e a mesma paleta, com as regras de tela de aplicativo
 (bordas discretas e painéis repetidos são normais lá). O CSS do painel está em
 `src/components/rh/painel.css`, fora de `@layer` de propósito (precisa vencer o bloco antigo "PORTAL DE RH"
-de `styles.css`, que ainda veste as telas não migradas: triagem, modo entrevista, central de contato e o
-interior do editor de vaga). Piso de 13px para qualquer texto do painel. Pares de aviso e erro aprovados:
+de `styles.css`); triagem e central de contato têm `triagem.css`, modo entrevista e ficha `entrevista.css`, e
+o editor de vaga `editor-vaga.css`. Piso de 13px para qualquer texto do painel. Pares de aviso e erro aprovados:
 `--rh-aviso-texto` sobre `--rh-aviso-fundo` 6,84:1; `--rh-erro-texto` sobre `--rh-erro-fundo` 8,63:1.
 
 `/crc` tem tokens próprios e não é tocado por este sistema. Mudança de token global é conferida nos três.

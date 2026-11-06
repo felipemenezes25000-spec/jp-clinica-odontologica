@@ -11,8 +11,11 @@
  * linhas que começam iguais e envelhecem diferente. Uma correção de conteúdo
  * tem de valer para as **16 URLs** — 8 orgânicas e 8 pagas — de uma vez.
  *
- * Desde o redesenho de 11/2026 este arquivo só monta a página: cada seção mora
- * em `tratamento/` (Topo.tsx e Secoes.tsx) e as mídias em `tratamento/midia.ts`.
+ * Desde o redesenho de 11/2026 ("Clínica luminosa") este arquivo só monta a
+ * página: cada seção mora em `tratamento/` (Topo.tsx e Secoes.tsx) e as mídias
+ * em `tratamento/midia.ts`. Ordem: topo, entenda, para quem, etapas (com CTA),
+ * responsável técnica, avaliações, perguntas, outros caminhos (só orgânica) e o
+ * fecho em verde.
  */
 import { ArrowLeft } from "lucide-react";
 
@@ -23,13 +26,14 @@ import { SkipLink } from "@/components/site/SkipLink";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { TRATAMENTOS } from "@/lib/jp";
 import {
+  Avaliacoes,
   ChamadaFinal,
   Entenda,
   Etapas,
   OutrosCaminhos,
   ParaQuem,
   Perguntas,
-  PorQueJP,
+  ResponsavelTecnica,
 } from "./tratamento/Secoes";
 import { ANIMACOES, RELACIONADOS, fotosDaPagina } from "./tratamento/midia";
 import { Topo } from "./tratamento/Topo";
@@ -115,13 +119,14 @@ export function PaginaDeTratamento({
         />
         <Entenda tratamento={tratamento} foto={fotos.entenda} />
         <ParaQuem tratamento={tratamento} foto={fotos.paraQuem} />
-        <Etapas tratamento={tratamento} />
-        {/* As perguntas ficam entre as etapas e "por que a JP": assim os dois
-            campos escuros (etapas e a clínica) não se encostam. */}
+        <Etapas tratamento={tratamento} wa={wa} />
+        <ResponsavelTecnica />
+        <Avaliacoes />
         <Perguntas tratamento={tratamento} />
-        <PorQueJP />
-        <ChamadaFinal wa={wa} />
+        {/* Na orgânica os outros caminhos vêm antes do fecho: o verde profundo
+            é o último bloco da página, logo acima do rodapé. */}
         {outros.length > 0 && <OutrosCaminhos outros={outros} />}
+        <ChamadaFinal wa={wa} />
       </main>
 
       <Footer />

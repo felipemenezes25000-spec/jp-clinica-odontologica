@@ -1,7 +1,7 @@
 import {
   CLINICA,
   CUIDADOS_COMPLEMENTARES,
-  FAQ,
+  FAQ_SITE,
   HISTORIA,
   PAGAMENTO,
   RESPONSAVEL_TECNICA,
@@ -122,7 +122,7 @@ function perguntas() {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "@id": `${SITE_URL}/#faq`,
-    mainEntity: FAQ.map((item) => ({
+    mainEntity: FAQ_SITE.map((item) => ({
       "@type": "Question",
       name: item.q,
       acceptedAnswer: { "@type": "Answer", text: item.a },

@@ -1,173 +1,219 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import { Check, Clock3, MapPin, MessageCircle, Phone } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import { BotaoWhatsApp } from "@/components/site/lp/BotaoWhatsApp";
 import type { Foto } from "@/components/site/lp/Topo";
-import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
-import { comGsap } from "@/components/site/sistema/gsap";
+import { CONVENIOS_SITE, logoDoConvenio } from "@/components/site/convenios-do-site";
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { TreatmentVideo } from "@/components/site/TreatmentVideo";
-import { AVALIACOES, CLINICA, HISTORIA, RESPONSAVEL_TECNICA, notaBR } from "@/lib/jp";
+import { AVATAR_POR_NOME, DENTISTAS } from "@/components/site/ui/avatares";
+import { CarrosselAvaliacoes } from "@/components/site/ui/CarrosselAvaliacoes";
+import { Contador } from "@/components/site/ui/Contador";
+import { Estrelas } from "@/components/site/ui/Estrelas";
+import { FaixaRolante } from "@/components/site/ui/FaixaRolante";
+import { AVALIACOES, CLINICA, DEPOIMENTOS, HISTORIA, RESPONSAVEL_TECNICA, notaBR } from "@/lib/jp";
 import "./lp.css";
 
 /*
- * As seções das landings pagas. Cada uma tem UMA composição, e duas páginas
- * nunca repetem a mesma composição em seções vizinhas:
+ * As seções das landings pagas, na ordem em que uma pessoa que clicou num
+ * anúncio decide:
  *
- *   Escada ...... três pontos descendo em diagonal, a foto no vão embaixo;
- *   Linhas ...... assunto à esquerda de cada afirmação, texto na coluna 8;
- *   SecaoVideo .. campo escuro, a animação dentro da coroa;
- *   Etapas ...... foto de um lado, lista ordenada do outro;
- *   Confianca ... campo escuro, citação que acende com a rolagem, números que
- *                 rolam e o retrato da responsável técnica, com nome e registro;
- *   Endereco .... o caminho até a porta, foto;
- *   Perguntas ... título grudado, acordeão de ladrilhos;
- *   Fechamento .. o último convite, campo verde da marca, coroa gigante que
- *                 cresce com a rolagem, arcada de coroas.
- *
- * Fotos: nenhuma se repete na mesma página, e a cadeira do consultório vale uma
- * vez só (no topo). As demais cenas são o equipamento, a esterilização, a
- * fachada e a equipe.
+ *   Convenios ........ a faixa que corre logo abaixo do topo ("aceitam o meu?");
+ *   PorQue ........... cartões brancos com o que a clínica faz de verdade;
+ *   SecaoVideo ....... a animação ilustrativa, em cartão claro;
+ *   Passos ........... foto do consultório e a lista numerada do caminho;
+ *   Equipe ........... a responsável técnica e os dentistas, com CRO;
+ *   Avaliacoes ....... nota, total, tempo de clínica e o carrossel do Google;
+ *   Endereco ......... o caminho até a porta;
+ *   Perguntas ........ acordeão que derruba as objeções;
+ *   Fechamento ....... o único campo verde-profundo da página, com o último CTA.
  *
  * Regras que valem para todas: o `id` da seção é a origem do lead (nenhum
- * elemento com `id` entre a seção e o botão), o título de seção é um h2 curto
- * (no máximo duas linhas em 390px) e o texto fala de avaliação, nunca de
- * resultado, preço ou prazo.
+ * elemento com `id` entre a seção e o botão), há um botão de WhatsApp a cada
+ * uma ou duas seções, o título de seção é um h2 curto e o texto fala de
+ * avaliação, nunca de resultado, preço ou prazo. Depoimento individual não
+ * ganha estrelas; só a nota geral do Google.
  */
 
-type Ponto = { titulo: string; texto: string };
+export type Ponto = { titulo: string; texto: string; icone?: LucideIcon };
 
-function Titulo({
+/** Sobretítulo, h2 e introdução: o cabeçalho de toda seção. */
+function Cabeca({
   id,
-  children,
+  sobre,
+  titulo,
+  intro,
   className = "",
 }: {
   id: string;
-  children: ReactNode;
+  sobre: string;
+  titulo: string;
+  intro?: string;
   className?: string;
 }) {
   return (
-    <h2 id={`${id}-titulo`} className={`text-titulo ${className}`} data-linhas>
-      {children}
-    </h2>
+    <div className={`lp-cabeca ${className}`}>
+      <p className="sobretitulo" data-item>
+        {sobre}
+      </p>
+      <h2 id={`${id}-titulo`} className="text-titulo" data-item>
+        {titulo}
+      </h2>
+      {intro && (
+        <p className="text-corpo text-tinta-suave lp-intro" data-item>
+          {intro}
+        </p>
+      )}
+    </div>
   );
 }
 
-function ItemComMarca({ children }: { children: ReactNode }) {
-  return (
-    <li className="lp-item-marca">
-      <MarcaCoroa className="text-acento" />
-      <span>{children}</span>
-    </li>
-  );
-}
-
-/**
- * Três pontos descendo em diagonal: o olhar desce junto com a decisão. A foto
- * em coroa ocupa o vão da diagonal embaixo, e o botão fecha o vão da direita.
- */
-export function Escada({
-  id,
-  titulo,
-  intro,
-  pontos,
-  foto,
-  rotulo,
+/** O botão da seção, com uma linha de apoio opcional ao lado. */
+function Chamada({
   href,
+  rotulo,
+  apoio,
+  className = "",
 }: {
-  id: string;
-  titulo: string;
-  intro: string;
-  pontos: readonly Ponto[];
-  foto: Foto;
-  rotulo: string;
   href: string;
+  rotulo: string;
+  apoio?: ReactNode;
+  className?: string;
 }) {
   return (
-    <section id={id} className="secao-curta" aria-labelledby={`${id}-titulo`}>
-      <div className="quadro">
-        <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-          <Titulo id={id} className="lg:col-span-7">
-            {titulo}
-          </Titulo>
-          <p className="text-corpo text-tinta-suave lg:col-span-5 lg:col-start-8">{intro}</p>
+    <div className={`lp-chamada ${className}`} data-item>
+      <BotaoWhatsApp href={href}>{rotulo}</BotaoWhatsApp>
+      {apoio && <p className="text-pequeno text-tinta-suave">{apoio}</p>}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Convênios
+ * ------------------------------------------------------------------------- */
+
+/**
+ * A faixa de convênios: nomes em pílulas brancas (ou o logo, quando a clínica
+ * mandar o arquivo para src/assets/convenios) correndo devagar. Não diz o que
+ * cada plano cobre: isso a recepção confirma.
+ */
+export function Convenios({ id, rotulo, href }: { id: string; rotulo: string; href: string }) {
+  return (
+    <section id={id} className="lp-convenios" aria-labelledby={`${id}-titulo`}>
+      <div className="quadro lp-convenios-grade" data-entra>
+        <div data-item>
+          <p className="sobretitulo">Convênios</p>
+          <h2 id={`${id}-titulo`} className="lp-convenios-titulo">
+            Trabalhamos com {CONVENIOS_SITE.length} convênios
+          </h2>
         </div>
-
-        <div className="lp-escada">
-          <ol className="lp-degraus" data-entra>
-            {pontos.map((ponto) => (
-              <li key={ponto.titulo} data-item>
-                <h3 className="text-frase">
-                  <MarcaCoroa className="mr-3 text-acento" />
-                  {ponto.titulo}
-                </h3>
-                <p className="mt-4 text-corpo text-tinta-suave">{ponto.texto}</p>
-              </li>
-            ))}
-          </ol>
-
-          <div className="lp-escada-foto lp-foto" data-obturador>
-            <MolduraCoroa medir proporcao={2} className="lp-escada-moldura">
-              <img
-                src={foto.src}
-                width={foto.largura}
-                height={foto.altura}
-                alt={foto.alt}
-                style={foto.posicao ? { objectPosition: foto.posicao } : undefined}
-                loading="lazy"
-              />
-            </MolduraCoroa>
-          </div>
-
-          <div className="lp-escada-acao">
-            <BotaoWhatsApp href={href}>{rotulo}</BotaoWhatsApp>
-          </div>
+        <div className="lp-convenios-acao" data-item>
+          <BotaoWhatsApp href={href}>{rotulo}</BotaoWhatsApp>
         </div>
       </div>
+
+      <FaixaRolante
+        rotulo="Convênios atendidos pela JP"
+        duracao={36}
+        className="lp-convenios-faixa"
+      >
+        {CONVENIOS_SITE.map((convenio) => {
+          const logo = logoDoConvenio(convenio.slug);
+          return (
+            <span key={convenio.slug} className="lp-convenio">
+              {logo ? (
+                <img src={logo} alt={convenio.nome} height={28} loading="lazy" decoding="async" />
+              ) : (
+                convenio.nome
+              )}
+            </span>
+          );
+        })}
+      </FaixaRolante>
     </section>
   );
 }
 
-/** Afirmações em linhas: o assunto à esquerda, a explicação à direita. */
-export function Linhas({
+/* ---------------------------------------------------------------------------
+ * Por que a JP
+ * ------------------------------------------------------------------------- */
+
+/**
+ * Três cartões brancos com o que a clínica faz de verdade. `layout="grade"`
+ * põe os cartões lado a lado; `"lista"` põe o cabeçalho de um lado e os
+ * cartões empilhados do outro (a segunda seção de pontos da mesma página não
+ * repete o desenho da primeira).
+ */
+export function PorQue({
   id,
+  sobre,
   titulo,
   intro,
   itens,
+  rotulo,
+  href,
+  apoio,
+  layout = "grade",
   fundo = "",
 }: {
   id: string;
+  sobre: string;
   titulo: string;
   intro: string;
   itens: readonly Ponto[];
+  rotulo: string;
+  href: string;
+  apoio?: string;
+  layout?: "grade" | "lista";
   fundo?: string;
 }) {
+  const lista = layout === "lista";
   return (
     <section id={id} className={`secao-curta ${fundo}`} aria-labelledby={`${id}-titulo`}>
-      <div className="quadro">
-        <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
-          <Titulo id={id} className="lg:col-span-7">
-            {titulo}
-          </Titulo>
-          <p className="text-corpo text-tinta-suave lg:col-span-5 lg:col-start-8">{intro}</p>
+      <div className={`quadro ${lista ? "lp-duas" : ""}`}>
+        <div data-entra className={lista ? "lp-duas-lado" : ""}>
+          <Cabeca id={id} sobre={sobre} titulo={titulo} intro={intro} className="lp-cabeca-larga" />
+          {lista && (
+            <Chamada href={href} rotulo={rotulo} apoio={apoio} className="lp-chamada-lado" />
+          )}
         </div>
 
-        <ul className="lp-linhas" data-entra>
-          {itens.map((item) => (
-            <li key={item.titulo} data-item>
-              <h3 className="text-frase">
-                <MarcaCoroa className="mr-3 text-acento" />
-                {item.titulo}
-              </h3>
-              <p className="text-corpo text-tinta-suave">{item.texto}</p>
-            </li>
-          ))}
+        <ul className={lista ? "lp-lista" : "lp-grade"} data-entra>
+          {itens.map((item) => {
+            const Icone = item.icone;
+            return (
+              <li key={item.titulo} className="cartao cartao-vivo lp-cartao" data-item>
+                {Icone && (
+                  <span className="pastilha" aria-hidden="true">
+                    <Icone />
+                  </span>
+                )}
+                <div>
+                  <h3 className="lp-cartao-titulo">{item.titulo}</h3>
+                  <p className="text-corpo text-tinta-suave">{item.texto}</p>
+                </div>
+              </li>
+            );
+          })}
         </ul>
+
+        {!lista && (
+          <div data-entra className="lp-chamada-baixo">
+            <Chamada href={href} rotulo={rotulo} apoio={apoio} />
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
+/* ---------------------------------------------------------------------------
+ * A animação ilustrativa
+ * ------------------------------------------------------------------------- */
+
 /**
- * A animação explicativa dentro da coroa, em campo escuro.
+ * A animação explicativa dentro de um cartão claro.
  *
  * O texto "animação ilustrativa" e a frase sobre a avaliação ficam num único
  * parágrafo (`legenda`): o E2E procura os dois como um elemento só, e é também
@@ -175,6 +221,7 @@ export function Linhas({
  */
 export function SecaoVideo({
   id,
+  sobre,
   titulo,
   texto,
   itens,
@@ -185,6 +232,7 @@ export function SecaoVideo({
   invertido = false,
 }: {
   id: string;
+  sobre: string;
   titulo: string;
   texto: string;
   itens: readonly string[];
@@ -195,38 +243,34 @@ export function SecaoVideo({
   invertido?: boolean;
 }) {
   return (
-    <section id={id} className="campo-escuro secao-curta" aria-labelledby={`${id}-titulo`}>
-      <div
-        className={`quadro grid items-center gap-12 lg:grid-cols-2 lg:gap-[clamp(3rem,7vw,8rem)] ${
-          invertido ? "lg:[&>*:first-child]:order-2" : ""
-        }`}
-      >
-        {/* O obturador anima o `clip-path` do elemento que o carrega: ele fica num
-            invólucro, e a coroa (que também é `clip-path`) não é sobrescrita. */}
-        <div className="lp-animacao" data-obturador>
-          <TreatmentVideo
-            src={video.src}
-            poster={video.poster}
-            descricao={video.descricao}
-            proporcao={1}
-            legenda={false}
-          />
-        </div>
-
-        <div data-entra>
-          <Titulo id={id}>{titulo}</Titulo>
-          <p className="mt-6 max-w-[48ch] text-corpo text-sobre-campo-suave" data-item>
-            {texto}
-          </p>
-          <ul className="lp-itens mt-8" data-item>
+    <section id={id} className="secao-curta secao-clara" aria-labelledby={`${id}-titulo`}>
+      <div className={`quadro lp-video ${invertido ? "lp-video-invertido" : ""}`}>
+        <div className="lp-video-texto" data-entra>
+          <Cabeca id={id} sobre={sobre} titulo={titulo} intro={texto} />
+          <ul className="lp-itens" data-item>
             {itens.map((item) => (
-              <ItemComMarca key={item}>{item}</ItemComMarca>
+              <li key={item}>
+                <span className="lp-check" aria-hidden="true">
+                  <Check />
+                </span>
+                <span>{item}</span>
+              </li>
             ))}
           </ul>
-          <div className="mt-10" data-item>
-            <BotaoWhatsApp href={href}>{rotulo}</BotaoWhatsApp>
+          <Chamada href={href} rotulo={rotulo} />
+        </div>
+
+        <div className="lp-video-midia" data-entra>
+          <div className="lp-animacao" data-item>
+            <TreatmentVideo
+              src={video.src}
+              poster={video.poster}
+              descricao={video.descricao}
+              proporcao={1}
+              legenda={false}
+            />
           </div>
-          <p className="mt-6 max-w-[48ch] text-pequeno text-sobre-campo-suave" data-item>
+          <p className="lp-legenda text-pequeno text-tinta-suave" data-item>
             {legenda}
           </p>
         </div>
@@ -235,155 +279,247 @@ export function SecaoVideo({
   );
 }
 
-/** Foto de um lado, lista ordenada do outro. */
-export function Etapas({
+/* ---------------------------------------------------------------------------
+ * Como funciona
+ * ------------------------------------------------------------------------- */
+
+/** A foto do consultório de um lado, a lista numerada do caminho do outro. */
+export function Passos({
   id,
+  sobre,
   titulo,
   texto,
   etapas,
   foto,
+  legendaFoto,
+  rotulo,
+  href,
   invertido = false,
 }: {
   id: string;
+  sobre: string;
   titulo: string;
   texto: string;
-  etapas: readonly Ponto[];
+  etapas: readonly { titulo: string; texto: string }[];
   foto: Foto;
+  /** Uma linha curta e verdadeira sobre o que a foto mostra. */
+  legendaFoto: string;
+  rotulo: string;
+  href: string;
   invertido?: boolean;
 }) {
   return (
-    <section id={id} className="secao-curta bg-chao-2" aria-labelledby={`${id}-titulo`}>
-      <div className="quadro grid items-start gap-12 lg:grid-cols-12 lg:gap-[clamp(3rem,6vw,7rem)]">
-        <div
-          className={`lg:sticky lg:top-[calc(var(--altura-cabecalho)+2rem)] lg:col-span-5 ${
-            invertido ? "lg:col-start-8" : "lg:col-start-1"
-          }`}
-        >
-          <div className="lp-foto" data-obturador>
-            <MolduraCoroa proporcao={0.82}>
-              <img
-                src={foto.src}
-                width={foto.largura}
-                height={foto.altura}
-                alt={foto.alt}
-                style={foto.posicao ? { objectPosition: foto.posicao } : undefined}
-                loading="lazy"
-              />
-            </MolduraCoroa>
-          </div>
+    <section id={id} className="secao-curta" aria-labelledby={`${id}-titulo`}>
+      <div className={`quadro lp-passos ${invertido ? "lp-passos-invertido" : ""}`}>
+        <div className="lp-passos-foto" data-entra>
+          <MolduraCoroa medir className="lp-passos-moldura" data-item>
+            <img
+              src={foto.src}
+              width={foto.largura}
+              height={foto.altura}
+              sizes="(min-width: 1024px) 38vw, 92vw"
+              alt={foto.alt}
+              style={foto.posicao ? { objectPosition: foto.posicao } : undefined}
+              loading="lazy"
+              decoding="async"
+            />
+          </MolduraCoroa>
+          <p className="vidro lp-passos-legenda text-pequeno" data-item>
+            {legendaFoto}
+          </p>
         </div>
 
-        <div
-          className={`lg:col-span-6 lg:row-start-1 ${invertido ? "lg:col-start-1" : "lg:col-start-7"}`}
-        >
-          <Titulo id={id}>{titulo}</Titulo>
-          <p className="mt-6 max-w-[48ch] text-corpo text-tinta-suave">{texto}</p>
-
-          <ol className="lp-etapas" data-entra>
+        <div data-entra>
+          <Cabeca id={id} sobre={sobre} titulo={titulo} intro={texto} />
+          <ol className="lp-etapas">
             {etapas.map((etapa) => (
-              <li key={etapa.titulo} data-item>
-                <MarcaCoroa className="text-acento" />
+              <li key={etapa.titulo} className="cartao" data-item>
+                <span className="lp-numero" aria-hidden="true" />
                 <div>
-                  <h3 className="text-frase">{etapa.titulo}</h3>
-                  <p className="mt-2 max-w-[52ch] text-corpo text-tinta-suave">{etapa.texto}</p>
+                  <h3 className="lp-cartao-titulo">{etapa.titulo}</h3>
+                  <p className="text-corpo text-tinta-suave">{etapa.texto}</p>
                 </div>
               </li>
             ))}
           </ol>
+          <Chamada href={href} rotulo={rotulo} />
         </div>
       </div>
     </section>
   );
 }
 
-type Depoimento = { autor: string; texto: string };
+/* ---------------------------------------------------------------------------
+ * A equipe responsável
+ * ------------------------------------------------------------------------- */
 
 /**
- * A prova social: o que a pessoa leu no Google, o tempo da clínica e quem
- * responde tecnicamente por ela, com nome e registro (Res. CFO 196/2019). Os
- * números e a responsável são os de `jp.ts` — nada é escrito à mão aqui — e o
- * depoimento é um dos reais da ficha.
- *
- * A citação é a frase de assinatura da página (`data-tinta`, uma por página):
- * acende palavra por palavra com a rolagem. Por isso é o texto inteiro dentro
- * de um único `<p>`, sem marcação interna que o SplitText quebraria.
+ * Quem responde tecnicamente pela clínica, com nome e registro (Res. CFO
+ * 196/2019), e os demais dentistas. Tudo vem de `jp.ts`: nada é escrito à mão.
  */
-export function Confianca({
+export function Equipe({
   id,
   titulo,
   texto,
-  principal,
-  invertido = false,
+  rotulo,
+  href,
 }: {
   id: string;
   titulo: string;
   texto: string;
-  principal: Depoimento;
-  invertido?: boolean;
+  rotulo: string;
+  href: string;
 }) {
+  const demais = DENTISTAS.filter((d) => d.nome !== RESPONSAVEL_TECNICA.nome);
+
   return (
-    <section id={id} className="campo-escuro secao-curta" aria-labelledby={`${id}-titulo`}>
-      <div className="quadro grid gap-12 lg:grid-cols-12 lg:items-stretch lg:gap-[clamp(3rem,6vw,7rem)]">
-        <div
-          className={`flex flex-col justify-between gap-12 lg:col-span-7 lg:row-start-1 ${
-            invertido ? "lg:col-start-6" : "lg:col-start-1"
-          }`}
-        >
-          <div>
-            <Titulo id={id}>{titulo}</Titulo>
-            <p className="mt-6 max-w-[52ch] text-corpo text-sobre-campo-suave">{texto}</p>
-
-            <figure className="mt-12">
-              <blockquote>
-                <p className="text-frase" data-tinta>
-                  “{principal.texto}”
-                </p>
-              </blockquote>
-              <figcaption className="mt-4 text-pequeno text-sobre-campo-suave">
-                {principal.autor}, avaliação no Google
-              </figcaption>
-            </figure>
-          </div>
-
-          <dl className="lp-numeros" data-entra>
-            <div data-item>
-              <dt>anos de clínica</dt>
-              <dd data-numero={String(HISTORIA.anos)}>{HISTORIA.anos}</dd>
-            </div>
-            <div data-item>
-              <dt>avaliações no Google, nota {notaBR}</dt>
-              <dd data-numero={String(AVALIACOES.total)}>{AVALIACOES.total}</dd>
-            </div>
-          </dl>
+    <section id={id} className="secao-curta secao-clara" aria-labelledby={`${id}-titulo`}>
+      <div className="quadro">
+        <div data-entra>
+          <Cabeca
+            id={id}
+            sobre="Quem atende"
+            titulo={titulo}
+            intro={texto}
+            className="lp-cabeca-larga"
+          />
         </div>
 
-        <figure
-          className={`lp-foto lg:col-span-5 lg:row-start-1 ${
-            invertido ? "lg:col-start-1" : "lg:col-start-8"
-          }`}
-        >
-          <MolduraCoroa proporcao={0.82}>
-            <img
-              src={RESPONSAVEL_TECNICA.foto}
-              width={560}
-              height={683}
-              alt={`Retrato de ${RESPONSAVEL_TECNICA.nome}, responsável técnica da JP Clínica Odontológica`}
-              loading="lazy"
-            />
-          </MolduraCoroa>
-          <figcaption className="lp-retrato">
-            <span className="text-corpo font-semibold">{RESPONSAVEL_TECNICA.nome}</span>
-            <span className="text-pequeno text-sobre-campo-suave">
-              {RESPONSAVEL_TECNICA.registro} · {RESPONSAVEL_TECNICA.papel}
-            </span>
-          </figcaption>
-        </figure>
+        <div className="lp-equipe" data-entra>
+          <figure className="cartao lp-rt" data-item>
+            <MolduraCoroa proporcao={560 / 683} className="lp-rt-foto">
+              <img
+                src={RESPONSAVEL_TECNICA.foto}
+                width={560}
+                height={683}
+                sizes="(min-width: 1024px) 22rem, 70vw"
+                alt={`Retrato de ${RESPONSAVEL_TECNICA.nome}, responsável técnica da JP Clínica Odontológica`}
+                loading="lazy"
+                decoding="async"
+              />
+            </MolduraCoroa>
+            <figcaption>
+              <span className="lp-rt-papel">Responsável técnica</span>
+              <strong>{RESPONSAVEL_TECNICA.nome}</strong>
+              <span className="lp-rt-cro">{RESPONSAVEL_TECNICA.registro}</span>
+              {RESPONSAVEL_TECNICA.papel && (
+                <span className="text-pequeno text-tinta-suave">{RESPONSAVEL_TECNICA.papel}</span>
+              )}
+            </figcaption>
+          </figure>
+
+          <ul className="lp-dentistas">
+            {demais.map((d) => {
+              const avatar = AVATAR_POR_NOME[d.nome];
+              return (
+                <li key={d.nome} className="cartao" data-item>
+                  {avatar ? (
+                    <img
+                      src={avatar}
+                      alt=""
+                      width={56}
+                      height={56}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <span className="lp-inicial" aria-hidden="true">
+                      {d.nome.replace(/^(Dra?\.)\s/, "").charAt(0)}
+                    </span>
+                  )}
+                  <span>
+                    <strong>{d.nome}</strong>
+                    <span className="lp-cro">{d.registro}</span>
+                    {d.papel && <span className="text-pequeno text-tinta-suave">{d.papel}</span>}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div data-entra>
+          <Chamada href={href} rotulo={rotulo} />
+        </div>
       </div>
     </section>
   );
 }
 
-/** O caminho até a porta: endereço, horário e a fachada. */
+/* ---------------------------------------------------------------------------
+ * Avaliações
+ * ------------------------------------------------------------------------- */
+
+/**
+ * A prova social: a nota geral do Google (estrelas só aqui), o total, o tempo
+ * da clínica e os depoimentos reais da ficha no carrossel. Os números são os de
+ * `jp.ts`; abaixo da dobra eles sobem ao entrar na tela.
+ */
+export function Avaliacoes({
+  id,
+  titulo,
+  rotulo,
+  href,
+}: {
+  id: string;
+  titulo: string;
+  rotulo: string;
+  href: string;
+}) {
+  return (
+    <section id={id} className="secao-curta" aria-labelledby={`${id}-titulo`}>
+      <div className="quadro">
+        <div className="lp-prova-topo" data-entra>
+          <Cabeca
+            id={id}
+            sobre="Avaliações no Google"
+            titulo={titulo}
+            intro="Estes são relatos reais de pacientes na ficha da JP no Google, do jeito que foram escritos."
+          />
+
+          <dl className="lp-numeros">
+            <div className="cartao" data-item>
+              <dt>nota no Google</dt>
+              <dd>
+                <Contador valor={AVALIACOES.nota} casas={1} />
+                <Estrelas tamanho="1.1rem" className="lp-numeros-estrelas" />
+              </dd>
+            </div>
+            <div className="cartao" data-item>
+              <dt>avaliações</dt>
+              <dd>
+                <Contador valor={AVALIACOES.total} />
+              </dd>
+            </div>
+            <div className="cartao" data-item>
+              <dt>anos de clínica</dt>
+              <dd>
+                <Contador valor={HISTORIA.anos} />
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <CarrosselAvaliacoes itens={DEPOIMENTOS} className="lp-carrossel" />
+
+        <div data-entra>
+          <Chamada
+            href={href}
+            rotulo={rotulo}
+            apoio={`Nota ${notaBR} de 5 no Google, com ${String(AVALIACOES.total)} avaliações.`}
+            className="lp-chamada-baixo"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Endereço
+ * ------------------------------------------------------------------------- */
+
+/** O caminho até a porta: endereço, horário, telefone e a fachada. */
 export function Endereco({
   id,
   titulo,
@@ -400,67 +536,111 @@ export function Endereco({
   invertido?: boolean;
 }) {
   return (
-    <section id={id} className="secao-curta" aria-labelledby={`${id}-titulo`}>
-      <div className="quadro grid items-center gap-12 lg:grid-cols-12 lg:gap-[clamp(3rem,6vw,7rem)]">
-        <div
-          className={`lg:col-span-6 lg:row-start-1 ${invertido ? "lg:col-start-7" : "lg:col-start-1"}`}
-          data-entra
-        >
-          <Titulo id={id}>{titulo}</Titulo>
-          <p className="mt-6 max-w-[40ch] text-frase" data-item>
-            {CLINICA.endereco}
-          </p>
-          <ul className="lp-itens mt-8" data-item>
-            <ItemComMarca>{CLINICA.bairro}</ItemComMarca>
-            <ItemComMarca>{CLINICA.horario}</ItemComMarca>
+    <section id={id} className="secao-curta secao-clara" aria-labelledby={`${id}-titulo`}>
+      <div className={`quadro lp-endereco-grade ${invertido ? "lp-endereco-invertido" : ""}`}>
+        <div data-entra>
+          <Cabeca id={id} sobre="Como chegar" titulo={titulo} />
+
+          <ul className="lp-contatos">
+            <li className="cartao" data-item>
+              <span className="pastilha" aria-hidden="true">
+                <MapPin />
+              </span>
+              <span>
+                <strong>Endereço</strong>
+                <span>{CLINICA.endereco}</span>
+                <a
+                  href={CLINICA.mapsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="link lp-link-curto"
+                >
+                  Ver no mapa
+                </a>
+              </span>
+            </li>
+            <li className="cartao" data-item>
+              <span className="pastilha" aria-hidden="true">
+                <Clock3 />
+              </span>
+              <span>
+                <strong>Horário</strong>
+                <span>{CLINICA.horario}</span>
+              </span>
+            </li>
+            <li className="cartao" data-item>
+              <span className="pastilha" aria-hidden="true">
+                <Phone />
+              </span>
+              <span>
+                <strong>Telefone</strong>
+                <a href={CLINICA.telefoneHref} className="link lp-link-curto">
+                  {CLINICA.telefone}
+                </a>
+              </span>
+            </li>
           </ul>
-          <div className="mt-10" data-item>
-            <BotaoWhatsApp href={href}>{rotulo}</BotaoWhatsApp>
-          </div>
+
+          <Chamada href={href} rotulo={rotulo} />
         </div>
 
-        <div
-          className={`lg:col-span-5 lg:row-start-1 ${invertido ? "lg:col-start-1" : "lg:col-start-8"}`}
-        >
-          <div className="lp-foto" data-obturador>
-            <MolduraCoroa proporcao={0.78}>
-              <img
-                src={foto.src}
-                width={foto.largura}
-                height={foto.altura}
-                alt={foto.alt}
-                style={foto.posicao ? { objectPosition: foto.posicao } : undefined}
-                loading="lazy"
-              />
-            </MolduraCoroa>
-          </div>
+        <div className="lp-fachada" data-entra>
+          <MolduraCoroa
+            proporcao={foto.largura / foto.altura}
+            className="lp-fachada-moldura"
+            data-item
+          >
+            <img
+              src={foto.src}
+              width={foto.largura}
+              height={foto.altura}
+              sizes="(min-width: 1024px) 34vw, 92vw"
+              alt={foto.alt}
+              style={foto.posicao ? { objectPosition: foto.posicao } : undefined}
+              loading="lazy"
+              decoding="async"
+            />
+          </MolduraCoroa>
         </div>
       </div>
     </section>
   );
 }
 
-/** Título grudado à esquerda, acordeão de ladrilhos à direita (<details name>). */
+/* ---------------------------------------------------------------------------
+ * Perguntas
+ * ------------------------------------------------------------------------- */
+
+/** Título grudado à esquerda, acordeão de cartões à direita (<details name>). */
 export function Perguntas({
   id,
   titulo,
   texto,
   itens,
+  rotulo,
+  href,
 }: {
   id: string;
   titulo: string;
   texto: string;
   itens: readonly { pergunta: string; resposta: string }[];
+  rotulo: string;
+  href: string;
 }) {
   return (
     <section id={id} className="secao-curta" aria-labelledby={`${id}-titulo`}>
-      <div className="quadro grid gap-10 lg:grid-cols-12 lg:gap-[clamp(3rem,6vw,7rem)]">
-        <div className="lg:sticky lg:top-[calc(var(--altura-cabecalho)+2rem)] lg:col-span-5 lg:self-start">
-          <Titulo id={id}>{titulo}</Titulo>
-          <p className="mt-6 max-w-[40ch] text-corpo text-tinta-suave">{texto}</p>
+      <div className="quadro lp-duas">
+        <div className="lp-duas-lado lp-perguntas-lado" data-entra>
+          <Cabeca id={id} sobre="Dúvidas" titulo={titulo} intro={texto} />
+          <Chamada
+            href={href}
+            rotulo={rotulo}
+            apoio="Ficou com outra dúvida? A recepção responde pelo WhatsApp."
+            className="lp-chamada-lado"
+          />
         </div>
 
-        <div className="grid content-start gap-3 lg:col-span-7" data-entra>
+        <div className="lp-perguntas" data-entra>
           {itens.map((item) => (
             <details key={item.pergunta} name={`${id}-perguntas`} className="lp-pergunta" data-item>
               <summary>
@@ -476,14 +656,14 @@ export function Perguntas({
   );
 }
 
+/* ---------------------------------------------------------------------------
+ * Fechamento e rodapé
+ * ------------------------------------------------------------------------- */
+
 /**
- * O último convite: campo verde da marca, uma frase e o botão, com a coroa
- * gigante saindo pela borda direita.
- *
- * É a cena da página (só no desktop e com movimento permitido): a coroa chega
- * de baixo e cresce até o tamanho final conforme a seção entra na tela. Só
- * `transform`, ligado à rolagem. No celular e com "reduzir movimento" a coroa
- * já está parada na composição final.
+ * O último convite, no único campo verde-profundo da página: uma frase, o
+ * botão grande, o telefone e o cartão com os dados da recepção. Sem forma
+ * decorativa: o que está aqui serve a quem decide chamar.
  */
 export function Fechamento({
   id,
@@ -498,87 +678,79 @@ export function Fechamento({
   rotulo: string;
   href: string;
 }) {
-  const secaoRef = useRef<HTMLElement>(null);
-  const coroaRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const secao = secaoRef.current;
-    const coroa = coroaRef.current;
-    if (!secao || !coroa) return;
-
-    let desfazer: (() => void) | undefined;
-    let cancelado = false;
-
-    comGsap(({ gsap }) => {
-      if (cancelado) return;
-      const mm = gsap.matchMedia();
-      mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-        gsap.fromTo(
-          coroa,
-          { scale: 0.68, xPercent: 14, yPercent: 8 },
-          {
-            scale: 1,
-            xPercent: 0,
-            yPercent: 0,
-            ease: "none",
-            scrollTrigger: {
-              trigger: secao,
-              start: "top 92%",
-              end: "center 55%",
-              scrub: true,
-            },
-          },
-        );
-      });
-      desfazer = () => mm.revert();
-    });
-
-    return () => {
-      cancelado = true;
-      desfazer?.();
-    };
-  }, []);
-
   return (
-    <section
-      ref={secaoRef}
-      id={id}
-      className="campo-marca lp-fechamento secao"
-      aria-labelledby={`${id}-titulo`}
-    >
-      <div ref={coroaRef} className="lp-coroa-gigante" aria-hidden="true">
-        <FormaCoroa proporcao={0.86} />
-      </div>
-
-      <div className="quadro" data-entra>
-        <Titulo id={id} className="max-w-[16ch] lg:max-w-[14ch]">
-          {titulo}
-        </Titulo>
-        <p className="mt-6 max-w-[40ch] text-corpo" data-item>
-          {texto}
-        </p>
-        <div className="mt-10" data-item>
-          <BotaoWhatsApp href={href} ima>
-            {rotulo}
-          </BotaoWhatsApp>
+    <section id={id} className="campo-escuro lp-fechamento secao" aria-labelledby={`${id}-titulo`}>
+      <div className="quadro lp-fechamento-grade" data-entra>
+        <div>
+          <p className="sobretitulo" data-item>
+            Fale com a recepção
+          </p>
+          <h2 id={`${id}-titulo`} className="text-titulo lp-fechamento-titulo" data-item>
+            {titulo}
+          </h2>
+          <p className="text-corpo text-sobre-campo-suave lp-intro" data-item>
+            {texto}
+          </p>
+          <div className="lp-fechamento-acoes" data-item>
+            <BotaoWhatsApp href={href} grande ima>
+              {rotulo}
+            </BotaoWhatsApp>
+            <a href={CLINICA.telefoneHref} className="botao botao-claro botao-grande lp-telefone">
+              <Phone aria-hidden="true" />
+              {CLINICA.telefone}
+            </a>
+          </div>
+          <p className="lp-fechamento-nota text-pequeno" data-item>
+            <Estrelas tamanho="0.95rem" />
+            <span>
+              {notaBR} no Google · {AVALIACOES.total} avaliações
+            </span>
+          </p>
         </div>
-        <p className="mt-6 text-pequeno" data-item>
-          WhatsApp {CLINICA.whatsapp} · {CLINICA.horario}
-        </p>
+
+        <ul className="lp-recepcao" data-item>
+          <li>
+            <span className="pastilha" aria-hidden="true">
+              <MessageCircle />
+            </span>
+            <span>
+              <strong>WhatsApp</strong>
+              <span>{CLINICA.whatsapp}</span>
+            </span>
+          </li>
+          <li>
+            <span className="pastilha" aria-hidden="true">
+              <Clock3 />
+            </span>
+            <span>
+              <strong>Horário</strong>
+              <span>{CLINICA.horario}</span>
+            </span>
+          </li>
+          <li>
+            <span className="pastilha" aria-hidden="true">
+              <MapPin />
+            </span>
+            <span>
+              <strong>Endereço</strong>
+              <span>{CLINICA.endereco}</span>
+            </span>
+          </li>
+        </ul>
       </div>
     </section>
   );
 }
 
 /**
- * O pé da página, no campo escuro logo abaixo do fechamento verde. Guarda o
- * que a lei pede (responsável técnica com registro, razão social, CNPJ) e o
- * aviso de que o conteúdo é informativo. Fica fora do `<main>`.
+ * O pé da página, no campo escuro logo abaixo do fechamento. Guarda o que a lei
+ * pede (responsável técnica com registro, razão social, CNPJ) e o aviso de que
+ * o conteúdo é informativo. Fica fora do `<main>`.
  */
 export function Rodape({ aviso }: { aviso: string }) {
   return (
     <footer className="campo-escuro lp-rodape">
-      <div className="quadro grid gap-8 pb-10 pt-14 text-pequeno text-sobre-campo-suave md:grid-cols-[1fr_auto] md:items-end">
+      <div className="quadro grid gap-8 pb-10 pt-12 text-pequeno text-sobre-campo-suave md:grid-cols-[1fr_auto] md:items-end">
         <div className="grid gap-1">
           <p className="text-corpo font-semibold text-sobre-campo">{CLINICA.nome}</p>
           <p>{CLINICA.endereco}</p>

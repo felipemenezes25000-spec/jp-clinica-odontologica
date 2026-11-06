@@ -1,12 +1,12 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, MessageCircle, Plus } from "lucide-react";
 
-import { FAQ } from "@/lib/jp";
+import { CLINICA, FAQ_SITE } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
-import { FormaCoroa } from "@/components/site/sistema/Coroa";
+import { AvataresEquipe } from "@/components/site/ui/AvataresEquipe";
 import "./home/faq.css";
 
 /**
- * As perguntas frequentes, num acordeão de ladrilhos.
+ * As perguntas frequentes, num acordeão de cartões brancos.
  *
  * As perguntas vêm de `FAQ` em jp.ts, a mesma fonte do FAQPage do JSON-LD da
  * home: o que a pessoa lê aqui é o que o buscador lê.
@@ -23,42 +23,57 @@ export function FaqSection() {
   const wa = useContatoWhatsApp("duvida");
 
   return (
-    <section id="faq" aria-labelledby="faq-titulo" className="secao bg-chao pt-0 text-tinta">
+    <section id="faq" aria-labelledby="faq-titulo" className="secao secao-clara text-tinta">
       <div className="quadro grid gap-x-[var(--margem)] gap-y-12 lg:grid-cols-12">
         {/* O título acompanha a leitura no desktop: a lista é bem mais alta que
             ele, e o lado esquerdo não fica vazio ao lado das respostas. */}
         <div className="lg:sticky lg:top-[calc(var(--altura-cabecalho)+2rem)] lg:col-span-5 lg:self-start">
-          <h2 id="faq-titulo" data-linhas className="text-titulo">
+          <p className="sobretitulo">Dúvidas</p>
+          <h2 id="faq-titulo" className="text-titulo mt-5">
             Perguntas frequentes
           </h2>
-          <p className="mt-8 max-w-[34ch] text-corpo text-tinta-suave">
-            As dúvidas mais comuns que a recepção recebe. Não achou a sua? A equipe responde no
-            WhatsApp, durante o horário da clínica.
+          <p className="mt-6 max-w-[38ch] text-corpo text-tinta-suave">
+            As dúvidas mais comuns que a recepção recebe, respondidas em poucas linhas.
           </p>
-          <a
-            href={wa}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-ima
-            className="botao botao-tinta mt-8"
-          >
-            Perguntar no WhatsApp
-            <ArrowUpRight aria-hidden="true" />
-          </a>
-          {/* A coroa grande ocupa o que sobraria vazio abaixo do botão, na
-              coluna que acompanha a lista, e repete a forma do topo da página. */}
-          <FormaCoroa
-            proporcao={0.86}
-            className="mt-16 hidden w-[min(100%,14rem)] text-acento lg:block"
-          />
+
+          <div className="cartao faq-ajuda">
+            <div className="faq-ajuda-topo">
+              <AvataresEquipe max={3} tamanho={44} />
+              <div>
+                <p className="faq-ajuda-titulo">Ainda tem dúvida?</p>
+                <p className="text-pequeno text-tinta-suave">
+                  A recepção responde no horário da clínica.
+                </p>
+              </div>
+            </div>
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ima
+              className="button-primary w-full"
+            >
+              <MessageCircle aria-hidden="true" />
+              Fale com a recepção
+              <ArrowUpRight aria-hidden="true" />
+            </a>
+            <p className="text-pequeno text-tinta-suave">
+              Ou ligue:{" "}
+              <a href={CLINICA.telefoneHref} className="link font-semibold text-tinta">
+                {CLINICA.telefone}
+              </a>
+            </p>
+          </div>
         </div>
 
-        <div data-entra className="grid content-start gap-2 lg:col-span-7">
-          {FAQ.map((item) => (
+        <div data-entra className="grid content-start gap-3 lg:col-span-7">
+          {FAQ_SITE.map((item) => (
             <details key={item.q} name="faq" data-item className="faq-item">
               <summary>
                 <span>{item.q}</span>
-                <span className="faq-sinal" aria-hidden="true" />
+                <span className="faq-sinal" aria-hidden="true">
+                  <Plus />
+                </span>
               </summary>
               <p className="faq-resposta">{item.a}</p>
             </details>

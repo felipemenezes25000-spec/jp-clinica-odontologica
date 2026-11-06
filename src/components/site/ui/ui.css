@@ -1,0 +1,140 @@
+/* Peças de interface compartilhadas (src/components/site/ui). */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* ---- Faixa rolante ------------------------------------------------------ */
+  .faixa-rolante {
+    position: relative;
+    overflow: hidden;
+    /* As pontas somem no fundo, em vez de cortar o item no meio. */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .faixa-rolante-trilho {
+    display: flex;
+    width: max-content;
+  }
+  .faixa-rolante-grupo {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: var(--faixa-vao, 1rem);
+    padding-right: var(--faixa-vao, 1rem);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .faixa-rolante-trilho {
+      animation: faixa-rolante var(--duracao, 40s) linear infinite;
+    }
+    .faixa-rolante:hover .faixa-rolante-trilho,
+    .faixa-rolante:focus-within .faixa-rolante-trilho {
+      animation-play-state: paused;
+    }
+  }
+  /* Parada: sem cópia, os itens quebram linha e ficam todos à vista. */
+  @media (prefers-reduced-motion: reduce) {
+    .faixa-rolante {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+    .faixa-rolante-trilho {
+      width: auto;
+    }
+    .faixa-rolante-grupo {
+      flex-wrap: wrap;
+      justify-content: center;
+      flex-shrink: 1;
+      padding-right: 0;
+    }
+    .faixa-rolante-grupo[aria-hidden="true"] {
+      display: none;
+    }
+  }
+
+  /* ---- Carrossel ----------------------------------------------------------- */
+  /* Sem JS a fileira rola na mão; com o Embla pronto (`data-pronto`), a
+     janela fecha e ele move a trilha por transform. */
+  .carrossel-janela {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .carrossel[data-pronto] .carrossel-janela {
+    overflow: hidden;
+  }
+  .carrossel-janela::-webkit-scrollbar {
+    display: none;
+  }
+  .carrossel-trilho {
+    display: flex;
+    margin-left: -1rem;
+    touch-action: pan-y pinch-zoom;
+  }
+  .carrossel-slide {
+    min-width: 0;
+    flex: 0 0 88%;
+    padding-left: 1rem;
+  }
+  @media (min-width: 640px) {
+    .carrossel-slide {
+      flex-basis: 58%;
+    }
+  }
+  @media (min-width: 1024px) {
+    .carrossel-slide {
+      flex-basis: 36%;
+    }
+  }
+  @media (min-width: 1440px) {
+    .carrossel-slide {
+      flex-basis: 30%;
+    }
+  }
+  .carrossel-ponto {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--chao-3);
+    transition:
+      width var(--t-ui) var(--ease-out),
+      background-color var(--t-ui) ease;
+  }
+  .carrossel-ponto[data-ativo] {
+    width: 1.5rem;
+    background: var(--acento);
+  }
+  .carrossel-seta {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 999px;
+    background: var(--branco);
+    color: var(--tinta);
+    box-shadow:
+      inset 0 0 0 1px var(--borda-forte),
+      var(--sombra-1);
+    transition:
+      transform var(--t-ui) var(--ease-out),
+      box-shadow var(--t-ui) var(--ease-out);
+  }
+  .carrossel-seta svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .carrossel-seta:active {
+    transform: scale(0.94);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .carrossel-seta:hover {
+      box-shadow:
+        inset 0 0 0 1px var(--tinta),
+        var(--sombra-2);
+    }
+  }
+}
+
+@keyframes faixa-rolante {
+  to {
+    transform: translateX(-50%);
+  }
+}

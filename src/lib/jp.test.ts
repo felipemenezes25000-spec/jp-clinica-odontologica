@@ -12,6 +12,9 @@ import {
   A_CONFIRMAR,
   CONVENIOS,
   CONVENIOS_POR_EXTENSO,
+  CONVENIOS_SITE,
+  CONVENIOS_SITE_POR_EXTENSO,
+  FAQ_SITE,
   CUIDADOS_COMPLEMENTARES,
   FAQ,
   PAGAMENTO,
@@ -48,6 +51,13 @@ describe("convênios", () => {
   it("aparece por extenso na resposta da FAQ sobre convênio", () => {
     const resposta = FAQ.find((f) => f.q.toLowerCase().includes("convênio"))?.a ?? "";
     expect(resposta).toContain(CONVENIOS_POR_EXTENSO);
+  });
+
+  it("a FAQ do site cita os convênios do site, e a do CRC continua com a lista do CRC", () => {
+    const doSite = FAQ_SITE.find((f) => f.q.toLowerCase().includes("convênio"))?.a ?? "";
+    expect(doSite).toContain(CONVENIOS_SITE_POR_EXTENSO);
+    for (const c of CONVENIOS_SITE) expect(doSite).toContain(c.nome);
+    expect(FAQ_SITE).toHaveLength(FAQ.length);
   });
 });
 

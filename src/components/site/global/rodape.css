@@ -1,38 +1,156 @@
-/* O rodapé do site — redesenho de 11/2026. Ver Footer.tsx e ArcadaDoRodape.tsx. */
+/* O rodapé do site — redesenho de 11/2026. Ver Footer.tsx.
+ *
+ * Verde profundo inteiro (`.campo-escuro`), em quatro faixas: a chamada final,
+ * a marca com os contatos ao lado das colunas de links, e a linha legal
+ * (obrigatória) separada por um filete. A arcada de blocos com J e P foi
+ * removida: de longe lia-se como uma fileira de caixas, não como a marca.
+ */
 
 @layer theme, base, components, utilities;
 
 @layer components {
-  .arcada-svg {
-    display: block;
-    width: 100%;
-    height: auto;
+  .rodape-quadro {
+    padding-top: clamp(3.5rem, 2rem + 5vw, 7rem);
+    padding-bottom: clamp(2rem, 1.5rem + 2vw, 3.5rem);
   }
 
-  /* A letra é o furo da coroa: a cor do campo aparece por ela. */
-  .arcada-letra {
-    fill: var(--campo);
-    font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.04em;
+  /* ---- A chamada final ----------------------------------------------------- */
+  .rodape-topo {
+    display: grid;
+    gap: 2rem;
+    padding-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+    border-bottom: 1px solid rgb(255 255 255 / 0.12);
+  }
+  .rodape-assinatura {
+    max-width: 20ch;
+    font-size: var(--text-frase);
+    line-height: var(--text-frase--line-height);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--sobre-campo);
+    text-wrap: balance;
+  }
+  .rodape-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  @media (max-width: 639.98px) {
+    .rodape-acoes > * {
+      width: 100%;
+    }
+  }
+  @media (min-width: 1024px) {
+    .rodape-topo {
+      grid-template-columns: 1fr auto;
+      align-items: end;
+    }
   }
 
-  /* As coroas sobem em cascata quando a arcada aparece. A peça só fica
-     escondida com script e movimento permitido — sem isso (ou se o motor nunca
-     chegar) ela já está no lugar, e a regra de segurança revela em 2,5s. O
-     svg corta o que passa da base, então a coroa nasce "de dentro do chão". */
-  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
-    .arcada-peca {
-      transform-box: fill-box;
-      transform: translateY(104%);
-      transition: transform 1100ms var(--ease-expo) calc(var(--k, 0) * 90ms);
+  /* ---- Marca, contatos e links -------------------------------------------- */
+  .rodape-grade {
+    display: grid;
+    gap: 3rem;
+    padding-block: clamp(2.5rem, 2rem + 2vw, 4rem);
+  }
+  @media (min-width: 1024px) {
+    .rodape-grade {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
     }
-    [data-entrou] .arcada-peca {
-      transform: none;
+  }
+
+  .rodape-endereco {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 1.5rem;
+    color: var(--sobre-campo);
+  }
+  .rodape-link-linha {
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding-block: 0.4rem;
+    text-decoration: none;
+  }
+  .rodape-link-linha svg,
+  .rodape-horario svg {
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.15rem;
+    color: var(--acento);
+  }
+  .rodape-link-linha span {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--t-hover) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .rodape-link-linha:hover span {
+      text-decoration-color: currentColor;
     }
-    :root:not([data-movimento]) .arcada-peca {
-      animation: jp-seguranca 0.01s 2.5s forwards;
+  }
+  .rodape-horario {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.4rem 0 0;
+    color: var(--sobre-campo-suave);
+  }
+
+  .rodape-redes {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .rodape-rede {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--sobre-campo) 10%, transparent);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+    color: var(--sobre-campo);
+    transition:
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease,
+      transform var(--t-press) var(--ease-out);
+  }
+  .rodape-rede svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  .rodape-rede:active {
+    transform: scale(0.94);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .rodape-rede:hover {
+      background: var(--sobre-campo);
+      color: var(--campo);
     }
+  }
+
+  .rodape-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem 1.5rem;
+    align-content: start;
+  }
+  @media (min-width: 640px) {
+    .rodape-nav {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .rodape-titulo {
+    font-size: var(--text-pequeno);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--acento-claro);
+  }
+  .rodape-nav ul {
+    margin-top: 0.75rem;
   }
 
   /* Links do rodapé: o sublinhado acende no hover, como em todo o site. */
@@ -52,10 +170,36 @@
     .rodape-link {
       min-height: 2.25rem;
     }
+    .rodape-link-linha {
+      min-height: 0;
+    }
   }
   @media (hover: hover) and (pointer: fine) {
     .rodape-link:hover {
       text-decoration-color: currentColor;
+    }
+  }
+
+  /* ---- A linha legal ------------------------------------------------------- */
+  .rodape-legal {
+    display: grid;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    color: var(--sobre-campo-suave);
+  }
+  .rodape-legal-texto {
+    display: grid;
+    gap: 0.4rem;
+    max-width: 68ch;
+  }
+  .rodape-topo-botao {
+    justify-self: start;
+  }
+  @media (min-width: 1024px) {
+    .rodape-legal {
+      grid-template-columns: 1fr auto;
+      align-items: end;
     }
   }
 }

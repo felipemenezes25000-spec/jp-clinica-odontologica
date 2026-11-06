@@ -15,18 +15,16 @@
  *    servidor. Esta tela só ordena, agrupa e desenha — se um número parecer
  *    errado, o lugar de corrigir é `@/lib/rh/ia/metricas`, nunca o JSX.
  *
- * A tela renderiza sobre o fundo escuro do painel (`.rh-aurora`), então os
- * blocos usam `.rh-vidro` e as pílulas entram pela variante `pilulaEscura`. A
- * tabela do ranking é a única peça que não reaproveita `.rh-papel`/`.rh-tabela`
- * da aba Candidaturas: ela precisa do `SeloSinais` na linha, e o selo só existe
- * em pílula escura — misturar as duas superfícies deixaria metade da linha
- * ilegível. A densidade de planilha, essa sim, é a mesma.
+ * O visual mora em `triagem.css` (classes `.tri-*`, escopo `.rh-triagem`), na
+ * mesma linguagem do Resumo e da Gestão de vagas: folha branca, degrau de tom
+ * em vez de filete, verde-campo nos dados e acento só no botão de ação.
  */
 import {
   useCallback,
   useMemo,
   useState,
   type DragEvent as EventoArrastar,
+  type ReactNode,
   type KeyboardEvent as EventoTeclado,
   type MouseEvent as EventoMouse,
 } from "react";
@@ -48,7 +46,9 @@ import {
   Users,
   X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { SeloSinais } from "@/components/rh/PainelSinais";
 import { formatarData, formatarTamanho, iniciais } from "@/lib/rh/formatar";
 import { emAnosMeses } from "@/lib/rh/ia/metricas";
@@ -64,6 +64,7 @@ import type { AnaliseIa, ChaveCriterio, RankingIa, RecomendacaoIa, Sinal } from 
 import { AREAS } from "@/lib/rh/opcoes";
 import type { AreaVaga, Candidatura, Vaga } from "@/lib/rh/tipos";
 import { EXTENSOES_CURRICULO, TAMANHO_MAX_CURRICULO, TIPOS_CURRICULO } from "@/lib/rh/tipos";
+import "@/components/rh/triagem.css";
 
 /** Espelho do limite do servidor (`importarCurriculos`). Ver o aviso na tela. */
 const LIMITE_IMPORTACAO = 40;
@@ -131,29 +132,21 @@ function formatarNota(n: number): string {
   return Number.isInteger(limpa) ? String(limpa) : limpa.toFixed(1).replace(".", ",");
 }
 
-type Faixa = { rotulo: string; celula: string };
+type Faixa = { rotulo: string; faixa: "forte" | "bom" | "atencao" | "fraco" };
 
 /**
- * Cor da célula de critério — SEMPRE acompanhada do número escrito.
+ * Faixa da célula de critério — SEMPRE acompanhada do número escrito.
  *
- * A cor é o atalho para o olho varrer a tabela; ela nunca é a informação. Quem
- * não distingue verde de âmbar lê o "7" e o rótulo textual ("forte", "fraco")
- * que o leitor de tela anuncia, e chega exatamente à mesma conclusão.
- *
- * São as variantes escuras porque a tabela do ranking mora sobre o fundo do
- * painel, e não em `.rh-papel`: é lá que o selo de sinais (que só tem pílula
- * escura) e as pílulas de recomendação já vivem, e misturar as duas superfícies
- * numa linha só deixaria metade do conteúdo ilegível.
+ * A cor (em `triagem.css`, por `data-faixa`) é o atalho para o olho varrer a
+ * tabela; ela nunca é a informação. Quem não distingue verde de âmbar lê o "7"
+ * e o rótulo textual ("forte", "fraco") que o leitor de tela anuncia, e chega
+ * exatamente à mesma conclusão.
  */
 function faixaDaNota(nota: number): Faixa {
-  if (nota >= 8) {
-    return { rotulo: "forte", celula: "bg-emerald-300/15 text-white ring-emerald-200/30" };
-  }
-  if (nota >= 6) return { rotulo: "bom", celula: "bg-sky-300/15 text-white ring-sky-200/30" };
-  if (nota >= 4) {
-    return { rotulo: "atenção", celula: "bg-amber-300/15 text-white ring-amber-200/30" };
-  }
-  return { rotulo: "fraco", celula: "bg-rose-300/15 text-white ring-rose-200/30" };
+  if (nota >= 8) return { rotulo: "forte", faixa: "forte" };
+  if (nota >= 6) return { rotulo: "bom", faixa: "bom" };
+  if (nota >= 4) return { rotulo: "atenção", faixa: "atencao" };
+  return { rotulo: "fraco", faixa: "fraco" };
 }
 
 /**
@@ -198,47 +191,47 @@ function sinaisDeDestaque(sinais: Sinal[]): Sinal[] {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Estrelas em superfície escura.
- *
- * O preenchimento pode ser lime porque estrela é DESENHO, e desenho pede 3:1
- * (WCAG 1.4.11), não os 4,5:1 de texto. Sobre o `--brand-deep` do painel o lime
- * mede 4,96:1; dentro do cartão `bg-lime/10`, 4,27:1; e no hover dele, a
- * `bg-lime/20`, 3,62:1 — o pior caso, ainda acima do piso.
- *
- * Remedido em 14/09/2026: este comentário dizia 8,2:1, conta de quando --lime
- * era #7bd51c. O número caiu pela metade e a conclusão continua valendo, mas a
- * folga não é mais a que o "8,2" sugeria — qualquer fundo mais claro que o
- * hover atual derruba a estrela abaixo de 3:1.
+ * Estrelas da nota. Desenho, não texto: o preenchimento pede 3:1 (WCAG 1.4.11),
+ * e a nota também vem escrita ao lado, em número, em todo lugar onde aparece.
+ * A cor vem de `triagem.css` (`--estrela` cheia, `--estrela-vazia` apagada).
  */
-function EstrelasEscuras(props: { valor: number }) {
+function EstrelasNota(props: { valor: number }) {
   return (
-    <span
-      role="img"
-      aria-label={`${props.valor} de 5 estrelas`}
-      className="flex items-center gap-0.5 whitespace-nowrap"
-    >
+    <span role="img" aria-label={`${props.valor} de 5 estrelas`} className="tri-estrelas">
       {[1, 2, 3, 4, 5].map((n) => (
         <Star
           key={n}
-          size={13}
-          strokeWidth={2}
+          size={14}
+          strokeWidth={1.75}
           aria-hidden="true"
-          fill={n <= props.valor ? "currentColor" : "none"}
-          className={n <= props.valor ? "text-lime" : "text-white/25"}
+          data-vazia={n <= props.valor ? "false" : "true"}
+          fill="currentColor"
         />
       ))}
     </span>
   );
 }
 
+/** As iniciais na moldura da casa — a mesma peça do Resumo e do kanban. */
 function Avatar(props: { nome: string }) {
   return (
-    <span
-      aria-hidden="true"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lime/20 text-[0.7rem] font-extrabold text-white"
-    >
-      {iniciais(props.nome) || "?"}
-    </span>
+    <MolduraCoroa as="span" proporcao={1} className="tri-avatar" aria-hidden="true">
+      <span>{iniciais(props.nome) || "?"}</span>
+    </MolduraCoroa>
+  );
+}
+
+/** Estado vazio: ícone, uma frase de título e o texto que explica o próximo passo. */
+function Vazio(props: { icone: LucideIcon; titulo: string; children: ReactNode }) {
+  const { icone: Icone } = props;
+  return (
+    <div className="tri-vazio">
+      <span className="tri-pastilha" aria-hidden="true">
+        <Icone size={20} />
+      </span>
+      <strong>{props.titulo}</strong>
+      <p>{props.children}</p>
+    </div>
   );
 }
 
@@ -246,19 +239,8 @@ function Avatar(props: { nome: string }) {
 /* Seletor de recorte (área + vaga), compartilhado por ranking e fila         */
 /* -------------------------------------------------------------------------- */
 
-const CAMPO =
-  "h-12 w-full rounded-xl border border-white/15 bg-white/[0.07] px-3 text-sm text-white " +
-  "transition-colors hover:border-white/30 focus:border-lime";
-
-const ACAO =
-  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-white/25 " +
-  "bg-white/5 px-4 text-xs font-extrabold text-white transition hover:bg-white/15 " +
-  "disabled:cursor-not-allowed disabled:opacity-40";
-
-const ACAO_FORTE =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-lime px-4 text-sm " +
-  "font-extrabold text-brand-deep transition hover:brightness-110 " +
-  "disabled:cursor-not-allowed disabled:opacity-40";
+const BTN = "tri-btn tri-btn--chao";
+const BTN_FORTE = "tri-btn tri-btn--forte";
 
 function SeletorRecorte(props: {
   id: string;
@@ -272,42 +254,34 @@ function SeletorRecorte(props: {
 }) {
   return (
     <>
-      <label className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
-          {props.rotuloArea}
-        </span>
+      <label className="tri-recorte">
+        <span className="tri-rotulo">{props.rotuloArea}</span>
         <select
           id={`${props.id}-area`}
-          className={CAMPO}
+          className="tri-select"
           value={props.area}
           onChange={(e) => props.aoMudarArea(e.target.value as AreaVaga | "")}
         >
-          <option value="" className="bg-white text-ink">
-            Todas as áreas
-          </option>
+          <option value="">Todas as áreas</option>
           {AREAS.map((a) => (
-            <option key={a.valor} value={a.valor} className="bg-white text-ink">
+            <option key={a.valor} value={a.valor}>
               {a.rotulo}
             </option>
           ))}
         </select>
       </label>
 
-      <label className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
-          {props.rotuloVaga}
-        </span>
+      <label className="tri-recorte">
+        <span className="tri-rotulo">{props.rotuloVaga}</span>
         <select
           id={`${props.id}-vaga`}
-          className={CAMPO}
+          className="tri-select"
           value={props.vagaId}
           onChange={(e) => props.aoMudarVaga(e.target.value)}
         >
-          <option value="" className="bg-white text-ink">
-            Todas as vagas
-          </option>
+          <option value="">Todas as vagas</option>
           {props.vagas.map((v) => (
-            <option key={v.id} value={v.id} className="bg-white text-ink">
+            <option key={v.id} value={v.id}>
               {v.titulo}
             </option>
           ))}
@@ -349,51 +323,61 @@ function BarraEstadoIa(props: {
   // botão que só devolveria erro é pior do que botão nenhum.
   if (!estado.configurada) {
     return (
-      <section aria-labelledby="rh-ia-desligada" className="rh-vidro p-5">
-        <h2
-          id="rh-ia-desligada"
-          className="flex items-center gap-2 font-display text-base font-extrabold text-amber-100"
-        >
-          <TriangleAlert size={18} aria-hidden="true" />A leitura por IA está desligada
-        </h2>
-        {/*
-          O nome exato da variável NÃO é escrito neste arquivo, e não é descuido:
-          este componente vira um JavaScript estático que qualquer visitante
-          baixa, com ou sem sessão. Quem precisa do nome o recebe do próprio
-          servidor, dentro de `motivo` — que só existe depois do login, e por
-          isso aparece logo aqui embaixo, em destaque, e não no rodapé.
-        */}
-        <p className="mt-2 text-sm leading-relaxed text-white/85">
-          O servidor não encontrou a chave da OpenAI. Sem ela nada é lido, nada é analisado e nenhum
-          currículo sai do lugar — o resto do painel continua funcionando normalmente.
-        </p>
+      <section aria-labelledby="rh-ia-desligada" className="tri-lamina">
+        <div className="tri-cabeca">
+          <div className="tri-titulo">
+            <span className="tri-pastilha" data-tom="aviso" aria-hidden="true">
+              <TriangleAlert size={20} />
+            </span>
+            <div>
+              <h2 id="rh-ia-desligada">A leitura por IA está desligada</h2>
+              {/*
+                O nome exato da variável NÃO é escrito neste arquivo, e não é descuido:
+                este componente vira um JavaScript estático que qualquer visitante
+                baixa, com ou sem sessão. Quem precisa do nome o recebe do próprio
+                servidor, dentro de `motivo` — que só existe depois do login, e por
+                isso aparece logo aqui embaixo, em destaque, e não no rodapé.
+              */}
+              <p className="tri-sub">
+                O servidor não encontrou a chave da OpenAI. Sem ela nada é lido, nada é analisado e
+                nenhum currículo sai do lugar — o resto do painel continua funcionando normalmente.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {estado.motivo.length > 0 ? (
-          <p className="mt-3 rounded-xl bg-white/[0.06] p-3 text-sm leading-relaxed text-white/85 ring-1 ring-white/15">
-            <span className="font-bold text-white">O servidor relata:</span> {estado.motivo}
+          <p className="tri-aviso">
+            <strong>O servidor relata:</strong> {estado.motivo}
           </p>
         ) : null}
-        <ol className="mt-3 space-y-1.5 text-sm leading-relaxed text-white/85">
+
+        <ol className="tri-passos">
           <li>
-            1. Entre no painel da hospedagem: <strong className="text-white">Vercel</strong> →
-            projeto da clínica → <strong className="text-white">Settings</strong> →{" "}
-            <strong className="text-white">Environment Variables</strong>.
+            <span>
+              Entre no painel da hospedagem: <strong>Vercel</strong> → projeto da clínica →{" "}
+              <strong>Settings</strong> → <strong>Environment Variables</strong>.
+            </span>
           </li>
           <li>
-            2. Clique em <strong className="text-white">Add New</strong>, use exatamente o nome de
-            variável que o servidor cita no aviso acima (ele está também no arquivo{" "}
-            <code className="font-mono text-white">.env.example</code> do projeto) e cole a chave da
-            OpenAI no campo de valor.
+            <span>
+              Clique em <strong>Add New</strong>, use exatamente o nome de variável que o servidor
+              cita no aviso acima (ele está também no arquivo <code>.env.example</code> do projeto)
+              e cole a chave da OpenAI no campo de valor.
+            </span>
           </li>
           <li>
-            3. Marque os ambientes <strong className="text-white">Production</strong> e{" "}
-            <strong className="text-white">Preview</strong> e salve.
+            <span>
+              Marque os ambientes <strong>Production</strong> e <strong>Preview</strong> e salve.
+            </span>
           </li>
           <li>
-            4. Faça um <strong className="text-white">Redeploy</strong>: variável nova só vale para
-            a próxima publicação.
+            <span>
+              Faça um <strong>Redeploy</strong>: variável nova só vale para a próxima publicação.
+            </span>
           </li>
         </ol>
-        <p className="mt-3 text-xs leading-relaxed text-white/85">
+        <p className="tri-nota-rodape" style={{ marginTop: 16 }}>
           Nunca escreva a chave aqui, em anotação de candidato ou em mensagem de WhatsApp. Ela vive
           só no servidor: esta tela jamais mostra o valor, nem inteiro nem em pedaço.
         </p>
@@ -429,44 +413,44 @@ function BarraEstadoIa(props: {
         : `Analisar as ${pendentes} pendentes`;
 
   return (
-    <section aria-labelledby="rh-ia-estado" className="rh-vidro p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2
-            id="rh-ia-estado"
-            className="flex items-center gap-2 font-display text-base font-extrabold text-white"
-          >
-            <Sparkles size={18} className="text-lime" aria-hidden="true" />
-            Leitura por IA
-          </h2>
-          <p className="mt-1 text-sm text-white/85">
-            Modelo em uso: <span className="font-semibold text-white">{estado.modelo || "—"}</span>.
-            A IA lê o currículo e julga; tempo de casa, lacunas e médias são calculados pelo
-            sistema, não pelo modelo.
-          </p>
+    <section aria-labelledby="rh-ia-estado" className="tri-lamina">
+      <div className="tri-cabeca">
+        <div className="tri-titulo">
+          <span className="tri-pastilha" aria-hidden="true">
+            <Sparkles size={20} />
+          </span>
+          <div>
+            <h2 id="rh-ia-estado">Leitura por IA</h2>
+            <p className="tri-sub">
+              Modelo em uso: <strong>{estado.modelo || "—"}</strong>. A IA lê o currículo e julga;
+              tempo de casa, lacunas e médias são calculados pelo sistema, não pelo modelo.
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-white/85">
-            <strong className="font-display text-xl font-extrabold text-white">
-              {estado.analisadas}
-            </strong>{" "}
-            {estado.analisadas === 1 ? "analisada" : "analisadas"} ·{" "}
-            <strong className="font-display text-xl font-extrabold text-white">{pendentes}</strong>{" "}
-            {pendentes === 1 ? "pendente" : "pendentes"}
-          </p>
+        <div className="tri-acoes">
+          <div className="tri-numeros">
+            <p className="tri-numero">
+              <strong>{estado.analisadas}</strong>
+              <span>{estado.analisadas === 1 ? "analisada" : "analisadas"}</span>
+            </p>
+            <p className="tri-numero">
+              <strong>{pendentes}</strong>
+              <span>{pendentes === 1 ? "pendente" : "pendentes"}</span>
+            </p>
+          </div>
           {/* O botão NÃO dispara mais a análise: ele abre a confirmação. A
               ordem do cliente veio depois de um susto na fatura — nada de
               gastar antes de a pessoa ver quantas, com qual modelo e quanto. */}
           <button
             type="button"
-            className={ACAO_FORTE}
+            className={BTN_FORTE}
             disabled={nada}
             aria-expanded={confirmando}
             aria-controls="rh-ia-confirmar"
             onClick={() => setConfirmando(true)}
           >
-            <ScanSearch size={16} aria-hidden="true" />
+            <ScanSearch aria-hidden="true" />
             {rotuloBotao}
           </button>
         </div>
@@ -477,63 +461,51 @@ function BarraEstadoIa(props: {
           id="rh-ia-confirmar"
           role="group"
           aria-label="Confirmar a análise em lote"
-          className="mt-4 rounded-2xl border border-lime/40 bg-lime/10 p-4"
+          className="tri-confirma"
         >
-          <p className="flex items-center gap-2 text-sm font-extrabold text-white">
-            <TriangleAlert size={16} aria-hidden="true" className="shrink-0 text-amber-200" />
+          <p>
+            <TriangleAlert size={18} aria-hidden="true" className="shrink-0" />
             Confirma a leitura de {pluralizar(quantidade, "currículo", "currículos")}?
           </p>
 
-          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+          <dl>
             <div className="min-w-0">
-              <dt className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
-                Serão analisadas
-              </dt>
-              <dd className="mt-0.5 font-display text-xl font-extrabold tabular-nums text-white">
-                {quantidade}
-              </dd>
+              <dt>Serão analisadas</dt>
+              <dd>{quantidade}</dd>
             </div>
             <div className="min-w-0">
-              <dt className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
-                Modelo em uso
-              </dt>
-              <dd className="mt-0.5 truncate font-mono text-sm font-bold text-white">
-                {estado.modelo || "—"}
-              </dd>
+              <dt>Modelo em uso</dt>
+              <dd className="tri-mono">{estado.modelo || "—"}</dd>
             </div>
             <div className="min-w-0">
-              <dt className="text-[0.65rem] font-bold uppercase tracking-[0.14em] text-white">
-                Custo estimado
-              </dt>
+              <dt>Custo estimado</dt>
               {/* Modelo fora da tabela de preços não vira chute: a tela diz que
                   não sabe. Um número inventado aqui seria pior que nenhum — o
                   RH decidiria confiando nele. */}
-              <dd className="mt-0.5 font-display text-xl font-extrabold text-white">
-                {custo.conhecido ? formatarDolar(custo.dolares) : "custo desconhecido"}
-              </dd>
+              <dd>{custo.conhecido ? formatarDolar(custo.dolares) : "custo desconhecido"}</dd>
             </div>
           </dl>
 
-          <p className="mt-3 text-xs leading-relaxed text-white/85">
+          <p className="tri-confirma__texto">
             {custo.conhecido
               ? `Estimativa por cima de ${TOKENS_ENTRADA_POR_CURRICULO.toLocaleString("pt-BR")} tokens de entrada e ${TOKENS_SAIDA_POR_CURRICULO.toLocaleString("pt-BR")} de saída por currículo. O valor real varia com o tamanho de cada PDF; a cobrança é na conta da OpenAI da clínica, não aqui.`
               : `O painel não conhece o preço de “${estado.modelo || "—"}”, então não estima o gasto — e não chuta. Confira a tabela da OpenAI antes de rodar uma fila grande.`}
           </p>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="tri-acoes" style={{ marginTop: 16, gap: 8 }}>
             <button
               type="button"
-              className={ACAO_FORTE}
+              className={BTN_FORTE}
               onClick={() => {
                 setConfirmando(false);
                 props.aoAnalisarTodas(alvo, refazendo);
               }}
             >
-              <ScanSearch size={16} aria-hidden="true" />
+              <ScanSearch aria-hidden="true" />
               Confirmar e analisar
             </button>
-            <button type="button" className={ACAO} onClick={() => setConfirmando(false)}>
-              <X size={15} aria-hidden="true" />
+            <button type="button" className={BTN} onClick={() => setConfirmando(false)}>
+              <X aria-hidden="true" />
               Cancelar
             </button>
           </div>
@@ -543,10 +515,9 @@ function BarraEstadoIa(props: {
       {/* Refazer é caixa, e não segundo botão: é a MESMA ação com outro alvo, e
           dois botões parecidos lado a lado convidam ao clique errado — que aqui
           custa token e reescreve análise que já estava boa. */}
-      <label className="mt-3 flex items-center gap-2 text-xs font-semibold text-white/85">
+      <label className="tri-refazer">
         <input
           type="checkbox"
-          className="h-4 w-4 accent-lime"
           checked={refazendo}
           disabled={props.ocupado || !podeRefazer}
           onChange={(e) => {
@@ -562,8 +533,8 @@ function BarraEstadoIa(props: {
       </label>
 
       {progresso && progresso.total > 0 ? (
-        <div className="mt-4">
-          <div className="mb-1.5 flex items-center justify-between text-xs font-semibold text-white/85">
+        <div className="tri-progresso">
+          <div className="tri-progresso__topo">
             <span>Lendo currículos…</span>
             <span>
               {progresso.feitos} de {progresso.total}
@@ -576,10 +547,9 @@ function BarraEstadoIa(props: {
             aria-valuemax={progresso.total}
             aria-valuetext={`${progresso.feitos} de ${progresso.total} candidaturas analisadas`}
             aria-label="Progresso da análise por IA"
-            className="rh-progresso"
+            className="tri-trilho"
           >
             <div
-              className="rh-progresso-barra"
               style={{
                 width: `${Math.round((progresso.feitos / progresso.total) * 100)}%`,
               }}
@@ -589,7 +559,7 @@ function BarraEstadoIa(props: {
       ) : null}
 
       {pendentes > LOTE_ANALISE ? (
-        <p className="mt-3 text-xs leading-relaxed text-white/85">
+        <p className="tri-nota-rodape" style={{ marginTop: 12 }}>
           O servidor lê até {LOTE_ANALISE} currículos por vez — são duas leituras do modelo por
           ficha, e a fila inteira numa requisição só estouraria o tempo de resposta. O painel emenda
           as rodadas sozinho até zerar a fila (a primeira cuida de {lote}), e leva minutos com uma
@@ -689,26 +659,30 @@ function Importador(props: {
   const resultado = props.resultado;
 
   return (
-    <section aria-labelledby="rh-importar" className="rh-vidro p-5">
-      <h2
-        id="rh-importar"
-        className="flex items-center gap-2 font-display text-base font-extrabold text-white"
-      >
-        <Upload size={18} className="text-lime" aria-hidden="true" />
-        Importar currículos
-      </h2>
-      <p className="mt-1 text-sm leading-relaxed text-white/85">
-        Para o acervo que chega por WhatsApp, e-mail ou pasta no computador. Cada arquivo vira uma
-        ficha nova; o nome, o telefone e a experiência saem da própria leitura do documento.
-      </p>
+    <section aria-labelledby="rh-importar" className="tri-lamina">
+      <div className="tri-cabeca">
+        <div className="tri-titulo">
+          <span className="tri-pastilha" aria-hidden="true">
+            <Upload size={20} />
+          </span>
+          <div>
+            <h2 id="rh-importar">Importar currículos</h2>
+            <p className="tri-sub">
+              Para o acervo que chega por WhatsApp, e-mail ou pasta no computador. Cada arquivo vira
+              uma ficha nova; o nome, o telefone e a experiência saem da própria leitura do
+              documento.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div className="tri-importar">
         <div>
           {/* Input real dentro do label: é o que dá clique, Enter/Espaço e nome
               acessível de graça. Um <div> com .click() sairia da ordem de
               tabulação e não anunciaria nada a leitor de tela. */}
           <label
-            className="rh-dropzone focus-within:ring-2 focus-within:ring-lime focus-within:ring-offset-2 focus-within:ring-offset-brand-deep"
+            className="tri-solta"
             data-sobre={sobre ? "true" : "false"}
             data-preenchido={arquivos.length > 0 ? "true" : "false"}
             onDragOver={(e) => {
@@ -733,11 +707,11 @@ function Importador(props: {
                 e.target.value = "";
               }}
             />
-            <Upload className="h-7 w-7 text-forest" aria-hidden="true" />
-            <span className="font-display text-base font-extrabold text-forest-2">
-              Soltar currículos aqui
+            <span className="tri-pastilha" aria-hidden="true">
+              <Upload size={22} />
             </span>
-            <span className="max-w-sm text-xs font-medium text-ink">
+            <strong>Soltar currículos aqui</strong>
+            <span className="tri-solta__dica">
               Vários de uma vez. PDF, DOC, DOCX, JPG ou PNG, até{" "}
               {formatarTamanho(TAMANHO_MAX_CURRICULO)} cada, no máximo {LIMITE_IMPORTACAO} por
               envio.
@@ -745,10 +719,10 @@ function Importador(props: {
           </label>
 
           {recusados.length > 0 ? (
-            <ul role="alert" className="mt-3 space-y-1 text-xs font-semibold text-amber-100">
+            <ul role="alert" className="tri-alerta-lista">
               {recusados.map((r) => (
-                <li key={r} className="flex gap-1.5">
-                  <TriangleAlert size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+                <li key={r}>
+                  <TriangleAlert size={14} aria-hidden="true" />
                   <span>{r}</span>
                 </li>
               ))}
@@ -756,51 +730,46 @@ function Importador(props: {
           ) : null}
 
           {arquivos.length > 0 ? (
-            <div className="mt-3">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-white/85">
+            <div>
+              <div className="tri-fila-topo">
                 <span>
                   {pluralizar(arquivos.length, "arquivo na fila", "arquivos na fila")} ·{" "}
                   {formatarTamanho(total)}
                 </span>
                 <button
                   type="button"
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-2 text-white/85 transition hover:text-white"
+                  className="tri-btn tri-btn--link"
                   onClick={() => {
                     setArquivos([]);
                     setRecusados([]);
                   }}
                 >
-                  <RotateCcw size={13} aria-hidden="true" />
+                  <RotateCcw aria-hidden="true" />
                   Limpar a fila
                 </button>
               </div>
 
-              <ul className="rh-scroll max-h-56 space-y-1.5 overflow-auto pr-1">
+              <ul className="tri-arquivos">
                 {arquivos.map((a, indice) => (
                   <li
                     key={`${a.name}-${a.size}-${indice}`}
-                    className={`flex items-center gap-2 rounded-xl border px-3 py-2 ${
-                      indice >= LIMITE_IMPORTACAO
-                        ? "border-amber-200/40 bg-amber-300/10"
-                        : "border-white/12 bg-white/[0.05]"
-                    }`}
+                    className="tri-arquivo"
+                    data-excede={indice >= LIMITE_IMPORTACAO ? "true" : "false"}
                   >
-                    <FileText size={15} className="shrink-0 text-lime" aria-hidden="true" />
+                    <FileText size={16} aria-hidden="true" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-semibold text-white">
-                        {a.name}
-                      </span>
-                      <span className="block text-[0.68rem] text-white/85">
+                      <span className="tri-arquivo__nome">{a.name}</span>
+                      <span className="tri-arquivo__meta">
                         {formatarTamanho(a.size)}
                         {indice >= LIMITE_IMPORTACAO ? " · fica para o próximo envio" : ""}
                       </span>
                     </span>
                     <button
                       type="button"
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white/85 transition hover:bg-white/10 hover:text-white"
+                      className="tri-icone-btn"
                       onClick={() => setArquivos((atual) => atual.filter((_, i) => i !== indice))}
                     >
-                      <Trash2 size={14} aria-hidden="true" />
+                      <Trash2 size={16} aria-hidden="true" />
                       <span className="sr-only">Tirar {a.name} da fila</span>
                     </button>
                   </li>
@@ -808,7 +777,7 @@ function Importador(props: {
               </ul>
 
               {excedente > 0 ? (
-                <p role="alert" className="mt-2 text-xs font-semibold text-amber-100">
+                <p role="alert" className="tri-alerta-lista">
                   {pluralizar(excedente, "arquivo passou", "arquivos passaram")} do limite de{" "}
                   {LIMITE_IMPORTACAO}. Este envio leva os primeiros {LIMITE_IMPORTACAO}; solte o
                   resto depois.
@@ -818,8 +787,8 @@ function Importador(props: {
           ) : null}
         </div>
 
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-3">
+        <div className="tri-lado">
+          <div className="tri-recortes">
             <SeletorRecorte
               id="rh-importar"
               area={area}
@@ -838,19 +807,16 @@ function Importador(props: {
             />
           </div>
 
-          <label className="flex items-start gap-2.5 rounded-xl border border-white/12 bg-white/[0.05] px-3 py-3">
+          <label className="tri-opcao">
             <input
               type="checkbox"
-              className="mt-0.5 h-4 w-4 accent-lime"
               checked={analisar && props.iaConfigurada}
               disabled={!props.iaConfigurada}
               onChange={(e) => setAnalisar(e.target.checked)}
             />
             <span className="min-w-0">
-              <span className="block text-sm font-bold text-white">
-                Analisar com IA ao importar
-              </span>
-              <span className="block text-xs leading-relaxed text-white/85">
+              <strong>Analisar com IA ao importar</strong>
+              <span>
                 {props.iaConfigurada
                   ? "Cada currículo é lido e avaliado na hora. Sem isto, as fichas entram e ficam pendentes até você mandar analisar."
                   : "Indisponível: o servidor está sem a chave da OpenAI. As fichas entram e ficam pendentes."}
@@ -858,19 +824,19 @@ function Importador(props: {
             </span>
           </label>
 
-          <p className="text-xs leading-relaxed text-white/85">
-            Arquivo repetido é detectado pelo <strong className="text-white">conteúdo</strong>, e
-            não pelo nome: o mesmo PDF salvo como “curriculo (1).pdf” em outra pasta é reconhecido e
-            pulado, e dois arquivos diferentes com o mesmo nome entram os dois.
+          <p className="tri-nota-rodape">
+            Arquivo repetido é detectado pelo <strong>conteúdo</strong>, e não pelo nome: o mesmo
+            PDF salvo como “curriculo (1).pdf” em outra pasta é reconhecido e pulado, e dois
+            arquivos diferentes com o mesmo nome entram os dois.
           </p>
 
           <button
             type="button"
-            className={ACAO_FORTE}
+            className={BTN_FORTE}
             disabled={arquivos.length === 0 || props.ocupado}
             onClick={enviar}
           >
-            <Upload size={16} aria-hidden="true" />
+            <Upload aria-hidden="true" />
             {props.ocupado
               ? "Enviando…"
               : `Importar ${pluralizar(
@@ -883,27 +849,27 @@ function Importador(props: {
       </div>
 
       {resultado ? (
-        <div
-          role="status"
-          className="mt-4 rounded-2xl border border-lime/20 bg-brand-deep/55 px-4 py-3"
-        >
-          <p className="text-sm font-bold text-white">
-            {pluralizar(resultado.criadas, "ficha criada", "fichas criadas")} ·{" "}
-            {pluralizar(resultado.duplicadas, "repetida pulada", "repetidas puladas")} ·{" "}
-            {pluralizar(resultado.erros.length, "arquivo recusado", "arquivos recusados")}
-          </p>
-          {resultado.erros.length > 0 ? (
-            <ul className="mt-2 space-y-1 text-xs text-white/85">
-              {resultado.erros.map((e) => (
-                <li key={`${e.arquivo}-${e.motivo}`} className="flex gap-1.5">
-                  <X size={13} className="mt-0.5 shrink-0 text-rose-200" aria-hidden="true" />
-                  <span>
-                    <strong className="font-semibold text-white">{e.arquivo}</strong> — {e.motivo}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+        <div role="status" className="tri-resultado">
+          <Check size={20} aria-hidden="true" />
+          <div>
+            <p>
+              {pluralizar(resultado.criadas, "ficha criada", "fichas criadas")} ·{" "}
+              {pluralizar(resultado.duplicadas, "repetida pulada", "repetidas puladas")} ·{" "}
+              {pluralizar(resultado.erros.length, "arquivo recusado", "arquivos recusados")}
+            </p>
+            {resultado.erros.length > 0 ? (
+              <ul>
+                {resultado.erros.map((e) => (
+                  <li key={`${e.arquivo}-${e.motivo}`}>
+                    <X size={14} aria-hidden="true" />
+                    <span>
+                      <strong>{e.arquivo}</strong> — {e.motivo}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </section>
@@ -922,19 +888,11 @@ type LinhaRanking = {
   notas: Map<ChaveCriterio, number>;
 };
 
-/* Célula e cabeçalho da tabela escura. `.rh-tabela` não serve aqui: ela pinta
-   fundo claro e texto `--ink`, feita para o `.rh-papel` da aba Candidaturas. */
-const CABECALHO =
-  "sticky top-0 z-[2] whitespace-nowrap border-b border-white/12 bg-brand-deep px-3 py-2.5 " +
-  "text-left text-[0.65rem] font-bold uppercase tracking-[0.1em] text-white";
-
-const CELULA = "border-b border-white/10 px-3 py-2.5 align-middle text-white/85";
-
 function CelulaCriterio(props: { chave: ChaveCriterio; nota: number | undefined }) {
   if (props.nota === undefined) {
     return (
-      <td className={`${CELULA} text-center`}>
-        <span className="text-white/85">
+      <td className="tri-centro">
+        <span className="tri-nota" data-faixa="sem">
           <span aria-hidden="true">—</span>
           <span className="sr-only">Sem nota de {ROTULO_CRITERIO[props.chave]}</span>
         </span>
@@ -943,10 +901,8 @@ function CelulaCriterio(props: { chave: ChaveCriterio; nota: number | undefined 
   }
   const faixa = faixaDaNota(props.nota);
   return (
-    <td className={`${CELULA} text-center`}>
-      <span
-        className={`inline-flex min-w-[2.6rem] items-center justify-center rounded-lg px-2 py-1 text-xs font-extrabold ring-1 ${faixa.celula}`}
-      >
+    <td className="tri-centro">
+      <span className="tri-nota" data-faixa={faixa.faixa}>
         <span aria-hidden="true">{formatarNota(props.nota)}</span>
         <span className="sr-only">
           {ROTULO_CRITERIO[props.chave]}: {formatarNota(props.nota)} de 10, {faixa.rotulo}
@@ -994,20 +950,24 @@ function BlocoRanking(props: {
   };
 
   return (
-    <section aria-labelledby="rh-ranking" className="rh-vidro p-5">
-      <h2
-        id="rh-ranking"
-        className="flex items-center gap-2 font-display text-base font-extrabold text-white"
-      >
-        <Trophy size={18} className="text-lime" aria-hidden="true" />
-        Ranking da vaga
-      </h2>
-      <p className="mt-1 text-sm leading-relaxed text-white/85">
-        Compara as candidatas já analisadas de um mesmo recorte e devolve uma ordem com o porquê de
-        cada posição. É a leitura do conjunto: quem está na frente, e em relação a quem.
-      </p>
+    <section aria-labelledby="rh-ranking" className="tri-lamina">
+      <div className="tri-cabeca">
+        <div className="tri-titulo">
+          <span className="tri-pastilha" aria-hidden="true">
+            <Trophy size={20} />
+          </span>
+          <div>
+            <h2 id="rh-ranking">Ranking da vaga</h2>
+            <p className="tri-sub">
+              Compara as candidatas já analisadas de um mesmo recorte e devolve uma ordem com o
+              porquê de cada posição. É a leitura do conjunto: quem está na frente, e em relação a
+              quem.
+            </p>
+          </div>
+        </div>
+      </div>
 
-      <div className="mt-4 flex flex-wrap items-end gap-3">
+      <div className="tri-recortes">
         <SeletorRecorte
           id="rh-ranking"
           area={props.area}
@@ -1020,91 +980,82 @@ function BlocoRanking(props: {
         />
         <button
           type="button"
-          className={ACAO_FORTE}
+          className={BTN_FORTE}
           disabled={props.ocupado || !props.temAnalises}
           onClick={() => props.aoGerarRanking(props.area, props.vagaId)}
         >
-          <Trophy size={16} aria-hidden="true" />
+          <Trophy aria-hidden="true" />
           {props.ocupado ? "Comparando…" : "Gerar ranking"}
         </button>
       </div>
 
       {!props.temAnalises ? (
-        <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-6 text-center text-sm leading-relaxed text-white/85">
-          Nenhuma candidatura analisada neste recorte ainda. O ranking compara análises prontas —
-          rode a leitura por IA lá em cima (ou mude a área e a vaga) e volte aqui.
-        </p>
+        <Vazio icone={ScanSearch} titulo="Nenhuma candidatura analisada neste recorte">
+          O ranking compara análises prontas — rode a leitura por IA lá em cima (ou mude a área e a
+          vaga) e volte aqui.
+        </Vazio>
       ) : !props.ranking ? (
-        <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-6 text-center text-sm leading-relaxed text-white/85">
-          Nenhum ranking gerado ainda. O botão manda as análises deste recorte para o modelo
-          comparar uma com a outra e devolve: uma ordem de quem chamar primeiro, o motivo de cada
-          posição e uma leitura do grupo inteiro. As notas individuais que você já vê na lista
-          abaixo não mudam.
-        </p>
+        <Vazio icone={Trophy} titulo="Nenhum ranking gerado ainda">
+          O botão manda as análises deste recorte para o modelo comparar uma com a outra e devolve:
+          uma ordem de quem chamar primeiro, o motivo de cada posição e uma leitura do grupo
+          inteiro. As notas individuais que você já vê na lista abaixo não mudam.
+        </Vazio>
       ) : linhas.length === 0 ? (
-        <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-6 text-center text-sm leading-relaxed text-white/85">
+        <Vazio icone={Inbox} titulo="Ninguém do ranking aparece neste recorte">
           O ranking existe, mas nenhuma das candidatas dele aparece no recorte escolhido agora.
           Volte a área e a vaga para as que estavam quando ele foi gerado, ou gere um novo.
-        </p>
+        </Vazio>
       ) : (
         <>
           {shortlist.length > 0 ? (
-            <div className="mt-5">
-              <h3 className="font-display text-sm font-extrabold uppercase tracking-[0.12em] text-white">
-                Entrevistar primeiro
-              </h3>
-              <ul className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <>
+              <h3 className="tri-subtitulo">Entrevistar primeiro</h3>
+              <ul className="tri-top">
                 {shortlist.map((l) => (
                   <li key={l.item.id}>
                     <button
                       type="button"
                       onClick={() => props.aoAbrir(l.item.id)}
-                      className="h-full w-full rounded-2xl border border-lime/35 bg-lime/10 p-4 text-left transition hover:bg-lime/20"
+                      className="tri-top__item"
                     >
-                      <span className="flex items-center gap-2.5">
-                        <span
-                          aria-hidden="true"
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-extrabold text-brand-deep"
-                        >
+                      <span className="tri-top__quem">
+                        <span aria-hidden="true" className="tri-pos">
                           {l.posicao}
                         </span>
                         <Avatar nome={l.item.nome} />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-display text-sm font-extrabold text-white">
-                            {l.item.nome || "Sem nome"}
-                          </span>
-                          <span className="block truncate text-xs text-white/85">
-                            {rotuloVaga(l.item)}
-                          </span>
+                        <span>
+                          <span className="tri-nome">{l.item.nome || "Sem nome"}</span>
+                          <span className="tri-meta">{rotuloVaga(l.item)}</span>
                         </span>
                       </span>
-                      <span className="mt-2 flex items-center gap-2">
-                        <EstrelasEscuras valor={l.analise.estrelas} />
-                        <span className="text-xs font-bold text-white/85">
-                          nota {l.analise.notaGeral}
-                        </span>
+                      <span className="tri-top__nota">
+                        <EstrelasNota valor={l.analise.estrelas} />
+                        <span>nota {l.analise.notaGeral}</span>
                       </span>
-                      <span className="mt-2 block text-xs leading-relaxed text-white/85">
+                      <span className="tri-top__porque">
                         {l.porque || l.analise.resumoUmaLinha}
                       </span>
                     </button>
                   </li>
                 ))}
               </ul>
-            </div>
+            </>
           ) : null}
 
           {props.ranking.observacaoGeral.trim().length > 0 ? (
-            <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm leading-relaxed text-white/85">
-              <strong className="font-display font-extrabold text-white">Leitura do grupo: </strong>
-              {props.ranking.observacaoGeral}
+            <p className="tri-leitura">
+              <Sparkles size={18} aria-hidden="true" />
+              <span>
+                <strong>Leitura do grupo: </strong>
+                {props.ranking.observacaoGeral}
+              </span>
             </p>
           ) : null}
 
           {/* ---- Tabela comparativa (a partir de 900px) ---- */}
-          <div className="mt-4 hidden overflow-hidden rounded-2xl border border-white/12 bg-brand-deep/45 min-[900px]:block">
-            <div className="rh-scroll max-h-[65dvh] overflow-auto">
-              <table className="w-full border-separate border-spacing-0 text-sm">
+          <div className="tri-tabela-wrap">
+            <div className="rh-scroll tri-tabela-rolagem">
+              <table className="tri-tabela">
                 <caption className="sr-only">
                   Ranking das candidatas analisadas, da primeira à última posição. Cada critério
                   vale de 0 a 10. Enter abre a ficha da linha em foco.
@@ -1115,32 +1066,21 @@ function BlocoRanking(props: {
                         o aria-sort declara. Não há botão de reordenar de
                         propósito: mexer na ordem jogaria fora justamente o que o
                         modelo comparou. */}
-                    <th scope="col" aria-sort="ascending" className={CABECALHO}>
+                    <th scope="col" aria-sort="ascending">
                       #
                     </th>
-                    <th scope="col" className={CABECALHO}>
-                      Candidata
-                    </th>
-                    <th scope="col" className={CABECALHO}>
-                      Estrelas
-                    </th>
-                    <th scope="col" className={CABECALHO}>
-                      Nota
-                    </th>
+                    <th scope="col">Candidata</th>
+                    <th scope="col">Nota</th>
                     {CHAVES_CRITERIO.map((chave) => (
-                      <th key={chave} scope="col" className={`${CABECALHO} text-center`}>
+                      <th key={chave} scope="col" className="tri-centro">
                         <abbr title={ROTULO_CRITERIO[chave]} className="no-underline">
                           {CURTO_CRITERIO[chave]}
                         </abbr>
                       </th>
                     ))}
-                    <th scope="col" className={CABECALHO}>
-                      Sinais
-                    </th>
-                    <th scope="col" className={CABECALHO}>
-                      Por que nesta posição
-                    </th>
-                    <th scope="col" className={CABECALHO}>
+                    <th scope="col">Sinais</th>
+                    <th scope="col">Por que nesta posição</th>
+                    <th scope="col">
                       <span className="sr-only">Abrir</span>
                     </th>
                   </tr>
@@ -1156,53 +1096,43 @@ function BlocoRanking(props: {
                       tabIndex={0}
                       onClick={(e) => aoClicarLinha(e, l.item.id)}
                       onKeyDown={(e) => aoTeclarLinha(e, l.item.id)}
-                      className="cursor-pointer transition-colors hover:bg-white/[0.06] focus-within:bg-white/[0.06]"
                     >
-                      <td className={`${CELULA} font-display text-base font-extrabold text-white`}>
-                        {l.posicao}
-                      </td>
-                      <td className={CELULA}>
-                        <span className="flex items-center gap-2.5">
+                      <td className="tri-posicao">{l.posicao}</td>
+                      <td>
+                        <span className="tri-quem">
                           <Avatar nome={l.item.nome} />
-                          <span className="min-w-0">
-                            <span className="block max-w-[12rem] truncate font-semibold text-white">
-                              {l.item.nome || "Sem nome"}
-                            </span>
-                            <span className="block max-w-[12rem] truncate text-xs text-white/85">
-                              {rotuloVaga(l.item)}
-                            </span>
+                          <span>
+                            <span className="tri-nome">{l.item.nome || "Sem nome"}</span>
+                            <span className="tri-meta">{rotuloVaga(l.item)}</span>
                           </span>
                         </span>
                       </td>
-                      <td className={CELULA}>
-                        <EstrelasEscuras valor={l.analise.estrelas} />
-                      </td>
-                      <td
-                        className={`${CELULA} whitespace-nowrap font-display font-extrabold text-white`}
-                      >
-                        {l.analise.notaGeral}
-                        <span className="text-xs font-semibold text-white/85">/100</span>
+                      <td className="tri-geral">
+                        <span className="tri-nota-geral">
+                          <span>
+                            {l.analise.notaGeral}
+                            <small>/100</small>
+                          </span>
+                          <EstrelasNota valor={l.analise.estrelas} />
+                        </span>
                       </td>
                       {CHAVES_CRITERIO.map((chave) => (
                         <CelulaCriterio key={chave} chave={chave} nota={l.notas.get(chave)} />
                       ))}
-                      <td className={CELULA}>
+                      <td>
                         <SeloSinais sinais={l.analise.sinais} />
                       </td>
-                      <td
-                        className={`${CELULA} max-w-[22rem] text-xs leading-relaxed text-white/85`}
-                      >
-                        {l.porque || l.analise.resumoUmaLinha || "—"}
-                      </td>
-                      <td className={CELULA}>
+                      <td className="tri-porque">{l.porque || l.analise.resumoUmaLinha || "—"}</td>
+                      <td>
                         <button
                           type="button"
                           onClick={() => props.aoAbrir(l.item.id)}
-                          className="flex h-11 items-center gap-1 whitespace-nowrap rounded-xl px-2.5 text-xs font-bold text-white transition-colors hover:bg-white/10"
+                          className="tri-abrir"
                         >
-                          Abrir
-                          <span className="sr-only"> a ficha de {l.item.nome || "candidata"}</span>
-                          <ChevronRight size={14} aria-hidden="true" />
+                          <span className="sr-only">
+                            Abrir a ficha de {l.item.nome || "candidata"}
+                          </span>
+                          <ChevronRight size={18} aria-hidden="true" />
                         </button>
                       </td>
                     </tr>
@@ -1219,53 +1149,32 @@ function BlocoRanking(props: {
               O cartão inteiro não é um <button>: ele contém o selo de sinais, que
               é lista, e lista dentro de botão é HTML inválido — o teclado ficaria
               preso. O alvo clicável é o botão do rodapé. */}
-          <ul className="mt-4 space-y-3 min-[900px]:hidden">
+          <ul className="tri-cartoes">
             {linhas.map((l) => (
-              <li
-                key={l.item.id}
-                className="rounded-2xl border border-white/12 bg-white/[0.05] p-4"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span
-                    aria-hidden="true"
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-lime text-xs font-extrabold text-brand-deep"
-                  >
+              <li key={l.item.id} className="tri-cartao">
+                <div className="tri-cartao__topo">
+                  <span aria-hidden="true" className="tri-pos">
                     {l.posicao}
                   </span>
                   <Avatar nome={l.item.nome} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-display text-sm font-extrabold text-white">
-                      {l.item.nome || "Sem nome"}
-                    </span>
-                    <span className="block truncate text-xs text-white/85">
-                      {rotuloVaga(l.item)}
-                    </span>
+                  <span>
+                    <span className="tri-nome">{l.item.nome || "Sem nome"}</span>
+                    <span className="tri-meta">{rotuloVaga(l.item)}</span>
                   </span>
-                  <span className="shrink-0 text-right">
-                    <EstrelasEscuras valor={l.analise.estrelas} />
-                    <span className="mt-0.5 block text-xs font-bold text-white/85">
-                      {l.analise.notaGeral}/100
-                    </span>
+                  <span className="tri-pontos">
+                    <EstrelasNota valor={l.analise.estrelas} />
+                    <b>{l.analise.notaGeral}/100</b>
                   </span>
                 </div>
 
-                <div className="mt-3 grid grid-cols-3 gap-1.5">
+                <div className="tri-criterios">
                   {CHAVES_CRITERIO.map((chave) => {
                     const nota = l.notas.get(chave);
                     const faixa = nota === undefined ? null : faixaDaNota(nota);
                     return (
-                      <span
-                        key={chave}
-                        className={`flex flex-col items-center gap-0.5 rounded-xl px-1.5 py-1.5 ring-1 ${
-                          faixa ? faixa.celula : "bg-white/[0.06] text-white/85 ring-white/15"
-                        }`}
-                      >
-                        <span className="text-[0.6rem] font-bold uppercase tracking-[0.08em]">
-                          {CURTO_CRITERIO[chave]}
-                        </span>
-                        <span className="font-display text-sm font-extrabold">
-                          {nota === undefined ? "—" : formatarNota(nota)}
-                        </span>
+                      <span key={chave} data-faixa={faixa ? faixa.faixa : "sem"}>
+                        <small>{CURTO_CRITERIO[chave]}</small>
+                        <b>{nota === undefined ? "—" : formatarNota(nota)}</b>
                         <span className="sr-only">
                           {ROTULO_CRITERIO[chave]}:{" "}
                           {nota === undefined ? "sem nota" : `${formatarNota(nota)} de 10`}
@@ -1275,22 +1184,18 @@ function BlocoRanking(props: {
                   })}
                 </div>
 
-                <div className="mt-3">
-                  <SeloSinais sinais={l.analise.sinais} />
-                </div>
+                <SeloSinais sinais={l.analise.sinais} />
 
-                <p className="mt-2 text-xs leading-relaxed text-white/85">
-                  {l.porque || l.analise.resumoUmaLinha}
-                </p>
+                <p className="tri-top__porque">{l.porque || l.analise.resumoUmaLinha}</p>
 
                 <button
                   type="button"
                   onClick={() => props.aoAbrir(l.item.id)}
-                  className={`${ACAO} mt-3 w-full`}
+                  className={`${BTN} justify-self-start`}
                 >
                   Abrir a ficha
                   <span className="sr-only"> de {l.item.nome || "candidata"}</span>
-                  <ChevronRight size={14} aria-hidden="true" />
+                  <ChevronRight aria-hidden="true" />
                 </button>
               </li>
             ))}
@@ -1434,68 +1339,56 @@ function FilaEntrevistas(props: {
   }, [props.grupos, props.agora, props.recorte]);
 
   return (
-    <section aria-labelledby="rh-fila" className="rh-vidro p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h2
-            id="rh-fila"
-            className="flex items-center gap-2 font-display text-base font-extrabold text-white"
-          >
-            <ListChecks size={18} className="text-lime" aria-hidden="true" />
-            Quem entrevistar primeiro
-          </h2>
-          <p className="mt-1 text-sm leading-relaxed text-white/85">
-            Sai direto das análises já feitas, sem depender de ranking: primeiro pela recomendação,
-            depois pela nota. {props.recorte}
-          </p>
+    <section aria-labelledby="rh-fila" className="tri-lamina">
+      <div className="tri-cabeca">
+        <div className="tri-titulo">
+          <span className="tri-pastilha" aria-hidden="true">
+            <ListChecks size={20} />
+          </span>
+          <div>
+            <h2 id="rh-fila">Quem entrevistar primeiro</h2>
+            <p className="tri-sub">
+              Sai direto das análises já feitas, sem depender de ranking: primeiro pela
+              recomendação, depois pela nota. {props.recorte}
+            </p>
+          </div>
         </div>
 
         {total > 0 ? (
-          <button type="button" className={ACAO} onClick={copiar}>
-            {copia === "ok" ? (
-              <Check size={14} aria-hidden="true" />
-            ) : (
-              <ClipboardCopy size={14} aria-hidden="true" />
-            )}
+          <button type="button" className={BTN} onClick={copiar}>
+            {copia === "ok" ? <Check aria-hidden="true" /> : <ClipboardCopy aria-hidden="true" />}
             {copia === "ok" ? "Lista copiada" : "Exportar esta lista"}
           </button>
         ) : null}
       </div>
 
       {copia === "manual" ? (
-        <div className="mt-3">
-          <label htmlFor="rh-fila-texto" className="text-xs font-semibold text-amber-100">
+        <div className="tri-copia">
+          <label htmlFor="rh-fila-texto">
             O navegador não deixou copiar sozinho. Selecione tudo aqui dentro e copie na mão:
           </label>
-          <textarea
-            id="rh-fila-texto"
-            readOnly
-            rows={8}
-            value={texto}
-            className="mt-1.5 w-full rounded-xl border border-white/15 bg-white/[0.07] p-3 font-mono text-xs text-white"
-          />
+          <textarea id="rh-fila-texto" readOnly rows={8} value={texto} />
         </div>
       ) : null}
 
       {props.totalGeral === 0 ? (
-        <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-6 text-center text-sm leading-relaxed text-white/85">
-          <Inbox size={18} className="mx-auto mb-2 text-white/85" aria-hidden="true" />
-          Nenhuma candidatura no portal ainda. Publique uma vaga ou importe o acervo de currículos
-          aqui em cima — a fila de entrevistas nasce das análises dessas fichas.
-        </p>
+        <Vazio icone={Inbox} titulo="Nenhuma candidatura no portal ainda">
+          Publique uma vaga ou importe o acervo de currículos aqui em cima — a fila de entrevistas
+          nasce das análises dessas fichas.
+        </Vazio>
       ) : props.totalRecorte === 0 ? (
-        <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-6 text-center text-sm leading-relaxed text-white/85">
+        <Vazio icone={Inbox} titulo="Nenhuma candidatura neste recorte">
           Nenhuma candidatura na área e na vaga escolhidas. Volte o recorte para “todas” e a lista
           aparece.
-        </p>
+        </Vazio>
       ) : total === 0 ? (
-        <p className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-6 text-center text-sm leading-relaxed text-white/85">
+        <Vazio icone={ScanSearch} titulo="Falta rodar a leitura por IA">
           {pluralizar(props.totalRecorte, "candidatura espera", "candidaturas esperam")} leitura
           neste recorte. Rode a análise por IA lá em cima: é ela que gera as estrelas, os pontos de
           atenção e a ordem desta fila.
-        </p>
+        </Vazio>
       ) : (
-        <div className="mt-4 space-y-3">
+        <div className="tri-grupos">
           {props.grupos.map((grupo) => {
             const r = recomendacaoPor(grupo.valor);
             return (
@@ -1514,28 +1407,20 @@ function FilaEntrevistas(props: {
                   const aberto = e.currentTarget.open;
                   setAbertos((atual) => ({ ...atual, [grupo.valor]: aberto }));
                 }}
-                className="group overflow-hidden rounded-2xl border border-white/12 bg-white/[0.04]"
+                className="tri-grupo"
               >
-                <summary className="flex cursor-pointer list-none items-center gap-2.5 px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-[0.7rem] font-extrabold ${r.pilulaEscura}`}
-                  >
-                    {r.rotulo}
-                  </span>
-                  <span className="text-sm font-bold text-white">
-                    {pluralizar(grupo.itens.length, "candidata", "candidatas")}
-                  </span>
-                  <ChevronRight
-                    size={16}
-                    aria-hidden="true"
-                    className="ml-auto text-white/85 transition-transform group-open:rotate-90"
-                  />
+                <summary>
+                  <span className={`rh-pilula ${r.pilulaClara}`}>{r.rotulo}</span>
+                  <span>{pluralizar(grupo.itens.length, "candidata", "candidatas")}</span>
+                  <ChevronRight size={18} aria-hidden="true" />
                 </summary>
 
                 {grupo.itens.length === 0 ? (
-                  <p className="px-4 pb-4 text-xs text-white/85">Ninguém neste grupo.</p>
+                  <p className="tri-nota-rodape" style={{ padding: "0 16px 16px" }}>
+                    Ninguém neste grupo.
+                  </p>
                 ) : (
-                  <ul className="space-y-2 px-3 pb-3">
+                  <ul className="tri-pessoas">
                     {grupo.itens.map(({ item, analise }) => {
                       const destaques = sinaisDeDestaque(analise.sinais);
                       return (
@@ -1543,39 +1428,31 @@ function FilaEntrevistas(props: {
                           <button
                             type="button"
                             onClick={() => props.aoAbrir(item.id)}
-                            className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 text-left transition hover:border-lime/35 hover:bg-white/[0.09]"
+                            className="tri-pessoa"
                           >
-                            <span className="flex flex-wrap items-center gap-2.5">
+                            <span className="tri-pessoa__topo">
                               <Avatar nome={item.nome} />
-                              <span className="min-w-0 flex-1">
-                                <span className="block truncate font-display text-sm font-extrabold text-white">
-                                  {item.nome || "Sem nome"}
-                                </span>
-                                <span className="block truncate text-xs text-white/85">
+                              <span>
+                                <span className="tri-nome">{item.nome || "Sem nome"}</span>
+                                <span className="tri-meta">
                                   {rotuloVaga(item)} · {rotuloArea(item.area)}
                                 </span>
                               </span>
-                              <span className="shrink-0 text-right">
-                                <EstrelasEscuras valor={analise.estrelas} />
-                                <span className="mt-0.5 block text-xs font-bold text-white/85">
-                                  nota {analise.notaGeral}
-                                </span>
+                              <span className="tri-pontos">
+                                <EstrelasNota valor={analise.estrelas} />
+                                <b>nota {analise.notaGeral}</b>
                               </span>
                             </span>
 
-                            <span className="mt-2 block text-xs text-white/85">
-                              <strong className="font-semibold text-white">Último emprego:</strong>{" "}
-                              {textoUltimoEmprego(analise)}
+                            <span className="tri-pessoa__emprego">
+                              <strong>Último emprego:</strong> {textoUltimoEmprego(analise)}
                             </span>
 
                             {destaques.length > 0 ? (
-                              <span className="mt-2 flex flex-wrap gap-1.5">
+                              <span className="tri-pessoa__alertas">
                                 {destaques.map((s) => (
-                                  <span
-                                    key={s.chave}
-                                    className="inline-flex items-center gap-1 rounded-full bg-rose-300/15 px-2.5 py-1 text-[0.68rem] font-bold text-rose-100 ring-1 ring-rose-200/30"
-                                  >
-                                    <TriangleAlert size={11} aria-hidden="true" />
+                                  <span key={s.chave} className="tri-alerta">
+                                    <TriangleAlert size={13} aria-hidden="true" />
                                     {s.titulo}
                                   </span>
                                 ))}
@@ -1710,7 +1587,7 @@ export function AbaTriagem(props: {
   }, [area, vagaId, vagas]);
 
   return (
-    <div className="space-y-5">
+    <div className="rh-triagem">
       <BarraEstadoIa
         estadoIa={props.estadoIa}
         ocupado={props.ocupado}
@@ -1754,8 +1631,8 @@ export function AbaTriagem(props: {
         aoAbrir={props.aoAbrir}
       />
 
-      <p className="flex items-start gap-2 px-1 text-xs leading-relaxed text-white/85">
-        <Users size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+      <p className="tri-pe">
+        <Users size={16} aria-hidden="true" />
         Tudo nesta aba é leitura de currículo por IA sobre o que a própria candidata escreveu. Serve
         para escolher a ordem das entrevistas e as perguntas — a decisão de contratar continua sendo
         de quem conversa com a pessoa.

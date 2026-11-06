@@ -1,8 +1,9 @@
 /* As landings pagas de implante e clareamento — ver Topo.tsx e Secoes.tsx.
  *
- * O que está aqui é só o que o Tailwind não diz bem: a janela do topo, a
- * diagonal da Escada, os marcadores em ponto, o acordeão. O resto das páginas
- * é utilitário com os tokens do sistema.
+ * Direção "Clínica luminosa": fundo claro, cartões brancos com borda fina,
+ * verde-maçã só na ação, verde profundo só no fechamento e no rodapé. O que
+ * está aqui é só o que o Tailwind não diz bem: as grades de cada seção, o
+ * acordeão e os selos de vidro do topo.
  */
 
 @layer theme, base, components, utilities;
@@ -16,10 +17,69 @@
     white-space: normal;
     text-align: center;
   }
+  .lp-botao > span {
+    text-wrap: balance;
+  }
   @media (max-width: 639px) {
     .botao.lp-botao,
-    .button-primary.lp-botao {
+    .button-primary.lp-botao,
+    .lp-telefone {
       width: 100%;
+    }
+  }
+
+  /* ---- Cabeçalho de seção, chamada e introdução ------------------------------ */
+  .lp-cabeca-larga {
+    max-width: 48rem;
+  }
+  .lp-cabeca .text-titulo {
+    margin-top: 0.9rem;
+  }
+  .lp-intro {
+    max-width: 52ch;
+    margin-top: 1.25rem;
+  }
+  .lp-chamada {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 2.25rem;
+  }
+  .lp-chamada p {
+    max-width: 34ch;
+  }
+  .lp-chamada-baixo {
+    margin-top: 2.5rem;
+  }
+  .lp-chamada-lado {
+    margin-top: 2rem;
+  }
+  @media (max-width: 639px) {
+    .lp-chamada {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .lp-chamada p {
+      text-align: center;
+      max-width: none;
+    }
+  }
+
+  /* Duas colunas: o cabeçalho grudado de um lado, o conteúdo do outro. */
+  .lp-duas {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 1024px) {
+    .lp-duas {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(3rem, 6vw, 7rem);
+      align-items: start;
+    }
+    .lp-duas-lado {
+      position: sticky;
+      top: calc(var(--altura-cabecalho) + 2rem);
     }
   }
 
@@ -27,350 +87,711 @@
   .lp-topo {
     position: relative;
     overflow: clip;
-    background: var(--chao);
-    color: var(--tinta);
+    padding-block: clamp(1.25rem, 0.75rem + 2.4vw, 4rem) clamp(3rem, 2rem + 4vw, 6rem);
   }
-  /* Celular: uma coluna, e a janela sobe para entre o título e a frase (ver
-     Topo.tsx). `display: contents` solta os filhos do bloco de texto na grade,
-     onde `order` os reorganiza sem mexer na ordem de leitura do HTML. */
   .lp-topo-grade {
     display: grid;
-    row-gap: 1.25rem;
-    padding-top: clamp(1.25rem, 4vw, 3rem);
-    padding-bottom: clamp(3rem, 8vw, 5.5rem);
+    gap: clamp(2rem, 1.25rem + 3vw, 4rem);
+    align-items: center;
   }
-  .lp-topo-texto {
-    display: contents;
-  }
-  .lp-topo-texto > .lp-h1 {
-    order: 1;
-  }
-  .lp-janela {
-    order: 2;
-  }
-  .lp-topo-texto > .lp-frase {
-    order: 3;
-  }
-  .lp-topo-texto > .lp-acoes {
-    order: 4;
-  }
-  .lp-topo-texto > .lp-prova {
-    order: 5;
-  }
-  .lp-topo-texto > .lp-contato {
-    order: 6;
+  @media (min-width: 1024px) {
+    .lp-topo-grade {
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
+    }
   }
 
-  /* O H1 é o único título da página acima da medida de seção: um degrau a mais
-     que o `text-titulo` dos h2, para a hierarquia não ficar plana. As duas
-     linhas cabem em 390, 768 e 1440. */
+  .lp-selo {
+    min-height: 2.75rem;
+    transition:
+      box-shadow var(--t-ui) var(--ease-out),
+      transform var(--t-ui) var(--ease-out);
+  }
+  .lp-selo strong {
+    font-weight: 700;
+  }
+  .lp-selo-estrelas {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.55rem;
+    border-radius: 999px;
+    background: #fff8e6;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .lp-selo:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--sombra-2);
+    }
+  }
+
+  /* Procedimento em tinta, bairro em verde de texto: a busca inteira numa
+     olhada. As duas linhas cabem em 390, 768 e 1440. */
   .lp-h1 {
-    font-size: var(--text-titulo);
-    line-height: var(--text-titulo--line-height);
-    letter-spacing: var(--text-titulo--letter-spacing);
+    margin-top: 1.25rem;
+    font-size: clamp(2.25rem, 1rem + 3.4vw, 4.25rem);
+    line-height: 1;
+    letter-spacing: -0.045em;
     font-weight: 600;
     text-wrap: balance;
   }
-  /* A entrada do título é mais curta que a da home: a oferta precisa estar
-     legível cedo. */
-  @media (prefers-reduced-motion: no-preference) {
-    .lp-h1 .linha > span {
-      animation-duration: 640ms;
-      animation-delay: calc(var(--i, 0) * 70ms);
-    }
+  .lp-h1-proc,
+  .lp-h1-local {
+    display: block;
   }
+  .lp-h1-local {
+    color: var(--acento-texto);
+  }
+
   .lp-frase {
-    max-width: 40ch;
-    font-size: var(--text-corpo);
+    max-width: 38ch;
+    margin-top: 1.25rem;
+    font-size: clamp(1.0625rem, 1rem + 0.35vw, 1.25rem);
     line-height: 1.5;
+    color: var(--tinta-suave);
   }
+  .lp-endereco {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    font-size: var(--text-pequeno);
+    font-weight: 500;
+    color: var(--tinta-suave);
+  }
+  .lp-endereco svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+    margin-top: 0.1rem;
+    color: var(--acento-texto);
+  }
+
   .lp-acoes {
-    margin-top: 0.25rem;
-  }
-  .lp-fatos {
     display: flex;
     flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+  }
+
+  /* Três provas curtas numa linha: rostos, convênios, horário. */
+  .lp-confianca {
+    display: grid;
+    gap: 0.5rem 1.75rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--borda);
+  }
+  @media (min-width: 640px) {
+    .lp-confianca {
+      grid-template-columns: repeat(3, auto);
+      justify-content: start;
+    }
+  }
+  .lp-confianca li {
+    display: flex;
     align-items: center;
-    gap: 0 1.75rem;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+  }
+  .lp-confianca li > span:last-child {
+    display: grid;
+    line-height: 1.25;
     font-size: var(--text-pequeno);
     color: var(--tinta-suave);
   }
-  .lp-fatos li {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 2.75rem;
-  }
-  .lp-fatos svg {
-    width: 1.05em;
-    height: 1.05em;
-    flex: none;
-  }
-  /* O telefone é alvo de toque: a caixa do link ocupa os 44px da linha. */
-  .lp-fatos a {
-    display: inline-flex;
-    align-items: center;
-    min-height: 2.75rem;
-  }
-  /* A nota é a prova que decide: um degrau acima dos outros fatos. */
-  .lp-fato-nota {
+  .lp-confianca strong {
+    font-size: 1rem;
+    font-weight: 650;
     color: var(--tinta);
+  }
+  .lp-confianca .pastilha {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+  }
+  .lp-confianca .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  /* O link vira alvo de 44px sem aumentar a linha. */
+  .lp-link-curto {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    min-height: 2.75rem;
+    margin-block: -0.6rem;
+  }
+
+  .lp-ponto {
+    position: relative;
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--chao-2);
+  }
+  .lp-ponto::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    width: 0.65rem;
+    height: 0.65rem;
+    margin: -0.325rem 0 0 -0.325rem;
+    border-radius: 999px;
+    background: #a3ab9c;
+  }
+  .lp-ponto[data-aberto] {
+    background: var(--menta);
+  }
+  .lp-ponto[data-aberto]::after {
+    background: var(--acento);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lp-ponto[data-aberto]::after {
+      animation: lp-pulsa 2.4s var(--ease-out) infinite;
+    }
+  }
+
+  /* ---- A foto do consultório e os dois cartões de vidro ---------------------- */
+  .lp-midia {
+    position: relative;
+    margin-inline: auto;
+    width: min(100%, 34rem);
+  }
+  @media (min-width: 1024px) {
+    .lp-midia {
+      width: calc(100% - 2rem);
+      max-width: 33rem;
+      margin-right: 2rem;
+    }
+  }
+  .lp-foto-topo {
+    aspect-ratio: 5 / 4;
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
+  }
+  @media (min-width: 1024px) {
+    .lp-foto-topo {
+      aspect-ratio: 4 / 5;
+    }
+  }
+
+  .lp-vidro-depoimento {
+    position: absolute;
+    top: 9%;
+    left: -2.5rem;
+    width: min(19rem, 72%);
+    padding: 1rem 1.15rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+  .lp-vidro-depoimento svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--acento-texto);
+  }
+  .lp-vidro-depoimento blockquote {
+    margin-top: 0.5rem;
+    color: var(--tinta);
+  }
+  .lp-vidro-depoimento figcaption {
+    margin-top: 0.6rem;
+    font-size: 0.8125rem;
     font-weight: 600;
   }
-  .lp-fato-nota svg {
-    width: 1.1em;
-    height: 1.1em;
+  .lp-vidro-depoimento figcaption span {
+    font-weight: 500;
+    color: var(--tinta-suave);
   }
 
-  /* ---- A janela, com o eco verde ---------------------------------- */
-  .lp-janela {
-    --eco-x: clamp(14px, 2.2vw, 40px);
-    --eco-y: calc(var(--eco-x) * -0.8);
-    position: relative;
-    height: clamp(15rem, 36svh, 19rem);
-    /* Reserva a folga do eco à direita e em cima, para ele não vazar da grade. */
-    margin-right: var(--eco-x);
-    margin-top: calc(var(--eco-x) * 0.8);
-  }
-  .lp-eco {
+  .lp-vidro-rt {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    color: var(--acento);
-    pointer-events: none;
-    translate: var(--eco-x) var(--eco-y);
+    right: -1.5rem;
+    bottom: 7%;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.1rem 0.8rem 0.8rem;
   }
-  .lp-moldura {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: var(--chao-3);
-  }
-  .lp-moldura img {
-    display: block;
-    width: 100%;
-    height: 100%;
+  .lp-vidro-rt img {
+    width: 3rem;
+    height: 3rem;
+    flex: none;
+    border-radius: 999px;
     object-fit: cover;
   }
-
-  /* A foto já está inteira no primeiro quadro (é ela o maior desenho da tela:
-     esconder e revelar atrasaria o primeiro desenho útil). Ela só assenta, de
-     um pouco maior para o tamanho certo, enquanto a coroa verde cresce de dentro
-     da janela até a posição. Sem movimento permitido, tudo já está no lugar. */
-  @media (prefers-reduced-motion: no-preference) {
-    .lp-moldura img {
-      scale: 1.1;
-      animation: lp-assenta 1500ms var(--ease-expo) 80ms forwards;
+  .lp-vidro-rt > span {
+    display: grid;
+    line-height: 1.25;
+  }
+  .lp-vidro-rt strong {
+    font-size: 0.9375rem;
+    font-weight: 650;
+  }
+  .lp-vidro-papel {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tinta-suave);
+  }
+  .lp-vidro-cro {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--acento-texto);
+  }
+  /* Celular: os cartões encostam na borda da foto em vez de sair dela. */
+  @media (max-width: 1023.98px) {
+    .lp-vidro-depoimento {
+      top: auto;
+      bottom: 5.75rem;
+      left: 0.75rem;
+      width: min(17rem, 80%);
     }
-    .lp-eco {
-      opacity: 0;
-      translate: 0 0;
-      scale: 0.94;
-      animation: lp-eco 1500ms var(--ease-expo) 260ms forwards;
+    .lp-vidro-rt {
+      right: 0.75rem;
+      bottom: 0.75rem;
+      left: 0.75rem;
+    }
+  }
+  @media (max-width: 639.98px) {
+    .lp-vidro-depoimento {
+      display: none;
     }
   }
 
-  @media (min-width: 640px) {
-    .lp-janela {
-      height: clamp(20rem, 62vw, 30rem);
+  /* ---- Convênios: a faixa logo abaixo do topo ---------------------------------- */
+  .lp-convenios {
+    padding-block: 2rem 2.25rem;
+    border-block: 1px solid var(--borda);
+    background: var(--branco);
+  }
+  .lp-convenios-grade {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .lp-convenios-titulo {
+    margin-top: 0.4rem;
+    font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.75rem);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+  @media (max-width: 639px) {
+    .lp-convenios-grade > * {
+      width: 100%;
     }
   }
+  .lp-convenios-faixa {
+    --faixa-vao: 0.75rem;
+  }
+  .lp-convenio {
+    display: inline-flex;
+    align-items: center;
+    min-height: 3rem;
+    padding: 0.5rem 1.35rem;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    background: var(--chao);
+    font-size: var(--text-pequeno);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--tinta);
+  }
+  .lp-convenio img {
+    display: block;
+    width: auto;
+    height: 1.75rem;
+  }
 
+  /* ---- Por que a JP: cartões ------------------------------------------------------ */
+  .lp-grade {
+    display: grid;
+    gap: 1rem;
+    margin-top: 2.75rem;
+  }
+  @media (min-width: 768px) {
+    .lp-grade {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+  }
+  .lp-cartao {
+    display: grid;
+    align-content: start;
+    gap: 1.25rem;
+    padding: clamp(1.4rem, 1rem + 1vw, 2rem);
+  }
+  .lp-cartao-titulo {
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+  }
+  .lp-lista {
+    display: grid;
+    gap: 1rem;
+  }
+  .lp-lista .lp-cartao {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 1.25rem;
+  }
+  .lp-chamada-baixo.lp-chamada {
+    margin-top: 2.5rem;
+  }
+
+  /* ---- A animação ilustrativa ------------------------------------------------------ */
+  .lp-video {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
   @media (min-width: 1024px) {
-    .lp-topo-grade {
-      grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
-      column-gap: clamp(2.5rem, 5vw, 6rem);
-      align-items: center;
-      min-height: calc(100svh - var(--altura-cabecalho));
-      padding-block: 2.5rem;
+    .lp-video {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(3rem, 6vw, 7rem);
     }
-    .lp-topo-texto {
-      display: block;
-    }
-    .lp-h1 {
-      font-size: clamp(var(--text-titulo), 0.6rem + 5.1vw, 5.25rem);
-    }
-    .lp-frase {
-      margin-top: 1.75rem;
-    }
-    .lp-acoes {
-      margin-top: 2.25rem;
-    }
-    .lp-prova {
-      margin-top: 1.75rem;
-    }
-    .lp-janela {
-      height: clamp(28rem, calc(100svh - var(--altura-cabecalho) - 6rem), 46rem);
+    .lp-video-invertido .lp-video-midia {
+      order: -1;
     }
   }
-
-  /* ---- Marcadores em ponto, na altura da letra ------------------------------ */
+  .lp-video-midia {
+    justify-self: center;
+    width: min(100%, 34rem);
+  }
+  .lp-animacao {
+    padding: 0.5rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-lg);
+    background: var(--branco);
+    box-shadow: var(--sombra-2);
+  }
+  /* O topo preto do quadro aparecia como uma faixa escura no alto da moldura.
+     Ampliar 18% a partir da base empurra o preto para fora. */
+  .lp-animacao :is(img, video) {
+    transform-origin: 62% 100%;
+    scale: 1.24;
+  }
+  .lp-legenda {
+    margin-top: 1rem;
+    padding-inline: 0.5rem;
+  }
   .lp-itens {
     display: grid;
-    gap: 0.9rem;
+    gap: 0.8rem;
+    margin-top: 1.75rem;
   }
-  .lp-item-marca {
+  .lp-itens li {
     display: flex;
-    align-items: baseline;
-    gap: 0.85rem;
-    font-size: var(--text-corpo);
+    align-items: flex-start;
+    gap: 0.8rem;
     font-weight: 500;
   }
-  .lp-item-marca .marca-coroa {
-    translate: 0 0.08em;
+  .lp-check {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    flex: none;
+    margin-top: 0.1rem;
+    border-radius: 999px;
+    background: var(--menta);
+    color: var(--acento-texto);
+  }
+  .lp-check svg {
+    width: 0.9rem;
+    height: 0.9rem;
+    stroke-width: 3;
   }
 
-  /* ---- Escada: três pontos descendo em diagonal ------------------------------ */
-  /* O degrau é o recuo de cada ponto. No celular ele anda para a direita (0,
-     1 e 2 degraus) e vira uma escada de verdade; no desktop anda para baixo, e a
-     foto ocupa o vão que a diagonal deixa embaixo à esquerda, com o
-     botão alinhado à base da foto, no vão da direita. */
-  .lp-escada {
-    --degrau: 1.25rem;
+  /* ---- Como funciona: foto e passos numerados ------------------------------------- */
+  .lp-passos {
     display: grid;
-    gap: 2.25rem;
-    margin-top: 3rem;
-  }
-  .lp-degraus {
-    display: grid;
-    gap: 2.25rem;
-  }
-  .lp-escada-moldura {
-    aspect-ratio: 1.25;
-  }
-  @media (max-width: 1023px) {
-    .lp-degraus li:nth-child(2) {
-      margin-left: var(--degrau);
-    }
-    .lp-degraus li:nth-child(3) {
-      margin-left: calc(var(--degrau) * 2);
-    }
+    gap: 2.5rem;
+    align-items: center;
   }
   @media (min-width: 1024px) {
-    .lp-escada {
-      --degrau: 3rem;
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      column-gap: var(--margem);
-      row-gap: 0;
-      margin-top: 4.5rem;
+    .lp-passos {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: clamp(3rem, 6vw, 7rem);
     }
-    .lp-degraus {
-      display: contents;
-    }
-    .lp-degraus li {
-      grid-row: 1;
-    }
-    .lp-degraus li:nth-child(1) {
-      grid-column: 1 / span 4;
-      padding-right: 1.5rem;
-    }
-    .lp-degraus li:nth-child(2) {
-      grid-column: 5 / span 4;
-      margin-top: var(--degrau);
-      padding-right: 1.5rem;
-    }
-    .lp-degraus li:nth-child(3) {
-      grid-column: 9 / span 4;
-      margin-top: calc(var(--degrau) * 2);
-    }
-    .lp-escada-foto {
-      grid-column: 1 / span 8;
-      grid-row: 2;
-      margin-top: 2rem;
-    }
-    .lp-escada-moldura {
-      aspect-ratio: 2;
-    }
-    .lp-escada-acao {
-      grid-column: 9 / span 4;
-      grid-row: 2;
-      align-self: end;
-      margin: 0;
+    .lp-passos-invertido .lp-passos-foto {
+      order: 2;
     }
   }
-
-  /* ---- Linhas: assunto à esquerda, explicação à direita ----------------------- */
-  .lp-linhas {
-    display: grid;
-    gap: 2.75rem;
-    margin-top: 3.5rem;
+  .lp-passos-foto {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 34rem);
   }
-  .lp-linhas li {
-    display: grid;
-    gap: 0.9rem;
-  }
-  /* A explicação começa na mesma coluna da introdução (8): é um eixo só, e o
-     assunto, curto, fica a poucas colunas dele. */
   @media (min-width: 1024px) {
-    .lp-linhas {
-      gap: 3.5rem;
-      margin-top: 4.5rem;
+    .lp-passos {
+      align-items: start;
     }
-    .lp-linhas li {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      column-gap: var(--margem);
-      align-items: baseline;
-    }
-    .lp-linhas li > h3 {
-      grid-column: 1 / span 7;
-    }
-    .lp-linhas li > p {
-      grid-column: 8 / span 5;
+    .lp-passos-foto {
+      position: sticky;
+      top: calc(var(--altura-cabecalho) + 2rem);
     }
   }
-
-  /* ---- Etapas ------------------------------------------------------------------ */
+  .lp-passos-moldura {
+    aspect-ratio: 6 / 5;
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
+  }
+  .lp-passos-legenda {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+  }
   .lp-etapas {
     display: grid;
-    gap: 2.25rem;
-    margin-top: 3rem;
+    gap: 0.9rem;
+    margin-top: 2rem;
+    counter-reset: passo;
   }
   .lp-etapas li {
     display: grid;
     grid-template-columns: auto 1fr;
-    column-gap: 1.1rem;
     align-items: start;
+    gap: 1.1rem;
+    padding: 1.25rem 1.5rem;
+    counter-increment: passo;
   }
-  .lp-etapas .marca-coroa {
-    width: 1.9rem;
-    height: 1.9rem;
-    margin-top: 0.15rem;
+  .lp-numero {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    background: var(--menta);
+    font-weight: 700;
+    color: var(--acento-texto);
+  }
+  .lp-numero::before {
+    content: counter(passo);
+  }
+  .lp-etapas .lp-cartao-titulo {
+    margin-bottom: 0.35rem;
   }
 
-  /* ---- Prova social ---------------------------------------------------------------- */
-  .lp-numeros {
+  /* ---- A equipe ------------------------------------------------------------------------ */
+  .lp-equipe {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2.75rem;
+  }
+  /* A responsável técnica abre a seção em cartão deitado: foto de um lado, nome
+     e registro do outro. Os demais dentistas vêm embaixo, em grade. */
+  .lp-rt {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    max-width: 34rem;
+    padding: 0.75rem 1rem 0.75rem 0.75rem;
+  }
+  @media (min-width: 640px) {
+    .lp-rt {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      gap: 1.75rem;
+      padding: 0.9rem 1.75rem 0.9rem 0.9rem;
+    }
+  }
+  .lp-rt-foto {
+    border-radius: var(--raio);
+  }
+  .lp-rt figcaption {
+    display: grid;
+    gap: 0.2rem;
+    line-height: 1.3;
+  }
+  @media (min-width: 640px) {
+    .lp-rt strong {
+      font-size: 1.375rem;
+    }
+  }
+  .lp-rt strong {
+    font-size: 1.125rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+  .lp-rt-papel {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--tinta-suave);
+  }
+  .lp-rt-cro,
+  .lp-cro {
+    font-size: 0.875rem;
+    font-weight: 650;
+    color: var(--acento-texto);
+  }
+  .lp-dentistas {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  }
+  .lp-dentistas li {
     display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem clamp(2rem, 6vw, 5rem);
-    margin-top: 3rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+  }
+  .lp-dentistas img,
+  .lp-inicial {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: none;
+    border-radius: 999px;
+    object-fit: cover;
+    background: var(--menta);
+    font-weight: 700;
+    color: var(--acento-texto);
+  }
+  .lp-dentistas li > span:last-child {
+    display: grid;
+    line-height: 1.3;
+  }
+  .lp-dentistas strong {
+    font-weight: 650;
+  }
+
+  /* ---- Avaliações ------------------------------------------------------------------------ */
+  .lp-prova-topo {
+    display: grid;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+  }
+  @media (min-width: 1024px) {
+    .lp-prova-topo {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 3rem;
+    }
+  }
+  .lp-numeros {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  @media (min-width: 640px) {
+    .lp-numeros {
+      gap: 0.9rem;
+    }
   }
   .lp-numeros > div {
     display: flex;
     flex-direction: column-reverse;
-    gap: 0.35rem;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    padding: 1rem 1.1rem;
+  }
+  @media (min-width: 640px) {
+    .lp-numeros > div {
+      min-width: 9.5rem;
+      padding: 1.25rem 1.5rem;
+    }
   }
   .lp-numeros dd {
-    font-size: var(--text-titulo);
-    line-height: var(--text-titulo--line-height);
-    letter-spacing: var(--text-titulo--letter-spacing);
-    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-weight: 650;
     font-variant-numeric: tabular-nums;
-    color: var(--acento);
+    color: var(--tinta);
   }
   .lp-numeros dt {
     font-size: var(--text-pequeno);
-    color: var(--sobre-campo-suave);
+    line-height: 1.25;
+    color: var(--tinta-suave);
+  }
+  .lp-numeros-estrelas {
+    margin-top: 0.1rem;
   }
 
-  /* ---- Perguntas: acordeão de ladrilhos ------------------------------------------------ */
+  /* ---- Endereço ---------------------------------------------------------------------------- */
+  .lp-endereco-grade {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .lp-endereco-grade {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 26rem);
+      justify-content: space-between;
+      gap: clamp(3rem, 6vw, 7rem);
+    }
+    .lp-endereco-invertido .lp-fachada {
+      order: -1;
+    }
+  }
+  .lp-contatos {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    max-width: 38rem;
+  }
+  .lp-contatos li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+  }
+  .lp-contatos li > span:last-child {
+    display: grid;
+    line-height: 1.35;
+    color: var(--tinta-suave);
+  }
+  .lp-contatos strong {
+    font-weight: 650;
+    color: var(--tinta);
+  }
+  .lp-fachada {
+    justify-self: center;
+    width: min(100%, 26rem);
+  }
+  .lp-fachada-moldura {
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
+  }
+  @media (max-width: 1023.98px) {
+    .lp-fachada-moldura {
+      aspect-ratio: 4 / 3 !important;
+    }
+    .lp-fachada-moldura img {
+      object-position: 50% 62%;
+    }
+  }
+
+  /* ---- Perguntas: acordeão de cartões ------------------------------------------------------- */
+  .lp-perguntas {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+  }
   .lp-pergunta {
+    border: 1px solid var(--borda);
     border-radius: var(--raio);
-    background: var(--chao-2);
-    transition: background-color var(--t-ui) ease;
+    background: var(--branco);
+    box-shadow: var(--sombra-1);
+    transition:
+      border-color var(--t-ui) ease,
+      box-shadow var(--t-ui) ease;
   }
   .lp-pergunta[open] {
-    background: var(--chao-3);
+    border-color: var(--borda-forte);
+    box-shadow: var(--sombra-2);
   }
   .lp-pergunta summary {
     display: flex;
@@ -379,6 +800,7 @@
     gap: 1.25rem;
     min-height: 4.25rem;
     padding: 0.75rem 1.5rem;
+    border-radius: var(--raio);
     font-weight: 600;
     cursor: pointer;
     list-style: none;
@@ -396,6 +818,7 @@
     flex: none;
     width: 1.1rem;
     height: 1.1rem;
+    color: var(--acento-texto);
   }
   .lp-mais::before,
   .lp-mais::after {
@@ -415,73 +838,93 @@
   .lp-pergunta[open] .lp-mais::after {
     transform: rotate(0deg);
   }
-
-  /* ---- Fotos: a coroa responde ao mouse --------------------------------------------- */
-  /* A foto cresce 4% dentro da moldura (que corta). Só com mouse de verdade. */
-  @media (hover: hover) and (pointer: fine) {
-    .lp-foto img {
-      transition: scale 700ms var(--ease-out);
+  @media (prefers-reduced-motion: no-preference) {
+    @supports selector(::details-content) {
+      .lp-pergunta {
+        interpolate-size: allow-keywords;
+      }
+      .lp-pergunta::details-content {
+        block-size: 0;
+        overflow: clip;
+        transition:
+          block-size 320ms var(--ease-out),
+          content-visibility 320ms allow-discrete;
+      }
+      .lp-pergunta[open]::details-content {
+        block-size: auto;
+      }
     }
-    .lp-foto:hover img {
-      scale: 1.04;
-    }
   }
 
-  /* ---- A animação: o quadro do vídeo tem moldura escura em cima ------------------------- */
-  /* O topo preto do quadro aparecia como uma faixa escura no alto da moldura.
-     Ampliar 18% a partir da base empurra o preto para fora. */
-  .lp-animacao :is(img, video) {
-    transform-origin: 50% 100%;
-    scale: 1.18;
-  }
-
-  /* ---- Retrato da responsável técnica ----------------------------------------------------- */
-  .lp-retrato {
-    display: grid;
-    gap: 0.2rem;
-    margin-top: 1.25rem;
-  }
-
-  /* ---- Fechamento: o bloco gigante, cortado pela borda ------------------------------------ */
+  /* ---- Fechamento: o único campo verde-profundo --------------------------------------------- */
   .lp-fechamento {
-    position: relative;
-    overflow: clip;
+    background:
+      radial-gradient(55% 80% at 92% 0%, rgb(86 168 5 / 0.22), transparent 70%),
+      radial-gradient(40% 60% at 0% 100%, rgb(108 196 20 / 0.1), transparent 70%), var(--campo);
   }
-  /* A forma ocupa o canto direito e sai pela borda. Fica em --campo (mais
-     escuro que o fundo): o texto claro por cima ganha contraste, não perde.
-     Alta (135%) e baixada 12%: os cantos de cima ficam à vista e a base sai
-     pela borda. */
-  .lp-coroa-gigante {
-    position: absolute;
-    top: 12%;
-    right: -34%;
-    height: 135%;
-    aspect-ratio: 0.86;
-    color: var(--campo);
-    pointer-events: none;
-  }
-  .lp-coroa-gigante svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  .lp-fechamento .quadro {
-    position: relative;
+  .lp-fechamento-grade {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
   }
   @media (min-width: 1024px) {
-    .lp-coroa-gigante {
-      right: -4%;
+    .lp-fechamento-grade {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: clamp(3rem, 6vw, 7rem);
     }
   }
+  .lp-fechamento-titulo {
+    max-width: 16ch;
+    margin-top: 0.9rem;
+  }
+  .lp-fechamento-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2.25rem;
+  }
+  .lp-fechamento-nota {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.75rem;
+    color: var(--sobre-campo-suave);
+  }
+  .lp-recepcao {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .lp-recepcao li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: var(--raio);
+    background: color-mix(in oklab, var(--sobre-campo) 7%, var(--campo));
+  }
+  .lp-recepcao li > span:last-child {
+    display: grid;
+    line-height: 1.35;
+    color: var(--sobre-campo-suave);
+  }
+  .lp-recepcao strong {
+    font-weight: 650;
+    color: var(--sobre-campo);
+  }
 
-  /* O pé: o link de privacidade é alvo de toque, com os 44px de altura. */
+  /* ---- Rodapé ---------------------------------------------------------------------------------- */
+  .lp-rodape {
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+    background: color-mix(in oklab, var(--campo) 82%, black);
+  }
+  /* O link de privacidade é alvo de toque, com os 44px de altura. */
   .lp-rodape a.link {
     display: inline-flex;
     align-items: center;
     min-height: 2.75rem;
   }
-
-  /* ---- Rodapé ------------------------------------------------------------------------ */
   /* A barra fixa de WhatsApp do celular cobre o pé da página; o rodapé ganha o
      espaço dela, senão o link de privacidade nunca aparece. */
   @media (max-width: 639px) {
@@ -491,16 +934,12 @@
   }
 }
 
-@keyframes lp-assenta {
-  to {
-    scale: 1;
+@keyframes lp-pulsa {
+  0% {
+    box-shadow: 0 0 0 0 rgb(86 168 5 / 0.5);
   }
-}
-
-@keyframes lp-eco {
-  to {
-    opacity: 1;
-    scale: 1;
-    translate: var(--eco-x) var(--eco-y);
+  70%,
+  100% {
+    box-shadow: 0 0 0 10px rgb(86 168 5 / 0);
   }
 }

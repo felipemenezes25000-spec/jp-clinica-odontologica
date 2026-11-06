@@ -1,37 +1,168 @@
 /* O atendimento adaptado — ver AtendimentoSection.tsx.
  *
- * A foto sangra pela borda esquerda da tela. O quadro do site tem margem igual
- * dos dois lados (`--margem`, e mais que isso acima de 1680px), então a
- * "sangria" é a distância real da borda da tela até o início do quadro. No
- * desktop a moldura ainda avança `--corte` (6vw) para fora da tela: é isso que
- * faz a borda cortar a foto em vez de só encostar nela.
+ * Em cima, texto + convite e a fachada com um selo de vidro; no meio, os
+ * quatro pilares em cartões; embaixo, as outras áreas só com o nome.
  */
 
 @layer theme, base, components, utilities;
 
 @layer components {
-  .atendimento {
-    --sangria: max(var(--margem), calc((100vw - 1680px) / 2));
-    --corte: 0px;
-    overflow-x: clip;
+  .atendimento-topo {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
   }
-
-  .atendimento-foto {
-    width: calc(100% + var(--sangria) + var(--corte));
-    margin-left: calc((var(--sangria) + var(--corte)) * -1);
-    aspect-ratio: 5 / 4;
-  }
-
   @media (min-width: 1024px) {
-    .atendimento {
-      --corte: 6vw;
+    .atendimento-topo {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      gap: clamp(3rem, 1rem + 4vw, 6rem);
     }
-    .atendimento-foto {
-      /* Na grade de 12 colunas a foto ocupa as seis primeiras. */
-      grid-column: 1 / span 6;
-      aspect-ratio: auto;
-      height: min(78svh, 52rem);
-      min-height: 34rem;
+  }
+
+  .atendimento-titulo {
+    margin-top: 1.25rem;
+    max-width: 13ch;
+  }
+  .atendimento-lide {
+    margin-top: 1.5rem;
+    max-width: 52ch;
+    color: var(--tinta-suave);
+  }
+  .atendimento-acao {
+    margin-top: 2rem;
+  }
+  @media (max-width: 639.98px) {
+    .atendimento-acao .botao {
+      width: 100%;
+    }
+  }
+
+  /* A foto é de celular: tamanho médio, com o selo por cima. */
+  .atendimento-foto {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    max-width: 38rem;
+    justify-self: end;
+  }
+  .atendimento-moldura {
+    aspect-ratio: 4 / 3;
+    border-radius: var(--raio-lg);
+    box-shadow: var(--sombra-2);
+  }
+  .atendimento-moldura > img {
+    object-position: 72% 40%;
+  }
+  .atendimento-selo {
+    position: absolute;
+    left: 0.875rem;
+    bottom: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    max-width: calc(100% - 1.75rem);
+    padding: 0.5rem 1rem 0.5rem 0.5rem;
+    border-radius: var(--raio);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--tinta);
+  }
+  .atendimento-selo .pastilha {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 10px;
+  }
+  .atendimento-selo .pastilha svg {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+
+  /* ---- Pilares ---------------------------------------------------------------- */
+  .atendimento-pilares {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2.5rem, 1.5rem + 4vw, 5rem);
+  }
+  @media (min-width: 640px) {
+    .atendimento-pilares {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1280px) {
+    .atendimento-pilares {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.25rem;
+    }
+  }
+  .atendimento-pilar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    border-radius: var(--raio-lg);
+  }
+  .atendimento-pilar-titulo {
+    margin-top: 1.25rem;
+    font-size: clamp(1.1875rem, 1.1rem + 0.35vw, 1.375rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .atendimento-pilar-texto {
+    margin-top: 0.65rem;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--tinta-suave);
+  }
+
+  /* ---- Outras áreas: só o nome ------------------------------------------------ */
+  .atendimento-outras {
+    display: grid;
+    gap: 1rem 2rem;
+    align-items: center;
+    margin-top: 1.25rem;
+    padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    border-radius: var(--raio-lg);
+    background: var(--chao-2);
+    box-shadow: none;
+  }
+  @media (min-width: 1024px) {
+    .atendimento-outras {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+  }
+  .atendimento-outras-titulo {
+    font-size: clamp(1.1875rem, 1.1rem + 0.35vw, 1.375rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .atendimento-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .atendimento-chips li {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.35rem 1rem;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    background: var(--branco);
+    font-size: var(--text-pequeno);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .atendimento-fim {
+    margin-top: 2rem;
+  }
+  .atendimento-fim .botao {
+    width: 100%;
+  }
+  @media (min-width: 1024px) {
+    .atendimento-fim {
+      display: none;
     }
   }
 }

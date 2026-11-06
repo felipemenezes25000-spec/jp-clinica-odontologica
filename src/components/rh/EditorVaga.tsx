@@ -42,6 +42,7 @@ import {
 import type { AreaVaga, ModeloTrabalho, StatusVaga, Vaga, Vinculo } from "@/lib/rh/tipos";
 import { LIMITES, vagaVazia } from "@/lib/rh/tipos";
 import { validarVaga } from "@/lib/rh/vagas";
+import "./editor-vaga.css";
 import { CLINICA } from "@/lib/jp";
 
 const MAX_RESUMO = 220;
@@ -232,18 +233,13 @@ export function EditorVaga(props: {
     props.aoSalvar(proposta);
   };
 
-  const abaClasse = (ativa: boolean) =>
-    `inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full px-4 text-sm font-extrabold transition ${
-      ativa ? "bg-forest text-white" : "bg-white text-ink ring-1 ring-border-soft"
-    }`;
-
   return (
     /* CENTRALIZADO, e não encostado na direita. Como gaveta de 68rem, num
        monitor de 1920 o editor ocupava a metade direita e a outra metade ficava
        escura e inútil — e é um formulário com prévia ao lado, não um painel de
        detalhe. No celular continua ocupando a tela inteira, que ali é o certo:
        margem em volta de um formulário de 20 campos é espaço roubado. */
-    <div className="fixed inset-0 z-[95] flex items-stretch justify-center p-0 sm:items-center sm:p-4 lg:p-6">
+    <div className="ev-raiz">
       {/*
         Fundo escuro clicável. É <button> e não <div> por regra do projeto — e
         com tabIndex -1 para não duplicar, no percurso de teclado, o "Fechar"
@@ -253,7 +249,7 @@ export function EditorVaga(props: {
         type="button"
         tabIndex={-1}
         aria-hidden="true"
-        className="absolute inset-0 cursor-default bg-brand-deep/75 backdrop-blur-sm"
+        className="ev-fundo"
         onClick={props.aoFechar}
       />
 
@@ -271,32 +267,29 @@ export function EditorVaga(props: {
            esticaria por mais de um metro de pixel e a leitura piora em vez de
            melhorar. Em 1920 sobra uma moldura fina; em 2560 o diálogo fica
            centrado com margem generosa, que é o comportamento certo. */
-        className="relative z-10 flex h-full w-full max-w-[100rem] flex-col overflow-hidden bg-paper shadow-[0_0_80px_-20px_rgba(0,0,0,.7)] outline-none sm:h-auto sm:max-h-[min(94dvh,64rem)] sm:rounded-3xl [&_:focus-visible]:outline-forest-2"
+        className="ev"
       >
-        <header className="flex shrink-0 items-start gap-3 border-b border-border-soft bg-white px-4 py-4 sm:px-6">
-          <span
-            aria-hidden="true"
-            className="mt-0.5 inline-grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-forest"
-          >
+        <header className="ev-cab">
+          <span aria-hidden="true" className="ev-cab__icone">
             <Pencil className="h-5 w-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2
-              id="editor-vaga-titulo"
-              className="font-display text-xl font-extrabold leading-tight text-forest-2"
-            >
+            <h2 id="editor-vaga-titulo" className="ev-cab__titulo">
               {novo ? "Nova vaga" : "Editar vaga"}
             </h2>
-            <p className="rh-ajuda">
+            <p className="ev-cab__sub">
               {form.status === "aberta"
                 ? "Ao salvar, esta vaga fica visível no portal de carreiras do site."
                 : "Enquanto o status não for “Aberta”, nada disto aparece no site."}
             </p>
           </div>
+          <span className="ev-status" data-status={form.status}>
+            {statusAtual.rotulo}
+          </span>
           <button
             type="button"
             aria-label="Fechar editor de vaga"
-            className="inline-grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border-soft bg-white text-ink-soft transition hover:border-forest hover:text-forest"
+            className="ev-fechar"
             onClick={props.aoFechar}
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -304,10 +297,11 @@ export function EditorVaga(props: {
         </header>
 
         {/* Abas só no celular: no desktop formulário e prévia ficam lado a lado. */}
-        <div className="flex shrink-0 gap-2 border-b border-border-soft bg-cream/60 px-4 py-3 lg:hidden">
+        <div className="ev-abas">
           <button
             type="button"
-            className={abaClasse(abaCelular === "editar")}
+            className="ev-aba"
+            data-ativa={abaCelular === "editar" ? "true" : undefined}
             aria-pressed={abaCelular === "editar"}
             onClick={() => setAbaCelular("editar")}
           >
@@ -316,7 +310,8 @@ export function EditorVaga(props: {
           </button>
           <button
             type="button"
-            className={abaClasse(abaCelular === "previa")}
+            className="ev-aba"
+            data-ativa={abaCelular === "previa" ? "true" : undefined}
             aria-pressed={abaCelular === "previa"}
             onClick={() => setAbaCelular("previa")}
           >
@@ -325,8 +320,8 @@ export function EditorVaga(props: {
           </button>
         </div>
 
-        <div className="rh-scroll min-h-0 flex-1 overflow-y-auto">
-          <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_23rem] 2xl:gap-8 2xl:grid-cols-[minmax(0,1fr)_27rem]">
+        <div className="ev-corpo rh-scroll">
+          <div className="ev-grade">
             {/* ---------------- Formulário ---------------- */}
             {/* DUAS COLUNAS a partir de 1536px. O formulário tem quatro
                 blocos e vinte campos; numa coluna só, quem edita a jornada não
@@ -337,169 +332,178 @@ export function EditorVaga(props: {
                 `items-start` porque os blocos têm alturas diferentes de
                 propósito — a lista de requisitos cresce, a de jornada não — e
                 esticar um para acompanhar o outro só deixaria buraco no meio. */}
-            <div
-              className={`min-w-0 space-y-7 ${abaCelular === "editar" ? "" : "hidden"} lg:block 2xl:grid 2xl:grid-cols-2 2xl:items-start 2xl:gap-x-8 2xl:gap-y-7 2xl:space-y-0`}
-            >
-              <section className="space-y-4">
-                <CampoTexto
-                  campo="vaga-titulo"
-                  rotulo="Título da vaga"
-                  valor={form.titulo}
-                  maxLength={120}
-                  placeholder="Ex.: Recepcionista para clínica odontológica"
-                  erro={erros["titulo"] ?? ""}
-                  ajuda="É o título que aparece no card e vira o endereço da vaga no site."
-                  aoMudar={(v) => trocar("titulo", v)}
-                />
+            <div className="ev-form" data-oculta={abaCelular === "editar" ? undefined : "true"}>
+              <section className="ev-cartao">
+                <header className="ev-cartao__cab">
+                  <h3 className="ev-cartao__titulo">Identificação</h3>
+                  <p className="ev-cartao__sub">O que aparece no card e no endereço da vaga.</p>
+                </header>
+                <div className="ev-cartao__corpo">
+                  <CampoTexto
+                    campo="vaga-titulo"
+                    rotulo="Título da vaga"
+                    valor={form.titulo}
+                    maxLength={120}
+                    placeholder="Ex.: Recepcionista para clínica odontológica"
+                    erro={erros["titulo"] ?? ""}
+                    ajuda="É o título que aparece no card e vira o endereço da vaga no site."
+                    aoMudar={(v) => trocar("titulo", v)}
+                  />
 
-                <CampoTextarea
-                  campo="vaga-resumo"
-                  rotulo="Resumo (aparece no card)"
-                  valor={form.resumo}
-                  linhas={3}
-                  maxLength={MAX_RESUMO}
-                  placeholder="Uma ou duas frases sobre o dia a dia de quem ocupar a vaga."
-                  erro={erros["resumo"] ?? ""}
-                  rodape={
-                    <p className="mt-1 text-right text-xs font-semibold tabular-nums text-ink">
-                      {form.resumo.length} de {MAX_RESUMO} caracteres
-                    </p>
-                  }
-                  aoMudar={(v) => trocar("resumo", v)}
-                />
+                  <CampoTextarea
+                    campo="vaga-resumo"
+                    rotulo="Resumo (aparece no card)"
+                    valor={form.resumo}
+                    linhas={3}
+                    maxLength={MAX_RESUMO}
+                    placeholder="Uma ou duas frases sobre o dia a dia de quem ocupar a vaga."
+                    erro={erros["resumo"] ?? ""}
+                    rodape={
+                      <p className="mt-1 text-right text-xs font-semibold tabular-nums text-ink">
+                        {form.resumo.length} de {MAX_RESUMO} caracteres
+                      </p>
+                    }
+                    aoMudar={(v) => trocar("resumo", v)}
+                  />
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {/*
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/*
                     Status e modelo são <select> escritos à mão: `CampoSelect`
                     sempre abre com uma opção vazia (o placeholder acessível dos
                     campos opcionais do formulário público), e aqui escolher o
                     vazio gravaria um status que não existe no domínio.
                   */}
-                  <div>
-                    <Rotulo campo="vaga-status" texto="Status" />
-                    <select
-                      id={idCampo("vaga-status")}
-                      className="rh-campo"
-                      value={form.status}
-                      aria-describedby={descritores("vaga-status", statusAtual.descricao, "")}
-                      onChange={(e) => trocar("status", e.target.value as StatusVaga)}
-                    >
-                      {STATUS_VAGA.map((s) => (
-                        <option key={s.valor} value={s.valor}>
-                          {s.rotulo}
-                        </option>
-                      ))}
-                    </select>
-                    <Ajuda campo="vaga-status" texto={statusAtual.descricao} />
+                    <div>
+                      <Rotulo campo="vaga-status" texto="Status" />
+                      <select
+                        id={idCampo("vaga-status")}
+                        className="rh-campo"
+                        value={form.status}
+                        aria-describedby={descritores("vaga-status", statusAtual.descricao, "")}
+                        onChange={(e) => trocar("status", e.target.value as StatusVaga)}
+                      >
+                        {STATUS_VAGA.map((s) => (
+                          <option key={s.valor} value={s.valor}>
+                            {s.rotulo}
+                          </option>
+                        ))}
+                      </select>
+                      <Ajuda campo="vaga-status" texto={statusAtual.descricao} />
+                    </div>
+
+                    <div>
+                      <Rotulo campo="vaga-quantidade" texto="Posições abertas" />
+                      <input
+                        id={idCampo("vaga-quantidade")}
+                        className="rh-campo"
+                        type="number"
+                        min={1}
+                        max={99}
+                        step={1}
+                        inputMode="numeric"
+                        value={form.quantidade}
+                        aria-invalid={erros["quantidade"] !== undefined}
+                        aria-describedby={descritores(
+                          "vaga-quantidade",
+                          "",
+                          erros["quantidade"] ?? "",
+                        )}
+                        onChange={(e) => {
+                          const n = Number.parseInt(e.target.value, 10);
+                          trocar("quantidade", Number.isNaN(n) ? 0 : n);
+                        }}
+                      />
+                      <MensagemErro campo="vaga-quantidade" texto={erros["quantidade"] ?? ""} />
+                    </div>
                   </div>
 
-                  <div>
-                    <Rotulo campo="vaga-quantidade" texto="Posições abertas" />
-                    <input
-                      id={idCampo("vaga-quantidade")}
-                      className="rh-campo"
-                      type="number"
-                      min={1}
-                      max={99}
-                      step={1}
-                      inputMode="numeric"
-                      value={form.quantidade}
-                      aria-invalid={erros["quantidade"] !== undefined}
-                      aria-describedby={descritores(
-                        "vaga-quantidade",
-                        "",
-                        erros["quantidade"] ?? "",
-                      )}
-                      onChange={(e) => {
-                        const n = Number.parseInt(e.target.value, 10);
-                        trocar("quantidade", Number.isNaN(n) ? 0 : n);
-                      }}
-                    />
-                    <MensagemErro campo="vaga-quantidade" texto={erros["quantidade"] ?? ""} />
-                  </div>
+                  <Interruptor
+                    rotulo="Destacar no topo do portal"
+                    descricao="Vagas em destaque aparecem antes das demais na página de carreiras."
+                    ligado={form.destaque}
+                    desativado={props.salvando}
+                    aoMudar={(v) => trocar("destaque", v)}
+                  />
                 </div>
-
-                <Interruptor
-                  rotulo="Destacar no topo do portal"
-                  descricao="Vagas em destaque aparecem antes das demais na página de carreiras."
-                  ligado={form.destaque}
-                  desativado={props.salvando}
-                  aoMudar={(v) => trocar("destaque", v)}
-                />
               </section>
 
-              <section className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <CampoSelect
-                    campo="vaga-area"
-                    rotulo="Área"
-                    valor={form.area}
-                    opcoes={AREAS.map((a) => ({ valor: a.valor, rotulo: a.rotulo }))}
-                    erro={erros["area"] ?? ""}
-                    aoMudar={(v) => {
-                      const escolhida = v as AreaVaga;
-                      // Só estas duas áreas perguntam especialidade.
-                      const pedeEspecialidade = escolhida === "dentista" || escolhida === "outro";
-                      setForm((atual) => ({
-                        ...atual,
-                        area: escolhida,
-                        // Sair de "Outra área" apaga o nome digitado: guardado,
-                        // ele voltaria sozinho se alguém reabrisse o select
-                        // nessa opção meses depois, com o texto de outra vaga.
-                        areaOutra: escolhida === "outro" ? atual.areaOutra : "",
-                        // E o mesmo vale para a lista: sem isto, marcar
-                        // "Ortodontia" e depois trocar a vaga para recepção
-                        // publica "Especialidades envolvidas: Ortodontia" numa
-                        // página onde o campo nem aparece mais para ser
-                        // corrigido — o RH não tem como saber que está lá.
-                        especialidades: pedeEspecialidade ? atual.especialidades : [],
-                      }));
-                    }}
-                  />
-                  <CampoSelect
-                    campo="vaga-vinculo"
-                    rotulo="Vínculo"
-                    valor={form.vinculo}
-                    opcoes={VINCULOS}
-                    erro={erros["vinculo"] ?? ""}
-                    aoMudar={(v) => trocar("vinculo", v as Vinculo)}
-                  />
-                  <div>
-                    <Rotulo campo="vaga-modelo" texto="Modelo" />
-                    <select
-                      id={idCampo("vaga-modelo")}
-                      className="rh-campo"
-                      value={form.modelo}
-                      onChange={(e) => trocar("modelo", e.target.value as ModeloTrabalho)}
-                    >
-                      {MODELOS_TRABALHO.map((m) => (
-                        <option key={m.valor} value={m.valor}>
-                          {m.rotulo}
-                        </option>
-                      ))}
-                    </select>
+              <section className="ev-cartao">
+                <header className="ev-cartao__cab">
+                  <h3 className="ev-cartao__titulo">Perfil</h3>
+                  <p className="ev-cartao__sub">Área, vínculo e o tipo de profissional.</p>
+                </header>
+                <div className="ev-cartao__corpo">
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <CampoSelect
+                      campo="vaga-area"
+                      rotulo="Área"
+                      valor={form.area}
+                      opcoes={AREAS.map((a) => ({ valor: a.valor, rotulo: a.rotulo }))}
+                      erro={erros["area"] ?? ""}
+                      aoMudar={(v) => {
+                        const escolhida = v as AreaVaga;
+                        // Só estas duas áreas perguntam especialidade.
+                        const pedeEspecialidade = escolhida === "dentista" || escolhida === "outro";
+                        setForm((atual) => ({
+                          ...atual,
+                          area: escolhida,
+                          // Sair de "Outra área" apaga o nome digitado: guardado,
+                          // ele voltaria sozinho se alguém reabrisse o select
+                          // nessa opção meses depois, com o texto de outra vaga.
+                          areaOutra: escolhida === "outro" ? atual.areaOutra : "",
+                          // E o mesmo vale para a lista: sem isto, marcar
+                          // "Ortodontia" e depois trocar a vaga para recepção
+                          // publica "Especialidades envolvidas: Ortodontia" numa
+                          // página onde o campo nem aparece mais para ser
+                          // corrigido — o RH não tem como saber que está lá.
+                          especialidades: pedeEspecialidade ? atual.especialidades : [],
+                        }));
+                      }}
+                    />
+                    <CampoSelect
+                      campo="vaga-vinculo"
+                      rotulo="Vínculo"
+                      valor={form.vinculo}
+                      opcoes={VINCULOS}
+                      erro={erros["vinculo"] ?? ""}
+                      aoMudar={(v) => trocar("vinculo", v as Vinculo)}
+                    />
+                    <div>
+                      <Rotulo campo="vaga-modelo" texto="Modelo" />
+                      <select
+                        id={idCampo("vaga-modelo")}
+                        className="rh-campo"
+                        value={form.modelo}
+                        onChange={(e) => trocar("modelo", e.target.value as ModeloTrabalho)}
+                      >
+                        {MODELOS_TRABALHO.map((m) => (
+                          <option key={m.valor} value={m.valor}>
+                            {m.rotulo}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
 
-                {/* A última opção do catálogo é um balde ("Marketing, TI,
+                  {/* A última opção do catálogo é um balde ("Marketing, TI,
                     limpeza e demais funções de apoio"). Sem este campo, a vaga
                     de marketing chega ao candidato anunciada como "Outra área"
                     — e é esse rótulo que vai para a pílula do card e para a
                     linha "Área" da página da vaga. */}
-                {form.area === "outro" ? (
-                  <CampoTexto
-                    campo="vaga-areaOutra"
-                    rotulo="Nome da área"
-                    valor={form.areaOutra}
-                    maxLength={LIMITES.areaOutra}
-                    opcional
-                    placeholder="Ex.: Marketing"
-                    ajuda="Aparece no lugar de “Outra área” no card e na página da vaga. Em branco, continua valendo “Outra área”."
-                    aoMudar={(v) => trocar("areaOutra", v)}
-                  />
-                ) : null}
+                  {form.area === "outro" ? (
+                    <CampoTexto
+                      campo="vaga-areaOutra"
+                      rotulo="Nome da área"
+                      valor={form.areaOutra}
+                      maxLength={LIMITES.areaOutra}
+                      opcional
+                      placeholder="Ex.: Marketing"
+                      ajuda="Aparece no lugar de “Outra área” no card e na página da vaga. Em branco, continua valendo “Outra área”."
+                      aoMudar={(v) => trocar("areaOutra", v)}
+                    />
+                  ) : null}
 
-                {/* Numa vaga de recepção, perguntar especialidade confunde quem
+                  {/* Numa vaga de recepção, perguntar especialidade confunde quem
                     preenche e quem lê o anúncio — por isso o campo só existe em
                     duas áreas, e em formatos diferentes.
 
@@ -512,172 +516,186 @@ export function EditorVaga(props: {
                     (ver `areaOutra`), a especialidade também é: "Tráfego pago",
                     "Suporte", "Fisioterapia". Sai no mesmo bloco
                     "Especialidades envolvidas" da página da vaga. */}
-                {form.area === "dentista" ? (
-                  <SeletorChips
-                    campo="vaga-especialidades"
-                    rotulo="Especialidades desejadas"
-                    opcoes={ESPECIALIDADES}
-                    selecionados={form.especialidades}
-                    modo="multipla"
+                  {form.area === "dentista" ? (
+                    <SeletorChips
+                      campo="vaga-especialidades"
+                      rotulo="Especialidades desejadas"
+                      opcoes={ESPECIALIDADES}
+                      selecionados={form.especialidades}
+                      modo="multipla"
+                      opcional
+                      ajuda="Aparecem na página da vaga como o perfil que a clínica procura."
+                      aoAlternar={alternarEspecialidade}
+                    />
+                  ) : form.area === "outro" ? (
+                    <ListaEditavel
+                      rotulo="Especialidades desejadas"
+                      ajuda="Opcional. Aparecem na página da vaga como o perfil que a clínica procura."
+                      placeholder="Ex.: Tráfego pago"
+                      itens={form.especialidades}
+                      sugestoes={[]}
+                      rotuloSugestoes=""
+                      aoMudar={(itens) => trocar("especialidades", itens)}
+                    />
+                  ) : null}
+
+                  <CampoTextarea
+                    campo="vaga-descricao"
+                    rotulo="Descrição completa"
+                    valor={form.descricao}
+                    linhas={8}
+                    // O mesmo número que o servidor grava (`LIMITES`, em
+                    // tipos.ts). Com 6000, o texto era aceito na tela e cortado no
+                    // meio da frase na gravação — e o corte ia direto para a
+                    // página pública da vaga e para o JSON-LD, sem aviso nenhum.
+                    maxLength={LIMITES.textoLongo}
                     opcional
-                    ajuda="Aparecem na página da vaga como o perfil que a clínica procura."
-                    aoAlternar={alternarEspecialidade}
+                    placeholder="Conte como é a rotina, o perfil de paciente, a equipe e o que a clínica espera dessa pessoa."
+                    ajuda="É o texto da página da vaga. As listas abaixo aparecem em blocos separados."
+                    aoMudar={(v) => trocar("descricao", v)}
                   />
-                ) : form.area === "outro" ? (
+                </div>
+              </section>
+
+              <section className="ev-cartao">
+                <header className="ev-cartao__cab">
+                  <h3 className="ev-cartao__titulo">Atividades e requisitos</h3>
+                  <p className="ev-cartao__sub">As listas que viram blocos na página da vaga.</p>
+                </header>
+                <div className="ev-cartao__corpo">
                   <ListaEditavel
-                    rotulo="Especialidades desejadas"
-                    ajuda="Opcional. Aparecem na página da vaga como o perfil que a clínica procura."
-                    placeholder="Ex.: Tráfego pago"
-                    itens={form.especialidades}
+                    rotulo="Responsabilidades"
+                    ajuda="O que a pessoa faz no dia a dia. Comece pelo mais frequente."
+                    placeholder="Ex.: Confirmar a agenda do dia seguinte"
+                    itens={form.responsabilidades}
                     sugestoes={[]}
                     rotuloSugestoes=""
-                    aoMudar={(itens) => trocar("especialidades", itens)}
+                    aoMudar={(itens) => trocar("responsabilidades", itens)}
                   />
-                ) : null}
-
-                <CampoTextarea
-                  campo="vaga-descricao"
-                  rotulo="Descrição completa"
-                  valor={form.descricao}
-                  linhas={8}
-                  // O mesmo número que o servidor grava (`LIMITES`, em
-                  // tipos.ts). Com 6000, o texto era aceito na tela e cortado no
-                  // meio da frase na gravação — e o corte ia direto para a
-                  // página pública da vaga e para o JSON-LD, sem aviso nenhum.
-                  maxLength={LIMITES.textoLongo}
-                  opcional
-                  placeholder="Conte como é a rotina, o perfil de paciente, a equipe e o que a clínica espera dessa pessoa."
-                  ajuda="É o texto da página da vaga. As listas abaixo aparecem em blocos separados."
-                  aoMudar={(v) => trocar("descricao", v)}
-                />
-              </section>
-
-              <section className="space-y-6">
-                <ListaEditavel
-                  rotulo="Responsabilidades"
-                  ajuda="O que a pessoa faz no dia a dia. Comece pelo mais frequente."
-                  placeholder="Ex.: Confirmar a agenda do dia seguinte"
-                  itens={form.responsabilidades}
-                  sugestoes={[]}
-                  rotuloSugestoes=""
-                  aoMudar={(itens) => trocar("responsabilidades", itens)}
-                />
-                <ListaEditavel
-                  rotulo="Requisitos"
-                  ajuda="Só o que é mesmo obrigatório: os três primeiros já aparecem no card."
-                  placeholder="Ex.: CRO ativo em São Paulo"
-                  itens={form.requisitos}
-                  sugestoes={[]}
-                  rotuloSugestoes=""
-                  aoMudar={(itens) => trocar("requisitos", itens)}
-                />
-                <ListaEditavel
-                  rotulo="Diferenciais"
-                  ajuda="O que conta pontos, mas não elimina quem não tem."
-                  placeholder="Ex.: Experiência com escaneamento intraoral"
-                  itens={form.diferenciais}
-                  sugestoes={[]}
-                  rotuloSugestoes=""
-                  aoMudar={(itens) => trocar("diferenciais", itens)}
-                />
-                <ListaEditavel
-                  rotulo="Benefícios"
-                  ajuda="É a parte mais lida do anúncio. Vale repetir o óbvio."
-                  placeholder="Ex.: Vale-transporte"
-                  itens={form.beneficios}
-                  sugestoes={props.beneficiosSugeridos}
-                  rotuloSugestoes="Benefícios padrão da clínica (definidos na aba Config)"
-                  aoMudar={(itens) => trocar("beneficios", itens)}
-                />
-              </section>
-
-              <section className="space-y-4">
-                <CampoTexto
-                  campo="vaga-jornada"
-                  rotulo="Jornada"
-                  valor={form.jornada}
-                  maxLength={120}
-                  opcional
-                  placeholder="Ex.: 44h semanais, de segunda a sexta"
-                  ajuda="Sai no card junto com o modelo de trabalho."
-                  aoMudar={(v) => trocar("jornada", v)}
-                />
-
-                <div>
-                  <CampoTexto
-                    campo="vaga-local"
-                    rotulo="Local de trabalho"
-                    valor={form.local}
-                    // Idem: mesmo teto do corte no servidor.
-                    maxLength={LIMITES.localVaga}
-                    opcional
-                    placeholder="Endereço ou região onde a pessoa vai trabalhar"
-                    aoMudar={(v) => trocar("local", v)}
+                  <ListaEditavel
+                    rotulo="Requisitos"
+                    ajuda="Só o que é mesmo obrigatório: os três primeiros já aparecem no card."
+                    placeholder="Ex.: CRO ativo em São Paulo"
+                    itens={form.requisitos}
+                    sugestoes={[]}
+                    rotuloSugestoes=""
+                    aoMudar={(itens) => trocar("requisitos", itens)}
                   />
-                  <button
-                    type="button"
-                    className="mt-2 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-forest/30 bg-white px-4 text-xs font-extrabold text-ink transition hover:bg-mint"
-                    onClick={() => trocar("local", CLINICA.endereco)}
-                  >
-                    <MapPin className="h-4 w-4 text-forest" aria-hidden="true" />
-                    Usar o endereço da clínica
-                  </button>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <CampoTexto
-                    campo="vaga-salarioMin"
-                    rotulo="Salário mínimo"
-                    valor={form.salarioMin}
-                    inputMode="numeric"
-                    opcional
-                    placeholder="R$ 0,00"
-                    aoMudar={(v) => trocar("salarioMin", mascararMoeda(v))}
+                  <ListaEditavel
+                    rotulo="Diferenciais"
+                    ajuda="O que conta pontos, mas não elimina quem não tem."
+                    placeholder="Ex.: Experiência com escaneamento intraoral"
+                    itens={form.diferenciais}
+                    sugestoes={[]}
+                    rotuloSugestoes=""
+                    aoMudar={(itens) => trocar("diferenciais", itens)}
                   />
-                  <CampoTexto
-                    campo="vaga-salarioMax"
-                    rotulo="Salário máximo"
-                    valor={form.salarioMax}
-                    inputMode="numeric"
-                    opcional
-                    placeholder="R$ 0,00"
-                    aoMudar={(v) => trocar("salarioMax", mascararMoeda(v))}
+                  <ListaEditavel
+                    rotulo="Benefícios"
+                    ajuda="É a parte mais lida do anúncio. Vale repetir o óbvio."
+                    placeholder="Ex.: Vale-transporte"
+                    itens={form.beneficios}
+                    sugestoes={props.beneficiosSugeridos}
+                    rotuloSugestoes="Benefícios padrão da clínica (definidos na aba Config)"
+                    aoMudar={(itens) => trocar("beneficios", itens)}
                   />
                 </div>
+              </section>
 
-                <Interruptor
-                  rotulo="Mostrar a faixa salarial no site"
-                  descricao="Desligado, o valor fica só aqui no painel: o card e a página da vaga não exibem nada."
-                  ligado={form.mostrarSalario}
-                  desativado={props.salvando}
-                  aoMudar={(v) => trocar("mostrarSalario", v)}
-                />
+              <section className="ev-cartao">
+                <header className="ev-cartao__cab">
+                  <h3 className="ev-cartao__titulo">Condições</h3>
+                  <p className="ev-cartao__sub">Jornada, local, salário e prazo.</p>
+                </header>
+                <div className="ev-cartao__corpo">
+                  <CampoTexto
+                    campo="vaga-jornada"
+                    rotulo="Jornada"
+                    valor={form.jornada}
+                    maxLength={120}
+                    opcional
+                    placeholder="Ex.: 44h semanais, de segunda a sexta"
+                    ajuda="Sai no card junto com o modelo de trabalho."
+                    aoMudar={(v) => trocar("jornada", v)}
+                  />
 
-                <CampoTexto
-                  campo="vaga-encerraEm"
-                  rotulo="Encerra em"
-                  tipo="date"
-                  valor={form.encerraEm}
-                  opcional
-                  erro={erros["encerraEm"] ?? ""}
-                  ajuda="Depois desta data a vaga sai do site sozinha, mesmo continuando como “Aberta”. Em branco, fica no ar até você pausar ou encerrar."
-                  aoMudar={(v) => trocar("encerraEm", v)}
-                />
+                  <div>
+                    <CampoTexto
+                      campo="vaga-local"
+                      rotulo="Local de trabalho"
+                      valor={form.local}
+                      // Idem: mesmo teto do corte no servidor.
+                      maxLength={LIMITES.localVaga}
+                      opcional
+                      placeholder="Endereço ou região onde a pessoa vai trabalhar"
+                      aoMudar={(v) => trocar("local", v)}
+                    />
+                    <button
+                      type="button"
+                      className="ev-btn ev-btn--pequeno"
+                      onClick={() => trocar("local", CLINICA.endereco)}
+                    >
+                      <MapPin className="h-4 w-4" aria-hidden="true" />
+                      Usar o endereço da clínica
+                    </button>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <CampoTexto
+                      campo="vaga-salarioMin"
+                      rotulo="Salário mínimo"
+                      valor={form.salarioMin}
+                      inputMode="numeric"
+                      opcional
+                      placeholder="R$ 0,00"
+                      aoMudar={(v) => trocar("salarioMin", mascararMoeda(v))}
+                    />
+                    <CampoTexto
+                      campo="vaga-salarioMax"
+                      rotulo="Salário máximo"
+                      valor={form.salarioMax}
+                      inputMode="numeric"
+                      opcional
+                      placeholder="R$ 0,00"
+                      aoMudar={(v) => trocar("salarioMax", mascararMoeda(v))}
+                    />
+                  </div>
+
+                  <Interruptor
+                    rotulo="Mostrar a faixa salarial no site"
+                    descricao="Desligado, o valor fica só aqui no painel: o card e a página da vaga não exibem nada."
+                    ligado={form.mostrarSalario}
+                    desativado={props.salvando}
+                    aoMudar={(v) => trocar("mostrarSalario", v)}
+                  />
+
+                  <CampoTexto
+                    campo="vaga-encerraEm"
+                    rotulo="Encerra em"
+                    tipo="date"
+                    valor={form.encerraEm}
+                    opcional
+                    erro={erros["encerraEm"] ?? ""}
+                    ajuda="Depois desta data a vaga sai do site sozinha, mesmo continuando como “Aberta”. Em branco, fica no ar até você pausar ou encerrar."
+                    aoMudar={(v) => trocar("encerraEm", v)}
+                  />
+                </div>
               </section>
             </div>
 
             {/* ---------------- Prévia ---------------- */}
             <aside
-              className={`min-w-0 ${abaCelular === "previa" ? "" : "hidden"} lg:block`}
+              className="ev-lateral"
+              data-oculta={abaCelular === "previa" ? undefined : "true"}
               aria-label="Prévia da vaga no site"
             >
-              <div className="lg:sticky lg:top-2">
-                <div className="rh-papel p-4">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <Eye className="h-4 w-4 text-forest" aria-hidden="true" />
+              <div className="ev-lateral__fixo">
+                <div className="ev-previa">
+                  <p className="ev-previa__titulo">
+                    <Eye className="h-4 w-4" aria-hidden="true" />
                     Como fica no site
                   </p>
-                  <p className="rh-ajuda">
+                  <p className="ev-previa__ajuda">
                     Este é o card que o candidato vê na página de carreiras. Ele acompanha o que
                     você digita.
                   </p>
@@ -688,7 +706,7 @@ export function EditorVaga(props: {
                     editor — jogando fora tudo o que ainda não foi salvo.
                   */}
                   {form.titulo.trim().length === 0 && form.resumo.trim().length === 0 ? (
-                    <p className="rh-vazio-linha mt-3">
+                    <p className="ev-previa__vazio">
                       Escreva o título e o resumo para ver o card aqui.
                     </p>
                   ) : (
@@ -698,15 +716,12 @@ export function EditorVaga(props: {
                   )}
 
                   {form.status === "aberta" ? (
-                    <p className="mt-3 flex items-start gap-2 rounded-xl bg-mint px-3 py-2 text-xs font-bold text-ink">
-                      <Sparkles
-                        className="mt-0.5 h-4 w-4 shrink-0 text-forest"
-                        aria-hidden="true"
-                      />
+                    <p className="ev-aviso ev-aviso--ok">
+                      <Sparkles className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                       Ao salvar, esta vaga entra no ar em /carreiras.
                     </p>
                   ) : (
-                    <p className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 ring-1 ring-amber-200">
+                    <p className="ev-aviso ev-aviso--atencao">
                       <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                       Status “{statusAtual.rotulo}”: nada disto aparece no site ainda.
                     </p>
@@ -719,31 +734,27 @@ export function EditorVaga(props: {
 
         {/* Rodapé grudento: em formulário longo, o botão de salvar não pode
             depender de a pessoa rolar até o fim para reaparecer. */}
-        <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border-soft bg-white px-4 py-3 sm:px-6">
-          <p className="mr-auto hidden text-xs font-semibold text-ink sm:block">
+        <footer className="ev-rodape">
+          <p className="ev-rodape__nota">
             {props.salvando ? "Salvando…" : "Nada é publicado até você salvar."}
           </p>
-          <button
-            type="button"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-soft bg-white px-5 text-sm font-extrabold text-ink transition hover:border-forest"
-            onClick={props.aoFechar}
-          >
+          <button type="button" className="ev-btn" onClick={props.aoFechar}>
             Cancelar
           </button>
           {form.status === "rascunho" ? (
             <button
               type="button"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-forest/30 bg-white px-5 text-sm font-extrabold text-ink transition hover:bg-mint disabled:cursor-not-allowed disabled:opacity-50"
+              className="ev-btn"
               disabled={props.salvando}
               onClick={() => salvar(false)}
             >
-              <Save className="h-4 w-4 text-forest" aria-hidden="true" />
+              <Save className="h-4 w-4" aria-hidden="true" />
               Salvar rascunho
             </button>
           ) : null}
           <button
             type="button"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-forest px-6 text-sm font-extrabold text-white transition hover:bg-brand-deep disabled:cursor-not-allowed disabled:opacity-50"
+            className="ev-btn ev-btn--acento"
             disabled={props.salvando}
             onClick={() => salvar(form.status === "rascunho")}
           >

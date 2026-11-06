@@ -1,145 +1,116 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Wallet } from "lucide-react";
 
-import { CLINICA, CONVENIOS, PAGAMENTO, type Convenio } from "@/lib/jp";
+import { CLINICA, PAGAMENTO } from "@/lib/jp";
+import {
+  CONVENIOS_POR_EXTENSO_SITE,
+  CONVENIOS_SITE,
+  logoDoConvenio,
+} from "@/components/site/convenios-do-site";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
-import { MarcaCoroa } from "@/components/site/sistema/Coroa";
+import { Contador } from "@/components/site/ui/Contador";
+import { FaixaRolante } from "@/components/site/ui/FaixaRolante";
 import "./home/convenios.css";
 
 /**
- * Os convênios publicados são os confirmados pela clínica e os dois
- * acrescentados em 16/09/2026. A extensão fica aqui porque, por enquanto, a
- * mudança é exclusivamente do site e não deve alterar dados do CRC sem a mesma
- * confirmação operacional.
+ * Cartão de um convênio: altura fixa, branco, com a logo quando houver arquivo
+ * local em `src/assets/convenios/<slug>.svg` e, sem ele, o nome em tipo forte.
+ * Os dois casos ocupam a mesma caixa, então a fileira não pula quando as logos
+ * oficiais forem entrando.
  */
-const CONVENIOS_SITE: Convenio[] = [
-  ...CONVENIOS,
-  { nome: "Sempre Odonto", slug: "sempre-odonto" },
-  { nome: "Odonto Empresas", slug: "odonto-empresas" },
-];
-
-function porExtenso(itens: string[]): string {
-  if (itens.length <= 1) return itens[0] ?? "";
-  return `${itens.slice(0, -1).join(", ")} e ${itens.at(-1)}`;
-}
-
-const CONVENIOS_POR_EXTENSO_SITE = porExtenso(CONVENIOS_SITE.map((c) => c.nome));
-
 /**
- * Logos locais, só. Quando um kit oficial for salvo em
- * `src/assets/convenios/<slug>.svg|png|webp` (ver o LEIA-ME da pasta), ele
- * entra no ladrilho sem outra alteração aqui.
- *
- * Antes havia links para logos hospedadas em terceiros: um deles (seu-convenio
- * .com) demorava até o limite de tempo e todos entregavam o IP do paciente a
- * servidores que a clínica não controla. Sem arquivo local, o ladrilho escreve
- * o nome em tipo grande — diz a mesma coisa e não usa marca de ninguém.
+ * Logos quase quadradas ou empilhadas (ícone com o nome embaixo) ficam
+ * pequenas na mesma altura das logos horizontais; estas ganham mais altura
+ * para pesarem igual na fileira (ajuste óptico, não regra de marca).
  */
-const LOGOS = import.meta.glob("../../assets/convenios/*.{svg,png,webp}", {
-  eager: true,
-  query: "?url",
-  import: "default",
-}) as Record<string, string>;
+const LOGO_ALTA = new Set(["odonto-empresas", "rede-brazil-dental"]);
 
-/** `../../assets/convenios/sulamerica.svg` → `sulamerica`. */
-function logoLocalDe(slug: string): string | undefined {
-  for (const [caminho, url] of Object.entries(LOGOS)) {
-    const arquivo = caminho.split("/").pop() ?? "";
-    if (arquivo.replace(/\.[^.]+$/, "") === slug) return url;
-  }
-  return undefined;
-}
-
-function Ladrilho({ convenio }: { convenio: Convenio }) {
-  const logo = logoLocalDe(convenio.slug);
+function CartaoConvenio({ nome, slug }: { nome: string; slug: string }) {
+  const logo = logoDoConvenio(slug);
 
   return (
-    <li className="convenio-ladrilho" data-item>
+    <li className="convenio-cartao">
       {logo !== undefined ? (
         <img
           src={logo}
-          alt={convenio.nome}
+          alt={nome}
+          height={36}
           loading="lazy"
           decoding="async"
           className="convenio-logo"
+          data-alta={LOGO_ALTA.has(slug) ? "" : undefined}
         />
       ) : (
-        <span className="convenio-nome">{convenio.nome}</span>
+        <span className="convenio-nome">{nome}</span>
       )}
     </li>
   );
 }
 
+/**
+ * CONVÊNIOS — a faixa de confiança logo abaixo do topo.
+ *
+ * Compacta de propósito: quem tem plano quer saber se o dele entra, não ler
+ * uma seção. A fileira corre sozinha e para no hover; a lista completa também
+ * está escrita no rodapé da seção, para quem lê sem a animação.
+ */
 export function ConveniosSection() {
   const wa = useContatoWhatsApp("duvida", "convênios");
 
   return (
-    <section id="convenios" className="secao-curta convenios-secao">
+    <section id="convenios" className="convenios-secao" aria-labelledby="convenios-titulo">
       <div className="quadro">
-        {/* A lista é o próprio quadro: título, convênios e particular são itens
-            dela, então leitor de tela ouve "lista com 10 itens" e não três
-            blocos soltos. */}
-        <ul className="convenios-quadro" data-entra>
-          {/* O ladrilho de acento carrega o título: é a porta da seção. */}
-          <li className="convenios-titulo" data-item>
-            <h2 data-linhas className="text-titulo">
-              Convênios aceitos
+        <div className="convenios-cabeca" data-entra>
+          <div data-item>
+            <p className="sobretitulo">Convênios</p>
+            <h2 id="convenios-titulo" className="convenios-titulo">
+              Seu plano odontológico, atendido aqui
             </h2>
-            <p className="text-corpo">
-              A cobertura de cada procedimento depende do seu plano — a recepção confere para você
-              antes da consulta.
-            </p>
-            <p className="convenios-contagem">
-              <span className="text-display" data-numero={CONVENIOS_SITE.length} data-casas="0">
-                {CONVENIOS_SITE.length}
-              </span>
-              <span className="text-corpo">convênios odontológicos credenciados</span>
-            </p>
-          </li>
+          </div>
+          <p data-item className="convenios-contagem">
+            <Contador valor={CONVENIOS_SITE.length} className="convenios-numero" />
+            <span>convênios odontológicos</span>
+          </p>
+        </div>
+      </div>
 
+      <FaixaRolante rotulo="Convênios atendidos" duracao={46} className="convenios-faixa">
+        <ul className="convenios-fila">
           {CONVENIOS_SITE.map((c) => (
-            <Ladrilho key={c.slug} convenio={c} />
+            <CartaoConvenio key={c.slug} nome={c.nome} slug={c.slug} />
           ))}
-
-          <li className="convenios-particular campo-escuro" data-item>
-            <div>
-              <h3 className="text-frase">Particular</h3>
-              <p className="mt-3 text-corpo text-sobre-campo-suave">
-                Sem convênio? Também atendemos particular.
-              </p>
-            </div>
-
-            <div>
-              <ul className="convenios-formas">
-                {PAGAMENTO.formas.map((forma) => (
-                  <li key={forma}>
-                    <MarcaCoroa />
-                    {forma}
-                  </li>
-                ))}
-              </ul>
-              <p className="mt-4 max-w-md text-pequeno text-sobre-campo-suave">
-                {PAGAMENTO.publicarCondicoes ? `${PAGAMENTO.condicoes} ` : ""}As condições são
-                apresentadas junto com o plano de tratamento, depois da avaliação.
-              </p>
-            </div>
-
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="botao botao-acento convenios-cta"
-              data-ima
-            >
-              Conferir meu plano no WhatsApp
-              <ArrowUpRight aria-hidden="true" />
-            </a>
-          </li>
         </ul>
+      </FaixaRolante>
 
-        <p className="mt-8 max-w-3xl text-pequeno text-tinta-suave">
-          Credenciamentos e coberturas podem mudar. Confirme o seu plano com a recepção pelo
-          WhatsApp {CLINICA.whatsapp} antes de agendar. Convênios atendidos hoje:{" "}
-          {CONVENIOS_POR_EXTENSO_SITE}.
+      <div className="quadro">
+        <div className="convenios-particular cartao" data-entra>
+          <span className="pastilha" aria-hidden="true" data-item>
+            <Wallet />
+          </span>
+          <div className="convenios-particular-texto" data-item>
+            <h3 className="convenios-particular-titulo">Sem convênio? Atendimento particular</h3>
+            <p>
+              {PAGAMENTO.formas.join(" · ")}.{" "}
+              {PAGAMENTO.publicarCondicoes ? `${PAGAMENTO.condicoes} ` : ""}As condições são
+              apresentadas junto com o plano de tratamento, depois da avaliação.
+            </p>
+          </div>
+          <a
+            data-item
+            href={wa}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="botao botao-acento convenios-cta"
+            data-ima
+          >
+            Conferir meu plano no WhatsApp
+            <ArrowUpRight aria-hidden="true" />
+          </a>
+        </div>
+
+        <p className="convenios-ressalva">
+          A cobertura de cada procedimento depende do seu plano, e credenciamentos podem mudar:
+          confirme com a recepção pelo WhatsApp {CLINICA.whatsapp} antes de agendar. Convênios
+          atendidos hoje: {CONVENIOS_POR_EXTENSO_SITE}.
         </p>
       </div>
     </section>

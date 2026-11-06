@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 
-import { MarcaCoroa } from "@/components/site/sistema/Coroa";
+import { IconeDaArea } from "@/components/site/carreiras/IconeDaArea";
 import { formatarData, tempoRelativo } from "@/lib/rh/formatar";
 import { MODELOS_TRABALHO, VINCULOS } from "@/lib/rh/opcoes";
 import type { Vaga } from "@/lib/rh/tipos";
@@ -29,11 +29,9 @@ export function LinhaDeVaga({ vaga, agora }: { vaga: Vaga; agora: Date }) {
   const publicada = tempoRelativo(vaga.publicadoEm, agora);
   const prazo = formatarData(vaga.encerraEm);
 
-  // O que descreve o contrato vai numa linha só, na ordem em que a pessoa
-  // decide: o que é, em que regime, onde, quanto. Juntar com " · " num texto
-  // único (e não em spans soltos) deixa a linha legível no celular, onde os
-  // spans quebravam sem separador nenhum.
-  const fatos = [
+  // O que descreve o contrato vira etiqueta, na ordem em que a pessoa decide:
+  // o que é, em que regime, onde, quanto. Só entra o que existe.
+  const etiquetas = [
     area,
     vinculo,
     modelo,
@@ -41,14 +39,12 @@ export function LinhaDeVaga({ vaga, agora }: { vaga: Vaga; agora: Date }) {
     salario,
     vaga.quantidade > 1 ? `${vaga.quantidade} posições` : "",
     jornada,
-  ]
-    .filter((f) => f.length > 0)
-    .join(" · ");
+  ].filter((f) => f.length > 0);
 
   return (
-    <li className="car-linha">
-      <span className="car-linha-marca" aria-hidden="true">
-        <MarcaCoroa />
+    <li className="car-linha cartao cartao-vivo">
+      <span className="pastilha car-linha-icone">
+        <IconeDaArea area={vaga.area} />
       </span>
 
       <div className="car-linha-corpo">
@@ -58,15 +54,12 @@ export function LinhaDeVaga({ vaga, agora }: { vaga: Vaga; agora: Date }) {
           </a>
         </h3>
         {vaga.resumo.trim().length > 0 ? <p className="car-linha-resumo">{vaga.resumo}</p> : null}
-        <p className="car-linha-meta">
-          {vaga.destaque ? (
-            <strong className="car-linha-destaque">
-              <MarcaCoroa />
-              Em destaque
-            </strong>
-          ) : null}
-          <span>{fatos}</span>
-        </p>
+        <ul className="car-linha-tags">
+          {vaga.destaque ? <li data-destaque="">Em destaque</li> : null}
+          {etiquetas.map((e, i) => (
+            <li key={`${i}-${e}`}>{e}</li>
+          ))}
+        </ul>
       </div>
 
       <div className="car-linha-fim">

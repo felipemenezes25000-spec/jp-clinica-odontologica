@@ -1,0 +1,97 @@
+/* Como funciona — ver ComoFunciona.tsx. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .passos {
+    --vao: clamp(1rem, 0.5rem + 2vw, 2rem);
+    --bola: 3rem;
+    display: grid;
+    gap: 1.25rem;
+    margin-top: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+  }
+
+  /* Celular: a bola à esquerda, o cartão à direita e uma linha descendo. */
+  .passo {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--bola) minmax(0, 1fr);
+    gap: 1rem;
+  }
+  .passo:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: calc(var(--bola) / 2 - 1px);
+    top: calc(var(--bola) + 0.375rem);
+    bottom: calc(-1.25rem + 0.375rem);
+    width: 2px;
+    border-radius: 2px;
+    background: repeating-linear-gradient(180deg, var(--acento) 0 6px, transparent 6px 12px);
+    opacity: 0.55;
+  }
+
+  /* Número grande e em negrito sobre --acento: contraste AA para texto grande. */
+  .passo-numero {
+    display: grid;
+    place-items: center;
+    width: var(--bola);
+    height: var(--bola);
+    border-radius: 999px;
+    background: var(--acento);
+    box-shadow: 0 0 0 6px var(--chao-2);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .passo-cartao {
+    display: grid;
+    justify-items: start;
+    gap: 0.75rem;
+    padding: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    border-radius: var(--raio-lg);
+  }
+  .passo-titulo {
+    font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+    font-weight: 650;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+  .passo-texto {
+    color: var(--tinta-suave);
+    line-height: 1.55;
+  }
+
+  /* Desktop: três colunas, a bola em cima e a linha tracejada ligando uma à outra. */
+  @media (min-width: 900px) {
+    .passos {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--vao);
+    }
+    .passo {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.25rem;
+    }
+    .passo:not(:last-child)::after {
+      left: calc(var(--bola) + 0.75rem);
+      right: calc(var(--vao) * -1 + 0.75rem);
+      top: calc(var(--bola) / 2 - 1px);
+      bottom: auto;
+      width: auto;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, var(--acento) 0 6px, transparent 6px 12px);
+    }
+  }
+
+  .como-funciona-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+  }
+  @media (max-width: 639.98px) {
+    .como-funciona-acoes > * {
+      width: 100%;
+    }
+  }
+}
