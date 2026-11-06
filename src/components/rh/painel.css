@@ -1098,6 +1098,13 @@
 /* Entrada (login)                                                              */
 /* ============================================================================ */
 
+/*
+ * Duas metades. A da marca é a clínica de verdade (o consultório em foto, sob
+ * um véu verde que garante leitura) com a frase do portal, os rostos da equipe
+ * e uma prévia em vidro do que existe lá dentro. A do formulário é um cartão
+ * branco sobre o chão com brilho menta, para o campo de senha não flutuar
+ * solto numa folha vazia em monitor largo.
+ */
 .rh-entrada {
   display: grid;
   min-height: 100dvh;
@@ -1107,58 +1114,203 @@
 
 .rh-entrada__marca {
   position: relative;
+  isolation: isolate;
   display: flex;
-  min-height: 168px;
+  min-height: 15.5rem;
   flex-direction: column;
   justify-content: space-between;
-  gap: 32px;
+  gap: 1.5rem;
   overflow: hidden;
-  padding: 24px var(--margem);
+  padding: 1.25rem var(--margem) 1.5rem;
   background: var(--campo);
   color: var(--sobre-campo);
+}
+
+.rh-entrada__foto {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 38%;
+}
+
+/* Véu: escuro no topo (assinatura) e mais escuro embaixo (frase e prévia),
+   com a foto respirando no meio. Um toque do verde da marca por cima unifica
+   o branco do consultório com a paleta. */
+.rh-entrada__veu {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(3 47 1 / 0.72) 0%,
+    rgb(3 47 1 / 0.12) 22%,
+    rgb(3 47 1 / 0.06) 40%,
+    rgb(3 47 1 / 0.72) 64%,
+    rgb(3 47 1 / 0.96) 84%
+  );
+}
+
+.rh-entrada__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .rh-entrada__assinatura {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.rh-entrada__frase {
-  position: relative;
-  z-index: 1;
-  max-width: 16ch;
-  font-size: var(--text-frase);
+.rh-entrada__chip {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  padding: 0 0.85rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: 0.8125rem;
   font-weight: 600;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
 }
+
+.rh-entrada__base {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rh-entrada__frase {
+  max-width: 13em;
+  font-size: var(--text-frase);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+/* Rostos e prévia só cabem bem na tela larga; no celular a faixa fica com a
+   foto, a assinatura e a frase. */
+.rh-entrada__equipe,
+.rh-entrada__previa {
+  display: none;
+}
+
+.rh-entrada__equipe {
+  /* A pilha de rostos desenha o anel na cor `--branco`: aqui ele precisa ser
+     o verde do fundo, para o rosto recortar sobre a foto escura. */
+  --branco: var(--campo);
+  align-items: center;
+  gap: 0.85rem;
+  color: var(--sobre-campo-suave);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.rh-entrada__previa {
+  margin: 0;
+  padding: 0.5rem;
+  list-style: none;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: var(--raio-lg);
+  background: rgb(3 47 1 / 0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.5);
+}
+
+.rh-entrada__previa li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 0.9rem;
+}
+
+.rh-entrada__previa li + li {
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.rh-entrada__previa strong {
+  display: block;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.rh-entrada__previa li > span:last-child > span {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--sobre-campo-suave);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.rh-entrada__icone {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border-radius: 12px;
+  background: rgb(108 196 20 / 0.18);
+  color: var(--acento-claro);
+}
+
+/* ---- Formulário ---------------------------------------------------------- */
 
 .rh-entrada__form {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 40px var(--margem) 48px;
+  padding: 1.75rem var(--margem) 2.5rem;
 }
 
 .rh-entrada__conteudo {
-  width: min(100%, 400px);
+  width: min(100%, 27rem);
+}
+
+.rh-entrada__acesso {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--acento-texto);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.rh-entrada__cadeado {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--menta);
+  color: var(--acento-texto);
 }
 
 .rh-entrada h1 {
-  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
-  font-weight: 600;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  margin-top: 0.85rem;
+  font-size: clamp(2rem, 1.5rem + 1.6vw, 2.75rem);
+  font-weight: 650;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
 }
 
 .rh-entrada__lide {
-  margin-top: 10px;
+  margin-top: 0.75rem;
   color: var(--tinta-suave);
-  font-size: 1rem;
+  font-size: 1.0625rem;
   line-height: 1.5;
 }
 
@@ -1171,17 +1323,20 @@
 }
 
 .rh-entrada .rh-campo {
-  min-height: 52px;
+  min-height: 56px;
   border: 1px solid var(--rh-controle);
-  border-radius: 14px;
+  border-radius: 16px;
   background: var(--rh-folha);
   color: var(--tinta);
   font-size: 1.0625rem;
+  transition:
+    border-color 140ms var(--ease-out),
+    box-shadow 140ms var(--ease-out);
 }
 
 .rh-entrada .rh-campo:focus {
-  border-color: var(--tinta);
-  box-shadow: inset 0 0 0 1px var(--tinta);
+  border-color: var(--acento-texto);
+  box-shadow: 0 0 0 4px var(--menta);
   outline: none;
 }
 
@@ -1196,6 +1351,11 @@
 
 .rh-entrada .rh-campo:focus-visible {
   outline: none;
+}
+
+.rh-entrada .botao {
+  min-height: 56px;
+  font-size: 1.0625rem;
 }
 
 .rh-entrada__ajuda {
@@ -1236,7 +1396,7 @@
   min-height: 44px;
   align-items: center;
   gap: 8px;
-  margin: 20px 0 0 -8px;
+  margin: 1rem 0 0 -8px;
   padding-inline: 8px;
   border-radius: 10px;
   color: var(--tinta-suave);
@@ -1253,15 +1413,53 @@
 
 @media (min-width: 900px) {
   .rh-entrada {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-columns: minmax(0, 11fr) minmax(0, 10fr);
   }
   .rh-entrada__marca {
-    min-height: 100dvh;
-    padding: 40px var(--margem);
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    min-height: 40rem;
+    padding: 2.25rem clamp(2rem, 1rem + 2.5vw, 3.5rem) clamp(2rem, 1rem + 2.5vw, 3.5rem);
   }
   .rh-entrada__frase {
-    max-width: 16ch;
-    font-size: clamp(2.25rem, 1.4rem + 2vw, 3.25rem);
+    font-size: clamp(2.5rem, 1.5rem + 2.4vw, 4rem);
+  }
+  .rh-entrada__equipe {
+    display: flex;
+  }
+  .rh-entrada__previa {
+    display: grid;
+    max-width: 44rem;
+  }
+  .rh-entrada__form {
+    align-items: center;
+    padding: 3rem clamp(2rem, 1rem + 3vw, 4.5rem);
+  }
+  /* Cartão só na tela larga: no celular ele seria uma borda a mais apertando
+     um formulário que já ocupa a largura toda. */
+  .rh-entrada__conteudo {
+    width: min(100%, 30rem);
+    padding: clamp(2rem, 1.25rem + 1.5vw, 2.75rem);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-lg);
+    background: var(--branco);
+    box-shadow: var(--sombra-2);
+  }
+}
+
+/* Monitor largo: a prévia vira três colunas lado a lado. */
+@media (min-width: 1500px) {
+  .rh-entrada__previa {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .rh-entrada__previa li {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .rh-entrada__previa li + li {
+    border-top: 0;
+    border-left: 1px solid rgb(255 255 255 / 0.1);
   }
 }
 
@@ -1519,57 +1717,12 @@
     }
   }
 
-  /* Troca de aba: o conteúdo novo sobe 8px e aparece. */
-  .rh-admin.rh-app > main > * {
-    animation: rh-entra 260ms var(--ease-out) backwards;
-  }
-
-  /* Resumo e Vagas: entrada em cascata de 50ms entre blocos e linhas. */
-  .rh-resumo > *,
-  .rh-vagas > * {
-    animation: rh-entra 360ms var(--ease-out) backwards;
-    animation-delay: calc(var(--i, 0) * 50ms);
-  }
-
-  .rh-resumo > :nth-child(1),
-  .rh-vagas > :nth-child(1) {
-    --i: 0;
-  }
-  .rh-resumo > :nth-child(2),
-  .rh-vagas > :nth-child(2) {
-    --i: 1;
-  }
-  .rh-resumo > :nth-child(3),
-  .rh-vagas > :nth-child(3) {
-    --i: 2;
-  }
-  .rh-resumo > :nth-child(4),
-  .rh-vagas > :nth-child(4) {
-    --i: 3;
-  }
-  .rh-resumo > :nth-child(n + 5),
-  .rh-vagas > :nth-child(n + 5) {
-    --i: 4;
-  }
-
-  .rh-numeros > .rh-numero {
-    animation: rh-entra 420ms var(--ease-out) backwards;
-  }
-  .rh-numeros > :nth-child(2) {
-    animation-delay: 60ms;
-  }
-  .rh-numeros > :nth-child(3) {
-    animation-delay: 120ms;
-  }
-  .rh-numeros > :nth-child(4) {
-    animation-delay: 180ms;
-  }
-  .rh-numeros > :nth-child(5) {
-    animation-delay: 240ms;
-  }
-  .rh-numeros > :nth-child(6) {
-    animation-delay: 300ms;
-  }
+  /* O conteúdo das abas NÃO tem entrada com opacidade. O painel é tela de
+     trabalho aberta dezenas de vezes por dia, e a entrada em cascata (o bloco
+     nascia com opacidade 0 e esperava a animação começar) chegou a mostrar a
+     área principal em branco ao lado da lateral. O texto aparece no primeiro
+     quadro; o que se mexe são só as barras de dados, que crescem sem esconder
+     número nenhum. */
 
   /* Faixa do funil, barras de ranking e barras do mês crescem da base. */
   .rh-faixa > span {

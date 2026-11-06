@@ -7,11 +7,44 @@
  * espera do rate limit, sem cada estado virar uma tela diferente.
  */
 import { useEffect, useId, useRef, useState } from "react";
-import { ArrowLeft, Eye, EyeOff, TriangleAlert } from "lucide-react";
+import {
+  ArrowLeft,
+  ClipboardList,
+  Eye,
+  EyeOff,
+  Inbox,
+  LockKeyhole,
+  Megaphone,
+  TriangleAlert,
+} from "lucide-react";
 
+import fotoConsultorio from "@/assets/consultorio-implantes-1.webp";
 import { Logo } from "@/components/site/Logo";
+import { AvataresEquipe } from "@/components/site/ui/AvataresEquipe";
 
 import "./painel.css";
+
+/**
+ * O que a coordenação encontra depois de entrar. Só o que existe sempre: a
+ * triagem por IA depende de chave no servidor e por isso fica de fora daqui.
+ */
+const DENTRO_DO_PAINEL = [
+  {
+    Icone: Inbox,
+    titulo: "Candidaturas",
+    texto: "Tudo o que chega pelo site, com currículo e contato.",
+  },
+  {
+    Icone: ClipboardList,
+    titulo: "Entrevistas",
+    texto: "Roteiro e ficha de cada conversa, lado a lado.",
+  },
+  {
+    Icone: Megaphone,
+    titulo: "Vagas",
+    texto: "Abra, pause e feche as vagas publicadas no site.",
+  },
+] as const;
 
 /**
  * Abaixo de um minuto o texto fica em segundos ("45s"): "0:45" faz a pessoa
@@ -89,25 +122,69 @@ export function LoginRh({
 
   return (
     <div className="rh-entrada">
-      {/* A metade escura carrega a marca e a frase do portal; a coroa gigante
-          fica cortada pela borda, como na abertura do site. No celular ela vira
-          uma faixa de 168px acima do formulário. */}
+      {/* A metade da marca é a clínica de verdade: o consultório ao fundo, um
+          véu verde para o texto ler, a frase do portal, os rostos da equipe e
+          uma prévia do que existe lá dentro. No celular vira uma faixa com a
+          foto, a assinatura e a frase; a prévia e os rostos ficam para a tela
+          larga, onde há lugar para eles. */}
       <div className="rh-entrada__marca">
+        <img
+          className="rh-entrada__foto"
+          src={fotoConsultorio}
+          alt=""
+          width={1200}
+          height={1500}
+          decoding="async"
+          fetchPriority="high"
+        />
+        <div className="rh-entrada__veu" aria-hidden="true" />
+
         {/* Símbolo + nome em texto: o lockup raster ficava pixelado e o
             "Clínica Odontológica" miúdo era ilegível sobre o verde. */}
-        <div className="rh-entrada__assinatura">
-          <Logo variante="simbolo" fundo="escuro" altura={40} alt="" />
-          <span>JP Clínica Integrada</span>
+        <div className="rh-entrada__topo">
+          <div className="rh-entrada__assinatura">
+            <Logo variante="simbolo" fundo="escuro" altura={40} alt="" />
+            <span>JP Clínica Integrada</span>
+          </div>
+          <span className="rh-entrada__chip">Portal de RH</span>
         </div>
-        <p className="rh-entrada__frase">Candidaturas e vagas num só lugar.</p>
+
+        <div className="rh-entrada__base">
+          <p className="rh-entrada__frase">Candidaturas e vagas num só lugar.</p>
+
+          <div className="rh-entrada__equipe">
+            <AvataresEquipe max={5} tamanho={40} />
+            <span>A equipe cresce por aqui.</span>
+          </div>
+
+          <ul className="rh-entrada__previa" aria-label="O que tem no painel">
+            {DENTRO_DO_PAINEL.map(({ Icone, titulo, texto }) => (
+              <li key={titulo}>
+                <span className="rh-entrada__icone" aria-hidden="true">
+                  <Icone size={20} strokeWidth={1.9} />
+                </span>
+                <span>
+                  <strong>{titulo}</strong>
+                  <span>{texto}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
-      <main className="rh-entrada__form">
+      <main className="rh-entrada__form fundo-brilho">
         <div className="rh-entrada__conteudo">
+          <p className="rh-entrada__acesso">
+            <span className="rh-entrada__cadeado" aria-hidden="true">
+              <LockKeyhole size={18} strokeWidth={2} />
+            </span>
+            Área da coordenação
+          </p>
           <h1>Portal de RH</h1>
           <p className="rh-entrada__lide">
-            Área da coordenação. Entre com a senha do painel para ver as candidaturas recebidas pelo
-            site e as vagas publicadas.
+            Entre com a senha do painel para ver as candidaturas que chegaram pelo site e cuidar das
+            vagas publicadas.
           </p>
 
           {!configurado ? (
