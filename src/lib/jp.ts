@@ -74,6 +74,14 @@ export const CLINICA = {
   nome: "JP Clínica Integrada Odontológica",
   razaoSocial: "J P Clínica Integrada Odontológica LTDA",
   cnpj: "42.401.404/0001-37",
+  /**
+   * Inscrição da CLÍNICA (pessoa jurídica) no CRO-SP — o art. 43 do Código de
+   * Ética exige o número da PJ em toda divulgação. Lido no letreiro atual da
+   * fachada ("CRO 4491", foto de 2026 em src/assets/fachada-2026-completa.webp)
+   * em 06/11/2026; não achei consulta pública online para conferir. Se a
+   * clínica corrigir, muda só aqui.
+   */
+  inscricaoCro: "CRO-SP 4491",
   assinatura: "Ver seu sorriso é nossa missão.",
   telefone: "(11) 3975-9902",
   telefoneHref: "tel:+551139759902",
@@ -287,12 +295,20 @@ export const FUNDADORA = {
 export type Depoimento = {
   autor: string;
   texto: string;
+  /**
+   * Nome (como está em EQUIPE) do dentista que o depoimento cita. O cartão
+   * mostra o CRO ao lado: a Res. CFO 196/2019 pede nome + inscrição de
+   * profissional citado em publicação, e o texto do paciente não pode ser
+   * editado para incluir.
+   */
+  cita?: string;
 };
 
 /** O primeiro entra em destaque; os quatro seguintes formam a grade. */
 export const DEPOIMENTOS: Depoimento[] = [
   {
     autor: "Mari Nozzolillo",
+    cita: "Dra. Ana Beatriz",
     texto:
       "Estou muito satisfeita com a atendimento da Clínica, fui atendida pela Dra Ana Beatriz que fez a extração do meu dente com muita calma e paciência, me esclareceu todos os procedimentos que iria fazer e foi muito cuidadosa em todo momento. Um ambiente limpo, organizado e aconchegante. Super indico com certeza!",
   },

@@ -3,7 +3,7 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
-import type { Depoimento } from "@/lib/jp";
+import { EQUIPE, RESPONSAVEL_TECNICA, type Depoimento } from "@/lib/jp";
 import { querMenosMovimento } from "@/components/site/sistema/ambiente";
 
 import "./ui.css";
@@ -27,9 +27,17 @@ const LIMITE_DE_CARACTERES = 220;
  * os cartões vizinhos não ficarem com um vão enorme) e abre no botão. Nada de
  * reticências sem saída — é a palavra de um paciente real.
  */
+/** O CRO de quem o depoimento cita, lido da equipe (fonte única do registro). */
+function registroDe(nome: string | undefined): string | undefined {
+  if (nome === undefined) return undefined;
+  if (RESPONSAVEL_TECNICA.nome === nome) return RESPONSAVEL_TECNICA.registro;
+  return EQUIPE.find((m) => m.nome === nome)?.registro;
+}
+
 function CartaoDepoimento({ depoimento: d }: { depoimento: Depoimento }) {
   const [aberto, setAberto] = useState(false);
   const longo = d.texto.length > LIMITE_DE_CARACTERES;
+  const registro = registroDe(d.cita);
 
   return (
     <figure className="cartao flex h-full flex-col gap-5 p-6 sm:p-7">
@@ -65,6 +73,11 @@ function CartaoDepoimento({ depoimento: d }: { depoimento: Depoimento }) {
           <span className="text-pequeno text-[var(--tinta-suave)]">Avaliação no Google</span>
         </span>
       </figcaption>
+      {d.cita && registro && (
+        <p className="-mt-2 text-pequeno text-[var(--tinta-suave)]">
+          Profissional do atendimento: {d.cita} · {registro}
+        </p>
+      )}
     </figure>
   );
 }

@@ -758,7 +758,7 @@ export function Rodape({ aviso }: { aviso: string }) {
             Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
           </p>
           <p>
-            {CLINICA.razaoSocial} · CNPJ {CLINICA.cnpj}
+            {CLINICA.razaoSocial} · CNPJ {CLINICA.cnpj} · Inscrição {CLINICA.inscricaoCro}
           </p>
           <p className="mt-3 max-w-[70ch]">{aviso}</p>
         </div>

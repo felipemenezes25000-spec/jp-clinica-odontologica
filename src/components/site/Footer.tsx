@@ -99,13 +99,17 @@ export function Footer({ chamada = true }: { chamada?: boolean }) {
             {/* Com alt, diferente das outras telas: aqui a marca não vem dentro
                 de um link nomeado nem ao lado do nome escrito, então ela é a
                 única coisa que apresenta o bloco de contato. */}
-            <Logo
-              variante="lockup"
-              fundo="escuro"
-              altura={80}
-              alt={CLINICA.nome}
-              className="h-[72px] w-auto"
-            />
+            {/* A logo original numa placa branca: a versão "clara" deixava o
+                nome em verde sobre o verde do rodapé, quase ilegível. */}
+            <span className="rodape-logo-placa">
+              <Logo
+                variante="lockup"
+                fundo="claro"
+                altura={64}
+                alt={CLINICA.nome}
+                className="h-[52px] w-auto"
+              />
+            </span>
             <address className="rodape-endereco text-pequeno not-italic">
               <a
                 href={CLINICA.mapsHref}
@@ -219,7 +223,7 @@ export function Footer({ chamada = true }: { chamada?: boolean }) {
               Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
             </p>
             <p>
-              {CLINICA.razaoSocial} • CNPJ {CLINICA.cnpj}
+              {CLINICA.razaoSocial} • CNPJ {CLINICA.cnpj} • Inscrição {CLINICA.inscricaoCro}
             </p>
             <p>
               Conteúdo informativo. Indicações e resultados dependem de avaliação profissional
