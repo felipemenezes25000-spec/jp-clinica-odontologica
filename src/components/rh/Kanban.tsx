@@ -7,9 +7,9 @@ import {
   Sparkles,
   Star,
   TriangleAlert,
-  Users,
 } from "lucide-react";
 
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { useAlturaAteOFimDaJanela } from "@/components/rh/useAlturaDaJanela";
 import { duvidasImportantesDe } from "@/lib/rh/duvidas";
 import { leiturasDeDuvidas } from "@/lib/rh/ficha";
@@ -68,48 +68,51 @@ function LinhaCandidato(props: {
         props.aoIniciarArrasto(item.id);
       }}
       onDragEnd={props.aoTerminarArrasto}
-      className={`group grid min-h-[72px] grid-cols-1 items-center gap-3 border-b border-slate-100 px-3 py-2.5 transition-colors last:border-b-0 hover:bg-emerald-50/40 sm:px-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(8rem,.72fr)_minmax(7.5rem,.65fr)_minmax(7.5rem,.62fr)_minmax(9.25rem,.82fr)_auto] ${
-        props.selecionada ? "bg-emerald-50/70" : "bg-white"
+      className={`group grid min-h-[72px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-tinta/[0.07] px-4 py-2.5 transition-colors last:border-b-0 hover:bg-chao sm:px-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(8rem,.72fr)_minmax(7.5rem,.65fr)_minmax(7.5rem,.62fr)_minmax(9.25rem,.82fr)_auto] ${
+        props.selecionada ? "bg-chao-2" : "bg-white"
       } ${props.arrastando ? "opacity-50" : ""}`}
     >
-      <div className="flex min-w-0 items-center gap-3">
+      <div className="col-span-2 flex min-w-0 items-center gap-3 xl:col-span-1">
         <GripVertical
           size={15}
           aria-hidden="true"
-          className="hidden shrink-0 cursor-grab text-slate-300 transition-colors group-hover:text-slate-500 lg:block"
+          className="hidden shrink-0 cursor-grab text-tinta-suave/40 transition-colors group-hover:text-tinta-suave lg:block"
         />
 
-        <label className="relative z-[2] flex shrink-0 cursor-pointer items-center">
+        <label className="relative z-[2] flex shrink-0 cursor-pointer items-center before:absolute before:-inset-3.5 before:content-['']">
           <input
             type="checkbox"
             checked={props.selecionada}
             onChange={(event) => props.aoSelecionar(item.id, event.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 accent-emerald-700"
+            className="h-5 w-5 rounded border-tinta/30 accent-[var(--campo-marca)]"
           />
           <span className="sr-only">Selecionar {item.nome || "candidatura sem nome"}</span>
         </label>
 
-        <span
+        <MolduraCoroa
+          proporcao={1}
           aria-hidden="true"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-extrabold text-emerald-800 ring-1 ring-emerald-100"
+          className="grid w-10 shrink-0 place-items-center bg-chao-3 text-xs font-semibold text-tinta"
         >
-          {iniciais(item.nome) || "?"}
-        </span>
+          <span>{iniciais(item.nome) || "?"}</span>
+        </MolduraCoroa>
 
         <button
           type="button"
           onClick={() => props.aoAbrir(item.id)}
-          className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+          className="min-h-11 min-w-0 flex-1 rounded-lg text-left"
         >
-          <span className="block truncate text-[0.82rem] font-extrabold leading-tight text-slate-900">
+          <span className="block truncate text-[0.9375rem] font-semibold leading-tight text-tinta">
             {item.nome || "Sem nome"}
           </span>
-          <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[0.7rem] text-slate-500">
-            <span className="truncate">{subtituloDe(item)}</span>
-            <span aria-hidden="true">·</span>
-            <span className="shrink-0 truncate">{rotuloArea(item.area)}</span>
+          <span className="mt-1 flex min-w-0 items-center gap-1.5 text-[0.8125rem] text-tinta-suave">
+            {/* Só o cargo: a área entra como dica, porque cargo e área juntos
+                se cortavam um ao outro em reticências. */}
+            <span className="truncate" title={rotuloArea(item.area)}>
+              {subtituloDe(item)}
+            </span>
             {item.arquivada ? (
-              <span className="ml-1 inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[0.62rem] font-semibold text-slate-600">
+              <span className="ml-1 inline-flex shrink-0 items-center gap-1 rounded-full bg-chao-2 px-2 py-0.5 text-xs font-semibold text-tinta-suave">
                 <Archive size={10} aria-hidden="true" />
                 Arquivada
               </span>
@@ -118,40 +121,46 @@ function LinhaCandidato(props: {
         </button>
       </div>
 
-      <div className="flex items-center gap-2 xl:justify-start">
+      <div
+        className={`col-span-2 flex items-center gap-2 xl:col-span-1 xl:justify-start ${
+          avaliacao.notaRh === null && avaliacao.notaIa === null && !avaliacao.erroIa
+            ? "max-xl:hidden"
+            : ""
+        }`}
+      >
         {avaliacao.notaRh !== null ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[0.68rem] font-extrabold text-amber-800 ring-1 ring-amber-100">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800">
             <Star size={11} fill="currentColor" aria-hidden="true" />
             RH {avaliacao.notaRh}/5
           </span>
         ) : null}
         {avaliacao.notaIa !== null ? (
-          <span className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-slate-600">
-            <Sparkles size={11} aria-hidden="true" className="text-emerald-600" />
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-tinta-suave">
+            <Sparkles size={11} aria-hidden="true" className="text-forest" />
             IA {avaliacao.notaIa}/5
           </span>
         ) : avaliacao.erroIa ? (
-          <span className="inline-flex items-center gap-1 text-[0.68rem] font-semibold text-rose-700">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-800">
             <TriangleAlert size={11} aria-hidden="true" />
             IA falhou
           </span>
         ) : (
-          <span className="text-[0.68rem] text-slate-400">Sem avaliação</span>
+          <span className="text-xs text-tinta-suave">Sem avaliação</span>
         )}
       </div>
 
-      <div>
+      <div className={`col-span-2 xl:col-span-1 ${alertas > 0 ? "" : "max-xl:hidden"}`}>
         {alertas > 0 ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2 py-1 text-[0.68rem] font-bold text-rose-700 ring-1 ring-rose-100">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-800">
             <TriangleAlert size={11} aria-hidden="true" />
             {alertas} {alertas === 1 ? "alerta" : "alertas"}
           </span>
         ) : (
-          <span className="text-[0.68rem] font-medium text-slate-400">Sem alertas</span>
+          <span className="text-xs text-tinta-suave">Sem alertas</span>
         )}
       </div>
 
-      <div className="flex items-center gap-1.5 text-[0.68rem] font-medium text-slate-500">
+      <div className="col-span-2 flex items-center gap-1.5 text-[0.8125rem] text-tinta-suave xl:col-span-1">
         <Clock size={12} aria-hidden="true" />
         {tempoRelativo(item.criadoEm, props.agora)}
       </div>
@@ -166,7 +175,7 @@ function LinhaCandidato(props: {
           onChange={(event) =>
             props.aoMoverStatus(item.id, event.target.value as StatusCandidatura)
           }
-          className="h-9 w-full rounded-xl border border-slate-200 bg-white px-2.5 text-[0.7rem] font-bold text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          className="h-11 w-full rounded-xl border border-tinta/25 bg-white px-2.5 text-sm font-medium text-tinta"
         >
           {STATUS.map((status) => (
             <option key={status.valor} value={status.valor}>
@@ -179,7 +188,7 @@ function LinhaCandidato(props: {
       <button
         type="button"
         onClick={() => props.aoAbrir(item.id)}
-        className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50 px-3 text-[0.7rem] font-extrabold text-emerald-800 transition hover:border-emerald-200 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2"
+        className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-chao-2 px-4 text-sm font-semibold text-tinta transition hover:bg-chao-3"
       >
         Abrir
         <ArrowRight size={13} aria-hidden="true" />
@@ -246,25 +255,21 @@ export function Kanban(props: {
     <div className="jp-container py-3">
       <div
         ref={refPainel}
-        style={altura === "" ? undefined : { height: altura }}
-        className="flex min-h-[25rem] flex-col overflow-hidden rounded-[1.35rem] border border-slate-200/80 bg-[#f7faf7] shadow-[0_18px_50px_-36px_rgba(15,23,42,0.45)]"
+        style={altura === "" ? undefined : { maxHeight: altura }}
+        className="flex min-h-[25rem] flex-col overflow-hidden rounded-2xl bg-white"
       >
-        <div className="border-b border-slate-200/80 bg-white px-3 py-3 sm:px-4">
+        <div className="px-4 pb-3 pt-4 sm:px-5">
           <div className="mb-2.5 flex flex-wrap items-end justify-between gap-2">
             <div>
-              <p className="text-[0.65rem] font-extrabold uppercase tracking-[0.14em] text-emerald-700">
-                Funil de candidaturas
-              </p>
-              <h2 className="mt-0.5 text-base font-extrabold tracking-tight text-slate-950">
-                Todas as etapas em uma única visão
-              </h2>
+              <h2 className="text-lg font-semibold tracking-tight text-tinta">Etapas do funil</h2>
             </div>
-            <p className="text-[0.68rem] font-medium text-slate-500">
-              Clique em uma etapa para filtrar. Arraste uma pessoa para mover no funil.
+            <p className="text-sm text-tinta-suave">
+              Escolha uma etapa para ver as pessoas. Arraste uma pessoa até outra etapa para
+              movê-la.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 xl:grid-cols-8">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 min-[1760px]:grid-cols-8">
             {porStatus.map(({ status, itens }) => {
               const ativa = status.valor === statusAtivo;
               const alvo = destino === status.valor;
@@ -285,11 +290,11 @@ export function Kanban(props: {
                     setDestino((atual) => (atual === status.valor ? null : atual));
                   }}
                   onDrop={(event) => soltarNaEtapa(event, status.valor)}
-                  className={`group relative min-w-0 rounded-xl border px-2.5 py-2 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 ${
+                  className={`group relative min-w-0 rounded-xl border px-3 py-2.5 text-left transition-colors ${
                     ativa
-                      ? "border-emerald-200 bg-emerald-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/50"
-                  } ${alvo ? "ring-2 ring-emerald-500 ring-offset-1" : ""}`}
+                      ? "border-transparent bg-chao-3"
+                      : "border-transparent bg-chao hover:bg-chao-2"
+                  } ${alvo ? "ring-2 ring-tinta ring-offset-1" : ""}`}
                 >
                   <div className="flex min-w-0 items-center justify-between gap-2">
                     <span className="flex min-w-0 items-center gap-1.5">
@@ -297,22 +302,22 @@ export function Kanban(props: {
                         aria-hidden="true"
                         className={`h-2 w-2 shrink-0 rounded-full ${status.ponto}`}
                       />
-                      <span className="truncate text-[0.68rem] font-extrabold text-slate-700">
+                      <span className="truncate text-sm font-semibold text-tinta">
                         {status.rotulo}
                       </span>
                     </span>
                     <span
-                      className={`shrink-0 rounded-full px-1.5 py-0.5 text-[0.65rem] font-black tabular-nums ${
-                        ativa ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-700"
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${
+                        ativa ? "bg-tinta text-sobre-campo" : "bg-chao-2 text-tinta"
                       }`}
                     >
                       {itens.length}
                     </span>
                   </div>
 
-                  <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-slate-100">
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-white">
                     <div
-                      className="h-full rounded-full bg-emerald-600 transition-[width]"
+                      className="h-full rounded-full bg-forest transition-[width]"
                       style={{
                         width: `${String(
                           props.itens.length === 0
@@ -329,7 +334,7 @@ export function Kanban(props: {
         </div>
 
         <section className="flex min-h-0 flex-1 flex-col bg-white" aria-label={statusMeta.rotulo}>
-          <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 px-3 py-2.5 sm:px-4">
+          <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
             <div className="flex min-w-0 items-center gap-3">
               <span
                 aria-hidden="true"
@@ -337,34 +342,28 @@ export function Kanban(props: {
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="truncate text-sm font-extrabold text-slate-950">
+                  <h3 className="truncate text-base font-semibold text-tinta">
                     {statusMeta.rotulo}
                   </h3>
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[0.65rem] font-black tabular-nums text-slate-700">
+                  <span className="rounded-full bg-chao-2 px-2 py-0.5 text-xs font-semibold tabular-nums text-tinta">
                     {itensAtivos.length}
                   </span>
                 </div>
-                <p className="mt-0.5 truncate text-[0.68rem] text-slate-500">
-                  {statusMeta.descricao}
-                </p>
+                <p className="mt-0.5 truncate text-sm text-tinta-suave">{statusMeta.descricao}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-[0.68rem] text-slate-500">
+            <div className="flex items-center gap-2 text-sm text-tinta-suave">
               {selecionadasNaEtapa > 0 ? (
-                <span className="rounded-full bg-emerald-50 px-2 py-1 font-bold text-emerald-800 ring-1 ring-emerald-100">
+                <span className="rounded-full bg-chao-3 px-2.5 py-1 font-semibold text-tinta">
                   {selecionadasNaEtapa} selecionada{selecionadasNaEtapa === 1 ? "" : "s"}
                 </span>
               ) : null}
-              <span className="hidden items-center gap-1.5 sm:inline-flex">
-                <Users size={12} aria-hidden="true" />
-                {props.itens.length} no filtro atual
-              </span>
             </div>
           </header>
 
-          <div className="hidden grid-cols-[minmax(0,1.7fr)_minmax(8rem,.72fr)_minmax(7.5rem,.65fr)_minmax(7.5rem,.62fr)_minmax(9.25rem,.82fr)_auto] items-center gap-3 border-b border-slate-100 bg-slate-50/70 px-4 py-2 text-[0.62rem] font-extrabold uppercase tracking-[0.09em] text-slate-500 xl:grid">
-            <span className="pl-[66px]">Candidato</span>
+          <div className="hidden grid-cols-[minmax(0,1.7fr)_minmax(8rem,.72fr)_minmax(7.5rem,.65fr)_minmax(7.5rem,.62fr)_minmax(9.25rem,.82fr)_auto] items-center gap-3 bg-chao px-5 py-2 text-xs font-medium text-tinta-suave xl:grid">
+            <span className="pl-[72px]">Candidato</span>
             <span>Avaliação</span>
             <span>Alertas</span>
             <span>Recebido</span>
@@ -379,8 +378,8 @@ export function Kanban(props: {
                   className={`mb-3 h-3 w-3 rounded-full ${statusMeta.ponto}`}
                   aria-hidden="true"
                 />
-                <p className="text-sm font-extrabold text-slate-800">{statusMeta.vazio}</p>
-                <p className="mt-1 max-w-md text-xs leading-relaxed text-slate-500">
+                <p className="text-base font-semibold text-tinta">{statusMeta.vazio}</p>
+                <p className="mt-1 max-w-md text-sm leading-relaxed text-tinta-suave">
                   A etapa continua visível no topo e também funciona como destino para arrastar
                   candidatos.
                 </p>

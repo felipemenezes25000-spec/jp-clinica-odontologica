@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
-import { Cookie } from "lucide-react";
 
+import "@/components/site/global/cookies.css";
 import {
   definirConsentimento,
   lerConsentimento,
@@ -53,17 +53,18 @@ function ehFerramentaInterna(pathname: string): boolean {
  *  procurada é recusa desenhada para não acontecer.
  * ============================================================================
  *
- * ACESSIBILIDADE, e ela não é enfeite aqui: a faixa aparece depois da montagem
- * e pode surgir enquanto alguém navega por teclado. Por isso `role="dialog"`
- * com rótulo, foco levado ao primeiro botão quando ela aparece, `Escape`
- * fechando como recusa — que é o lado seguro do padrão —, e nada de
- * `position: fixed` cobrindo o CTA flutuante: a faixa senta ACIMA dele, com
- * `z-index` menor que o do menu.
+ * ACESSIBILIDADE: diálogo NÃO modal (`role="dialog"` com `aria-modal="false"`):
+ * o leitor de tela anuncia uma pergunta pendente — e o E2E do funil procura
+ * exatamente esse papel —, mas nada prende o foco nem rouba o que o visitante
+ * estava fazendo. Quem navega por teclado a encontra na
+ * ordem do documento (ela é o último filho do `body`). `Escape` com o foco na
+ * faixa vale como recusa, que é o lado seguro do padrão. O CTA flutuante sobe
+ * acima dela por `--altura-aviso`.
  */
 export function AvisoDeCookies() {
   const { pathname } = useLocation();
   const [visivel, setVisivel] = useState(false);
-  const primeiroBotao = useRef<HTMLButtonElement>(null);
+  const faixa = useRef<HTMLDivElement>(null);
   const interna = ehFerramentaInterna(pathname);
 
   /*
@@ -83,19 +84,26 @@ export function AvisoDeCookies() {
     if (estado === "pendente" && !interna) setVisivel(true);
   }, [interna]);
 
+  /*
+   * A faixa publica a própria altura em `--altura-aviso` na raiz. O CTA
+   * flutuante soma esse valor ao `bottom` e sobe junto: sem isso a faixa
+   * cobria a barra do celular (e a pílula do desktop), e o botão principal das
+   * LPs ficava sem clique até o visitante decidir. Zerada ao fechar.
+   */
   useEffect(() => {
     if (!visivel) return;
-    primeiroBotao.current?.focus();
-
-    const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      // Escape é saída, e saída aqui significa "não quero" — nunca "aceito".
-      definirConsentimento("recusado");
-      setVisivel(false);
+    const raiz = document.documentElement;
+    const el = faixa.current;
+    if (!el) return;
+    const publicar = () => {
+      raiz.style.setProperty("--altura-aviso", `${String(el.offsetHeight)}px`);
     };
-    document.addEventListener("keydown", aoTeclar);
+    publicar();
+    const ro = new ResizeObserver(publicar);
+    ro.observe(el);
     return () => {
-      document.removeEventListener("keydown", aoTeclar);
+      ro.disconnect();
+      raiz.style.removeProperty("--altura-aviso");
     };
   }, [visivel]);
 
@@ -110,42 +118,36 @@ export function AvisoDeCookies() {
 
   return (
     <div
+      ref={faixa}
       role="dialog"
       aria-modal="false"
       aria-labelledby="aviso-cookies-titulo"
-      className="fixed inset-x-0 bottom-0 z-[70] border-t border-border-soft bg-paper/98 backdrop-blur-md"
+      onKeyDown={(e) => {
+        // Escape só vale com o foco dentro da faixa. No document inteiro ele
+        // recusava a medição de quem só queria fechar o menu ou a galeria.
+        if (e.key === "Escape") decidir("recusado");
+      }}
+      className="aviso-cookies fixed inset-x-0 bottom-0 z-[70] bg-chao-2 text-tinta"
     >
-      <div className="jp-container flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-        <div className="flex items-start gap-3">
-          <span
-            aria-hidden="true"
-            className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-mint text-primary-ink"
-          >
-            <Cookie className="h-4.5 w-4.5" />
-          </span>
-          <p id="aviso-cookies-titulo" className="text-[13px] leading-5 text-ink-soft">
-            Usamos cookies para medir o desempenho das nossas campanhas e melhorar o site. Nada
-            disso é necessário para falar com a clínica.{" "}
-            <a
-              href="/politica-de-privacidade"
-              className="font-semibold text-brand-text underline underline-offset-2"
-            >
-              Política de Privacidade
-            </a>
-            .
-          </p>
-        </div>
+      <div className="quadro flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:py-5">
+        <p id="aviso-cookies-titulo" className="text-pequeno max-w-[68ch] text-tinta">
+          Usamos cookies para medir o desempenho das nossas campanhas e melhorar o site. Nada disso
+          é necessário para falar com a clínica.{" "}
+          <a href="/politica-de-privacidade" className="link font-semibold">
+            Política de Privacidade
+          </a>
+          .
+        </p>
 
-        {/* Os dois botões medem o mesmo e ficam lado a lado. Ver o cabeçalho:
+        {/* Os dois botões medem o mesmo e têm a mesma cor. Ver o cabeçalho:
             recusa escondida é recusa desenhada para não acontecer. */}
         <div className="flex shrink-0 gap-2.5">
           <button
-            ref={primeiroBotao}
             type="button"
             onClick={() => {
               decidir("recusado");
             }}
-            className="button-secondary flex-1 px-6 text-sm sm:flex-none"
+            className="botao botao-tinta flex-1 sm:flex-none"
           >
             Rejeitar
           </button>
@@ -154,7 +156,7 @@ export function AvisoDeCookies() {
             onClick={() => {
               decidir("aceito");
             }}
-            className="button-dark flex-1 px-6 text-sm sm:flex-none"
+            className="botao botao-tinta flex-1 sm:flex-none"
           >
             Aceitar
           </button>
@@ -198,9 +200,9 @@ export function BotaoRevisarConsentimento({ className }: { className?: string })
         }
         window.location.reload();
       }}
-      className={className ?? "alvo-toque text-micro font-semibold underline underline-offset-2"}
+      className={className ?? "alvo-toque text-pequeno link font-semibold"}
     >
-      Rever consentimento de cookies
+      Rever cookies
     </button>
   );
 }

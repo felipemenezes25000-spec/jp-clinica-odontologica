@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { ArrowUpRight, CalendarCheck, MessageCircle, Phone, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, MessageCircle, Phone, X } from "lucide-react";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import type { Intencao } from "@/lib/contato";
 import { CLINICA } from "@/lib/jp";
+import "@/components/site/global/cta.css";
 
 const CHAVE_DISPENSA = "jp:cta-dispensado";
 
@@ -23,18 +24,38 @@ type FloatingCTAProps = {
  * restante do site. `mostrarNoMobileDesdeInicio` existe para páginas de
  * aquisição; contatos com intenção `informacoes` também ganham essa exposição
  * por padrão, pois já são CTAs de baixa fricção pensados para mídia paga.
+ *
+ * Duas peças, uma por contexto de uso:
+ *  - até 767px (celular e tablet em pé): barra lisa embaixo (`#cta-mobile`),
+ *    com telefone, WhatsApp e fechar. Respeita a área segura do aparelho.
+ *  - a partir de 768px: uma pílula pequena no canto, que só existe quando o cabeçalho
+ *    está escondido (o Header marca `data-escondido` ao rolar para baixo).
+ *    Com o cabeçalho visível ele já oferece o contato; duas chamadas ao mesmo
+ *    tempo competiriam. É a única peça do site que flutua de verdade, por isso
+ *    é a que tem sombra.
+ *
+ * As duas sobem pela altura da faixa de cookies (`--altura-aviso`), para nunca
+ * ficarem sob ela. A divisão é em 768px nas duas peças: se uma cobrir menos do
+ * que a outra, sobra uma faixa de largura sem nenhum CTA.
+ *
+ * `titulo` e `subtitulo` não ficam escritos na tela — a pílula é pequena de
+ * propósito —, mas nomeiam o convite para leitor de tela e dicas de mouse, e
+ * as landing pages continuam passando o texto da sua oferta.
  */
 export function FloatingCTA({
   assunto,
   intencao = "agendar",
-  titulo = "Pronto para transformar seu sorriso?",
-  subtitulo = "Agende sua avaliação e veja o que faz sentido para você e sua família.",
+  titulo = "Fale com a recepção",
+  subtitulo = CLINICA.horario,
   rotulo = "Agendar avaliação",
   mostrarNoMobileDesdeInicio = false,
 }: FloatingCTAProps) {
   const [showBar, setShowBar] = useState(false);
   const [dispensado, setDispensado] = useState(false);
   const [rodapeVisivel, setRodapeVisivel] = useState(false);
+  const [cabecalhoEscondido, setCabecalhoEscondido] = useState(false);
+  const [cedendo, setCedendo] = useState(false);
+  const [cedendoNoCelular, setCedendoNoCelular] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setShowBar(window.scrollY > Math.max(520, window.innerHeight * 0.72));
@@ -69,6 +90,79 @@ export function FloatingCTA({
   }, []);
 
   /**
+   * A chamada fixa cede quando a página já mostra a sua própria.
+   *
+   * Duas chamadas iguais na mesma tela competem, e a fixa ainda cobre o que
+   * está embaixo dela (o botão de Convênios, os campos do cupom de #fale).
+   * Dois níveis:
+   *  - a pílula do desktop sai sempre que um botão de ação de dentro do
+   *    <main> (ou algo marcado com `data-cede-cta`) estiver na tela;
+   *  - a barra do celular só sai diante do que estiver marcado com
+   *    `data-cede-cta` (o formulário de #fale). Com um botão a cada seção,
+   *    sair por qualquer botão a faria entrar e sair a rolagem inteira.
+   */
+  useEffect(() => {
+    if (!("IntersectionObserver" in window)) return;
+    const alvos = document.querySelectorAll(
+      'main a.botao-acento, main a.button-primary, main a.botao[href*="wa.me"], main button.botao-acento, [data-cede-cta]',
+    );
+    if (!alvos.length) return;
+    const vistos = new Set<Element>();
+    const observador = new IntersectionObserver((entradas) => {
+      for (const e of entradas) {
+        if (e.isIntersecting) vistos.add(e.target);
+        else vistos.delete(e.target);
+      }
+      setCedendo(vistos.size > 0);
+      setCedendoNoCelular([...vistos].some((v) => v.hasAttribute("data-cede-cta")));
+    });
+    alvos.forEach((alvo) => observador.observe(alvo));
+    return () => observador.disconnect();
+  }, []);
+
+  /**
+   * A pílula do desktop segue o cabeçalho: aparece quando ele sobe para fora
+   * da tela. Em vez de repetir a lógica de rolagem do Header (e correr o risco
+   * de as duas discordarem), observamos o atributo que ele já publica.
+   *
+   * O cabeçalho é irmão deste componente e pode montar um quadro depois; por
+   * isso a busca tenta por alguns quadros antes de desistir. Sem cabeçalho
+   * (não existe página pública assim) a pílula simplesmente não aparece.
+   */
+  useEffect(() => {
+    let observador: MutationObserver | undefined;
+    let quadro = 0;
+    let adiar: ReturnType<typeof setTimeout> | undefined;
+    let tentativas = 0;
+
+    const ligar = () => {
+      const cabecalho = document.querySelector("header.cabecalho, header");
+      if (!cabecalho) {
+        if (tentativas++ < 40) quadro = requestAnimationFrame(ligar);
+        return;
+      }
+      /* O cabeçalho volta a qualquer rolagem curta para cima. Sumir junto com
+         ele faria a chamada piscar entre o topo e o canto; então a pílula entra
+         na hora e só sai 600ms depois que o cabeçalho reaparece. */
+      const ler = () => {
+        clearTimeout(adiar);
+        if (cabecalho.hasAttribute("data-escondido")) setCabecalhoEscondido(true);
+        else adiar = setTimeout(() => setCabecalhoEscondido(false), 600);
+      };
+      ler();
+      observador = new MutationObserver(ler);
+      observador.observe(cabecalho, { attributes: true, attributeFilter: ["data-escondido"] });
+    };
+    ligar();
+
+    return () => {
+      cancelAnimationFrame(quadro);
+      clearTimeout(adiar);
+      observador?.disconnect();
+    };
+  }, []);
+
+  /**
    * A dispensa é lida aqui, e não no useState, de propósito: o servidor não
    * tem sessionStorage, então o valor inicial precisa ser igual nos dois lados
    * ou o React acusa erro de hidratação.
@@ -93,139 +187,123 @@ export function FloatingCTA({
     }
   };
 
-  const visivelDesktop = showBar && !dispensado && !rodapeVisivel;
+  const visivelDesktop = showBar && cabecalhoEscondido && !dispensado && !rodapeVisivel && !cedendo;
   const focoWhatsApp = intencao === "informacoes";
+  // Nas landings pagas a barra do celular fica sempre à mão (é a invariante
+  // dos testes de tráfego pago); no resto do site ela cede ao formulário.
+  const barraFixa = mostrarNoMobileDesdeInicio || focoWhatsApp;
   const visivelMobile =
-    (mostrarNoMobileDesdeInicio || focoWhatsApp || showBar) && !dispensado && !rodapeVisivel;
-  const whatsappFlutuanteOculto = visivelDesktop || rodapeVisivel;
+    (barraFixa || (showBar && !cedendoNoCelular)) && !dispensado && !rodapeVisivel;
   const wa = useContatoWhatsApp(intencao, assunto);
+  const barraRef = useRef<HTMLElement>(null);
+
+  /**
+   * A barra do celular publica a própria altura em `--altura-barra-cta` na
+   * raiz enquanto está à vista, como a faixa de cookies faz com
+   * `--altura-aviso`. O `scroll-padding-bottom` do <html> soma as duas: quem
+   * navega por teclado nunca fica com o foco escondido atrás delas.
+   */
+  useEffect(() => {
+    const barra = barraRef.current;
+    const raiz = document.documentElement;
+    if (!barra || !visivelMobile) {
+      raiz.style.removeProperty("--altura-barra-cta");
+      return;
+    }
+    const celular = window.matchMedia("(max-width: 767.98px)");
+    const publicar = () => {
+      if (celular.matches) {
+        raiz.style.setProperty("--altura-barra-cta", `${String(barra.offsetHeight)}px`);
+      } else {
+        raiz.style.removeProperty("--altura-barra-cta");
+      }
+    };
+    publicar();
+    const observador = new ResizeObserver(publicar);
+    observador.observe(barra);
+    celular.addEventListener("change", publicar);
+    return () => {
+      observador.disconnect();
+      celular.removeEventListener("change", publicar);
+      raiz.style.removeProperty("--altura-barra-cta");
+    };
+  }, [visivelMobile]);
 
   return (
     <>
-      {/* CTA persistente de desktop: surge depois da capa e acompanha a rolagem. */}
-      <div
+      {/* Pílula do desktop. `invisible` além da opacidade tira a peça da ordem
+          de Tab enquanto ela está escondida. */}
+      <aside
         id="cta-flutuante"
-        className={`sticky-booking-shell fixed inset-x-0 bottom-5 z-[58] hidden px-5 transition-all duration-500 md:block ${
-          visivelDesktop
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none invisible translate-y-8 opacity-0"
-        }`}
+        aria-label={titulo}
         aria-hidden={!visivelDesktop}
         inert={!visivelDesktop}
-      >
-        <div className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-5 rounded-lg border border-lime/25 bg-[linear-gradient(110deg,#011600_0%,#022400_62%,#032F01_100%)] px-5 py-3.5 text-white shadow-[0_24px_70px_-30px_rgba(3,47,1,.75)] backdrop-blur-xl lg:px-7">
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime text-brand-deep shadow-[0_10px_26px_-16px_rgba(86,168,5,.9)]">
-              <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-display text-base font-extrabold tracking-[-.025em] lg:text-lg">
-                {titulo}
-              </p>
-              <p className="mt-0.5 hidden truncate text-xs font-medium text-white lg:block">
-                {subtitulo}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border-[1.5px] border-lime bg-forest px-5 py-2.5 text-xs font-extrabold text-white shadow-[0_12px_30px_-18px_rgba(9,89,2,.9)] transition hover:-translate-y-0.5"
-            >
-              <MessageCircle className="h-4 w-4" aria-hidden="true" />
-              {rotulo}
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </a>
-
-            <button
-              type="button"
-              onClick={dispensar}
-              aria-label="Fechar convite para falar com a clínica"
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/25 text-white transition hover:border-white/60 hover:bg-white/10"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* O balão é o estado compacto do desktop. No rodapé ele também some. */}
-      <a
-        id="whatsapp-flutuante"
-        href={wa}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Falar com a JP Clínica no WhatsApp"
-        aria-hidden={whatsappFlutuanteOculto}
-        tabIndex={whatsappFlutuanteOculto ? -1 : undefined}
-        className={`group fixed right-4 z-[60] hidden items-center gap-3 rounded-2xl rounded-br-[8px] border-[1.5px] border-lime bg-forest py-2.5 pl-2.5 pr-5 text-white shadow-[0_20px_60px_-25px_rgba(0,0,0,.65)] transition-all duration-500 hover:-translate-y-1 md:flex ${
-          whatsappFlutuanteOculto
-            ? "pointer-events-none invisible translate-y-3 opacity-0"
-            : "bottom-7 opacity-100"
+        className={`cta-pilula fixed right-6 z-[58] hidden items-center gap-1 rounded-full bg-campo p-1.5 text-sobre-campo md:flex ${
+          visivelDesktop ? "" : "invisible"
         }`}
+        data-visivel={visivelDesktop ? "" : undefined}
       >
-        <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime text-brand-deep">
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 rounded-full border border-lime [animation:pulse-ring_1.7s_ease-out_infinite] motion-reduce:[animation:none]"
-          />
-          <MessageCircle className="h-5 w-5" aria-hidden="true" />
-        </span>
+        <a
+          href={wa}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={subtitulo}
+          className="botao botao-acento"
+        >
+          <MessageCircle aria-hidden="true" />
+          {rotulo}
+          <ArrowUpRight aria-hidden="true" />
+        </a>
+        <button
+          type="button"
+          onClick={dispensar}
+          aria-label="Fechar convite para falar com a clínica"
+          className="cta-fechar"
+        >
+          <X aria-hidden="true" />
+        </button>
+      </aside>
 
-        <span className="text-[15px] font-extrabold tracking-[-.01em]">Fale no WhatsApp</span>
-
-        <span
-          aria-hidden="true"
-          className="absolute -bottom-[9px] right-5 h-4 w-4 rotate-45 rounded-br-[3px] border-b-[1.5px] border-r-[1.5px] border-lime bg-forest"
-        />
-      </a>
-
-      <div
+      {/* Barra do celular: lisa, no campo escuro, com a área segura embaixo. */}
+      <aside
+        ref={barraRef}
         id="cta-mobile"
-        className={`mobile-sticky-cta fixed inset-x-0 bottom-0 z-[60] border-t border-forest/10 bg-cream/98 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] transition-[translate,visibility] duration-500 sm:hidden ${
+        aria-label={titulo}
+        className={`cta-barra fixed inset-x-0 z-[60] bg-campo text-sobre-campo transition-[translate,visibility] duration-500 md:hidden ${
           visivelMobile ? "translate-y-0" : "invisible translate-y-full"
         }`}
         aria-hidden={!visivelMobile}
         inert={!visivelMobile}
       >
-        <div
-          className={
-            focoWhatsApp
-              ? "grid grid-cols-[1fr_auto] gap-2"
-              : "grid grid-cols-[.34fr_1fr_auto] gap-2"
-          }
-        >
+        <div className="flex items-center gap-2">
           {!focoWhatsApp && (
             <a
               href={CLINICA.telefoneHref}
-              className="grid min-h-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
               aria-label="Ligar para a JP Clínica"
+              className="botao botao-claro !min-h-12 !w-12 !p-0"
             >
-              <Phone className="h-5 w-5" aria-hidden="true" />
+              <Phone aria-hidden="true" />
             </a>
           )}
           <a
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
-            className="button-dark min-h-12 py-2.5 text-sm"
+            className="botao botao-acento !min-h-12 min-w-0 flex-1"
           >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            <MessageCircle aria-hidden="true" />
             {rotulo}
           </a>
           <button
             type="button"
             onClick={dispensar}
             aria-label="Fechar convite para falar com a clínica"
-            className="grid min-h-12 w-12 place-items-center rounded-full border border-forest/12 bg-white text-forest-2"
+            className="cta-fechar"
           >
-            <X className="h-4 w-4" aria-hidden="true" />
+            <X aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </aside>
     </>
   );
 }

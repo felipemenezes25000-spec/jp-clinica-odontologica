@@ -14,6 +14,7 @@ import {
   Briefcase,
   Copy,
   ExternalLink,
+  Ellipsis,
   Eye,
   Pause,
   Pencil,
@@ -28,7 +29,9 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { CabecalhoPagina } from "@/components/rh/CabecalhoPagina";
 import { EditorVaga } from "@/components/rh/EditorVaga";
+import { FormaCoroa } from "@/components/site/sistema/Coroa";
 import { formatarData, tempoRelativo } from "@/lib/rh/formatar";
 import { MODELOS_TRABALHO, STATUS_VAGA, VINCULOS, statusVagaPor } from "@/lib/rh/opcoes";
 import type { Candidatura, ConfiguracoesRh, StatusVaga, Vaga } from "@/lib/rh/tipos";
@@ -60,8 +63,8 @@ const CAMPO =
   "placeholder:text-white/85 transition-colors hover:border-white/30 focus:border-lime";
 
 const ACAO =
-  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-white/25 " +
-  "bg-white/5 px-3 text-xs font-extrabold text-white transition hover:bg-white/15 " +
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full " +
+  "bg-chao-2 px-4 text-sm font-semibold text-tinta transition hover:bg-chao-3 " +
   "disabled:cursor-not-allowed disabled:opacity-40";
 
 export function GestaoVagas(props: {
@@ -108,6 +111,29 @@ export function GestaoVagas(props: {
     // recria o botão, e a referência antiga aponta para um nó fora do DOM.
     if (alvo !== "") document.getElementById(`rh-excluir-${alvo}`)?.focus();
   }, [confirmando]);
+
+  // Menu "Mais ações" é um <details>: o navegador cuida de abrir e do teclado,
+  // mas não fecha sozinho ao clicar fora nem no Esc. Fecha aqui, e no Esc o foco
+  // volta ao botão que abriu, para quem usa teclado não se perder na lista.
+  useEffect(() => {
+    const abertos = () => document.querySelectorAll<HTMLDetailsElement>("details.rh-menu[open]");
+    const aoApontar = (e: PointerEvent) => {
+      for (const d of abertos()) if (!d.contains(e.target as Node)) d.open = false;
+    };
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      for (const d of abertos()) {
+        d.open = false;
+        d.querySelector("summary")?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", aoApontar);
+    document.addEventListener("keydown", aoTeclar);
+    return () => {
+      document.removeEventListener("pointerdown", aoApontar);
+      document.removeEventListener("keydown", aoTeclar);
+    };
+  }, []);
 
   /** Quantas candidaturas apontam para cada vaga — inclusive as arquivadas, que
    *  continuam sendo histórico daquele processo. */
@@ -170,28 +196,25 @@ export function GestaoVagas(props: {
 
   return (
     <section aria-labelledby="rh-vagas-titulo" className="space-y-6">
-      <header className="rh-vidro p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h2
-              id="rh-vagas-titulo"
-              className="font-display text-2xl font-extrabold leading-tight text-white"
-            >
-              Vagas do portal
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm font-medium text-white/85">
-              O que estiver como <strong className="font-extrabold text-white">Aberta</strong>{" "}
-              aparece agora mesmo na página de carreiras do site. Rascunho, pausada e encerrada
-              ficam só aqui dentro.
-            </p>
-          </div>
-          <button type="button" className="button-primary" onClick={abrirNova}>
-            <Plus className="h-5 w-5" aria-hidden="true" />
-            Nova vaga
-          </button>
-        </div>
+      <div>
+        <CabecalhoPagina
+          id="rh-vagas-titulo"
+          titulo="Vagas do portal"
+          texto={
+            <>
+              O que estiver como <strong>Aberta</strong> aparece agora mesmo na página de carreiras
+              do site. Rascunho, pausada e encerrada ficam só aqui dentro.
+            </>
+          }
+          acao={
+            <button type="button" className="botao botao-acento" onClick={abrirNova}>
+              <Plus className="h-5 w-5" aria-hidden="true" />
+              Nova vaga
+            </button>
+          }
+        />
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-center">
+        <div className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-center">
           <div>
             <label className="sr-only" htmlFor="rh-busca-vaga">
               Buscar vaga pelo título
@@ -199,7 +222,7 @@ export function GestaoVagas(props: {
             <div className="flex items-center gap-2">
               <span
                 aria-hidden="true"
-                className="inline-grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/10 text-lime"
+                className="inline-grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-chao text-forest"
               >
                 <Search className="h-4 w-4" />
               </span>
@@ -248,26 +271,21 @@ export function GestaoVagas(props: {
             })}
           </div>
         </div>
-      </header>
+      </div>
 
       {semVagaNenhuma ? (
-        <div className="rh-vidro flex flex-col items-center gap-4 px-6 py-14 text-center">
-          <span
-            aria-hidden="true"
-            className="inline-grid h-14 w-14 place-items-center rounded-full bg-lime/15 text-lime"
-          >
-            <Briefcase className="h-7 w-7" />
-          </span>
+        <div className="rh-vazio">
+          <FormaCoroa proporcao={0.86} className="rh-vazio__coroa" />
           <div>
-            <h3 className="font-display text-xl font-extrabold text-white">
+            <h2 className="font-display text-xl font-extrabold text-white">
               Nenhuma vaga cadastrada ainda
-            </h3>
-            <p className="mx-auto mt-2 max-w-md text-sm font-medium text-white/85">
+            </h2>
+            <p className="mt-2 max-w-md text-sm font-medium text-white/85">
               Crie a primeira vaga para o portal de carreiras sair do lugar. Você pode salvar como
               rascunho e publicar só quando o texto estiver do jeito que a clínica quer.
             </p>
           </div>
-          <button type="button" className="button-primary" onClick={abrirNova}>
+          <button type="button" className="botao botao-acento" onClick={abrirNova}>
             <Plus className="h-5 w-5" aria-hidden="true" />
             Criar a primeira vaga
           </button>
@@ -288,7 +306,7 @@ export function GestaoVagas(props: {
           </button>
         </div>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+        <ul className="rh-vagas">
           {visiveis.map((vaga) => {
             const status = statusVagaPor(vaga.status);
             const inscritos = porVaga.get(vaga.id) ?? 0;
@@ -297,210 +315,222 @@ export function GestaoVagas(props: {
             const noAr = vagaAberta(vaga, props.agora);
             const publicada = tempoRelativo(vaga.publicadoEm, props.agora);
             const prazo = formatarData(vaga.encerraEm);
+            const caracteristicas = [
+              rotuloArea(vaga, "Área não definida"),
+              rotuloVinculo(vaga),
+              rotuloModelo(vaga),
+              vaga.quantidade > 1 ? `${vaga.quantidade} posições` : "",
+            ].filter((t) => t.length > 0);
 
             return (
-              <li key={vaga.id} className="rh-vidro flex flex-col gap-3 p-4">
-                <div className="flex items-start justify-between gap-2">
+              <li key={vaga.id} className="rh-vaga rh-vidro">
+                <div className="rh-vaga__status">
                   <span
-                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.7rem] font-extrabold uppercase tracking-wide ${status.pilulaEscura}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${status.pilulaClara}`}
                   >
                     {status.rotulo}
                   </span>
                   {vaga.destaque ? (
-                    <span className="inline-flex items-center gap-1 text-[0.7rem] font-extrabold uppercase tracking-wide text-white">
-                      <Sparkles className="h-3.5 w-3.5 text-lime" aria-hidden="true" />
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-tinta">
+                      <Sparkles className="h-3.5 w-3.5 text-acento" aria-hidden="true" />
                       Destaque
                     </span>
                   ) : null}
                 </div>
 
-                <div>
-                  <h3 className="font-display text-lg font-extrabold leading-tight text-white">
+                <div className="rh-vaga__corpo">
+                  <h2 className="font-display text-lg font-extrabold leading-tight text-white">
                     {vaga.titulo.trim().length > 0 ? vaga.titulo : "Vaga sem título"}
-                  </h3>
+                  </h2>
                   {vaga.resumo.trim().length > 0 ? (
                     <p className="mt-1 line-clamp-2 text-sm font-medium text-white/85">
                       {vaga.resumo}
                     </p>
                   ) : null}
+                  <p className="mt-2 text-sm font-semibold text-white">
+                    {caracteristicas.join(" · ")}
+                  </p>
+
+                  <dl className="rh-vaga__fatos">
+                    <div>
+                      <dt className="sr-only">Candidaturas</dt>
+                      <Users className="h-4 w-4 shrink-0 text-acento" aria-hidden="true" />
+                      <dd>
+                        {inscritos === 0
+                          ? "Nenhuma candidatura ainda"
+                          : `${inscritos} ${inscritos === 1 ? "candidatura" : "candidaturas"}`}
+                      </dd>
+                    </div>
+                    {salario.length > 0 ? (
+                      <div>
+                        <dt className="sr-only">Faixa salarial</dt>
+                        <Wallet className="h-4 w-4 shrink-0 text-acento" aria-hidden="true" />
+                        <dd>{salario}</dd>
+                      </div>
+                    ) : null}
+                    {jornada.length > 0 ? (
+                      <div>
+                        <dt className="sr-only">Jornada</dt>
+                        <Briefcase className="h-4 w-4 shrink-0 text-acento" aria-hidden="true" />
+                        <dd>{jornada}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt className="sr-only">Publicação</dt>
+                      <Eye className="h-4 w-4 shrink-0 text-acento" aria-hidden="true" />
+                      <dd>
+                        {publicada.length > 0 ? `Publicada ${publicada}` : "Ainda não publicada"}
+                        {prazo.length > 0 ? ` · encerra em ${prazo}` : " · sem prazo"}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {/* Dois avisos diferentes, porque as causas são diferentes: uma
+                      vaga pode estar "Aberta" e ainda assim fora do ar por vencimento. */}
+                  {vaga.status === "rascunho" ? (
+                    <p className="rh-vaga__aviso">
+                      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                      Esta vaga ainda não aparece no site.
+                    </p>
+                  ) : vaga.status === "aberta" && !noAr ? (
+                    <p className="rh-vaga__aviso">
+                      <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />O
+                      prazo passou: a vaga saiu do site sozinha. Mude a data para reabrir.
+                    </p>
+                  ) : null}
+
+                  {confirmando === vaga.id ? (
+                    <div className="rh-vaga__confirma">
+                      {/* `alert`: a pergunta aparece sem que nada seja anunciado,
+                          e ela é a única explicação do que o próximo clique faz. */}
+                      <p role="alert">
+                        Excluir “{vaga.titulo}” de vez?
+                        {inscritos > 0
+                          ? ` ${inscritos} ${inscritos === 1 ? "candidatura continua" : "candidaturas continuam"} no painel, mas sem o anúncio original para consultar. Encerrar costuma ser melhor do que excluir.`
+                          : " Não há candidaturas ligadas a ela."}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          ref={refCancelarExclusao}
+                          type="button"
+                          className={ACAO}
+                          onClick={() => {
+                            refVoltarFoco.current = vaga.id;
+                            setConfirmando("");
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          className="rh-vaga__excluir-de-vez"
+                          disabled={props.salvando}
+                          onClick={() => {
+                            setConfirmando("");
+                            props.aoExcluir(vaga.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          Excluir definitivamente
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
-                <ul className="flex flex-wrap gap-1.5 text-[0.7rem] font-bold text-white">
-                  <li className="rounded-full bg-white/10 px-2.5 py-1">
-                    {rotuloArea(vaga, "Área não definida")}
-                  </li>
-                  <li className="rounded-full bg-white/10 px-2.5 py-1">{rotuloVinculo(vaga)}</li>
-                  <li className="rounded-full bg-white/10 px-2.5 py-1">{rotuloModelo(vaga)}</li>
-                  {vaga.quantidade > 1 ? (
-                    <li className="rounded-full bg-white/10 px-2.5 py-1">
-                      {vaga.quantidade} posições
-                    </li>
-                  ) : null}
-                </ul>
+                {/* Uma ação primária (Editar) e o resto num menu. Seis botões
+                    do mesmo peso por vaga escondiam qual era a ação, e o
+                    "Excluir" ficava a um dedo do "Ver no site". */}
+                <div className="rh-vaga__acoes">
+                  <button
+                    type="button"
+                    className="botao botao-acento"
+                    onClick={() => {
+                      setConfirmando("");
+                      setEditando(vaga);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden="true" />
+                    Editar
+                    <span className="sr-only"> {vaga.titulo}</span>
+                  </button>
 
-                <dl className="space-y-1.5 text-xs font-semibold text-white/85">
-                  <div className="flex items-center gap-2">
-                    <dt className="sr-only">Candidaturas</dt>
-                    <Users className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-                    <dd>
-                      {inscritos === 0
-                        ? "Nenhuma candidatura ainda"
-                        : `${inscritos} ${inscritos === 1 ? "candidatura" : "candidaturas"}`}
-                    </dd>
-                  </div>
-                  {salario.length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <dt className="sr-only">Faixa salarial</dt>
-                      <Wallet className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-                      <dd>{salario}</dd>
-                    </div>
-                  ) : null}
-                  {jornada.length > 0 ? (
-                    <div className="flex items-center gap-2">
-                      <dt className="sr-only">Jornada</dt>
-                      <Briefcase className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-                      <dd>{jornada}</dd>
-                    </div>
-                  ) : null}
-                  <div className="flex items-center gap-2">
-                    <dt className="sr-only">Publicação</dt>
-                    <Eye className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-                    <dd>
-                      {publicada.length > 0 ? `Publicada ${publicada}` : "Ainda não publicada"}
-                      {prazo.length > 0 ? ` · encerra em ${prazo}` : " · sem prazo"}
-                    </dd>
-                  </div>
-                </dl>
-
-                {/* Dois avisos diferentes, porque as causas são diferentes: uma
-                    vaga pode estar "Aberta" e ainda assim fora do ar por vencimento. */}
-                {vaga.status === "rascunho" ? (
-                  <p className="flex items-start gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs font-bold text-white ring-1 ring-white/20">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                    Esta vaga ainda não aparece no site.
-                  </p>
-                ) : vaga.status === "aberta" && !noAr ? (
-                  <p className="flex items-start gap-2 rounded-xl bg-amber-300/15 px-3 py-2 text-xs font-bold text-amber-100 ring-1 ring-amber-200/30">
-                    <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />O prazo
-                    passou: a vaga saiu do site sozinha. Mude a data para reabrir.
-                  </p>
-                ) : null}
-
-                {confirmando === vaga.id ? (
-                  <div className="rounded-xl bg-rose-300/10 p-3 ring-1 ring-rose-200/30">
-                    {/* `alert`: a pergunta aparece sem que nada seja anunciado,
-                        e ela é a única explicação do que o próximo clique faz. */}
-                    <p role="alert" className="text-xs font-bold text-rose-100">
-                      Excluir “{vaga.titulo}” de vez?
-                      {inscritos > 0
-                        ? ` ${inscritos} ${inscritos === 1 ? "candidatura continua" : "candidaturas continuam"} no painel, mas sem o anúncio original para consultar. Encerrar costuma ser melhor do que excluir.`
-                        : " Não há candidaturas ligadas a ela."}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        ref={refCancelarExclusao}
-                        type="button"
-                        className={ACAO}
-                        onClick={() => {
-                          refVoltarFoco.current = vaga.id;
-                          setConfirmando("");
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-rose-500 px-3 text-xs font-extrabold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={props.salvando}
-                        onClick={() => {
-                          setConfirmando("");
-                          props.aoExcluir(vaga.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" aria-hidden="true" />
-                        Excluir definitivamente
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-auto flex flex-wrap gap-2 pt-1">
-                    <button
-                      type="button"
-                      className={ACAO}
-                      onClick={() => {
-                        setConfirmando("");
-                        setEditando(vaga);
+                  <details className="rh-menu">
+                    <summary
+                      id={`rh-excluir-${vaga.id}`}
+                      className="rh-menu__resumo"
+                      aria-label={`Mais ações da vaga ${vaga.titulo}`}
+                    >
+                      <Ellipsis className="h-5 w-5" aria-hidden="true" />
+                    </summary>
+                    <div
+                      className="rh-menu__lista"
+                      onClick={(e) => {
+                        // Qualquer escolha fecha o menu; o clique no vão entre
+                        // itens não conta.
+                        if ((e.target as HTMLElement).closest("button, a")) {
+                          const menu = e.currentTarget.closest("details");
+                          menu?.removeAttribute("open");
+                          // O item escolhido some com o menu; sem isto o foco
+                          // cairia no <body> e o teclado recomeçaria do topo.
+                          menu?.querySelector("summary")?.focus();
+                        }
                       }}
                     >
-                      <Pencil className="h-4 w-4" aria-hidden="true" />
-                      Editar
-                    </button>
+                      {vaga.status === "aberta" ? (
+                        <button
+                          type="button"
+                          disabled={props.salvando}
+                          onClick={() => trocarStatus(vaga, "pausada")}
+                        >
+                          <Pause className="h-4 w-4" aria-hidden="true" />
+                          Pausar
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={props.salvando}
+                          onClick={() => trocarStatus(vaga, "aberta")}
+                        >
+                          <Play className="h-4 w-4" aria-hidden="true" />
+                          {vaga.status === "rascunho" ? "Publicar" : "Reabrir"}
+                        </button>
+                      )}
 
-                    {vaga.status === "aberta" ? (
-                      <button
-                        type="button"
-                        className={ACAO}
-                        disabled={props.salvando}
-                        onClick={() => trocarStatus(vaga, "pausada")}
-                      >
-                        <Pause className="h-4 w-4" aria-hidden="true" />
-                        Pausar
+                      {vaga.status !== "encerrada" ? (
+                        <button
+                          type="button"
+                          disabled={props.salvando}
+                          onClick={() => trocarStatus(vaga, "encerrada")}
+                        >
+                          <Square className="h-4 w-4" aria-hidden="true" />
+                          Encerrar
+                        </button>
+                      ) : null}
+
+                      <button type="button" onClick={() => duplicar(vaga)}>
+                        <Copy className="h-4 w-4" aria-hidden="true" />
+                        Duplicar
                       </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={ACAO}
-                        disabled={props.salvando}
-                        onClick={() => trocarStatus(vaga, "aberta")}
-                      >
-                        <Play className="h-4 w-4" aria-hidden="true" />
-                        {vaga.status === "rascunho" ? "Publicar" : "Reabrir"}
+
+                      {/* O link só existe quando a vaga está realmente no ar: em
+                          rascunho, pausada ou vencida a página pública não
+                          existe, e mandar o RH para um 404 destrói a confiança
+                          na tela. */}
+                      {noAr ? (
+                        <a href={`/carreiras/${vaga.slug}`} target="_blank" rel="noreferrer">
+                          <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                          Ver no site
+                        </a>
+                      ) : null}
+
+                      <button type="button" data-perigo onClick={() => setConfirmando(vaga.id)}>
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        Excluir
                       </button>
-                    )}
-
-                    {vaga.status !== "encerrada" ? (
-                      <button
-                        type="button"
-                        className={ACAO}
-                        disabled={props.salvando}
-                        onClick={() => trocarStatus(vaga, "encerrada")}
-                      >
-                        <Square className="h-4 w-4" aria-hidden="true" />
-                        Encerrar
-                      </button>
-                    ) : null}
-
-                    <button type="button" className={ACAO} onClick={() => duplicar(vaga)}>
-                      <Copy className="h-4 w-4" aria-hidden="true" />
-                      Duplicar
-                    </button>
-
-                    {/* O link só existe quando a vaga está realmente no ar: em
-                        rascunho, pausada ou vencida a página pública não existe,
-                        e mandar o RH para um 404 destrói a confiança na tela. */}
-                    {noAr ? (
-                      <a
-                        className={ACAO}
-                        href={`/carreiras/${vaga.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <ExternalLink className="h-4 w-4" aria-hidden="true" />
-                        Ver no site
-                      </a>
-                    ) : null}
-
-                    <button
-                      id={`rh-excluir-${vaga.id}`}
-                      type="button"
-                      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-rose-200/30 bg-rose-300/10 px-3 text-xs font-extrabold text-rose-100 transition hover:bg-rose-300/20"
-                      onClick={() => setConfirmando(vaga.id)}
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden="true" />
-                      Excluir
-                    </button>
-                  </div>
-                )}
+                    </div>
+                  </details>
+                </div>
               </li>
             );
           })}

@@ -673,7 +673,7 @@ export function EditorVaga(props: {
             >
               <div className="lg:sticky lg:top-2">
                 <div className="rh-papel p-4">
-                  <p className="eyebrow flex items-center gap-2 text-ink">
+                  <p className="flex items-center gap-2 text-sm font-semibold text-ink">
                     <Eye className="h-4 w-4 text-forest" aria-hidden="true" />
                     Como fica no site
                   </p>
@@ -687,9 +687,15 @@ export function EditorVaga(props: {
                     sem isto, um clique na prévia levaria o RH para fora do
                     editor — jogando fora tudo o que ainda não foi salvo.
                   */}
-                  <div className="mt-3" inert>
-                    <CartaoVaga vaga={form} agora={agora} destaque={form.destaque} />
-                  </div>
+                  {form.titulo.trim().length === 0 && form.resumo.trim().length === 0 ? (
+                    <p className="rh-vazio-linha mt-3">
+                      Escreva o título e o resumo para ver o card aqui.
+                    </p>
+                  ) : (
+                    <div className="mt-3" inert>
+                      <CartaoVaga vaga={form} agora={agora} destaque={form.destaque} />
+                    </div>
+                  )}
 
                   {form.status === "aberta" ? (
                     <p className="mt-3 flex items-start gap-2 rounded-xl bg-mint px-3 py-2 text-xs font-bold text-ink">

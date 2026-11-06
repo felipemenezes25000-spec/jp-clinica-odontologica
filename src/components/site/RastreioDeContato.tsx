@@ -3,6 +3,12 @@ import { useLocation } from "@tanstack/react-router";
 
 import { registrarEntrada } from "@/lib/analytics/atribuicao";
 import { decidirEventoDeClique, rastrear } from "@/lib/analytics/eventos";
+import {
+  ATRIBUTO_RASTREIO_PROPRIO,
+  dadosDoFormulario,
+  ehFerramentaInterna,
+  rastrearEnvioDeFormulario,
+} from "@/lib/analytics/formulario";
 import { tratamentoDaRota } from "@/lib/analytics/rotas";
 
 /**
@@ -69,11 +75,6 @@ export function RastreioDeContato() {
   useEffect(() => {
     const formulariosIniciados = new WeakSet<HTMLFormElement>();
 
-    const dadosDoFormulario = (form: HTMLFormElement) => ({
-      pagina: window.location.pathname,
-      formulario: form.id || form.getAttribute("name") || form.getAttribute("action") || "form",
-    });
-
     /** De que seção partiu: o `id` da seção ancestral mais próxima é o mesmo
      *  nome que o menu usa, então o relatório fala a língua do site. */
     const origemDoLink = (link: Element): string => {
@@ -110,40 +111,21 @@ export function RastreioDeContato() {
       if (!(alvo instanceof Element)) return;
       const form = alvo.closest("form");
       if (!(form instanceof HTMLFormElement) || formulariosIniciados.has(form)) return;
+      if (ehFerramentaInterna(window.location.pathname)) return;
 
       formulariosIniciados.add(form);
       rastrear("form_start", dadosDoFormulario(form));
     };
 
-    /*
-     * O FORMULÁRIO É O ÚNICO LUGAR COM DOIS EVENTOS, e eles têm pesos
-     * diferentes: `form_submit` é leitura de funil e não vira nada na Meta;
-     * `generate_lead` é a conversão. Quem enviou o formulário pediu contato
-     * tanto quanto quem clicou no CTA de WhatsApp — se só o primeiro contasse,
-     * o Google otimizaria contra metade dos leads da clínica.
-     */
+    // O envio em si (form_submit + generate_lead, ou career_apply) mora em
+    // `rastrearEnvioDeFormulario`. Quem valida no próprio onSubmit se marca
+    // com `data-rastreio-proprio` e chama a função só depois de validar; aqui
+    // ele seria contado antes, inclusive quando a validação recusa.
     const aoEnviarFormulario = (e: SubmitEvent) => {
       const form = e.target;
       if (!(form instanceof HTMLFormElement)) return;
-
-      const dados = dadosDoFormulario(form);
-      const tratamento = tratamentoDaRota(window.location.pathname);
-
-      rastrear("form_submit", dados);
-
-      if (window.location.pathname === "/trabalhe-conosco") {
-        // Candidatura NÃO é lead comercial. Mandá-la como conversão ensinaria o
-        // algoritmo a buscar candidato, não paciente — e a clínica pagaria por isso.
-        const vaga = new URLSearchParams(window.location.search).get("vaga") ?? "";
-        rastrear("career_apply", { ...dados, etapa: "submit", vaga });
-        return;
-      }
-
-      rastrear("generate_lead", {
-        ...dados,
-        channel: "formulario",
-        ...(tratamento !== null ? { treatment: tratamento } : {}),
-      });
+      if (form.hasAttribute(ATRIBUTO_RASTREIO_PROPRIO)) return;
+      rastrearEnvioDeFormulario(form);
     };
 
     document.addEventListener("click", aoClicar, { capture: true });

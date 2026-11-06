@@ -1,237 +1,153 @@
-import { ArrowRight, Heart, ShieldCheck, Sparkles, Star, UsersRound } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
-import { DEPOIMENTOS } from "@/lib/jp";
+import consultorio from "@/assets/consultorio-wide.webp";
+import { CLINICA, DEPOIMENTOS } from "@/lib/jp";
 import { GoogleRating } from "@/components/site/GoogleRating";
-
-function ItemNota({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex gap-3">
-      <div className="shrink-0 text-brand-text" aria-hidden="true">
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs font-bold text-ink">{title}</p>
-        <p className="mt-1 text-micro leading-[1.45] text-ink-soft">{description}</p>
-      </div>
-    </div>
-  );
-}
-
-function CardAvaliacao({ autor, texto }: { autor: string; texto: string }) {
-  return (
-    <article className="flex min-h-[220px] flex-col rounded-2xl border border-border-soft bg-white p-6 shadow-[0_18px_50px_rgba(3,47,1,0.055)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(3,47,1,0.09)]">
-      <span aria-hidden="true" className="font-serif text-[48px] leading-[0.6] text-brand-text">
-        &ldquo;
-      </span>
-
-      <p className="mt-4 flex-1 font-display text-[16px] font-semibold leading-[1.35] tracking-[-0.015em] text-ink">
-        {texto}
-      </p>
-
-      <div className="my-4 h-px bg-border-soft" />
-
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-ink">{autor}</p>
-        <p className="mt-0.5 text-micro font-bold uppercase tracking-[0.1em] text-brand-text">
-          Avaliação no Google
-        </p>
-      </div>
-    </article>
-  );
-}
+import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
+import "./home/avaliacoes.css";
 
 /**
  * Prova social com as avaliações do Google transcritas da ficha da clínica.
  * Todas são reais — a clínica confirmou em 11/09/2026, e a marcação `ficticio`
  * que duas carregavam foi removida de jp.ts junto com o aviso que a acompanhava.
  *
+ * COMPOSIÇÃO — "retrato e citação deslocada", espelhada em relação ao
+ * atendimento (que sangra pela esquerda). Quem avaliou não tem retrato (e
+ * nenhum foi inventado): a coroa, cortada pela borda direita da tela, mostra o
+ * lugar para onde essas pessoas foram — o consultório. A nota vem antes da
+ * citação, na maior medida do site, porque é o número que a pessoa procura
+ * primeiro; a citação principal desce e recua em relação ao título para a
+ * leitura não ser uma pilha de blocos alinhados. As outras avaliações ficam
+ * sem caixa: espaço e uma coroa-marcador separam uma da outra. A seção termina
+ * no convite para agendar, o ponto de maior intenção do funil.
+ *
+ * A citação em destaque é a mais curta e sem procedimento nem profissional
+ * citado (art. 43 e 44 do Código de Ética: autopromoção que identifica
+ * paciente ou profissional sem registro). A avaliação longa, que cita a Dra.
+ * Ana Beatriz e uma extração, continua na lista, em corpo normal. Os
+ * sobrenomes aparecem só com a inicial, como a maioria das avaliações já vem.
+ *
  * Não exibimos estrelas individuais porque o dado salvo de cada depoimento tem
  * apenas autor + texto. Atribuir 5/5 sem a nota individual registrada seria
- * transformar ausência de dado em afirmação.
+ * transformar ausência de dado em afirmação. As estrelas daqui são as da NOTA
+ * da ficha, que é dado de verdade.
  */
+
+/** "Mari Nozzolillo" vira "Mari N."; quem já vem abreviado fica como está. */
+function abreviar(autor: string) {
+  const partes = autor.trim().split(/\s+/);
+  const ultima = partes[partes.length - 1] ?? "";
+  if (partes.length < 2 || ultima.endsWith(".")) return autor;
+  return `${partes.slice(0, -1).join(" ")} ${ultima.charAt(0)}.`;
+}
+
+function Autoria({ autor }: { autor: string }) {
+  return (
+    <figcaption className="mt-5 flex items-baseline gap-3 text-pequeno text-tinta-suave">
+      <MarcaCoroa className="text-acento" />
+      <span>
+        <span className="font-semibold text-tinta">{abreviar(autor)}</span>
+        {" · "}Avaliação no Google
+      </span>
+    </figcaption>
+  );
+}
+
 export function ReviewsSection() {
-  const [destaque, ...grade] = DEPOIMENTOS;
+  const wa = useContatoWhatsApp("agendar");
+  // A avaliação curta vai ao destaque; se ela sair de jp.ts, a primeira assume.
+  const destaque = DEPOIMENTOS.find((d) => d.autor.startsWith("Valéria")) ?? DEPOIMENTOS[0];
+  const demais = DEPOIMENTOS.filter((d) => d !== destaque);
 
   return (
-    <section id="depoimentos" className="jp-section relative overflow-hidden bg-paper">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-36 top-[42%] h-[520px] w-[520px] rounded-full border border-brand-green/20"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-24 top-[47%] h-[430px] w-[430px] rounded-full border border-brand-green/15"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-52 -top-44 h-[500px] w-[500px] rounded-full border border-brand-green/20"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-32 -top-32 h-[400px] w-[400px] rounded-full border border-brand-green/15"
-      />
+    <section
+      id="depoimentos"
+      aria-labelledby="depoimentos-titulo"
+      className="avaliacoes secao relative bg-chao text-tinta"
+    >
+      <div className="quadro grid gap-x-[var(--margem)] gap-y-12 lg:grid-cols-12 lg:gap-y-16">
+        <div className="order-1 lg:col-span-7 lg:col-start-1 lg:row-start-1">
+          <h2 id="depoimentos-titulo" data-linhas className="text-titulo">
+            O que dizem da JP no Google
+          </h2>
 
-      <div className="jp-container relative">
-        <div className="grid gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
-          <div>
-            <div className="mb-7 flex items-center gap-2 text-brand-text">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full border border-brand-green/70">
-                <Star size={14} aria-hidden="true" />
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-[0.14em]">Avaliações</span>
-            </div>
-
-            <h2 className="max-w-[610px] font-display text-[40px] font-extrabold leading-[1.04] tracking-[-0.045em] text-forest-2 sm:text-[56px] lg:text-[64px]">
-              A confiança dos pacientes aparece{" "}
-              <span className="text-brand-text">em cada sorriso.</span>
-            </h2>
-
-            <p className="mt-7 max-w-[590px] text-[16px] leading-7 text-ink-soft">
-              Abaixo estão relatos publicados por pacientes no Google, junto da nota atual da ficha
-              da clínica.
-            </p>
-
-            <div className="mt-10 overflow-hidden rounded-2xl border border-border-soft bg-white/75 shadow-[0_18px_60px_rgba(3,47,1,0.06)] backdrop-blur">
-              <div className="p-7 sm:p-9">
-                <div className="flex flex-col gap-7 sm:flex-row sm:items-center">
-                  <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#EBF5E1]">
-                    <Star
-                      size={32}
-                      strokeWidth={1.8}
-                      className="text-forest-2"
-                      aria-hidden="true"
-                    />
-                  </span>
-
-                  <div>
-                    <p className="mb-2 text-micro font-bold uppercase tracking-[0.12em] text-brand-text">
-                      Nota da ficha no Google
-                    </p>
-                    <GoogleRating variante="destaque" />
-                  </div>
-                </div>
-
-                <div className="my-7 h-px bg-border-soft" />
-
-                <div className="grid gap-6 sm:grid-cols-3">
-                  <ItemNota
-                    icon={<ShieldCheck size={23} />}
-                    title="Presença local"
-                    description="Atendimento na Vila Bruna, região da Freguesia do Ó."
-                  />
-                  <ItemNota
-                    icon={<UsersRound size={23} />}
-                    title="Experiência acolhedora"
-                    description="Ambiente confortável e atendimento humanizado."
-                  />
-                  <ItemNota
-                    icon={<Sparkles size={23} />}
-                    title="Planejamento individual"
-                    description="Avaliação e acompanhamento definidos conforme cada caso."
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-9 flex items-center gap-4">
-              <span
-                aria-hidden="true"
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#56A805] font-display text-2xl font-extrabold text-white"
-              >
-                G
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-ink">Avaliações reais no Google</p>
-                <p className="text-xs leading-5 text-ink-soft">
-                  Relatos públicos para você conhecer a experiência de quem já passou pela clínica.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            {destaque && (
-              <article className="relative overflow-hidden rounded-3xl bg-brand-deep px-7 py-8 shadow-[0_28px_70px_rgba(3,47,1,0.17)] sm:px-10 sm:py-10">
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute right-16 top-0 select-none font-serif text-[180px] leading-none text-white/[0.03]"
-                >
-                  &ldquo;
-                </span>
-                <span
-                  aria-hidden="true"
-                  className="absolute right-7 top-7 flex h-9 w-9 items-center justify-center rounded-full bg-lime"
-                >
-                  <Star size={18} strokeWidth={0} className="fill-white text-white" />
-                </span>
-
-                <span
-                  aria-hidden="true"
-                  className="block font-serif text-[60px] leading-[0.6] text-lime"
-                >
-                  &ldquo;
-                </span>
-
-                <p className="relative mt-5 max-w-[680px] font-display text-[24px] font-bold leading-[1.32] tracking-[-0.025em] text-white sm:text-[30px]">
-                  {destaque.texto}
-                </p>
-
-                <div className="my-7 h-px bg-white/15" />
-
-                <div>
-                  <p className="font-display text-lg font-bold text-white">{destaque.autor}</p>
-                  <span className="text-micro font-bold uppercase tracking-[0.12em] text-lime">
-                    Avaliação no Google
-                  </span>
-                </div>
-              </article>
-            )}
-
-            <div className="mt-5 grid gap-5 sm:grid-cols-2">
-              {grade.map((item) => (
-                <CardAvaliacao key={item.autor} {...item} />
-              ))}
-            </div>
+          <div className="mt-10 flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+            <GoogleRating variante="destaque" />
+            <a
+              href={CLINICA.mapsHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="link inline-flex min-h-11 items-center gap-1.5 text-corpo font-medium"
+            >
+              Ver as avaliações no Google
+              <ArrowUpRight className="h-[1.1em] w-[1.1em]" aria-hidden="true" />
+            </a>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-5 rounded-xl border border-border-soft bg-white/65 px-6 py-5 shadow-[0_15px_50px_rgba(3,47,1,0.05)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <span
-              aria-hidden="true"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#56A805] text-white"
-            >
-              <Heart size={21} />
-            </span>
-            <div className="flex flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
-              <p className="font-display text-sm font-bold text-ink">
-                Quer conhecer melhor a JP antes de agendar?
-              </p>
-              <p className="text-sm text-ink-soft">
-                Veja a clínica, a equipe e como organizamos o atendimento.
-              </p>
-            </div>
-          </div>
-
-          <a
-            href="#clinica"
-            className="min-h-11 group inline-flex shrink-0 items-center justify-center gap-3 rounded-full border border-[#56A805] px-6 py-3 text-xs font-bold uppercase tracking-[0.08em] text-forest-2 transition hover:bg-brand-deep hover:text-white"
+        {destaque && (
+          <figure
+            data-entra
+            className="order-2 lg:col-span-6 lg:col-start-2 lg:row-start-2 lg:mt-[clamp(1rem,3vw,3rem)]"
           >
-            Conheça a clínica
-            <ArrowRight
-              size={16}
-              aria-hidden="true"
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </a>
+            <div data-item>
+              <FormaCoroa proporcao={0.86} className="mb-6 h-9 w-9 text-acento" />
+              <blockquote>
+                <p className="text-frase">{destaque.texto}</p>
+              </blockquote>
+              <Autoria autor={destaque.autor} />
+            </div>
+          </figure>
+        )}
+
+        {/* O retrato gruda enquanto as citações passam: sem isso, a coluna da
+            esquerda (bem mais alta) deixaria meia tela vazia ao lado do texto.
+            O obturador anima o `clip-path` do próprio elemento marcado; por
+            isso a sangria vive neste invólucro, e a moldura só o preenche. */}
+        <div className="order-3 lg:sticky lg:top-[calc(var(--altura-cabecalho)+2rem)] lg:col-span-4 lg:col-start-9 lg:row-span-3 lg:row-start-1 lg:self-start">
+          <div data-obturador className="avaliacoes-foto">
+            <MolduraCoroa medir className="h-full w-full">
+              <img
+                src={consultorio}
+                alt="Consultório da clínica, claro e organizado, com a cadeira odontológica ao lado da janela"
+                width={1500}
+                height={800}
+                loading="lazy"
+                decoding="async"
+                className="object-[66%_50%]"
+                data-deriva
+              />
+            </MolduraCoroa>
+          </div>
+        </div>
+
+        <div className="order-4 lg:col-span-7 lg:col-start-1 lg:row-start-3">
+          <ul data-entra className="grid gap-x-[var(--margem)] gap-y-12 sm:grid-cols-2">
+            {demais.map((item) => (
+              <li key={item.autor} data-item className="avaliacao-item">
+                <figure>
+                  <blockquote>
+                    <p className="text-corpo">{item.texto}</p>
+                  </blockquote>
+                  <Autoria autor={item.autor} />
+                </figure>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-14">
+            <a
+              data-ima
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="botao botao-acento"
+            >
+              Agendar minha avaliação
+              <ArrowUpRight aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </section>

@@ -1,59 +1,54 @@
 /**
- * Cabeçalho do Portal de RH.
+ * Navegação do Portal de RH.
  *
- * O painel usa uma superfície clara como base e concentra o verde nas ações e
- * nos estados ativos. Assim a navegação fica mais leve para uso prolongado sem
- * perder a identidade da JP Clínica.
+ * É uma tela de trabalho, não uma página: a navegação fica numa lateral de
+ * 248px sobre o próprio chão (sem filete, sem sombra), com a marca e o escopo
+ * no alto, as seções no meio e as ações da sessão embaixo. No celular a mesma
+ * peça vira uma barra de 56px com o nome da seção e um botão "Menu" que abre a
+ * lista — as seções são as mesmas, o DOM é um só.
+ *
+ * Por que `<aside>` e não `<header>`: a barra de filtros de Candidaturas
+ * (`BarraFiltros`) procura o `<header>` grudento mais próximo para descobrir
+ * quanto descer. Uma lateral de altura total, com esse nome, a faria descer a
+ * janela inteira. A altura da barra do celular chega por `--rh-topo`.
+ *
+ * O marcador da seção ativa é a coroa da marca: a única forma com caráter do
+ * sistema, usada aqui como ferramenta (diz onde você está), não como enfeite.
  */
-import { useRef, type CSSProperties, type KeyboardEvent } from "react";
-import {
-  Briefcase,
-  ClipboardList,
-  LayoutDashboard,
-  LogOut,
-  RefreshCw,
-  Settings,
-  Sparkles,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { LogOut, Menu, RefreshCw, X } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
+import { FormaCoroa, MarcaCoroa } from "@/components/site/sistema/Coroa";
 import { IA_DO_RH_LIGADA } from "@/lib/rh/ia/tipos";
+
+import "./painel.css";
 
 export type AbaRh = "resumo" | "candidaturas" | "triagem" | "entrevistas" | "vagas" | "config";
 
-/**
- * Texto que só o leitor de tela ouve. Vai em `style` porque o projeto não tem
- * utilitário próprio para isso, e `display: none` esconderia o texto também de
- * quem usa leitor — o recorte por `clip-path` mantém o nó acessível.
- */
-const SO_LEITOR: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  margin: -1,
-  padding: 0,
-  overflow: "hidden",
-  clipPath: "inset(50%)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
-
-const ABAS: { valor: AbaRh; rotulo: string; icone: LucideIcon }[] = [
-  { valor: "resumo", rotulo: "Resumo", icone: LayoutDashboard },
-  { valor: "candidaturas", rotulo: "Candidaturas", icone: Users },
+const ABAS: { valor: AbaRh; rotulo: string }[] = [
+  { valor: "resumo", rotulo: "Resumo" },
+  { valor: "candidaturas", rotulo: "Candidaturas" },
   // Logo depois de Candidaturas de propósito: a triagem é a leitura daquela
   // mesma lista, e mantém a ordem do trabalho real — chega currículo, a IA lê,
   // o RH decide quem chamar. Some inteira com a IA desligada: tudo nela
   // (análise em lote, fila, importação com leitura) depende da IA.
-  ...(IA_DO_RH_LIGADA
-    ? [{ valor: "triagem" as const, rotulo: "Triagem por IA", icone: Sparkles }]
-    : []),
-  { valor: "entrevistas", rotulo: "Entrevistas", icone: ClipboardList },
-  { valor: "vagas", rotulo: "Vagas", icone: Briefcase },
-  { valor: "config", rotulo: "Configurações", icone: Settings },
+  ...(IA_DO_RH_LIGADA ? [{ valor: "triagem" as const, rotulo: "Triagem por IA" }] : []),
+  { valor: "entrevistas", rotulo: "Entrevistas" },
+  { valor: "vagas", rotulo: "Vagas" },
+  { valor: "config", rotulo: "Configurações" },
 ];
+
+/**
+ * Rótulos de grupo da lateral, antes da primeira aba de cada um: "o processo"
+ * (leitura e decisão sobre pessoas) e "o site" (o que o portal publica). São
+ * `role="presentation"` dentro do `tablist` para o leitor de tela continuar
+ * ouvindo só abas.
+ */
+const GRUPOS: Partial<Record<AbaRh, string>> = {
+  resumo: "Processo seletivo",
+  vagas: "Portal",
+};
 
 function plural(n: number, singular: string, plural_: string): string {
   return n === 1 ? `1 ${singular}` : `${n} ${plural_}`;
@@ -64,7 +59,6 @@ export function CabecalhoRh({
   aoTrocarAba,
   totalNovos,
   totalVagasAbertas,
-  totalCandidaturas,
   totalEntrevistas,
   atualizando,
   aoAtualizar,
@@ -74,20 +68,37 @@ export function CabecalhoRh({
   aoTrocarAba: (aba: AbaRh) => void;
   totalNovos: number;
   totalVagasAbertas: number;
-  totalCandidaturas: number;
   totalEntrevistas: number;
   atualizando: boolean;
   aoAtualizar: () => void;
   aoSair: () => void;
 }) {
   const botoes = useRef<Array<HTMLButtonElement | null>>([]);
+  const botaoMenu = useRef<HTMLButtonElement>(null);
+  // Só existe no celular: a partir de lg a lista está sempre à vista (CSS).
+  const [aberto, setAberto] = useState(false);
+
+  // Esc fecha a lista no celular e devolve o foco ao botão que a abriu; sem
+  // isso quem usa teclado externo ficaria preso num menu que não tem saída.
+  useEffect(() => {
+    if (!aberto) return undefined;
+    const aoTeclar = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setAberto(false);
+      botaoMenu.current?.focus();
+    };
+    document.addEventListener("keydown", aoTeclar);
+    return () => document.removeEventListener("keydown", aoTeclar);
+  }, [aberto]);
 
   const aoTeclar = (evento: KeyboardEvent<HTMLButtonElement>, indice: number) => {
     const total = ABAS.length;
     let alvo = -1;
-    if (evento.key === "ArrowRight") alvo = (indice + 1) % total;
-    else if (evento.key === "ArrowLeft") alvo = (indice - 1 + total) % total;
-    else if (evento.key === "Home") alvo = 0;
+    // Setas verticais na lateral, horizontais para quem já tinha o hábito.
+    if (evento.key === "ArrowDown" || evento.key === "ArrowRight") alvo = (indice + 1) % total;
+    else if (evento.key === "ArrowUp" || evento.key === "ArrowLeft") {
+      alvo = (indice - 1 + total) % total;
+    } else if (evento.key === "Home") alvo = 0;
     else if (evento.key === "End") alvo = total - 1;
     if (alvo < 0) return;
 
@@ -98,6 +109,8 @@ export function CabecalhoRh({
     botoes.current[alvo]?.focus();
   };
 
+  // Contagem só em fila que pede ação, e o substantivo vai no texto de apoio:
+  // "Vagas 2" sozinho deixa a pessoa perguntando "dois o quê?".
   const selo = (valor: AbaRh): number => {
     if (valor === "candidaturas") return totalNovos;
     if (valor === "entrevistas") return totalEntrevistas;
@@ -113,110 +126,120 @@ export function CabecalhoRh({
     return `, ${plural(n, "vaga aberta", "vagas abertas")}`;
   };
 
+  const atual = ABAS.find((item) => item.valor === aba);
+
   return (
-    <header className="rh-topbar sticky top-0 z-50 border-b border-border-soft bg-white/95 backdrop-blur-xl">
-      <div className="jp-container flex min-h-[72px] items-center justify-between gap-4 py-3">
-        <div className="flex min-w-0 items-center gap-3.5">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-mint ring-1 ring-forest/10">
-            <Logo variante="simbolo" fundo="claro" altura={30} className="shrink-0" />
-          </span>
+    <aside className="rh-lateral" data-aberto={aberto ? "true" : "false"}>
+      <div className="rh-lateral__topo">
+        <div className="rh-lateral__marca">
+          <Logo variante="simbolo" fundo="claro" altura={30} className="shrink-0" />
           <div className="min-w-0">
-            <p className="truncate font-display text-[1.05rem] font-extrabold leading-tight text-ink">
-              Portal de RH
-            </p>
-            <p className="mt-0.5 truncate text-xs font-medium text-ink-soft">
-              JP Clínica Integrada
-              <span aria-hidden="true" className="mx-1.5 text-ink-soft">
-                •
-              </span>
-              {plural(totalCandidaturas, "candidatura", "candidaturas")}
-            </p>
+            <p className="rh-lateral__nome">Portal de RH</p>
+            <p className="rh-lateral__escopo">JP Clínica Integrada</p>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={aoAtualizar}
-            disabled={atualizando}
-            aria-label={atualizando ? "Atualizando dados" : "Atualizar dados"}
-            aria-busy={atualizando}
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-border-soft bg-white px-3.5 text-sm font-bold text-ink shadow-sm transition hover:border-forest/25 hover:bg-mint/60 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
-          >
-            <RefreshCw
-              size={16}
-              className={atualizando ? "animate-spin text-forest" : "text-forest"}
-              aria-hidden="true"
-            />
-            <span className="hidden sm:inline">{atualizando ? "Atualizando" : "Atualizar"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={aoSair}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-forest px-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-brand-deep sm:px-4"
-          >
-            <LogOut size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">Sair</span>
-            <span style={SO_LEITOR} className="sm:hidden">
-              Sair do painel
-            </span>
-          </button>
-        </div>
+        {/* No celular o nome da seção atual fica ao lado do botão: a barra de
+            56px responde "onde estou" sem abrir nada. */}
+        <p className="rh-lateral__aqui" aria-hidden="true">
+          {atual?.rotulo}
+        </p>
+        <button
+          ref={botaoMenu}
+          type="button"
+          className="rh-lateral__menu"
+          aria-expanded={aberto}
+          aria-controls="rh-navegacao"
+          onClick={() => setAberto((v) => !v)}
+        >
+          {aberto ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
+          <span>{aberto ? "Fechar" : "Menu"}</span>
+        </button>
       </div>
 
-      <div className="jp-container">
+      <div id="rh-navegacao" className="rh-lateral__corpo">
         {/* `tablist` de verdade: só a aba ativa entra no Tab (foco itinerante) e as
             setas navegam entre elas. É o que a WAI-ARIA descreve para este padrão, e
             é o que faz diferença para quem opera o painel pelo teclado. */}
         <div
           role="tablist"
           aria-label="Seções do painel de RH"
-          aria-orientation="horizontal"
-          className="rh-scroll -mb-px flex gap-1 overflow-x-auto pb-2"
+          aria-orientation="vertical"
+          className="rh-lateral__abas"
         >
           {ABAS.map((item, indice) => {
             const ativa = item.valor === aba;
             const n = selo(item.valor);
-            const Icone = item.icone;
             return (
-              <button
-                key={item.valor}
-                type="button"
-                role="tab"
-                id={`aba-rh-${item.valor}`}
-                ref={(el) => {
-                  botoes.current[indice] = el;
-                }}
-                aria-selected={ativa}
-                aria-controls={ativa ? "conteudo" : undefined}
-                tabIndex={ativa ? 0 : -1}
-                onClick={() => aoTrocarAba(item.valor)}
-                onKeyDown={(evento) => aoTeclar(evento, indice)}
-                className={`inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3 text-sm transition sm:px-3.5 ${
-                  ativa
-                    ? "bg-forest font-extrabold text-white shadow-sm"
-                    : "font-semibold text-ink-soft hover:bg-mint/70 hover:text-ink"
-                }`}
-              >
-                <Icone size={16} aria-hidden="true" />
-                {item.rotulo}
-                {n > 0 ? (
-                  <span
-                    aria-hidden="true"
-                    className={`inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[0.65rem] font-extrabold tabular-nums ${
-                      ativa ? "bg-white text-ink" : "bg-forest text-white"
-                    }`}
-                  >
-                    {n}
+              <Fragment key={item.valor}>
+                {GRUPOS[item.valor] ? (
+                  <span role="presentation" aria-hidden="true" className="rh-lateral__grupo">
+                    {GRUPOS[item.valor]}
                   </span>
                 ) : null}
-                {n > 0 ? <span style={SO_LEITOR}>{descricaoSelo(item.valor, n)}</span> : null}
-              </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id={`aba-rh-${item.valor}`}
+                  ref={(el) => {
+                    botoes.current[indice] = el;
+                  }}
+                  aria-selected={ativa}
+                  aria-controls={ativa ? "conteudo" : undefined}
+                  tabIndex={ativa ? 0 : -1}
+                  onClick={() => {
+                    aoTrocarAba(item.valor);
+                    if (aberto) {
+                      // No celular a lista fecha e o botão escolhido some com
+                      // ela: o foco volta para o botão "Menu", não para o body.
+                      setAberto(false);
+                      botaoMenu.current?.focus();
+                    }
+                  }}
+                  onKeyDown={(evento) => aoTeclar(evento, indice)}
+                  className="rh-aba"
+                >
+                  <span className="rh-aba__marca" aria-hidden="true">
+                    <MarcaCoroa />
+                  </span>
+                  <span className="rh-aba__rotulo">{item.rotulo}</span>
+                  {n > 0 ? (
+                    <span aria-hidden="true" className="rh-aba__n">
+                      {n}
+                    </span>
+                  ) : null}
+                  {n > 0 ? <span className="sr-only">{descricaoSelo(item.valor, n)}</span> : null}
+                </button>
+              </Fragment>
             );
           })}
         </div>
+
+        <div className="rh-lateral__sessao">
+          <button
+            type="button"
+            onClick={aoAtualizar}
+            disabled={atualizando}
+            aria-label={atualizando ? "Atualizando dados" : "Atualizar dados"}
+            aria-busy={atualizando}
+            className="rh-acao-lateral"
+          >
+            <RefreshCw
+              size={16}
+              className={atualizando ? "animate-spin" : undefined}
+              aria-hidden="true"
+            />
+            {atualizando ? "Atualizando" : "Atualizar dados"}
+          </button>
+          <button type="button" onClick={aoSair} className="rh-acao-lateral">
+            <LogOut size={16} aria-hidden="true" />
+            Sair do painel
+          </button>
+        </div>
       </div>
-    </header>
+      {/* Peça de acabamento: a coroa grande, cortada pelo pé da lateral, num
+          degrau de tom. Não diz nada e não recebe foco. */}
+      <FormaCoroa proporcao={0.86} className="rh-lateral__marca-dagua" />
+    </aside>
   );
 }

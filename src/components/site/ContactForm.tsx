@@ -1,20 +1,16 @@
-import { FormEvent, useMemo, useState } from "react";
-import {
-  ArrowUpRight,
-  BadgeCheck,
-  Clock3,
-  HeartHandshake,
-  MessageCircle,
-  Phone,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
-import { Logo } from "@/components/site/Logo";
-import { CLINICA, TRATAMENTOS, whatsappLink } from "@/lib/jp";
+import { ChangeEvent, FormEvent, useId, useMemo, useRef, useState } from "react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
+
+import { CONVENIOS, TRATAMENTOS, whatsappLink } from "@/lib/jp";
 import { useReferenciaDeCampanha } from "@/components/site/useContatoWhatsApp";
+import { rastrearEnvioDeFormulario } from "@/lib/analytics/formulario";
+import "@/components/site/home/contato.css";
 
 const PERIODOS = ["Manhã", "Tarde", "Qualquer horário"];
-const CONTATOS = ["WhatsApp", "Telefone"];
+const TRATAMENTO_INDEFINIDO = "Ainda não sei";
+const CONVENIO_INDEFINIDO = "Não sei";
+const OPCOES_TRATAMENTO = [...TRATAMENTOS.map((t) => t.titulo), TRATAMENTO_INDEFINIDO];
+const OPCOES_CONVENIO = [...CONVENIOS.map((c) => c.nome), "Particular", CONVENIO_INDEFINIDO];
 
 /**
  * Registra o lead no CRC antes de abrir o WhatsApp.
@@ -35,6 +31,7 @@ function registrarLead(dados: {
   assunto: string;
   contato: string;
   periodo: string;
+  convenio: string;
   obs: string;
 }): void {
   try {
@@ -49,6 +46,7 @@ function registrarLead(dados: {
           `Assunto: ${dados.assunto}`,
           `Prefere contato por: ${dados.contato}`,
           `Melhor período: ${dados.periodo}`,
+          `Convênio: ${dados.convenio}`,
           dados.obs.trim().length > 0 ? `Mensagem: ${dados.obs.trim()}` : "",
         ]
           .filter((l) => l.length > 0)
@@ -62,13 +60,79 @@ function registrarLead(dados: {
   }
 }
 
+/** Um grupo de escolhas: botões de rádio vestidos de etiqueta, com teclado nativo. */
+function Escolhas({
+  legenda,
+  nome,
+  opcoes,
+  valor,
+  aoMudar,
+}: {
+  legenda: string;
+  nome: string;
+  opcoes: string[];
+  valor: string;
+  aoMudar: (v: string) => void;
+}) {
+  return (
+    <fieldset className="cupom-grupo">
+      <legend className="text-corpo">{legenda}</legend>
+      <div className="cupom-opcoes">
+        {opcoes.map((opcao) => (
+          <label key={opcao} className="cupom-opcao">
+            <input
+              type="radio"
+              name={nome}
+              value={opcao}
+              checked={valor === opcao}
+              onChange={() => aoMudar(opcao)}
+            />
+            <span className="text-pequeno">{opcao}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+/** O fio de furos entre o canhoto e o cupom: bolinhas num padrão, não um filete. */
+function Picote({ eixo }: { eixo: "v" | "h" }) {
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  return (
+    <svg className={`cupom-picote cupom-picote-${eixo}`} aria-hidden="true" focusable="false">
+      <defs>
+        <pattern id={`picote-${id}`} width="14" height="14" patternUnits="userSpaceOnUse">
+          <circle cx="7" cy="7" r="2.6" fill="currentColor" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill={`url(#picote-${id})`} />
+    </svg>
+  );
+}
+
+/**
+ * O CUPOM — o formulário de contato da home.
+ *
+ * Um cupom em verde-maçã, com entalhes e picote: no canhoto, o título; do outro
+ * lado, as escolhas. A PRÉVIA mostra, ao vivo, a mesma mensagem que o botão vai
+ * abrir no WhatsApp — é só texto na tela, não envia dado a lugar nenhum.
+ *
+ * Nome e telefone seguem obrigatórios: o lead do CRC exige nome e um contato, e
+ * o fluxo de tráfego pago depende disso (E2E `trafego-pago`). O restante vira
+ * texto da mensagem.
+ */
 export function ContactForm() {
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [contato, setContato] = useState("WhatsApp");
-  const [assunto, setAssunto] = useState("Avaliação geral");
+  const [tratamento, setTratamento] = useState(TRATAMENTO_INDEFINIDO);
   const [periodo, setPeriodo] = useState("Qualquer horário");
+  const [convenio, setConvenio] = useState(CONVENIO_INDEFINIDO);
   const [obs, setObs] = useState("");
+  const nomeRef = useRef<HTMLInputElement>(null);
+  const telefoneRef = useRef<HTMLInputElement>(null);
+
+  /** O `required` do navegador aceita "   "; o aviso nativo é o mesmo, com texto nosso. */
+  const limparAviso = (e: ChangeEvent<HTMLInputElement>) => e.target.setCustomValidity("");
 
   /* A campanha entra na mensagem do formulário pelo mesmo motivo que entra na
      dos CTAs: sem CRC operacional, é a única ponte entre o anúncio pago e a
@@ -77,203 +141,177 @@ export function ContactForm() {
 
   const mensagem = useMemo(() => {
     const linhas = [
-      `Olá! Meu nome é ${nome || "[nome]"}. Vim pelo site da JP Clínica Integrada Odontológica.`,
-      `Gostaria de falar sobre: ${assunto}.`,
-      `Melhor forma de contato: ${contato}.`,
+      `Olá! Meu nome é ${nome.trim() || "[nome]"}. Vim pelo site da JP Clínica Integrada Odontológica.`,
+      tratamento === TRATAMENTO_INDEFINIDO
+        ? "Gostaria de agendar uma avaliação; ainda não sei qual tratamento preciso."
+        : `Gostaria de falar sobre: ${tratamento}.`,
       `Melhor período para mim: ${periodo}.`,
+      `Convênio: ${convenio}.`,
     ];
     if (obs.trim()) linhas.push(`Mensagem: ${obs.trim()}`);
     const corpo = linhas.join("\n");
     return referencia === null ? corpo : `${corpo}\n\nRef.: ${referencia}`;
-  }, [nome, contato, assunto, periodo, obs, referencia]);
+  }, [nome, tratamento, periodo, convenio, obs, referencia]);
 
   /**
    * O CRC NÃO É CONDIÇÃO PARA O PACIENTE FALAR COM A CLÍNICA.
    *
-   * `registrarLead` já era disparado sem `await` e com toda falha engolida — a
-   * intenção estava certa desde o começo. O que faltava era dizer isto por
-   * escrito, porque é a propriedade que a campanha paga depende: com o CRC
-   * desligado, sem banco ou com o endpoint fora, esta função continua abrindo o
-   * WhatsApp. O `window.open` não está atrás de nenhum `await`, de nenhum
-   * `then` e de nenhum `catch`.
+   * `registrarLead` é disparado sem `await` e com toda falha engolida. Com o
+   * CRC desligado, sem banco ou com o endpoint fora, esta função continua
+   * abrindo o WhatsApp: o `window.open` não está atrás de nenhum `await`, de
+   * nenhum `then` e de nenhum `catch`.
    *
    * O E2E de tráfego pago roda contra um servidor SEM CRC nenhum configurado,
    * justamente para que isso pare de ser promessa e vire regressão vermelha.
    */
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!nome.trim() || !telefone.trim()) return;
-    registrarLead({ nome: nome.trim(), telefone: telefone.trim(), assunto, contato, periodo, obs });
+    // Só espaços, ou telefone sem DDD+número: avisa e leva o foco ao campo,
+    // em vez de um clique que não faz nada. O mínimo espelha o que o CRC exige.
+    const invalido = (campo: HTMLInputElement | null, texto: string) => {
+      campo?.setCustomValidity(texto);
+      campo?.reportValidity();
+      return true;
+    };
+    if (nome.trim().length < 2) return void invalido(nomeRef.current, "Informe seu nome.");
+    if (telefone.replace(/\D/g, "").length < 10)
+      return void invalido(telefoneRef.current, "Informe um telefone com DDD.");
+    // A conversão só conta aqui, depois de validar (o form tem
+    // `data-rastreio-proprio`, então o ouvinte global não conta a tentativa).
+    rastrearEnvioDeFormulario(event.currentTarget);
+    registrarLead({
+      nome: nome.trim(),
+      telefone: telefone.trim(),
+      assunto: tratamento === TRATAMENTO_INDEFINIDO ? "Avaliação geral" : tratamento,
+      // O formulário sempre abre o WhatsApp; o campo continua no registro do lead.
+      contato: "WhatsApp",
+      periodo,
+      convenio,
+      obs,
+    });
     window.open(whatsappLink(mensagem), "_blank", "noopener,noreferrer");
   };
 
-  const input =
-    "mt-2 w-full rounded-xl border border-forest/14 bg-white px-4 py-3.5 text-sm font-semibold text-forest-2 shadow-[inset_0_1px_0_rgba(255,255,255,.65)] transition focus:border-primary-ink placeholder:text-ink-soft";
-
   return (
-    <form
-      onSubmit={onSubmit}
-      className="rounded-3xl border border-forest/10 bg-white p-5 shadow-[0_30px_90px_-48px_rgba(3,47,1,.48)] sm:p-7 lg:p-8"
-    >
-      <div className="flex items-start justify-between gap-5">
-        <div>
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-primary/30 bg-white shadow-[0_4px_14px_rgba(3,47,1,.08)]">
-              <Logo variante="simbolo" fundo="claro" altura={30} className="h-[30px] w-auto" />
-            </span>
-            <p className="max-w-[13rem] font-display text-lg font-extrabold leading-[1.05] text-forest-2">
-              {CLINICA.nome}
-            </p>
-          </div>
-          <h3 className="mt-7 max-w-md font-display text-3xl font-extrabold leading-[.98] tracking-[-.045em] text-forest-2 sm:text-4xl">
-            Vamos organizar sua avaliação?
-          </h3>
-          <p className="mt-2 text-sm font-medium text-ink-soft">
-            Preencha os dados e a conversa será aberta no WhatsApp.
+    <form onSubmit={onSubmit} className="cupom" data-rastreio-proprio>
+      <div className="cupom-esq">
+        <div className="cupom-cab">
+          <h2 id="fale-titulo" className="text-titulo" data-linhas>
+            Monte sua mensagem
+          </h2>
+          <p className="text-corpo">
+            Escolha o que você procura e abra o WhatsApp com a mensagem pronta. A recepção responde
+            no horário de atendimento.
           </p>
         </div>
-        <span className="hidden h-12 w-12 shrink-0 place-items-center rounded-full bg-mint text-primary-ink sm:grid">
-          <BadgeCheck className="h-5 w-5" aria-hidden="true" />
-        </span>
+
+        <div className="cupom-previa">
+          <p className="text-corpo cupom-previa-rotulo">Prévia do que vai ser enviado</p>
+          <p className="cupom-bolha text-pequeno" data-testid="previa-mensagem">
+            {mensagem}
+          </p>
+        </div>
+
+        <div className="cupom-rodape">
+          <button type="submit" className="botao botao-tinta" data-ima>
+            <MessageCircle aria-hidden="true" />
+            Abrir conversa no WhatsApp
+            <ArrowUpRight aria-hidden="true" />
+          </button>
+          <p className="text-pequeno">
+            Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
+            quando houver parâmetros de campanha no endereço acessado, registrar a origem da
+            solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem.
+            Veja os detalhes na{" "}
+            <a href="/politica-de-privacidade" className="link">
+              Política de Privacidade
+            </a>
+            .
+          </p>
+        </div>
       </div>
 
-      <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
-          Nome completo
-          <div className="relative">
-            <UserRound className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
+      <div className="cupom-perfura" aria-hidden="true">
+        <Picote eixo="v" />
+        <Picote eixo="h" />
+      </div>
+
+      <div className="cupom-campos">
+        <div className="cupom-dados">
+          <label className="cupom-campo">
+            <span className="text-corpo">Seu nome</span>
             <input
+              ref={nomeRef}
               required
+              minLength={2}
               name="name"
               autoComplete="name"
               maxLength={120}
               value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              onChange={(e) => {
+                limparAviso(e);
+                setNome(e.target.value);
+              }}
               placeholder="Como podemos te chamar?"
-              className={`${input} pl-10`}
+              className="campo-cupom"
             />
-          </div>
-        </label>
-
-        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
-          Telefone com DDD
-          <div className="relative">
-            <Phone className="pointer-events-none absolute left-4 top-[1.32rem] h-4 w-4 text-ink-soft" />
+          </label>
+          <label className="cupom-campo">
+            <span className="text-corpo">Telefone com DDD</span>
             <input
+              ref={telefoneRef}
               required
+              minLength={10}
               name="tel"
               type="tel"
               inputMode="tel"
               autoComplete="tel"
               maxLength={30}
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
+              onChange={(e) => {
+                limparAviso(e);
+                setTelefone(e.target.value);
+              }}
               placeholder="(11) 90000-0000"
-              className={`${input} pl-10`}
+              className="campo-cupom"
             />
-          </div>
-        </label>
+          </label>
+        </div>
 
-        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
-          Melhor forma de contato
-          <select
-            name="contact-preference"
-            value={contato}
-            onChange={(e) => setContato(e.target.value)}
-            className={input}
-          >
-            {CONTATOS.map((item) => (
-              <option key={item}>{item}</option>
-            ))}
-          </select>
-        </label>
+        <Escolhas
+          legenda="O que você procura?"
+          nome="subject"
+          opcoes={OPCOES_TRATAMENTO}
+          valor={tratamento}
+          aoMudar={setTratamento}
+        />
+        <Escolhas
+          legenda="Melhor período"
+          nome="preferred-period"
+          opcoes={PERIODOS}
+          valor={periodo}
+          aoMudar={setPeriodo}
+        />
+        <Escolhas
+          legenda="Convênio"
+          nome="insurance"
+          opcoes={OPCOES_CONVENIO}
+          valor={convenio}
+          aoMudar={setConvenio}
+        />
 
-        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
-          Assunto ou interesse
-          <select
-            name="subject"
-            value={assunto}
-            onChange={(e) => setAssunto(e.target.value)}
-            className={input}
-          >
-            <option>Avaliação geral</option>
-            {TRATAMENTOS.map((t) => (
-              <option key={t.titulo}>{t.titulo}</option>
-            ))}
-            <option>Outro assunto</option>
-          </select>
-        </label>
-
-        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft">
-          Melhor período
-          <select
-            name="preferred-period"
-            value={periodo}
-            onChange={(e) => setPeriodo(e.target.value)}
-            className={input}
-          >
-            {PERIODOS.map((p) => (
-              <option key={p}>{p}</option>
-            ))}
-          </select>
-        </label>
-
-        <label className="text-micro font-extrabold uppercase tracking-[.09em] text-ink-soft sm:col-span-2">
-          Mensagem opcional
+        <label className="cupom-campo">
+          <span className="text-corpo">Quer contar mais alguma coisa? (opcional)</span>
           <textarea
             name="message"
-            rows={3}
+            rows={2}
             maxLength={700}
             value={obs}
             onChange={(e) => setObs(e.target.value)}
-            placeholder="Conte-nos brevemente sobre suas necessidades ou dúvidas."
-            className={`${input} resize-y`}
+            placeholder="Uma dúvida, uma queixa, um horário que ajude."
+            className="campo-cupom"
           />
         </label>
-      </div>
-
-      <div className="mt-5 flex gap-3 rounded-2xl border border-forest/10 bg-[#F6F9F2] px-4 py-3.5">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-text" aria-hidden="true" />
-        <p className="text-micro leading-5 text-ink-soft">
-          Ao enviar, seus dados serão usados para responder ao contato, organizar sua avaliação e,
-          quando houver parâmetros de campanha no endereço acessado, registrar a origem da
-          solicitação. Evite inserir informações de saúde desnecessárias no campo de mensagem. Veja
-          os detalhes na{" "}
-          <a
-            href="/politica-de-privacidade"
-            className="font-bold text-brand-text underline decoration-brand-text/35 underline-offset-2 transition hover:text-forest-2"
-          >
-            Política de Privacidade
-          </a>
-          .
-        </p>
-      </div>
-
-      <button type="submit" className="button-dark mt-6 w-full">
-        <MessageCircle className="h-4.5 w-4.5" />
-        Abrir conversa no WhatsApp
-        <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-      </button>
-
-      <div className="mt-6 grid gap-4 border-t border-forest/9 pt-5 sm:grid-cols-3">
-        {[
-          [Clock3, "Retorno no horário", "Atendimento durante o horário informado pela clínica."],
-          [HeartHandshake, "Atendimento humanizado", "Cuidado e atenção em cada etapa."],
-          [ShieldCheck, "Avaliação profissional", "A indicação é definida caso a caso."],
-        ].map(([Icon, title, text]) => {
-          const C = Icon as typeof Clock3;
-          return (
-            <div key={String(title)} className="flex gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-mint text-primary-ink">
-                <C className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-micro font-extrabold text-forest-2">{String(title)}</p>
-                <p className="mt-1 text-micro leading-relaxed text-ink-soft">{String(text)}</p>
-              </div>
-            </div>
-          );
-        })}
       </div>
     </form>
   );

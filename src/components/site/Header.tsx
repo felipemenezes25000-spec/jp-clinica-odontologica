@@ -1,34 +1,65 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
-import { ArrowUpRight, Clock3, MapPin, Menu, Phone, X } from "lucide-react";
+import { ArrowUpRight, MessageCircle, Phone } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
 import { CLINICA, NAV } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { tituloDaRota } from "@/lib/analytics/rotas";
-import "./visual-fixes.css";
+import { Movimento } from "@/components/site/sistema/movimento";
+import { MarcaCoroa } from "@/components/site/sistema/Coroa";
+import { pausarRolagem } from "@/components/site/sistema/gsap";
+import { useSituacao } from "@/components/site/sistema/horario";
+import "./cabecalho.css";
 
 /**
- * O cabeçalho do site.
+ * O cabeçalho do site — redesenho de 11/2026.
+ *
+ * Uma barra lisa no tom do chão: marca, os links, telefone e UMA ação. Sem
+ * faixa de informação em cima, sem vidro, sem sombra. Some quando a pessoa
+ * rola para baixo e volta quando ela rola para cima: a página inteira fica
+ * para o conteúdo, e o caminho de volta nunca está a mais de um gesto.
  *
  * `enxuto` é o cabeçalho das landings de aquisição. Nas experiências dedicadas
  * de Clareamento e Implantes ele fica ainda mais direto: não oferece saída para
- * a home no logotipo e troca o menu móvel por um CTA de WhatsApp. Isso preserva
- * identificação, endereço e acesso sem transformar o topo em dispersão.
+ * a home no logotipo e troca o menu móvel por um CTA de WhatsApp. O E2E do
+ * funil confere as duas coisas — e confere que o telefone continua no topo.
+ *
+ * O <Movimento /> mora aqui porque todas as páginas públicas usam este
+ * cabeçalho: é o motor de entradas, linhas e rolagem (ver sistema/movimento).
  */
 export function Header({ enxuto = false }: { enxuto?: boolean }) {
   const location = useLocation();
   const [aberto, setAberto] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [escondido, setEscondido] = useState(false);
+  const [rolou, setRolou] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const botaoRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const situacao = useSituacao();
 
   useEffect(() => {
-    const aoRolar = () => setScrolled(window.scrollY > 30);
-    aoRolar();
+    let ultimo = window.scrollY;
+    let quadro = 0;
+    const medir = () => {
+      quadro = 0;
+      const y = window.scrollY;
+      setRolou(y > 24);
+      // Some descendo depois do primeiro terço de tela, volta subindo.
+      if (Math.abs(y - ultimo) > 6) {
+        setEscondido(y > ultimo && y > window.innerHeight * 0.35);
+        ultimo = y;
+      }
+    };
+    const aoRolar = () => {
+      if (!quadro) quadro = requestAnimationFrame(medir);
+    };
+    medir();
     window.addEventListener("scroll", aoRolar, { passive: true });
-    return () => window.removeEventListener("scroll", aoRolar);
+    return () => {
+      window.removeEventListener("scroll", aoRolar);
+      if (quadro) cancelAnimationFrame(quadro);
+    };
   }, []);
 
   useEffect(() => {
@@ -36,7 +67,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
     const fecharNoDesktop = () => {
       if (desktop.matches) setAberto(false);
     };
-
     fecharNoDesktop();
     desktop.addEventListener("change", fecharNoDesktop);
     return () => desktop.removeEventListener("change", fecharNoDesktop);
@@ -47,6 +77,9 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
 
     const overflowAnterior = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    // A rolagem suave (Lenis) rola a página pela roda do mouse mesmo com o
+    // body travado: ela também precisa parar enquanto o menu cobre a tela.
+    const retomarRolagem = pausarRolagem();
 
     const focarPrimeiroItem = window.requestAnimationFrame(() => {
       menuRef.current?.querySelector<HTMLElement>("a[href], button:not([disabled])")?.focus();
@@ -58,7 +91,6 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         botaoRef.current?.focus();
         return;
       }
-
       if (e.key !== "Tab") return;
 
       const focaveis = Array.from(
@@ -66,6 +98,8 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
           'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
         ) ?? [],
       ).filter((item) => !item.hasAttribute("disabled") && item.offsetParent !== null);
+      // O botão de fechar fica fora do painel, mas faz parte do ciclo.
+      if (botaoRef.current) focaveis.unshift(botaoRef.current);
 
       const primeiro = focaveis[0];
       const ultimo = focaveis[focaveis.length - 1];
@@ -80,19 +114,12 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
       }
     };
 
-    const aoTocarFora = (e: PointerEvent) => {
-      if (headerRef.current?.contains(e.target as Node)) return;
-      setAberto(false);
-    };
-
     document.addEventListener("keydown", aoTeclar);
-    document.addEventListener("pointerdown", aoTocarFora);
-
     return () => {
       window.cancelAnimationFrame(focarPrimeiroItem);
       document.body.style.overflow = overflowAnterior;
+      retomarRolagem();
       document.removeEventListener("keydown", aoTeclar);
-      document.removeEventListener("pointerdown", aoTocarFora);
     };
   }, [aberto]);
 
@@ -110,9 +137,7 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         location.pathname.startsWith("/carreiras") || location.pathname === "/trabalhe-conosco"
       );
     }
-
     if (href === "/#tratamentos" && location.pathname.startsWith("/tratamentos/")) return true;
-
     if (location.pathname !== "/" || !href.startsWith("/#")) return false;
     return location.hash === href.slice(1);
   };
@@ -120,174 +145,114 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
   return (
     <header
       ref={headerRef}
-      className={`sticky top-0 z-[100] w-full transition-shadow duration-300 ${
-        scrolled ? "shadow-[0_10px_40px_rgba(3,47,1,0.08)]" : ""
-      }`}
+      data-escondido={escondido && !aberto ? "" : undefined}
+      data-rolou={rolou ? "" : undefined}
+      className="cabecalho sticky top-0 z-[100] w-full"
     >
-      <div className="bg-brand-deep text-white">
-        <div className="jp-container flex h-[32px] items-center justify-between sm:h-[34px]">
-          <span className="flex items-center gap-2">
-            <MapPin size={14} strokeWidth={1.8} className="text-lime" aria-hidden="true" />
-            <span className="text-micro font-semibold uppercase tracking-[0.13em] text-white/90 sm:text-micro">
-              Vila Bruna{" "}
-              <span aria-hidden="true" className="mx-2 text-lime">
-                •
-              </span>{" "}
-              Freguesia do Ó{" "}
-              <span className="hidden sm:inline">
-                <span aria-hidden="true" className="mx-2 text-lime">
-                  •
-                </span>{" "}
-                São Paulo/SP
-              </span>
-            </span>
-          </span>
-
-          <div className="hidden items-center gap-5 md:flex">
-            <span className="flex items-center gap-2">
-              <Clock3 size={14} className="text-lime" aria-hidden="true" />
-              <span className="text-micro font-semibold uppercase tracking-[0.12em] text-white/90 lg:text-micro">
-                Segunda a sexta{" "}
-                <span aria-hidden="true" className="mx-2 text-lime">
-                  •
-                </span>
-                08h às 18h
-              </span>
-            </span>
-
-            <span aria-hidden="true" className="h-4 w-px bg-lime/40" />
-
-            <a
-              href={CLINICA.telefoneHref}
-              className="alvo-toque flex items-center gap-2 text-micro font-semibold tracking-[0.04em] text-white transition hover:text-lime"
-            >
-              <Phone size={13} className="text-lime" aria-hidden="true" />
-              {CLINICA.telefone}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-b border-border-soft bg-[#FDFEFA]/98 xl:bg-[#FDFEFA]/95 xl:backdrop-blur-xl">
-        <div
-          className={`jp-container flex items-center justify-between gap-3 transition-[height] duration-300 sm:gap-5 xl:gap-[clamp(24px,2.2vw,44px)] ${
-            conversaoDireta ? "h-[68px] sm:h-[72px]" : scrolled ? "h-[78px]" : "h-[92px]"
-          }`}
+      <Movimento />
+      <div className="quadro flex h-[var(--altura-cabecalho)] items-center justify-between gap-4 xl:gap-8">
+        <a
+          href={conversaoDireta ? "#conteudo" : "/#inicio"}
+          className="cabecalho-marca flex shrink-0 items-center"
+          aria-label={
+            conversaoDireta
+              ? `${CLINICA.nome} — ${assunto?.toLowerCase() ?? "tratamento"}`
+              : `${CLINICA.nome} — início`
+          }
         >
-          <a
-            href={conversaoDireta ? "#conteudo" : "/#inicio"}
-            className="flex shrink-0 items-center"
-            aria-label={
-              conversaoDireta
-                ? `${CLINICA.nome} — ${assunto?.toLowerCase() ?? "tratamento"}`
-                : `${CLINICA.nome} — início`
-            }
-          >
-            <Logo
-              variante="lockup"
-              fundo="claro"
-              altura={66}
-              className={`w-auto transition-[height] duration-300 ${
-                conversaoDireta
-                  ? "h-[42px] sm:h-[48px] lg:h-[52px]"
-                  : scrolled
-                    ? "h-[44px] lg:h-[56px]"
-                    : "h-[50px] lg:h-[66px]"
-              }`}
-            />
-          </a>
+          <Logo
+            variante="lockup"
+            fundo="claro"
+            altura={52}
+            className="h-[40px] w-auto sm:h-[44px] lg:h-[50px]"
+          />
+        </a>
 
-          {enxuto ? (
-            <div className="hidden min-w-0 flex-1 xl:block" />
-          ) : (
-            <nav
-              className="hidden min-w-0 flex-1 items-center justify-center xl:flex"
-              aria-label="Navegação principal"
-            >
-              <ul className="flex w-full max-w-[900px] items-center justify-center gap-[clamp(14px,1.25vw,28px)]">
-                {NAV.map((item) => {
-                  const ativo = itemAtivo(item.href);
-                  return (
-                    <li key={item.href} className="shrink-0">
-                      <a
-                        href={item.href}
-                        aria-current={
-                          ativo ? (item.href.includes("#") ? "location" : "page") : undefined
-                        }
-                        className={`relative inline-flex min-h-11 items-center whitespace-nowrap py-3 text-[clamp(13px,0.95vw,14px)] font-semibold tracking-[-0.01em] transition-colors duration-200 after:absolute after:bottom-[4px] after:left-1/2 after:h-[2px] after:-translate-x-1/2 after:rounded-full after:bg-lime after:transition-all after:duration-300 hover:text-forest-2 focus-visible:text-forest-2 hover:after:w-full focus-visible:after:w-full ${
-                          ativo ? "text-forest-2 after:w-full" : "text-brand-text after:w-0"
-                        }`}
-                      >
-                        {item.label}
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
+        {!enxuto && (
+          <nav
+            className="hidden min-w-0 flex-1 justify-center xl:flex"
+            aria-label="Navegação principal"
+          >
+            <ul className="flex items-center gap-1">
+              {NAV.map((item) => {
+                const ativo = itemAtivo(item.href);
+                return (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      aria-current={
+                        ativo ? (item.href.includes("#") ? "location" : "page") : undefined
+                      }
+                      className="cabecalho-link"
+                    >
+                      {ativo && <MarcaCoroa className="text-acento" />}
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )}
+
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          {/* O horário só existe depois de montar (o servidor não sabe a hora de
+              quem visita), mas a caixa existe desde o HTML, com largura fixa:
+              assim o menu centralizado não desliza quando o texto chega. */}
+          {!conversaoDireta && (
+            <span className="cabecalho-situacao hidden min-[105rem]:inline-flex" aria-live="polite">
+              {situacao !== null && (
+                <>
+                  <span data-aberto={situacao.aberto ? "" : undefined} aria-hidden="true" />
+                  {situacao.texto}
+                </>
+              )}
+            </span>
           )}
 
-          <div className="hidden shrink-0 items-center gap-3 xl:flex">
-            <a
-              href={wa}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex h-[48px] min-w-[172px] items-center justify-between gap-4 rounded-full border-[1.5px] border-lime bg-forest px-6 text-[13px] font-bold text-white shadow-[0_8px_24px_rgba(9,89,2,.22)] transition-all duration-300 hover:-translate-y-[2px] hover:bg-[#0C7503] hover:shadow-[0_13px_30px_rgba(9,89,2,.32)]"
+          <a
+            href={CLINICA.telefoneHref}
+            className="cabecalho-telefone"
+            aria-label={`Ligar para a clínica: ${CLINICA.telefone}`}
+          >
+            <Phone className="h-[1.05em] w-[1.05em]" aria-hidden="true" />
+            <span className="hidden 2xl:inline">{CLINICA.telefone}</span>
+          </a>
+
+          <a
+            href={wa}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ima
+            className={`botao botao-acento cabecalho-acao ${conversaoDireta ? "" : "hidden md:inline-flex"}`}
+            data-icone-celular={conversaoDireta ? "" : undefined}
+          >
+            {/* Na landing paga do celular a barra fixa e o botão do topo já
+                dizem "WhatsApp" por extenso; aqui fica só o ícone, par do
+                telefone, para a primeira tela não ter três botões iguais. */}
+            {conversaoDireta && (
+              <>
+                <MessageCircle className="sm:hidden" aria-hidden="true" />
+                <span className="sr-only sm:hidden">WhatsApp</span>
+              </>
+            )}
+            <span className={conversaoDireta ? "hidden sm:inline" : ""}>{rotuloContato}</span>
+            <ArrowUpRight className={conversaoDireta ? "hidden sm:block" : ""} aria-hidden="true" />
+          </a>
+
+          {!conversaoDireta && (
+            <button
+              ref={botaoRef}
+              type="button"
+              onClick={() => setAberto((v) => !v)}
+              aria-label={aberto ? "Fechar menu" : "Abrir menu"}
+              aria-expanded={aberto}
+              aria-controls="menu-mobile"
+              className="cabecalho-menu xl:hidden"
             >
-              {rotuloContato}
-              <ArrowUpRight
-                size={16}
-                strokeWidth={2}
-                aria-hidden="true"
-                className="transition-transform group-hover:translate-x-[2px] group-hover:-translate-y-[2px]"
-              />
-            </a>
-          </div>
-
-          {conversaoDireta ? (
-            <div className="flex items-center xl:hidden">
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex min-h-10 items-center gap-2 rounded-full border border-lime bg-forest px-4 text-[11px] font-black text-white shadow-[0_8px_22px_rgba(9,89,2,.18)] transition hover:-translate-y-0.5 sm:min-h-11 sm:px-5 sm:text-xs"
-              >
-                <span className="sm:hidden">WhatsApp</span>
-                <span className="hidden sm:inline">Ver valores e horários</span>
-                <ArrowUpRight
-                  size={15}
-                  aria-hidden="true"
-                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                />
-              </a>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 xl:hidden">
-              <a
-                href={wa}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden rounded-full border-[1.5px] border-lime bg-forest px-5 py-3 text-[12px] font-bold text-white md:flex"
-              >
-                {rotuloContato}
-              </a>
-
-              <button
-                ref={botaoRef}
-                type="button"
-                onClick={() => setAberto((v) => !v)}
-                aria-label={aberto ? "Fechar menu" : "Abrir menu"}
-                aria-expanded={aberto}
-                aria-controls="menu-mobile"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-border-soft bg-white text-forest-2"
-              >
-                {aberto ? (
-                  <X size={20} aria-hidden="true" />
-                ) : (
-                  <Menu size={21} aria-hidden="true" />
-                )}
-              </button>
-            </div>
+              <span className="cabecalho-menu-traco" data-aberto={aberto ? "" : undefined} />
+              <span className="hidden sm:inline">{aberto ? "Fechar" : "Menu"}</span>
+            </button>
           )}
         </div>
       </div>
@@ -296,50 +261,42 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
         <div
           ref={menuRef}
           id="menu-mobile"
-          className={`absolute left-0 right-0 top-full border-b border-border-soft bg-[#FDFEFA] shadow-xl transition-all duration-300 xl:hidden ${
-            aberto
-              ? "max-h-[80vh] overflow-y-auto opacity-100"
-              : "invisible max-h-0 overflow-hidden opacity-0"
-          }`}
+          data-aberto={aberto ? "" : undefined}
+          data-lenis-prevent
+          className="cabecalho-painel xl:hidden"
         >
-          <nav className="jp-container py-6" aria-label="Navegação móvel">
+          <nav className="quadro flex h-full flex-col" aria-label="Navegação móvel">
             {!enxuto && (
-              <div className="grid gap-1 sm:grid-cols-2">
-                {NAV.map((item) => {
+              <ul className="cabecalho-painel-lista">
+                {NAV.map((item, i) => {
                   const ativo = itemAtivo(item.href);
                   return (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      onClick={fechar}
-                      aria-current={
-                        ativo ? (item.href.includes("#") ? "location" : "page") : undefined
-                      }
-                      className={`flex min-h-[52px] items-center justify-between rounded-xl px-4 text-[15px] font-semibold transition ${
-                        ativo
-                          ? "bg-[#EBF5E1] text-forest-2"
-                          : "text-forest hover:bg-[#EBF5E1] hover:text-forest-2"
-                      }`}
-                    >
-                      {item.label}
-                      <ArrowUpRight size={15} className="text-brand-text" aria-hidden="true" />
-                    </a>
+                    <li key={item.href} style={{ "--i": i } as React.CSSProperties}>
+                      <a
+                        href={item.href}
+                        onClick={fechar}
+                        tabIndex={aberto ? undefined : -1}
+                        aria-current={
+                          ativo ? (item.href.includes("#") ? "location" : "page") : undefined
+                        }
+                      >
+                        {item.label}
+                        {ativo && <MarcaCoroa className="text-acento" />}
+                      </a>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             )}
 
-            <div
-              className={`grid gap-3 sm:grid-cols-2 ${
-                enxuto ? "" : "mt-5 border-t border-border-soft pt-5"
-              }`}
-            >
+            <div className="mt-auto grid gap-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:grid-cols-2">
               <a
                 href={CLINICA.telefoneHref}
                 onClick={fechar}
-                className="flex items-center justify-center gap-2 rounded-full border border-border-soft px-5 py-4 text-sm font-semibold text-forest-2"
+                tabIndex={aberto ? undefined : -1}
+                className="botao botao-chao w-full"
               >
-                <Phone size={16} aria-hidden="true" />
+                <Phone aria-hidden="true" />
                 {CLINICA.telefone}
               </a>
               <a
@@ -347,11 +304,15 @@ export function Header({ enxuto = false }: { enxuto?: boolean }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={fechar}
-                className="flex items-center justify-center gap-2 rounded-full border-[1.5px] border-lime bg-forest px-5 py-4 text-sm font-bold text-white"
+                tabIndex={aberto ? undefined : -1}
+                className="botao botao-acento w-full"
               >
                 {rotuloContato}
-                <ArrowUpRight size={16} aria-hidden="true" />
+                <ArrowUpRight aria-hidden="true" />
               </a>
+              <p className="text-pequeno text-tinta-suave sm:col-span-2">
+                {CLINICA.endereco} · {CLINICA.horario}
+              </p>
             </div>
           </nav>
         </div>

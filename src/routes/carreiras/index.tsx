@@ -9,31 +9,20 @@
  * servido para o Google indexar cada anúncio e para o preview do WhatsApp
  * mostrar algo. Buscar no cliente deixaria a página vazia para os dois.
  */
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  Mail,
-  MapPin,
-  MessageCircle,
-  Quote,
-  Search,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { ArrowUpRight, Check, Search, X } from "lucide-react";
 
+import consultorioImg from "@/assets/consultorio-1.webp";
 import cantinhoCafeImg from "@/assets/cantinho-cafe.webp";
 import entradaClinicaImg from "@/assets/entrada-clinica.webp";
 import recepcaoImg from "@/assets/recepcao.webp";
 
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
-import { Logo } from "@/components/site/Logo";
-import { Reveal } from "@/components/site/Reveal";
 import { SkipLink } from "@/components/site/SkipLink";
-import { CartaoVaga } from "@/components/rh/CartaoVaga";
+import { LinhaDeVaga } from "@/components/site/carreiras/LinhaDeVaga";
+import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
 
 import { CLINICA, HISTORIA, MISSAO, SITE_URL, whatsappLink } from "@/lib/jp";
 import { FECHO_LOCAL, descricaoLocal, tituloLocal } from "@/lib/seo";
@@ -78,11 +67,11 @@ export const Route = createFileRoute("/carreiras/")({
       { property: "og:url", content: URL_PAGINA },
       { property: "og:type", content: "website" },
       { property: "og:locale", content: "pt_BR" },
-      { property: "og:image", content: `${SITE_URL}${recepcaoImg}` },
+      { property: "og:image", content: `${SITE_URL}${consultorioImg}` },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITULO },
       { name: "twitter:description", content: DESCRICAO },
-      { name: "twitter:image", content: `${SITE_URL}${recepcaoImg}` },
+      { name: "twitter:image", content: `${SITE_URL}${consultorioImg}` },
     ],
     links: [{ rel: "canonical", href: URL_PAGINA }],
   }),
@@ -135,7 +124,7 @@ function PaginaCarreiras() {
 
   /**
    * REGRA DAS DATAS: um `agora` só para a página inteira, congelado no primeiro
-   * render e vindo do `loader`. `new Date()` dentro do cartão faria cada cartão
+   * render e vindo do `loader`. `new Date()` dentro da linha faria cada linha
    * medir um instante diferente; `new Date()` aqui faria o navegador medir um
    * instante diferente do servidor (ver o comentário do `loader`).
    */
@@ -189,237 +178,247 @@ function PaginaCarreiras() {
   const whatsappRh = config.whatsappRh.trim();
   const linkRh = linkWhatsAppRh(whatsappRh, MENSAGEM_WHATSAPP);
   const sobre = config.textoSobre.trim();
+  const chamada = config.chamadaPortal.trim();
+  const titulo = config.tituloPortal.trim() || "Trabalhe na JP";
+  const total = vagas.length;
+
+  /* Filtro é para quem tem o que filtrar. Com até 6 vagas o formulário de busca
+     seria maior que a lista filtrada (~400px no desktop, 1,5 tela no celular
+     antes da primeira vaga): só a lista. De 7 a 12, busca + área; acima disso,
+     tudo. */
+  const mostrarBusca = total > 6;
+  const mostrarOutrosFiltros = total > 12;
+
+  /* O texto "sobre" que a clínica edita no painel já fala da missão (e o
+     rodapé do site a repete). A citação em bloco só entra quando não há texto
+     nenhum: antes a mesma frase aparecia duas vezes lado a lado. */
+  const mostrarMissao = sobre.length === 0;
 
   return (
-    <div className="min-h-dvh bg-cream">
+    <div className="site min-h-dvh">
       <SkipLink />
       <Header />
 
       <main id="conteudo">
-        {/* 01 — CAPA */}
-        <section className="section-deep relative isolate overflow-hidden pb-16 pt-14 text-white sm:pb-20 sm:pt-16 lg:pb-24 lg:pt-20">
-          <div aria-hidden="true" className="rh-grade absolute inset-0" />
-          {/* Marca d'água: alt vazio, é decoração — o nome da clínica já está no
-              cabeçalho e no rodapé. */}
-          <Logo
-            variante="simbolo"
-            fundo="escuro"
-            altura={620}
-            className="pointer-events-none absolute -right-24 -top-16 w-auto max-w-none opacity-[.07] sm:-right-16"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-24 top-24 h-96 w-96 rounded-full bg-lime/12 blur-[130px]"
-          />
-
-          <div className="jp-container relative">
-            <Reveal>
-              {/* REGRA DE CONTRASTE DA CLÍNICA: em fundo verde, letra branca —
-                  sem exceção. Este eyebrow era `text-lime`, que sobre o verde
-                  escuro do `.section-deep` fica em 4,96:1 e some no celular sob
-                  luz do sol. Passa na WCAG e some na calçada, que é o motivo de
-                  a regra da clínica ser mais dura que a norma. O lime segue vivo
-                  nos elementos que NÃO são letra (o halo, a borda, o ✓ dos
-                  chips). */}
-              <span className="eyebrow text-white">Trabalhe na JP</span>
-              <h1 className="mt-6 max-w-4xl font-display text-[clamp(2.9rem,7.5vw,6.4rem)] font-extrabold leading-[.9] tracking-[-.055em]">
-                {config.tituloPortal}
+        {/* TOPO — o H1 diz o que a página é; a foto é o consultório, em coroa. */}
+        <section className="car-topo" aria-labelledby="car-titulo">
+          <div className="quadro car-topo-grade">
+            <div>
+              <h1 id="car-titulo" className="linhas-topo text-display">
+                <span className="linha">
+                  <span>{titulo}</span>
+                </span>
               </h1>
-              {config.chamadaPortal.trim().length > 0 ? (
-                <p className="mt-7 max-w-2xl text-base font-medium leading-relaxed text-white/85 sm:text-lg">
-                  {config.chamadaPortal}
+              {chamada.length > 0 ? (
+                <p
+                  className="car-chamada text-corpo"
+                  data-chega
+                  style={{ "--d": "260ms" } as CSSProperties}
+                >
+                  {chamada}
                 </p>
               ) : null}
 
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <div className="car-acoes" data-chega style={{ "--d": "360ms" } as CSSProperties}>
                 <a
-                  href="#vagas"
-                  className="inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full bg-lime px-6 py-3 font-extrabold text-brand-deep transition hover:-translate-y-0.5 hover:bg-white"
+                  href={total > 0 ? "#vagas" : "/trabalhe-conosco"}
+                  className="botao botao-acento"
+                  data-ima
                 >
-                  {vagas.length > 0 ? "Ver vagas abertas" : "Ver o portal de vagas"}
-                  <ArrowRight className="h-4 w-4" />
+                  {total > 0 ? "Ver vagas abertas" : "Entrar no banco de talentos"}
+                  <ArrowUpRight aria-hidden="true" />
                 </a>
-                <a href="/trabalhe-conosco" className="button-ghost-light">
-                  Banco de talentos
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
+                {total > 0 ? (
+                  <a href="/trabalhe-conosco" className="botao botao-chao">
+                    Banco de talentos
+                  </a>
+                ) : null}
               </div>
-            </Reveal>
 
-            <Reveal delay={90}>
-              <dl className="mt-12 grid gap-4 sm:grid-cols-3 sm:gap-5">
-                {[
-                  {
-                    valor: `${HISTORIA.anos} anos`,
-                    rotulo: "de clínica, desde 2002",
-                  },
-                  {
-                    valor: vagas.length === 1 ? "1 vaga aberta" : `${vagas.length} vagas abertas`,
-                    // O rótulo concorda com o valor: com uma vaga só — o caso
-                    // mais comum numa clínica deste porte — "publicadas" ao lado
-                    // de "1 vaga aberta" fica errado na mesma linha visual.
-                    rotulo:
-                      vagas.length === 1 ? "publicada neste momento" : "publicadas neste momento",
-                  },
-                  { valor: CLINICA.bairro, rotulo: "em São Paulo" },
-                ].map((item) => (
-                  <div key={item.rotulo} className="jp-dark-glass rounded-[1.3rem] p-5 sm:p-6">
-                    <dt className="text-xs font-extrabold uppercase tracking-[.16em] text-white">
-                      {item.rotulo}
-                    </dt>
-                    <dd className="mt-2 font-display text-xl font-extrabold leading-tight tracking-[-.02em] text-white sm:text-2xl">
-                      {item.valor}
-                    </dd>
+              <dl className="car-fatos" data-chega style={{ "--d": "480ms" } as CSSProperties}>
+                <div>
+                  <dt>de clínica, desde {HISTORIA.fundacao}</dt>
+                  <dd>
+                    <span data-numero={HISTORIA.anos} data-casas="0">
+                      {HISTORIA.anos}
+                    </span>{" "}
+                    anos
+                  </dd>
+                </div>
+                {/* Zero não é fato que atraia ninguém: sem vaga, o fato some
+                    (a seção de vagas já explica o estado). */}
+                {total > 0 ? (
+                  <div>
+                    <dt>abertas agora</dt>
+                    <dd>{total === 1 ? "1 vaga" : `${total} vagas`}</dd>
                   </div>
-                ))}
+                ) : null}
+                <div>
+                  <dt>em São Paulo</dt>
+                  <dd>{CLINICA.local.bairro}</dd>
+                </div>
               </dl>
-            </Reveal>
+            </div>
+
+            <div className="car-topo-foto">
+              <FormaCoroa proporcao={1} className="car-topo-eco" />
+              <MolduraCoroa medir className="car-topo-moldura">
+                <img
+                  src={consultorioImg}
+                  alt="Consultório da JP Clínica Odontológica, com a cadeira pronta para o próximo paciente"
+                  width={1400}
+                  height={1045}
+                  fetchPriority="high"
+                  decoding="async"
+                />
+              </MolduraCoroa>
+            </div>
           </div>
         </section>
 
-        {/* 02 — POR QUE A JP */}
-        <section className="jp-section relative overflow-hidden bg-paper">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-mint/60 blur-[130px]"
-          />
-          <div className="jp-container relative grid gap-12 lg:grid-cols-[1.02fr_.98fr] lg:items-center lg:gap-16">
-            <Reveal>
-              <span className="eyebrow text-ink">Por que a JP</span>
-              <h2 className="mt-5 max-w-2xl font-display text-[clamp(2.1rem,4.6vw,3.6rem)] font-extrabold leading-[.95] tracking-[-.045em] text-forest-2">
+        {/* POR QUE A JP */}
+        <section id="a-jp" className="secao-curta" aria-labelledby="car-porque">
+          <div className="quadro car-porque">
+            <div className="car-porque-texto" data-entra>
+              <h2 id="car-porque" className="text-titulo" data-linhas>
                 Equipe que se apoia de verdade.
               </h2>
               {sobre.length > 0 ? (
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-ink-soft">{sobre}</p>
+                <p className="car-sobre text-corpo" data-item>
+                  {sobre}
+                </p>
               ) : null}
-
-              <figure className="jp-soft-card mt-8 rounded-[1.4rem] p-6 sm:p-7">
-                <Quote className="h-6 w-6 text-forest" aria-hidden="true" />
-                <blockquote className="mt-3 font-display text-lg font-extrabold leading-snug tracking-[-.02em] text-ink sm:text-xl">
-                  {MISSAO}
-                </blockquote>
-                <figcaption className="mt-3 text-xs font-extrabold uppercase tracking-[.16em] text-ink-soft">
-                  Missão da JP, no quadro da parede
-                </figcaption>
-              </figure>
-
-              <p className="mt-6 flex items-center gap-2 text-sm font-bold text-ink-soft">
-                <MapPin className="h-4 w-4 text-forest" aria-hidden="true" />
-                {CLINICA.endereco}
+              {mostrarMissao ? (
+                <figure className="ladrilho car-missao" data-item>
+                  <blockquote className="text-frase">{MISSAO}</blockquote>
+                </figure>
+              ) : null}
+              <p className="car-endereco" data-item>
+                <MarcaCoroa />
+                <span>{CLINICA.endereco}</span>
               </p>
-            </Reveal>
+            </div>
 
-            <Reveal delay={90} className="relative">
-              <div className="overflow-hidden rounded-[2rem] border border-forest/8 bg-white p-2.5 shadow-[0_38px_100px_-45px_rgba(3,47,1,.42)]">
-                <img
-                  src={recepcaoImg}
-                  alt="Recepção da JP Clínica Integrada Odontológica"
-                  loading="lazy"
-                  className="aspect-[4/3] w-full rounded-[1.6rem] object-cover"
-                />
+            <div className="car-fotos">
+              <div data-obturador>
+                <MolduraCoroa proporcao={0.8}>
+                  <img
+                    src={recepcaoImg}
+                    alt="Corredor da recepção da JP, com o balcão e as cadeiras verdes da sala de espera"
+                    width={665}
+                    height={480}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </MolduraCoroa>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                <img
-                  src={entradaClinicaImg}
-                  alt="Entrada da clínica, na Vila Bruna"
-                  loading="lazy"
-                  className="aspect-[4/3] w-full rounded-[1.3rem] border border-forest/8 object-cover"
-                />
-                <img
-                  src={cantinhoCafeImg}
-                  alt="Cantinho do café da equipe"
-                  loading="lazy"
-                  className="aspect-[4/3] w-full rounded-[1.3rem] border border-forest/8 object-cover"
-                />
+              <div data-obturador>
+                <MolduraCoroa proporcao={0.9}>
+                  <img
+                    src={cantinhoCafeImg}
+                    alt="Cantinho do café da equipe, com o purificador de água e a garrafa térmica"
+                    width={665}
+                    height={480}
+                    /* Âncora alta: a 0,9 de proporção o corte central comia o
+                       letreiro da parede. */
+                    style={{ objectPosition: "50% 30%" }}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </MolduraCoroa>
               </div>
-            </Reveal>
+            </div>
           </div>
         </section>
 
-        {/* 03 — VAGAS */}
-        <section id="vagas" className="jp-section section-light relative scroll-mt-24">
-          <div className="jp-container relative">
-            <Reveal className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-              <div>
-                <span className="eyebrow text-ink">Vagas abertas</span>
-                <h2 className="mt-5 max-w-2xl font-display text-[clamp(2.1rem,4.6vw,3.6rem)] font-extrabold leading-[.95] tracking-[-.045em] text-forest-2">
-                  Encontre a sua vaga.
-                </h2>
-              </div>
-              {vagas.length > 0 ? (
-                <p
-                  aria-live="polite"
-                  className="text-sm font-extrabold text-ink-soft lg:pb-2 lg:text-right"
-                >
+        {/* VAGAS */}
+        <section
+          id="vagas"
+          className="secao-curta scroll-mt-24 bg-chao-2"
+          aria-labelledby="car-vagas"
+        >
+          <div className="quadro">
+            <div
+              className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"
+              data-entra
+            >
+              <h2 id="car-vagas" className="text-titulo" data-linhas>
+                {total === 0 ? "Nenhuma vaga aberta agora." : "Encontre a sua vaga."}
+              </h2>
+              {mostrarBusca ? (
+                <p aria-live="polite" className="car-total" data-item>
                   {filtradas.length === 1
                     ? "1 vaga encontrada"
                     : `${filtradas.length} vagas encontradas`}
-                  {temFiltro ? ` de ${vagas.length}` : ""}
+                  {temFiltro ? ` de ${total}` : ""}
                 </p>
               ) : null}
-            </Reveal>
+            </div>
 
-            {vagas.length === 0 ? (
+            {total === 0 ? (
               /* VAZIO 1 — a clínica não tem nenhuma vaga publicada. Não é erro
-                 nem filtro: é o estado normal entre um processo e outro, então
-                 a tela leva direto ao banco de talentos. */
-              <Reveal className="mt-10">
-                <div className="rh-papel mx-auto max-w-2xl p-8 text-center sm:p-10">
-                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-mint text-forest">
-                    <Sparkles className="h-6 w-6" aria-hidden="true" />
-                  </span>
-                  <h3 className="mt-5 font-display text-2xl font-extrabold leading-tight tracking-[-.03em] text-forest-2">
-                    Nenhuma vaga aberta por enquanto
+                 nem filtro: é o estado normal entre um processo e outro. A seção
+                 inteira é este cartão (texto, um único botão, os canais do RH e
+                 a foto), sem bloco de contato repetido logo abaixo. */
+              <div className="car-vazio" data-entra>
+                <div>
+                  <h3 className="text-frase" data-item>
+                    Entre no banco de talentos.
                   </h3>
-                  <p className="mt-4 text-base leading-relaxed text-ink-soft">
+                  <p className="mt-4 max-w-[46ch] text-tinta-suave" data-item>
                     {config.mensagemSemVagas}
                   </p>
-                  <a href="/trabalhe-conosco" className="button-primary mt-7">
-                    Entrar no banco de talentos
-                    <ArrowUpRight className="h-4 w-4" />
-                  </a>
+                  <div className="mt-8" data-item>
+                    <a href="/trabalhe-conosco" className="botao botao-acento" data-ima>
+                      Entrar no banco de talentos
+                      <ArrowUpRight aria-hidden="true" />
+                    </a>
+                  </div>
+                  <CanaisDoRh
+                    className="car-vazio-canais"
+                    emailRh={emailRh}
+                    whatsappRh={whatsappRh}
+                    linkRh={linkRh}
+                  />
                 </div>
-              </Reveal>
+                <div className="car-vazio-foto">
+                  <FormaCoroa proporcao={1.05} className="car-topo-eco" />
+                  <MolduraCoroa proporcao={1.05}>
+                    <img
+                      src={entradaClinicaImg}
+                      alt="Portão de entrada da clínica, ao lado da parede verde da fachada"
+                      width={665}
+                      height={480}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </MolduraCoroa>
+                </div>
+              </div>
             ) : (
               <>
-                <Reveal delay={60} className="mt-9">
-                  <div className="rh-papel p-5 sm:p-6">
-                    <div className="relative">
-                      <label htmlFor="busca-vaga" className="rh-rotulo">
-                        Buscar vaga
-                      </label>
-                      <Search
-                        className="pointer-events-none absolute left-4 top-[2.65rem] h-4 w-4 text-ink-soft"
-                        aria-hidden="true"
-                      />
+                {mostrarBusca ? (
+                  <div className="car-filtros">
+                    <div className="car-busca">
+                      <label htmlFor="busca-vaga">Buscar vaga</label>
+                      <Search aria-hidden="true" />
                       <input
                         id="busca-vaga"
                         type="search"
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        placeholder="Cargo, requisito ou palavra do anúncio"
-                        className="rh-campo"
-                        /* O recuo da lupa vai inline porque `.rh-campo` declara o
-                           atalho `padding` fora de qualquer camada do Tailwind e
-                           venceria a utilitária `pl-10`: o texto digitado
-                           começaria em 14px e passaria por baixo do ícone. Mesmo
-                           remédio de LoginRh.tsx. */
-                        style={{ paddingLeft: "2.5rem" }}
+                        placeholder="Cargo ou palavra-chave"
                       />
                     </div>
 
                     {/* Os chips são botões com aria-pressed, e não um radiogroup:
-                        radiogroup promete navegação por setas do teclado, que
-                        não implementamos aqui. O estado ativo aparece na borda,
-                        no peso da fonte (via .rh-chip) e no ✓ — nunca só na cor. */}
+                      radiogroup promete navegação por setas do teclado, que não
+                      implementamos aqui. O estado ativo aparece no tom, no peso
+                      e no ✓ — nunca só na cor. */}
                     {areasPresentes.length > 1 ? (
-                      <div className="mt-5">
-                        <span className="rh-rotulo">Área</span>
-                        <div
-                          role="group"
-                          aria-label="Filtrar vagas por área"
-                          className="flex flex-wrap gap-2"
-                        >
+                      <div className="car-grupo">
+                        <span>Área</span>
+                        <div role="group" aria-label="Filtrar vagas por área" className="car-chips">
                           <ChipFiltro
                             rotulo="Todas as áreas"
                             ativo={area === ""}
@@ -437,13 +436,13 @@ function PaginaCarreiras() {
                       </div>
                     ) : null}
 
-                    {vinculosPresentes.length > 1 ? (
-                      <div className="mt-5">
-                        <span className="rh-rotulo">Vínculo</span>
+                    {mostrarOutrosFiltros && vinculosPresentes.length > 1 ? (
+                      <div className="car-grupo">
+                        <span>Vínculo</span>
                         <div
                           role="group"
                           aria-label="Filtrar vagas por tipo de vínculo"
-                          className="flex flex-wrap gap-2"
+                          className="car-chips"
                         >
                           <ChipFiltro
                             rotulo="Qualquer vínculo"
@@ -462,13 +461,13 @@ function PaginaCarreiras() {
                       </div>
                     ) : null}
 
-                    {turnosPresentes.length > 1 ? (
-                      <div className="mt-5">
-                        <span className="rh-rotulo">Turno</span>
+                    {mostrarOutrosFiltros && turnosPresentes.length > 1 ? (
+                      <div className="car-grupo">
+                        <span>Turno</span>
                         <div
                           role="group"
                           aria-label="Filtrar vagas por turno"
-                          className="flex flex-wrap gap-2"
+                          className="car-chips"
                         >
                           <ChipFiltro
                             rotulo="Todos os turnos"
@@ -488,50 +487,47 @@ function PaginaCarreiras() {
                     ) : null}
 
                     {temFiltro ? (
-                      <button
-                        type="button"
-                        onClick={limparFiltros}
-                        className="mt-5 inline-flex min-h-[2.75rem] items-center gap-2 rounded-full border border-border-soft bg-white px-4 py-2 text-sm font-extrabold text-ink transition hover:border-forest/40"
-                      >
-                        <X className="h-4 w-4" aria-hidden="true" />
-                        Limpar filtros
-                      </button>
+                      <div>
+                        <button type="button" onClick={limparFiltros} className="botao botao-chao">
+                          <X aria-hidden="true" />
+                          Limpar filtros
+                        </button>
+                      </div>
                     ) : null}
                   </div>
-                </Reveal>
+                ) : null}
 
                 {filtradas.length === 0 ? (
                   /* VAZIO 2 — há vagas, mas nenhuma casa com o filtro. Tela
                      diferente da anterior de propósito: aqui o caminho é
                      afrouxar a busca, não ir para o banco de talentos. */
-                  <Reveal className="mt-10">
-                    <div className="jp-soft-card mx-auto max-w-xl rounded-[1.5rem] p-8 text-center">
-                      <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-cream text-forest ring-1 ring-border-soft">
-                        <Search className="h-5 w-5" aria-hidden="true" />
-                      </span>
-                      <h3 className="mt-4 font-display text-xl font-extrabold leading-tight text-forest-2">
-                        Nenhuma vaga com esses filtros
-                      </h3>
+                  <div className="car-vazio">
+                    <div>
+                      <h3 className="text-frase">Nenhuma vaga com esses filtros.</h3>
                       {/* A frase inteira entra no ternário: com uma vaga só, trocar
                           apenas o miolo deixaria "As vaga aberta … continuam". */}
-                      <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-                        {vagas.length === 1
+                      <p className="mt-4 max-w-[46ch] text-tinta-suave">
+                        {total === 1
                           ? "A única vaga aberta da clínica continua no ar — só não bate com o que você marcou."
-                          : `As ${vagas.length} vagas abertas da clínica continuam no ar — só não batem com o que você marcou.`}{" "}
+                          : `As ${total} vagas abertas da clínica continuam no ar — só não batem com o que você marcou.`}{" "}
                         Tire um filtro e veja todas.
                       </p>
-                      <button type="button" onClick={limparFiltros} className="button-primary mt-6">
-                        <X className="h-4 w-4" aria-hidden="true" />
-                        Limpar filtros
-                      </button>
+                      <div className="mt-8">
+                        <button
+                          type="button"
+                          onClick={limparFiltros}
+                          className="botao botao-acento"
+                        >
+                          <X aria-hidden="true" />
+                          Limpar filtros
+                        </button>
+                      </div>
                     </div>
-                  </Reveal>
+                  </div>
                 ) : (
-                  <ul className="mt-9 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                    {filtradas.map((vaga, i) => (
-                      <Reveal as="li" key={vaga.id} delay={Math.min(i, 6) * 55} className="h-full">
-                        <CartaoVaga vaga={vaga} agora={agora} destaque={vaga.destaque} />
-                      </Reveal>
+                  <ul className="car-lista" data-sobre="chao-2">
+                    {filtradas.map((vaga) => (
+                      <LinhaDeVaga key={vaga.id} vaga={vaga} agora={agora} />
                     ))}
                   </ul>
                 )}
@@ -540,89 +536,68 @@ function PaginaCarreiras() {
           </div>
         </section>
 
-        {/* 04 — FALE COM O RH */}
-        <section className="jp-section section-deep relative overflow-hidden text-white">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -right-20 top-10 h-96 w-96 rounded-full bg-lime/12 blur-[130px]"
-          />
-          <div className="jp-container relative grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-            <Reveal>
-              <span className="eyebrow text-white">Fale com o RH</span>
-              <h2 className="mt-5 max-w-xl font-display text-[clamp(2rem,4.4vw,3.4rem)] font-extrabold leading-[.95] tracking-[-.045em]">
-                {config.aceitandoEspontanea
-                  ? "Não achou a sua vaga? Deixe seu currículo."
-                  : "Ficou com dúvida sobre alguma vaga?"}
-              </h2>
-              <p className="mt-5 max-w-lg text-base leading-relaxed text-white/85">
-                {config.aceitandoEspontanea
-                  ? "A clínica guarda os currículos do banco de talentos e chama primeiro quem já se apresentou quando abre uma vaga do perfil."
-                  : "Fale com a gente pelos canais abaixo — respondemos em horário comercial, de segunda a sexta."}
-              </p>
+        {/* FALE COM O RH — só com vagas abertas. Sem vaga, os canais já estão no
+            cartão da seção anterior, e esta seção repetiria o mesmo botão. */}
+        {total > 0 ? (
+          <section className="secao-curta" aria-labelledby="car-rh">
+            <div className="quadro car-rh">
+              <div data-entra>
+                <h2 id="car-rh" className="text-titulo" data-linhas>
+                  {config.aceitandoEspontanea ? "Não achou a sua vaga?" : "Dúvida sobre uma vaga?"}
+                </h2>
+                <p className="mt-6 max-w-[40ch] text-tinta-suave" data-item>
+                  {config.aceitandoEspontanea
+                    ? "Deixe seu currículo no banco de talentos. A clínica guarda os currículos e chama primeiro quem já se apresentou quando abre uma vaga do perfil."
+                    : "Fale com a gente pelos canais ao lado — respondemos em horário comercial, de segunda a sexta."}
+                </p>
+                {config.aceitandoEspontanea ? (
+                  <div className="mt-8" data-item>
+                    <a href="/trabalhe-conosco" className="botao botao-tinta" data-ima>
+                      Cadastrar meu currículo
+                      <ArrowUpRight aria-hidden="true" />
+                    </a>
+                  </div>
+                ) : null}
+              </div>
 
-              {config.aceitandoEspontanea ? (
-                <a
-                  href="/trabalhe-conosco"
-                  className="mt-8 inline-flex min-h-[3.25rem] items-center justify-center gap-2 rounded-full bg-lime px-6 py-3 font-extrabold text-brand-deep transition hover:-translate-y-0.5 hover:bg-white"
-                >
-                  Cadastrar meu currículo
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-              ) : null}
-            </Reveal>
-
-            <Reveal delay={80}>
-              <div className="grid gap-4">
+              <div className="car-rh-canais">
                 {emailRh.length > 0 ? (
                   <a
                     href={`mailto:${emailRh}?subject=${encodeURIComponent("Candidatura — site da JP")}`}
-                    className="jp-dark-glass flex items-center gap-4 rounded-[1.3rem] p-5 transition hover:-translate-y-0.5"
+                    className="car-rh-canal ladrilho"
                   >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime/15 text-lime">
-                      <Mail className="h-5 w-5" aria-hidden="true" />
-                    </span>
+                    <MarcaCoroa />
                     <span className="min-w-0">
-                      <span className="block text-xs font-extrabold uppercase tracking-[.16em] text-white">
-                        E-mail do RH
-                      </span>
-                      <span className="mt-1 block truncate font-display text-lg font-extrabold">
-                        {emailRh}
-                      </span>
+                      <small>E-mail do RH</small>
+                      <span className="valor">{emailRh}</span>
                     </span>
                   </a>
                 ) : null}
 
                 {/* Com número de RH cadastrado, mostramos e discamos o número
-                    dele; sem ele, o contato é o WhatsApp geral da clínica — e a
-                    tela diz qual dos dois é, para ninguém achar que falou com o
-                    RH quando falou com a recepção. */}
+                  dele; sem ele, o contato é o WhatsApp geral da clínica — e a
+                  tela diz qual dos dois é, para ninguém achar que falou com o
+                  RH quando falou com a recepção. */}
                 <a
                   href={linkRh.length > 0 ? linkRh : whatsappLink(MENSAGEM_WHATSAPP)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="jp-dark-glass flex items-center gap-4 rounded-[1.3rem] p-5 transition hover:-translate-y-0.5"
+                  className="car-rh-canal ladrilho"
                 >
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-lime/15 text-lime">
-                    <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                  </span>
+                  <MarcaCoroa />
                   <span className="min-w-0">
-                    <span className="block text-xs font-extrabold uppercase tracking-[.16em] text-white">
-                      {linkRh.length > 0 ? "WhatsApp do RH" : "WhatsApp da clínica"}
-                    </span>
-                    <span className="mt-1 block truncate font-display text-lg font-extrabold">
+                    <small>{linkRh.length > 0 ? "WhatsApp do RH" : "WhatsApp da clínica"}</small>
+                    <span className="valor">
                       {linkRh.length > 0 ? whatsappRh : CLINICA.whatsapp}
                     </span>
                   </span>
                 </a>
 
-                <p className="flex items-center gap-2 pl-1 text-sm font-bold text-white/85">
-                  <Check className="h-4 w-4 text-lime" aria-hidden="true" />
-                  {CLINICA.horario}
-                </p>
+                <p className="car-rh-horario">{CLINICA.horario}</p>
               </div>
-            </Reveal>
-          </div>
-        </section>
+            </div>
+          </section>
+        ) : null}
       </main>
 
       <Footer />
@@ -631,9 +606,46 @@ function PaginaCarreiras() {
 }
 
 /**
- * Chip de filtro. Botão de verdade, com `aria-pressed` — o `.rh-chip` já traz
- * borda e peso extra no estado ativo, e o ✓ fecha o terceiro sinal não
- * cromático exigido pela WCAG 1.4.1.
+ * Os canais do RH em uma linha, para o cartão de "nenhuma vaga". Mesma regra do
+ * bloco de contato: com número de RH cadastrado, o link é o dele; sem, é o
+ * WhatsApp geral da clínica — e o rótulo diz qual dos dois é.
+ */
+function CanaisDoRh({
+  className,
+  emailRh,
+  whatsappRh,
+  linkRh,
+}: {
+  className: string;
+  emailRh: string;
+  whatsappRh: string;
+  linkRh: string;
+}) {
+  return (
+    <p className={className}>
+      {emailRh.length > 0 ? (
+        <a href={`mailto:${emailRh}?subject=${encodeURIComponent("Candidatura — site da JP")}`}>
+          <MarcaCoroa />
+          {emailRh}
+        </a>
+      ) : null}
+      <a
+        href={linkRh.length > 0 ? linkRh : whatsappLink(MENSAGEM_WHATSAPP)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <MarcaCoroa />
+        {linkRh.length > 0
+          ? `WhatsApp do RH: ${whatsappRh}`
+          : `WhatsApp da clínica: ${CLINICA.whatsapp}`}
+      </a>
+    </p>
+  );
+}
+
+/**
+ * Chip de filtro. Botão de verdade, com `aria-pressed` — o ✓ fecha o terceiro
+ * sinal não cromático exigido pela WCAG 1.4.1, depois do tom e do peso.
  */
 function ChipFiltro({
   rotulo,
@@ -650,9 +662,9 @@ function ChipFiltro({
       onClick={aoClicar}
       aria-pressed={ativo}
       data-ativo={ativo ? "true" : "false"}
-      className="rh-chip"
+      className="car-chip"
     >
-      {ativo ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : null}
+      {ativo ? <Check aria-hidden="true" /> : null}
       {rotulo}
     </button>
   );

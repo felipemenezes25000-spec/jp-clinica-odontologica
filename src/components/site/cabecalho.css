@@ -1,0 +1,213 @@
+/* O cabeçalho do site — redesenho de 11/2026. Ver Header.tsx. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .cabecalho {
+    view-transition-name: cabecalho;
+    background: var(--chao);
+    color: var(--tinta);
+    transition:
+      transform 420ms var(--ease-in-out),
+      background-color 300ms ease;
+  }
+  .cabecalho[data-escondido] {
+    transform: translateY(-100%);
+  }
+
+  .cabecalho-link {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    gap: 0.45rem;
+    min-height: 2.75rem;
+    padding-inline: 0.8rem;
+    border-radius: 999px;
+    font-size: var(--text-corpo);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--tinta);
+    transition: background-color var(--t-hover) ease;
+  }
+  .cabecalho-link[aria-current] {
+    background: var(--chao-2);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cabecalho-link:hover {
+      background: var(--chao-2);
+    }
+  }
+
+  .cabecalho-situacao {
+    /* Largura fixa, do texto mais longo ("Aberto agora · fecha em 59 min")
+       mais o ponto: a caixa existe vazia no HTML do servidor e o texto entra
+       depois de montar, sem empurrar o menu. */
+    inline-size: 16.25em;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: var(--text-pequeno);
+    font-weight: 500;
+    color: var(--tinta-suave);
+    white-space: nowrap;
+  }
+  .cabecalho-situacao > span {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 999px;
+    background: var(--tinta-suave);
+  }
+  .cabecalho-situacao > span[data-aberto] {
+    background: var(--acento);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cabecalho-situacao > span[data-aberto] {
+      animation: jp-pulsa 2.4s var(--ease-out) infinite;
+    }
+  }
+
+  .cabecalho-telefone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding-inline: 0.7rem;
+    border-radius: 999px;
+    font-size: var(--text-corpo);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--tinta);
+    transition: background-color var(--t-hover) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cabecalho-telefone:hover {
+      background: var(--chao-2);
+    }
+  }
+
+  .cabecalho-acao {
+    min-height: 2.75rem;
+    padding-inline: 1.15rem;
+  }
+
+  @media (width < 40rem) {
+    .cabecalho-acao[data-icone-celular] {
+      width: 2.75rem;
+      padding-inline: 0;
+      justify-content: center;
+    }
+  }
+
+  .cabecalho-menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    justify-content: center;
+    padding-inline: 0.9rem;
+    border-radius: 999px;
+    background: var(--tinta);
+    color: var(--sobre-campo);
+    font-size: var(--text-corpo);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .cabecalho-menu-traco {
+    position: relative;
+    display: block;
+    width: 1.1rem;
+    height: 0.6rem;
+  }
+  .cabecalho-menu-traco::before,
+  .cabecalho-menu-traco::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform var(--t-ui) var(--ease-out);
+  }
+  .cabecalho-menu-traco::before {
+    top: 0;
+  }
+  .cabecalho-menu-traco::after {
+    bottom: 0;
+  }
+  .cabecalho-menu-traco[data-aberto]::before {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .cabecalho-menu-traco[data-aberto]::after {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+
+  /* O painel móvel ocupa a tela abaixo da barra. Fica SEMPRE no DOM (o E2E conta
+     a `nav` de navegação móvel), escondido com `visibility` quando fechado. */
+  .cabecalho-painel {
+    position: fixed;
+    inset: var(--altura-cabecalho) 0 0 0;
+    z-index: 99;
+    background: var(--chao);
+    padding-top: 1.5rem;
+    visibility: hidden;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      clip-path 560ms var(--ease-in-out),
+      visibility 0s linear 560ms;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .cabecalho-painel[data-aberto] {
+    visibility: visible;
+    clip-path: inset(0 0 0% 0);
+    transition:
+      clip-path 620ms var(--ease-in-out),
+      visibility 0s;
+  }
+
+  .cabecalho-painel-lista {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .cabecalho-painel-lista a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.25rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--tinta);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cabecalho-painel-lista li {
+      opacity: 0;
+      transform: translateY(24px);
+      transition:
+        opacity 400ms var(--ease-out),
+        transform 600ms var(--ease-expo);
+    }
+    .cabecalho-painel[data-aberto] .cabecalho-painel-lista li {
+      opacity: 1;
+      transform: none;
+      transition-delay: calc(160ms + var(--i, 0) * 50ms);
+    }
+  }
+}
+
+@keyframes jp-pulsa {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+}

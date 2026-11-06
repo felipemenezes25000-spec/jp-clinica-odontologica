@@ -1,0 +1,84 @@
+/* A animação ilustrativa de um tratamento — ver TreatmentVideo.tsx.
+ *
+ * Mora dentro da coroa, como toda fotografia do site. Sem sombra, sem vidro,
+ * sem degradê: o botão é um círculo chapado e a legenda é texto no chão. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .animacao {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+  }
+  .animacao-moldura {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    background: var(--chao-3);
+  }
+  .animacao-moldura video {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Em repouso o botão é a chamada para reproduzir (centro); tocando, encolhe
+     para o canto de baixo e vira Pausar. Alvo de 44px ou mais nos dois. */
+  .animacao-botao {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition:
+      transform var(--t-press) var(--ease-out),
+      background-color var(--t-hover) ease;
+  }
+  .animacao-botao:active {
+    transform: scale(0.94);
+  }
+  .animacao-botao[data-estado="parado"] {
+    left: 50%;
+    top: 50%;
+    width: 4.25rem;
+    height: 4.25rem;
+    margin: -2.125rem 0 0 -2.125rem;
+    background: var(--acento);
+    color: var(--tinta);
+  }
+  .animacao-botao[data-estado="tocando"] {
+    right: 1rem;
+    bottom: 1rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: var(--campo);
+    color: var(--sobre-campo);
+  }
+  .animacao-botao svg {
+    width: 1.4rem;
+    height: 1.4rem;
+    fill: currentColor;
+  }
+  .animacao-botao[data-estado="parado"] svg {
+    margin-left: 0.15rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .animacao-botao[data-estado="parado"]:hover {
+      background: var(--acento-claro);
+    }
+    .animacao-botao[data-estado="tocando"]:hover {
+      background: var(--campo-marca);
+    }
+  }
+
+  .animacao-legenda {
+    max-width: 52ch;
+    color: var(--tinta-suave);
+  }
+  .animacao-legenda strong {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+}

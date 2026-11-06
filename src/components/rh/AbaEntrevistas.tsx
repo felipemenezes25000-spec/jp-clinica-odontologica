@@ -33,6 +33,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
+
+import { CabecalhoPagina } from "@/components/rh/CabecalhoPagina";
+import { FormaCoroa, MarcaCoroa } from "@/components/site/sistema/Coroa";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowDown,
@@ -47,7 +50,6 @@ import {
   FileText,
   Info,
   ListChecks,
-  NotebookPen,
   Pencil,
   Play,
   Plus,
@@ -94,19 +96,19 @@ const CAMPO =
 const OPCAO = "bg-white text-ink";
 
 const ACAO =
-  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-white/25 " +
-  "bg-white/5 px-3 text-xs font-extrabold text-white transition hover:bg-white/15 " +
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-chao-2 px-4 " +
+  "text-sm font-semibold text-tinta transition hover:bg-chao-3 " +
   "disabled:cursor-not-allowed disabled:opacity-40";
 
 const ACAO_FORTE =
-  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-lime px-3.5 " +
-  "text-xs font-extrabold text-brand-deep transition hover:brightness-110 " +
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-tinta px-4 " +
+  "text-sm font-semibold text-sobre-campo transition hover:bg-campo-marca " +
   "disabled:cursor-not-allowed disabled:opacity-40";
 
 const ACAO_PERIGO =
-  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border " +
-  "border-rose-200/30 bg-rose-300/10 px-3 text-xs font-extrabold text-rose-100 transition " +
-  "hover:bg-rose-300/20 disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-4 " +
+  "bg-(--rh-erro-fundo) text-sm font-semibold text-(--rh-erro-texto) transition " +
+  "hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40";
 
 /* Rótulo pequeno sobre fundo escuro. Branco: sobre verde a letra é branca, e o
    lime fica para o que não é letra — nos cartões `.rh-papel` vale `.rh-rotulo`. */
@@ -152,6 +154,36 @@ function diaDaSemana(iso: string): string {
   const data = new Date(Date.UTC(Number(m[1] ?? ""), Number(m[2] ?? "") - 1, Number(m[3] ?? "")));
   if (Number.isNaN(data.getTime())) return "";
   return DIAS_DA_SEMANA[data.getUTCDay()] ?? "";
+}
+
+const MESES_ABREVIADOS = [
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
+];
+
+/**
+ * "dom., 8 nov · 15h30": dia da semana, dia e mês numa fórmula só. A agenda
+ * mostrava a data inteira e o dia da semana por extenso numa segunda linha
+ * ("08/11/2026 às 15:30 / domingo"), repetindo duas vezes o que uma lê de uma.
+ */
+function quandoCurto(iso: string, hora: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim());
+  if (!m) return "";
+  const semana = diaDaSemana(iso).slice(0, 3).toLowerCase();
+  const mes = MESES_ABREVIADOS[Number(m[2]) - 1] ?? "";
+  const h = /^(\d{1,2}):(\d{2})/.exec(hora.trim());
+  const horario = h ? ` · ${Number(h[1])}h${h[2] === "00" ? "" : (h[2] ?? "")}` : "";
+  return `${semana}., ${Number(m[3])} ${mes}${horario}`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -282,7 +314,7 @@ function estadoDaFicha(item: Candidatura, totalPossivelDoGuia: number): EstadoFi
     return {
       rotulo: "Falhou ao gerar",
       detalhe: "",
-      pilula: "bg-rose-300/15 text-rose-100 ring-1 ring-rose-200/30",
+      pilula: "bg-(--rh-erro-fundo) text-(--rh-erro-texto)",
       concluida: false,
     };
   }
@@ -579,14 +611,15 @@ function GuiaEmBranco(props: { guia: GuiaEntrevista; horario: string; vaga: stri
 /* 1. O guia — leitura                                                        */
 /* -------------------------------------------------------------------------- */
 
-function TituloBloco(props: { id: string; icone: LucideIcon; texto: string }) {
-  const { icone: Icone } = props;
+function TituloBloco(props: { id: string; texto: string }) {
   return (
     <h3
       id={props.id}
-      className="flex items-center gap-2 font-display text-lg font-extrabold text-white"
+      className="flex items-center gap-2.5 font-display text-lg font-extrabold text-white"
     >
-      <Icone className="h-5 w-5 shrink-0 text-lime" aria-hidden="true" />
+      {/* A coroa pequena marca o começo de cada bloco; o ícone de assunto
+          (calendário, balança...) dizia a mesma coisa que o título. */}
+      <MarcaCoroa className="h-4 w-4 shrink-0 text-acento" />
       {props.texto}
     </h3>
   );
@@ -1302,8 +1335,7 @@ function LinhaDaAgenda(props: {
   aoAbrirModoEntrevista: (id: string) => void;
 }) {
   const { item, data, hora, estado } = props.linha;
-  const dia = formatarData(data);
-  const semana = diaDaSemana(data);
+  const quando = quandoCurto(data, hora);
 
   return (
     <li className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.04] p-3">
@@ -1331,12 +1363,10 @@ function LinhaDaAgenda(props: {
       </span>
 
       <span className="min-w-[8.5rem] text-xs font-semibold text-white">
-        {dia.length > 0 ? (
+        {quando.length > 0 ? (
           <>
-            <CalendarDays className="mr-1 inline h-3.5 w-3.5 text-lime" aria-hidden="true" />
-            {dia}
-            {hora.length > 0 ? ` às ${hora}` : ""}
-            {semana.length > 0 ? <span className="block pl-5 text-white/85">{semana}</span> : null}
+            <CalendarDays className="mr-1 inline h-3.5 w-3.5 text-acento" aria-hidden="true" />
+            {quando}
           </>
         ) : (
           <span className="text-white/85">Sem data marcada</span>
@@ -1393,7 +1423,7 @@ function Agenda(props: {
     <section aria-labelledby="rh-agenda-titulo" className="rh-vidro p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <TituloBloco id="rh-agenda-titulo" icone={CalendarClock} texto="Agenda de entrevistas" />
+          <TituloBloco id="rh-agenda-titulo" texto="Agenda de entrevistas" />
           <p className="mt-1 max-w-2xl text-sm font-medium text-white/85">
             Quem tem ficha gerada ou entrevista marcada. A ordem é a do relógio: primeiro o que
             acontece hoje.
@@ -1407,9 +1437,9 @@ function Agenda(props: {
       </div>
 
       {total === 0 ? (
-        <div className="mt-4 rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-8 text-center">
-          <NotebookPen className="mx-auto h-6 w-6 text-white/85" aria-hidden="true" />
-          <p className="mt-2 text-sm font-bold text-white">Nenhuma entrevista por aqui ainda.</p>
+        <div className="rh-vazio mt-4">
+          <FormaCoroa proporcao={0.86} className="rh-vazio__coroa" />
+          <p className="text-base font-semibold text-white">Nenhuma entrevista por aqui ainda.</p>
           <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-relaxed text-white/85">
             A ficha nasce na gaveta da candidata: abra a aba Candidaturas, escolha alguém e mande
             gerar a ficha de entrevista. Ela aparece nesta agenda no mesmo instante — com ou sem dia
@@ -1418,7 +1448,7 @@ function Agenda(props: {
           {/* Link comum, e não navegação do roteador: esta tela não recebe o
               controle de abas do painel, e um <a> honesto leva para o lugar
               certo sem inventar um contrato novo entre os dois componentes. */}
-          <a className={`${ACAO} mt-4`} href="/rh?aba=candidaturas">
+          <a className={ACAO} href="/rh?aba=candidaturas">
             <Eye className="h-4 w-4" aria-hidden="true" />
             Ir para as candidaturas
           </a>
@@ -1940,7 +1970,7 @@ function Comparativo(props: {
     <section aria-labelledby="rh-comparativo-titulo" className="rh-vidro p-4 sm:p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <TituloBloco id="rh-comparativo-titulo" icone={Scale} texto="Comparativo final" />
+          <TituloBloco id="rh-comparativo-titulo" texto="Comparativo final" />
           <p className="mt-1 max-w-2xl text-sm font-medium text-white/85">
             Uma linha por candidata entrevistada, uma coluna por critério deste guia. Clique no
             cabeçalho para reordenar.
@@ -2177,36 +2207,28 @@ export function AbaEntrevistas(props: {
 
   return (
     <section aria-labelledby="rh-entrevistas-titulo" className="space-y-6">
-      <header className="rh-vidro p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h2
-              id="rh-entrevistas-titulo"
-              className="font-display text-2xl font-extrabold leading-tight text-white"
+      <div>
+        <CabecalhoPagina
+          id="rh-entrevistas-titulo"
+          titulo="Entrevistas"
+          texto="O método é da clínica: perguntas, critérios e desempate foram escritos por quem entrevista. É por eles que as fichas são geradas e a decisão é tomada."
+          acao={
+            <button
+              type="button"
+              className="botao botao-acento"
+              onClick={() => {
+                setConfirmando(false);
+                setRascunho(guiaVazio());
+              }}
             >
-              Entrevistas
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm font-medium text-white/85">
-              O método é da clínica: as perguntas, os critérios e as regras de desempate abaixo
-              foram escritos por quem entrevista. É por eles que as fichas são geradas e é por eles
-              que a decisão é tomada.
-            </p>
-          </div>
-          <button
-            type="button"
-            className={ACAO}
-            onClick={() => {
-              setConfirmando(false);
-              setRascunho(guiaVazio());
-            }}
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Novo guia
-          </button>
-        </div>
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Novo guia
+            </button>
+          }
+        />
 
         {props.guias.length > 0 ? (
-          <div className="mt-5 flex flex-wrap items-end gap-3">
+          <div className="mt-2 flex flex-wrap items-end gap-3">
             <div className="min-w-[16rem] flex-1">
               <label className={`${ROTULO_ESCURO} block`} htmlFor="rh-seletor-guia">
                 Guia em uso
@@ -2299,8 +2321,8 @@ export function AbaEntrevistas(props: {
         ) : null}
 
         {confirmando && guia !== null ? (
-          <div className="mt-4 rounded-xl bg-rose-300/10 p-3 ring-1 ring-rose-200/30">
-            <p role="alert" className="text-xs font-bold leading-relaxed text-rose-100">
+          <div className="rh-vaga__confirma mt-4">
+            <p role="alert">
               Excluir “{guia.titulo}” de vez? As fichas já geradas por ele continuam válidas — elas
               guardam o título do método junto —, mas as próximas candidaturas desta área passarão a
               usar outro guia, e as perguntas e critérios escritos aqui não voltam.
@@ -2316,7 +2338,7 @@ export function AbaEntrevistas(props: {
               </button>
               <button
                 type="button"
-                className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-rose-500 px-3 text-xs font-extrabold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rh-vaga__excluir-de-vez"
                 disabled={props.salvando}
                 onClick={() => {
                   setConfirmando(false);
@@ -2329,11 +2351,11 @@ export function AbaEntrevistas(props: {
             </div>
           </div>
         ) : null}
-      </header>
+      </div>
 
       {/* ---- 1. O guia ---- */}
       <section aria-labelledby="rh-guia-titulo" className="rh-vidro p-4 sm:p-5">
-        <TituloBloco id="rh-guia-titulo" icone={NotebookPen} texto="O guia da clínica" />
+        <TituloBloco id="rh-guia-titulo" texto="O guia da clínica" />
 
         <div className="mt-4">
           {rascunho !== null ? (
@@ -2348,16 +2370,18 @@ export function AbaEntrevistas(props: {
               aoSalvar={salvarGuia}
             />
           ) : guia === null ? (
-            <div className="rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-8 text-center">
-              <NotebookPen className="mx-auto h-6 w-6 text-white/85" aria-hidden="true" />
-              <p className="mt-2 text-sm font-bold text-white">Nenhum guia cadastrado.</p>
-              <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-relaxed text-white/85">
-                Sem guia não há ficha: é dele que saem as perguntas, os critérios e a folha que vai
-                para a mesa. Comece pelo método que a clínica já entregou em papel.
-              </p>
+            <div className="rh-vazio">
+              <FormaCoroa proporcao={0.86} className="rh-vazio__coroa" />
+              <div>
+                <h4 className="text-base font-semibold text-white">Nenhum guia cadastrado</h4>
+                <p className="mx-auto mt-1 max-w-lg text-sm font-medium leading-relaxed text-white/85">
+                  Sem guia não há ficha: é dele que saem as perguntas, os critérios e a folha que
+                  vai para a mesa. Comece pelo método que a clínica já entregou em papel.
+                </p>
+              </div>
               <button
                 type="button"
-                className={`${ACAO_FORTE} mt-4`}
+                className="botao botao-acento"
                 disabled={props.salvando}
                 onClick={() => props.aoSalvarGuia(guiaSementeRecepcao())}
               >

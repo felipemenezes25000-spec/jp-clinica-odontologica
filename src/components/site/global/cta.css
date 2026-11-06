@@ -1,0 +1,71 @@
+/* O CTA flutuante — redesenho de 11/2026. Ver FloatingCTA.tsx. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* Barra do celular: lisa. O respiro de baixo é a área segura do aparelho
+     (iPhone com barra de gesto) e o `bottom` sobe pela faixa de cookies. */
+  .cta-barra {
+    bottom: var(--altura-aviso, 0px);
+    padding: 0.625rem var(--margem) max(0.625rem, env(safe-area-inset-bottom));
+  }
+
+  /* Fechar: alvo de 44px (48 no celular) sem desenho de caixa. */
+  .cta-fechar {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    flex: none;
+    border-radius: 999px;
+    color: var(--sobre-campo-suave);
+    transition:
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease,
+      transform var(--t-press) var(--ease-out);
+  }
+  .cta-fechar:active {
+    transform: scale(0.94);
+  }
+  .cta-fechar svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cta-fechar:hover {
+      background: color-mix(in oklab, var(--sobre-campo) 12%, transparent);
+      color: var(--sobre-campo);
+    }
+  }
+
+  /* A pílula do desktop é a única peça do site que flutua de verdade: sombra
+     sutil, e só ela. Entra subindo e some descendo — transform e opacidade. */
+  .cta-pilula {
+    bottom: calc(var(--altura-aviso, 0px) + 1.5rem);
+    box-shadow: 0 14px 36px -18px rgb(3 47 1 / 0.55);
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition:
+      opacity 420ms var(--ease-out),
+      transform 520ms var(--ease-expo),
+      visibility 0s linear 520ms;
+  }
+  .cta-pilula[data-visivel] {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0s;
+  }
+  .cta-pilula .botao {
+    min-height: 3rem;
+  }
+  .cta-pilula .cta-fechar {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cta-pilula {
+      transform: none;
+      transition-duration: 1ms;
+    }
+  }
+}

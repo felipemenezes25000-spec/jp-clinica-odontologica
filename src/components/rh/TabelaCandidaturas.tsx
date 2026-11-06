@@ -427,15 +427,16 @@ function SeletorStatus(props: {
   item: Candidatura;
   aoMoverStatus: (id: string, status: StatusCandidatura) => void;
 }) {
-  const atual = statusPor(props.item.status);
+  /* Sem o ponto colorido de antes: a cor de cada etapa não tinha o mesmo peso
+     (algumas quase invisíveis sobre branco), e a coluna desalinhava 20px de uma
+     linha para outra. O texto do próprio campo já diz a etapa. */
   return (
     <span className="flex items-center gap-2">
-      <span aria-hidden="true" className={`h-2.5 w-2.5 shrink-0 rounded-full ${atual.ponto}`} />
       <select
         value={props.item.status}
         aria-label={`Status de ${props.item.nome || "candidato"}`}
         onChange={(e) => props.aoMoverStatus(props.item.id, e.target.value as StatusCandidatura)}
-        className="h-11 min-w-[8.5rem] rounded-xl border border-border-soft bg-white px-2 text-xs font-semibold text-ink transition-colors hover:border-forest"
+        className="h-11 min-w-[8.5rem] rounded-xl border border-border-soft bg-white px-2 text-sm font-semibold text-ink transition-colors hover:border-forest"
       >
         {STATUS.map((s) => (
           <option key={s.valor} value={s.valor}>

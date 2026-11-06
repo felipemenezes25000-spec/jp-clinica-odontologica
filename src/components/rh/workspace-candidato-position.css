@@ -228,7 +228,7 @@
  */
 .rh-admin .rh-gaveta [id$="-painel"] {
   border-color: color-mix(in oklab, var(--forest) 13%, white) !important;
-  background: #ffffff !important;
+  background: var(--rh-folha) !important;
   color: var(--ink) !important;
   box-shadow: 0 22px 54px -42px rgba(3, 47, 1, 0.42) !important;
 }
@@ -251,7 +251,7 @@
 
 /* Antigas superfícies translúcidas do tema escuro viram apoio neutro claro. */
 .rh-admin .rh-gaveta [id$="-painel"] [class~="bg-black/20"] {
-  background: #ffffff !important;
+  background: var(--rh-folha) !important;
 }
 
 .rh-admin
@@ -264,7 +264,7 @@
     [class~="bg-white/20"],
     [class~="bg-white/[0.07]"]
   ) {
-  background: #f5f8f3 !important;
+  background: var(--chao) !important;
 }
 
 .rh-admin
@@ -296,7 +296,7 @@
 /* Cards de modelo: o texto e a borda precisam continuar nítidos mesmo no hover. */
 .rh-admin .rh-gaveta [id$="-painel"] li > button {
   border: 1px solid color-mix(in oklab, var(--forest) 10%, white);
-  background: #f7faf6 !important;
+  background: var(--chao) !important;
   box-shadow: none;
 }
 
@@ -309,7 +309,7 @@
 /* Editor do texto: branco real, texto escuro e placeholder legível. */
 .rh-admin .rh-gaveta [id$="-painel"] textarea {
   border-color: color-mix(in oklab, var(--forest) 16%, white) !important;
-  background: #ffffff !important;
+  background: var(--rh-folha) !important;
   color: var(--ink) !important;
   caret-color: var(--forest);
 }
@@ -326,7 +326,7 @@
 /* Ação primária continua verde com branco — a conversão acima não pode inverter. */
 .rh-admin .rh-gaveta [id$="-painel"] [class~="bg-forest"],
 .rh-admin .rh-gaveta [id$="-painel"] [class~="bg-forest"] * {
-  color: #ffffff !important;
+  color: var(--rh-folha) !important;
 }
 
 .rh-admin .rh-gaveta [id$="-painel"] [class~="bg-forest"] {

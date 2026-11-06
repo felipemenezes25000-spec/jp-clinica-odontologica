@@ -1,0 +1,317 @@
+/* O topo da home — ver Abertura.tsx.
+ *
+ * Três estados, e os três são composições acabadas:
+ *   celular ............ janela em cima (56svh), texto embaixo, tudo no fluxo;
+ *   desktop sem cena ... meia tela de texto, meia de janela (sem JS, reduzir
+ *                        movimento, ou antes de o GSAP chegar);
+ *   desktop com cena ... [data-cena]: a seção fica 2,4 telas alta, o palco gruda
+ *                        e a janela cresce pela máscara em pixels.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .abertura {
+    --vao: clamp(0.75rem, 0.4rem + 1vw, 1.5rem);
+    /* Distância do topo da janela ao cabeçalho: deixa ar para os lobos do eco
+       verde, que sobe 4svh acima dela. */
+    --janela-topo: clamp(2.25rem, 6.5vh, 4.5rem);
+    position: relative;
+    background: var(--chao);
+    color: var(--tinta);
+  }
+
+  .abertura-palco {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: clip;
+    padding-bottom: clamp(3rem, 8vw, 5rem);
+  }
+
+  /* ---- A coroa gigante, chapada, cortada pela borda da tela ---------------- */
+  /* O "eco": a mesma coroa da janela, em verde-maçã chapado, deslocada para a
+     direita e para cima como impressão fora de registro. A caixa é a da
+     janela; o deslocamento é o `translate` (a entrada anima a partir dele). */
+  .abertura-forma {
+    position: absolute;
+    z-index: 0;
+    top: 0.75rem;
+    left: var(--margem);
+    right: var(--margem);
+    height: 56svh;
+    width: auto;
+    color: var(--acento);
+    pointer-events: none;
+    translate: 14px -12px;
+  }
+
+  /* ---- Texto ------------------------------------------------------------- */
+  .abertura-grade {
+    position: relative;
+    z-index: 2;
+    display: grid;
+  }
+  .abertura-texto {
+    padding-top: clamp(2rem, 6vw, 3rem);
+  }
+  .abertura h1 {
+    max-width: 11ch;
+    font-weight: 600;
+  }
+  .abertura-frase {
+    margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    max-width: 34ch;
+    font-size: var(--text-corpo);
+    line-height: 1.5;
+  }
+  .abertura-fatos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.75rem;
+    margin-top: 2.25rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  .abertura-fatos li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .abertura-fatos svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+  }
+  .abertura-fatos strong {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+  .abertura-ponto {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--tinta-suave);
+  }
+  .abertura-ponto[data-aberto] {
+    background: var(--acento);
+  }
+
+  .abertura-lugar {
+    display: none;
+  }
+
+  /* ---- A janela ------------------------------------------------------------ */
+  .abertura-janela {
+    position: relative;
+    z-index: 1;
+    order: -1;
+    width: calc(100% - var(--margem) * 2);
+    height: 56svh;
+    margin: 0.75rem auto 0;
+  }
+  .abertura-moldura {
+    width: 100%;
+    height: 100%;
+    background: var(--chao-3);
+  }
+  .abertura-sobe {
+    position: absolute;
+    inset: 0;
+  }
+  .abertura-sobe img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1600ms ease;
+  }
+  .abertura-sobe img:first-child,
+  .abertura-sobe img[data-ativa] {
+    opacity: 1;
+  }
+  /* Enquanto outra foto está ativa, a primeira some; sem nenhuma ativa (antes
+     do JS), ela fica. */
+  .abertura-sobe:has(img[data-ativa]:not(:first-child)) img:first-child {
+    opacity: 0;
+  }
+
+  .abertura-cartela {
+    display: none;
+  }
+
+  /* ---- Entrada: a foto sobe dentro da coroa; a coroa verde chega de lado ---- */
+  @media (prefers-reduced-motion: no-preference) {
+    .abertura-sobe {
+      transform: translateY(102%);
+      animation: abertura-sobe 1300ms var(--ease-expo) 120ms forwards;
+    }
+    .abertura-sobe img {
+      scale: 1.16;
+      animation: abertura-assenta 1800ms var(--ease-expo) 120ms forwards;
+    }
+    .abertura-forma {
+      opacity: 0;
+      translate: 0 0;
+      animation: abertura-forma 1400ms var(--ease-expo) 420ms forwards;
+    }
+  }
+
+  /* ---- Desktop: meia tela de texto, meia de janela ------------------------ */
+  @media (min-width: 1024px) {
+    .abertura-palco {
+      height: 100svh;
+      min-height: 640px;
+      padding-bottom: 0;
+    }
+    .abertura-grade {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--vao);
+      height: calc(100svh - var(--altura-cabecalho));
+      min-height: calc(640px - var(--altura-cabecalho));
+    }
+    .abertura-texto {
+      align-self: center;
+      padding-top: 0;
+      padding-bottom: clamp(1rem, 4vh, 3rem);
+    }
+    .abertura-lugar {
+      display: block;
+      margin-top: var(--janela-topo);
+      height: 100svh;
+    }
+    .abertura-forma {
+      --eco-x: 4.5vw;
+      --eco-y: -4svh;
+      top: var(--janela-topo);
+      bottom: 0;
+      left: auto;
+      height: auto;
+      right: max(var(--margem), (100% - 1680px) / 2);
+      width: calc((min(100% - var(--margem) * 2, 1680px) - var(--vao)) / 2);
+      translate: var(--eco-x) var(--eco-y);
+    }
+
+    /* Sem cena, a janela fica exatamente onde está o lugar dela na grade. */
+    .abertura-janela {
+      position: absolute;
+      order: 0;
+      margin: 0;
+      top: var(--janela-topo);
+      bottom: 0;
+      right: max(var(--margem), (100% - 1680px) / 2);
+      width: calc((min(100% - var(--margem) * 2, 1680px) - var(--vao)) / 2);
+      height: auto;
+    }
+  }
+
+  /* ---- Desktop com cena, desde o HTML do servidor ---------------------------
+     Quando a cena vai acontecer (desktop, movimento permitido, JS ligado e
+     navegador com `clip-path: shape()`), a seção já nasce no estado inicial
+     dela: alta, palco grudado e a janela do tamanho da tela, recortada por
+     `shape()` na coroa de meia tela. É o mesmo desenho que o JS faz no
+     quadro 0 (`caminhoCoroaPx` com k = 1), com as mesmas contas da grade:
+     `100cqw` é a largura do palco, que é o que o JS mede. Sem isso a janela
+     trocava de caixa depois da hidratação e a home acumulava ~0,2 de CLS.
+     Se o GSAP não carregar, o JS marca `data-sem-cena` e tudo volta à
+     composição parada. Sem `shape()`, a cena continua ligada pelo JS. */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    @supports (clip-path: shape(from 0 0, line to 1px 1px)) {
+      .abertura:not([data-sem-cena]) {
+        height: 240svh;
+      }
+      .abertura:not([data-sem-cena]) .abertura-palco {
+        position: sticky;
+        top: 0;
+        container-type: inline-size;
+      }
+      .abertura:not([data-sem-cena]) .abertura-janela {
+        --cw: calc((min(100cqw - var(--margem) * 2, 1680px) - var(--vao)) / 2);
+        --cx: calc(100cqw - max(var(--margem), (100cqw - 1680px) / 2) - var(--cw));
+        --cy: var(--janela-topo);
+        inset: 0;
+        width: auto;
+        right: 0;
+        clip-path: shape(
+          from var(--cx) 100%,
+          line to var(--cx) calc(var(--cy) + var(--cw) * 0.3),
+          curve to calc(var(--cx) + var(--cw) * 0.27) var(--cy) with var(--cx)
+            calc(var(--cy) + var(--cw) * 0.12) / calc(var(--cx) + var(--cw) * 0.12) var(--cy),
+          curve to calc(var(--cx) + var(--cw) * 0.5) calc(var(--cy) + var(--cw) * 0.11) with
+            calc(var(--cx) + var(--cw) * 0.38) var(--cy) / calc(var(--cx) + var(--cw) * 0.45)
+            calc(var(--cy) + var(--cw) * 0.05),
+          curve to calc(var(--cx) + var(--cw) * 0.73) var(--cy) with
+            calc(var(--cx) + var(--cw) * 0.55) calc(var(--cy) + var(--cw) * 0.05) /
+            calc(var(--cx) + var(--cw) * 0.62) var(--cy),
+          curve to calc(var(--cx) + var(--cw)) calc(var(--cy) + var(--cw) * 0.3) with
+            calc(var(--cx) + var(--cw) * 0.88) var(--cy) / calc(var(--cx) + var(--cw))
+            calc(var(--cy) + var(--cw) * 0.12),
+          line to calc(var(--cx) + var(--cw)) 100%,
+          close
+        );
+      }
+      .abertura:not([data-sem-cena]) .abertura-moldura {
+        position: absolute;
+        inset: 0;
+        clip-path: none !important;
+      }
+    }
+  }
+
+  /* ---- Desktop com cena (ligada pelo JS) ------------------------------------ */
+  .abertura[data-cena] {
+    height: 240svh;
+  }
+  .abertura[data-cena] .abertura-palco {
+    position: sticky;
+    top: 0;
+  }
+  .abertura[data-cena] .abertura-janela {
+    inset: 0;
+    width: auto;
+    right: 0;
+  }
+  /* A máscara agora é o `clip-path: path()` da janela, desenhado pelo JS. */
+  .abertura[data-cena] .abertura-moldura {
+    position: absolute;
+    inset: 0;
+    clip-path: none !important;
+  }
+  .abertura[data-cena] .abertura-cartela {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    left: max(var(--margem), (100% - 1680px) / 2);
+    bottom: clamp(2rem, 6vh, 4rem);
+    max-width: min(34rem, 60vw);
+    padding: 1.5rem 1.75rem;
+    border-radius: var(--raio);
+    background: var(--campo);
+    color: var(--sobre-campo);
+    visibility: hidden;
+  }
+  .abertura[data-cena] .abertura-cartela p {
+    font-weight: 500;
+  }
+}
+
+@keyframes abertura-sobe {
+  to {
+    transform: none;
+  }
+}
+
+@keyframes abertura-assenta {
+  to {
+    scale: 1;
+  }
+}
+
+@keyframes abertura-forma {
+  to {
+    opacity: 1;
+    translate: var(--eco-x, 14px) var(--eco-y, -12px);
+  }
+}

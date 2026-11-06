@@ -9,9 +9,12 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 
+import { FormaCoroa } from "@/components/site/sistema/Coroa";
+import "@/components/site/global/sem-saida.css";
 import { Logo } from "@/components/site/Logo";
-import { SITE_URL } from "@/lib/jp";
+import { CLINICA, SITE_URL } from "@/lib/jp";
 import appCss from "../styles.css?url";
+import fonteLatin from "@/assets/fontes/bricolage-latin.woff2?url";
 import { RastreioDeContato } from "@/components/site/RastreioDeContato";
 import { AvisoDeCookies } from "@/components/site/AvisoDeCookies";
 import {
@@ -22,70 +25,97 @@ import {
 } from "@/lib/analytics/scripts";
 
 /**
- * Shared shell for the 404 and error boundaries. Both are dead ends, so they
- * carry the brand rather than a system-default page: dark forest field, the
- * oversized mark of the clinic as a watermark, and a single obvious way out.
+ * A moldura dos dois becos sem saída (404 e erro). Eles levam a marca em vez de
+ * uma página padrão do navegador: campo escuro, uma coroa gigante chapada
+ * cortada pela borda de baixo — a mesma forma do topo da home — e um caminho
+ * óbvio de volta.
+ *
+ * Não monta o cabeçalho, então a entrada é CSS puro (`data-chega`), que roda
+ * sem esperar o motor de movimento.
  */
 function DeadEnd({
-  eyebrow,
   headline,
   body,
   children,
 }: {
-  eyebrow: string;
   headline: ReactNode;
   body: string;
   children: ReactNode;
 }) {
   return (
-    <div className="relative isolate flex min-h-dvh items-center overflow-hidden bg-brand-deep px-5 py-20 text-white">
-      {/* O "JP" daqui era redigitado em Bricolage. Agora é o símbolo da marca —
-          o mesmo desenho do cabeçalho, do favicon e do rodapé. Como ele é feito
-          de traço, e não de massa cheia como a letra era, precisa de mais opacidade
-          para render a mesma presença. */}
-      <Logo
-        variante="simbolo"
-        fundo="escuro"
-        altura={700}
-        className="pointer-events-none absolute -right-[10vw] top-1/2 h-[min(88vh,42rem)] w-auto -translate-y-1/2 opacity-[.09]"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-lime/15 blur-[110px]"
-      />
+    <main
+      id="conteudo"
+      className="site campo-escuro sem-saida relative isolate flex min-h-dvh items-start overflow-hidden md:items-center"
+    >
+      {/* Verde institucional atrás do texto no celular (contraste do texto
+          manda); acento cheio no desktop, onde ela fica ao lado, sem texto
+          por cima. */}
+      <FormaCoroa proporcao={1} className="sem-saida-coroa text-campo-marca md:text-acento" />
 
-      <div className="jp-container relative z-10">
-        <div className="eyebrow text-lime">
-          <span className="h-2 w-2 rounded-full bg-lime" />
-          {eyebrow}
-        </div>
-        <h1 className="mt-6 max-w-3xl font-display text-[clamp(3rem,9vw,7rem)] font-black leading-[.82] tracking-[-.07em]">
+      <a
+        href="/"
+        aria-label={`${CLINICA.nome} — início`}
+        className="absolute left-[var(--margem)] top-6 z-10 inline-flex min-h-11 items-center"
+      >
+        <Logo variante="lockup" fundo="escuro" altura={48} alt="" className="h-12 w-auto" />
+      </a>
+
+      <div className="quadro relative z-10 py-28">
+        <h1 data-chega className="text-display max-w-[11ch] text-sobre-campo">
           {headline}
         </h1>
-        <p className="mt-6 max-w-lg text-base font-medium leading-relaxed text-white/60">{body}</p>
-        <div className="mt-9 flex flex-wrap gap-3">{children}</div>
+        <p
+          data-chega
+          style={{ "--d": "560ms" } as React.CSSProperties}
+          className="text-corpo mt-8 max-w-[44ch] text-sobre-campo-suave"
+        >
+          {body}
+        </p>
+        <div
+          data-chega
+          style={{ "--d": "700ms" } as React.CSSProperties}
+          className="mt-10 flex flex-wrap gap-3"
+        >
+          {children}
+        </div>
+        {/* Quem cai aqui vindo de um anúncio ainda quer falar com a clínica:
+            o contato não depende do resto do site estar de pé, então são
+            links diretos, sem passar pelo rastreio de contato. */}
+        <p
+          data-chega
+          style={{ "--d": "840ms" } as React.CSSProperties}
+          className="text-pequeno mt-8 text-sobre-campo-suave"
+        >
+          Prefere falar agora?{" "}
+          <a href={CLINICA.telefoneHref} className="font-semibold text-sobre-campo underline">
+            {CLINICA.telefone}
+          </a>
+        </p>
       </div>
-    </div>
+    </main>
   );
 }
 
 function NotFoundComponent() {
   return (
     <DeadEnd
-      eyebrow="Erro 404"
-      headline={
-        <>
-          ESTA PÁGINA <span className="text-lime">NÃO EXISTE.</span>
-        </>
-      }
+      headline="Esta página não existe."
       body="O endereço pode ter mudado ou sido digitado com algum caractere a mais. O caminho de volta está logo abaixo."
     >
-      <Link to="/" className="button-primary">
+      <Link to="/" className="botao botao-acento">
         Voltar para o início
       </Link>
-      <Link to="/" hash="tratamentos" className="button-ghost-light">
+      <Link to="/" hash="tratamentos" className="botao botao-claro">
         Ver tratamentos
       </Link>
+      <a
+        href={CLINICA.whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="botao botao-claro"
+      >
+        Falar no WhatsApp
+      </a>
     </DeadEnd>
   );
 }
@@ -96,12 +126,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
 
   return (
     <DeadEnd
-      eyebrow="Algo saiu do lugar"
-      headline={
-        <>
-          ESTA PÁGINA <span className="text-lime">NÃO CARREGOU.</span>
-        </>
-      }
+      headline="Esta página não carregou."
       body="Foi uma falha do nosso lado, não sua. Tentar de novo costuma resolver — e o WhatsApp da clínica continua funcionando normalmente."
     >
       <button
@@ -110,12 +135,20 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
           router.invalidate();
           reset();
         }}
-        className="button-primary"
+        className="botao botao-acento"
       >
         Tentar novamente
       </button>
-      <a href="/" className="button-ghost-light">
+      <a href="/" className="botao botao-claro">
         Ir para o início
+      </a>
+      <a
+        href={CLINICA.whatsappHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="botao botao-claro"
+      >
+        Falar no WhatsApp
       </a>
     </DeadEnd>
   );
@@ -156,6 +189,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      // A Bricolage é a única família do site desde 11/2026, e o H1 do topo
+      // anima linha por linha: sem o preload, as linhas subiriam na fonte de
+      // reserva e trocariam no meio do movimento. Só o subconjunto latin — é
+      // o que uma página em português pede.
+      {
+        rel: "preload",
+        href: fonteLatin,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
       // Sem preconnect nem <link> para o Google: as fontes são servidas da nossa
       // própria origem, de src/assets/fontes. Ver o comentário em _faces.css —

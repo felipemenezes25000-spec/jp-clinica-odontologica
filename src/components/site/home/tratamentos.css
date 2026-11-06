@@ -1,0 +1,178 @@
+/* Tratamentos da home — ver SpecialtiesSection.tsx.
+ *
+ * O cardápio é só tipo e espaço: nenhuma caixa, nenhum filete. O que separa
+ * uma linha da outra é o respiro vertical; o que diz "isto é um link" é a
+ * seta, que anda no hover, e a miniatura em coroa no lugar do marcador.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .tratamentos-lista {
+    position: relative;
+  }
+
+  .tratamentos-itens {
+    display: grid;
+    column-gap: clamp(2rem, 5vw, 6rem);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 768px) {
+    .tratamentos-itens {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .tratamento-link {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    column-gap: 1.125rem;
+    align-items: center;
+    /* A linha inteira é o alvo de toque. */
+    padding-block: 1rem;
+    color: var(--tinta);
+    text-decoration: none;
+  }
+  @media (min-width: 768px) {
+    .tratamento-link {
+      grid-template-columns: 112px minmax(0, 1fr);
+      column-gap: 1.5rem;
+      padding-block: 1.25rem;
+    }
+  }
+
+  /* Miniatura grande de propósito: no celular e no toque é a única foto da
+     seção (a prévia só existe com mouse), então tem de ler como foto. */
+  .tratamento-miniatura {
+    width: 88px;
+  }
+  @media (min-width: 768px) {
+    .tratamento-miniatura {
+      width: 112px;
+    }
+  }
+  .tratamento-miniatura img {
+    transition: transform var(--t-reveal) var(--ease-out);
+  }
+
+  .tratamento-nome {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-corpo);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .tratamento-nome svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+    opacity: 0.55;
+    transition:
+      transform var(--t-ui) var(--ease-out),
+      opacity var(--t-hover) ease;
+  }
+
+  .tratamento-desc {
+    margin-top: 0.4rem;
+    color: var(--tinta-suave);
+    font-size: var(--text-pequeno);
+    line-height: var(--text-pequeno--line-height);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tratamento-link:focus-visible {
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .tratamento-link:hover .tratamento-nome svg,
+    .tratamento-link:focus-visible .tratamento-nome svg {
+      transform: translateX(6px);
+      opacity: 1;
+    }
+    .tratamento-link:hover .tratamento-miniatura img {
+      transform: scale(1.08);
+    }
+  }
+
+  /* ---- A prévia que segue o cursor (só desktop com mouse) -------------------
+     Dois níveis de transform de propósito: o externo é do GSAP (posição e
+     inclinação, quadro a quadro); o interno é CSS (entra e sai com escala e
+     opacidade). Se os dois fossem o mesmo elemento, o GSAP e a transição
+     brigariam pela mesma propriedade. */
+  .tratamentos-previa {
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    left: 0;
+    width: clamp(300px, 23vw, 340px);
+    pointer-events: none;
+    will-change: transform;
+  }
+  .tratamentos-previa-miolo {
+    opacity: 0;
+    transform: scale(0.86);
+    transform-origin: 50% 60%;
+    transition:
+      opacity 220ms ease,
+      transform 460ms var(--ease-expo);
+  }
+  .tratamentos-previa[data-visivel] .tratamentos-previa-miolo {
+    opacity: 1;
+    transform: none;
+  }
+  .tratamentos-previa img {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 320ms ease;
+  }
+  .tratamentos-previa img[data-ativa] {
+    opacity: 1;
+  }
+
+  /* ---- Fecho: outras áreas e o convite -------------------------------------- */
+  .tratamentos-outras {
+    display: grid;
+    gap: 0.75rem 2rem;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (min-width: 640px) {
+    .tratamentos-outras {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1024px) {
+    .tratamentos-outras {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .tratamentos-outras li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: var(--text-corpo);
+    font-weight: 500;
+  }
+  .tratamentos-outras .marca-coroa {
+    color: var(--acento);
+  }
+
+  /* O convite ocupa uma faixa própria: frase à esquerda, botão à direita. */
+  .tratamentos-convite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+    padding: clamp(1.5rem, 1rem + 2vw, 3rem);
+  }
+  .tratamentos-convite p {
+    max-width: 30ch;
+  }
+}

@@ -56,6 +56,7 @@ import { CentralContato } from "@/components/rh/CentralContato";
 import { BlocoFicha } from "@/components/rh/FichaEntrevista";
 import { LeituraIa } from "@/components/rh/LeituraIa";
 import { PainelDuvidas } from "@/components/rh/PainelDuvidas";
+import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { Sanfona, useSanfonas } from "@/components/rh/Sanfona";
 import {
   comLeituraDeDuvida,
@@ -968,12 +969,15 @@ function ConteudoGaveta(props: PropsConteudo) {
               ficava ENTRE o nome e as ações — o canto da gaveta é o único lugar
               onde ninguém procura por ele sem querer. */}
           <div className="flex items-start gap-3">
-            <span
+            {/* Mesmo avatar da lista (a coroa com as iniciais): a pessoa que se
+                abriu é reconhecida pela mesma forma que se clicou. */}
+            <MolduraCoroa
+              proporcao={1}
               aria-hidden="true"
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-lime/15 font-display text-base font-extrabold text-white ring-1 ring-lime/35"
+              className="grid w-14 shrink-0 place-items-center self-start bg-chao-3 text-base font-semibold text-tinta"
             >
-              {iniciais(item.nome) || "?"}
-            </span>
+              <span>{iniciais(item.nome) || "?"}</span>
+            </MolduraCoroa>
 
             <div className="min-w-0 flex-1">
               <h2

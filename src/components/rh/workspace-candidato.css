@@ -87,7 +87,7 @@
     overflow: hidden;
     border-left: 1px solid color-mix(in oklab, var(--forest) 12%, white);
     border-radius: 0;
-    background: #f7f9f6;
+    background: var(--chao);
     box-shadow: -28px 0 70px -54px rgba(3, 47, 1, 0.42);
     --rh-entra-x: 1.25rem;
   }
@@ -155,9 +155,7 @@
     width: 5.35rem !important;
     height: 5.35rem !important;
     border: 1px solid color-mix(in oklab, var(--forest) 14%, white);
-    background:
-      radial-gradient(circle at 30% 25%, white 0%, transparent 42%),
-      color-mix(in oklab, var(--mint) 72%, white) !important;
+    background: var(--chao-3) !important;
     color: var(--forest) !important;
     box-shadow: none;
     font-size: 1.65rem !important;
@@ -166,7 +164,7 @@
   .rh-admin .rh-gaveta > header.rh-scroll h2 {
     font-size: clamp(1.55rem, 1.8vw, 2rem) !important;
     letter-spacing: -0.04em;
-    color: #0d1710 !important;
+    color: var(--tinta) !important;
   }
 
   .rh-admin .rh-gaveta > header.rh-scroll h2 + p {
@@ -254,7 +252,7 @@
 
   .rh-admin .rh-gaveta > div.rh-scroll {
     padding: 1.1rem clamp(1.6rem, 2.5vw, 3rem) 1.8rem !important;
-    background: #f7f9f6;
+    background: var(--chao);
   }
 
   /* Duas colunas, cada uma um contêiner. Ver o comentário no JSX: em GRADE, a
@@ -307,7 +305,7 @@
   .rh-admin .rh-gaveta section[aria-labelledby$="-gestao"] input {
     min-height: 2.75rem !important;
     border-radius: 0.72rem !important;
-    background: #f7faf6 !important;
+    background: var(--chao) !important;
     border-color: color-mix(in oklab, var(--forest) 12%, white) !important;
   }
 
@@ -345,13 +343,7 @@
   .rh-admin .rh-gaveta section.rh-vidro:has([data-sanfona-id*="-criterios"]) {
     padding: 1.15rem !important;
     border-color: color-mix(in oklab, var(--forest) 13%, white);
-    background:
-      radial-gradient(
-        circle at 12% 18%,
-        color-mix(in oklab, var(--mint) 62%, white),
-        transparent 18rem
-      ),
-      linear-gradient(145deg, #ffffff 0%, #fbfdf9 58%, #f5faf3 100%);
+    background: var(--rh-folha);
     box-shadow: 0 24px 54px -46px rgba(3, 47, 1, 0.46);
   }
 
@@ -433,7 +425,7 @@
     box-shadow:
       0 0 0 0.52rem color-mix(in oklab, var(--mint) 74%, white),
       0 16px 32px -28px rgba(3, 47, 1, 0.6);
-    color: #102015 !important;
+    color: var(--tinta) !important;
     font-size: 2.25rem !important;
     line-height: 0.9 !important;
   }
@@ -448,7 +440,7 @@
     > span {
     display: block;
     margin-top: -1.55rem;
-    font-size: 0.78rem !important;
+    font-size: 0.8125rem !important;
     color: var(--ink-soft) !important;
   }
 
@@ -474,7 +466,7 @@
     position: absolute;
     top: 1.15rem;
     right: 1.15rem;
-    font-size: 0.68rem !important;
+    font-size: 0.8125rem !important;
     opacity: 0.72;
   }
 
@@ -558,7 +550,7 @@
     > p[class~="bg-amber-300/10"] {
     padding: 0.58rem 0.72rem !important;
     border-radius: 0.72rem !important;
-    font-size: 0.72rem !important;
+    font-size: 0.8125rem !important;
     line-height: 1.42 !important;
   }
 

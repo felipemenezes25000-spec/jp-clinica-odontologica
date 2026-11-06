@@ -1,0 +1,139 @@
+/* Convênios da home — ver ConveniosSection.tsx.
+ *
+ * Um quadro de ladrilhos de vão curto (8px): o primeiro, em acento, é o título;
+ * os demais são chão (sobre a seção em chão-2), um por convênio; o último, escuro, é o particular.
+ * Sem borda e sem hover de levantar — a hierarquia vem só de tom e de escala.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* A seção é um degrau acima do chão e os ladrilhos voltam ao chão: é o que a
+     separa dos tratamentos, que vêm logo antes no mesmo tom claro. */
+  .convenios-secao {
+    background: var(--chao-2);
+  }
+  .convenios-quadro {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (min-width: 1024px) {
+    .convenios-quadro {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  /* ---- O ladrilho do título -------------------------------------------------- */
+  .convenios-titulo {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 1rem + 2vw, 3rem);
+    border-radius: var(--raio);
+    background: var(--acento);
+    color: var(--tinta);
+  }
+  .convenios-titulo p {
+    max-width: 34rem;
+  }
+  /* O número grande fecha o ladrilho e preenche o que sobraria vazio. */
+  .convenios-contagem {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: auto;
+    padding-top: 0.5rem;
+  }
+  @media (min-width: 1024px) {
+    .convenios-titulo {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+  }
+
+  /* ---- Um ladrilho por convênio ----------------------------------------------- */
+  /* Baixos de propósito: o nome é tudo que o ladrilho diz, e os convênios não
+     devem pesar mais na página do que os tratamentos. Sem coroa em cada um. */
+  .convenio-ladrilho {
+    display: flex;
+    align-items: flex-end;
+    min-height: 5rem;
+    padding: 1rem 1.125rem;
+    border-radius: var(--raio);
+    background: var(--chao);
+    color: var(--tinta);
+  }
+  @media (min-width: 768px) {
+    .convenio-ladrilho {
+      min-height: 7rem;
+      padding: 1.25rem 1.5rem;
+    }
+  }
+  .convenio-nome {
+    font-size: var(--text-corpo);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  @media (min-width: 768px) {
+    .convenio-nome {
+      font-size: var(--text-frase);
+      line-height: var(--text-frase--line-height);
+      letter-spacing: var(--text-frase--letter-spacing);
+    }
+  }
+  .convenio-logo {
+    width: auto;
+    max-width: 100%;
+    height: 44px;
+    object-fit: contain;
+    object-position: left bottom;
+  }
+  @media (min-width: 768px) {
+    .convenio-logo {
+      height: 72px;
+    }
+  }
+
+  /* ---- O ladrilho do particular ----------------------------------------------- */
+  .convenios-particular {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 2rem;
+    align-items: start;
+    padding: clamp(1.5rem, 1rem + 2vw, 3rem);
+    border-radius: var(--raio);
+  }
+  @media (min-width: 1024px) {
+    .convenios-particular {
+      grid-template-columns: 1fr 1.2fr auto;
+      column-gap: clamp(2rem, 5vw, 6rem);
+      align-items: center;
+    }
+  }
+  .convenios-formas {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .convenios-formas li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: var(--text-corpo);
+    font-weight: 500;
+  }
+  .convenios-formas .marca-coroa {
+    color: var(--acento);
+  }
+  .convenios-cta {
+    justify-self: start;
+    white-space: normal;
+    text-align: left;
+  }
+}

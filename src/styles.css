@@ -66,8 +66,43 @@
   --color-mint: var(--mint);
   --color-cream: var(--cream);
   --color-paper: var(--paper);
-  --font-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Uma família só desde o redesenho de 11/2026: Bricolage Grotesque, com tamanho
+   * óptico ligado. Ela faz título e corpo — o eixo `opsz` aperta o desenho nos
+   * tamanhos grandes e abre nos pequenos. Manrope e Inter seguem declaradas em
+   * _faces.css para o CRC, que tem as próprias variáveis de fonte. */
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+
+  /* SISTEMA 2026 — chão, tinta, acento e os dois campos escuros. Ver o bloco
+   * "SISTEMA JP 2026" no fim deste arquivo. */
+  --color-chao: var(--chao);
+  --color-chao-2: var(--chao-2);
+  --color-chao-3: var(--chao-3);
+  --color-tinta: var(--tinta);
+  --color-tinta-suave: var(--tinta-suave);
+  --color-acento: var(--acento);
+  --color-acento-claro: var(--acento-claro);
+  --color-campo: var(--campo);
+  --color-campo-marca: var(--campo-marca);
+  --color-sobre-campo: var(--sobre-campo);
+  --color-sobre-campo-suave: var(--sobre-campo-suave);
+
+  /* AS CINCO MEDIDAS DE TEXTO DO SITE. Não existe sexta: quem precisar de um
+   * tamanho escolhe um destes. `frase` é o teto de uma frase de efeito (36px):
+   * maior que isso vira título e obedece à regra das duas linhas. */
+  --text-pequeno: clamp(0.875rem, 0.84rem + 0.12vw, 0.9375rem);
+  --text-pequeno--line-height: 1.45;
+  --text-corpo: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+  --text-corpo--line-height: 1.55;
+  --text-frase: clamp(1.5rem, 1.05rem + 1.25vw, 2.25rem);
+  --text-frase--line-height: 1.16;
+  --text-frase--letter-spacing: -0.02em;
+  --text-titulo: clamp(2.5rem, 1.35rem + 3.3vw, 4.75rem);
+  --text-titulo--line-height: 0.96;
+  --text-titulo--letter-spacing: -0.04em;
+  --text-display: clamp(2.75rem, 0.5rem + 5.8vw, 7.25rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.045em;
 
   /* O MENOR TAMANHO DE TEXTO DO SITE, e o piso é proposital.
    *
@@ -217,12 +252,8 @@
      teclado não vê anel de foco em lugar nenhum, e a 1.4.11 pede 3:1. O lime
      sobre `--brand-deep` dá 4,96:1, e mesmo no ponto mais claro da aurora
      (o halo lime sobre o gradiente) fica em 3,3:1. */
-  .bg-forest-2 :focus-visible,
   .bg-forest :focus-visible,
   .bg-ink :focus-visible,
-  .hero-noise :focus-visible,
-  .treatment-hero :focus-visible,
-  .section-deep :focus-visible,
   .rh-aurora :focus-visible,
   .rh-gaveta :focus-visible,
   footer :focus-visible {
@@ -267,29 +298,6 @@
   width: min(1320px, 100% - var(--jp-gutter) * 2);
   margin-inline: auto;
 }
-/* 4.5rem de cada lado = 144px entre duas seções vizinhas. Era 7rem, e como
-   o intervalo soma o pb de uma com o pt da outra, dava até 288px — quase um
-   terço da tela de vazio entre um assunto e o seguinte. */
-.jp-section {
-  padding-block: 4.5rem;
-}
-.jp-section-large {
-  padding-block: 6rem;
-}
-@media (max-width: 1024px) {
-  .jp-section {
-    padding-block: 3.5rem;
-  }
-  .jp-section-large {
-    padding-block: 4.5rem;
-  }
-}
-@media (max-width: 640px) {
-  .jp-section,
-  .jp-section-large {
-    padding-block: 3rem;
-  }
-}
 
 /* Mantida: ainda usada por seções que não migraram para a grade nova. */
 .eyebrow {
@@ -311,50 +319,6 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
-.noise {
-  position: relative;
-  isolation: isolate;
-}
-.noise::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.16;
-  background-image:
-    radial-gradient(
-      circle at 20% 20%,
-      color-mix(in oklab, var(--lime) 45%, transparent) 0 1px,
-      transparent 1.2px
-    ),
-    radial-gradient(
-      circle at 80% 50%,
-      color-mix(in oklab, var(--forest) 24%, transparent) 0 1px,
-      transparent 1.3px
-    );
-  background-size:
-    17px 17px,
-    23px 23px;
-  mix-blend-mode: multiply;
-}
-
-.grid-fade {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in oklab, var(--forest) 10%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--forest) 10%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 40px 40px;
-  mask-image: linear-gradient(to bottom, black, transparent 90%);
-}
-
 /* Letra branca no botão principal.
    O preenchimento é o verde institucional (#095902), onde o branco mede
    8.60:1. Foi para lá porque sobre o limão o branco dá 3.00:1 — piso de texto
@@ -366,132 +330,6 @@
    botão da superfície é a borda contra o fundo da seção.
    Remedido em 14/09/2026: os números antigos (1.85:1, 6.41:1, 8.2:1) eram do
    tempo em que --lime era #7bd51c. */
-/* AS TRÊS VARIANTES COMPARTILHAM A MESMA CAIXA, e isso é o ponto.
- *
- * Antes cada uma media diferente: primário 52px no hero e 55px no rodapé, dark
- * 53px, secundário 52px. Mesma classe, alturas diferentes — porque o padding
- * vertical era grande e o `line-height` variava, então o ÍCONE (16px aqui,
- * 18px ali) decidia a altura do botão.
- *
- * Agora o `min-height` manda: padding vertical pequeno, altura mínima fixa. Um
- * botão de uma linha mede sempre 52px, com ou sem ícone, com ícone de qualquer
- * tamanho. O padding continua existindo para o caso do texto quebrar.
- *
- * Dois botões lado a lado com três pixels de diferença é o tipo de coisa que
- * ninguém aponta e todo mundo sente. */
-.button-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  min-height: 3.25rem;
-  padding: 0.5rem 1.35rem;
-  border-radius: 999px;
-  background: var(--forest);
-  border: 1.5px solid var(--lime);
-  color: #ffffff;
-  line-height: 1.15;
-  font-weight: 850;
-  letter-spacing: -0.01em;
-  box-shadow: 0 16px 34px -20px color-mix(in oklab, var(--forest) 75%, black);
-  transition:
-    transform 0.35s var(--ease-out),
-    box-shadow 0.35s var(--ease-out),
-    background 0.35s var(--ease-out);
-}
-.button-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 24px 48px -22px color-mix(in oklab, var(--forest) 75%, black);
-}
-
-.button-dark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  min-height: 3.25rem;
-  padding: 0.5rem 1.35rem;
-  border-radius: 999px;
-  background: var(--forest-2);
-  /* Fundo verde: branco puro. Era --cream (#f7f8f2). */
-  color: white;
-  line-height: 1.15;
-  font-weight: 800;
-  transition:
-    transform 0.35s var(--ease-out),
-    background 0.35s var(--ease-out);
-}
-/* BOTÃO SECUNDÁRIO — a variante que faltava ter nome.
- *
- * Este visual já existia: cápsula branca com borda fina, usado ao lado do CTA
- * principal. Só que escrito à mão, em cadeias de sessenta caracteres de Tailwind
- * repetidas a cada uso — e por isso divergindo: um par vinha com text-sm (14px)
- * ao lado de um primário de 16px, na mesma fileira.
- *
- * Herda a altura, o padding e o raio do primário de propósito: dois botões lado
- * a lado com um pixel de diferença de altura é o tipo de coisa que ninguém
- * aponta e todo mundo sente. */
-.button-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  min-height: 3.25rem;
-  padding: 0.5rem 1.35rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, var(--forest) 14%, transparent);
-  background: #ffffff;
-  color: var(--forest-2);
-  font-size: 1rem;
-  line-height: 1.15;
-  font-weight: 800;
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-.button-secondary:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
-  box-shadow: 0 14px 30px -18px rgba(3, 47, 1, 0.35);
-}
-
-.button-dark:hover {
-  transform: translateY(-3px);
-  background: var(--forest);
-}
-
-.button-ghost-light {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-  min-height: 3.25rem;
-  /* 0.9rem no vertical, e nao 0.85rem: e o mesmo do .button-primary. Com
-     0.85 os dois mediam 53 e 55 — a altura vem de linha (24px) + padding dos
-     dois lados + borda, e 0.8px de diferenca em cada lado viravam 2px na tela.
-     Lado a lado no hero, 2px aparecem. */
-  padding: 0.9rem 1.3rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklab, white 26%, transparent);
-  background: color-mix(in oklab, white 6%, transparent);
-  color: white;
-  font-weight: 750;
-  transition:
-    background 0.35s var(--ease-out),
-    transform 0.35s var(--ease-out);
-}
-.button-ghost-light:hover {
-  background: color-mix(in oklab, white 13%, transparent);
-  transform: translateY(-2px);
-}
-
-.card-premium {
-  border: 1px solid color-mix(in oklab, var(--forest) 10%, white);
-  background: color-mix(in oklab, white 94%, var(--cream));
-  border-radius: 1.7rem;
-  box-shadow: var(--shadow-soft);
-}
 
 .reveal {
   opacity: 0;
@@ -504,227 +342,11 @@
   opacity: 1;
   transform: translateY(0);
 }
-
-@keyframes float-soft {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) rotate(-2deg);
-  }
-  50% {
-    transform: translate3d(0, -10px, 0) rotate(-1deg);
-  }
-}
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.88);
-    opacity: 0.75;
-  }
-  100% {
-    transform: scale(1.45);
-    opacity: 0;
-  }
-}
-
-.hero-noise::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.24;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.2) 0.65px, transparent 0.65px);
-  background-size: 10px 10px;
-  mix-blend-mode: soft-light;
-}
-
-.jp-wave {
-  position: absolute;
-  left: -8%;
-  /* An <svg> is a replaced element: with width:auto, setting both left and right
-     is over-constrained, so the browser sizes it from the intrinsic 1600x220 ratio
-     and drops `right` — leaving a gap at the right edge on wide viewports.
-     An explicit width is what actually makes it span. */
-  width: 116%;
-  bottom: -1px;
-  height: clamp(90px, 13vw, 180px);
-  pointer-events: none;
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  animation: marquee 26s linear infinite;
-}
-
-/* Pausa no hover do mouse e também quando algo dentro recebe foco por teclado.
-   E respeita quem pediu menos movimento: aí o carrossel simplesmente não anima. */
-.marquee:hover .marquee-track,
-.marquee:focus-within .marquee-track {
-  animation-play-state: paused;
-}
 /* Sem animação, um trilho de `width: max-content` continuaria mais largo que a
    tela, e o `overflow-hidden` do contêiner cortaria metade dos convênios — quem
    pediu menos movimento veria menos informação, que é o contrário do combinado.
    Aqui ele deixa de ser trilho e vira grade centrada; a segunda cópia, que só
    existe para a volta parecer contínua, sai junto. */
-@media (prefers-reduced-motion: reduce) {
-  .marquee-track {
-    animation: none;
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 0.75rem;
-  }
-  .marquee-copia {
-    display: none;
-  }
-}
-
-.photo-frame {
-  box-shadow: 0 34px 90px -35px rgba(0, 0, 0, 0.42);
-}
-
-.photo-tilt {
-  animation: float-soft 7s ease-in-out infinite;
-}
-
-.service-card {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  min-height: 19rem;
-  border-radius: 1.5rem;
-  border: 1px solid color-mix(in oklab, var(--forest) 14%, transparent);
-  /* White card that warms toward the bottom-right, so the decorative sweep
-     below reads as light coming from the corner. */
-  /* Pure white against the tinted section: the card reads as a raised surface
-     instead of blending into the background. */
-  background:
-    radial-gradient(
-      130% 100% at 100% 100%,
-      color-mix(in oklab, var(--lime) 11%, transparent) 0%,
-      transparent 55%
-    ),
-    white;
-  color: var(--forest-2);
-  box-shadow: 0 18px 44px -30px oklch(0.18 0.08 145 / 0.4);
-  transition:
-    transform 0.45s var(--ease-out),
-    border-color 0.45s var(--ease-out),
-    box-shadow 0.45s var(--ease-out);
-}
-/* Soft lime sweep in the bottom-right corner. */
-.service-card::after {
-  content: "";
-  position: absolute;
-  right: -26%;
-  bottom: -48%;
-  width: 21rem;
-  height: 21rem;
-  border-radius: 50% 50% 50% 50% / 58% 58% 42% 42%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in oklab, var(--lime) 72%, transparent),
-    transparent 74%
-  );
-  opacity: 0.3;
-  filter: blur(7px);
-  transition:
-    transform 0.55s var(--ease-out),
-    opacity 0.55s var(--ease-out);
-  z-index: -1;
-}
-/* Thin arc that gives the sweep an edge — clipped by the card's overflow. */
-.service-card::before {
-  content: "";
-  position: absolute;
-  right: -9rem;
-  bottom: -13rem;
-  width: 27rem;
-  height: 27rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  border-top-color: color-mix(in oklab, var(--primary) 30%, transparent);
-  border-right-color: color-mix(in oklab, var(--primary) 18%, transparent);
-  transition: transform 0.55s var(--ease-out);
-  z-index: -1;
-}
-.service-card:hover {
-  transform: translateY(-7px);
-  border-color: color-mix(in oklab, var(--primary) 42%, transparent);
-  box-shadow: var(--shadow-lift);
-}
-.service-card:hover::after {
-  transform: scale(1.25) translate(-8%, -8%);
-  opacity: 0.46;
-}
-.service-card:hover::before {
-  transform: translate(-1.2rem, -1.2rem);
-}
-
-/* Card text area: the description replaces the prompt on hover.
-   Both children are stacked absolutely inside a fixed-height box, so swapping
-   them never shifts the layout. */
-.card-swap {
-  position: relative;
-  min-height: 6.5rem;
-}
-.card-swap > * {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-}
-
-/* Default (no hover available — touch): show the description outright.
-   A "hover to learn more" prompt on a phone is a dead end. */
-.card-swap .swap-prompt {
-  opacity: 0;
-  pointer-events: none;
-}
-.card-swap .swap-body {
-  opacity: 1;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .card-swap .swap-prompt,
-  .card-swap .swap-body {
-    transition:
-      opacity 0.3s var(--ease-out),
-      transform 0.3s var(--ease-out);
-  }
-  .card-swap .swap-prompt {
-    opacity: 1;
-  }
-  .card-swap .swap-body {
-    opacity: 0;
-    transform: translateY(7px);
-  }
-  /* focus-within keeps this reachable by keyboard, not just by pointer. */
-  .service-card:hover .swap-prompt,
-  .service-card:focus-within .swap-prompt {
-    opacity: 0;
-  }
-  .service-card:hover .swap-body,
-  .service-card:focus-within .swap-body {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card-swap .swap-body {
-    transform: none;
-  }
-}
 
 /* Makes the whole card clickable from one link, without nesting interactive
    elements inside an anchor (which is invalid and breaks keyboard order). */
@@ -733,45 +355,6 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-}
-
-/* Lime CTA on a light surface: a ring plus a grounded drop shadow. A wide glow
-   would wash out against cream instead of separating the button from it. */
-.button-glow {
-  box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent),
-    0 14px 30px -12px color-mix(in oklab, var(--forest) 55%, transparent),
-    0 4px 12px -6px color-mix(in oklab, var(--forest) 35%, transparent);
-}
-
-.gallery-card img {
-  transition:
-    transform 0.8s var(--ease-out),
-    filter 0.8s var(--ease-out);
-}
-.gallery-card:hover img {
-  transform: scale(1.045);
-  filter: saturate(1.04) contrast(1.02);
-}
-
-.big-outline {
-  color: transparent;
-  -webkit-text-stroke: 1px color-mix(in oklab, white 24%, transparent);
-  text-stroke: 1px color-mix(in oklab, white 24%, transparent);
-}
-
-.section-number {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.07em;
-}
-
-@media (max-width: 639px) {
-  .photo-tilt {
-    animation: none;
-  }
-  .marquee-track {
-    animation-duration: 34s;
-  }
 }
 
 /* =========================================================
@@ -787,366 +370,20 @@
   --scroll-y: 0px;
 }
 
-.scroll-progress {
-  position: fixed;
-  inset: 0 0 auto 0;
-  z-index: 120;
-  height: 3px;
-  transform-origin: left center;
-  transform: scaleX(var(--scroll-progress));
-  background: linear-gradient(90deg, var(--lime), color-mix(in oklab, var(--lime) 70%, white));
-  box-shadow: 0 0 22px color-mix(in oklab, var(--lime) 72%, transparent);
-  pointer-events: none;
-}
-
-.cursor-aura {
-  position: fixed;
-  z-index: 1;
-  left: var(--pointer-x);
-  top: var(--pointer-y);
-  width: 32rem;
-  height: 32rem;
-  border-radius: 999px;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(
-    circle,
-    color-mix(in oklab, var(--lime) 10%, transparent) 0,
-    transparent 66%
-  );
-  pointer-events: none;
-  mix-blend-mode: multiply;
-  opacity: 0.65;
-  transition: opacity 0.3s ease;
-}
-
-.hero-depth {
-  transform-style: preserve-3d;
-  transform: perspective(1200px) rotateX(calc(var(--pointer-ny) * -2.2deg))
-    rotateY(calc(var(--pointer-nx) * 3deg));
-  transition: transform 0.18s linear;
-  will-change: transform;
-}
-
-.hero-depth::after,
-.depth-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--pointer-x) var(--pointer-y),
-    rgba(255, 255, 255, 0.16),
-    transparent 34%
-  );
-  opacity: 0.55;
-  mix-blend-mode: soft-light;
-}
-
-.hero-word {
-  transform: translateY(115%);
-  opacity: 0;
-  animation: hero-word-in 0.9s var(--ease-out) forwards;
-  transform-origin: left bottom;
-}
-.hero-word-1 {
-  animation-delay: 0.08s;
-}
-.hero-word-2 {
-  animation-delay: 0.18s;
-}
-.hero-word-3 {
-  animation-delay: 0.28s;
-}
-
-@keyframes hero-word-in {
-  from {
-    transform: translateY(115%) skewY(5deg);
-    opacity: 0;
-    filter: blur(8px);
-  }
-  to {
-    transform: translateY(0) skewY(0);
-    opacity: 1;
-    filter: blur(0);
-  }
-}
-
-.section-transition {
-  position: relative;
-  isolation: isolate;
-}
-
-.section-transition::before {
-  content: "";
-  position: absolute;
-  z-index: 4;
-  inset: -1px 0 auto 0;
-  height: clamp(32px, 5vw, 78px);
-  pointer-events: none;
-  background: linear-gradient(
-    110deg,
-    transparent 0 14%,
-    color-mix(in oklab, var(--lime) 20%, transparent) 14.2% 14.6%,
-    transparent 14.8% 100%
-  );
-  opacity: 0.75;
-  clip-path: polygon(0 0, 100% 0, 100% 10%, 78% 82%, 58% 22%, 35% 72%, 0 20%);
-}
-
 @supports (animation-timeline: view()) {
-  .section-transition > .jp-container,
-  .section-transition > div > .jp-container {
-    animation: section-cinema linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 28%;
-  }
-  @keyframes section-cinema {
-    from {
-      opacity: 0.25;
-      transform: translateY(55px) scale(0.985);
-      filter: blur(6px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0);
-    }
-  }
-}
-
-.depth-card {
-  position: relative;
-  transform-style: preserve-3d;
-  transform: perspective(1200px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
-  transition:
-    transform 0.2s ease-out,
-    filter 0.35s var(--ease-out);
-  will-change: transform;
-}
-.depth-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    rgba(255, 255, 255, 0.2),
-    transparent 38%
-  );
-  opacity: 0.42;
-  mix-blend-mode: soft-light;
-}
-.depth-card:hover {
-  filter: saturate(1.03);
-}
-.depth-glow {
-  position: absolute;
-  z-index: -1;
-  inset: 12% -8% -8% 12%;
-  border-radius: 3rem;
-  background: color-mix(in oklab, var(--lime) 24%, transparent);
-  filter: blur(70px);
-  transform: translateZ(-60px);
-}
-
-.treatment-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(
-      circle at var(--pointer-x) var(--pointer-y),
-      color-mix(in oklab, var(--lime) 14%, transparent),
-      transparent 32%
-    ),
-    linear-gradient(
-      90deg,
-      transparent 0 49.95%,
-      rgba(255, 255, 255, 0.035) 50% 50.05%,
-      transparent 50.1%
-    );
-}
-
-.treatment-orbit {
-  position: absolute;
-  right: -14rem;
-  top: 7rem;
-  width: min(52vw, 54rem);
-  aspect-ratio: 1;
-  opacity: 0.5;
-  pointer-events: none;
-  transform: translate3d(calc(var(--pointer-nx) * -18px), calc(var(--pointer-ny) * -18px), 0);
-  transition: transform 0.22s linear;
-}
-.treatment-orbit span {
-  position: absolute;
-  inset: 0;
-  border: 1px solid color-mix(in oklab, var(--lime) 24%, transparent);
-  border-radius: 50%;
-}
-.treatment-orbit span:nth-child(2) {
-  inset: 13%;
-  animation: orbit-spin 18s linear infinite reverse;
-  border-style: dashed;
-}
-.treatment-orbit span:nth-child(3) {
-  inset: 29%;
-  animation: orbit-spin 14s linear infinite;
-}
-.treatment-orbit span:nth-child(3)::after {
-  content: "";
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--lime);
-  box-shadow: 0 0 28px var(--lime);
-}
-@keyframes orbit-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.treatment-visual {
-  transform: perspective(1300px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
-}
-
-.process-stage::after {
-  content: "JP";
-  position: absolute;
-  right: -3vw;
-  bottom: -8vw;
-  font: 900 clamp(16rem, 34vw, 38rem)/0.7 var(--font-display);
-  letter-spacing: -0.14em;
-  color: transparent;
-  /* Ornamentos em branco, acompanhando o texto da seção. */
-  -webkit-text-stroke: 1px color-mix(in oklab, white 26%, transparent);
-  pointer-events: none;
-}
-.process-orbit {
-  position: absolute;
-  width: 28rem;
-  height: 28rem;
-  border: 1px solid color-mix(in oklab, white 22%, transparent);
-  border-radius: 50%;
-  left: -14rem;
-  top: 20%;
-  box-shadow:
-    0 0 0 5rem color-mix(in oklab, white 6%, transparent),
-    0 0 0 10rem color-mix(in oklab, white 4%, transparent);
-}
-.process-card {
-  transition:
-    transform 0.5s var(--ease-out),
-    background 0.5s var(--ease-out),
-    box-shadow 0.5s var(--ease-out);
-}
-.process-card:hover {
-  transform: translateY(-8px) rotate(-0.5deg);
-  /* Escurece no hover, não clareia. O card virou verde-escuro translúcido para
-     o texto branco ter contraste; clarear no hover, como antes, derrubaria a
-     leitura justamente no card que a pessoa está mirando. */
-  background: color-mix(in oklab, var(--brand-deep) 62%, transparent);
-  box-shadow: 0 28px 70px -38px rgba(4, 50, 24, 0.42);
-}
-
-/* Magnetic-feeling links without JS: icon and text separate in depth on hover */
-.button-primary svg,
-.button-dark svg,
-.button-ghost-light svg {
-  transition: transform 0.35s var(--ease-out);
-}
-.button-primary:hover svg:last-child,
-.button-dark:hover svg:last-child,
-.button-ghost-light:hover svg:last-child {
-  transform: translate(3px, -3px) rotate(4deg);
 }
 
 /* Mobile polish: cinematic, but never at the cost of usability */
 @media (max-width: 767px) {
-  .cursor-aura {
-    display: none;
-  }
-  .hero-depth {
-    transform: none;
-    transition: none;
-  }
-  .treatment-hero {
-    min-height: auto;
-  }
-  .treatment-orbit {
-    width: 34rem;
-    right: -24rem;
-    top: 8rem;
-    opacity: 0.28;
-  }
-  .depth-card {
-    transform: none !important;
-  }
-  .depth-card::before {
-    display: none;
-  }
-  .section-transition::before {
-    opacity: 0.38;
-    height: 34px;
-  }
-  .process-card {
-    min-height: 250px;
-  }
   body {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
 @media (max-width: 767px) {
-  .button-primary,
-  .button-dark,
-  .button-ghost-light {
+  .button-primary {
     width: 100%;
     padding-inline: 1rem;
-  }
-  .treatment-hero h1 {
-    overflow-wrap: anywhere;
-  }
-}
-
-@media (hover: none) {
-  .cursor-aura {
-    display: none;
-  }
-  .hero-depth {
-    transform: none;
-  }
-  .depth-card {
-    transform: none !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scroll-progress {
-    display: none;
-  }
-  .cursor-aura {
-    display: none;
-  }
-  .hero-word {
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-  .treatment-orbit span {
-    animation: none !important;
-  }
-  .hero-depth,
-  .depth-card {
-    transform: none !important;
   }
 }
 
@@ -1155,24 +392,6 @@
 }
 
 /* ---- Visual system approved for the JP redesign ---- */
-.section-light {
-  background:
-    radial-gradient(circle at 9% 10%, rgba(86, 168, 5, 0.08), transparent 24rem),
-    radial-gradient(circle at 92% 86%, rgba(9, 89, 2, 0.07), transparent 26rem), var(--paper);
-}
-.section-deep {
-  background:
-    radial-gradient(circle at 12% 8%, rgba(86, 168, 5, 0.12), transparent 28rem),
-    linear-gradient(135deg, #011600 0%, #022400 52%, #032f01 100%);
-}
-.section-mid {
-  background:
-    radial-gradient(circle at 12% 5%, rgba(86, 168, 5, 0.18), transparent 27rem),
-    linear-gradient(135deg, #0b5a02 0%, #053901 48%, #032f01 100%);
-}
-.jp-hairline {
-  border-color: rgba(9, 89, 2, 0.14);
-}
 .jp-soft-card {
   border: 1px solid rgba(9, 89, 2, 0.11);
   background: rgba(255, 255, 255, 0.94);
@@ -1184,12 +403,6 @@
   box-shadow: 0 24px 70px -45px rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-}
-.sticky-booking-shell {
-  pointer-events: none;
-}
-.sticky-booking-shell > * {
-  pointer-events: auto;
 }
 @media (min-width: 768px) {
   body {
@@ -1279,25 +492,6 @@
   );
   background-size: 7px 7px;
   mix-blend-mode: soft-light;
-}
-
-/* Malha do hero do formulário público. A máscara some para baixo para a grade
-   não competir com o primeiro campo do formulário, que começa logo abaixo. */
-.rh-grade {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in oklab, var(--forest) 9%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      to bottom,
-      color-mix(in oklab, var(--forest) 9%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 40px 40px;
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 88%);
-  mask-image: linear-gradient(to bottom, black 0%, transparent 88%);
 }
 
 /* Cartão de vidro sobre fundo escuro. A borda é lime translúcido: sobre o
@@ -1488,62 +682,6 @@ textarea.rh-campo {
   box-shadow: inset 0 0 0 1px var(--lime);
 }
 
-/* Cartão grande de escolha (área da vaga, tipo de vínculo). */
-.rh-cartao-opcao {
-  position: relative;
-  isolation: isolate;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  overflow: hidden;
-  width: 100%;
-  padding: 1.1rem;
-  border: 1px solid var(--rh-borda);
-  border-radius: 1.1rem;
-  background: white;
-  color: var(--ink);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.3s var(--ease-out),
-    box-shadow 0.3s var(--ease-out),
-    transform 0.3s var(--ease-out);
-}
-/* Brilho lime no canto. Fica em z-index negativo para nunca passar por cima do
-   texto, e só ganha opacidade quando o cartão está ativo. */
-.rh-cartao-opcao::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  top: -6rem;
-  right: -6rem;
-  width: 12rem;
-  height: 12rem;
-  border-radius: 999px;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in oklab, var(--lime) 55%, transparent),
-    transparent 72%
-  );
-  opacity: 0;
-  transition: opacity 0.35s var(--ease-out);
-}
-.rh-cartao-opcao:hover {
-  border-color: var(--rh-borda-forte);
-  box-shadow: var(--rh-sombra-baixa);
-  transform: translateY(-2px);
-}
-.rh-cartao-opcao[data-ativo="true"] {
-  border-color: var(--forest);
-  box-shadow:
-    inset 0 0 0 1px var(--forest),
-    var(--rh-sombra-baixa);
-}
-.rh-cartao-opcao[data-ativo="true"]::after {
-  opacity: 0.28;
-  animation: rh-brilho 2.6s var(--ease-out) infinite;
-}
-
 /* Área de upload. A borda tracejada é o sinal de "solte aqui" antes de
    qualquer texto; os dois estados mudam borda e fundo juntos porque o cursor
    arrastando um arquivo cobre boa parte da área. */
@@ -1606,66 +744,7 @@ textarea.rh-campo {
   transition: width 0.45s var(--ease-out);
 }
 
-/* Bolinha numerada do stepper. */
-.rh-passo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: 1px solid var(--rh-borda);
-  border-radius: 999px;
-  background: white;
-  color: var(--ink-soft);
-  font-size: 0.8rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  transition:
-    background 0.25s var(--ease-out),
-    border-color 0.25s var(--ease-out),
-    color 0.25s var(--ease-out);
-}
-.rh-passo[data-estado="feito"] {
-  border-color: var(--forest);
-  background: var(--forest);
-  color: white;
-}
-/* O passo atual é o único com anel externo, então dá para localizá-lo sem
-   comparar tonalidades entre as bolinhas. */
-.rh-passo[data-estado="atual"] {
-  border-color: var(--forest);
-  background: color-mix(in oklab, var(--mint) 90%, white);
-  color: var(--ink);
-  box-shadow: 0 0 0 4px var(--rh-anel);
-  animation: rh-pulso 2.4s var(--ease-out) infinite;
-}
-.rh-passo[data-estado="futuro"] {
-  background: var(--cream);
-}
-
 /* ---- Painel admin ---- */
-
-.rh-kpi {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 1rem 1.1rem;
-  border: 1px solid color-mix(in oklab, var(--lime) 22%, transparent);
-  border-radius: 1.1rem;
-  background: color-mix(in oklab, var(--brand-deep) 55%, transparent);
-  color: color-mix(in oklab, white 88%, var(--mint));
-}
-/* tabular-nums para o número não dançar quando o valor troca em tempo real
-   (12 → 137 → 9); clamp para caber nos 360px sem quebrar linha. */
-.rh-kpi strong {
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 7vw, 2.25rem);
-  font-variant-numeric: tabular-nums;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  color: white;
-}
 
 /* Alvo de clique que muda com o apontador.
    A regra dos 44px do projeto nasceu do celular da recepção, e está certa lá.
@@ -1676,17 +755,9 @@ textarea.rh-campo {
 .rh-alvo-toque {
   min-height: 2.25rem;
 }
-.rh-acao-cartao {
-  height: 2.25rem;
-  width: 2.25rem;
-}
 @media (pointer: coarse) {
   .rh-alvo-toque {
     min-height: 2.75rem;
-  }
-  .rh-acao-cartao {
-    height: 2.75rem;
-    width: 2.75rem;
   }
 }
 
@@ -1704,29 +775,6 @@ textarea.rh-campo {
   height: min(72dvh, 44rem);
 }
 
-/* Coluna do kanban: CRESCE para ocupar a largura que as colunas recolhidas
-   devolveram, e tem rolagem própria — assim as colunas ficam alinhadas mesmo
-   quando uma tem trinta candidatos e a vizinha tem dois. */
-.rh-coluna {
-  display: flex;
-  /* CRESCE, mas NÃO ENCOLHE. Com `shrink: 1` (o padrão), oito colunas de
-     17,5rem num quadro de 1560px seriam espremidas para 183px cada e ninguém
-     leria nome nenhum. Sem encolher, a largura extra que as etapas recolhidas
-     devolveram vai para quem tem gente — e, com o funil inteiro cheio, volta a
-     rolagem horizontal, que é a resposta certa para oito colunas de verdade. */
-  flex: 1 0 17.5rem;
-  flex-direction: column;
-  min-width: 0;
-  /* Sem isto a coluna cresce com o conteúdo e a rolagem interna nunca começa. */
-  min-height: 0;
-  border: 1px solid color-mix(in oklab, var(--lime) 16%, transparent);
-  border-radius: 1.1rem;
-  background: color-mix(in oklab, var(--brand-deep) 62%, transparent);
-  transition:
-    border-color 0.2s var(--ease-out),
-    background 0.2s var(--ease-out);
-}
-
 /* ---- Coluna recolhida (o trilho) ----
    O funil tem OITO etapas, e 8 x 280px = 2324px: em 1920 o RH via 5,7 colunas
    e "Contratado" ficava cortado pela borda. Na clínica, seis dessas etapas
@@ -1734,107 +782,6 @@ textarea.rh-campo {
    escrever "Ninguém em triagem".
    Recolhida ela vira uma fita de 3,25rem que continua sendo etapa visível e
    alvo de arrasto; a largura devolvida vai para as colunas que têm gente. */
-.rh-coluna-trilho {
-  flex: 0 0 3.25rem;
-}
-.rh-trilho-botao {
-  display: flex;
-  height: 100%;
-  width: 100%;
-  cursor: pointer;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  border-radius: 1.1rem;
-  padding: 0.8rem 0;
-  transition: background 0.2s var(--ease-out);
-}
-.rh-trilho-botao:hover {
-  background: color-mix(in oklab, var(--lime) 10%, transparent);
-}
-/* De cima para baixo, na mesma direção em que a coluna é lida. `min-height: 0`
-   deixa o texto encolher em vez de estourar a fita numa janela baixa. */
-.rh-trilho-rotulo {
-  min-height: 0;
-  overflow: hidden;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  writing-mode: vertical-rl;
-}
-/* Cabeçalho opaco por cima do corpo rolável: translúcido, os cartões passariam
-   legíveis por baixo do título da coluna. */
-.rh-coluna-topo {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.75rem 0.9rem;
-  border-bottom: 1px solid color-mix(in oklab, var(--lime) 14%, transparent);
-  border-radius: 1.1rem 1.1rem 0 0;
-  background: color-mix(in oklab, var(--brand-deep) 92%, black);
-}
-/* GRADE, e não pilha.
-   Quando as etapas vazias recolhem, a coluna "Novo" fica com quase toda a
-   largura do quadro — e uma pilha de uma carta por linha desperdiçava isso: a
-   mesma faixa que cabem quatro cartas mostrava uma. Com `auto-fill` a carta
-   nunca fica mais estreita que 16rem (o ponto em que nome de gente começa a
-   quebrar feio) e o número de colunas sai da largura que a coluna tem naquele
-   momento — 4 numa coluna sozinha, 1 quando o funil inteiro está cheio.
-   `align-content: start` impede que três cartas fiquem espalhadas verticalmente
-   quando sobra altura. */
-.rh-coluna-corpo {
-  display: grid;
-  align-content: start;
-  gap: 0.6rem;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  min-height: 0;
-  overflow-y: auto;
-  padding: 0.7rem;
-}
-/* A frase de coluna vazia atravessa a grade inteira: numa coluna larga ela
-   ficaria numa coluninha de 16rem com três buracos ao lado. */
-.rh-coluna-corpo > .rh-coluna-vazia {
-  grid-column: 1 / -1;
-}
-.rh-coluna[data-drop="true"] {
-  border-color: var(--lime);
-  background: color-mix(in oklab, var(--forest) 45%, var(--brand-deep));
-}
-/* O tracejado interno marca o alvo do solte melhor que só a mudança de fundo,
-   que a esta altura está parcialmente coberto pelo cartão sendo arrastado. */
-.rh-coluna[data-drop="true"] .rh-coluna-corpo {
-  outline: 2px dashed color-mix(in oklab, var(--lime) 60%, transparent);
-  outline-offset: -6px;
-}
-
-.rh-cartao-cand {
-  cursor: grab;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid color-mix(in oklab, var(--lime) 18%, transparent);
-  border-radius: 0.85rem;
-  background: color-mix(in oklab, var(--brand-deep) 78%, black);
-  color: color-mix(in oklab, white 90%, var(--mint));
-  transition:
-    transform 0.18s var(--ease-out),
-    box-shadow 0.18s var(--ease-out),
-    border-color 0.18s var(--ease-out);
-}
-.rh-cartao-cand:hover {
-  border-color: color-mix(in oklab, var(--lime) 42%, transparent);
-}
-/* A rotação de 1.5° é o que faz o cartão descolar da coluna durante o arrasto;
-   só com a sombra ele parece apenas selecionado. */
-.rh-cartao-cand[data-arrastando="true"] {
-  cursor: grabbing;
-  transform: rotate(1.5deg) scale(1.03);
-  border-color: var(--lime);
-  box-shadow: 0 26px 50px -22px rgba(0, 0, 0, 0.75);
-}
 
 /* Tabela densa da listagem. */
 .rh-tabela {
@@ -1984,37 +931,15 @@ textarea.rh-campo {
 
 /* Respiro de luz no canto do cartão ativo. Só opacidade e escala do halo, que
    vive num pseudo em z-index negativo — nada disso toca o texto. */
-@keyframes rh-brilho {
-  0%,
-  100% {
-    opacity: 0.22;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.38;
-    transform: scale(1.12);
-  }
-}
 
 /* Pulso do passo atual: cresce só o anel de sombra, sem mexer na caixa, para o
    stepper não refazer layout a cada ciclo. */
-@keyframes rh-pulso {
-  0%,
-  100% {
-    box-shadow: 0 0 0 4px var(--rh-anel);
-  }
-  50% {
-    box-shadow: 0 0 0 7px color-mix(in oklab, var(--lime) 10%, transparent);
-  }
-}
 
 /* O bloco global no topo do arquivo já reduz a duração de tudo a 0.001ms. Este
    aqui é o complemento explícito do portal: desliga as três animações novas e
    remove transform das transições, que é o que causa desconforto vestibular —
    as de cor continuam, porque um estado que troca sem transição nenhuma pisca. */
 @media (prefers-reduced-motion: reduce) {
-  .rh-cartao-opcao[data-ativo="true"]::after,
-  .rh-passo[data-estado="atual"],
   .rh-gaveta {
     animation: none !important;
   }
@@ -2023,16 +948,12 @@ textarea.rh-campo {
     transform: none;
   }
   .rh-chip,
-  .rh-cartao-opcao,
   .rh-dropzone,
-  .rh-cartao-cand,
   .rh-estrela {
     transition-property: border-color, background, color, box-shadow;
   }
   .rh-chip:hover,
-  .rh-cartao-opcao:hover,
   .rh-dropzone[data-sobre="true"],
-  .rh-cartao-cand[data-arrastando="true"],
   .rh-estrela:hover {
     transform: none;
   }
@@ -2041,9 +962,6 @@ textarea.rh-campo {
 /* Telas de 360px: o portal é usado por candidato no celular, e o painel por
    coordenação em tablet. Nada aqui pode depender de largura de desktop. */
 @media (max-width: 400px) {
-  .rh-cartao-opcao {
-    padding: 0.9rem;
-  }
   .rh-chip {
     padding-inline: 0.75rem;
     font-size: 0.8rem;
@@ -2065,31 +983,6 @@ textarea.rh-campo {
    A base do produto é branca. Verde fica para ação, seleção e
    destaques; em superfície verde a tipografia permanece branca.
    ========================================================= */
-
-.rh-login-claro {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  background:
-    radial-gradient(
-      36rem 28rem at 0% 0%,
-      color-mix(in oklab, var(--mint) 74%, white),
-      transparent 72%
-    ),
-    radial-gradient(
-      32rem 24rem at 100% 100%,
-      color-mix(in oklab, var(--mint) 52%, white),
-      transparent 72%
-    ),
-    #f8fbf7;
-  color: var(--ink);
-}
-
-.rh-login-claro .rh-vidro {
-  border: 1px solid color-mix(in oklab, var(--forest) 12%, white);
-  background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 32px 80px -46px rgba(3, 47, 1, 0.42);
-}
 
 .rh-admin.rh-aurora {
   background: #f7faf6;
@@ -2128,10 +1021,6 @@ textarea.rh-campo {
 
 .rh-admin :focus-visible {
   outline-color: var(--forest-2);
-}
-
-.rh-admin .rh-topbar {
-  box-shadow: 0 12px 34px -28px rgba(3, 47, 1, 0.45);
 }
 
 .rh-admin {
@@ -2386,87 +1275,6 @@ textarea.rh-campo {
   color: var(--ink) !important;
 }
 
-/* KPIs: números maiores, ícone em cápsula verde-clara e superfície branca. */
-.rh-admin .rh-kpi {
-  position: relative;
-  min-height: 8.1rem;
-  gap: 0.45rem;
-  padding: 1.1rem 1.15rem;
-  border: 1px solid color-mix(in oklab, var(--forest) 11%, white);
-  border-radius: 1.15rem;
-  background: white;
-  color: var(--ink);
-  box-shadow:
-    0 1px 2px rgba(3, 47, 1, 0.04),
-    0 20px 44px -36px rgba(3, 47, 1, 0.35);
-  transition:
-    transform 0.2s var(--ease-out),
-    border-color 0.2s var(--ease-out),
-    box-shadow 0.2s var(--ease-out);
-}
-
-.rh-admin .rh-kpi:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--forest) 22%, white);
-  box-shadow: 0 22px 48px -34px rgba(3, 47, 1, 0.42);
-}
-
-.rh-admin .rh-kpi strong {
-  color: #0c120d;
-  font-size: clamp(1.85rem, 3vw, 2.45rem);
-}
-
-.rh-admin .rh-kpi [class~="text-lime"] {
-  color: var(--forest) !important;
-}
-
-.rh-admin .rh-kpi [class~="text-white"] {
-  color: var(--ink) !important;
-}
-.rh-admin .rh-kpi [class~="text-white/85"] {
-  color: var(--ink-soft) !important;
-}
-
-/* Kanban claro e mais legível. */
-.rh-admin .rh-coluna {
-  border-color: color-mix(in oklab, var(--forest) 12%, white);
-  background: #f8faf7;
-  box-shadow: 0 14px 34px -30px rgba(3, 47, 1, 0.32);
-}
-
-.rh-admin .rh-coluna-topo {
-  border-bottom-color: color-mix(in oklab, var(--forest) 12%, white);
-  background: rgba(255, 255, 255, 0.96);
-}
-
-/* No papel branco o realce do trilho vem da menta, não do lime translúcido —
-   sobre branco aquele lime some. */
-.rh-admin .rh-trilho-botao:hover {
-  background: color-mix(in oklab, var(--mint) 70%, white);
-}
-
-.rh-admin .rh-cartao-cand {
-  border-color: color-mix(in oklab, var(--forest) 12%, white);
-  background: white;
-  color: var(--ink);
-  box-shadow: 0 12px 30px -28px rgba(3, 47, 1, 0.45);
-}
-
-.rh-admin .rh-cartao-cand:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in oklab, var(--forest) 26%, white);
-  box-shadow: 0 18px 36px -28px rgba(3, 47, 1, 0.42);
-}
-
-.rh-admin .rh-coluna [class~="text-white"],
-.rh-admin .rh-cartao-cand [class~="text-white"] {
-  color: var(--ink) !important;
-}
-.rh-admin .rh-coluna [class~="text-white/85"],
-.rh-admin .rh-cartao-cand [class~="text-white/85"] {
-  color: var(--ink-soft) !important;
-}
-
 /* Drawer de candidatura em papel branco, com a mesma linguagem visual das abas. */
 .rh-admin .rh-gaveta {
   border-left-color: color-mix(in oklab, var(--forest) 14%, white);
@@ -2545,50 +1353,9 @@ textarea.rh-campo {
   background-clip: content-box;
 }
 
-.rh-admin .rh-dashboard-card {
-  border-color: color-mix(in oklab, var(--forest) 11%, white);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow:
-    0 1px 2px rgba(3, 47, 1, 0.035),
-    0 22px 50px -38px rgba(3, 47, 1, 0.34);
-  transition:
-    border-color 0.2s var(--ease-out),
-    box-shadow 0.2s var(--ease-out),
-    transform 0.2s var(--ease-out);
-}
-
-.rh-admin .rh-dashboard-card:hover {
-  border-color: color-mix(in oklab, var(--forest) 18%, white);
-  box-shadow: 0 26px 56px -38px rgba(3, 47, 1, 0.4);
-}
-
-.rh-admin .rh-resumo-premium {
-  padding-block: 0.25rem;
-}
-
-.rh-admin .rh-resumo-premium > .grid,
-.rh-admin .rh-resumo-premium > section {
-  animation: rh-dashboard-in 0.34s var(--ease-out) both;
-}
-
-@keyframes rh-dashboard-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 760px) {
   .rh-admin .jp-container {
     width: min(100% - 1.1rem, 1560px);
-  }
-  .rh-admin .rh-kpi {
-    min-height: 7.4rem;
-    padding: 0.95rem;
   }
 }
 
@@ -2703,14 +1470,6 @@ textarea.rh-campo {
   .rh-folha-campo {
     margin-bottom: 3.5mm;
     break-inside: avoid;
-  }
-  .rh-folha-topo {
-    margin-bottom: 4mm;
-    border-bottom: 2px solid black;
-    padding-bottom: 2mm;
-  }
-  .rh-folha-topo p {
-    font-size: 9.5pt;
   }
   .rh-folha-bloco {
     margin-bottom: 5mm;
@@ -3098,14 +1857,6 @@ textarea.rh-campo {
    altura mínima proporcional à largura, e a faixa nunca fica mais achatada que
    2,1:1. É o que faz QHD e 4K se comportarem como Full HD sem o usuário
    precisar forçar 150% de zoom. */
-@media (min-width: 1920px) {
-  .rh-hero-vaga {
-    min-height: min(46vw, 900px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-}
 
 /* ALVO DE TOQUE — 44px de altura mínima em qualquer elemento interativo.
  *
@@ -3120,4 +1871,377 @@ textarea.rh-campo {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+}
+
+/* =============================================================================
+ *  SISTEMA JP 2026 — o redesenho de novembro de 2026.
+ *
+ *  Direção "One motif" (taste-skill, semente 2147397342): uma forma só tirada
+ *  da marca — a COROA de dois lobos do dente do símbolo, que é também o topo da
+ *  maçã verde do material impresso — faz tudo o que um designer faria com um
+ *  retângulo arredondado genérico. Ver src/components/site/sistema/.
+ *
+ *  Regras da casa que este bloco sustenta (e que o redesenho inteiro segue):
+ *   - um chão, uma tinta, um acento; o acento (verde-maçã) só na ação e na
+ *     forma grande; seções podem trocar o campo inteiro para o verde profundo;
+ *   - sem sombra em coisa parada, sem degradê, sem vidro, sem filete de 1px,
+ *     sem rótulo miúdo em caixa-alta acima de título;
+ *   - cinco medidas de texto (ver @theme), uma família;
+ *   - um par de margens externas, igual nos dois lados, em toda largura;
+ *   - botão: pílula cheia, um formato só.
+ *
+ *  Contraste (fórmula WCAG sobre os hexadecimais, 06/11/2026):
+ *   tinta #032F01 sobre chão #F4F5EC ........ 13,55:1
+ *   tinta-suave #3F523B sobre chão .......... 7,7:1
+ *   tinta sobre acento #56A805 (botão) ...... 4,96:1
+ *   sobre-campo #F4F5EC sobre campo #032F01 . 13,55:1
+ *   sobre-campo-suave #C9D6C2 sobre campo ... 9,84:1
+ *   tinta-suave sobre chão-2 #E9ECDF ........ 7,06:1
+ *   tinta sobre acento-claro (hover) ........ 6,76:1
+ *   acento como TEXTO só sobre o campo #032F01 (4,96:1), nunca sobre o chão.
+ * ============================================================================= */
+
+:root {
+  --chao: #f4f5ec;
+  --chao-2: #e9ecdf;
+  --chao-3: #dce3ce;
+  --tinta: #032f01;
+  --tinta-suave: #3f523b;
+  --acento: #56a805;
+  --acento-claro: #6cc414;
+  --campo: #032f01;
+  --campo-marca: #095902;
+  --sobre-campo: #f4f5ec;
+  --sobre-campo-suave: #c9d6c2;
+
+  --margem: clamp(1rem, 0.4rem + 1.6vw, 2rem);
+  --raio: 20px;
+  --altura-cabecalho: 76px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  --t-press: 140ms;
+  --t-hover: 180ms;
+  --t-ui: 240ms;
+  --t-reveal: 800ms;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --altura-cabecalho: 84px;
+  }
+}
+
+@layer base {
+  html {
+    background: var(--chao);
+    scroll-padding-top: calc(var(--altura-cabecalho) + 16px);
+    /* O que é fixo embaixo (a faixa de cookies, a barra do celular) publica a
+       própria altura; o navegador rola o elemento focado para cima delas em
+       vez de deixá-lo escondido atrás (WCAG 2.4.11). */
+    scroll-padding-bottom: calc(var(--altura-aviso, 0px) + var(--altura-barra-cta, 0px) + 16px);
+  }
+  html.rolagem-suave {
+    scroll-behavior: auto;
+  }
+  html.rolagem-suave.lenis-stopped {
+    overflow: hidden;
+  }
+}
+
+/* Tudo o que é componente fica em `@layer components`: assim um utilitário do
+   Tailwind (`hidden`, `xl:hidden`, `mt-6`) sempre vence a classe do sistema,
+   e não o contrário. Fora de camada, `.botao { display: inline-flex }` ganhava
+   de `hidden` e o botão "Menu" aparecia no desktop. */
+@layer components {
+  /* O invólucro de toda página pública. CRC e RH têm o seu próprio fundo. */
+  .site {
+    background: var(--chao);
+    color: var(--tinta);
+    font-family: var(--font-sans);
+    font-size: var(--text-corpo);
+    line-height: var(--text-corpo--line-height);
+    font-optical-sizing: auto;
+  }
+  .site h1,
+  .site h2,
+  .site h3,
+  .site h4 {
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    text-wrap: balance;
+  }
+  .site p {
+    text-wrap: pretty;
+  }
+
+  /* Fundo escuro: verde profundo inteiro, texto claro, foco em verde-maçã. */
+  .campo-escuro {
+    background: var(--campo);
+    color: var(--sobre-campo);
+  }
+  .campo-escuro :focus-visible {
+    outline-color: var(--acento);
+  }
+  .campo-marca {
+    background: var(--campo-marca);
+    color: #ffffff;
+  }
+  .campo-marca :focus-visible {
+    outline-color: #ffffff;
+  }
+
+  /* ---- O quadro e o ritmo ---------------------------------------------------- */
+  .quadro {
+    width: min(100% - var(--margem) * 2, 1680px);
+    margin-inline: auto;
+  }
+  .secao {
+    padding-block: clamp(5.5rem, 2rem + 9vw, 12.5rem);
+  }
+  .secao-curta {
+    padding-block: clamp(4rem, 2rem + 5vw, 8rem);
+  }
+
+  /* ---- A coroa ----------------------------------------------------------------- */
+  .moldura-coroa {
+    position: relative;
+    overflow: clip;
+    background: var(--chao-2);
+  }
+  .moldura-coroa > img,
+  .moldura-coroa > video,
+  .moldura-coroa > picture > img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .marca-coroa {
+    display: inline-block;
+    flex: none;
+    width: 0.74em;
+    height: 0.74em;
+    vertical-align: -0.04em;
+  }
+
+  /* ---- Botões: pílula cheia, um formato só ------------------------------------
+     Os nomes antigos (`button-primary` e família) continuam valendo — o E2E do
+     funil procura `main a.button-primary[href*="wa.me"]` —, só que agora vestem o
+     sistema novo. Sem sombra, sem borda, sem degradê: a cor cheia separa. */
+  .botao,
+  .button-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3.25rem;
+    padding: 0.5rem 1.6rem;
+    border: 0;
+    border-radius: 999px;
+    box-shadow: none;
+    font-family: var(--font-sans);
+    font-size: var(--text-corpo);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      transform var(--t-press) var(--ease-out),
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease;
+  }
+  .botao:active,
+  .button-primary:active {
+    transform: scale(0.97);
+  }
+  .botao svg,
+  .button-primary svg {
+    width: 1.1em;
+    height: 1.1em;
+    flex: none;
+    transition: transform var(--t-ui) var(--ease-out);
+  }
+
+  .botao-acento,
+  .button-primary {
+    background: var(--acento);
+    color: var(--tinta);
+  }
+  .botao-tinta {
+    background: var(--tinta);
+    color: var(--sobre-campo);
+  }
+  .botao-chao {
+    background: var(--chao-2);
+    color: var(--tinta);
+  }
+  .botao-claro {
+    background: color-mix(in oklab, var(--sobre-campo) 12%, transparent);
+    color: var(--sobre-campo);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .botao:hover,
+    .button-primary:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .botao-acento:hover,
+    .button-primary:hover {
+      background: var(--acento-claro);
+    }
+    .botao-tinta:hover {
+      background: #000f00;
+    }
+    .botao-chao:hover {
+      background: var(--chao-3);
+    }
+    .botao-claro:hover {
+      background: var(--sobre-campo);
+      color: var(--tinta);
+    }
+    .botao:hover svg:last-child,
+    .button-primary:hover svg:last-child {
+      transform: translate(2px, -2px);
+    }
+  }
+
+  /* Link de texto: o sublinhado aparece, o peso não muda. */
+  .link {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, currentColor 30%, transparent);
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--t-hover) ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .link:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  /* Ladrilho: um degrau de tom acima do chão, sem borda, sem sombra. */
+  .ladrilho {
+    background: var(--chao-2);
+    border-radius: var(--raio);
+  }
+  .campo-escuro .ladrilho {
+    background: color-mix(in oklab, var(--sobre-campo) 8%, var(--campo));
+  }
+}
+
+/* ---- Movimento: estados escondidos SÓ com script e sem "reduzir movimento" --
+   A regra de segurança revela tudo em 2,5s se o motor nunca chegar: sem ela,
+   um bundle quebrado deixaria a página em branco abaixo da dobra. Quando o
+   motor monta, ele marca <html data-movimento="pronto"> e a regra sai. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-entra] [data-item] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 700ms var(--ease-out) calc(var(--i, 0) * 80ms),
+      transform 900ms var(--ease-expo) calc(var(--i, 0) * 80ms);
+  }
+  [data-entra][data-entrou] [data-item] {
+    opacity: 1;
+    transform: none;
+  }
+  :root:not([data-movimento]) [data-entra] [data-item] {
+    animation: jp-seguranca 0.01s 2.5s forwards;
+  }
+}
+@keyframes jp-seguranca {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Linha que sobe na entrada do topo — CSS puro, roda antes do JS. */
+.linhas-topo .linha {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.linhas-topo .linha > span {
+  display: block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .linhas-topo .linha > span {
+    transform: translateY(108%);
+    animation: jp-linha 1000ms var(--ease-expo) forwards;
+    animation-delay: calc(120ms + var(--i, 0) * 100ms);
+  }
+  [data-chega] {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: jp-chega 600ms var(--ease-out) forwards;
+    animation-delay: var(--d, 420ms);
+  }
+}
+@keyframes jp-linha {
+  to {
+    transform: none;
+  }
+}
+@keyframes jp-chega {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* SplitText: a máscara de cada linha não pode cortar o "g" nem o "ç". */
+.linha-split {
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-deriva] {
+    transform: none !important;
+  }
+}
+
+/* ---- Troca de página -------------------------------------------------------
+   Duas vias, o mesmo desenho: navegação do roteador (defaultViewTransition em
+   router.tsx) e navegação de documento inteiro entre páginas do site (os links
+   simples `<a href>` — `@view-transition` abaixo). A página sai subindo 2% e
+   apagando; a nova chega de 3% abaixo. O cabeçalho tem nome próprio e não
+   pisca. Com "reduzir movimento", nada disso existe: troca seca. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: jp-pagina-sai 260ms var(--ease-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: jp-pagina-entra 560ms var(--ease-expo) both;
+  }
+}
+@keyframes jp-pagina-sai {
+  to {
+    opacity: 0;
+    transform: translateY(-2%);
+  }
+}
+@keyframes jp-pagina-entra {
+  from {
+    opacity: 0;
+    transform: translateY(3%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Sem isto o navegador ainda faria o esmaecer padrão dele entre as páginas. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

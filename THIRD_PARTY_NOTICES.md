@@ -1,29 +1,33 @@
 # Avisos de terceiros
 
-## Fontes — Inter e Manrope
+## Fontes — Inter, Manrope e Bricolage Grotesque
 
-O site **distribui** os arquivos das duas famílias, em `src/assets/fontes/`.
+O site **distribui** os arquivos das três famílias, em `src/assets/fontes/`.
 Antes elas vinham do Google Fonts; passaram a ser servidas da própria origem
 para tirar um terceiro do caminho crítico de renderização e parar de enviar o IP
 de cada visitante ao Google.
 
 Distribuir o arquivo, e não apenas referenciá-lo, é o que faz este aviso ser
-**obrigatório**: as duas são licenciadas sob a **SIL Open Font License 1.1**, que
+**obrigatório**: as três são licenciadas sob a **SIL Open Font License 1.1**, que
 exige o aviso de copyright e a licença acompanharem os arquivos.
 
-| Família     | Copyright                                      | Licença     |
-| ----------- | ---------------------------------------------- | ----------- |
-| **Inter**   | Copyright (c) 2016 The Inter Project Authors   | SIL OFL 1.1 |
-| **Manrope** | Copyright (c) 2018 The Manrope Project Authors | SIL OFL 1.1 |
+| Família                 | Copyright                                              | Licença     |
+| ----------------------- | ------------------------------------------------------ | ----------- |
+| **Inter**               | Copyright (c) 2016 The Inter Project Authors           | SIL OFL 1.1 |
+| **Manrope**             | Copyright (c) 2018 The Manrope Project Authors         | SIL OFL 1.1 |
+| **Bricolage Grotesque** | Copyright 2022 The Bricolage Grotesque Project Authors | SIL OFL 1.1 |
 
 - Inter — https://github.com/rsms/inter
 - Manrope — https://github.com/sharanda/manrope
+- Bricolage Grotesque — https://github.com/ateliertriay/bricolage (a fonte do site desde o
+  redesenho de 11/2026; Inter e Manrope seguem no CRC)
 - Texto da licença — https://openfontlicense.org
 
 A OFL permite uso comercial, incorporação e redistribuição. Ela **proíbe** vender
 as fontes isoladamente e exige que um trabalho derivado não use o nome original
-(Reserved Font Name). Nenhuma das duas situações se aplica aqui: os arquivos são
-os originais, sem modificação.
+(Reserved Font Name). Nenhuma das situações se aplica aqui: os arquivos são os
+originais, só recortados por alfabeto (latin e latin-ext), como o Google Fonts
+os entrega.
 
 ---
 

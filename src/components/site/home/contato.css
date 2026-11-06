@@ -1,0 +1,383 @@
+/* Contato — o cupom (ContactForm.tsx) e o "onde estamos" (contato.tsx).
+ *
+ * O cupom tem dois desenhos, ambos completos:
+ *   celular ... uma coluna: título, picote horizontal, escolhas, prévia, botão;
+ *   desktop ... canhoto à esquerda (título + prévia), picote vertical, escolhas
+ *               e botão à direita.
+ * Os entalhes são círculos da cor do chão sobre a borda do cupom; o chão da
+ * seção é chapado, então o recorte parece vazado sem máscara nem degradê.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* ---- O cupom ----------------------------------------------------------- */
+  .cupom {
+    --p: clamp(1.5rem, 1rem + 2vw, 3rem);
+    /* Metade do entalhe tem de caber na margem da página (16px no celular),
+       senão o círculo cria rolagem horizontal. */
+    --entalhe: 1.75rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    border-radius: var(--raio);
+    background: var(--acento);
+    color: var(--tinta);
+  }
+  .cupom-esq {
+    display: contents;
+  }
+  .cupom-cab {
+    order: 1;
+    display: grid;
+    gap: 1.25rem;
+    padding: var(--p) var(--p) 1.5rem;
+  }
+  .cupom-cab p {
+    max-width: 38ch;
+  }
+  .cupom-perfura {
+    order: 2;
+    position: relative;
+    height: 2.75rem;
+  }
+  .cupom-campos {
+    order: 3;
+    display: grid;
+    gap: 1.75rem;
+    padding: 1.5rem var(--p) 1.75rem;
+  }
+  .cupom-previa {
+    order: 4;
+    padding: 0 var(--p) 1.75rem;
+  }
+  .cupom-rodape {
+    order: 5;
+    display: grid;
+    justify-items: stretch;
+    gap: 1.25rem;
+    padding: 0 var(--p) var(--p);
+  }
+  .cupom-rodape p {
+    max-width: 62ch;
+  }
+  /* No celular o rótulo do botão pode quebrar: ele nunca passa da largura do cupom. */
+  .cupom-rodape .botao {
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* Entalhes e picote */
+  .cupom-perfura::before,
+  .cupom-perfura::after {
+    content: "";
+    position: absolute;
+    width: var(--entalhe);
+    height: var(--entalhe);
+    border-radius: 50%;
+    background: var(--chao);
+    top: 50%;
+  }
+  .cupom-perfura::before {
+    left: 0;
+    translate: -50% -50%;
+  }
+  .cupom-perfura::after {
+    left: 100%;
+    translate: -50% -50%;
+  }
+  .cupom-picote {
+    position: absolute;
+    color: var(--tinta);
+    opacity: 0.55;
+  }
+  .cupom-picote-h {
+    left: calc(var(--entalhe) + 0.5rem);
+    top: 50%;
+    width: calc(100% - var(--entalhe) * 2 - 1rem);
+    /* Múltiplo do passo de 14px do padrão: o último furo nunca fica cortado. */
+    width: round(down, calc(100% - var(--entalhe) * 2 - 1rem), 14px);
+    height: 14px;
+    translate: 0 -50%;
+  }
+  .cupom-picote-v {
+    display: none;
+  }
+
+  /* Escolhas */
+  .cupom-dados {
+    display: grid;
+    gap: 1rem;
+  }
+  .cupom-campo {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .cupom-campo > span,
+  .cupom-grupo legend {
+    font-weight: 600;
+  }
+  .cupom-grupo {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .cupom-grupo legend {
+    margin-bottom: 0.625rem;
+    padding: 0;
+  }
+  .cupom-opcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .cupom-opcao {
+    position: relative;
+    cursor: pointer;
+  }
+  .cupom-opcao input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    /* O clique vai para a etiqueta (que ativa o campo); o teclado segue no campo. */
+    pointer-events: none;
+  }
+  .cupom-opcao span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.4rem 1.1rem;
+    border-radius: 999px;
+    background: var(--chao);
+    color: var(--tinta);
+    font-weight: 500;
+    transition:
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease,
+      transform var(--t-press) var(--ease-out);
+  }
+  .cupom-opcao input:checked + span {
+    background: var(--tinta);
+    color: var(--sobre-campo);
+  }
+  .cupom-opcao input:active + span {
+    transform: scale(0.97);
+  }
+  .cupom-opcao input:focus-visible + span {
+    outline: 3px solid var(--tinta);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cupom-opcao:hover input:not(:checked) + span {
+      background: var(--chao-3);
+    }
+  }
+
+  .campo-cupom {
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.75rem 1.1rem;
+    border: 0;
+    border-radius: var(--raio);
+    background: var(--chao);
+    color: var(--tinta);
+    font: inherit;
+    font-size: var(--text-corpo);
+    line-height: 1.4;
+  }
+  .campo-cupom::placeholder {
+    color: var(--tinta-suave);
+    opacity: 1;
+  }
+  .campo-cupom:focus-visible {
+    outline: 3px solid var(--tinta);
+    outline-offset: 2px;
+  }
+  textarea.campo-cupom {
+    resize: vertical;
+  }
+
+  /* Prévia: a mensagem tal como o WhatsApp vai recebê-la. */
+  .cupom-previa-rotulo {
+    margin-bottom: 0.625rem;
+    font-weight: 600;
+  }
+  .cupom-bolha {
+    padding: 1.1rem 1.25rem;
+    border-radius: var(--raio);
+    border-bottom-left-radius: 0.375rem;
+    background: var(--chao);
+    color: var(--tinta);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 640px) {
+    .cupom-dados {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cupom {
+      grid-template-columns: minmax(0, 0.8fr) 3.5rem minmax(0, 1.4fr);
+    }
+    .cupom-esq {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      grid-column: 1;
+      grid-row: 1;
+    }
+    /* O canhoto: título em cima; a prévia e o botão descem juntos, como a parte
+       que se destaca do cupom. */
+    .cupom-previa {
+      margin-top: auto;
+    }
+    .cupom-cab {
+      order: 0;
+      padding: var(--p) 0 0 var(--p);
+    }
+    .cupom-previa {
+      order: 0;
+      padding: 0 0 0 var(--p);
+    }
+    .cupom-perfura {
+      order: 0;
+      grid-column: 2;
+      grid-row: 1;
+      height: auto;
+    }
+    .cupom-campos {
+      order: 0;
+      grid-column: 3;
+      grid-row: 1;
+      padding: var(--p) var(--p) var(--p) 0;
+    }
+    .cupom-rodape .botao {
+      justify-self: start;
+      white-space: nowrap;
+    }
+    .cupom-rodape {
+      order: 0;
+      padding: 0 0 var(--p) var(--p);
+    }
+    .cupom-perfura::before {
+      top: 0;
+      left: 50%;
+    }
+    .cupom-perfura::after {
+      top: 100%;
+      left: 50%;
+    }
+    .cupom-picote-h {
+      display: none;
+    }
+    .cupom-picote-v {
+      display: block;
+      top: calc(var(--entalhe) + 0.5rem);
+      left: 50%;
+      width: 14px;
+      height: calc(100% - var(--entalhe) * 2 - 1rem);
+      height: round(down, calc(100% - var(--entalhe) * 2 - 1rem), 14px);
+      translate: -50% 0;
+    }
+  }
+
+  /* ---- Onde estamos --------------------------------------------------------- */
+  .contato-onde {
+    display: grid;
+    gap: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+    margin-top: clamp(3.5rem, 2rem + 5vw, 7rem);
+  }
+  .contato-lista {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+  }
+  .contato-lista > li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.75rem;
+    align-items: baseline;
+  }
+  .contato-lista .marca-coroa {
+    color: var(--acento);
+    transform: translateY(0.1em);
+  }
+  .contato-rotulo {
+    color: var(--tinta-suave);
+  }
+  .contato-valor {
+    font-weight: 600;
+  }
+  .contato-valor a {
+    display: inline-block;
+    min-height: 2.75rem;
+    padding-block: 0.4rem;
+  }
+  .contato-ponto {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-right: 0.5rem;
+    border-radius: 999px;
+    background: var(--tinta-suave);
+  }
+  .contato-ponto[data-aberto] {
+    background: var(--acento);
+  }
+  .contato-refs {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .contato-refs li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  /* O mapa na coroa. O iframe é 60px mais alto que a moldura e sobe 60px: isso
+     corta o painel que o Google desenha no canto de cima, e o pino (nosso, o
+     embed não desenha marcador) desce os mesmos 30px para ficar sobre o
+     endereço. A atribuição do Google fica na base, inteira e visível. */
+  .contato-mapa {
+    /* O quanto o iframe sobe para esconder o painel do embed. Mora aqui, num
+       só lugar: iframe e pino derivam dele, e se o Google mudar o painel basta
+       ajustar este valor. */
+    --corte: 60px;
+    height: 26rem;
+    background: var(--chao-3);
+  }
+  .contato-mapa iframe {
+    position: absolute;
+    top: calc(var(--corte) * -1);
+    left: 0;
+    width: 100%;
+    height: calc(100% + var(--corte));
+    border: 0;
+  }
+  .contato-pino {
+    position: absolute;
+    left: 50%;
+    top: calc(50% - var(--corte) / 2);
+    translate: -50% -100%;
+    pointer-events: none;
+  }
+
+  @media (min-width: 1024px) {
+    .contato-onde {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: stretch;
+    }
+    .contato-mapa {
+      height: auto;
+      min-height: 34rem;
+    }
+  }
+}

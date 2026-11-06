@@ -11,9 +11,11 @@
  * clara e perderiam contraste direto no verde profundo.
  */
 import { useEffect, useRef, useState } from "react";
-import { HardDrive, Info, Lock, Save, Sparkles, TriangleAlert } from "lucide-react";
+import { Save, TriangleAlert } from "lucide-react";
+import { CabecalhoPagina } from "@/components/rh/CabecalhoPagina";
 import { CampoTexto, CampoTextarea } from "@/components/rh/CampoTexto";
 import { Interruptor, ListaEditavel } from "@/components/rh/ControlesRh";
+import { MarcaCoroa } from "@/components/site/sistema/Coroa";
 import { TrocarSenha } from "@/components/rh/TrocarSenha";
 import { formatarDataHora, mascararTelefone } from "@/lib/rh/formatar";
 import { custoEstimado, formatarDolar } from "@/lib/rh/ia/precos";
@@ -116,30 +118,25 @@ export function ConfiguracoesPortal(props: {
 
   return (
     <section aria-labelledby="rh-config-titulo" className="space-y-6">
-      <header className="rh-vidro p-4 sm:p-5">
-        <h2
-          id="rh-config-titulo"
-          className="font-display text-2xl font-extrabold leading-tight text-white"
-        >
-          Configurações do portal
-        </h2>
-        <p className="mt-1 max-w-2xl text-sm font-medium text-white/85">
-          Os textos abaixo são os que o candidato lê na página de carreiras. Ao salvar, a mudança
-          entra no site na hora.
-        </p>
-        <p className="mt-2 text-xs font-semibold text-white/85">
-          {atualizado.length > 0
-            ? `Atualizado em ${atualizado}.`
-            : "Ainda não foi salvo nenhuma vez: o portal está com os textos que vieram de fábrica."}
-        </p>
-      </header>
+      <CabecalhoPagina
+        id="rh-config-titulo"
+        titulo="Configurações do portal"
+        texto={
+          <>
+            O que o candidato lê na página de carreiras; ao salvar, entra no site na hora.{" "}
+            {atualizado.length > 0
+              ? `Atualizado em ${atualizado}.`
+              : "Ainda não foi salvo: valem os textos de fábrica."}
+          </>
+        }
+      />
 
       {/* O foco volta ao contorno base: a folha global pinta de lime dentro de
           `.rh-aurora` (painel escuro), e sobre este cartão claro o lime mede
           2,81:1. */}
       <div className="rh-papel space-y-8 p-4 sm:p-6 [&_:focus-visible]:outline-forest-2">
         <section className="space-y-4">
-          <h3 className="font-display text-lg font-extrabold text-forest-2">Textos da página</h3>
+          <h3 className="font-display text-lg font-extrabold text-tinta">Textos da página</h3>
           <p className="-mt-2 max-w-2xl text-sm font-medium leading-relaxed text-ink">
             É o que a candidata lê na página de carreiras do site, antes de decidir se envia o
             currículo. Ao salvar, entra no ar na hora.
@@ -189,7 +186,7 @@ export function ConfiguracoesPortal(props: {
         </section>
 
         <section className="space-y-4">
-          <h3 className="font-display text-lg font-extrabold text-forest-2">
+          <h3 className="font-display text-lg font-extrabold text-tinta">
             Benefícios padrão da clínica
           </h3>
           <ListaEditavel
@@ -204,7 +201,7 @@ export function ConfiguracoesPortal(props: {
         </section>
 
         <section className="space-y-4">
-          <h3 className="font-display text-lg font-extrabold text-forest-2">Contato do RH</h3>
+          <h3 className="font-display text-lg font-extrabold text-tinta">Contato do RH</h3>
           <p className="-mt-2 max-w-2xl text-sm font-medium leading-relaxed text-ink">
             Para onde a clínica quer ser procurada. O e-mail recebe o aviso de candidatura nova; o
             WhatsApp aparece para a candidata falar com vocês.
@@ -257,7 +254,7 @@ export function ConfiguracoesPortal(props: {
         </section>
 
         <section className="space-y-4">
-          <h3 className="font-display text-lg font-extrabold text-forest-2">Banco de talentos</h3>
+          <h3 className="font-display text-lg font-extrabold text-tinta">Banco de talentos</h3>
           <p className="-mt-2 max-w-2xl text-sm font-medium leading-relaxed text-ink">
             Currículo enviado sem vaga aberta. Serve para ter gente na mão quando abrir uma vaga de
             repente.
@@ -280,10 +277,7 @@ export function ConfiguracoesPortal(props: {
         ) : null}
 
         <section className="space-y-4">
-          <h3 className="flex items-center gap-2 font-display text-lg font-extrabold text-forest-2">
-            <Sparkles className="h-5 w-5 shrink-0" aria-hidden="true" />
-            Triagem por IA
-          </h3>
+          <h3 className="font-display text-lg font-extrabold text-tinta">Triagem por IA</h3>
 
           {IA_DO_RH_LIGADA ? (
             <>
@@ -425,17 +419,13 @@ export function ConfiguracoesPortal(props: {
         citar as variáveis na tela de login.
       */}
       <aside className="rh-vidro p-4 sm:p-5" aria-labelledby="rh-config-infra">
-        <h3
-          id="rh-config-infra"
-          className="flex items-center gap-2 font-display text-base font-extrabold text-white"
-        >
-          <Info className="h-5 w-5 shrink-0 text-lime" aria-hidden="true" />
+        <h3 id="rh-config-infra" className="font-display text-base font-extrabold text-white">
           Como este portal guarda os dados
         </h3>
         <dl className="mt-4 space-y-4 text-sm leading-relaxed text-white/85">
           <div className="flex gap-3">
             <dt className="shrink-0 pt-0.5">
-              <HardDrive className="h-5 w-5 text-lime" aria-hidden="true" />
+              <MarcaCoroa className="h-4 w-4 text-acento" />
               <span className="sr-only">Onde ficam os currículos</span>
             </dt>
             <dd>
@@ -447,7 +437,7 @@ export function ConfiguracoesPortal(props: {
           </div>
           <div className="flex gap-3">
             <dt className="shrink-0 pt-0.5">
-              <Lock className="h-5 w-5 text-lime" aria-hidden="true" />
+              <MarcaCoroa className="h-4 w-4 text-acento" />
               <span className="sr-only">Como se entra no painel</span>
             </dt>
             <dd>

@@ -156,7 +156,7 @@ export function AreaUpload(props: {
 
       <Ajuda
         campo={props.campo}
-        texto="O anexo é opcional, mas ajuda: com ele a equipe avalia formação e experiência antes da conversa."
+        texto="Obrigatório. A equipe lê o currículo antes da conversa, para avaliar formação e experiência."
       />
       <MensagemErro campo={props.campo} texto={props.erro} />
     </div>

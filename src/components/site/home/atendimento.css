@@ -1,0 +1,38 @@
+/* O atendimento adaptado — ver AtendimentoSection.tsx.
+ *
+ * A foto sangra pela borda esquerda da tela. O quadro do site tem margem igual
+ * dos dois lados (`--margem`, e mais que isso acima de 1680px), então a
+ * "sangria" é a distância real da borda da tela até o início do quadro. No
+ * desktop a moldura ainda avança `--corte` (6vw, para os dois lobos da coroa
+ * continuarem à vista) para fora da tela: é isso que faz a borda cortar o
+ * lobo esquerdo em vez de só encostar nele.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .atendimento {
+    --sangria: max(var(--margem), calc((100vw - 1680px) / 2));
+    --corte: 0px;
+    overflow-x: clip;
+  }
+
+  .atendimento-foto {
+    width: calc(100% + var(--sangria) + var(--corte));
+    margin-left: calc((var(--sangria) + var(--corte)) * -1);
+    aspect-ratio: 5 / 4;
+  }
+
+  @media (min-width: 1024px) {
+    .atendimento {
+      --corte: 6vw;
+    }
+    .atendimento-foto {
+      /* Na grade de 12 colunas a foto ocupa as seis primeiras. */
+      grid-column: 1 / span 6;
+      aspect-ratio: auto;
+      height: min(78svh, 52rem);
+      min-height: 34rem;
+    }
+  }
+}

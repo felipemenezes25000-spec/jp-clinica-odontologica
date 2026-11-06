@@ -1,38 +1,20 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  BadgeCheck,
-  Briefcase,
-  CalendarClock,
-  CheckCircle2,
-  ChevronDown,
-  ChevronRight,
-  Clock3,
-  Gift,
-  ListChecks,
-  MapPin,
-  Send,
-  ShieldCheck,
-  Sparkles,
-  Users,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
-import { useId, useState } from "react";
+import { ArrowLeft, ArrowUpRight, ChevronDown } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
 
-import { CapaVaga, capaDaArea } from "@/components/site/CapaVaga";
-import { CartaoVaga } from "@/components/rh/CartaoVaga";
+import { CapaVaga } from "@/components/site/CapaVaga";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
-import { Reveal } from "@/components/site/Reveal";
 import { SkipLink } from "@/components/site/SkipLink";
+import { LinhaDeVaga } from "@/components/site/carreiras/LinhaDeVaga";
+import { capaDaArea, segundaCapaDaArea } from "@/components/site/carreiras/capas";
+import { FormaCoroa, MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { CLINICA, SITE_URL } from "@/lib/jp";
 import { obterVagaPublica } from "@/lib/rh/api-portal";
 import { formatarData } from "@/lib/rh/formatar";
-import { MODELOS_TRABALHO, TURNOS, VINCULOS, resumirDisponibilidade } from "@/lib/rh/opcoes";
+import { MODELOS_TRABALHO, VINCULOS, resumirDisponibilidade } from "@/lib/rh/opcoes";
 import type { ConfiguracoesRh, Vaga } from "@/lib/rh/tipos";
-import { faixaSalarial, resumoJornada, rotuloArea } from "@/lib/rh/vagas";
+import { faixaSalarial, rotuloArea } from "@/lib/rh/vagas";
 
 /* -------------------------------------------------------------------------- */
 /* Leitura do domínio                                                         */
@@ -320,41 +302,6 @@ export const Route = createFileRoute("/carreiras/$slug")({
 /* Peças da página                                                            */
 /* -------------------------------------------------------------------------- */
 
-function Pilula({ icone: Icone, children }: { icone: LucideIcon; children: string }) {
-  return (
-    /* `items-start` e `[overflow-wrap:anywhere]`: a pastilha de endereco tem
-       399px ("R. Rio Verde, 1029 — Vila Bruna, Sao Paulo - SP, 02934-201") e,
-       sem quebra interna, empurrava a linha toda quando a coluna encurtava. */
-    <span className="inline-flex max-w-full items-start gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-bold leading-snug text-white [overflow-wrap:anywhere]">
-      <Icone aria-hidden="true" className="mt-px h-4 w-4 shrink-0 text-lime" />
-      {children}
-    </span>
-  );
-}
-
-/** Um dado objetivo do hero (remuneração, jornada, posições, prazo). */
-function DadoHero({
-  icone: Icone,
-  rotulo,
-  valor,
-}: {
-  icone: LucideIcon;
-  rotulo: string;
-  valor: string;
-}) {
-  return (
-    <li className="rh-kpi">
-      <span className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[.16em] text-white">
-        <Icone aria-hidden="true" className="h-4 w-4" />
-        {rotulo}
-      </span>
-      <span className="font-display text-lg font-extrabold leading-tight text-white sm:text-xl">
-        {valor}
-      </span>
-    </li>
-  );
-}
-
 /**
  * Quantos itens aparecem antes de o bloco oferecer "ver todos".
  *
@@ -373,17 +320,11 @@ const ITENS_VISIVEIS = 8;
 /** Bloco de lista da coluna larga. Some inteiro quando a lista está vazia. */
 function BlocoLista({
   titulo,
-  apoio,
-  icone: Icone,
   itens,
-  atraso,
   rotuloVerTodos,
 }: {
   titulo: string;
-  apoio: string;
-  icone: LucideIcon;
   itens: string[];
-  atraso: number;
   rotuloVerTodos: string;
 }) {
   const [expandido, setExpandido] = useState(false);
@@ -394,19 +335,14 @@ function BlocoLista({
   const excedente = itens.length - ITENS_VISIVEIS;
 
   return (
-    <Reveal delay={atraso} className="mt-10">
-      <h2 className="flex items-center gap-3 font-display text-[clamp(1.45rem,3vw,1.9rem)] font-extrabold leading-tight tracking-[-.03em] text-forest-2">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mint text-forest">
-          <Icone aria-hidden="true" className="h-[1.15rem] w-[1.15rem]" />
-        </span>
+    <section data-entra aria-labelledby={`${idLista}-titulo`}>
+      <h2 id={`${idLista}-titulo`} data-item>
         {titulo}
       </h2>
-      <p className="mt-2 text-sm font-semibold text-ink-soft">{apoio}</p>
 
-      {/* Duas colunas a partir de `sm`: cada item é uma frase curta, e uma
-          frase curta ocupando a largura inteira desperdiça metade da linha.
-          No celular fica em coluna única, sem estouro horizontal. */}
-      <ul id={idLista} className="mt-4 grid gap-2.5 sm:grid-cols-2">
+      {/* Duas colunas a partir de `sm`: cada item é uma frase curta, e uma frase
+          curta ocupando a largura inteira desperdiça metade da linha. */}
+      <ul id={idLista} className="vg-lista" data-item>
         {itens.map((item, i) => (
           <li
             key={`${i}-${item.slice(0, 24)}`}
@@ -414,9 +350,8 @@ function BlocoLista({
                servido, some da árvore de acessibilidade enquanto está
                recolhido, e volta sem custo de re-render ao expandir. */
             hidden={!expandido && i >= ITENS_VISIVEIS}
-            className="flex items-start gap-2.5 rounded-xl border border-border-soft bg-paper px-3.5 py-3 text-[0.95rem] leading-snug text-ink"
           >
-            <CheckCircle2 aria-hidden="true" className="mt-[3px] h-4 w-4 shrink-0 text-forest" />
+            <MarcaCoroa />
             <span>{item}</span>
           </li>
         ))}
@@ -428,27 +363,29 @@ function BlocoLista({
           onClick={() => setExpandido((v) => !v)}
           aria-expanded={expandido}
           aria-controls={idLista}
-          className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-forest/25 bg-white px-4 text-sm font-bold text-ink transition hover:border-forest hover:bg-mint"
+          className="botao botao-chao vg-mais"
         >
           {expandido ? "Mostrar menos" : `${rotuloVerTodos} (+${excedente})`}
-          <ChevronDown
-            aria-hidden="true"
-            className={`h-4 w-4 transition-transform ${expandido ? "rotate-180" : ""}`}
-          />
+          <ChevronDown aria-hidden="true" />
         </button>
       )}
-    </Reveal>
+    </section>
   );
 }
 
 /** Linha do resumo lateral. Valor vazio nunca chega aqui — quem chama filtra. */
 function LinhaResumo({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
-    <div className="flex flex-col gap-0.5 border-b border-border-soft py-3 last:border-b-0">
-      <dt className="text-[11px] font-black uppercase tracking-[.14em] text-ink-soft">{rotulo}</dt>
-      <dd className="text-sm font-bold leading-snug text-ink">{valor}</dd>
+    <div>
+      <dt>{rotulo}</dt>
+      <dd>{valor}</dd>
     </div>
   );
+}
+
+/** Conta palavras: decide se o resumo cabe na medida de "frase de efeito". */
+function contarPalavras(texto: string): number {
+  return texto.split(/\s+/).filter((p) => p.length > 0).length;
 }
 
 function PaginaVaga() {
@@ -456,357 +393,310 @@ function PaginaVaga() {
 
   /**
    * "Agora" nasce uma vez, no primeiro render, a partir do instante carimbado
-   * pelo loader, e desce por prop para os cartões de vagas relacionadas. Medir o
+   * pelo loader, e desce por prop para as linhas de vagas relacionadas. Medir o
    * tempo aqui — mesmo uma vez só — faria servidor e navegador escreverem textos
    * diferentes ("há 2 dias" vs. "ontem") e a hidratação quebraria.
    */
   const [agora] = useState(() => new Date(agoraIso));
 
   const salario = faixaSalarial(vaga);
-  const jornada = resumoJornada(vaga);
+  const jornada = vaga.jornada.trim();
   const prazo = formatarData(vaga.encerraEm);
   const publicadoEm = formatarData(vaga.publicadoEm || vaga.criadoEm);
   const local = localDaVaga(vaga);
   const beneficios = beneficiosDaVaga(vaga, config);
-  /* Área sem foto cadastrada mantém o hero liso de antes — o layout não pode
-     depender de uma imagem que pode não existir. */
-  const temCapa = capaDaArea(vaga.area) !== null;
   /* Agrupado, e não uma pastilha por dia+turno: "segunda a sexta, manhã e
      tarde" virava DEZ pastilhas repetindo o nome do dia, e ninguém lê isso. */
   const turnos = resumirDisponibilidade(vaga.turnos);
   const posicoes = `${vaga.quantidade} ${vaga.quantidade === 1 ? "posição" : "posições"}`;
   const blocos = paragrafos(vaga.descricao);
+  const resumo = vaga.resumo.trim();
+  // Acima de ~25 palavras uma frase de efeito vira parágrafo: o corpo de texto
+  // aguenta o comprimento, a medida grande não.
+  const resumoLongo = contarPalavras(resumo) > 25;
 
   // encodeURIComponent por precaução: o slug hoje só tem [a-z0-9-], mas o link é
   // montado com um valor vindo do disco e blindar não custa nada.
   const linkCandidatura = `/trabalhe-conosco?vaga=${encodeURIComponent(vaga.slug)}`;
 
+  const tituloLongo = vaga.titulo.length > 30;
+  const segunda = segundaCapaDaArea(vaga.area);
+
+  /* A barra fixa do celular só aparece depois que o botão do topo saiu da tela
+     (por cima). Começa escondida no HTML do servidor: sem JS ela nunca cobre
+     a primeira dobra, e o botão do resumo ainda está no fim do texto. */
+  const botaoTopoRef = useRef<HTMLAnchorElement>(null);
+  const [barraVisivel, setBarraVisivel] = useState(false);
+  useEffect(() => {
+    const alvo = botaoTopoRef.current;
+    if (alvo === null || typeof IntersectionObserver === "undefined") return;
+    const observador = new IntersectionObserver(([entrada]) => {
+      if (entrada === undefined) return;
+      setBarraVisivel(!entrada.isIntersecting && entrada.boundingClientRect.top < 0);
+    });
+    observador.observe(alvo);
+    return () => observador.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-dvh bg-cream">
+    <div className="site min-h-dvh">
       <SkipLink />
       <Header />
 
       <main id="conteudo">
-        {/* HERO */}
-        <section className="rh-hero-vaga section-deep noise relative isolate overflow-hidden pb-10 pt-8 text-white sm:pb-12 sm:pt-9">
-          <CapaVaga area={vaga.area} />
-          {/* `lg:pr-[38%]` só existe quando há capa: sem ela o conteúdo usa a
-              largura inteira, como sempre usou. Com ela, o texto para antes da
-              parte em que a foto realmente aparece — o trecho que ele invade já
-              é verde sólido pelo véu, então a leitura não perde contraste. */}
-          <div className="jp-container relative z-10">
-            {/* `--coluna-hero` é a única medida do bloco. Absoluta, e não uma
-                porcentagem do container: porcentagem mais título em vw fazia o
-                ponto de quebra saltar entre 1440, 1920 e 2560. Em QHD e 4K ela
-                simplesmente para de crescer, e o hero se comporta como em Full
-                HD sem o usuário mexer no zoom. */}
-            <div className="max-w-[var(--coluna-hero)] [--coluna-hero:100%] lg:[--coluna-hero:34rem] xl:[--coluna-hero:38rem]">
-              <nav aria-label="Trilha de navegação">
-                <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-white/85">
+        {/* TOPO — título, resumo, a ação e a foto da área em coroa. */}
+        <section className="car-topo" aria-labelledby="vaga-titulo">
+          <div className="quadro car-topo-grade car-topo-grade--vaga">
+            <div>
+              <nav aria-label="Trilha de navegação" className="vg-trilha">
+                <ol>
                   <li>
-                    <a href="/" className="transition-colors hover:text-white">
-                      Início
-                    </a>
-                  </li>
-                  <li aria-hidden="true" className="flex items-center">
-                    <ChevronRight className="h-3.5 w-3.5" />
+                    <a href="/">Início</a>
                   </li>
                   <li>
-                    <a href="/carreiras" className="transition-colors hover:text-white">
-                      Carreiras
-                    </a>
+                    <a href="/carreiras">Carreiras</a>
                   </li>
-                  <li aria-hidden="true" className="flex items-center">
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </li>
-                  <li aria-current="page" className="text-white">
-                    {vaga.titulo}
-                  </li>
+                  <li aria-current="page">{vaga.titulo}</li>
                 </ol>
               </nav>
 
-              <Reveal className="mt-7 max-w-4xl">
-                {/* `flex-wrap`: o eyebrow e inline-flex com nowrap por padrao, e
-                  "VAGA ABERTA · RECEPCAO E ATENDIMENTO" nao cabia na coluna. */}
-                <p className="eyebrow flex-wrap text-white">
-                  <span aria-hidden="true" className="h-2 w-2 rounded-full bg-lime" />
-                  Vaga aberta · {rotuloArea(vaga, "Equipe JP")}
+              {/* Os títulos de vaga são digitados no painel e podem ser longos.
+                  Até ~30 caracteres o H1 é `text-titulo` (duas linhas na coluna
+                  larga); acima disso passa para `text-frase`, que cabe em duas
+                  linhas até ~65 caracteres. Em vez de um `max-width` em `ch`
+                  (que estourava um título realista para cinco linhas), a medida
+                  é a da coluna e, no celular, o `vg-titulo` corta em três. */}
+              <h1
+                id="vaga-titulo"
+                className={`vg-titulo ${tituloLongo ? "text-frase" : "text-titulo"}`}
+                data-longo={tituloLongo ? "true" : undefined}
+              >
+                {vaga.titulo}
+              </h1>
+
+              <p className="vg-tipo">
+                {[rotuloArea(vaga, "Equipe JP"), rotuloVinculo(vaga), rotuloModelo(vaga)].join(
+                  " · ",
+                )}
+              </p>
+              <p className="vg-local">
+                <MarcaCoroa />
+                <span>{local}</span>
+              </p>
+
+              {resumo.length > 0 && (
+                <p
+                  className={`vg-resumo-hero ${resumoLongo ? "text-corpo" : "text-frase"}`}
+                  data-longo={resumoLongo ? "true" : undefined}
+                >
+                  {resumo}
                 </p>
-                {/* `text-wrap:balance` distribui as duas linhas em vez de deixar
-                  uma órfã; `hyphens:auto` resolve "odontológica" sem precisar do
-                  `overflow-wrap:anywhere`, que cortava palavra em qualquer letra.
-                  O entrelinha subiu de .95 para 1.05 e o tracking afrouxou de
-                  −.045em para −.02em: com duas linhas, as letras encostavam. */}
-                <h1 className="mt-5 font-display text-[clamp(1.9rem,3.2vw,3rem)] font-extrabold leading-[1.05] tracking-[-.02em] [hyphens:auto] [text-wrap:balance]">
-                  {vaga.titulo}
-                </h1>
-                {vaga.resumo.trim().length > 0 && (
-                  <p className="mt-4 text-base font-medium leading-relaxed text-white/85">
-                    {vaga.resumo}
-                  </p>
-                )}
+              )}
 
-                <div className="mt-7 flex flex-wrap gap-2.5">
-                  <Pilula icone={Briefcase}>{rotuloArea(vaga, "Equipe JP")}</Pilula>
-                  <Pilula icone={BadgeCheck}>{rotuloVinculo(vaga)}</Pilula>
-                  <Pilula icone={Sparkles}>{rotuloModelo(vaga)}</Pilula>
-                  <Pilula icone={MapPin}>{local}</Pilula>
-                </div>
-              </Reveal>
+              <div className="car-acoes">
+                <a
+                  ref={botaoTopoRef}
+                  href={linkCandidatura}
+                  className="botao botao-acento"
+                  data-ima
+                >
+                  Quero me candidatar
+                  <ArrowUpRight aria-hidden="true" />
+                </a>
+                <a href="/carreiras" className="botao botao-chao">
+                  <ArrowLeft aria-hidden="true" />
+                  Ver todas as vagas
+                </a>
+              </div>
+              {publicadoEm.length > 0 && (
+                <p className="mt-5 text-pequeno text-tinta-suave">Publicada em {publicadoEm}</p>
+              )}
+            </div>
 
-              <Reveal delay={90}>
-                {/* Colunas fluidas em vez de 2 ou 4 fixas: com `auto-fit` e piso
-                  de 13rem a grade se reorganiza sozinha em qualquer largura, e
-                  `items-stretch` iguala a altura — o card "Jornada" tem três
-                  linhas e deixava a grade 2×2 visivelmente torta. */}
-                <ul className="mt-7 grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] items-stretch gap-3">
-                  {/* `faixaSalarial` devolve vazio quando o RH escolheu não divulgar:
-                    a linha continua na barra, mas dizendo o que é verdade. */}
-                  <DadoHero
-                    icone={Wallet}
-                    rotulo="Remuneração"
-                    valor={salario.length > 0 ? salario : "A combinar"}
-                  />
-                  <DadoHero
-                    icone={Clock3}
-                    rotulo="Jornada"
-                    valor={vaga.jornada.trim().length > 0 ? vaga.jornada : rotuloModelo(vaga)}
-                  />
-                  <DadoHero icone={Users} rotulo="Vagas" valor={posicoes} />
-                  <DadoHero
-                    icone={CalendarClock}
-                    rotulo="Inscrições"
-                    valor={prazo.length > 0 ? `Até ${prazo}` : "Sem prazo definido"}
-                  />
-                </ul>
-              </Reveal>
-
-              <Reveal delay={150}>
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  {/* `min-h` igual nos dois: `button-primary` media 55px e
-                    `button-ghost-light` 52px, e lado a lado a diferença aparece. */}
-                  <a href={linkCandidatura} className="button-primary min-h-[3.25rem]">
-                    <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
-                    <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-                  </a>
-                  <a href="/carreiras" className="button-ghost-light min-h-[3.25rem]">
-                    <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Ver todas as vagas
-                  </a>
-                </div>
-                {publicadoEm.length > 0 && (
-                  <p className="mt-5 text-xs font-semibold text-white/85">
-                    Publicada em {publicadoEm}
-                  </p>
-                )}
-              </Reveal>
+            <div className="car-topo-foto">
+              <FormaCoroa proporcao={1} className="car-topo-eco" />
+              {capaDaArea(vaga.area) !== null ? (
+                <CapaVaga area={vaga.area} medir className="car-topo-moldura" />
+              ) : (
+                /* Área sem foto: a coroa chapada em verde-maçã segura o lugar,
+                   com a mesma caixa da foto — o layout não depende de imagem. */
+                <MolduraCoroa medir className="car-topo-moldura" aria-hidden="true">
+                  <span className="absolute inset-0 bg-acento" />
+                </MolduraCoroa>
+              )}
             </div>
           </div>
         </section>
 
         {/* CORPO */}
-        <section className="jp-section bg-cream">
-          <div className="jp-container mx-auto grid max-w-[1280px] gap-8 lg:grid-cols-[1.6fr_.9fr] lg:items-start lg:gap-12">
-            {/* Coluna larga. `order` só existe por causa do celular: ali o
-                resumo da vaga e o botão precisam vir ANTES do texto longo —
-                quem abre o anúncio no telefone decide pelo essencial (local,
-                jornada, benefícios) muito antes de ler as responsabilidades.
-                No desktop a ordem volta ao natural, com o cartão à direita. */}
-            <div className="order-2 lg:order-1">
+        <section className="secao-curta pt-0" aria-label="Detalhes da vaga">
+          <div className="quadro vg-corpo">
+            <div className="vg-prosa">
               {blocos.length > 0 && (
-                <Reveal>
-                  <h2 className="font-display text-[clamp(1.6rem,3.4vw,2.1rem)] font-extrabold leading-tight tracking-[-.04em] text-forest-2">
+                <section data-entra aria-labelledby="vaga-sobre">
+                  <h2 id="vaga-sobre" data-item>
                     Sobre a vaga
                   </h2>
-                  <div className="mt-4 grid gap-4 text-base leading-relaxed text-ink">
+                  <div className="vg-paragrafos" data-item>
                     {/* A posição entra na `key` porque dois parágrafos podem
                         começar igual (texto de RH repete abertura), e duas keys
-                        iguais fazem a reconciliação descartar um deles no
-                        primeiro re-render — que acontece, via `Reveal`. A lista
+                        iguais fazem a reconciliação descartar um deles. A lista
                         nunca é reordenada nem filtrada, então o índice é
                         identidade estável aqui. */}
                     {blocos.map((p, i) => (
                       <p key={`${i}-${p.slice(0, 24)}`}>{p}</p>
                     ))}
                   </div>
-                </Reveal>
+                </section>
               )}
 
               <BlocoLista
                 titulo="O que você vai fazer"
-                apoio="A rotina da função, do jeito que ela acontece na clínica."
-                icone={ListChecks}
                 itens={vaga.responsabilidades}
-                atraso={60}
                 rotuloVerTodos="Ver todas as responsabilidades"
               />
-              <BlocoLista
-                titulo="O que precisamos"
-                apoio="Requisitos que a equipe considera indispensáveis para começar."
-                icone={BadgeCheck}
-                itens={vaga.requisitos}
-                atraso={90}
-                rotuloVerTodos="Ver todos os requisitos"
-              />
-              <BlocoLista
-                titulo="O que conta pontos"
-                apoio="Nada aqui é obrigatório — são diferenciais que pesam na escolha."
-                icone={Sparkles}
-                itens={vaga.diferenciais}
-                atraso={120}
-                rotuloVerTodos="Ver todos os diferenciais"
-              />
+
+              {/* Segunda foto: quebra o corredor de listas e põe o lugar na
+                  leitura. Só aparece quando a área tem foto de apoio. */}
+              {segunda !== null && (
+                <figure className="vg-foto" data-obturador>
+                  <MolduraCoroa medir>
+                    <img
+                      src={segunda.src}
+                      alt={segunda.alt}
+                      width={segunda.largura}
+                      height={segunda.altura}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </MolduraCoroa>
+                </figure>
+              )}
+
+              {(vaga.requisitos.length > 0 || vaga.diferenciais.length > 0) && (
+                <div className="vg-par ladrilho">
+                  <BlocoLista
+                    titulo="O que precisamos"
+                    itens={vaga.requisitos}
+                    rotuloVerTodos="Ver todos os requisitos"
+                  />
+                  <BlocoLista
+                    titulo="O que conta pontos"
+                    itens={vaga.diferenciais}
+                    rotuloVerTodos="Ver todos os diferenciais"
+                  />
+                </div>
+              )}
 
               {vaga.especialidades.length > 0 && (
-                <Reveal delay={150} className="mt-10">
-                  <h2 className="font-display text-[clamp(1.45rem,3vw,1.9rem)] font-extrabold leading-tight tracking-[-.03em] text-forest-2">
+                <section data-entra aria-labelledby="vaga-especialidades">
+                  <h2 id="vaga-especialidades" data-item>
                     Especialidades envolvidas
                   </h2>
-                  <ul className="mt-4 flex flex-wrap gap-2">
+                  <ul className="vg-lista" data-item>
                     {vaga.especialidades.map((esp) => (
-                      <li
-                        key={esp}
-                        className="rounded-full bg-mint px-4 py-2 text-sm font-bold text-ink ring-1 ring-forest/15"
-                      >
-                        {esp}
+                      <li key={esp}>
+                        <MarcaCoroa />
+                        <span>{esp}</span>
                       </li>
                     ))}
                   </ul>
-                </Reveal>
+                </section>
               )}
 
-              {/* Fecho da leitura. Quem chegou até aqui leu tudo e não deveria
-                  ter de rolar de volta ao topo (ou caçar a barra do celular)
-                  para se candidatar. Horizontal no desktop, coluna no telefone. */}
-              <Reveal delay={160} className="mt-10">
-                <div className="flex flex-col gap-5 rounded-[1.4rem] bg-forest p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
-                  <div>
-                    <p className="font-display text-xl font-extrabold leading-tight text-white sm:text-2xl">
-                      Gostou da oportunidade?
-                    </p>
-                    <p className="mt-1.5 text-sm font-semibold leading-relaxed text-white">
-                      Envie sua candidatura e venha fazer parte da nossa equipe.
-                    </p>
-                  </div>
-                  {/* Botão branco sobre o verde: fundo verde leva letra branca,
-                      e um botão verde dentro de um bloco verde sumiria. */}
-                  <a
-                    href={linkCandidatura}
-                    className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-extrabold text-forest-2 transition hover:bg-mint"
-                  >
-                    <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
-                  </a>
-                </div>
-              </Reveal>
-
-              <Reveal delay={170}>
-                <p className="mt-8 flex items-start gap-3 rounded-2xl border border-border-soft bg-paper p-5 text-sm font-semibold leading-relaxed text-ink-soft">
-                  <ShieldCheck aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-forest" />
-                  <span>
-                    Todo o processo seletivo da {CLINICA.nome} é gratuito. Nunca pedimos depósito,
-                    taxa de cadastro ou compra de material em nenhuma etapa.
-                  </span>
-                </p>
-              </Reveal>
+              <p className="vg-aviso">
+                <MarcaCoroa />
+                <span>
+                  Todo o processo seletivo da {CLINICA.nome} é gratuito. Nunca pedimos depósito,
+                  taxa de cadastro ou compra de material em nenhuma etapa.
+                </span>
+              </p>
             </div>
 
-            {/* Coluna estreita, grudenta a partir do desktop. `top-28` porque o
-                cabeçalho do site é sticky e ficaria por cima do cartão. */}
-            <Reveal delay={80} className="order-1 lg:order-2 lg:sticky lg:top-28">
-              <div className="jp-soft-card rounded-[1.6rem] p-6 sm:p-7">
-                <h2 className="font-display text-2xl font-black leading-tight text-forest-2">
-                  Resumo da vaga
-                </h2>
+            {/* Coluna estreita, grudenta a partir do desktop. */}
+            <div className="vg-resumo-lado">
+              <aside className="vg-resumo ladrilho" aria-labelledby="vaga-resumo">
+                <h2 id="vaga-resumo">Resumo da vaga</h2>
 
-                <dl className="mt-5">
-                  <LinhaResumo rotulo="Área" valor={rotuloArea(vaga, "Equipe JP")} />
-                  <LinhaResumo rotulo="Vínculo" valor={rotuloVinculo(vaga)} />
-                  <LinhaResumo rotulo="Modelo" valor={rotuloModelo(vaga)} />
-                  <LinhaResumo rotulo="Local" valor={local} />
+                {/* O botão abre o cartão: é a ação que acompanha a leitura, e
+                    um cartão sticky mais alto que a tela escondia justamente o
+                    fim dele. Área, vínculo, modelo e local não se repetem aqui:
+                    já estão no topo da página. */}
+                <a href={linkCandidatura} className="botao botao-acento">
+                  Quero me candidatar
+                  <ArrowUpRight aria-hidden="true" />
+                </a>
+
+                <dl>
                   {jornada.length > 0 && <LinhaResumo rotulo="Jornada" valor={jornada} />}
+                  {/* `faixaSalarial` devolve vazio quando o RH escolheu não
+                      divulgar: a linha some, em vez de dizer "a combinar". */}
                   {salario.length > 0 && <LinhaResumo rotulo="Remuneração" valor={salario} />}
                   <LinhaResumo rotulo="Posições" valor={posicoes} />
                   {prazo.length > 0 && <LinhaResumo rotulo="Inscrições até" valor={prazo} />}
                 </dl>
 
                 {turnos.length > 0 && (
-                  <div className="mt-6">
-                    <h3 className="text-[11px] font-black uppercase tracking-[.14em] text-ink-soft">
-                      Turnos
-                    </h3>
-                    <ul className="mt-3 flex flex-wrap gap-2">
+                  <>
+                    <h3>Turnos</h3>
+                    <ul>
                       {turnos.map((t) => (
-                        <li
-                          key={t}
-                          className="rounded-full bg-cream px-3 py-1.5 text-xs font-bold text-ink ring-1 ring-border-soft"
-                        >
-                          {t}
+                        <li key={t}>
+                          <MarcaCoroa />
+                          <span>{t}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </>
                 )}
 
                 {beneficios.length > 0 && (
-                  <div className="mt-7 border-t border-border-soft pt-6">
-                    <h3 className="flex items-center gap-2 font-display text-lg font-extrabold text-forest-2">
-                      <Gift aria-hidden="true" className="h-5 w-5 text-forest" />
-                      Benefícios
-                    </h3>
-                    <ul className="mt-4 grid gap-2.5">
+                  <>
+                    <h3>Benefícios</h3>
+                    <ul>
                       {beneficios.map((b) => (
-                        <li
-                          key={b}
-                          className="flex items-start gap-2.5 text-sm leading-snug text-ink"
-                        >
-                          <CheckCircle2
-                            aria-hidden="true"
-                            className="mt-0.5 h-4 w-4 shrink-0 text-forest"
-                          />
+                        <li key={b}>
+                          <MarcaCoroa />
                           <span>{b}</span>
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </>
                 )}
 
-                <a href={linkCandidatura} className="button-primary mt-7 w-full">
-                  <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
-                </a>
-
                 {(config.emailRh.trim().length > 0 || config.whatsappRh.trim().length > 0) && (
-                  <p className="mt-4 text-center text-xs font-semibold leading-relaxed text-ink-soft">
+                  <p className="vg-duvida">
                     Dúvidas sobre a vaga?{" "}
                     {config.whatsappRh.trim().length > 0
                       ? `Fale com o RH: ${config.whatsappRh}`
                       : `Escreva para ${config.emailRh}`}
                   </p>
                 )}
-              </div>
-            </Reveal>
+              </aside>
+            </div>
           </div>
         </section>
 
         {/* OUTRAS VAGAS */}
         {relacionadas.length > 0 && (
-          <section className="jp-section bg-paper">
-            <div className="jp-container">
-              <Reveal className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-                <div>
-                  <span className="eyebrow text-ink">Continue olhando</span>
-                  <h2 className="mt-4 font-display text-[clamp(2rem,4.4vw,3.4rem)] font-extrabold leading-[.9] tracking-[-.05em] text-forest-2">
-                    Outras vagas abertas.
-                  </h2>
-                </div>
-                <a href="/carreiras" className="button-dark shrink-0">
-                  Ver todas <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          <section className="secao-curta bg-chao-2" aria-labelledby="vaga-outras">
+            <div className="quadro">
+              <div
+                className="flex flex-col justify-between gap-4 md:flex-row md:items-end"
+                data-entra
+              >
+                <h2 id="vaga-outras" className="text-titulo" data-linhas>
+                  Outras vagas abertas.
+                </h2>
+                <a href="/carreiras" className="botao botao-tinta self-start" data-item>
+                  Ver todas
+                  <ArrowUpRight aria-hidden="true" />
                 </a>
-              </Reveal>
+              </div>
 
-              <ul className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="car-lista" data-sobre="chao-2">
                 {relacionadas.map((outra) => (
-                  <li key={outra.id}>
-                    <CartaoVaga vaga={outra} agora={agora} />
-                  </li>
+                  <LinhaDeVaga key={outra.id} vaga={outra} agora={agora} />
                 ))}
               </ul>
             </div>
@@ -820,12 +710,17 @@ function PaginaVaga() {
 
       <Footer />
 
-      {/* Barra fixa só no celular: no desktop o cartão grudento já mantém o botão
-          à vista o tempo todo. O respiro de baixo vem de .mobile-sticky-cta, que
-          soma o env(safe-area-inset-bottom) do iPhone à altura do botão. */}
-      <div className="mobile-sticky-cta fixed inset-x-0 bottom-0 z-[80] border-t border-lime/25 bg-brand-deep/95 px-4 pt-2.5 backdrop-blur-md lg:hidden">
-        <a href={linkCandidatura} className="button-primary w-full">
-          <Send aria-hidden="true" className="h-5 w-5" /> Quero me candidatar
+      {/* Barra fixa só no celular, e só depois que o botão do topo sai da tela:
+          no desktop o resumo grudento já mantém o botão à vista o tempo todo. O respiro de baixo vem de
+          .mobile-sticky-cta, que soma o env(safe-area-inset-bottom) do iPhone. */}
+      <div
+        className="vg-barra mobile-sticky-cta"
+        data-visivel={barraVisivel ? "true" : "false"}
+        inert={!barraVisivel}
+      >
+        <a href={linkCandidatura} className="botao botao-acento w-full">
+          Quero me candidatar
+          <ArrowUpRight aria-hidden="true" />
         </a>
       </div>
     </div>
@@ -845,34 +740,29 @@ function PaginaVaga() {
  */
 function VagaNaoEncontrada() {
   return (
-    <div className="min-h-dvh bg-cream">
+    <div className="site min-h-dvh">
       <SkipLink />
       <Header />
 
-      <main id="conteudo" className="section-deep noise flex min-h-[68vh] items-center text-white">
-        <div className="jp-container py-16">
-          <p className="eyebrow text-white">
-            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-lime" />
-            Vaga indisponível
-          </p>
-          <h1 className="mt-6 max-w-3xl font-display text-[clamp(2.4rem,6.5vw,4.5rem)] font-extrabold leading-[.88] tracking-[-.05em]">
-            {/* O destaque era `text-lime` — letra verde em fundo verde, o que a
-                clínica proibiu. A ênfase não se perde: a LINHA embaixo continua
-                lime (linha não é letra), e a palavra fica branca como o resto. */}
-            Esta vaga não está mais{" "}
-            <span className="text-white underline decoration-lime decoration-4 underline-offset-[6px]">
-              recebendo candidaturas.
-            </span>
-          </h1>
-          <p className="mt-6 max-w-xl text-base font-medium leading-relaxed text-white/85">
-            O processo pode ter sido encerrado ou o endereço mudou. As vagas abertas hoje estão
-            todas na página de carreiras — e, se a clínica estiver recebendo currículos espontâneos,
-            o caminho para o banco de talentos está lá também.
-          </p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <a href="/carreiras" className="button-primary">
-              <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Ver vagas abertas
-            </a>
+      <main id="conteudo" className="campo-escuro relative overflow-clip">
+        <FormaCoroa
+          proporcao={0.9}
+          className="pointer-events-none absolute -right-[12%] bottom-0 hidden h-[78%] text-acento opacity-100 lg:block"
+        />
+        <div className="quadro relative flex min-h-[68vh] items-center py-16">
+          <div>
+            <h1 className="text-display">Vaga indisponível.</h1>
+            <p className="mt-6 max-w-[44ch] text-sobre-campo-suave">
+              O processo pode ter sido encerrado ou o endereço mudou. As vagas abertas hoje estão
+              todas na página de carreiras — e, se a clínica estiver recebendo currículos
+              espontâneos, o caminho para o banco de talentos está lá também.
+            </p>
+            <div className="mt-9">
+              <a href="/carreiras" className="botao botao-acento">
+                <ArrowLeft aria-hidden="true" />
+                Ver vagas abertas
+              </a>
+            </div>
           </div>
         </div>
       </main>

@@ -1,29 +1,46 @@
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
-import { CUIDADOS_COMPLEMENTARES, TRATAMENTOS, whatsappLink } from "@/lib/jp";
-import { TreatmentIcon } from "@/components/site/TreatmentIcons";
+import fotoJanela from "@/assets/consultorio-janela.webp";
+import fotoBancada from "@/assets/consultorio-bancada.webp";
+import fotoEsterilizacao from "@/assets/esterilizacao.webp";
+import fotoEquipamento from "@/assets/equipamento.webp";
+import fotoImplantes from "@/assets/consultorio-implantes-1.webp";
+import fotoConsultorio from "@/assets/consultorio-2.webp";
+import fotoOrtodontia from "@/assets/consultorio-1.webp";
+import fotoLilas from "@/assets/consultorio-cadeira-lilas.webp";
+
+import { CUIDADOS_COMPLEMENTARES, TRATAMENTOS } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
+import { MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
+import { comGsap } from "@/components/site/sistema/gsap";
+import "./home/tratamentos.css";
+
+type Foto = { src: string; largura: number; altura: number; pos?: string };
 
 /**
- * Foto de cada card, por slug.
+ * Foto de cada tratamento, por slug.
  *
- * Ficam em `public/images/tratamentos/` e são servidas por caminho absoluto,
- * não importadas: vieram prontas da referência e não passam pelo pipeline de
- * assets do Vite.
+ * Só fotos reais do consultório, sem paciente e sem procedimento (Resolução
+ * CFO 196/2019). Antes seis delas eram renders de objeto em fundo branco, que
+ * pareciam banco de imagem e sumiam no chão; agora a lista inteira tem a mesma
+ * luz e o mesmo grade. O que muda de um item para outro é o enquadramento
+ * (`pos`), escolhido para o recorte quadrado da miniatura pegar a peça certa:
+ * cadeira, equipo, bancada.
  */
-const IMAGENS: Record<string, string> = {
-  "limpeza-profilaxia": "/images/tratamentos/limpeza.jpg",
-  "clareamento-dental": "/images/tratamentos/clareamento.jpg",
-  restauracoes: "/images/tratamentos/restauracoes.jpg",
-  "implantes-dentarios": "/images/tratamentos/implantes.jpg",
-  "proteses-dentarias": "/images/tratamentos/proteses.jpg",
-  ortodontia: "/images/tratamentos/ortodontia.jpg",
-  odontopediatria: "/images/tratamentos/odontopediatria.jpg",
-  "harmonizacao-orofacial": "/images/tratamentos/harmonizacao.jpg",
+const FOTOS: Record<string, Foto> = {
+  "limpeza-profilaxia": { src: fotoEsterilizacao, largura: 1200, altura: 967, pos: "50% 40%" },
+  "clareamento-dental": { src: fotoJanela, largura: 665, altura: 480, pos: "60% 50%" },
+  restauracoes: { src: fotoEquipamento, largura: 1200, altura: 967, pos: "50% 50%" },
+  "implantes-dentarios": { src: fotoImplantes, largura: 1200, altura: 1500, pos: "50% 45%" },
+  "proteses-dentarias": { src: fotoConsultorio, largura: 1200, altura: 896, pos: "70% 55%" },
+  ortodontia: { src: fotoOrtodontia, largura: 1400, altura: 1045, pos: "75% 50%" },
+  odontopediatria: { src: fotoLilas, largura: 665, altura: 480, pos: "50% 60%" },
+  "harmonizacao-orofacial": { src: fotoBancada, largura: 665, altura: 480, pos: "45% 50%" },
 };
 
 /**
- * Resumo curto de cada card — o `desc` de jp.ts é longo demais para esta caixa.
+ * Resumo curto de cada item — o `desc` de jp.ts é longo demais para esta linha.
  *
  * Três saem do texto de referência: clareamento, implantes e harmonização
  * prometiam resultado ("seguro e eficaz", "duráveis e seguras", "valorizam
@@ -44,75 +61,185 @@ const RESUMOS: Record<string, string> = {
   "harmonizacao-orofacial": "Procedimentos estéticos faciais realizados mediante avaliação.",
 };
 
-function CardEspecialidade({
-  slug,
-  titulo,
-  index,
-}: {
-  slug: string;
-  titulo: string;
-  index: number;
-}) {
+const CONSULTA_PREVIA = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
+const CONSULTA_QUIETO = "(prefers-reduced-motion: reduce)";
+
+/**
+ * A prévia grande que acompanha o cursor só existe com mouse, tela larga e
+ * movimento permitido. Decidido depois da hidratação: o servidor nunca a
+ * desenha, então o HTML é igual nos dois lados. As duas consultas são
+ * escutadas: um híbrido que troca de ponteiro (tablet com mouse, por exemplo)
+ * ganha ou perde a prévia na hora, sem recarregar.
+ */
+function usePrevia(): boolean {
+  const [ativa, setAtiva] = useState(false);
+  useEffect(() => {
+    const previa = window.matchMedia(CONSULTA_PREVIA);
+    const quieto = window.matchMedia(CONSULTA_QUIETO);
+    const atualizar = () => setAtiva(previa.matches && !quieto.matches);
+    atualizar();
+    previa.addEventListener("change", atualizar);
+    quieto.addEventListener("change", atualizar);
+    return () => {
+      previa.removeEventListener("change", atualizar);
+      quieto.removeEventListener("change", atualizar);
+    };
+  }, []);
+  return ativa;
+}
+
+function ListaDeTratamentos() {
+  const listaRef = useRef<HTMLDivElement>(null);
+  const previaRef = useRef<HTMLDivElement>(null);
+  const comPrevia = usePrevia();
+  const [slugAtivo, setSlugAtivo] = useState(TRATAMENTOS[0]?.slug ?? "");
+  const [visivel, setVisivel] = useState(false);
+
+  useEffect(() => {
+    const lista = listaRef.current;
+    const previa = previaRef.current;
+    if (!comPrevia || !lista || !previa) return;
+
+    let cancelado = false;
+    let limpar = () => {};
+
+    comGsap(({ gsap }) => {
+      if (cancelado) return;
+      // Atraso suave: a prévia chega ao cursor um instante depois dele.
+      const irX = gsap.quickTo(previa, "x", { duration: 0.7, ease: "power3.out" });
+      const irY = gsap.quickTo(previa, "y", { duration: 0.7, ease: "power3.out" });
+      // A inclinação segue a velocidade horizontal e volta ao eixo com mola.
+      const girar = gsap.quickTo(previa, "rotation", {
+        duration: 0.8,
+        ease: "elastic.out(1, 0.55)",
+      });
+      let ultimoX = 0;
+      let primeiro = true;
+      let parar = 0;
+      // O último item sob o cursor. Só o que muda vira estado: pointermove
+      // dispara dezenas de vezes por segundo e o React não precisa saber de
+      // cada uma. O vão entre as colunas não tem [data-slug]; ali a prévia
+      // fica no item anterior em vez de piscar.
+      let atual = "";
+
+      const aoMover = (e: PointerEvent) => {
+        const alvo = (e.target as HTMLElement).closest<HTMLElement>("[data-slug]");
+        const slug = alvo?.dataset["slug"];
+        if (slug && slug !== atual) {
+          atual = slug;
+          setSlugAtivo(slug);
+        }
+
+        const caixa = lista.getBoundingClientRect();
+        const l = previa.offsetWidth;
+        const a = previa.offsetHeight;
+        const cx = e.clientX - caixa.left;
+        const cy = e.clientY - caixa.top;
+        // À direita do cursor; se não couber, vai para a esquerda. Nunca sai
+        // da lista, para não criar rolagem horizontal.
+        const x = cx + 40 + l > caixa.width ? cx - 40 - l : cx + 40;
+        const y = Math.min(Math.max(cy - a / 2, 0), Math.max(caixa.height - a, 0));
+
+        if (primeiro) {
+          gsap.set(previa, { x, y, rotation: 0 });
+          primeiro = false;
+          setVisivel(true);
+        } else {
+          irX(x);
+          irY(y);
+          girar(Math.max(-7, Math.min(7, (e.clientX - ultimoX) * 0.5)));
+          window.clearTimeout(parar);
+          parar = window.setTimeout(() => girar(0), 90);
+        }
+        ultimoX = e.clientX;
+      };
+      const aoSair = () => {
+        setVisivel(false);
+        primeiro = true;
+        window.clearTimeout(parar);
+      };
+
+      lista.addEventListener("pointermove", aoMover);
+      lista.addEventListener("pointerleave", aoSair);
+      limpar = () => {
+        lista.removeEventListener("pointermove", aoMover);
+        lista.removeEventListener("pointerleave", aoSair);
+        window.clearTimeout(parar);
+        gsap.killTweensOf(previa);
+        setVisivel(false);
+      };
+    });
+
+    return () => {
+      cancelado = true;
+      limpar();
+    };
+  }, [comPrevia]);
+
   return (
-    <article className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-xl border border-border-soft bg-white shadow-[0_12px_40px_rgba(3,47,1,.055)] transition-all duration-500 hover:-translate-y-[7px] hover:border-brand-green/60 hover:shadow-[0_22px_55px_rgba(3,47,1,.11)]">
-      <div className="relative h-[185px] overflow-hidden bg-[#FAFBF8]">
-        <img
-          src={IMAGENS[slug]}
-          alt=""
-          loading="lazy"
-          width={900}
-          height={507}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
-        />
+    <div ref={listaRef} className="tratamentos-lista">
+      <ul className="tratamentos-itens" data-entra>
+        {TRATAMENTOS.map((t) => {
+          const foto = FOTOS[t.slug];
+          return (
+            <li key={t.slug} data-item data-slug={t.slug}>
+              <a href={`/tratamentos/${t.slug}`} className="tratamento-link">
+                <MolduraCoroa proporcao={1} className="tratamento-miniatura">
+                  {foto && (
+                    <img
+                      src={foto.src}
+                      alt=""
+                      width={foto.largura}
+                      height={foto.altura}
+                      loading="lazy"
+                      decoding="async"
+                      style={{ objectPosition: foto.pos }}
+                    />
+                  )}
+                </MolduraCoroa>
+                <span>
+                  <span className="tratamento-nome">
+                    {t.titulo}
+                    <ArrowRight aria-hidden="true" />
+                  </span>
+                  <span className="tratamento-desc">{RESUMOS[t.slug]}</span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
 
-        {/* dissolve a base da foto no branco do card */}
+      {comPrevia && (
         <div
+          ref={previaRef}
+          className="tratamentos-previa"
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[55px] bg-gradient-to-t from-white to-transparent"
-        />
-
-        <span
-          aria-hidden="true"
-          className="absolute bottom-[8px] left-5 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-border-soft bg-white/95 text-forest-2 shadow-[0_5px_15px_rgba(3,47,1,.06)] backdrop-blur-md"
+          data-visivel={visivel ? "" : undefined}
         >
-          <TreatmentIcon index={index} className="h-[19px] w-[19px]" />
-        </span>
-      </div>
-
-      <div className="flex flex-1 flex-col px-[22px] pb-[23px] pt-[15px]">
-        <h3 className="font-display text-[18px] font-extrabold leading-[1.15] tracking-[-0.025em] text-forest-2">
-          {titulo}
-        </h3>
-
-        <p className="mt-3 text-[12.5px] leading-[1.55] text-ink-soft">{RESUMOS[slug]}</p>
-
-        {/* o ::after estende o link ao card inteiro: alvo de clique maior sem
-            aninhar <a> dentro de <a>, que seria HTML inválido */}
-        <a
-          href={`/tratamentos/${slug}`}
-          className="group/link mt-auto flex items-center gap-3 pt-6 text-[12.5px] font-bold text-ink after:absolute after:inset-0 after:content-['']"
-          aria-label={`Saiba mais sobre ${titulo}`}
-        >
-          Saiba mais
-          {/* Em repouso a seta é `--brand-text` sobre claro; no hover o fundo
-              vira limão e ela passa a `--brand-deep` (4,96:1). Era
-              `--forest-2`, que sobre o limão dá 2,87:1 — abaixo dos 3:1 que a
-              WCAG pede para um elemento gráfico. */}
-          <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[#56A805] text-brand-text transition-all duration-300 group-hover/link:border-lime group-hover/link:bg-lime group-hover/link:text-brand-deep">
-            <ArrowRight
-              size={13}
-              aria-hidden="true"
-              className="transition-transform duration-300 group-hover/link:translate-x-[2px]"
-            />
-          </span>
-        </a>
-      </div>
-
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-10 left-1/2 h-[70px] w-[80%] -translate-x-1/2 rounded-full bg-brand-green/0 blur-[35px] transition-colors duration-500 group-hover:bg-brand-green/15"
-      />
-    </article>
+          <div className="tratamentos-previa-miolo">
+            <MolduraCoroa proporcao={4 / 5}>
+              {TRATAMENTOS.map((t) => {
+                const foto = FOTOS[t.slug];
+                return foto ? (
+                  <img
+                    key={t.slug}
+                    src={foto.src}
+                    alt=""
+                    width={foto.largura}
+                    height={foto.altura}
+                    loading="lazy"
+                    decoding="async"
+                    style={{ objectPosition: foto.pos }}
+                    data-ativa={t.slug === slugAtivo ? "" : undefined}
+                  />
+                ) : null;
+              })}
+            </MolduraCoroa>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -120,115 +247,65 @@ export function SpecialtiesSection() {
   const waOrientacao = useContatoWhatsApp("orientacao");
 
   return (
-    <section id="tratamentos" className="jp-section relative overflow-hidden bg-paper">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -left-[390px] -top-[355px] h-[720px] w-[720px] rounded-full border border-brand-green/25"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-[410px] top-[50px] h-[800px] w-[800px] rounded-full border border-brand-green/25"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-170px] left-[28%] h-[350px] w-[620px] rounded-full bg-brand-green/12 blur-[110px]"
-      />
-
-      <div className="jp-container relative">
-        <div className="mb-[52px] grid gap-10 lg:grid-cols-[1.08fr_.92fr] lg:items-start">
-          <div>
-            <span className="mb-5 block text-micro font-bold uppercase tracking-[0.18em] text-brand-text">
+    <section id="tratamentos" className="secao pb-0">
+      <div className="quadro">
+        <div data-entra>
+          {/* A contagem fica colada ao título, na mesma linha de base: no canto
+              direito ela ficava a mil pixels do que conta. */}
+          <div data-item className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+            <h2 data-linhas className="text-titulo">
               Tratamentos
-            </span>
-
-            <h2 className="font-display text-[48px] font-extrabold leading-[0.98] tracking-[-0.055em] text-forest-2 sm:text-[60px] lg:text-[68px]">
-              Nossas
-              <br />
-              <span className="relative inline-block text-brand-text">
-                especialidades.
-                <svg
-                  aria-hidden="true"
-                  className="absolute -bottom-[14px] left-0 h-[16px] w-[96px]"
-                  viewBox="0 0 100 16"
-                  fill="none"
-                >
-                  <path
-                    d="M2 4.5C25 15 55 14 98 3"
-                    stroke="#56A805"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </span>
             </h2>
-
-            <p className="mt-8 max-w-[520px] text-[15px] leading-6 text-ink-soft">
-              Cuidado completo para o seu sorriso, em todas as fases da vida.
+            <p className="text-frase text-tinta-suave">
+              <span data-numero={TRATAMENTOS.length} data-casas="0">
+                {TRATAMENTOS.length}
+              </span>{" "}
+              especialidades
             </p>
           </div>
-
-          <div className="max-w-[470px] lg:ml-auto lg:pt-5">
-            <p className="text-[14px] leading-[1.65] text-ink-soft">
-              Na JP Clínica Integrada Odontológica, oferecemos diversas áreas de cuidado para
-              atender às suas necessidades com excelência, tecnologia e acolhimento.
-            </p>
-
-            <p className="mt-4 text-[14px] font-semibold text-ink">
-              A indicação ideal depende da avaliação profissional.
-            </p>
-
-            <a
-              href={waOrientacao}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group mt-7 inline-flex min-w-[280px] items-center justify-between rounded-full border-[1.5px] border-lime bg-forest py-[7px] pl-7 pr-[7px] text-[13px] font-bold text-white shadow-[0_12px_30px_rgba(9,89,2,.26)] transition-all duration-300 hover:-translate-y-1 hover:bg-[#0C7503] hover:shadow-[0_18px_40px_rgba(86,168,5,.32)]"
-            >
-              Quero entender meu caso
-              <span className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-brand-deep text-white">
-                <ArrowRight
-                  size={17}
-                  aria-hidden="true"
-                  className="-rotate-45 transition-transform duration-300 group-hover:rotate-0"
-                />
-              </span>
-            </a>
-          </div>
+          <p data-item className="mt-5 max-w-xl text-corpo text-tinta-suave">
+            Cuidado completo para o seu sorriso, em todas as fases da vida.
+          </p>
         </div>
 
-        <div className="grid gap-[18px] sm:grid-cols-2 lg:grid-cols-4">
-          {TRATAMENTOS.map((t, i) => (
-            <CardEspecialidade key={t.slug} slug={t.slug} titulo={t.titulo} index={i} />
-          ))}
+        <div className="mt-10 lg:mt-14">
+          <ListaDeTratamentos />
         </div>
 
         {/* AS ÁREAS SEM PÁGINA.
 
-            A grade acima tem oito cards; a clínica atende quinze áreas. As sete
-            que faltavam não existiam em lugar nenhum do site — a palavra
-            "canal", "gengiva" e "faceta" não aparecia em nenhuma das 12 rotas.
-
-            Entram como lista e não como card porque card promete página, e
-            página de tratamento neste site tem manifesto, etapas e FAQ escritos
-            com a clínica. O que se sabe hoje é que a clínica faz — e é isso que
-            a lista diz, nada além. */}
-        <div className="mt-[18px] rounded-xl border border-border-soft bg-white/75 p-6 sm:p-7">
-          <p className="text-micro font-extrabold uppercase tracking-[0.16em] text-brand-text">
+            A lista acima tem oito itens com página; a clínica atende outras
+            áreas, que não existiam em lugar nenhum do site. Entram como lista e
+            não como item de menu porque item de menu promete página, e página
+            de tratamento neste site tem manifesto, etapas e FAQ escritos com a
+            clínica. O que se sabe hoje é que a clínica faz — e é isso que a
+            lista diz, nada além. */}
+        <div className="mt-16 lg:mt-24" data-entra>
+          <h3 data-item className="text-frase">
             Também atendemos
-          </p>
-          <ul className="mt-4 flex flex-wrap gap-2">
+          </h3>
+          <ul data-item className="tratamentos-outras mt-6">
             {CUIDADOS_COMPLEMENTARES.map((area) => (
-              <li
-                key={area}
-                className="rounded-full border border-forest/12 bg-secondary/70 px-4 py-2 text-[12.5px] font-bold text-forest-2"
-              >
+              <li key={area}>
+                <MarcaCoroa />
                 {area}
               </li>
             ))}
           </ul>
-          <p className="mt-5 text-[12.5px] leading-relaxed text-ink-soft">
-            Áreas atendidas na clínica. A indicação depende de avaliação profissional e da
-            necessidade de cada caso.
-          </p>
+
+          <div data-item className="tratamentos-convite ladrilho mt-12">
+            <p className="text-frase">A indicação ideal depende da avaliação profissional.</p>
+            <a
+              href={waOrientacao}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="botao botao-acento"
+              data-ima
+            >
+              Quero entender meu caso
+              <ArrowRight aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </section>

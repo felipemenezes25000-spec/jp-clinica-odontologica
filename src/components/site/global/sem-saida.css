@@ -1,0 +1,25 @@
+/* Páginas 404 e de erro — redesenho de 11/2026. Ver DeadEnd em routes/__root.tsx. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* A coroa gigante: chapada sobre o campo escuro,
+     ancorada na borda de baixo (que a corta). Os dois
+     lobos do topo ficam inteiros à vista — é neles que a forma se reconhece. */
+  .sem-saida-coroa {
+    position: absolute;
+    z-index: 0;
+    right: 2vw;
+    bottom: -12%;
+    width: min(40vw, 38rem);
+    height: auto;
+    pointer-events: none;
+  }
+  @media (max-width: 767.98px) {
+    .sem-saida-coroa {
+      right: -12vw;
+      bottom: -6%;
+      width: 96vw;
+    }
+  }
+}

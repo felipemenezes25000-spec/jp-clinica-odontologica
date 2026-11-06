@@ -1,5 +1,6 @@
 /**
- * Formulário público de candidatura — o assistente de 5 passos do Portal de RH.
+ * Formulário público de candidatura — uma tela só, em três blocos (a vaga, o
+ * contato e o currículo).
  *
  * Duas decisões de estrutura que valem ser ditas em voz alta:
  *
@@ -16,33 +17,24 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  ArrowLeft,
-  Briefcase,
-  Check,
-  CircleAlert,
-  Clock3,
-  Copy,
-  GraduationCap,
-  Headset,
-  HeartPulse,
-  MapPin,
-  MessageCircle,
-  RotateCcw,
-  Send,
-  Sparkles,
-  Stethoscope,
-  Banknote,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Check, CircleAlert, RotateCcw, Send } from "lucide-react";
+
+import consultorioImg from "@/assets/consultorio-2.webp";
 
 import { AreaUpload } from "@/components/rh/AreaUpload";
 import { CampoTexto, MensagemErro, Rotulo } from "@/components/rh/CampoTexto";
 import { idCampo } from "@/components/rh/idsCampo";
 import { Footer } from "@/components/site/Footer";
-import { Logo } from "@/components/site/Logo";
 import { SkipLink } from "@/components/site/SkipLink";
-import { CLINICA, whatsappLink } from "@/lib/jp";
+import {
+  BarraDeCandidatura,
+  type EtapaDaCandidatura,
+} from "@/components/site/carreiras/BarraDeCandidatura";
+import { TelaDeSucesso } from "@/components/site/carreiras/TelaDeSucesso";
+import { rastrearEnvioDeFormulario } from "@/lib/analytics/formulario";
+import { MarcaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
+import { Movimento } from "@/components/site/sistema/movimento";
+import { CLINICA } from "@/lib/jp";
 import { enviarCandidatura, listarVagasPublicas } from "@/lib/rh/api";
 import type { RespostaPortal } from "@/lib/rh/api";
 import { apenasDigitos, mascararTelefone } from "@/lib/rh/formatar";
@@ -58,7 +50,7 @@ import type {
   Vinculo,
 } from "@/lib/rh/tipos";
 import { faixaSalarial, resumoJornada } from "@/lib/rh/vagas";
-import { passoDoErro, validarPasso, validarTudo } from "@/lib/rh/validar";
+import { validarTudo } from "@/lib/rh/validar";
 import type { ContextoPortal, ErrosPasso } from "@/lib/rh/validar";
 
 const TITULO = "Trabalhe conosco — JP Clínica Integrada Odontológica";
@@ -81,43 +73,12 @@ const MAX_EXPERIENCIAS = 5;
 const MAX_CARTA = LIMITES.textoLongo;
 
 /**
- * Alvo de foco que não é um campo do formulário: o título do passo. Vive junto
- * dos nomes de campo em `foco.campo`, e por isso precisa ser um nome que
- * nenhuma chave de `Candidatura` use.
+ * Rolagem que respeita "reduzir movimento": o `html` já tem
+ * `scroll-behavior: smooth`, e um `behavior: "smooth"` explícito o ignora.
  */
-const CAMPO_PASSO = "__passo";
-
-/**
- * UM passo. Eram cinco.
- *
- * O formulário longo não seleciona candidato: seleciona quem tem paciência para
- * formulário. Tudo o que saiu daqui — formação, empregos, cursos, idiomas,
- * softwares, registro no conselho, pretensão — está no currículo, e a leitura
- * por IA extrai e escreve na ficha (`preencherComExtracao`, em
- * servidor/analise.ts). O painel continua mostrando os mesmos campos; muda
- * quem os preenche.
- *
- * A constante continua sendo uma lista porque a barra de progresso, o cabeçalho
- * e o salto para o erro leem dela. Com um item só eles se resolvem sozinhos.
- */
-const PASSOS: { numero: number; titulo: string; resumo: string }[] = [
-  { numero: 1, titulo: "Sua candidatura", resumo: "Currículo, contato e pronto" },
-];
-
-/**
- * Mapa explícito nome -> componente para o `icone` de `AREAS`. Indexar o módulo
- * inteiro do lucide (`import * as Icones`) resolveria em uma linha, mas puxaria
- * as mais de mil árvores de ícone para o bundle: nenhum bundler consegue provar
- * quais sobram quando a chave é dinâmica.
- */
-const ICONES_AREA: Record<string, LucideIcon> = {
-  Stethoscope,
-  HeartPulse,
-  Headset,
-  Briefcase,
-  GraduationCap,
-  Sparkles,
-};
+function comportamentoDeRolagem(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+}
 
 /**
  * Ordem de leitura do formulário. `validarPasso` já devolve os erros em ordem
@@ -165,9 +126,9 @@ function experienciaVazia(): ExperienciaItem {
 }
 
 /**
- * O passo 4 sempre mostra pelo menos um bloco de experiência em branco — um
- * formulário que começa com uma lista vazia e um botão "adicionar" faz a pessoa
- * pensar que aquele passo é opcional.
+ * A candidatura sempre começa com um bloco de experiência em branco — o objeto
+ * é o mesmo que o servidor valida, e uma lista vazia exigiria tratar o caso nos
+ * dois lados.
  */
 function estadoInicial(): Candidatura {
   return { ...candidaturaVazia(), experiencias: [experienciaVazia()] };
@@ -310,7 +271,7 @@ function lerRascunho(cru: string, agora: number): Candidatura | null {
  * leria o documento e a casa de quem passou antes. O que sobra (vaga, nome,
  * contato, formação, experiência, carta) é o que faz a retomada valer a pena e
  * a pessoa reconhece como seu — os três campos identificadores ela redigita em
- * meio minuto no passo 2.
+ * meio minuto no bloco de contato.
  *
  * `salvoEm` é o carimbo que `lerRascunho` usa para descartar rascunho velho.
  */
@@ -396,13 +357,7 @@ function PaginaCandidatura() {
   const { vagas, config }: RespostaPortal = Route.useLoaderData();
   const { vaga: slugDaUrl = "" }: { vaga?: string } = Route.useSearch();
 
-  /**
-   * O que a validação precisa saber do portal. Memorizado porque entra como
-   * dependência de `avancar`: um objeto novo a cada render recriaria o callback
-   * a cada tecla digitada.
-   */
   const [dados, setDados] = useState<Candidatura>(estadoInicial);
-  const [passo, setPasso] = useState(1);
   const [erros, setErros] = useState<ErrosPasso>({});
   /* Por que "" | "rascunho" | "link" e não um booleano: as duas situações
      produzem a mesma consequência (a vaga sai do formulário) mas explicações
@@ -421,7 +376,7 @@ function PaginaCandidatura() {
    * O que a validação precisa saber do portal e não está na candidatura.
    * Fica DEPOIS do estado do arquivo de propósito: `temCurriculo` depende dele,
    * e o currículo agora é obrigatório. Memorizado porque entra como dependência
-   * de `avancar`: um objeto novo a cada render recriaria o callback a cada
+   * de `enviar`: um objeto novo a cada render recriaria o callback a cada
    * tecla digitada.
    */
   const contexto = useMemo<ContextoPortal>(
@@ -445,16 +400,12 @@ function PaginaCandidatura() {
   const prontoParaSalvar = useRef(false);
   const fixadaAplicada = useRef(false);
   const alertaRef = useRef<HTMLDivElement>(null);
-  const tituloPassoRef = useRef<HTMLHeadingElement>(null);
+  const timerCopiaRef = useRef<number | undefined>(undefined);
 
   const enviado = protocolo.length > 0;
   const vagaFixada = useMemo(
     () => (slugDaUrl.length > 0 ? (vagas.find((v) => v.slug === slugDaUrl) ?? null) : null),
     [vagas, slugDaUrl],
-  );
-  const vagaEscolhida = useMemo(
-    () => (dados.vagaId.length > 0 ? (vagas.find((v) => v.id === dados.vagaId) ?? null) : null),
-    [vagas, dados.vagaId],
   );
   const preenchido = useMemo(() => temConteudo(dados), [dados]);
 
@@ -617,113 +568,79 @@ function PaginaCandidatura() {
   useEffect(() => {
     if (foco.campo.length === 0) return;
     const alvo =
-      foco.campo === "geral"
-        ? alertaRef.current
-        : foco.campo === CAMPO_PASSO
-          ? tituloPassoRef.current
-          : document.getElementById(idCampo(foco.campo));
+      foco.campo === "geral" ? alertaRef.current : document.getElementById(idCampo(foco.campo));
     if (alvo === null) return;
     // Focar (e não só rolar) é o ponto: quem usa leitor de tela precisa que o
     // cursor virtual pare no campo, ouvir o rótulo e ouvir a mensagem ligada
     // por aria-describedby. Rolar sozinho não move o foco de lugar nenhum.
     alvo.focus({ preventScroll: true });
-    // Na troca de passo quem manda no scroll é `irPara`, que volta ao topo do
-    // formulário inteiro; centralizar o título aqui brigaria com aquele scroll.
-    if (foco.campo !== CAMPO_PASSO) alvo.scrollIntoView({ block: "center", behavior: "smooth" });
+    alvo.scrollIntoView({ block: "center", behavior: comportamentoDeRolagem() });
   }, [foco]);
 
   const apontarErros = useCallback((novos: ErrosPasso) => {
     setErros(novos);
     const campo = primeiroCampoComErro(novos);
-    if (campo.length > 0) {
-      setPasso(passoDoErro(campo));
-      setFoco((f) => ({ campo, seq: f.seq + 1 }));
-      return;
-    }
     // Sobrou só "geral" ou "vagaId": os dois aparecem no alerta do topo.
-    setPasso(1);
-    setFoco((f) => ({ campo: "geral", seq: f.seq + 1 }));
+    setFoco((f) => ({ campo: campo.length > 0 ? campo : "geral", seq: f.seq + 1 }));
   }, []);
-
-  /* ---------------------------------------------------------------------- */
-  /* Navegação entre passos                                                 */
-  /* ---------------------------------------------------------------------- */
-
-  const irPara = useCallback((destino: number) => {
-    setPasso(destino);
-    // Trocar de passo troca a página inteira embaixo de um botão que não muda
-    // de lugar nem de rótulo. Sem mover o foco para o título do passo novo,
-    // quem usa leitor de tela aperta "Continuar" e não ouve absolutamente nada
-    // — precisa sair explorando o documento para descobrir onde parou.
-    setFoco((f) => ({ campo: CAMPO_PASSO, seq: f.seq + 1 }));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  const avancar = useCallback(() => {
-    const novos = validarPasso(passo, dados, agora, contexto);
-    if (Object.keys(novos).length > 0) {
-      apontarErros(novos);
-      return;
-    }
-    setErros({});
-    irPara(Math.min(passo + 1, PASSOS.length));
-  }, [passo, dados, agora, contexto, apontarErros, irPara]);
-
-  /* ---------------------------------------------------------------------- */
-  /* ViaCEP                                                                 */
-  /* ---------------------------------------------------------------------- */
-
-  /* ---------------------------------------------------------------------- */
-  /* Experiências                                                           */
-  /* ---------------------------------------------------------------------- */
 
   /* ---------------------------------------------------------------------- */
   /* Envio                                                                  */
   /* ---------------------------------------------------------------------- */
 
-  const enviar = useCallback(async () => {
-    const todos = validarTudo(dados, agora, contexto);
-    if (Object.keys(todos).length > 0) {
-      apontarErros(todos);
-      return;
-    }
-
-    setEnviando(true);
-    setErros({});
-    try {
-      const formulario = new FormData();
-      formulario.append("dados", JSON.stringify(paraEnvio(dados)));
-      if (arquivo !== null) formulario.append("curriculo", arquivo);
-
-      const resposta = await enviarCandidatura({ data: formulario });
-      if (resposta.ok) {
-        setProtocolo(resposta.protocolo);
-        limparRascunho();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+  const enviar = useCallback(
+    async (form: HTMLFormElement) => {
+      const todos = validarTudo(dados, agora, contexto);
+      if (Object.keys(todos).length > 0) {
+        apontarErros(todos);
         return;
       }
-      apontarErros(resposta.erros);
-    } catch {
-      setErros({
-        geral:
-          "Não conseguimos enviar sua candidatura agora. Confira sua conexão e tente de novo em alguns instantes — o que você preencheu continua aqui.",
-      });
-      setFoco((f) => ({ campo: "geral", seq: f.seq + 1 }));
-    } finally {
-      setEnviando(false);
-    }
-  }, [dados, agora, contexto, arquivo, apontarErros, limparRascunho]);
+      // A tentativa só conta no funil depois de passar na validação (o form tem
+      // `data-rastreio-proprio`, então o ouvinte global não a conta antes).
+      rastrearEnvioDeFormulario(form);
+
+      setEnviando(true);
+      setErros({});
+      try {
+        const formulario = new FormData();
+        formulario.append("dados", JSON.stringify(paraEnvio(dados)));
+        if (arquivo !== null) formulario.append("curriculo", arquivo);
+
+        const resposta = await enviarCandidatura({ data: formulario });
+        if (resposta.ok) {
+          setProtocolo(resposta.protocolo);
+          limparRascunho();
+          window.scrollTo({ top: 0, behavior: comportamentoDeRolagem() });
+          return;
+        }
+        apontarErros(resposta.erros);
+      } catch {
+        setErros({
+          geral:
+            "Não conseguimos enviar sua candidatura agora. Confira sua conexão e tente de novo em alguns instantes — o que você preencheu continua aqui.",
+        });
+        setFoco((f) => ({ campo: "geral", seq: f.seq + 1 }));
+      } finally {
+        setEnviando(false);
+      }
+    },
+    [dados, agora, contexto, arquivo, apontarErros, limparRascunho],
+  );
 
   const copiarProtocolo = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(protocolo);
       setCopiado(true);
-      window.setTimeout(() => setCopiado(false), 2500);
+      window.clearTimeout(timerCopiaRef.current);
+      timerCopiaRef.current = window.setTimeout(() => setCopiado(false), 2500);
     } catch {
       // Área de transferência negada (permissão ou contexto inseguro): o
       // protocolo está grande na tela justamente para poder ser copiado à mão.
     }
   }, [protocolo]);
+
+  // O aviso "Copiado" não pode tentar atualizar a tela depois que ela saiu.
+  useEffect(() => () => window.clearTimeout(timerCopiaRef.current), []);
 
   const restaurarRascunho = useCallback(() => {
     if (rascunho === null) return;
@@ -770,204 +687,170 @@ function PaginaCandidatura() {
 
   const erroGeral = erros["geral"] ?? "";
   const erroVaga = erros["vagaId"] ?? "";
-  const progresso = enviado
-    ? 100
-    : Math.round(((passo - 1) / PASSOS.length) * 100 + 100 / PASSOS.length);
+
+  /**
+   * As três coroas da barra acendem pelo que já está preenchido. É um sinal de
+   * andamento, não a validação: quem valida continua sendo `validarPasso`, que o
+   * servidor repete. Os limites aqui são deliberadamente frouxos (um nome com
+   * duas letras, um telefone com DDD) para a coroa não acender antes da hora.
+   */
+  const etapas = useMemo<EtapaDaCandidatura[]>(
+    () => [
+      { rotulo: "Vaga", feita: escolhaFeita && dados.area.length > 0 },
+      {
+        rotulo: "Contato",
+        feita: dados.nome.trim().length > 1 && apenasDigitos(dados.telefone).length >= 10,
+      },
+      { rotulo: "Currículo", feita: arquivo !== null && dados.consentimentoLgpd },
+    ],
+    [escolhaFeita, dados.area, dados.nome, dados.telefone, dados.consentimentoLgpd, arquivo],
+  );
 
   return (
-    <div className="min-h-dvh bg-cream">
+    <div className="site candidatura min-h-dvh">
+      <Movimento />
       <SkipLink />
 
-      <BarraTopo passo={passo} progresso={progresso} enviado={enviado} aoIrPara={irPara} />
+      <BarraDeCandidatura etapas={etapas} enviado={enviado} />
 
       <main id="conteudo">
         {enviado ? (
-          <TelaSucesso
+          <TelaDeSucesso
             protocolo={protocolo}
             copiado={copiado}
             aoCopiar={() => void copiarProtocolo()}
             emailRh={config.emailRh}
           />
         ) : (
-          <div className="relative">
-            {/* A malha é uma camada só de decoração, atrás do conteúdo. Ela NÃO
-                pode ir na div do formulário: .rh-grade traz um mask-image, e
-                máscara em CSS vale para o elemento inteiro — o formulário todo
-                desbotaria de cima para baixo junto com o desenho da grade. */}
-            <div
-              className="rh-grade pointer-events-none absolute inset-x-0 top-0 h-80"
-              aria-hidden="true"
-            />
-            <div className="relative jp-container py-10 sm:py-14">
-              <div className="mx-auto max-w-3xl">
-                <p className="eyebrow text-ink">Candidatura</p>
-                <h1 className="mt-3 font-display text-3xl font-extrabold leading-[1.02] tracking-[-0.04em] text-forest-2 sm:text-4xl lg:text-5xl">
-                  {config.tituloPortal}
-                </h1>
-                <p className="mt-4 max-w-2xl text-base font-medium leading-relaxed text-ink-soft">
-                  {config.chamadaPortal}
-                </p>
-                <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-ink-soft">
-                  <Clock3 className="h-4 w-4 text-forest" aria-hidden="true" />
-                  Cinco passos, cerca de seis minutos. Dá para parar e voltar depois.
-                </p>
+          <div className="quadro cand-pagina cand-grade">
+            <div className="cand-lateral">
+              <h1 className="text-titulo">Envie sua candidatura.</h1>
+              <p className="text-pequeno text-tinta-suave">
+                O que você preenche fica guardado neste navegador por 12 horas, então dá para parar
+                e voltar depois.
+              </p>
 
-                {rascunho !== null ? (
-                  <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-forest/25 bg-mint p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="flex items-start gap-2 text-sm font-semibold text-ink">
-                      <RotateCcw className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                      <span>
-                        Encontramos uma candidatura que você começou neste navegador. Quer continuar
-                        de onde parou?
-                      </span>
-                    </p>
-                    <div className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        onClick={restaurarRascunho}
-                        className="inline-flex min-h-11 items-center rounded-full bg-forest px-4 text-sm font-bold text-white transition hover:bg-brand-deep"
-                      >
-                        Continuar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={descartarRascunho}
-                        className="inline-flex min-h-11 items-center rounded-full border border-forest/25 bg-white px-4 text-sm font-bold text-ink transition hover:bg-white/70"
-                      >
-                        Começar do zero
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
+              <div className="cand-lateral-foto">
+                <MolduraCoroa proporcao={1.45}>
+                  <img
+                    src={consultorioImg}
+                    alt="Consultório da JP, com a cadeira odontológica e o armário de apoio"
+                    width={1200}
+                    height={896}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </MolduraCoroa>
+              </div>
+            </div>
 
-                <form
-                  className="rh-papel mt-8 p-5 sm:p-7 lg:p-9"
-                  noValidate
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (passo < PASSOS.length) avancar();
-                    else void enviar();
-                  }}
-                >
-                  {/* Alerta do topo: erros que não pertencem a um campo. tabIndex
-                    -1 para poder receber foco por código sem entrar no Tab. */}
-                  <div ref={alertaRef} id={idCampo("geral")} tabIndex={-1} className="outline-none">
-                    {erroGeral.length > 0 || erroVaga.length > 0 ? (
-                      <div
-                        role="alert"
-                        className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4"
-                      >
-                        <CircleAlert
-                          className="mt-0.5 h-5 w-5 shrink-0 text-destructive"
-                          aria-hidden="true"
-                        />
-                        <div className="text-sm font-semibold leading-relaxed text-destructive">
-                          {erroGeral.length > 0 ? <p>{erroGeral}</p> : null}
-                          {erroVaga.length > 0 ? <p>{erroVaga}</p> : null}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Não é erro: é explicação, e por isso role="status" e não
-                        role="alert". A vaga saiu do ar entre o momento em que a
-                        pessoa escolheu e o momento em que ela voltou. Sem esta
-                        linha a vaga sumiria do formulário sem explicação, e a
-                        pessoa concluiria que ela mesma errou alguma coisa. */}
-                    {vagaSumiu !== "" ? (
-                      <div
-                        role="status"
-                        className="mb-6 flex items-start gap-3 rounded-2xl border border-border-soft bg-mint/60 p-4"
-                      >
-                        <CircleAlert
-                          className="mt-0.5 h-5 w-5 shrink-0 text-forest"
-                          aria-hidden="true"
-                        />
-                        <p className="text-sm font-semibold leading-relaxed text-ink">
-                          {vagaSumiu === "rascunho"
-                            ? "A vaga que você tinha escolhido não está mais recebendo candidaturas. Guardamos tudo o que você já havia preenchido — é só escolher outra vaga ou seguir pelo banco de talentos."
-                            : "O link que você abriu leva a uma vaga que não está mais recebendo candidaturas. Escolha uma das vagas abertas abaixo ou envie seu currículo para o banco de talentos."}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <header className="mb-7 border-b border-border-soft pb-5">
-                    {/* Escondido do leitor de tela porque o mesmo texto entra no
-                        <h2> abaixo, que é o alvo do foco na troca de passo. */}
-                    <p className="eyebrow text-ink" aria-hidden="true">
-                      Passo {passo} de {PASSOS.length}
-                    </p>
-                    {/* tabIndex -1 para receber foco por código na troca de
-                        passo, sem entrar na ordem de tabulação. O número do
-                        passo entra aqui só para o leitor de tela: ele já está
-                        na linha acima, que é visual. */}
-                    <h2
-                      ref={tituloPassoRef}
-                      tabIndex={-1}
-                      className="mt-2 font-display text-2xl font-extrabold tracking-[-0.03em] text-forest-2 outline-none sm:text-3xl"
-                    >
-                      <span className="sr-only">
-                        Passo {passo} de {PASSOS.length}:{" "}
-                      </span>
-                      {PASSOS[passo - 1]?.titulo ?? ""}
-                    </h2>
-                    <p className="mt-1 text-sm font-medium text-ink-soft">
-                      {PASSOS[passo - 1]?.resumo ?? ""}
-                    </p>
-                  </header>
-
-                  {/* Um passo só: escolha da vaga, contato e currículo, na
-                      ordem em que a pessoa pensa. Sem "Continuar" no meio —
-                      cada botão a mais entre a candidata e o envio é gente que
-                      desiste no caminho. */}
-                  <div className="space-y-8">
-                    <PassoVaga
-                      dados={dados}
-                      erros={erros}
-                      vagas={vagas}
-                      agora={agora}
-                      aceitandoEspontanea={config.aceitandoEspontanea}
-                      mensagemSemVagas={config.mensagemSemVagas}
-                      vagaEscolhida={vagaEscolhida}
-                      vagaFixada={vagaFixada}
-                      escolhaFeita={escolhaFeita}
-                      aoEscolherVaga={escolherVaga}
-                      aoTrocarVaga={() => setEscolhaFeita(false)}
-                      aoAtualizar={atualizar}
-                      aoAlternarLista={alternarEmLista}
-                    />
-
-                    <PassoContato dados={dados} erros={erros} aoAtualizar={atualizar} />
-
-                    <PassoFinal
-                      dados={dados}
-                      erros={erros}
-                      arquivo={arquivo}
-                      erroArquivo={erroArquivo}
-                      emailRh={config.emailRh}
-                      aoAtualizar={atualizar}
-                      aoEscolherArquivo={setArquivo}
-                      aoErrarArquivo={setErroArquivo}
-                    />
-                  </div>
-
-                  <div className="mt-9 flex flex-col gap-3 border-t border-border-soft pt-6 sm:flex-row sm:items-center sm:justify-end">
-                    <button
-                      type="submit"
-                      disabled={enviando}
-                      className="button-primary inline-flex min-h-12 items-center justify-center gap-2 disabled:cursor-progress disabled:border-border-soft disabled:bg-cream disabled:text-ink-soft disabled:shadow-none"
-                    >
-                      {enviando ? "Enviando..." : "Enviar candidatura"}
-                      <Send className="h-4 w-4" aria-hidden="true" />
+            <div>
+              {rascunho !== null ? (
+                <div className="cand-rascunho">
+                  <p>
+                    Encontramos uma candidatura que você começou neste navegador. Quer continuar de
+                    onde parou?
+                  </p>
+                  <div className="cand-rascunho-acoes">
+                    <button type="button" onClick={restaurarRascunho} className="botao botao-tinta">
+                      Continuar
+                    </button>
+                    <button type="button" onClick={descartarRascunho} className="botao botao-chao">
+                      <RotateCcw aria-hidden="true" />
+                      Começar do zero
                     </button>
                   </div>
+                </div>
+              ) : null}
 
-                  {/* Anúncio discreto do estado do envio para quem não vê o botão. */}
-                  <p className="sr-only" role="status">
-                    {enviando ? "Enviando sua candidatura, aguarde." : ""}
-                  </p>
-                </form>
-              </div>
+              <form
+                className="cand-form"
+                noValidate
+                data-rastreio-proprio
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void enviar(e.currentTarget);
+                }}
+              >
+                {/* Alerta do topo: erros que não pertencem a um campo. tabIndex
+                    -1 para poder receber foco por código sem entrar no Tab. */}
+                <div ref={alertaRef} id={idCampo("geral")} tabIndex={-1} className="outline-none">
+                  {erroGeral.length > 0 || erroVaga.length > 0 ? (
+                    <div role="alert" className="cand-alerta">
+                      <CircleAlert aria-hidden="true" />
+                      <div>
+                        {erroGeral.length > 0 ? <p>{erroGeral}</p> : null}
+                        {erroVaga.length > 0 ? <p>{erroVaga}</p> : null}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Não é erro: é explicação, e por isso role="status" e não
+                      role="alert". A vaga saiu do ar entre o momento em que a
+                      pessoa escolheu e o momento em que ela voltou. Sem esta
+                      linha a vaga sumiria do formulário sem explicação, e a
+                      pessoa concluiria que ela mesma errou alguma coisa. */}
+                  {vagaSumiu !== "" ? (
+                    <div role="status" className="cand-aviso">
+                      <CircleAlert aria-hidden="true" />
+                      <p>
+                        {vagaSumiu === "rascunho"
+                          ? "A vaga que você tinha escolhido não está mais recebendo candidaturas. Guardamos tudo o que você já havia preenchido — é só escolher outra vaga ou seguir pelo banco de talentos."
+                          : "O link que você abriu leva a uma vaga que não está mais recebendo candidaturas. Escolha uma das vagas abertas abaixo ou envie seu currículo para o banco de talentos."}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Só para o leitor de tela: a hierarquia h1 > h2 > h3 dos blocos
+                    precisa de um h2, e o título visível já é o H1 da lateral. */}
+                <h2 className="sr-only">Formulário de candidatura</h2>
+
+                <section className="cand-bloco" aria-labelledby="cand-bloco-vaga">
+                  <h3 id="cand-bloco-vaga">A vaga</h3>
+                  <PassoVaga
+                    dados={dados}
+                    erros={erros}
+                    vagas={vagas}
+                    aceitandoEspontanea={config.aceitandoEspontanea}
+                    mensagemSemVagas={config.mensagemSemVagas}
+                    escolhaFeita={escolhaFeita}
+                    aoEscolherVaga={escolherVaga}
+                    aoAtualizar={atualizar}
+                  />
+                </section>
+
+                <section className="cand-bloco" aria-labelledby="cand-bloco-contato">
+                  <h3 id="cand-bloco-contato">Seu contato</h3>
+                  <PassoContato dados={dados} erros={erros} aoAtualizar={atualizar} />
+                </section>
+
+                <section className="cand-bloco" aria-labelledby="cand-bloco-curriculo">
+                  <h3 id="cand-bloco-curriculo">Seu currículo</h3>
+                  <PassoFinal
+                    dados={dados}
+                    erros={erros}
+                    arquivo={arquivo}
+                    erroArquivo={erroArquivo}
+                    emailRh={config.emailRh}
+                    aoAtualizar={atualizar}
+                    aoEscolherArquivo={setArquivo}
+                    aoErrarArquivo={setErroArquivo}
+                  />
+                </section>
+
+                <div className="cand-envio">
+                  <button type="submit" disabled={enviando} className="botao botao-acento" data-ima>
+                    {enviando ? "Enviando..." : "Enviar candidatura"}
+                    <Send aria-hidden="true" />
+                  </button>
+                </div>
+
+                {/* Anúncio discreto do estado do envio para quem não vê o botão. */}
+                <p className="sr-only" role="status">
+                  {enviando ? "Enviando sua candidatura, aguarde." : ""}
+                </p>
+              </form>
             </div>
           </div>
         )}
@@ -979,296 +862,126 @@ function PaginaCandidatura() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Barra superior com progresso                                               */
+/* A vaga                                                                     */
 /* -------------------------------------------------------------------------- */
 
-function BarraTopo(props: {
-  passo: number;
-  progresso: number;
-  enviado: boolean;
-  aoIrPara: (destino: number) => void;
-}) {
-  return (
-    <div className="sticky top-0 z-40 border-b border-border-soft bg-paper/95 backdrop-blur-md">
-      <div className="jp-container flex h-16 items-center justify-between gap-4">
-        <a href="/" className="flex items-center gap-3" aria-label="Ir para a página inicial">
-          <Logo variante="lockup" fundo="claro" altura={28} className="h-7 w-auto" />
-        </a>
-        <a
-          href="/carreiras"
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border-soft px-4 text-xs font-bold uppercase tracking-[0.1em] text-ink transition hover:bg-mint"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          Ver vagas
-        </a>
-      </div>
-
-      {props.enviado ? null : (
-        <div className="jp-container pb-3">
-          <div
-            className="rh-progresso"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={props.progresso}
-            aria-label={`Progresso da candidatura: passo ${props.passo} de ${PASSOS.length}`}
-          >
-            <div className="rh-progresso-barra" style={{ width: `${props.progresso}%` }} />
-          </div>
-
-          <ol className="rh-scroll mt-3 flex items-center gap-1 overflow-x-auto pb-1">
-            {PASSOS.map((p) => {
-              const estado =
-                p.numero < props.passo ? "feito" : p.numero === props.passo ? "atual" : "futuro";
-              const concluido = p.numero < props.passo;
-              return (
-                <li key={p.numero} className="flex shrink-0 items-center gap-1">
-                  {/* Só os passos já concluídos viram botão: deixar clicar num
-                      passo futuro pularia a validação do passo atual, e a pessoa
-                      chegaria ao envio com campos obrigatórios em branco. */}
-                  <button
-                    type="button"
-                    disabled={!concluido}
-                    onClick={() => props.aoIrPara(p.numero)}
-                    aria-current={estado === "atual" ? "step" : undefined}
-                    className="flex min-h-11 items-center gap-2 rounded-full px-2 transition enabled:hover:bg-mint disabled:cursor-default"
-                  >
-                    <span className="rh-passo" data-estado={estado} aria-hidden="true">
-                      {concluido ? <Check className="h-3.5 w-3.5" /> : p.numero}
-                    </span>
-                    <span
-                      className={`whitespace-nowrap text-xs font-bold ${
-                        estado === "futuro" ? "text-ink-soft" : "text-ink"
-                      } ${estado === "atual" ? "" : "hidden sm:inline"}`}
-                    >
-                      {p.titulo}
-                    </span>
-                    <span className="sr-only">
-                      {concluido
-                        ? `Passo ${p.numero}, ${p.titulo}, concluído. Voltar para este passo.`
-                        : `Passo ${p.numero}, ${p.titulo}`}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Passo 1 — a vaga                                                           */
-/* -------------------------------------------------------------------------- */
-
-function ResumoVaga(props: { vaga: Vaga }) {
-  const salario = faixaSalarial(props.vaga);
-  const jornada = resumoJornada(props.vaga);
-  return (
-    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-ink-soft">
-      <span className="inline-flex items-center gap-1.5">
-        <Briefcase className="h-3.5 w-3.5" aria-hidden="true" />
-        {rotuloArea(props.vaga.area)}
-        {props.vaga.vinculo ? ` · ${rotuloVinculo(props.vaga.vinculo)}` : ""}
-      </span>
-      {jornada.length > 0 ? (
-        <span className="inline-flex items-center gap-1.5">
-          <Clock3 className="h-3.5 w-3.5" aria-hidden="true" />
-          {jornada}
-        </span>
-      ) : null}
-      {props.vaga.local.trim().length > 0 ? (
-        <span className="inline-flex items-center gap-1.5">
-          <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-          {props.vaga.local}
-        </span>
-      ) : null}
-      {salario.length > 0 ? (
-        <span className="inline-flex items-center gap-1.5">
-          <Banknote className="h-3.5 w-3.5" aria-hidden="true" />
-          {salario}
-        </span>
-      ) : null}
-    </div>
-  );
+/** "Área · vínculo · jornada · local · salário", só com o que existe. */
+function metaDaVaga(vaga: Vaga): string {
+  const vinculo = vaga.vinculo ? rotuloVinculo(vaga.vinculo) : "";
+  return [
+    rotuloArea(vaga.area),
+    vinculo,
+    resumoJornada(vaga),
+    vaga.local.trim(),
+    faixaSalarial(vaga),
+  ]
+    .filter((parte) => parte.length > 0)
+    .join(" · ");
 }
 
 function PassoVaga(props: {
   dados: Candidatura;
   erros: ErrosPasso;
   vagas: Vaga[];
-  agora: Date;
   aceitandoEspontanea: boolean;
   mensagemSemVagas: string;
-  vagaEscolhida: Vaga | null;
-  vagaFixada: Vaga | null;
   escolhaFeita: boolean;
   aoEscolherVaga: (vaga: Vaga | null) => void;
-  aoTrocarVaga: () => void;
   aoAtualizar: (mudanca: Partial<Candidatura>) => void;
-  aoAlternarLista: (
-    chave: "especialidades" | "softwares" | "competencias" | "idiomas",
-    valor: string,
-  ) => void;
 }) {
   const { dados, erros } = props;
-  const espontaneaEscolhida = props.escolhaFeita && props.vagaEscolhida === null;
-  const mostrarLista =
-    !props.escolhaFeita || (dados.vagaId.length > 0 && props.vagaEscolhida === null);
+  const espontaneaEscolhida = props.escolhaFeita && dados.vagaId.length === 0;
+  // A área é preenchida sozinha ao escolher uma vaga. Só se pergunta quando a
+  // candidatura é espontânea (ou quando o envio foi recusado por falta dela).
+  const mostrarArea = espontaneaEscolhida || (erros["area"] ?? "").length > 0;
 
   return (
     <div className="space-y-8">
-      {/* ---- Escolha da vaga ---- */}
-      {mostrarLista ? (
-        <div>
-          <Rotulo campo="vagaId" texto="A que vaga você quer se candidatar?" paraCampo={false} />
-          {props.vagas.length === 0 ? (
-            <p className="rounded-2xl border border-border-soft bg-white p-4 text-sm font-medium leading-relaxed text-ink-soft">
-              {props.mensagemSemVagas}
-            </p>
+      {/* ---- Escolha da vaga ----
+          Rádios NATIVOS dentro de <label>: o navegador dá de graça o Tab único
+          para o grupo e as setas entre as opções. Botões com role="radio"
+          prometiam as setas e não as entregavam (todos ficavam no Tab). */}
+      <div>
+        <Rotulo campo="vagaId" texto="A que vaga você quer se candidatar?" paraCampo={false} />
+        {props.vagas.length === 0 ? (
+          <p className="mb-3 text-tinta-suave">{props.mensagemSemVagas}</p>
+        ) : null}
+        <div role="radiogroup" aria-labelledby="rh-rotulo-vagaId" className="cand-opcoes">
+          {props.vagas.map((v, i) => (
+            <label key={v.id} className="cand-opcao">
+              <input
+                id={i === 0 ? idCampo("vagaId") : undefined}
+                type="radio"
+                name="cand-vaga"
+                className="sr-only"
+                checked={dados.vagaId === v.id}
+                onChange={() => props.aoEscolherVaga(v)}
+              />
+              <MarcaCoroa />
+              <span>
+                <span className="cand-opcao-titulo">{v.titulo}</span>
+                <span className="cand-opcao-meta">{metaDaVaga(v)}</span>
+              </span>
+            </label>
+          ))}
+
+          {props.aceitandoEspontanea ? (
+            <label className="cand-opcao">
+              <input
+                id={props.vagas.length === 0 ? idCampo("vagaId") : undefined}
+                type="radio"
+                name="cand-vaga"
+                className="sr-only"
+                checked={espontaneaEscolhida}
+                onChange={() => props.aoEscolherVaga(null)}
+              />
+              <MarcaCoroa />
+              <span>
+                <span className="cand-opcao-titulo">Candidatura espontânea</span>
+                <span className="cand-opcao-meta">
+                  Seu currículo fica no banco de talentos. Quando abrir uma vaga do seu perfil, a
+                  gente chama você primeiro.
+                </span>
+              </span>
+            </label>
           ) : null}
+        </div>
+      </div>
+
+      {/* ---- Área (só na candidatura espontânea) ---- */}
+      {mostrarArea ? (
+        <div>
+          <Rotulo campo="area" texto="Em que área você atua?" paraCampo={false} />
           <div
             role="radiogroup"
-            aria-labelledby="rh-rotulo-vagaId"
-            className="grid gap-3 sm:grid-cols-2"
+            aria-labelledby="rh-rotulo-area"
+            aria-describedby={(erros["area"] ?? "").length > 0 ? "rh-erro-area" : undefined}
+            className="cand-areas"
           >
-            {props.vagas.map((v, i) => (
-              <button
-                key={v.id}
-                id={i === 0 ? idCampo("vagaId") : undefined}
-                type="button"
-                role="radio"
-                aria-checked={dados.vagaId === v.id}
-                className="rh-cartao-opcao"
-                data-ativo={dados.vagaId === v.id ? "true" : "false"}
-                onClick={() => props.aoEscolherVaga(v)}
-              >
-                <span className="font-display text-lg font-extrabold leading-tight text-ink">
-                  {v.titulo}
-                </span>
-                <span className="text-sm font-medium leading-relaxed text-ink-soft">
-                  {v.resumo}
-                </span>
-                <ResumoVaga vaga={v} />
-              </button>
+            {AREAS.map((a, i) => (
+              <label key={a.valor} className="cand-area">
+                <input
+                  id={i === 0 ? idCampo("area") : undefined}
+                  type="radio"
+                  name="cand-area"
+                  className="sr-only"
+                  checked={dados.area === a.valor}
+                  onChange={() => props.aoAtualizar({ area: a.valor })}
+                />
+                <Check aria-hidden="true" />
+                {a.rotulo}
+              </label>
             ))}
-
-            {props.aceitandoEspontanea ? (
-              <button
-                id={props.vagas.length === 0 ? idCampo("vagaId") : undefined}
-                type="button"
-                role="radio"
-                aria-checked={espontaneaEscolhida}
-                className="rh-cartao-opcao"
-                data-ativo={espontaneaEscolhida ? "true" : "false"}
-                onClick={() => props.aoEscolherVaga(null)}
-              >
-                <span className="font-display text-lg font-extrabold leading-tight text-ink">
-                  Candidatura espontânea
-                </span>
-                <span className="text-sm font-medium leading-relaxed text-ink-soft">
-                  Seu currículo fica no banco de talentos da clínica. Quando abrir uma vaga do seu
-                  perfil, a gente chama você primeiro.
-                </span>
-              </button>
-            ) : null}
           </div>
+          <MensagemErro campo="area" texto={erros["area"] ?? ""} />
         </div>
-      ) : (
-        <div className="rounded-2xl border border-forest/25 bg-mint p-5">
-          <p className="eyebrow text-ink">
-            {props.vagaEscolhida !== null ? "Vaga escolhida" : "Banco de talentos"}
-          </p>
-          <p className="mt-2 font-display text-xl font-extrabold leading-tight text-ink">
-            {props.vagaEscolhida !== null ? props.vagaEscolhida.titulo : "Candidatura espontânea"}
-          </p>
-          {props.vagaEscolhida !== null ? (
-            <>
-              <p className="mt-2 text-sm font-medium leading-relaxed text-ink">
-                {props.vagaEscolhida.resumo}
-              </p>
-              <ResumoVaga vaga={props.vagaEscolhida} />
-            </>
-          ) : (
-            <p className="mt-2 text-sm font-medium leading-relaxed text-ink">
-              Seu currículo fica guardado com a equipe e é o primeiro a ser olhado quando abrir uma
-              vaga do seu perfil.
-            </p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={props.aoTrocarVaga}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-forest/30 bg-white px-4 text-sm font-bold text-ink transition hover:bg-white/70"
-            >
-              <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Escolher outra vaga
-            </button>
-            {props.vagaFixada !== null ? (
-              <a
-                href="/carreiras"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-bold text-ink underline decoration-forest/30 underline-offset-4 transition hover:decoration-forest"
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                Voltar para todas as vagas
-              </a>
-            ) : null}
-          </div>
-        </div>
-      )}
-
-      {/* ---- Área ---- */}
-      <div>
-        <Rotulo campo="area" texto="Em que área você atua?" paraCampo={false} />
-        <div
-          role="radiogroup"
-          aria-labelledby="rh-rotulo-area"
-          aria-describedby={(erros["area"] ?? "").length > 0 ? "rh-erro-area" : undefined}
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-        >
-          {AREAS.map((a, i) => {
-            const Icone = ICONES_AREA[a.icone] ?? Sparkles;
-            const ativo = dados.area === a.valor;
-            return (
-              <button
-                key={a.valor}
-                id={i === 0 ? idCampo("area") : undefined}
-                type="button"
-                role="radio"
-                aria-checked={ativo}
-                className="rh-cartao-opcao"
-                data-ativo={ativo ? "true" : "false"}
-                onClick={() => props.aoAtualizar({ area: a.valor })}
-              >
-                <span className="flex items-center gap-2">
-                  <Icone className="h-5 w-5 shrink-0 text-forest" aria-hidden="true" />
-                  <span className="font-display text-base font-extrabold leading-tight text-ink">
-                    {a.rotulo}
-                  </span>
-                  {ativo ? (
-                    <Check className="ml-auto h-4 w-4 shrink-0 text-forest" aria-hidden="true" />
-                  ) : null}
-                </span>
-                <span className="text-sm font-medium leading-relaxed text-ink-soft">
-                  {a.descricao}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        <MensagemErro campo="area" texto={erros["area"] ?? ""} />
-      </div>
+      ) : null}
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
 /* Contato — nome, telefone e e-mail                                          */
-/* -------------------------------------------------------------------------- */
-/* Contato — as três linhas que a clínica precisa digitadas                    */
 /* -------------------------------------------------------------------------- */
 
 /**
@@ -1298,7 +1011,7 @@ function PassoContato(props: {
   const { dados, erros } = props;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <CampoTexto
         campo="nome"
         rotulo="Nome completo"
@@ -1310,7 +1023,7 @@ function PassoContato(props: {
         maxLength={120}
       />
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="cand-grade-campos">
         <CampoTexto
           campo="telefone"
           rotulo="WhatsApp"
@@ -1354,8 +1067,6 @@ function PassoFinal(props: {
   aoErrarArquivo: (mensagem: string) => void;
 }) {
   const { dados, erros } = props;
-  // "Indicação de colaborador" é a única origem que pede um nome; procurar por
-  // "indica" cobre também qualquer variação que o RH venha a cadastrar depois.
 
   // O e-mail do RH pode não estar configurado ainda; sem ele, o canal de
   // contato para exercer os direitos da LGPD passa a ser o WhatsApp da clínica.
@@ -1365,7 +1076,7 @@ function PassoFinal(props: {
       : `pelo WhatsApp ${CLINICA.whatsapp}`;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-6">
       <AreaUpload
         campo="curriculo"
         arquivo={props.arquivo}
@@ -1381,8 +1092,8 @@ function PassoFinal(props: {
           senão as fichas novas apontam para uma redação que ninguém leu. E o
           prazo citado aqui é o mesmo `MESES_RETENCAO_LGPD` que o painel usa
           para marcar ficha vencida — os dois números andam juntos. */}
-      <div className="rounded-2xl border border-border-soft bg-white p-5">
-        <label className="flex cursor-pointer items-start gap-3">
+      <div className="cand-consent">
+        <label>
           <input
             id={idCampo("consentimentoLgpd")}
             type="checkbox"
@@ -1390,9 +1101,9 @@ function PassoFinal(props: {
             onChange={(e) => props.aoAtualizar({ consentimentoLgpd: e.target.checked })}
             aria-invalid={(erros["consentimentoLgpd"] ?? "").length > 0}
             aria-describedby="rh-ajuda-consentimentoLgpd"
-            className="mt-0.5 h-6 w-6 shrink-0 accent-[#095902]"
+            className="h-6 w-6 shrink-0 accent-tinta"
           />
-          <span className="text-sm font-medium leading-relaxed text-ink">
+          <span>
             Autorizo a <strong>{CLINICA.nome}</strong> ({CLINICA.razaoSocial}, CNPJ {CLINICA.cnpj}),
             na condição de <strong>controladora</strong> dos meus dados pessoais, a tratar as
             informações e o currículo que envio neste formulário com a finalidade exclusiva de
@@ -1406,153 +1117,6 @@ function PassoFinal(props: {
           Seus dados não são vendidos nem compartilhados com terceiros para outra finalidade.
         </p>
         <MensagemErro campo="consentimentoLgpd" texto={erros["consentimentoLgpd"] ?? ""} />
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Tela de sucesso                                                            */
-/* -------------------------------------------------------------------------- */
-
-function TelaSucesso(props: {
-  protocolo: string;
-  copiado: boolean;
-  aoCopiar: () => void;
-  emailRh: string;
-}) {
-  const passosDepois = [
-    {
-      titulo: "A equipe lê a sua candidatura",
-      texto: "Tudo o que chega é lido por gente da clínica — nada de filtro automático.",
-    },
-    {
-      titulo: "Se o perfil combinar, a gente chama",
-      texto: "O contato vem pelo WhatsApp ou telefone que você deixou, no horário comercial.",
-    },
-    {
-      titulo: "Conversa e visita à clínica",
-      texto: "A entrevista é aqui na Vila Bruna, para você conhecer a estrutura e a equipe.",
-    },
-  ];
-
-  return (
-    <div className="jp-container py-12 sm:py-16">
-      <div className="mx-auto max-w-3xl">
-        <div className="rh-papel overflow-hidden">
-          {/* Só .section-deep aqui: .rh-grade também declara background-image e,
-              por vir depois no styles.css, apagaria o gradiente escuro — o bloco
-              ficaria branco e o lime do texto cairia para 2,8:1 de contraste. */}
-          <div className="section-deep px-6 py-10 text-center sm:px-10 sm:py-14">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-lime/15 ring-1 ring-lime/40">
-              <Check className="h-8 w-8 text-lime" aria-hidden="true" />
-            </span>
-            <p className="eyebrow mt-6 text-white">Candidatura enviada</p>
-            <h1 className="mt-3 font-display text-3xl font-extrabold leading-[1.02] tracking-[-0.04em] text-white sm:text-4xl">
-              Recebemos o seu currículo.
-            </h1>
-            <p className="mx-auto mt-4 max-w-lg text-base font-medium leading-relaxed text-white/85">
-              Guarde o número do protocolo. É por ele que a equipe encontra a sua candidatura se
-              você quiser falar com a gente.
-            </p>
-
-            {/* O protocolo é o único dado que a pessoa precisa levar embora
-                daqui, então tudo dentro deste bloco escuro é branco puro: o
-                rótulo era `text-lime` e o número já era branco. A borda e o
-                anel seguem lime — são traço, não letra. */}
-            <div className="mx-auto mt-8 max-w-sm rounded-2xl border border-lime/35 bg-brand-deep/60 p-5">
-              <p className="text-[0.65rem] font-bold uppercase tracking-[0.18em] text-white">
-                Protocolo
-              </p>
-              <p className="mt-2 break-all font-display text-3xl font-extrabold tabular-nums tracking-tight text-white sm:text-4xl">
-                {props.protocolo}
-              </p>
-              <button
-                type="button"
-                onClick={props.aoCopiar}
-                className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-lime px-5 text-sm font-extrabold text-brand-deep transition hover:brightness-105"
-              >
-                {props.copiado ? (
-                  <Check className="h-4 w-4" aria-hidden="true" />
-                ) : (
-                  <Copy className="h-4 w-4" aria-hidden="true" />
-                )}
-                {props.copiado ? "Copiado" : "Copiar protocolo"}
-              </button>
-              {/* role="status" anuncia a confirmação da cópia sem roubar o foco. */}
-              <p className="sr-only" role="status">
-                {props.copiado ? "Protocolo copiado para a área de transferência." : ""}
-              </p>
-            </div>
-          </div>
-
-          <div className="p-6 sm:p-10">
-            <h2 className="font-display text-xl font-extrabold tracking-[-0.03em] text-forest-2">
-              O que acontece agora
-            </h2>
-            <ol className="mt-5 space-y-4">
-              {passosDepois.map((p, i) => (
-                <li key={p.titulo} className="flex gap-4">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-mint font-display text-sm font-extrabold tabular-nums text-ink">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <p className="font-display text-base font-extrabold text-ink">{p.titulo}</p>
-                    <p className="mt-0.5 text-sm font-medium leading-relaxed text-ink-soft">
-                      {p.texto}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-
-            <div className="mt-7 flex items-start gap-3 rounded-2xl border border-border-soft bg-cream p-4">
-              <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-forest" aria-hidden="true" />
-              {/* Sem prazo em número: o painel é operado por uma pessoa só e não
-                  mede nada parecido com um SLA — prometer "15 dias úteis" era um
-                  compromisso por escrito que ninguém no sistema garante. */}
-              <p className="text-sm font-medium leading-relaxed text-ink">
-                <strong className="font-bold text-ink">Retorno:</strong> a equipe entra em contato
-                assim que concluir a triagem. Se o seu perfil servir para uma vaga futura, seu
-                currículo fica no banco de talentos por {MESES_RETENCAO_LGPD} meses.
-              </p>
-            </div>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={whatsappLink(
-                  `Olá! Enviei minha candidatura pelo site. Meu protocolo é ${props.protocolo}.`,
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="button-primary inline-flex min-h-12 items-center justify-center gap-2"
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                Falar no WhatsApp
-              </a>
-              <a
-                href="/carreiras"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-border-soft bg-white px-5 text-sm font-bold text-ink transition hover:bg-cream"
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                Ver outras vagas
-              </a>
-            </div>
-
-            {props.emailRh.trim().length > 0 ? (
-              <p className="mt-5 text-sm font-medium text-ink-soft">
-                Dúvidas sobre o processo? Escreva para{" "}
-                <a
-                  href={`mailto:${props.emailRh.trim()}`}
-                  className="font-bold text-ink underline decoration-forest/30 underline-offset-4 hover:decoration-forest"
-                >
-                  {props.emailRh.trim()}
-                </a>
-                .
-              </p>
-            ) : null}
-          </div>
-        </div>
       </div>
     </div>
   );

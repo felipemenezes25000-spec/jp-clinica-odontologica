@@ -23,11 +23,13 @@ import { dadosEstruturadosDoTratamento } from "@/lib/dadosEstruturados";
  * conteúdo, e sem isso elas competiriam entre si na busca. O anúncio manda
  * tráfego para cá; o Google indexa lá.
  */
+/** O termo do anúncio: é o H1 da página e o título do `<title>`, para a busca reencontrá-lo. */
+const TERMO = "Restauração dentária";
 const SLUG = "restauracoes";
 const CANONICO = `${SITE_URL}/tratamentos/restauracoes`;
 
 export const Route = createFileRoute("/restauracao-dentaria")({
-  component: () => <PaginaDeTratamento slug={SLUG} modo="anuncio" />,
+  component: () => <PaginaDeTratamento slug={SLUG} modo="anuncio" termo={TERMO} />,
   loader: () => {
     const t = TRATAMENTOS.find((x) => x.slug === SLUG);
     return { titulo: t?.titulo ?? "" };
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/restauracao-dentaria")({
   head: () => {
     const t = TRATAMENTOS.find((x) => x.slug === SLUG);
     if (!t) return {};
-    const title = tituloLocal("Restauração dentária");
+    const title = tituloLocal(TERMO);
     const description = descricaoLocal(t.desc, FECHO_LOCAL);
     const url = `${SITE_URL}/restauracao-dentaria`;
     return {

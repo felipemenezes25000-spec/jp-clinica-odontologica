@@ -1,0 +1,580 @@
+/* O formulário de candidatura — /trabalhe-conosco. Ver DESIGN.md.
+ *
+ * Duas camadas de CSS, de propósito:
+ *
+ *  1. `@layer components` — as classes `.cand-*`, que são só desta página.
+ *  2. Fora de camada, no fim — as sobrescritas `.candidatura .rh-*`. Os campos
+ *     (`CampoTexto`, `AreaUpload`) são compartilhados com o painel /rh e suas
+ *     regras `.rh-campo`, `.rh-rotulo`, `.rh-dropzone` vivem em `styles.css`
+ *     fora de qualquer camada. Uma regra em camada perde para uma sem camada
+ *     mesmo com especificidade maior; por isso as sobrescritas ficam fora, e
+ *     escopadas na raiz da página para nunca vazar para o painel.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* ---- A barra: marca, progresso, caminho de volta ----------------------------- */
+  .cand-barra {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--chao);
+  }
+  /* Uma linha só em qualquer largura: duas linhas gastavam ~85px (10%) da tela
+     do celular durante todo o preenchimento. No celular o rótulo das coroas e o
+     texto do "Ver vagas" saem (o botão vira um alvo de 44px só com a seta); o
+     progresso continua dito pelo `aria-valuetext` da barra. */
+  .cand-barra-linha {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "marca etapas voltar";
+    align-items: center;
+    column-gap: 0.75rem;
+    padding-block: 0.4rem;
+  }
+  .cand-marca {
+    grid-area: marca;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  .cand-voltar {
+    grid-area: voltar;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding-inline: 0.75rem;
+    font-size: var(--text-pequeno);
+  }
+  .cand-voltar-texto,
+  .cand-etapa-rotulo {
+    display: none;
+  }
+  .cand-etapas {
+    grid-area: etapas;
+    justify-self: center;
+  }
+  .cand-etapas ol {
+    display: flex;
+    gap: 0.9rem;
+  }
+  .cand-etapas li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+    transition: color var(--t-ui) ease;
+  }
+  /* A coroa ainda por fazer precisa ser vista: chao-3 sobre chao dava ~1,3:1 e
+     sumia. */
+  .cand-etapas .marca-coroa {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: color-mix(in oklab, var(--tinta-suave) 40%, var(--chao));
+    transition: color var(--t-ui) ease;
+  }
+  /* Três estados, e nenhum é só cor: o peso do rótulo muda no atual, e o feito
+     ganha o ✓ do leitor de tela pelo `aria-valuetext` da barra. */
+  .cand-etapas li[data-estado="feito"] {
+    color: var(--tinta);
+  }
+  .cand-etapas li[data-estado="feito"] .marca-coroa {
+    color: var(--acento);
+  }
+  .cand-etapas li[data-estado="atual"] {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+  .cand-etapas li[data-estado="atual"] .marca-coroa {
+    color: var(--tinta);
+  }
+  @media (min-width: 640px) {
+    .cand-voltar {
+      padding-inline: 1.1rem;
+    }
+    .cand-voltar-texto,
+    .cand-etapa-rotulo {
+      display: inline;
+    }
+    .cand-etapas ol {
+      gap: 1.5rem;
+    }
+  }
+  @media (min-width: 900px) {
+    .cand-barra-linha {
+      grid-template-columns: 1fr auto 1fr;
+      padding-block: 0.5rem;
+    }
+    .cand-voltar {
+      justify-self: end;
+    }
+    .cand-etapas ol {
+      gap: 2rem;
+    }
+  }
+
+  /* ---- A página ----------------------------------------------------------------- */
+  .cand-pagina {
+    padding-block: clamp(2rem, 5vw, 4.5rem) clamp(4rem, 9vw, 8rem);
+  }
+  .cand-grade {
+    display: grid;
+    gap: clamp(2rem, 5vw, 3rem);
+  }
+  .cand-grade > * {
+    min-width: 0;
+  }
+  .cand-lateral > * + * {
+    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
+  }
+  .cand-lateral p {
+    max-width: 36ch;
+  }
+  .cand-lateral-foto {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .cand-grade {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(3rem, 6vw, 7rem);
+      align-items: start;
+    }
+    .cand-lateral {
+      position: sticky;
+      top: 5.5rem;
+    }
+    .cand-lateral-foto {
+      display: block;
+      position: relative;
+      max-width: 26rem;
+      margin-top: 3rem;
+    }
+    .cand-lateral-foto .moldura-coroa > img {
+      position: absolute;
+      inset: 0;
+    }
+  }
+
+  .cand-rascunho {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1.25rem;
+    border-radius: var(--raio);
+    background: var(--chao-3);
+  }
+  .cand-rascunho p {
+    max-width: 52ch;
+  }
+  .cand-rascunho-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  @media (min-width: 700px) {
+    .cand-rascunho {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .cand-form {
+    padding: clamp(1.25rem, 0.5rem + 3.5vw, 3rem);
+    border-radius: var(--raio);
+    background: var(--chao-2);
+  }
+  .cand-bloco {
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+  /* O primeiro bloco já ganha respiro do padding do painel. */
+  .cand-bloco:first-of-type {
+    margin-top: 0;
+  }
+  .cand-bloco > h3 {
+    margin-bottom: 1.25rem;
+    font-size: var(--text-frase);
+    line-height: 1.16;
+    letter-spacing: -0.02em;
+  }
+  .cand-bloco > * + * {
+    margin-top: 1.5rem;
+  }
+
+  .cand-alerta,
+  .cand-aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--raio);
+    font-size: var(--text-pequeno);
+    font-weight: 500;
+  }
+  .cand-alerta {
+    background: color-mix(in oklab, var(--destructive) 9%, var(--chao));
+    color: var(--destructive);
+  }
+  .cand-aviso {
+    background: var(--chao-3);
+    color: var(--tinta);
+  }
+  .cand-alerta svg,
+  .cand-aviso svg {
+    flex: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: 0.1rem;
+  }
+
+  /* ---- Escolhas: vaga e área ------------------------------------------------------
+     Rádios nativos escondidos (`sr-only`) dentro de um <label>: a opção inteira
+     é o alvo, e o navegador cuida de Tab único e setas. O estado escolhido sai
+     de `:has(input:checked)`: tinta chapada, coroa em verde-maçã e, nas áreas,
+     o ✓ — o tom, o ✓ e o próprio rádio dizem a mesma coisa, nenhum só pela cor. */
+  .cand-opcoes {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .cand-opcao {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.85rem;
+    align-items: start;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--raio);
+    background: var(--chao);
+    color: var(--tinta);
+    text-align: left;
+    cursor: pointer;
+    transition:
+      transform var(--t-press) var(--ease-out),
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease;
+  }
+  .cand-opcao:active {
+    transform: scale(0.985);
+  }
+  .cand-opcao .marca-coroa {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.2em;
+    color: color-mix(in oklab, var(--tinta-suave) 40%, var(--chao));
+    transition: color var(--t-ui) ease;
+  }
+  .cand-opcao-titulo {
+    display: block;
+    font-size: var(--text-corpo);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .cand-opcao-meta {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  .cand-opcao:has(input:checked) {
+    background: var(--tinta);
+    color: var(--sobre-campo);
+  }
+  .cand-opcao:has(input:checked) .marca-coroa {
+    color: var(--acento);
+  }
+  .cand-opcao:has(input:checked) .cand-opcao-meta {
+    color: var(--sobre-campo-suave);
+  }
+  .cand-opcao:has(input:focus-visible),
+  .cand-area:has(input:focus-visible) {
+    outline: 3px solid var(--tinta);
+    outline-offset: 3px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cand-opcao:not(:has(input:checked)):hover,
+    .cand-area:not(:has(input:checked)):hover {
+      background: var(--chao-3);
+    }
+  }
+
+  /* Área: pílulas curtas (uma palavra ou duas), não cartões com descrição. */
+  .cand-areas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .cand-area {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 2.75rem;
+    padding: 0.4rem 1.1rem;
+    border-radius: 999px;
+    background: var(--chao);
+    color: var(--tinta);
+    font-size: var(--text-pequeno);
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      transform var(--t-press) var(--ease-out),
+      background-color var(--t-hover) ease,
+      color var(--t-hover) ease;
+  }
+  .cand-area:active {
+    transform: scale(0.97);
+  }
+  .cand-area svg {
+    display: none;
+    width: 1em;
+    height: 1em;
+  }
+  .cand-area:has(input:checked) {
+    background: var(--tinta);
+    color: var(--sobre-campo);
+    font-weight: 600;
+  }
+  .cand-area:has(input:checked) svg {
+    display: block;
+  }
+
+  .cand-grade-campos {
+    display: grid;
+    gap: 1.5rem;
+  }
+  @media (min-width: 640px) {
+    .cand-grade-campos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* ---- Consentimento e envio --------------------------------------------------- */
+  .cand-consent {
+    padding: clamp(1.1rem, 1rem + 1vw, 1.75rem);
+    border-radius: var(--raio);
+    background: var(--chao);
+  }
+  .cand-consent label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.9rem;
+    cursor: pointer;
+    font-size: var(--text-pequeno);
+    line-height: 1.55;
+  }
+  .cand-consent input {
+    margin-top: 0.1rem;
+  }
+  .cand-envio {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+  .cand-envio .botao {
+    width: 100%;
+  }
+  .cand-envio .botao:disabled {
+    background: var(--chao-3);
+    color: var(--tinta-suave);
+    cursor: progress;
+  }
+  @media (min-width: 640px) {
+    .cand-envio .botao {
+      width: auto;
+      min-width: 16rem;
+    }
+  }
+
+  /* ---- Tela de sucesso ------------------------------------------------------------ */
+  .cand-ok-topo {
+    position: relative;
+    overflow: clip;
+    padding-block: clamp(3rem, 8vw, 7rem);
+  }
+  .cand-ok-grade {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 2.5rem;
+  }
+  .cand-ok-forma {
+    position: absolute;
+    right: -6%;
+    bottom: -2rem;
+    z-index: 0;
+    display: none;
+    width: min(38vw, 34rem);
+    color: var(--acento);
+    pointer-events: none;
+  }
+  .cand-protocolo {
+    max-width: 30rem;
+    padding: clamp(1.25rem, 1rem + 1.5vw, 2rem);
+  }
+  .cand-protocolo small {
+    display: block;
+    font-size: var(--text-pequeno);
+    color: var(--sobre-campo-suave);
+  }
+  .cand-protocolo strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: var(--text-frase);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .cand-protocolo .botao {
+    margin-top: 1.25rem;
+    min-height: 2.75rem;
+    padding-inline: 1.25rem;
+    font-size: var(--text-pequeno);
+  }
+  .cand-depois {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+  .cand-depois li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.9rem;
+  }
+  .cand-depois .marca-coroa {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: 0.3em;
+    color: var(--acento);
+  }
+  .cand-depois strong {
+    display: block;
+    font-size: var(--text-corpo);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .cand-depois span.t {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  @media (min-width: 1024px) {
+    .cand-ok-grade {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      align-items: end;
+    }
+    .cand-ok-forma {
+      display: block;
+    }
+    .cand-depois {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(2rem, 4vw, 4rem);
+    }
+  }
+}
+
+/* ---- Sobrescritas dos campos compartilhados (fora de camada, de propósito) --------- */
+
+.candidatura .rh-rotulo {
+  margin-bottom: 0.45rem;
+  font-size: var(--text-pequeno);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--tinta);
+}
+.candidatura .rh-rotulo span {
+  font-size: var(--text-pequeno);
+  font-weight: 400;
+  color: var(--tinta-suave);
+}
+.candidatura .rh-campo {
+  min-height: 3.25rem;
+  padding: 0.7rem 1rem;
+  /* tinta-suave: 7,7:1 sobre o chão. Os 38% de tinta davam ~2,2:1, abaixo dos
+     3:1 de WCAG 1.4.11 para o limite do campo. */
+  border: 1.5px solid var(--tinta-suave);
+  border-radius: var(--raio);
+  background: var(--chao);
+  color: var(--tinta);
+  font-size: var(--text-corpo);
+  box-shadow: none;
+}
+.candidatura .rh-campo::placeholder {
+  color: var(--tinta-suave);
+}
+.candidatura .rh-campo:focus {
+  border-color: var(--tinta);
+  box-shadow: none;
+}
+.candidatura .rh-campo[aria-invalid="true"] {
+  border-color: var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 6%, var(--chao));
+}
+.candidatura .rh-campo[aria-invalid="true"]:focus {
+  box-shadow: none;
+}
+.candidatura textarea.rh-campo {
+  min-height: 8rem;
+}
+.candidatura .rh-ajuda {
+  margin-top: 0.45rem;
+  font-size: var(--text-pequeno);
+  color: var(--tinta-suave);
+}
+.candidatura .rh-erro {
+  margin-top: 0.45rem;
+  font-size: var(--text-pequeno);
+}
+
+.candidatura .rh-dropzone {
+  min-height: 10.5rem;
+  border: 1.5px dashed var(--tinta-suave);
+  border-radius: var(--raio);
+  background: var(--chao);
+  color: var(--tinta);
+  transform: none;
+}
+.candidatura .rh-dropzone:hover,
+.candidatura .rh-dropzone[data-sobre="true"] {
+  border-color: var(--tinta);
+  background: var(--chao-3);
+  transform: none;
+}
+.candidatura .rh-dropzone[data-preenchido="true"] {
+  border-style: solid;
+  border-color: var(--tinta);
+  background: var(--chao);
+}
+.candidatura .rh-dropzone span {
+  font-size: var(--text-pequeno);
+  font-weight: 400;
+  color: var(--tinta-suave);
+}
+.candidatura .rh-dropzone svg + span {
+  font-size: var(--text-corpo);
+  font-weight: 600;
+  color: var(--tinta);
+}
+.candidatura .rh-dropzone svg {
+  color: var(--tinta);
+}
+.candidatura label.rh-dropzone + button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--chao-3);
+  color: var(--tinta);
+  font-size: var(--text-pequeno);
+  font-weight: 600;
+}
+.candidatura label.rh-dropzone + button:hover {
+  background: var(--chao);
+}

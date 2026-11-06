@@ -1,0 +1,285 @@
+/* A estrutura — ver estrutura.tsx.
+ *
+ * Dois estados, e os dois são composições acabadas:
+ *   fileira nativa ..... celular, "reduzir movimento", sem JS: cabeçalho em cima,
+ *                        fotos numa fileira com scroll-snap, arrastável;
+ *   cena ............... [data-cena] (desktop com movimento): a seção fica
+ *                        (1 tela + --rolagem) alta, o palco gruda, e a rolagem
+ *                        anda a trilha.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .estrutura {
+    --vao: clamp(0.875rem, 0.4rem + 2vw, 3rem);
+    /* Margem esquerda da trilha = a do quadro, mesmo em tela larga. */
+    --borda: max(var(--margem), calc((100vw - 1680px) / 2));
+    position: relative;
+  }
+
+  .estrutura-palco {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 1rem + 3vw, 4rem);
+    padding-block: clamp(4.5rem, 2rem + 7vw, 9rem) clamp(4rem, 2rem + 5vw, 8rem);
+  }
+
+  /* ---- Cabeçalho ----------------------------------------------------------- */
+  .estrutura-cabeca {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .estrutura-lado {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    color: var(--sobre-campo-suave);
+  }
+  .estrutura-lado p {
+    max-width: 30ch;
+  }
+  @media (min-width: 1024px) {
+    .estrutura-cabeca {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      align-items: end;
+      gap: 3rem;
+    }
+    .estrutura-lado {
+      justify-self: end;
+      width: min(100%, 24rem);
+    }
+  }
+
+  /* ---- Trilha: fileira nativa -------------------------------------------- */
+  .estrutura-janela {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--borda);
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+  }
+  .estrutura-janela::-webkit-scrollbar {
+    display: none;
+  }
+  .estrutura-janela[data-arrasta] {
+    scroll-snap-type: none;
+    user-select: none;
+    cursor: grabbing;
+  }
+  .estrutura-fila {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    width: max-content;
+    gap: var(--vao);
+    padding-inline: var(--borda);
+  }
+  .estrutura-item {
+    flex: none;
+    width: min(80vw, 34rem);
+    scroll-snap-align: start;
+  }
+  .estrutura-botao {
+    display: block;
+    width: 100%;
+    text-align: left;
+    cursor: zoom-in;
+  }
+  .estrutura-foto {
+    display: block;
+    width: 100%;
+    background: color-mix(in oklab, var(--sobre-campo) 10%, var(--campo));
+  }
+  .estrutura-legenda {
+    display: block;
+    margin-top: 0.9rem;
+    color: var(--sobre-campo);
+    font-weight: 500;
+  }
+  .estrutura-progresso {
+    display: none;
+  }
+  .estrutura-controles {
+    display: flex;
+    align-items: center;
+    /* Contador e setas juntos, à esquerda: o botão flutuante de contato mora
+       no canto direito e cobriria as setas. */
+    justify-content: flex-start;
+    gap: 1.5rem;
+    color: var(--sobre-campo-suave);
+    /* O contador não herda a largura do quadro por acaso: o respiro é o da trilha. */
+    margin-top: -0.5rem;
+  }
+  /* As setas só existem para mouse: o dedo arrasta a fileira sozinho. */
+  .estrutura-setas {
+    display: none;
+    gap: 0.5rem;
+  }
+  .estrutura-seta {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: var(--chao);
+    color: var(--tinta);
+  }
+  .estrutura-seta svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .estrutura-janela {
+      cursor: grab;
+    }
+    .estrutura-foto {
+      transition: translate 500ms var(--ease-expo);
+    }
+    .estrutura-botao:hover .estrutura-foto {
+      translate: 0 -0.5rem;
+    }
+    .estrutura-setas {
+      display: flex;
+    }
+    .estrutura-seta {
+      transition: background-color 200ms;
+    }
+    .estrutura-seta:hover {
+      background: var(--acento);
+    }
+  }
+
+  /* ---- Cena --------------------------------------------------------------- */
+  @media (min-width: 1024px) {
+    .estrutura[data-cena] {
+      height: calc(100svh + var(--rolagem, 300svh));
+    }
+    .estrutura[data-cena] .estrutura-palco {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      justify-content: space-between;
+      gap: 0;
+      padding-block: calc(var(--altura-cabecalho) + 1.5rem) clamp(1.5rem, 4svh, 3rem);
+    }
+    .estrutura[data-cena] .estrutura-controles {
+      display: none;
+    }
+    .estrutura[data-cena] .estrutura-janela {
+      flex: 1;
+      /* A janela é o que sobra do palco; o estudo da altura da foto (JS) parte dela. */
+      min-height: 0;
+      /* Respiro fixo entre o cabeçalho e a primeira foto, descontado na medida da foto. */
+      padding-block: clamp(1.5rem, 4svh, 3rem) 0;
+      display: flex;
+      align-items: center;
+      overflow: clip;
+      scroll-snap-type: none;
+      cursor: auto;
+    }
+    .estrutura[data-cena] .estrutura-fila {
+      will-change: transform;
+      /* A altura da foto manda; a largura sai da proporção da coroa. */
+      --foto-alt: min(44svh, 31rem);
+      --degrau: clamp(1rem, 5svh, 3.5rem);
+    }
+    .estrutura[data-cena] .estrutura-item {
+      width: calc(var(--foto-alt) * 1.385);
+    }
+    .estrutura[data-cena] .estrutura-item:nth-child(even) {
+      margin-top: var(--degrau);
+    }
+    .estrutura[data-cena] .estrutura-item:nth-child(odd) {
+      margin-bottom: var(--degrau);
+    }
+    .estrutura[data-cena] .estrutura-botao {
+      cursor: zoom-in;
+    }
+    .estrutura[data-cena] .estrutura-progresso {
+      display: block;
+      /* Sobra à direita para o botão flutuante de contato não cobrir o fim da barra. */
+      width: min(100% - var(--borda) * 2 - 5rem, 1680px);
+      height: 0.375rem;
+      margin-inline: var(--borda) auto;
+      border-radius: 999px;
+      background: color-mix(in oklab, var(--sobre-campo) 16%, var(--campo));
+      overflow: clip;
+    }
+    .estrutura[data-cena] .estrutura-progresso span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--acento);
+      transform-origin: left center;
+    }
+  }
+}
+
+/* ---- A faixa de coroas que divide a página ------------------------------- */
+@layer components {
+  .faixa-pagina {
+    /* Quantas coroas cabem (N) define a altura: largura da tela / N / 1,14.
+       --sobe é o quanto o eco aparece acima da arcada. */
+    --n: 3;
+    --alt: calc(100vw / var(--n) / 1.14);
+    --sobe: calc(var(--alt) * 0.2);
+    position: relative;
+    overflow: clip;
+    background: var(--chao);
+    padding-top: var(--sobe);
+    /* Um pixel de sobreposição: a altura da arcada é fracionária, e sem isto
+       uma costura clara aparece entre a faixa e o campo da seção seguinte. */
+    margin-bottom: -1px;
+  }
+  @media (min-width: 640px) {
+    .faixa-pagina {
+      --n: 5;
+    }
+  }
+  @media (min-width: 1024px) {
+    .faixa-pagina {
+      --n: 8;
+    }
+  }
+  /* Só a arcada do N atual aparece. */
+  .faixa-arcada {
+    display: none;
+    width: 100%;
+    height: auto;
+  }
+  .faixa-n3 {
+    display: block;
+  }
+  @media (min-width: 640px) {
+    .faixa-n3 {
+      display: none;
+    }
+    .faixa-n5 {
+      display: block;
+    }
+  }
+  @media (min-width: 1024px) {
+    .faixa-n5 {
+      display: none;
+    }
+    .faixa-n8 {
+      display: block;
+    }
+  }
+  /* O eco em verde-maçã, em fluxo, deslocado para cima e meia coroa para o
+     lado; a arcada do campo o cobre por baixo. A entrada usa `translate`, para
+     o `transform` do motor ficar livre. */
+  .faixa-eco {
+    color: var(--acento);
+    translate: calc(100% / var(--n) * 0.5) calc(var(--sobe) * -1);
+  }
+  .faixa-campo {
+    position: absolute;
+    inset: auto 0 0 0;
+    color: var(--campo);
+  }
+}

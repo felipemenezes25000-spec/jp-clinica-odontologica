@@ -23,6 +23,7 @@ import { CircleAlert, CircleCheck, ShieldAlert, X } from "lucide-react";
 import { AbaEntrevistas } from "@/components/rh/AbaEntrevistas";
 import { AbaTriagem } from "@/components/rh/AbaTriagem";
 import { AcoesEmLote } from "@/components/rh/AcoesEmLote";
+import { CabecalhoPagina } from "@/components/rh/CabecalhoPagina";
 import type { ResultadoImportacao } from "@/components/rh/AbaTriagem";
 import { aplicarFiltros, BarraFiltros, filtrosVazios } from "@/components/rh/BarraFiltros";
 import type { FiltrosRh } from "@/components/rh/BarraFiltros";
@@ -183,6 +184,20 @@ const MOTIVOS: Record<string, string> = {
 type BuscaRh = { aba?: AbaRh; c?: string; entrevista?: string };
 
 const ABA_PADRAO: AbaRh = "resumo";
+
+/** Nome da seção para o h1 que o leitor de tela ouve em cada aba. */
+const ROTULO_DA_ABA: Record<AbaRh, string> = {
+  resumo: "Resumo",
+  candidaturas: "Candidaturas",
+  triagem: "Triagem por IA",
+  entrevistas: "Entrevistas",
+  vagas: "Vagas",
+  config: "Configurações do portal",
+};
+
+function rotuloDaAba(aba: AbaRh): string {
+  return ROTULO_DA_ABA[aba];
+}
 
 type DadosRh = {
   sessao: RespostaSessao;
@@ -391,16 +406,14 @@ function Avisos({
           // `alert` interrompe a leitura para contar que algo deu errado;
           // `status` espera a próxima pausa, que é o certo para uma confirmação.
           role={aviso.tipo === "erro" ? "alert" : "status"}
-          className={`pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl py-3 pl-4 pr-2 text-sm font-semibold shadow-xl ring-1 backdrop-blur ${
-            aviso.tipo === "erro"
-              ? "bg-rose-950/90 text-rose-100 ring-rose-300/35"
-              : "bg-brand-deep/92 text-white ring-lime/35"
+          className={`rh-aviso pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-2xl py-3 pl-4 pr-2 text-sm font-semibold ${
+            aviso.tipo === "erro" ? "bg-rose-950 text-rose-100" : "bg-campo text-sobre-campo"
           }`}
         >
           {aviso.tipo === "erro" ? (
             <CircleAlert size={18} className="mt-0.5 shrink-0 text-rose-200" aria-hidden="true" />
           ) : (
-            <CircleCheck size={18} className="mt-0.5 shrink-0 text-lime" aria-hidden="true" />
+            <CircleCheck size={18} className="mt-0.5 shrink-0 text-acento" aria-hidden="true" />
           )}
           <p className="min-w-0 flex-1 leading-relaxed">{aviso.texto}</p>
           <button
@@ -571,6 +584,26 @@ function Painel({ dados }: { dados: DadosRh }) {
   const [senha, setSenha] = useState<RespostaEstadoSenha | null>(dados.senha);
 
   // Ressincroniza quando o loader roda de novo (botão atualizar, login, F5).
+  // A View Transition do roteador é abortada quando a janela muda de tamanho no
+  // meio da troca (girar o celular, abrir o teclado): o navegador rejeita
+  // `transition.finished` com "Viewport size changed". Não há o que corrigir na
+  // navegação, que termina normalmente; sem isto o erro sobe como rejeição não
+  // tratada e esconde erros de verdade nos relatórios. Qualquer outra rejeição
+  // segue o caminho de sempre.
+  useEffect(() => {
+    const aoRejeitar = (e: PromiseRejectionEvent) => {
+      const motivo = e.reason as { name?: string; message?: string } | null;
+      if (
+        motivo?.name === "InvalidStateError" &&
+        /Viewport size changed/i.test(motivo.message ?? "")
+      ) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("unhandledrejection", aoRejeitar);
+    return () => window.removeEventListener("unhandledrejection", aoRejeitar);
+  }, []);
+
   useEffect(() => setItens(dados.itens), [dados.itens]);
   useEffect(() => setVagas(dados.vagas), [dados.vagas]);
   useEffect(() => setGuias(dados.guias), [dados.guias]);
@@ -1562,7 +1595,7 @@ function Painel({ dados }: { dados: DadosRh }) {
   const remetente = config.assinaturaRh.trim();
 
   return (
-    <div className="rh-admin rh-aurora flex min-h-dvh flex-col">
+    <div className="rh-admin rh-app">
       {/* O `id="conteudo"` do <main> sempre existiu; faltava o atalho que o usa.
           Sem ele, quem navega por teclado atravessa cabeçalho, abas, busca e os
           dez controles de filtro antes do primeiro candidato. */}
@@ -1573,17 +1606,20 @@ function Painel({ dados }: { dados: DadosRh }) {
         aoTrocarAba={trocarAba}
         totalNovos={totalNovos}
         totalVagasAbertas={totalVagasAbertas}
-        totalCandidaturas={itens.length}
         totalEntrevistas={totalEntrevistas}
         atualizando={atualizando}
         aoAtualizar={atualizarTudo}
         aoSair={sair}
       />
 
+      {/* O alerta de sessão e o <main> são filhos diretos da raiz (e não de uma
+          coluna intermediária) porque a camada de contraste antiga de
+          `styles.css` os alcança por `.rh-admin > main`. A lateral ocupa a
+          primeira coluna e as duas linhas; eles empilham na segunda. */}
       {expirada ? (
-        <div role="alert" className="border-b border-amber-200/30 bg-amber-300/12">
+        <div role="alert" className="rh-sessao-expirada">
           <div className="jp-container flex flex-wrap items-center gap-x-4 gap-y-2 py-3">
-            <ShieldAlert size={18} className="shrink-0 text-amber-700" aria-hidden="true" />
+            <ShieldAlert size={18} className="shrink-0" aria-hidden="true" />
             <p className="min-w-0 flex-1 text-sm font-semibold leading-relaxed text-ink">
               Sua sessão expirou e as últimas alterações não foram gravadas. Copie o que ainda
               estiver escrito na tela antes de entrar de novo.
@@ -1613,6 +1649,10 @@ function Painel({ dados }: { dados: DadosRh }) {
            nenhum. As outras abas continuam com o respiro no fim do conteúdo. */
         className={`flex-1 ${aba === "candidaturas" ? "" : "pb-16"}`}
       >
+        {/* Toda aba tem um h1 visível, desenhado pela própria aba com o mesmo
+            `CabecalhoPagina`. Só a Triagem, que abre direto em blocos de
+            trabalho, ainda leva um h1 só para o leitor de tela. */}
+        {aba === "triagem" ? <h1 className="sr-only">{rotuloDaAba(aba)}</h1> : null}
         {aba === "resumo" ? (
           // A calha vive aqui, e não dentro de cada componente: sem ela os KPIs
           // e os cartões encostavam nas bordas no celular e esticavam de ponta a
@@ -1630,6 +1670,16 @@ function Painel({ dados }: { dados: DadosRh }) {
 
         {aba === "candidaturas" ? (
           <>
+            <div className="jp-container pt-5">
+              <CabecalhoPagina
+                titulo="Candidaturas"
+                texto={
+                  itens.length === 0
+                    ? "Nenhuma candidatura recebida até agora."
+                    : `${itens.length} ${itens.length === 1 ? "candidatura recebida" : "candidaturas recebidas"} pelo site.`
+                }
+              />
+            </div>
             <BarraFiltros
               filtros={filtros}
               aoMudar={setFiltros}

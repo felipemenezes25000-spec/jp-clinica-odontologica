@@ -1,0 +1,61 @@
+/* O rodapé do site — redesenho de 11/2026. Ver Footer.tsx e ArcadaDoRodape.tsx. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .arcada-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* A letra é o furo da coroa: a cor do campo aparece por ela. */
+  .arcada-letra {
+    fill: var(--campo);
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+
+  /* As coroas sobem em cascata quando a arcada aparece. A peça só fica
+     escondida com script e movimento permitido — sem isso (ou se o motor nunca
+     chegar) ela já está no lugar, e a regra de segurança revela em 2,5s. O
+     svg corta o que passa da base, então a coroa nasce "de dentro do chão". */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    .arcada-peca {
+      transform-box: fill-box;
+      transform: translateY(104%);
+      transition: transform 1100ms var(--ease-expo) calc(var(--k, 0) * 90ms);
+    }
+    [data-entrou] .arcada-peca {
+      transform: none;
+    }
+    :root:not([data-movimento]) .arcada-peca {
+      animation: jp-seguranca 0.01s 2.5s forwards;
+    }
+  }
+
+  /* Links do rodapé: o sublinhado acende no hover, como em todo o site. */
+  .rodape-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--sobre-campo);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 0.07em;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color var(--t-hover) ease;
+  }
+  /* Com mouse a lista não precisa dos 44px de alvo do polegar. */
+  @media (pointer: fine) {
+    .rodape-link {
+      min-height: 2.25rem;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .rodape-link:hover {
+      text-decoration-color: currentColor;
+    }
+  }
+}

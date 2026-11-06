@@ -1,10 +1,32 @@
 import { useLocation } from "@tanstack/react-router";
-import { ArrowUpRight, Facebook, Instagram, MapPin, MessageCircle, Phone } from "lucide-react";
+import { ArrowUp, ArrowUpRight, MessageCircle } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
-import { CLINICA, HISTORIA, NAV_RODAPE, RESPONSAVEL_TECNICA, whatsappLink } from "@/lib/jp";
+import { CLINICA, HISTORIA, NAV_RODAPE, RESPONSAVEL_TECNICA } from "@/lib/jp";
 import { useContatoWhatsApp } from "@/components/site/useContatoWhatsApp";
 import { BotaoRevisarConsentimento } from "@/components/site/AvisoDeCookies";
+import { ArcadaDoRodape } from "@/components/site/global/ArcadaDoRodape";
 import { tituloDaRota } from "@/lib/analytics/rotas";
+import "@/components/site/global/rodape.css";
+
+/*
+ * As colunas de links saem de NAV_RODAPE pelos destinos, não pela posição: se
+ * a clínica ganhar uma seção nova em jp.ts, ela cai no fim da última coluna de
+ * âncoras em vez de sumir do rodapé — que existe justamente para impedir que um
+ * corte do menu vire seção sem link.
+ */
+const COLUNAS_DE_LINKS = [
+  { titulo: "A clínica", destinos: ["/#inicio", "/#clinica", "/#historia", "/#equipe"] },
+  {
+    titulo: "Cuidado",
+    destinos: ["/#tratamentos", "/#convenios", "/#atendimento", "/#estrutura"],
+  },
+  { titulo: "Para você", destinos: ["/#depoimentos", "/#faq", "/#fale"] },
+] as const;
+
+function subir() {
+  const reduzido = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: 0, behavior: reduzido ? "auto" : "smooth" });
+}
 
 export function Footer() {
   /*
@@ -19,190 +41,192 @@ export function Footer() {
   const location = useLocation();
   const assunto = tituloDaRota(location.pathname) ?? undefined;
   const waAgendar = useContatoWhatsApp("agendar", assunto);
+
+  const jaNaColuna = new Set<string>(COLUNAS_DE_LINKS.flatMap((c) => c.destinos));
+  const itensDe = (destinos: readonly string[]) =>
+    NAV_RODAPE.filter((item) => destinos.includes(item.href));
+  /* Tudo o que não está nas colunas acima e não é a página de vagas. */
+  const avulsos = NAV_RODAPE.filter(
+    (item) => !jaNaColuna.has(item.href) && item.href !== "/carreiras",
+  );
+  const carreiras = NAV_RODAPE.find((item) => item.href === "/carreiras");
+
   return (
-    <footer className="section-deep text-white">
-      {/* O respiro extra embaixo só faz sentido no celular, onde a barra fixa
-          de CTA (73px) cobre o fim da página. Antes ele crescia com a tela
-          (pb-28 → 32 → 36), deixando 144px de vazio justamente onde a barra
-          nem existe. */}
-      <div className="jp-container py-12 pb-24 sm:py-14 sm:pb-14 lg:py-18 lg:pb-18">
-        <div className="grid gap-12 lg:grid-cols-[1.35fr_.72fr_1fr] lg:gap-16">
-          <div>
-            {/* Sem o disco branco de antes: a arte de fundo escuro vaza o dente,
-                então a marca pousa direto no verde em vez de vir colada num
-                adesivo. */}
-            <div>
-              {/* Com alt, diferente das outras telas: aqui a marca não vem
-                  dentro de um link nomeado nem ao lado do nome escrito, então
-                  ela é a única coisa que abre o bloco. */}
-              <Logo
-                variante="lockup"
-                fundo="escuro"
-                altura={68}
-                alt={CLINICA.nome}
-                className="h-[58px] w-auto sm:h-[68px]"
-              />
-              <p className="mt-4 text-micro font-extrabold uppercase tracking-[.18em] text-white/80">
-                Vila Bruna • São Paulo
-              </p>
-            </div>
+    <footer className="rodape campo-escuro">
+      <div className="quadro pt-[clamp(4rem,2rem+6vw,9rem)]">
+        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <p className="text-frase max-w-[20ch] font-semibold text-sobre-campo">
+            {CLINICA.assinatura}
+          </p>
+          <a
+            href={waAgendar}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-ima
+            className="botao botao-acento self-start"
+          >
+            <MessageCircle aria-hidden="true" />
+            Agendar avaliação
+            <ArrowUpRight aria-hidden="true" />
+          </a>
+        </div>
 
-            <p className="mt-8 max-w-xl font-display text-[clamp(2.7rem,5.4vw,4.9rem)] font-extrabold leading-[.92] tracking-[-.055em] text-white">
-              Ver seu sorriso é <span className="text-lime">nossa missão.</span>
-            </p>
+        <div
+          data-entra
+          className="mt-[clamp(3rem,2rem+3vw,5rem)] grid gap-x-8 gap-y-12 lg:grid-cols-12 lg:gap-x-10 lg:gap-y-0"
+        >
+          <nav
+            aria-label="Navegação do rodapé"
+            className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:col-span-8"
+          >
+            {COLUNAS_DE_LINKS.map((coluna, i) => (
+              <div key={coluna.titulo} data-item>
+                <h2 className="text-pequeno font-semibold text-sobre-campo-suave">
+                  {coluna.titulo}
+                </h2>
+                <ul className="mt-3">
+                  {itensDe(coluna.destinos).map((item) => (
+                    <li key={item.href}>
+                      <a href={item.href} className="rodape-link text-pequeno">
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                  {i === COLUNAS_DE_LINKS.length - 1
+                    ? avulsos.map((item) => (
+                        <li key={item.href}>
+                          <a href={item.href} className="rodape-link text-pequeno">
+                            {item.label}
+                          </a>
+                        </li>
+                      ))
+                    : null}
+                </ul>
+              </div>
+            ))}
 
-            <a
-              href={waAgendar}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="button-primary mt-8"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Agendar avaliação
-              <ArrowUpRight className="h-4 w-4" />
-            </a>
-          </div>
-
-          <nav aria-label="Navegação do rodapé">
-            <p className="eyebrow text-lime">Navegue</p>
-            <ul className="mt-6 grid gap-2.5">
-              {NAV_RODAPE.map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    /* `alvo-toque` dá 44px de altura de clique sem mexer na
-                       letra: a lista media 17px de alto, o que no polegar é
-                       um alvo que erra. */
-                    className="alvo-toque w-full text-sm font-semibold text-white transition-colors hover:text-lime"
-                  >
-                    {item.label}
+            {/* O portal de vagas vive fora da conversa com paciente: coluna
+                própria, junto com o que é da casa e não do tratamento. */}
+            <div data-item>
+              <h2 className="text-pequeno font-semibold text-sobre-campo-suave">A casa</h2>
+              <ul className="mt-3">
+                {carreiras ? (
+                  <li>
+                    <a href={carreiras.href} className="rodape-link text-pequeno">
+                      Trabalhe na JP
+                    </a>
+                  </li>
+                ) : null}
+                <li>
+                  <a href="/politica-de-privacidade" className="rodape-link text-pequeno">
+                    Política de Privacidade
                   </a>
                 </li>
-              ))}
-            </ul>
-
-            {/* O portal de vagas vive fora da conversa com paciente, então ganha
-                bloco próprio em vez de virar mais um item na lista acima: quem
-                chega ao rodapé procurando emprego não está procurando tratamento. */}
-            <a
-              href="/carreiras"
-              className="mt-7 flex items-center justify-between gap-3 rounded-2xl border border-lime/25 bg-white/5 px-4 py-3.5 transition-colors hover:border-lime/60 hover:bg-white/10"
-            >
-              <span>
-                <span className="block text-micro font-extrabold uppercase tracking-[.18em] text-lime">
-                  Trabalhe na JP
-                </span>
-                <span className="mt-1 block text-sm font-bold text-white">Ver vagas abertas</span>
-              </span>
-              <ArrowUpRight className="h-4 w-4 shrink-0 text-lime" aria-hidden="true" />
-            </a>
+                <li>
+                  {/* A LGPD pede que revogar seja tão fácil quanto consentir, e um
+                      aviso que nunca mais aparece transforma uma decisão de dois
+                      segundos em definitiva. O botão some sozinho para quem ainda
+                      não escolheu — nesse caso a faixa já está na tela. */}
+                  <BotaoRevisarConsentimento className="rodape-link text-pequeno text-left" />
+                </li>
+                <li>
+                  <a
+                    href={CLINICA.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram da JP Clínica"
+                    className="rodape-link text-pequeno"
+                  >
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={CLINICA.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook da JP Clínica"
+                    className="rodape-link text-pequeno"
+                  >
+                    Facebook
+                  </a>
+                </li>
+              </ul>
+            </div>
           </nav>
 
-          <div>
-            <p className="eyebrow text-lime">Fale com a JP Clínica Integrada</p>
-            <ul className="mt-6 grid gap-4 text-sm font-semibold text-white">
-              <li>
-                <a
-                  href={CLINICA.telefoneHref}
-                  className="alvo-toque flex items-center gap-3 transition-colors hover:text-lime"
-                >
-                  <Phone className="h-4 w-4 text-lime" />
-                  {CLINICA.telefone}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={waAgendar}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="alvo-toque flex items-center gap-3 transition-colors hover:text-lime"
-                >
-                  <MessageCircle className="h-4 w-4 text-lime" />
-                  {CLINICA.whatsapp}
-                </a>
-              </li>
-              <li>
-                <a
-                  href={CLINICA.mapsHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="alvo-toque items-start gap-3 leading-relaxed transition-colors hover:text-lime"
-                >
-                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-lime" />
-                  {CLINICA.endereco}
-                </a>
-              </li>
-            </ul>
-
-            {/* No hover o fundo vira limão, e o ícone tem de acompanhar: como
-                desenho, ele precisa de 3:1 contra o próprio fundo (WCAG 1.4.11).
-                `--forest-2` ali dá 2,87:1 — reprova por pouco, que é como esse
-                defeito sobrevive. `--brand-deep` dá 4,96:1. */}
-            <div className="mt-7 flex gap-2">
+          <div data-item className="lg:col-span-4">
+            {/* Com alt, diferente das outras telas: aqui a marca não vem dentro
+                de um link nomeado nem ao lado do nome escrito, então ela é a
+                única coisa que apresenta o bloco de contato. */}
+            <Logo
+              variante="lockup"
+              fundo="escuro"
+              altura={80}
+              alt={CLINICA.nome}
+              className="h-[72px] w-auto"
+            />
+            <address className="mt-6 text-pequeno not-italic text-sobre-campo">
               <a
-                href={CLINICA.instagram}
+                href={CLINICA.mapsHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram da JP Clínica"
-                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-brand-deep"
+                className="rodape-link !inline-block !min-h-0 py-1 leading-snug"
               >
-                <Instagram className="h-4.5 w-4.5" />
+                {CLINICA.endereco}
               </a>
-              <a
-                href={CLINICA.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook da JP Clínica"
-                className="grid h-11 w-11 place-items-center rounded-full border border-white/12 text-white transition-all hover:border-lime hover:bg-lime hover:text-brand-deep"
-              >
-                <Facebook className="h-4.5 w-4.5" />
-              </a>
-            </div>
+              <ul className="mt-3">
+                <li>
+                  <a href={CLINICA.telefoneHref} className="rodape-link">
+                    {CLINICA.telefone}
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={waAgendar}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rodape-link"
+                  >
+                    WhatsApp {CLINICA.whatsapp}
+                  </a>
+                </li>
+              </ul>
+              <p className="mt-2 text-sobre-campo-suave">{CLINICA.horario}</p>
+            </address>
           </div>
         </div>
 
-        <div className="mt-12 grid gap-5 border-t border-white/10 pt-6 text-micro leading-relaxed text-white/80 sm:grid-cols-2 lg:mt-16">
-          <div>
+        <div className="mt-14 flex flex-col gap-8 text-pequeno text-sobre-campo-suave lg:mt-20 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-[68ch] space-y-1.5">
             {/* Fonte explícita, não mais EQUIPE[0]: esta linha é exigida pela
                 Resolução CFO 196/2019 e não pode depender da ordem de uma
                 lista que a clínica edita. */}
-            <p className="font-semibold text-white">
+            <p className="font-semibold text-sobre-campo">
               Responsável técnica: {RESPONSAVEL_TECNICA.nome} — {RESPONSAVEL_TECNICA.registro}
             </p>
-            <p className="mt-1">
+            <p>
               {CLINICA.razaoSocial} • CNPJ {CLINICA.cnpj}
             </p>
-            <p className="mt-1">{CLINICA.horario}</p>
-          </div>
-          <div className="sm:text-right">
             <p>
               Conteúdo informativo. Indicações e resultados dependem de avaliação profissional
               individual.
             </p>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 sm:justify-end">
-              <a
-                href="/politica-de-privacidade"
-                className="alvo-toque font-semibold text-white underline decoration-white/25 underline-offset-2 transition hover:text-lime"
-              >
-                Política de Privacidade
-              </a>
-              <span aria-hidden="true" className="hidden text-white/35 sm:inline">
-                •
-              </span>
-              {/* A LGPD pede que revogar seja tão fácil quanto consentir, e um
-                  aviso que nunca mais aparece transforma uma decisão de dois
-                  segundos em definitiva. O botão some sozinho para quem ainda
-                  não escolheu — nesse caso a faixa já está na tela. */}
-              <BotaoRevisarConsentimento className="alvo-toque font-semibold text-white underline decoration-white/25 underline-offset-2 transition hover:text-lime" />
-              <span aria-hidden="true" className="hidden text-white/35 sm:inline">
-                •
-              </span>
-              <span>
-                © {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.
-              </span>
-            </div>
+            <p>© {HISTORIA.anoCopyright} JP Clínica Odontológica. Todos os direitos reservados.</p>
           </div>
+          <button
+            type="button"
+            onClick={subir}
+            className="botao botao-claro self-start lg:self-auto"
+          >
+            <ArrowUp aria-hidden="true" />
+            Voltar ao topo
+          </button>
         </div>
+
+        {/* A marca construída fecha a página: as bases das coroas tocam a borda
+            de baixo e o texto legal fica acima, inteiro, sem competir com ela. */}
+        <ArcadaDoRodape className="mt-[clamp(3rem,2rem+4vw,6rem)]" />
       </div>
     </footer>
   );

@@ -1,0 +1,17 @@
+/* A faixa de cookies — redesenho de 11/2026. Ver AvisoDeCookies.tsx. */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* Flutua de verdade sobre a página, então a sombra é permitida; a faixa não
+     tem borda para não virar mais um filete. Os botões medem 46px, um pouco
+     abaixo dos 52px do resto do site, para a faixa não pesar. */
+  .aviso-cookies {
+    box-shadow: 0 -10px 30px -22px rgb(3 47 1 / 0.45);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .aviso-cookies .botao {
+    min-height: 2.875rem;
+    padding-inline: 1.5rem;
+  }
+}

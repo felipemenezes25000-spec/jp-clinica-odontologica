@@ -1,0 +1,506 @@
+/* As landings pagas de implante e clareamento — ver Topo.tsx e Secoes.tsx.
+ *
+ * O que está aqui é só o que o Tailwind não diz bem: a janela do topo, a
+ * diagonal da Escada, os marcadores em coroa, o acordeão. O resto das páginas
+ * é utilitário com os tokens do sistema.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* ---- O botão: pode quebrar em duas linhas no celular --------------------- */
+  /* `.botao` é `nowrap` e o rótulo do CTA é longo. Sem isto ele estoura a
+     coluna em 390px. A dupla classe vence a ordem dos arquivos. */
+  .botao.lp-botao,
+  .button-primary.lp-botao {
+    white-space: normal;
+    text-align: center;
+  }
+  @media (max-width: 639px) {
+    .botao.lp-botao,
+    .button-primary.lp-botao {
+      width: 100%;
+    }
+  }
+
+  /* ---- O topo ------------------------------------------------------------- */
+  .lp-topo {
+    position: relative;
+    overflow: clip;
+    background: var(--chao);
+    color: var(--tinta);
+  }
+  /* Celular: uma coluna, e a janela sobe para entre o título e a frase (ver
+     Topo.tsx). `display: contents` solta os filhos do bloco de texto na grade,
+     onde `order` os reorganiza sem mexer na ordem de leitura do HTML. */
+  .lp-topo-grade {
+    display: grid;
+    row-gap: 1.25rem;
+    padding-top: clamp(1.25rem, 4vw, 3rem);
+    padding-bottom: clamp(3rem, 8vw, 5.5rem);
+  }
+  .lp-topo-texto {
+    display: contents;
+  }
+  .lp-topo-texto > .lp-h1 {
+    order: 1;
+  }
+  .lp-janela {
+    order: 2;
+  }
+  .lp-topo-texto > .lp-frase {
+    order: 3;
+  }
+  .lp-topo-texto > .lp-acoes {
+    order: 4;
+  }
+  .lp-topo-texto > .lp-prova {
+    order: 5;
+  }
+  .lp-topo-texto > .lp-contato {
+    order: 6;
+  }
+
+  /* O H1 é o único título da página acima da medida de seção: um degrau a mais
+     que o `text-titulo` dos h2, para a hierarquia não ficar plana. As duas
+     linhas cabem em 390, 768 e 1440. */
+  .lp-h1 {
+    font-size: var(--text-titulo);
+    line-height: var(--text-titulo--line-height);
+    letter-spacing: var(--text-titulo--letter-spacing);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  /* A entrada do título é mais curta que a da home: a oferta precisa estar
+     legível cedo. */
+  @media (prefers-reduced-motion: no-preference) {
+    .lp-h1 .linha > span {
+      animation-duration: 640ms;
+      animation-delay: calc(var(--i, 0) * 70ms);
+    }
+  }
+  .lp-frase {
+    max-width: 40ch;
+    font-size: var(--text-corpo);
+    line-height: 1.5;
+  }
+  .lp-acoes {
+    margin-top: 0.25rem;
+  }
+  .lp-fatos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 1.75rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  .lp-fatos li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+  }
+  .lp-fatos svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+  }
+  /* O telefone é alvo de toque: a caixa do link ocupa os 44px da linha. */
+  .lp-fatos a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  /* A nota é a prova que decide: um degrau acima dos outros fatos. */
+  .lp-fato-nota {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+  .lp-fato-nota svg {
+    width: 1.1em;
+    height: 1.1em;
+  }
+
+  /* ---- A janela em coroa, com o eco verde ---------------------------------- */
+  .lp-janela {
+    --eco-x: clamp(14px, 2.2vw, 40px);
+    --eco-y: calc(var(--eco-x) * -0.8);
+    position: relative;
+    height: clamp(15rem, 36svh, 19rem);
+    /* Reserva a folga do eco à direita e em cima, para ele não vazar da grade. */
+    margin-right: var(--eco-x);
+    margin-top: calc(var(--eco-x) * 0.8);
+  }
+  .lp-eco {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--acento);
+    pointer-events: none;
+    translate: var(--eco-x) var(--eco-y);
+  }
+  .lp-moldura {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--chao-3);
+  }
+  .lp-moldura img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A foto já está inteira no primeiro quadro (é ela o maior desenho da tela:
+     esconder e revelar atrasaria o primeiro desenho útil). Ela só assenta, de
+     um pouco maior para o tamanho certo, enquanto a coroa verde cresce de dentro
+     da janela até a posição. Sem movimento permitido, tudo já está no lugar. */
+  @media (prefers-reduced-motion: no-preference) {
+    .lp-moldura img {
+      scale: 1.1;
+      animation: lp-assenta 1500ms var(--ease-expo) 80ms forwards;
+    }
+    .lp-eco {
+      opacity: 0;
+      translate: 0 0;
+      scale: 0.94;
+      animation: lp-eco 1500ms var(--ease-expo) 260ms forwards;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .lp-janela {
+      height: clamp(20rem, 62vw, 30rem);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .lp-topo-grade {
+      grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+      column-gap: clamp(2.5rem, 5vw, 6rem);
+      align-items: center;
+      min-height: calc(100svh - var(--altura-cabecalho));
+      padding-block: 2.5rem;
+    }
+    .lp-topo-texto {
+      display: block;
+    }
+    .lp-h1 {
+      font-size: clamp(var(--text-titulo), 0.6rem + 5.1vw, 5.25rem);
+    }
+    .lp-frase {
+      margin-top: 1.75rem;
+    }
+    .lp-acoes {
+      margin-top: 2.25rem;
+    }
+    .lp-prova {
+      margin-top: 1.75rem;
+    }
+    .lp-janela {
+      height: clamp(28rem, calc(100svh - var(--altura-cabecalho) - 6rem), 46rem);
+    }
+  }
+
+  /* ---- Marcadores em coroa, na altura da letra ------------------------------ */
+  .lp-itens {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .lp-item-marca {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    font-size: var(--text-corpo);
+    font-weight: 500;
+  }
+  .lp-item-marca .marca-coroa {
+    translate: 0 0.08em;
+  }
+
+  /* ---- Escada: três pontos descendo em diagonal ------------------------------ */
+  /* O degrau é o recuo de cada ponto. No celular ele anda para a direita (0,
+     1 e 2 degraus) e vira uma escada de verdade; no desktop anda para baixo, e a
+     foto em coroa ocupa o vão que a diagonal deixa embaixo à esquerda, com o
+     botão alinhado à base da foto, no vão da direita. */
+  .lp-escada {
+    --degrau: 1.25rem;
+    display: grid;
+    gap: 2.25rem;
+    margin-top: 3rem;
+  }
+  .lp-degraus {
+    display: grid;
+    gap: 2.25rem;
+  }
+  .lp-escada-moldura {
+    aspect-ratio: 1.25;
+  }
+  @media (max-width: 1023px) {
+    .lp-degraus li:nth-child(2) {
+      margin-left: var(--degrau);
+    }
+    .lp-degraus li:nth-child(3) {
+      margin-left: calc(var(--degrau) * 2);
+    }
+  }
+  @media (min-width: 1024px) {
+    .lp-escada {
+      --degrau: 3rem;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--margem);
+      row-gap: 0;
+      margin-top: 4.5rem;
+    }
+    .lp-degraus {
+      display: contents;
+    }
+    .lp-degraus li {
+      grid-row: 1;
+    }
+    .lp-degraus li:nth-child(1) {
+      grid-column: 1 / span 4;
+      padding-right: 1.5rem;
+    }
+    .lp-degraus li:nth-child(2) {
+      grid-column: 5 / span 4;
+      margin-top: var(--degrau);
+      padding-right: 1.5rem;
+    }
+    .lp-degraus li:nth-child(3) {
+      grid-column: 9 / span 4;
+      margin-top: calc(var(--degrau) * 2);
+    }
+    .lp-escada-foto {
+      grid-column: 1 / span 8;
+      grid-row: 2;
+      margin-top: 2rem;
+    }
+    .lp-escada-moldura {
+      aspect-ratio: 2;
+    }
+    .lp-escada-acao {
+      grid-column: 9 / span 4;
+      grid-row: 2;
+      align-self: end;
+      margin: 0;
+    }
+  }
+
+  /* ---- Linhas: assunto à esquerda, explicação à direita ----------------------- */
+  .lp-linhas {
+    display: grid;
+    gap: 2.75rem;
+    margin-top: 3.5rem;
+  }
+  .lp-linhas li {
+    display: grid;
+    gap: 0.9rem;
+  }
+  /* A explicação começa na mesma coluna da introdução (8): é um eixo só, e o
+     assunto, curto, fica a poucas colunas dele. */
+  @media (min-width: 1024px) {
+    .lp-linhas {
+      gap: 3.5rem;
+      margin-top: 4.5rem;
+    }
+    .lp-linhas li {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--margem);
+      align-items: baseline;
+    }
+    .lp-linhas li > h3 {
+      grid-column: 1 / span 7;
+    }
+    .lp-linhas li > p {
+      grid-column: 8 / span 5;
+    }
+  }
+
+  /* ---- Etapas ------------------------------------------------------------------ */
+  .lp-etapas {
+    display: grid;
+    gap: 2.25rem;
+    margin-top: 3rem;
+  }
+  .lp-etapas li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1.1rem;
+    align-items: start;
+  }
+  .lp-etapas .marca-coroa {
+    width: 1.9rem;
+    height: 1.9rem;
+    margin-top: 0.15rem;
+  }
+
+  /* ---- Prova social ---------------------------------------------------------------- */
+  .lp-numeros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem clamp(2rem, 6vw, 5rem);
+    margin-top: 3rem;
+  }
+  .lp-numeros > div {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.35rem;
+  }
+  .lp-numeros dd {
+    font-size: var(--text-titulo);
+    line-height: var(--text-titulo--line-height);
+    letter-spacing: var(--text-titulo--letter-spacing);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--acento);
+  }
+  .lp-numeros dt {
+    font-size: var(--text-pequeno);
+    color: var(--sobre-campo-suave);
+  }
+
+  /* ---- Perguntas: acordeão de ladrilhos ------------------------------------------------ */
+  .lp-pergunta {
+    border-radius: var(--raio);
+    background: var(--chao-2);
+    transition: background-color var(--t-ui) ease;
+  }
+  .lp-pergunta[open] {
+    background: var(--chao-3);
+  }
+  .lp-pergunta summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    min-height: 4.25rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .lp-pergunta summary::-webkit-details-marker {
+    display: none;
+  }
+  .lp-pergunta p {
+    padding: 0 1.5rem 1.5rem;
+    max-width: 60ch;
+  }
+  /* O mais que vira menos: duas barras, a vertical gira ao abrir. */
+  .lp-mais {
+    position: relative;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .lp-mais::before,
+  .lp-mais::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(50% - 1px);
+    height: 2px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform var(--t-ui) var(--ease-out);
+  }
+  .lp-mais::after {
+    transform: rotate(90deg);
+  }
+  .lp-pergunta[open] .lp-mais::after {
+    transform: rotate(0deg);
+  }
+
+  /* ---- Fotos: a coroa responde ao mouse --------------------------------------------- */
+  /* A foto cresce 4% dentro da moldura (que corta). Só com mouse de verdade. */
+  @media (hover: hover) and (pointer: fine) {
+    .lp-foto img {
+      transition: scale 700ms var(--ease-out);
+    }
+    .lp-foto:hover img {
+      scale: 1.04;
+    }
+  }
+
+  /* ---- A animação: o quadro do vídeo tem moldura escura em cima ------------------------- */
+  /* Dentro da coroa o topo preto do quadro aparecia nos dois lobos como um
+     recorte vazado. Ampliar 18% a partir da base empurra o preto para fora. */
+  .lp-animacao :is(img, video) {
+    transform-origin: 50% 100%;
+    scale: 1.18;
+  }
+
+  /* ---- Retrato da responsável técnica ----------------------------------------------------- */
+  .lp-retrato {
+    display: grid;
+    gap: 0.2rem;
+    margin-top: 1.25rem;
+  }
+
+  /* ---- Fechamento: a coroa gigante, cortada pela borda ------------------------------------ */
+  .lp-fechamento {
+    position: relative;
+    overflow: clip;
+  }
+  /* A forma ocupa o canto direito e sai pela borda: lê-se como coroa, não como
+     enfeite. Fica em --campo (mais escuro que o fundo): o texto claro por cima
+     ganha contraste, não perde. Alta (135%) e baixada 12%: os lobos ficam à vista no alto e a base sai pela
+     borda, como a arcada que sobe do rodapé. */
+  .lp-coroa-gigante {
+    position: absolute;
+    top: 12%;
+    right: -34%;
+    height: 135%;
+    aspect-ratio: 0.86;
+    color: var(--campo);
+    pointer-events: none;
+  }
+  .lp-coroa-gigante svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .lp-fechamento .quadro {
+    position: relative;
+  }
+  @media (min-width: 1024px) {
+    .lp-coroa-gigante {
+      right: -4%;
+    }
+  }
+
+  /* O pé: o link de privacidade é alvo de toque, com os 44px de altura. */
+  .lp-rodape a.link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+
+  /* ---- Rodapé ------------------------------------------------------------------------ */
+  /* A barra fixa de WhatsApp do celular cobre o pé da página; o rodapé ganha o
+     espaço dela, senão o link de privacidade nunca aparece. */
+  @media (max-width: 639px) {
+    .lp-rodape {
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    }
+  }
+}
+
+@keyframes lp-assenta {
+  to {
+    scale: 1;
+  }
+}
+
+@keyframes lp-eco {
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: var(--eco-x) var(--eco-y);
+  }
+}

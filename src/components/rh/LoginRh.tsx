@@ -6,10 +6,13 @@
  * mesmo componente serve para a primeira carga, para o erro de senha e para a
  * espera do rate limit, sem cada estado virar uma tela diferente.
  */
-import { useEffect, useId, useState } from "react";
-import { ArrowLeft, Eye, EyeOff, KeyRound, ShieldCheck, TriangleAlert } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { ArrowLeft, Eye, EyeOff, TriangleAlert } from "lucide-react";
 
 import { Logo } from "@/components/site/Logo";
+import { FormaCoroa } from "@/components/site/sistema/Coroa";
+
+import "./painel.css";
 
 /**
  * Abaixo de um minuto o texto fica em segundos ("45s"): "0:45" faz a pessoa
@@ -48,6 +51,15 @@ export function LoginRh({
   // até a próxima resposta, e a pessoa não saberia se ainda falta esperar.
   const [restantes, setRestantes] = useState(segundos);
 
+  // Foco automático só onde há mouse e teclado físico: no celular ele abriria o
+  // teclado virtual de imediato e cobriria a tela antes de a pessoa ler o título.
+  const campoSenha = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+      campoSenha.current?.focus();
+    }
+  }, []);
+
   const idBase = useId();
   const idSenha = `${idBase}-senha`;
   const idAjuda = `${idBase}-ajuda`;
@@ -77,43 +89,33 @@ export function LoginRh({
     .join(" ");
 
   return (
-    <div className="rh-login-claro flex min-h-dvh flex-col items-center justify-center px-4 py-10 sm:py-16">
-      <main className="w-full max-w-md">
-        <div className="rh-vidro p-6 sm:p-8">
-          <div className="flex flex-col items-center gap-5 text-center">
-            <Logo
-              variante="lockup"
-              fundo="claro"
-              altura={36}
-              alt="JP Clínica Integrada Odontológica"
-            />
-            <div>
-              {/* "ACESSO RESTRITO" em branco, não em lime: em cima do verde a
-                  letra é branca. O ícone é que fica lime — ícone não é letra. */}
-              <p className="eyebrow justify-center text-ink">
-                <ShieldCheck size={14} className="text-lime" aria-hidden="true" />
-                Acesso restrito
-              </p>
-              <h1 className="mt-2 font-display text-2xl font-extrabold tracking-tight text-ink">
-                Portal de RH
-              </h1>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                Área da coordenação. Aqui ficam as candidaturas recebidas pelo site e as vagas
-                publicadas.
-              </p>
-            </div>
-          </div>
+    <div className="rh-entrada">
+      {/* A metade escura carrega a marca e a frase do portal; a coroa gigante
+          fica cortada pela borda, como na abertura do site. No celular ela vira
+          uma faixa de 168px acima do formulário. */}
+      <div className="rh-entrada__marca">
+        {/* Símbolo + nome em texto: o lockup raster ficava pixelado e o
+            "Clínica Odontológica" miúdo era ilegível sobre o verde. */}
+        <div className="rh-entrada__assinatura">
+          <Logo variante="simbolo" fundo="escuro" altura={40} alt="" />
+          <span>JP Clínica Integrada</span>
+        </div>
+        <p className="rh-entrada__frase">Candidaturas e vagas num só lugar.</p>
+        <FormaCoroa proporcao={0.86} className="rh-entrada__coroa" />
+      </div>
+
+      <main className="rh-entrada__form">
+        <div className="rh-entrada__conteudo">
+          <h1>Portal de RH</h1>
+          <p className="rh-entrada__lide">
+            Área da coordenação. Entre com a senha do painel para ver as candidaturas recebidas pelo
+            site e as vagas publicadas.
+          </p>
 
           {!configurado ? (
-            <div className="mt-6 flex gap-3 rounded-2xl bg-amber-300/10 p-4 ring-1 ring-amber-200/35">
-              <TriangleAlert
-                size={18}
-                className="mt-0.5 shrink-0 text-amber-200"
-                aria-hidden="true"
-              />
-              {/* A tarja de aviso está por cima do verde profundo da aurora:
-                  letra branca, e o âmbar sobrevive no ícone e no anel. */}
-              <div className="text-sm leading-relaxed text-ink">
+            <div className="rh-entrada__aviso">
+              <TriangleAlert size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
+              <div>
                 <p className="font-semibold">
                   {motivo || "O portal ainda não foi configurado neste servidor."}
                 </p>
@@ -123,7 +125,7 @@ export function LoginRh({
                     (`servidor/sessao.ts`): repeti-las na tela desfaria a
                     correção. Quem opera o servidor recebe a lista exata no
                     `console.warn` do processo, que é onde ela é útil. */}
-                <p className="mt-2 text-ink-soft">
+                <p className="mt-2">
                   Faltam variáveis de ambiente do portal. O log do servidor diz quais — configure-as
                   no provedor de hospedagem e publique de novo.
                 </p>
@@ -132,17 +134,13 @@ export function LoginRh({
           ) : null}
 
           <form
-            className="mt-6"
+            className="mt-8"
             onSubmit={(evento) => {
               evento.preventDefault();
               if (bloqueado) return;
               aoEnviar(senha);
             }}
           >
-            {/* O `!` continua necessário porque `.rh-rotulo` declara a cor fora
-                de qualquer @layer e venceria a utilitária — sem ele o rótulo
-                sairia em --brand-text sobre o verde profundo, a 1,8:1. A cor,
-                porém, virou branca: sobre fundo verde a letra é branca. */}
             <label className="rh-rotulo" htmlFor={idSenha}>
               Senha do painel
             </label>
@@ -150,6 +148,7 @@ export function LoginRh({
             <div className="relative">
               <input
                 id={idSenha}
+                ref={campoSenha}
                 name="senha"
                 type={mostrar ? "text" : "password"}
                 className="rh-campo"
@@ -161,10 +160,6 @@ export function LoginRh({
                 onChange={(evento) => setSenha(evento.target.value)}
                 disabled={!configurado || ocupado}
                 autoComplete="current-password"
-                // Foco automático é seguro aqui, e só aqui: a tela inteira
-                // existe para este campo, então roubar o foco não tira ninguém
-                // do lugar em que estava.
-                autoFocus
                 aria-describedby={descreve}
                 aria-invalid={erro !== ""}
                 placeholder="••••••••"
@@ -176,7 +171,7 @@ export function LoginRh({
                 disabled={!configurado}
                 aria-pressed={mostrar}
                 aria-label={mostrar ? "Ocultar senha" : "Mostrar senha"}
-                className="absolute inset-y-0 right-1 flex w-11 items-center justify-center rounded-xl text-ink-soft transition hover:text-forest disabled:opacity-50"
+                className="absolute inset-y-0 right-1 flex w-11 items-center justify-center rounded-xl text-tinta-suave transition hover:text-tinta disabled:opacity-50"
               >
                 {mostrar ? (
                   <EyeOff size={18} aria-hidden="true" />
@@ -186,66 +181,38 @@ export function LoginRh({
               </button>
             </div>
 
-            <p id={idAjuda} className="mt-2 text-xs leading-relaxed text-ink-soft">
+            <p id={idAjuda} className="rh-entrada__ajuda">
               A senha é a mesma para toda a coordenação e fica só no servidor.
             </p>
 
             {erro ? (
-              // `.rh-erro` não serve aqui: a cor dela é calibrada para papel
-              // claro e sobre o verde profundo o vermelho fecha o contraste.
-              // A letra do erro é branca (fundo verde), e o vermelho fica no
-              // ícone — que, junto com o `role="alert"` e o peso da fonte, é o
-              // que continua dizendo "isto é um erro" sem depender da cor.
-              <p
-                id={idErro}
-                role="alert"
-                className="mt-3 flex items-start gap-2 text-sm font-semibold text-ink"
-              >
-                <TriangleAlert
-                  size={16}
-                  className="mt-0.5 shrink-0 text-rose-300"
-                  aria-hidden="true"
-                />
+              // O erro nunca depende só da cor: ícone, texto e `role="alert"`.
+              <p id={idErro} role="alert" className="rh-entrada__erro">
+                <TriangleAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
                 {erro}
               </p>
             ) : null}
 
             {contando ? (
-              <p
-                id={idEspera}
-                aria-live="polite"
-                className="mt-3 flex items-center gap-2 text-sm font-semibold text-ink"
-              >
-                <span
-                  aria-hidden="true"
-                  className="inline-flex h-2 w-2 shrink-0 rounded-full bg-amber-300"
-                />
+              <p id={idEspera} aria-live="polite" className="rh-entrada__ajuda font-semibold">
                 Muitas tentativas seguidas. Tente de novo em {formatarEspera(restantes)}.
               </p>
             ) : null}
 
             <button
               type="submit"
-              className="button-primary mt-6 w-full disabled:opacity-60"
+              className="botao botao-acento mt-6 w-full disabled:opacity-60"
               disabled={bloqueado}
             >
-              <KeyRound size={18} aria-hidden="true" />
               {ocupado ? "Entrando..." : "Entrar no painel"}
             </button>
           </form>
-        </div>
 
-        <p className="mt-6 text-center text-sm">
-          <a
-            href="/"
-            // Branco a 85% no repouso e branco cheio no hover: o realce não
-            // pode virar letra lime sobre verde.
-            className="inline-flex min-h-11 items-center gap-2 px-2 text-ink-soft underline-offset-4 transition hover:text-forest hover:underline"
-          >
+          <a href="/" className="rh-entrada__voltar">
             <ArrowLeft size={15} aria-hidden="true" />
             Voltar ao site
           </a>
-        </p>
+        </div>
       </main>
     </div>
   );

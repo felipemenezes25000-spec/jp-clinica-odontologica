@@ -1,0 +1,225 @@
+/* A equipe da home — ver TeamSection.tsx.
+ *
+ * Um painel de campo escuro recuado da borda pela margem do quadro. À direita,
+ * a responsável técnica em retrato grande, dentro de uma coroa que nasce da
+ * borda de baixo do painel (a moldura corta a base, como em toda coroa); à
+ * esquerda, o título, uma frase de apoio e os retratos da equipe. No celular o
+ * painel vira uma coluna e a ordem do HTML é a ordem da leitura.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  .equipe-painel {
+    --respiro: clamp(1.25rem, 0.4rem + 3.4vw, 4rem);
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: clamp(2rem, 1rem + 3vw, 3.5rem);
+    padding: var(--respiro);
+    border-radius: var(--raio);
+    overflow: clip;
+  }
+
+  .equipe-cabeca h2 {
+    /* Duas linhas em qualquer largura (1440, 768 e 390): a medida em `ch`
+       quebra depois de "com" e o text-wrap: balance acerta o resto. */
+    max-width: 14ch;
+  }
+  .equipe-cabeca p {
+    margin-top: clamp(1rem, 0.6rem + 1vw, 1.5rem);
+    max-width: 38ch;
+    color: var(--sobre-campo-suave);
+  }
+
+  /* ---- A responsável técnica ------------------------------------------------ */
+  /* Texto primeiro, retrato depois, sem sobreposição: o logotipo bordado do
+     jaleco fica no pé do retrato e a coroa o corta como o resto da base. */
+  .equipe-retrato {
+    position: relative;
+    display: grid;
+    gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+    width: 100%;
+    max-width: 34rem;
+  }
+  .equipe-carta h3 {
+    font-weight: 600;
+  }
+  .equipe-carta p {
+    margin-top: 0.4rem;
+  }
+  .equipe-carta .equipe-cro {
+    margin-top: 0.6rem;
+    color: var(--acento);
+    font-weight: 600;
+  }
+  .equipe-carta .equipe-cro + p {
+    margin-top: 0.9rem;
+  }
+  .equipe-carta p:not(.equipe-cro) {
+    color: var(--sobre-campo-suave);
+  }
+  /* O retrato da responsável técnica é um 3x4 de documento que termina com o
+     logotipo bordado do jaleco cortado ao meio; a foto passa um pouco da altura
+     da moldura, ancorada no topo, e o logotipo fica fora da coroa. */
+  .equipe-retrato-foto .equipe-foto img {
+    height: 118%;
+  }
+  /* O eco: a mesma coroa em verde-maçã chapado, fora de registro, atrás do
+     retrato — a mesma jogada do topo da home. */
+  .equipe-retrato-foto {
+    position: relative;
+    isolation: isolate;
+    /* Em celular a coroa de 0,66 vira um rosto de 600px de altura: limita para
+       nome, CRO e rosto caberem juntos na tela. */
+    width: min(100%, 62svh * 0.66);
+  }
+  .equipe-eco {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--acento);
+    translate: 0.9rem -0.9rem;
+    pointer-events: none;
+  }
+  .equipe-moldura {
+    width: 100%;
+    background: var(--chao-3);
+  }
+  .equipe-foto {
+    width: 100%;
+    height: 100%;
+    overflow: clip;
+  }
+  .equipe-foto img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0;
+  }
+
+  /* ---- A equipe ---------------------------------------------------------------- */
+  .equipe-lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 1rem + 2vw, 2.25rem) clamp(1rem, 0.6rem + 1.6vw, 1.75rem);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .equipe-pessoa .equipe-moldura,
+  .equipe-apoio .equipe-moldura {
+    background: var(--chao-2);
+  }
+  .equipe-demais {
+    display: grid;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+    align-content: start;
+  }
+  /* Quem não é do conselho: uma linha pequena, sem a grade dos dentistas. */
+  .equipe-apoio h3 {
+    color: var(--sobre-campo-suave);
+  }
+  .equipe-apoio ul {
+    list-style: none;
+    margin: 0.9rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .equipe-apoio li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .equipe-apoio .equipe-moldura {
+    width: 4.5rem;
+    flex: none;
+  }
+  .equipe-apoio .equipe-nome {
+    margin-top: 0;
+  }
+  .equipe-nome {
+    margin-top: 0.9rem;
+    font-size: var(--text-corpo);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+  }
+  .equipe-funcao {
+    margin-top: 0.2rem;
+    color: var(--sobre-campo-suave);
+  }
+  .equipe-pessoa .equipe-cro {
+    margin-top: 0.35rem;
+    color: var(--acento);
+    font-weight: 600;
+  }
+
+  @media (min-width: 640px) {
+    .equipe-lista {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Entre o celular e o desktop: identificação à esquerda, retrato à direita —
+     nada de vazio ao lado de um rosto. */
+  @media (min-width: 640px) and (max-width: 1023px) {
+    .equipe-retrato {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 20rem);
+      align-items: center;
+      column-gap: 2.5rem;
+      max-width: none;
+    }
+    .equipe-retrato-foto {
+      width: 100%;
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .equipe-carta {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .equipe-painel {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        "cabeca retrato"
+        "equipe retrato";
+      grid-template-rows: auto 1fr;
+      column-gap: clamp(2.5rem, 5vw, 5rem);
+      padding-bottom: 0;
+    }
+    .equipe-cabeca {
+      grid-area: cabeca;
+    }
+    .equipe-demais {
+      grid-area: equipe;
+      padding-bottom: var(--respiro);
+    }
+    .equipe-lista {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    /* A coluna da responsável técnica acompanha a rolagem enquanto os retratos
+       da equipe passam ao lado (o `overflow: clip` do painel não quebra o
+       sticky). Ao fim da grade ela assenta na borda de baixo do painel, e a
+       moldura a corta como corta toda coroa. A largura do retrato se contém
+       pela altura da tela para nome, CRO e rosto caberem juntos. */
+    .equipe-retrato {
+      grid-area: retrato;
+      position: sticky;
+      top: calc(var(--altura-cabecalho) + 1.5rem);
+      align-self: start;
+      justify-self: end;
+    }
+    .equipe-retrato-foto {
+      width: min(100%, (100svh - var(--altura-cabecalho) - 13rem) * 0.66);
+      justify-self: end;
+    }
+  }
+}

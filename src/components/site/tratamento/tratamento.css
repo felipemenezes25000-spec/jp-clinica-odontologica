@@ -1,0 +1,675 @@
+/* A página de um tratamento — ver PaginaDeTratamento.tsx.
+ *
+ * Oito seções, cada uma com um desenho diferente da vizinha e os dois campos
+ * escuros separados por uma seção clara:
+ *   topo ........ texto + janela em coroa com o eco verde (a animação)
+ *   entenda ..... foto em coroa (grudada) à esquerda, frase que se acende e lista à direita
+ *   para quem ... fundo um degrau acima; cenários em frase grande + foto em coroa à direita
+ *   etapas ...... campo escuro, quatro colunas em degraus, coroas que se enchem em cascata
+ *   perguntas ... título em largura total; leitura em colunas (poucas) ou acordeão (muitas)
+ *   por que a JP  campo verde-marca: números em manchete + retrato da responsável
+ *   chamada ..... painel verde-maçã com a fachada em coroa cortada pela borda
+ *   outros ...... três ladrilhos lado a lado, o primeiro mais largo (só na orgânica)
+ * No celular todas viram uma coluna, na mesma ordem de leitura.
+ */
+
+@layer theme, base, components, utilities;
+
+@layer components {
+  /* ---- Topo --------------------------------------------------------------- */
+  .tt-topo {
+    position: relative;
+    overflow: clip;
+    background: var(--chao);
+    padding-block: clamp(1.75rem, 1rem + 2.5vw, 3rem) clamp(3.5rem, 2rem + 6vw, 7rem);
+  }
+  .tt-topo-grade {
+    display: grid;
+    gap: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);
+  }
+  .tt-voltar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-bottom: 1rem;
+    color: var(--tinta-suave);
+    font-size: var(--text-pequeno);
+  }
+  .tt-voltar svg {
+    width: 1.05em;
+    height: 1.05em;
+  }
+  .tt-topo h1 {
+    font-weight: 600;
+  }
+  /* O H1 da LP paga tem medida própria: o termo do anúncio ("Aparelho e
+     ortodontia", "Harmonização orofacial") precisa caber numa linha para o
+     bairro fechar a segunda, em 390, 768 e 1440. É a única exceção à escala de
+     títulos do sistema, e existe para não cortar a palavra que a pessoa buscou. */
+  .tt-h1-anuncio {
+    font-size: clamp(1.875rem, 0.9rem + 2.9vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .tt-h1-bairro {
+    display: block;
+  }
+  .tt-frase {
+    margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
+    max-width: 24ch;
+    font-weight: 500;
+  }
+  .tt-desc {
+    margin-top: 1.25rem;
+    max-width: 52ch;
+    color: var(--tinta-suave);
+  }
+  .tt-acoes {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .tt-acoes .button-primary {
+    white-space: normal;
+    text-align: center;
+  }
+  @media (min-width: 720px) {
+    .tt-acoes {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem 0.75rem;
+    }
+  }
+  .tt-fatos {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin-top: 2rem;
+    font-size: var(--text-pequeno);
+    color: var(--tinta-suave);
+  }
+  .tt-fatos li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+  }
+  .tt-fatos svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+  }
+  .tt-fatos a {
+    color: var(--tinta);
+  }
+
+  /* A janela: a coroa com a animação, e o eco verde deslocado atrás, como no
+     topo da home. A altura é dada aqui (a coroa mede a caixa). O eco anda
+     poucos pixels para a direita e para cima: a margem externa direita (16px no
+     celular, 29px em 1440) o engole, e a assinatura continua dentro dela. */
+  .tt-janela {
+    position: relative;
+    height: min(104vw, 62svh);
+    min-height: 20rem;
+  }
+  .tt-eco {
+    --eco-x: 8px;
+    --eco-y: -10px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--acento);
+    translate: var(--eco-x) var(--eco-y);
+    pointer-events: none;
+  }
+  .tt-abre {
+    position: relative;
+    height: 100%;
+  }
+  .tt-abre > .animacao,
+  .tt-abre > .moldura-coroa {
+    height: 100%;
+  }
+  .tt-rotulo {
+    margin-top: 1rem;
+    max-width: 52ch;
+    color: var(--tinta-suave);
+  }
+  .tt-rotulo strong {
+    color: var(--tinta);
+    font-weight: 600;
+  }
+
+  @media (min-width: 1024px) {
+    .tt-topo {
+      padding-block: clamp(1.5rem, 3vh, 2.5rem) clamp(4rem, 8vh, 6.5rem);
+    }
+    .tt-topo-grade {
+      grid-template-columns: 1.1fr 0.9fr;
+      column-gap: clamp(2rem, 4vw, 5rem);
+      align-items: center;
+    }
+    .tt-janela {
+      height: min(74svh, 46rem);
+    }
+    .tt-eco {
+      --eco-x: 14px;
+      --eco-y: -14px;
+    }
+  }
+
+  /* Entrada do topo: a janela abre de baixo para cima e o eco chega de lado.
+     CSS puro, roda antes do JS e some com "reduzir movimento". 700ms e sem
+     atraso: o poster da animação é o maior elemento da dobra, e o LCP só fecha
+     quando a janela termina de abrir. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tt-abre {
+      clip-path: inset(100% 0 0 0);
+      animation: tt-abre 700ms var(--ease-expo) forwards;
+    }
+    .tt-eco {
+      opacity: 0;
+      translate: 0 0;
+      animation: tt-eco 900ms var(--ease-expo) 200ms forwards;
+    }
+  }
+
+  /* ---- Grades e leitura ------------------------------------------------------ */
+  .tt-grade {
+    display: grid;
+    gap: clamp(2rem, 1rem + 3vw, 3.5rem);
+  }
+  .tt-leitura {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+  }
+  .tt-leitura > p {
+    max-width: 56ch;
+  }
+  .tt-nota {
+    max-width: 52ch;
+    color: var(--tinta-suave);
+  }
+  .tt-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 48ch;
+  }
+  .tt-lista li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  .tt-lista .marca-coroa {
+    color: var(--acento);
+    translate: 0 0.04em;
+  }
+  .tt-subtitulo {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  .tt-foto {
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+  }
+  .tt-foto img {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* ---- O que é -------------------------------------------------------------- */
+  .tt-manifesto {
+    max-width: 30ch;
+    font-weight: 500;
+  }
+  .tt-grade-entenda .tt-leitura > [data-entra] {
+    margin-top: 0.5rem;
+  }
+  @media (min-width: 1024px) {
+    .tt-grade-entenda {
+      grid-template-columns: 0.8fr 1.2fr;
+      column-gap: clamp(2.5rem, 6vw, 8rem);
+      align-items: start;
+    }
+    /* A foto vem depois no código (no celular a leitura abre a seção) e passa
+       para a esquerda aqui; fica grudada enquanto a leitura rola. */
+    .tt-foto-entenda {
+      order: -1;
+      max-width: none;
+      margin-inline: 0;
+      position: sticky;
+      top: calc(var(--altura-cabecalho) + 2rem);
+    }
+  }
+
+  /* ---- Para quem ------------------------------------------------------------- */
+  .tt-paraquem {
+    background: var(--chao-2);
+  }
+  .tt-paraquem .tt-leitura > p {
+    color: var(--tinta-suave);
+  }
+  .tt-lista-grande {
+    max-width: 30ch;
+    gap: 1.25rem;
+  }
+  .tt-lista-grande li {
+    font-weight: 500;
+  }
+  @media (min-width: 1024px) {
+    .tt-grade-paraquem {
+      grid-template-columns: 1.1fr 0.9fr;
+      column-gap: clamp(2.5rem, 7vw, 9rem);
+      align-items: center;
+    }
+    .tt-foto-paraquem {
+      max-width: none;
+      margin-inline: 0;
+    }
+  }
+
+  /* ---- Etapas ---------------------------------------------------------------- */
+  .tt-etapas {
+    position: relative;
+    overflow: clip;
+  }
+  .tt-etapas-corpo {
+    position: relative;
+  }
+  /* A forma grande no canto de baixo, brotando da borda como um dente: dá corpo
+     ao campo escuro e fica atrás da última etapa, a mais baixa da escada. Mais
+     clara que o campo, sem degradê, e atrás de tudo. */
+  .tt-etapas-forma {
+    position: absolute;
+    right: -16%;
+    bottom: -10%;
+    height: 34%;
+    width: auto;
+    color: var(--campo-marca);
+    pointer-events: none;
+  }
+  .tt-passos {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: clamp(2.5rem, 2rem + 3vw, 5rem);
+  }
+  .tt-passo {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+  .tt-passo-forma {
+    width: 3rem;
+    color: var(--acento);
+  }
+  .tt-passo h3 {
+    font-weight: 600;
+  }
+  .tt-passo p {
+    margin-top: 0.75rem;
+    max-width: 34ch;
+    color: var(--sobre-campo-suave);
+  }
+  @media (min-width: 720px) {
+    .tt-passos {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: clamp(2rem, 4vw, 4rem);
+    }
+  }
+  /* No desktop os quatro passos sobem em degraus, uma arcada em escala: a
+     ordem se lê pela posição, sem número. */
+  @media (min-width: 1100px) {
+    .tt-etapas-forma {
+      right: 3%;
+      bottom: -34%;
+      height: 76%;
+    }
+    .tt-passos {
+      grid-template-columns: repeat(4, 1fr);
+      align-items: start;
+    }
+    .tt-passo {
+      display: block;
+      margin-top: calc(var(--degrau, 0) * clamp(1.5rem, 3vw, 3.5rem));
+    }
+    .tt-passo-forma {
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  /* ---- Perguntas ------------------------------------------------------------- */
+  .tt-leituras,
+  .tt-acordeao {
+    margin-top: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+  }
+  .tt-leituras {
+    display: grid;
+    gap: clamp(2rem, 1.5rem + 2vw, 3rem);
+  }
+  .tt-leituras h3 {
+    font-weight: 600;
+    max-width: 22ch;
+  }
+  .tt-leituras p {
+    margin-top: 1rem;
+    max-width: 44ch;
+    color: var(--tinta-suave);
+  }
+  @media (min-width: 900px) {
+    .tt-leituras {
+      grid-template-columns: repeat(var(--colunas, 2), minmax(0, 1fr));
+      column-gap: clamp(2rem, 5vw, 6rem);
+    }
+  }
+  .tt-acordeao {
+    display: grid;
+    gap: 0.75rem;
+    align-items: start;
+  }
+  @media (min-width: 1024px) {
+    .tt-acordeao {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+  }
+  .tt-pergunta {
+    border-radius: var(--raio);
+    background: var(--chao-2);
+  }
+  .tt-pergunta summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    min-height: 3.5rem;
+    padding: 1.1rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--raio);
+  }
+  .tt-pergunta summary::-webkit-details-marker {
+    display: none;
+  }
+  /* O contorno de foco acompanha o ladrilho (raio de 20px), e não o summary
+     com o raio do foco global: fica na forma que a pessoa vê. */
+  .tt-pergunta summary:focus-visible {
+    outline: none;
+  }
+  .tt-pergunta:has(summary:focus-visible) {
+    outline: 3px solid var(--tinta);
+    outline-offset: 3px;
+  }
+  .tt-mais {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: var(--acento);
+    color: var(--tinta);
+    transition: transform var(--t-ui) var(--ease-out);
+  }
+  .tt-mais svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+  .tt-pergunta[open] .tt-mais {
+    transform: rotate(45deg);
+  }
+  .tt-pergunta p {
+    padding: 0 1.5rem 1.5rem;
+    max-width: 60ch;
+    color: var(--tinta-suave);
+  }
+
+  /* ---- Por que a JP ---------------------------------------------------------- */
+  .tt-numeros {
+    display: grid;
+    gap: 2rem clamp(1.5rem, 4vw, 4rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: clamp(0.5rem, 1rem + 1vw, 2rem);
+  }
+  .tt-numero {
+    font-size: var(--text-display);
+    line-height: var(--text-display--line-height);
+    letter-spacing: var(--text-display--letter-spacing);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .tt-numero-legenda {
+    margin-top: 0.75rem;
+    max-width: 22ch;
+    color: var(--sobre-campo-suave);
+  }
+  .tt-porque .tt-leitura > p {
+    max-width: 34ch;
+  }
+  .tt-retrato {
+    width: 100%;
+    max-width: 24rem;
+    margin-inline: auto;
+  }
+  .tt-retrato .tt-foto {
+    max-width: none;
+  }
+  .tt-responsavel {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1.5rem;
+  }
+  .tt-responsavel strong {
+    font-weight: 600;
+  }
+  .tt-responsavel span {
+    color: var(--sobre-campo-suave);
+  }
+  .tt-endereco {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    color: var(--sobre-campo-suave);
+  }
+  .tt-endereco svg {
+    width: 1.05em;
+    height: 1.05em;
+    flex: none;
+    margin-top: 0.2em;
+  }
+  @media (min-width: 1024px) {
+    .tt-grade-porque {
+      grid-template-columns: 1.25fr 0.75fr;
+      column-gap: clamp(2.5rem, 7vw, 9rem);
+      align-items: center;
+    }
+    .tt-retrato {
+      max-width: none;
+      margin-inline: 0;
+    }
+  }
+
+  /* ---- Chamada final: o painel em verde-maçã -------------------------------- */
+  .tt-chamada {
+    position: relative;
+    overflow: clip;
+    padding: clamp(2rem, 1.25rem + 4vw, 5rem);
+    border-radius: var(--raio);
+    background: var(--acento);
+    color: var(--tinta);
+  }
+  .tt-chamada-forma {
+    position: absolute;
+    right: -12%;
+    bottom: -26%;
+    height: 66%;
+    width: auto;
+    color: var(--acento-claro);
+    pointer-events: none;
+  }
+  .tt-chamada-foto {
+    display: none;
+  }
+  .tt-chamada-texto {
+    position: relative;
+    max-width: 38rem;
+  }
+  .tt-chamada .text-frase {
+    margin-top: 1.25rem;
+    font-weight: 500;
+  }
+  .tt-chamada .botao {
+    margin-top: 2rem;
+  }
+  /* Do tablet para cima a fachada entra, cortada pela borda de baixo, com o eco
+     em verde-claro deslocado atrás — a mesma assinatura do topo. */
+  @media (min-width: 900px) {
+    .tt-chamada {
+      min-height: 28rem;
+      display: flex;
+      align-items: center;
+    }
+    .tt-chamada-texto {
+      max-width: min(38rem, 52%);
+    }
+    .tt-chamada-forma {
+      --lado: min(30vw, 30rem);
+      right: calc(clamp(1.5rem, 5vw, 6rem) - 1.5rem);
+      bottom: -6%;
+      top: auto;
+      width: var(--lado);
+      height: auto;
+    }
+    .tt-chamada-foto {
+      --lado: min(30vw, 30rem);
+      display: block;
+      position: absolute;
+      right: clamp(1.5rem, 5vw, 6rem);
+      bottom: -16%;
+      width: var(--lado);
+    }
+  }
+
+  /* ---- Outros caminhos ------------------------------------------------------- */
+  .tt-outros-topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem 3rem;
+  }
+  .tt-caminhos {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: clamp(2rem, 1.5rem + 2.5vw, 4rem);
+  }
+  .tt-caminho {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-height: 13rem;
+    padding: clamp(1.5rem, 1rem + 1.5vw, 2.25rem);
+    color: var(--tinta);
+    transition: background-color var(--t-hover) ease;
+  }
+  .tt-caminho:first-child {
+    background: var(--acento);
+  }
+  .tt-caminho .text-frase {
+    font-weight: 600;
+  }
+  .tt-caminho .text-corpo {
+    max-width: 34ch;
+    color: var(--tinta-suave);
+  }
+  .tt-caminho:first-child .text-corpo {
+    color: var(--tinta);
+  }
+  .tt-caminho svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: auto;
+    align-self: flex-end;
+    transition: transform var(--t-ui) var(--ease-out);
+  }
+  .tt-caminho:focus-visible {
+    outline: 3px solid var(--tinta);
+    outline-offset: 3px;
+    background: var(--acento);
+  }
+  .tt-caminho:focus-visible .text-corpo {
+    color: var(--tinta);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .tt-caminho:hover {
+      background: var(--acento);
+    }
+    .tt-caminho:hover .text-corpo {
+      color: var(--tinta);
+    }
+    .tt-caminho:hover svg {
+      transform: translate(3px, -3px);
+    }
+  }
+  @media (min-width: 900px) {
+    .tt-caminhos {
+      grid-template-columns: 1.35fr 1fr 1fr;
+      gap: 1rem;
+    }
+  }
+
+  /* ---- Página inexistente ------------------------------------------------------ */
+  .tt-vazia {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1.75rem;
+    min-height: 70svh;
+  }
+}
+
+/* As coroas das etapas se enchem de baixo para cima, uma depois da outra, quando
+   a lista entra na tela (o motor marca `data-entrou` no `<ol>`). Só `clip-path`.
+   O estado vazio só existe com script e com movimento permitido; se o motor
+   nunca chegar, a regra de segurança enche tudo em 2,6s, como a do sistema. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .tt-passo-forma {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 1000ms var(--ease-expo) calc(260ms + var(--i, 0) * 80ms);
+  }
+  [data-entrou] .tt-passo-forma {
+    clip-path: inset(0 0 0 0);
+  }
+  :root:not([data-movimento]) .tt-passo-forma {
+    animation: tt-enche 0.01s 2.6s forwards;
+  }
+}
+
+@keyframes tt-abre {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes tt-eco {
+  to {
+    opacity: 1;
+    translate: var(--eco-x) var(--eco-y);
+  }
+}
+@keyframes tt-enche {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}

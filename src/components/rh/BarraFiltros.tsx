@@ -721,6 +721,67 @@ export function BarraFiltros(props: {
     };
   }, [painelAberto]);
 
+  const selecionarTodas =
+    props.visiveis > 0 ? (
+      <label className="flex min-h-11 cursor-pointer items-center gap-2 whitespace-nowrap text-sm font-semibold text-white">
+        <input
+          type="checkbox"
+          checked={props.todasVisiveisMarcadas}
+          onChange={(e) => props.aoSelecionarVisiveis(e.target.checked)}
+          className="h-5 w-5 accent-lime"
+        />
+        Selecionar todas
+        <span className="sr-only"> as visíveis</span>
+      </label>
+    ) : null;
+
+  const controlesDeVisao = (
+    <>
+      <div
+        role="group"
+        aria-label="Modo de visualização"
+        className="flex items-center gap-1 rounded-xl bg-chao-2 p-0"
+      >
+        <button
+          type="button"
+          aria-pressed={props.visao === "kanban"}
+          onClick={() => props.aoTrocarVisao("kanban")}
+          className={`flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-semibold transition-colors ${
+            props.visao === "kanban" ? "bg-lime text-brand-deep" : "text-white/85 hover:text-white"
+          }`}
+        >
+          <LayoutGrid size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Kanban</span>
+          <span className="sr-only sm:hidden">Kanban</span>
+        </button>
+        <button
+          type="button"
+          aria-pressed={props.visao === "tabela"}
+          onClick={() => props.aoTrocarVisao("tabela")}
+          className={`flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-semibold transition-colors ${
+            props.visao === "tabela" ? "bg-lime text-brand-deep" : "text-white/85 hover:text-white"
+          }`}
+        >
+          <Table2 size={16} aria-hidden="true" />
+          <span className="hidden sm:inline">Tabela</span>
+          <span className="sr-only sm:hidden">Tabela</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        onClick={props.aoExportar}
+        /* Texto branco: sobre o fundo já tingido de lime, `text-lime` cai
+               para 4,17:1. O lime segue na borda, onde 3:1 basta. */
+        className="flex h-11 items-center gap-2 rounded-xl border border-lime/40 bg-lime/10 px-3 text-sm font-semibold text-white transition-colors hover:bg-lime/20"
+      >
+        <Download size={16} aria-hidden="true" />
+        <span className="hidden sm:inline">Exportar CSV</span>
+        <span className="sr-only sm:hidden">Exportar CSV</span>
+      </button>
+    </>
+  );
+
   return (
     <div
       ref={barraRef}
@@ -738,7 +799,7 @@ export function BarraFiltros(props: {
             e dos filtros, e ler "65 de 67" a um palmo do campo em que se digita
             é o que fecha esse laço. */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-2.5">
-          <div className="relative min-w-[12rem] flex-1">
+          <div className="relative min-w-[12rem] flex-1 max-sm:basis-full">
             <label htmlFor={idBusca} className="sr-only">
               Buscar candidatura
             </label>
@@ -752,7 +813,7 @@ export function BarraFiltros(props: {
               type="search"
               value={filtros.busca}
               onChange={(e) => mudar({ busca: e.target.value })}
-              placeholder="Protocolo, nome, telefone, e-mail, vaga ou cidade"
+              placeholder="Buscar nome, vaga, telefone"
               /* O rótulo é sr-only, então o placeholder é a única pista visual do
                  que o campo aceita — e ele é LETRA sobre fundo verde, então vai
                  no piso de 85% de branco que o cliente fixou. */
@@ -792,18 +853,7 @@ export function BarraFiltros(props: {
                 de "marcar todos" dariam dois donos ao mesmo estado. VISÍVEIS, e
                 não todas: marcar 200 candidaturas que o filtro está escondendo é
                 o tipo de gesto que ninguém consegue desfazer com confiança. */}
-            {props.visiveis > 0 ? (
-              <label className="flex min-h-11 cursor-pointer items-center gap-2 whitespace-nowrap text-sm font-semibold text-white">
-                <input
-                  type="checkbox"
-                  checked={props.todasVisiveisMarcadas}
-                  onChange={(e) => props.aoSelecionarVisiveis(e.target.checked)}
-                  className="h-5 w-5 accent-lime"
-                />
-                Selecionar todas
-                <span className="sr-only"> as visíveis</span>
-              </label>
-            ) : null}
+            <span className="hidden sm:contents">{selecionarTodas}</span>
           </div>
 
           {/* Empurra o bloco de controles para a direita quando sobra largura, e
@@ -843,52 +893,17 @@ export function BarraFiltros(props: {
             </button>
           ) : null}
 
-          <div
-            role="group"
-            aria-label="Modo de visualização"
-            className="flex h-11 items-center gap-1 rounded-xl border border-white/15 bg-white/[0.07] p-1"
-          >
-            <button
-              type="button"
-              aria-pressed={props.visao === "kanban"}
-              onClick={() => props.aoTrocarVisao("kanban")}
-              className={`flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold transition-colors ${
-                props.visao === "kanban"
-                  ? "bg-lime text-brand-deep"
-                  : "text-white/85 hover:text-white"
-              }`}
-            >
-              <LayoutGrid size={16} aria-hidden="true" />
-              <span className="hidden sm:inline">Kanban</span>
-              <span className="sr-only sm:hidden">Kanban</span>
-            </button>
-            <button
-              type="button"
-              aria-pressed={props.visao === "tabela"}
-              onClick={() => props.aoTrocarVisao("tabela")}
-              className={`flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-sm font-semibold transition-colors ${
-                props.visao === "tabela"
-                  ? "bg-lime text-brand-deep"
-                  : "text-white/85 hover:text-white"
-              }`}
-            >
-              <Table2 size={16} aria-hidden="true" />
-              <span className="hidden sm:inline">Tabela</span>
-              <span className="sr-only sm:hidden">Tabela</span>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={props.aoExportar}
-            /* Texto branco: sobre o fundo já tingido de lime, `text-lime` cai
-               para 4,17:1. O lime segue na borda, onde 3:1 basta. */
-            className="flex h-11 items-center gap-2 rounded-xl border border-lime/40 bg-lime/10 px-3 text-sm font-semibold text-white transition-colors hover:bg-lime/20"
-          >
-            <Download size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">Exportar CSV</span>
-            <span className="sr-only sm:hidden">Exportar CSV</span>
-          </button>
+          <div className="hidden sm:contents">{controlesDeVisao}</div>
+          <details className="rh-mais sm:hidden">
+            <summary className="rh-mais__resumo">
+              Mais
+              <span className="sr-only"> ações da lista: selecionar, visão e exportar</span>
+            </summary>
+            <div className="rh-mais__corpo">
+              {selecionarTodas}
+              {controlesDeVisao}
+            </div>
+          </details>
         </div>
 
         {/* LINHA 2 — o resto dos filtros. No celular vive atrás do botão

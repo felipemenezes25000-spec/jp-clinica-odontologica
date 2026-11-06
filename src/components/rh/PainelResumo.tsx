@@ -1,54 +1,32 @@
 /**
  * Tela de abertura do painel: o retrato do processo seletivo em uma olhada.
  *
+ * A PERGUNTA DA TELA: "quem está esperando uma decisão minha hoje?". Por isso o
+ * maior número é o de candidaturas novas (ainda não lidas), a frase sob o título
+ * conta o achado do dia e o botão do título leva direto à fila.
+ *
  * Nada aqui busca dado nem cria `Date`: os números saem todos de `itens`,
  * `vagas` e do `agora` que a rota congelou uma vez. É o que mantém o que o
  * servidor renderiza igual ao que o navegador hidrata — e, de quebra, faz a tela
  * inteira recalcular em um `useMemo` só quando a lista muda.
  *
- * Os três gráficos são SVG escrito à mão. Um gráfico aqui tem seis barras, seis
- * fatias e oito linhas; qualquer biblioteca custaria mais bytes do que o painel
- * inteiro e ainda traria uma paleta que não é a da marca.
+ * O gráfico de meses é SVG escrito à mão (seis barras não pedem biblioteca) e o
+ * resto é lista com barra fina: uma cor só nos dados, o verde da marca, e o mês
+ * corrente é a barra que acende. A rosca multicolorida e o funil arco-íris
+ * saíram — cor aqui diz "agora", não "categoria".
  */
-import { useMemo, type CSSProperties } from "react";
-import {
-  ArrowRight,
-  Briefcase,
-  ChartColumn,
-  ChartPie,
-  Hourglass,
-  Inbox,
-  Percent,
-  ShieldAlert,
-  Sparkles,
-  UserCheck,
-  Users,
-  type LucideIcon,
-} from "lucide-react";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { ArrowRight, ShieldAlert } from "lucide-react";
 
 import type { AbaRh } from "@/components/rh/CabecalhoRh";
+import { FormaCoroa, MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { diasAteVencerGuarda, iniciais, tempoRelativo } from "@/lib/rh/formatar";
 import { AREAS, STATUS, statusPor } from "@/lib/rh/opcoes";
 import type { Candidatura, StatusCandidatura, Vaga } from "@/lib/rh/tipos";
 import { MESES_RETENCAO_LGPD } from "@/lib/rh/tipos";
 import { vagaAberta } from "@/lib/rh/vagas";
 
-/**
- * Conteúdo só para leitor de tela. Vai em `style` porque o projeto não tem um
- * utilitário para isso, e `display: none` esconderia a tabela também de quem
- * usa leitor — o recorte por `clip-path` a mantém no fluxo acessível.
- */
-const SO_LEITOR: CSSProperties = {
-  position: "absolute",
-  width: 1,
-  height: 1,
-  margin: -1,
-  padding: 0,
-  overflow: "hidden",
-  clipPath: "inset(50%)",
-  whiteSpace: "nowrap",
-  border: 0,
-};
+import "./painel.css";
 
 /** Mesmo deslocamento fixo de `formatar.ts`: São Paulo, sem horário de verão. */
 const FUSO_BRASIL_MINUTOS = -180;
@@ -71,38 +49,8 @@ const MESES_CURTOS = [
 /** Status que significam "processo andando" — nem entrada, nem desfecho. */
 const EM_PROCESSO: StatusCandidatura[] = ["triagem", "entrevista", "teste", "proposta"];
 
-const SETE_DIAS_MS = 7 * 24 * 60 * 60 * 1000;
-
-/**
- * Paleta das séries. São os mesmos matizes das pílulas escuras de `STATUS`
- * (âmbar, céu, violeta, esmeralda, rosa), na versão 300 do Tailwind: sobre o
- * verde profundo todos passam de 4,5:1, e entre si têm matiz e claridade
- * diferentes — quem não distingue verde de vermelho ainda separa as fatias.
- * Mesmo assim nenhuma leitura depende da cor: a legenda, o funil e a tabela
- * escondida repetem o número em texto.
- */
-const PALETA: string[] = [
-  "#8BD34A",
-  "#FCD34D",
-  "#7DD3FC",
-  "#C4B5FD",
-  "#6EE7B7",
-  "#FDA4AF",
-  "#E2E8DC",
-];
-
-const COR_STATUS: Record<StatusCandidatura, string> = {
-  novo: "#8BD34A",
-  triagem: "#FCD34D",
-  entrevista: "#7DD3FC",
-  teste: "#C4B5FD",
-  proposta: "#6EE7B7",
-  contratado: "#EBF5E1",
-  reprovado: "#FDA4AF",
-  banco: "#B7C4B9",
-};
-
-const CARTAO = "rh-dashboard-card rounded-2xl border border-border-soft bg-white p-4 sm:p-5";
+const DIA_MS = 24 * 60 * 60 * 1000;
+const SETE_DIAS_MS = 7 * DIA_MS;
 
 type Competencia = { ano: number; mes: number };
 
@@ -114,8 +62,8 @@ function competencia(ms: number): Competencia | null {
 }
 
 type Barra = { chave: string; rotulo: string; ano: number; total: number };
-type Fatia = { rotulo: string; total: number; pct: number; cor: string };
-type Etapa = { valor: StatusCandidatura; rotulo: string; total: number; cor: string };
+type LinhaArea = { rotulo: string; total: number; pct: number };
+type Etapa = { valor: StatusCandidatura; rotulo: string; total: number };
 type LinhaVaga = { id: string; titulo: string; total: number };
 
 function pluralizar(n: number, singular: string, plural: string): string {
@@ -141,50 +89,45 @@ function TabelaOculta({
   linhas: { rotulo: string; valor: string }[];
 }) {
   return (
-    <table style={SO_LEITOR}>
-      <caption>{legenda}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{cabecalho[0]}</th>
-          <th scope="col">{cabecalho[1]}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {linhas.map((linha) => (
-          <tr key={linha.rotulo}>
-            <th scope="row">{linha.rotulo}</th>
-            <td>{linha.valor}</td>
+    // A tabela fica DENTRO de um contêiner `sr-only`: uma tabela absoluta com
+    // `style` próprio mantinha a largura natural (405px) e alargava a página
+    // no celular. O contêiner de 1px recorta e a tabela não mede mais nada.
+    <div className="sr-only">
+      <table>
+        <caption>{legenda}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{cabecalho[0]}</th>
+            <th scope="col">{cabecalho[1]}</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {linhas.map((linha) => (
+            <tr key={linha.rotulo}>
+              <th scope="row">{linha.rotulo}</th>
+              <td>{linha.valor}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
+/** Frase no lugar do gráfico: a moldura fica e uma frase só ocupa a largura toda. */
 function VazioGrafico({ texto }: { texto: string }) {
-  return (
-    <p className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-white/15 px-4 py-6 text-center text-sm text-white/85">
-      {texto}
-    </p>
-  );
+  return <p className="rh-vazio-linha">{texto}</p>;
 }
 
-/**
- * Cores de TEXTO dos SVG, em um lugar só.
- *
- * A regra da clínica ("fundo verde, letra branca") vale igual dentro do
- * gráfico: barra, arco e fatia podem ser lime, mas todo número e todo rótulo
- * sai em branco — cheio no valor, 90% no rótulo de apoio, que é o piso de 85%
- * do projeto com folga. Antes os rótulos desciam a 60%, e mês nenhum se lia.
- */
-const TINTA_VALOR = "#172018";
-const TINTA_ROTULO = "#5a6b5c";
-
 /* -------------------------------------------------------------------------- */
-/* Gráfico 1 — barras por mês                                                 */
+/* Barras por mês                                                             */
 /* -------------------------------------------------------------------------- */
 
-function GraficoBarras({ meses }: { meses: Barra[] }) {
+function GraficoBarras({ todosMeses }: { todosMeses: Barra[] }) {
+  // Meses antes da primeira candidatura não dizem nada: quatro rótulos "0" em
+  // fila só ocupavam o lugar do dado. O eixo começa no primeiro mês com gente.
+  const primeiro = todosMeses.findIndex((b) => b.total > 0);
+  const meses = primeiro > 0 ? todosMeses.slice(primeiro) : todosMeses;
   const maior = meses.reduce((m, b) => (b.total > m ? b.total : m), 0);
   const linhas = meses.map((b) => ({
     rotulo: `${b.rotulo}/${b.ano}`,
@@ -197,37 +140,30 @@ function GraficoBarras({ meses }: { meses: Barra[] }) {
 
   // Coordenadas em unidades do viewBox, nunca em px: o cartão muda de largura
   // entre o celular e o desktop e o desenho acompanha sozinho.
-  const largura = 360;
+  const largura = Math.max(180, Math.min(360, meses.length * 60));
   const base = 150;
-  const topo = 36;
+  const topo = 30;
   const passo = largura / meses.length;
-  const larguraBarra = Math.min(30, passo - 18);
-
+  const larguraBarra = Math.min(34, passo - 16);
   const descricao = meses.map((b) => `${b.rotulo}: ${b.total}`).join(", ");
 
   return (
     <>
       <svg
-        viewBox={`0 0 ${largura} 180`}
+        viewBox={`0 0 ${largura} 176`}
         preserveAspectRatio="xMidYMid meet"
         role="img"
         aria-label={`Candidaturas recebidas por mês nos últimos seis meses. ${descricao}.`}
-        className="w-full"
+        className="rh-grafico"
+        style={{ maxWidth: `${largura * 1.5}px` }}
       >
-        <line
-          x1="0"
-          y1={base}
-          x2={largura}
-          y2={base}
-          style={{ stroke: "rgba(9,89,2,0.16)" }}
-          strokeWidth="1"
-        />
+        <line x1="0" y1={base} x2={largura} y2={base} className="rh-grafico__base" />
         {meses.map((b, i) => {
-          const proporcao = b.total / maior;
+          const atual = i === meses.length - 1;
           // Piso de 4 unidades: um mês com uma candidatura não pode virar uma
           // barra de meio pixel, indistinguível de "nenhuma".
           const alturaBarra =
-            b.total === 0 ? 0 : Math.max(4, Math.round(proporcao * (base - topo)));
+            b.total === 0 ? 0 : Math.max(4, Math.round((b.total / maior) * (base - topo)));
           const x = i * passo + (passo - larguraBarra) / 2;
           const y = base - alturaBarra;
           return (
@@ -238,17 +174,17 @@ function GraficoBarras({ meses }: { meses: Barra[] }) {
                   y={y}
                   width={larguraBarra}
                   height={alturaBarra}
-                  rx="6"
-                  style={{ fill: "var(--lime)" }}
+                  rx="3"
+                  className={
+                    atual ? "rh-grafico__barra rh-grafico__barra--atual" : "rh-grafico__barra"
+                  }
                 />
               ) : null}
               <text
                 x={x + larguraBarra / 2}
                 y={y - 8}
                 textAnchor="middle"
-                style={{ fill: TINTA_VALOR }}
-                fontSize="13"
-                fontWeight="700"
+                className="rh-grafico__valor"
               >
                 {b.total}
               </text>
@@ -256,8 +192,7 @@ function GraficoBarras({ meses }: { meses: Barra[] }) {
                 x={x + larguraBarra / 2}
                 y={base + 20}
                 textAnchor="middle"
-                style={{ fill: TINTA_ROTULO }}
-                fontSize="12"
+                className="rh-grafico__mes"
               >
                 {b.rotulo}
               </text>
@@ -275,221 +210,104 @@ function GraficoBarras({ meses }: { meses: Barra[] }) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Gráfico 2 — rosca por área                                                 */
+/* Lista com barra fina                                                       */
 /* -------------------------------------------------------------------------- */
 
-function GraficoRosca({ fatias, total }: { fatias: Fatia[]; total: number }) {
-  if (total === 0 || fatias.length === 0) {
-    return <VazioGrafico texto="Sem candidaturas para distribuir por área." />;
-  }
-
-  const raio = 46;
-  const circunferencia = 2 * Math.PI * raio;
-  // Respiro entre fatias, e só quando há mais de uma: com uma fatia só, o vão
-  // abriria um talho no anel fechado.
-  const vao = fatias.length > 1 ? 2 : 0;
-
-  let acumulado = 0;
-  const arcos = fatias.map((fatia) => {
-    const comprimento = (fatia.total / total) * circunferencia;
-    const arco = {
-      fatia,
-      // Piso pequeno para uma fatia de 1 em 200 continuar visível no anel.
-      traco: Math.max(comprimento - vao, 1.5),
-      deslocamento: -acumulado,
-    };
-    acumulado += comprimento;
-    return arco;
-  });
-
-  const descricao = fatias.map((f) => `${f.rotulo}: ${f.total} (${f.pct}%)`).join(", ");
-
-  return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center">
-      <svg
-        viewBox="0 0 120 120"
-        preserveAspectRatio="xMidYMid meet"
-        role="img"
-        aria-label={`Distribuição das candidaturas por área da vaga. ${descricao}.`}
-        className="w-32 shrink-0 sm:w-36"
-      >
-        <g transform="rotate(-90 60 60)">
-          <circle
-            cx="60"
-            cy="60"
-            r={raio}
-            fill="none"
-            style={{ stroke: "rgba(9,89,2,0.10)" }}
-            strokeWidth="16"
-          />
-          {arcos.map((arco) => (
-            <circle
-              key={arco.fatia.rotulo}
-              cx="60"
-              cy="60"
-              r={raio}
-              fill="none"
-              style={{ stroke: arco.fatia.cor }}
-              strokeWidth="16"
-              strokeLinecap="butt"
-              strokeDasharray={`${arco.traco} ${circunferencia - arco.traco}`}
-              strokeDashoffset={arco.deslocamento}
-            >
-              <title>{`${arco.fatia.rotulo}: ${arco.fatia.total} (${arco.fatia.pct}%)`}</title>
-            </circle>
-          ))}
-        </g>
-        <text
-          x="60"
-          y="58"
-          textAnchor="middle"
-          style={{ fill: TINTA_VALOR }}
-          fontSize="22"
-          fontWeight="800"
-        >
-          {total}
-        </text>
-        <text x="60" y="72" textAnchor="middle" style={{ fill: TINTA_ROTULO }} fontSize="9">
-          no total
-        </text>
-      </svg>
-
-      <ul className="w-full min-w-0 space-y-1.5">
-        {fatias.map((fatia) => (
-          <li key={fatia.rotulo} className="flex items-center gap-2 text-sm">
-            <span
-              aria-hidden="true"
-              className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ background: fatia.cor }}
-            />
-            <span className="min-w-0 flex-1 truncate text-white">{fatia.rotulo}</span>
-            <span className="shrink-0 font-bold tabular-nums text-white">{fatia.total}</span>
-            <span className="w-11 shrink-0 text-right text-xs tabular-nums text-white/85">
-              {fatia.pct}%
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <TabelaOculta
-        legenda="Candidaturas por área"
-        cabecalho={["Área", "Candidaturas"]}
-        linhas={fatias.map((f) => ({ rotulo: f.rotulo, valor: `${f.total} (${f.pct}%)` }))}
-      />
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Gráfico 3 — funil por status                                               */
-/* -------------------------------------------------------------------------- */
-
-function GraficoFunil({ etapas }: { etapas: Etapa[] }) {
-  const maior = etapas.reduce((m, e) => (e.total > m ? e.total : m), 0);
-
-  if (maior === 0) {
-    return <VazioGrafico texto="O funil começa a se desenhar com a primeira candidatura." />;
-  }
-
-  const alturaLinha = 30;
-  const inicioBarra = 104;
-  const larguraTrilho = 180;
-  const altura = etapas.length * alturaLinha;
-  const descricao = etapas.map((e) => `${e.rotulo}: ${e.total}`).join(", ");
-
+/**
+ * Uma linha de ranking: rótulo, número e uma barra de 4px proporcional ao maior.
+ * A barra do primeiro é a que carrega o verde; as outras ficam num degrau de
+ * tom, para o "quem lidera" ser visto e não só lido.
+ */
+function BarraDeLista({
+  rotulo,
+  total,
+  maior,
+  complemento,
+  lider,
+}: {
+  rotulo: string;
+  total: number;
+  maior: number;
+  complemento?: string;
+  lider: boolean;
+}) {
+  const proporcao = maior > 0 ? Math.round((total / maior) * 100) : 0;
   return (
     <>
-      <svg
-        viewBox={`0 0 320 ${altura}`}
-        preserveAspectRatio="xMidYMid meet"
-        role="img"
-        aria-label={`Funil de candidaturas por etapa. ${descricao}.`}
-        className="w-full"
-      >
-        {etapas.map((etapa, i) => {
-          const y = i * alturaLinha;
-          const proporcao = etapa.total / maior;
-          const largura = etapa.total === 0 ? 0 : Math.max(5, proporcao * larguraTrilho);
-          return (
-            <g key={etapa.valor}>
-              <text x="0" y={y + 15} style={{ fill: TINTA_ROTULO }} fontSize="11" fontWeight="600">
-                {etapa.rotulo}
-              </text>
-              <rect
-                x={inicioBarra}
-                y={y + 4}
-                width={larguraTrilho}
-                height="14"
-                rx="7"
-                style={{ fill: "rgba(9,89,2,0.08)" }}
-              />
-              {largura > 0 ? (
-                <rect
-                  x={inicioBarra}
-                  y={y + 4}
-                  width={largura}
-                  height="14"
-                  rx="7"
-                  style={{ fill: etapa.cor }}
-                >
-                  <title>{`${etapa.rotulo}: ${etapa.total}`}</title>
-                </rect>
-              ) : null}
-              <text
-                x={inicioBarra + larguraTrilho + 8}
-                y={y + 15}
-                style={{ fill: TINTA_VALOR }}
-                fontSize="11"
-                fontWeight="700"
-              >
-                {etapa.total}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <TabelaOculta
-        legenda="Candidaturas por etapa do funil"
-        cabecalho={["Etapa", "Candidaturas"]}
-        linhas={etapas.map((e) => ({ rotulo: e.rotulo, valor: String(e.total) }))}
-      />
+      <span className="rh-linha-barra__texto">
+        <span className="rh-linha-barra__rotulo">{rotulo}</span>
+        <span className="rh-linha-barra__valor">
+          {total}
+          {complemento ? <span className="rh-linha-barra__comp">{complemento}</span> : null}
+        </span>
+      </span>
+      <span aria-hidden="true" className="rh-linha-barra__trilho">
+        <span
+          className={
+            lider ? "rh-linha-barra__fill rh-linha-barra__fill--lider" : "rh-linha-barra__fill"
+          }
+          style={{ width: `${Math.max(proporcao, total > 0 ? 3 : 0)}%` }}
+        />
+      </span>
     </>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/* KPI                                                                        */
+/* Número do cabeçalho de dados                                               */
 /* -------------------------------------------------------------------------- */
 
-function Kpi({
-  icone: Icone,
+/**
+ * Número que rola de 0 até o valor. Escreve no nó de texto que o React criou
+ * (`nodeValue`), nunca em `textContent`, para a reconciliação seguinte achar o
+ * mesmo nó. O HTML do servidor já traz o valor final: sem JS ou com "reduzir
+ * movimento" ninguém vê zero. `useLayoutEffect` zera antes do primeiro quadro
+ * pintado, sem o tranco de "4, 0, 1, 2, 3, 4".
+ */
+function NumeroRola({ valor }: { valor: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const alvo = Number(valor);
+    const no = ref.current?.firstChild;
+    if (!no || !Number.isInteger(alvo) || alvo < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const duracao = 700;
+    let inicio = 0;
+    let quadro = 0;
+    no.nodeValue = "0";
+    const passo = (t: number) => {
+      if (!inicio) inicio = t;
+      const f = Math.min(1, (t - inicio) / duracao);
+      no.nodeValue = String(Math.round(alvo * (1 - (1 - f) ** 3)));
+      if (f < 1) quadro = requestAnimationFrame(passo);
+    };
+    quadro = requestAnimationFrame(passo);
+    return () => {
+      cancelAnimationFrame(quadro);
+      no.nodeValue = valor;
+    };
+  }, [valor]);
+  return <span ref={ref}>{valor}</span>;
+}
+
+function Numero({
   rotulo,
   valor,
   contexto,
+  lider = false,
 }: {
-  icone: LucideIcon;
   rotulo: string;
   valor: string;
   contexto: string;
+  lider?: boolean;
 }) {
   return (
-    /* `.rh-kpi` é um cartão de verde profundo: o rótulo em versalete era lime e
-       agora é branco, com o ícone segurando a cor da marca. O contexto sobe de
-       60% para 85%, o piso do projeto para texto de apoio sobre verde. */
-    <div className="rh-kpi">
-      <div className="flex items-center gap-2.5">
-        <span
-          aria-hidden="true"
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-mint text-forest ring-1 ring-forest/10"
-        >
-          <Icone size={17} />
-        </span>
-        <span className="text-[0.68rem] font-bold uppercase tracking-[0.13em] text-white">
-          {rotulo}
-        </span>
-      </div>
-      <strong>{valor}</strong>
-      <span className="text-xs leading-snug text-white/85">{contexto}</span>
+    <div className={lider ? "rh-numero rh-numero--lider" : "rh-numero"}>
+      <dt>{rotulo}</dt>
+      <dd>
+        <NumeroRola valor={valor} />
+      </dd>
+      <p>{contexto}</p>
     </div>
   );
 }
@@ -544,6 +362,7 @@ export function PainelResumo({
     let novasSemana = 0;
     let emProcesso = 0;
     let contratados = 0;
+    let entrevistasSemana = 0;
 
     for (const item of itens) {
       porStatus.set(item.status, (porStatus.get(item.status) ?? 0) + 1);
@@ -551,12 +370,24 @@ export function PainelResumo({
       if (item.status === "contratado") contratados += 1;
 
       // `area` chega vazia só em registro antigo ou corrompido; ela vira um
-      // balde próprio em vez de ser descartada, senão a soma das fatias não
-      // bateria com o total de candidaturas exibido no meio da rosca.
+      // balde próprio em vez de ser descartada, senão a soma das linhas não
+      // bateria com o total de candidaturas exibido.
       const chaveArea = String(item.area) || "nao-informado";
       porArea.set(chaveArea, (porArea.get(chaveArea) ?? 0) + 1);
 
       if (item.vagaId !== "") porVaga.set(item.vagaId, (porVaga.get(item.vagaId) ?? 0) + 1);
+
+      // Entrevista marcada para os próximos sete dias, de quem ainda está no
+      // processo: é o segundo achado do dia, depois das candidaturas novas.
+      const entrevistaMs = Date.parse(item.entrevistaEm);
+      if (
+        Number.isFinite(entrevistaMs) &&
+        EM_PROCESSO.includes(item.status) &&
+        entrevistaMs >= agoraMs &&
+        entrevistaMs - agoraMs <= SETE_DIAS_MS
+      ) {
+        entrevistasSemana += 1;
+      }
 
       const criadoMs = Date.parse(item.criadoEm);
       if (Number.isFinite(criadoMs)) {
@@ -574,29 +405,27 @@ export function PainelResumo({
       }
     }
 
-    // Fatias na ordem do catálogo (e não na ordem de chegada) para a legenda
+    // Linhas na ordem do catálogo (e não na ordem de chegada) para a lista
     // não trocar de posição a cada candidatura nova.
-    const fatias: Fatia[] = [];
+    const areas: LinhaArea[] = [];
     const nomeArea = new Map(AREAS.map((a) => [String(a.valor), a.rotulo]));
-    let cor = 0;
     for (const chave of [...AREAS.map((a) => String(a.valor)), "nao-informado"]) {
       const quantos = porArea.get(chave) ?? 0;
       if (quantos === 0) continue;
-      fatias.push({
+      areas.push({
         rotulo: nomeArea.get(chave) ?? "Não informado",
         total: quantos,
         pct: total > 0 ? Math.round((quantos / total) * 100) : 0,
-        cor: PALETA[cor % PALETA.length] ?? "#8BD34A",
       });
-      cor += 1;
     }
+    const maiorArea = areas.reduce((m, a) => (a.total > m ? a.total : m), 0);
 
     const etapas: Etapa[] = STATUS.map((s) => ({
       valor: s.valor,
       rotulo: s.rotulo,
       total: porStatus.get(s.valor) ?? 0,
-      cor: COR_STATUS[s.valor],
     }));
+    const maiorEtapa = etapas.reduce((m, e) => (e.total > m ? e.total : m), 0);
 
     const abertas = vagas.filter((v) => vagaAberta(v, agora)).length;
 
@@ -626,15 +455,19 @@ export function PainelResumo({
 
     return {
       total,
+      novos: porStatus.get("novo") ?? 0,
       novasSemana,
       emProcesso,
       contratados,
+      entrevistasSemana,
       abertas,
       conversao: total > 0 ? Math.round((contratados / total) * 100) : 0,
       vencidas,
       meses,
-      fatias,
+      areas,
+      maiorArea,
       etapas,
+      maiorEtapa,
       topoVagas,
       maiorVaga,
       recentes,
@@ -643,284 +476,283 @@ export function PainelResumo({
 
   const vazio = dados.total === 0;
 
+  // O achado do dia, montado dos mesmos números do painel: se a frase e a
+  // tela discordassem, a pessoa confiaria em nenhuma das duas.
+  const partes: string[] = [];
+  if (dados.novos > 0) {
+    partes.push(`${pluralizar(dados.novos, "candidatura nova", "candidaturas novas")} para ler`);
+  }
+  if (dados.entrevistasSemana > 0) {
+    partes.push(
+      `${pluralizar(dados.entrevistasSemana, "entrevista marcada", "entrevistas marcadas")} nos próximos 7 dias`,
+    );
+  }
+  const achado = vazio
+    ? "Ainda não chegou nenhuma candidatura pelo site."
+    : partes.length > 0
+      ? `${partes.join(" e ")}.`
+      : "Nenhuma candidatura nova esperando leitura.";
+
   return (
-    <div className="rh-resumo-premium space-y-5">
+    <div className="rh-resumo">
+      <div className="rh-titulo">
+        <div className="min-w-0">
+          <h1>Resumo</h1>
+          <p>{achado}</p>
+        </div>
+        {vazio ? null : (
+          <button
+            type="button"
+            className="botao botao-acento rh-titulo__acao"
+            onClick={() => aoIrParaAba("candidaturas")}
+          >
+            Abrir candidaturas
+            <ArrowRight aria-hidden="true" />
+          </button>
+        )}
+      </div>
+
       {dados.vencidas > 0 ? (
         /* `role="note"`, não `alert`: isto está na tela desde que o painel
            abriu, e um alerta anunciado a cada carga vira ruído. O botão leva à
            aba onde dá para agir — avisar sem oferecer o caminho seria só
            lembrar do problema. */
-        <section
-          role="note"
-          className="rounded-2xl border border-amber-200/35 bg-amber-300/12 px-5 py-4"
-        >
-          {/* O aviso está sobre a aurora verde: título e corpo em branco, com o
-              âmbar preservado no ícone e na borda — que não são letra. */}
-          <h2 className="flex items-center gap-2 font-display text-sm font-extrabold text-white">
-            <ShieldAlert size={16} className="text-amber-200" aria-hidden="true" />
+        <section role="note" className="rh-aviso-prazo">
+          <h2>
+            <ShieldAlert size={16} aria-hidden="true" />
             {pluralizar(dados.vencidas, "candidatura passou", "candidaturas passaram")} do prazo de
             guarda
           </h2>
-          <p className="mt-1.5 text-xs leading-relaxed text-white/85">
+          <p>
             O aviso aceito por essas pessoas fala em guarda de até {MESES_RETENCAO_LGPD} meses.
             Passado o prazo, manter CPF, nascimento e endereço no disco deixa de ter base legal —
             exclua as fichas ou peça um novo consentimento. Cada ficha vencida traz o aviso na seção
             “Origem e registro”.
           </p>
-          <button
-            type="button"
-            className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-200/40 px-3 text-xs font-bold text-white transition-colors hover:bg-amber-200/15"
-            onClick={() => aoIrParaAba("candidaturas")}
-          >
+          <button type="button" onClick={() => aoIrParaAba("candidaturas")}>
             Ver candidaturas
           </button>
         </section>
       ) : null}
 
       <section aria-labelledby="rh-resumo-numeros">
-        <h2 id="rh-resumo-numeros" style={SO_LEITOR}>
+        <h2 id="rh-resumo-numeros" className="sr-only">
           Números do processo seletivo
         </h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-          <Kpi
-            icone={Users}
-            rotulo="Candidaturas"
-            valor={String(dados.total)}
-            contexto={vazio ? "Nenhuma até agora" : "Total recebido pelo site"}
-          />
-          <Kpi
-            icone={Sparkles}
-            rotulo="Últimos 7 dias"
-            valor={String(dados.novasSemana)}
+        {/* Um recipiente só, dividido por degraus de tom: seis números que se
+            leem juntos não são seis cartões. A primeira célula é a resposta da
+            tela e por isso é a maior. */}
+        <dl className="rh-numeros">
+          <Numero
+            lider
+            rotulo="Para ler agora"
+            valor={String(dados.novos)}
             contexto={
-              dados.novasSemana > 0 ? `+${dados.novasSemana} esta semana` : "Semana sem novidades"
+              dados.novos > 0 ? "Candidaturas novas, ainda não lidas" : "Fila de leitura em dia"
             }
           />
-          <Kpi
-            icone={Hourglass}
+          <Numero
+            rotulo="Candidaturas"
+            valor={String(dados.total)}
+            contexto={vazio ? "Nenhuma até agora" : "Recebidas pelo site"}
+          />
+          <Numero
             rotulo="Em processo"
             valor={String(dados.emProcesso)}
             contexto="Triagem, entrevista, teste e proposta"
           />
-          <Kpi
-            icone={UserCheck}
+          <Numero
+            rotulo="Últimos 7 dias"
+            valor={String(dados.novasSemana)}
+            contexto={dados.novasSemana > 0 ? "Chegaram esta semana" : "Semana sem novidades"}
+          />
+          <Numero
             rotulo="Contratados"
             valor={String(dados.contratados)}
             contexto={
-              dados.contratados > 0 ? "Fecharam com a clínica" : "Nenhuma contratação registrada"
+              dados.total > 0
+                ? `${dados.contratados} de ${pluralizar(dados.total, "candidatura", "candidaturas")} (${dados.conversao}%)`
+                : "Nenhuma contratação registrada"
             }
           />
-          <Kpi
-            icone={Briefcase}
+          <Numero
             rotulo="Vagas abertas"
             valor={String(dados.abertas)}
             contexto={
               dados.abertas > 0 ? "Publicadas e recebendo currículo" : "Nada publicado no portal"
             }
           />
-          <Kpi
-            icone={Percent}
-            rotulo="Conversão"
-            valor={`${dados.conversao}%`}
-            contexto={
-              dados.total > 0
-                ? `${dados.contratados} de ${pluralizar(dados.total, "candidatura", "candidaturas")} viraram contratação`
-                : "Quantas candidaturas viram contratação"
-            }
-          />
-        </div>
+        </dl>
       </section>
 
       {vazio ? (
-        <section className="rh-vidro flex flex-col items-center gap-4 px-5 py-10 text-center">
-          <span
-            aria-hidden="true"
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-lime/15 text-lime"
-          >
-            <Inbox size={26} />
-          </span>
-          <div className="max-w-md">
-            <h2 className="font-display text-xl font-extrabold text-white">
-              Ainda não chegou nenhuma candidatura
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-white/85">
+        <section className="rh-primeira-vez">
+          <FormaCoroa proporcao={0.86} className="rh-primeira-vez__coroa" />
+          <div>
+            <h2>Ainda não chegou nenhuma candidatura</h2>
+            <p>
               Publique a primeira vaga para o portal sair do ar vazio. Assim que ela estiver aberta,
               cada currículo enviado pelo site aparece aqui — com funil, histórico e anotações da
               equipe.
             </p>
           </div>
-          <button type="button" className="button-primary" onClick={() => aoIrParaAba("vagas")}>
-            <Briefcase size={18} aria-hidden="true" />
+          <button type="button" className="botao botao-acento" onClick={() => aoIrParaAba("vagas")}>
             Publicar a primeira vaga
+            <ArrowRight aria-hidden="true" />
           </button>
         </section>
       ) : (
         <>
-          <div className="grid gap-4 xl:grid-cols-3">
-            <section className={CARTAO} aria-labelledby="rh-graf-meses">
-              <h2
-                id="rh-graf-meses"
-                className="flex items-center gap-2 font-display text-sm font-extrabold text-white"
+          <section className="rh-lamina" aria-labelledby="rh-ultimas">
+            <div className="rh-lamina__cabeca">
+              <h2 id="rh-ultimas">Últimas candidaturas</h2>
+              <button
+                type="button"
+                className="rh-texto-acao"
+                onClick={() => aoIrParaAba("candidaturas")}
               >
-                <ChartColumn size={16} className="text-lime" aria-hidden="true" />
-                Candidaturas por mês
-              </h2>
-              <p className="mt-1 text-xs text-white/85">Últimos seis meses fechados até hoje.</p>
-              <div className="mt-3">
-                <GraficoBarras meses={dados.meses} />
-              </div>
-            </section>
+                Ver todas
+                <ArrowRight size={14} aria-hidden="true" />
+              </button>
+            </div>
 
-            <section className={CARTAO} aria-labelledby="rh-graf-areas">
-              <h2
-                id="rh-graf-areas"
-                className="flex items-center gap-2 font-display text-sm font-extrabold text-white"
-              >
-                <ChartPie size={16} className="text-lime" aria-hidden="true" />
-                Por área da vaga
-              </h2>
-              <p className="mt-1 text-xs text-white/85">Onde a procura está concentrada.</p>
-              <div className="mt-3">
-                <GraficoRosca fatias={dados.fatias} total={dados.total} />
-              </div>
-            </section>
-
-            <section className={CARTAO} aria-labelledby="rh-graf-funil">
-              <h2
-                id="rh-graf-funil"
-                className="flex items-center gap-2 font-display text-sm font-extrabold text-white"
-              >
-                <Hourglass size={16} className="text-lime" aria-hidden="true" />
-                Funil por etapa
-              </h2>
-              <p className="mt-1 text-xs text-white/85">Quantas pessoas param em cada fase.</p>
-              <div className="mt-3">
-                <GraficoFunil etapas={dados.etapas} />
-              </div>
-            </section>
-          </div>
-
-          <div className="grid gap-4 lg:grid-cols-2">
-            <section className={CARTAO} aria-labelledby="rh-ultimas">
-              <div className="flex items-center justify-between gap-3">
-                <h2
-                  id="rh-ultimas"
-                  className="font-display text-sm font-extrabold text-white sm:text-base"
-                >
-                  Últimas candidaturas
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => aoIrParaAba("candidaturas")}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-bold text-white transition hover:bg-white/10"
-                >
-                  Ver todas
-                  <ArrowRight size={14} className="text-lime" aria-hidden="true" />
-                </button>
-              </div>
-
-              <ul className="mt-2 divide-y divide-white/10">
-                {dados.recentes.map((item) => {
-                  const info = statusPor(item.status);
-                  return (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        onClick={() => aoAbrir(item.id)}
-                        className="flex w-full min-h-14 items-center gap-3 rounded-xl px-1 py-2 text-left transition hover:bg-white/5"
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lime/15 text-sm font-extrabold text-white ring-1 ring-lime/40"
-                        >
-                          {iniciais(item.nome) || "?"}
+            <ul className="rh-recentes">
+              {dados.recentes.map((item) => {
+                const info = statusPor(item.status);
+                return (
+                  <li key={item.id}>
+                    <button type="button" onClick={() => aoAbrir(item.id)} className="rh-recente">
+                      {/* O avatar é a coroa: identidade da pessoa na lista, com
+                          as iniciais dentro. É a mesma forma da marca, usada
+                          como ferramenta (dá para achar a linha de relance). */}
+                      <MolduraCoroa proporcao={1} className="rh-recente__avatar" aria-hidden="true">
+                        <span>{iniciais(item.nome) || "?"}</span>
+                      </MolduraCoroa>
+                      <span className="min-w-0 flex-1">
+                        <span className="rh-recente__nome">{item.nome || "Sem nome"}</span>
+                        <span className="rh-recente__meta">
+                          {item.vagaTitulo || "Candidatura espontânea"}
+                          <span aria-hidden="true"> · </span>
+                          {tempoRelativo(item.criadoEm, agora)}
                         </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-bold text-white">
-                            {item.nome || "Sem nome"}
-                          </span>
-                          <span className="block truncate text-xs text-white/85">
-                            {item.vagaTitulo || "Candidatura espontânea"}
-                            <span aria-hidden="true" className="mx-1.5 text-ink-soft">
-                              •
-                            </span>
-                            {tempoRelativo(item.criadoEm, agora)}
-                          </span>
-                        </span>
-                        <span
-                          className={`shrink-0 rounded-full px-2.5 py-1 text-[0.7rem] font-bold ${info.pilulaEscura}`}
-                        >
-                          {info.rotulo}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
+                      </span>
+                      <span className={`rh-pilula ${info.pilulaClara}`}>{info.rotulo}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
-            <section className={CARTAO} aria-labelledby="rh-top-vagas">
-              <div className="flex items-center justify-between gap-3">
-                <h2
-                  id="rh-top-vagas"
-                  className="font-display text-sm font-extrabold text-white sm:text-base"
-                >
-                  Vagas com mais candidatos
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => aoIrParaAba("vagas")}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-bold text-white transition hover:bg-white/10"
-                >
-                  Gerenciar vagas
-                  <ArrowRight size={14} className="text-lime" aria-hidden="true" />
-                </button>
-              </div>
-
-              {dados.topoVagas.length === 0 ? (
-                <p className="mt-3 text-sm leading-relaxed text-white/85">
-                  Nenhuma candidatura ligada a uma vaga por enquanto — as que chegaram são
-                  espontâneas.
-                </p>
-              ) : (
-                <ul className="mt-3 space-y-3">
-                  {dados.topoVagas.map((vaga) => {
-                    const proporcao =
-                      dados.maiorVaga > 0 ? Math.round((vaga.total / dados.maiorVaga) * 100) : 0;
-                    return (
-                      <li key={vaga.id}>
-                        <button
-                          type="button"
-                          onClick={() => aoIrParaAba("vagas")}
-                          className="block w-full rounded-xl px-1 py-1.5 text-left transition hover:bg-white/5"
-                        >
-                          <span className="flex items-baseline justify-between gap-3">
-                            <span className="min-w-0 truncate text-sm font-semibold text-white">
-                              {vaga.titulo || "Vaga sem título"}
-                            </span>
-                            <span className="shrink-0 text-sm font-extrabold tabular-nums text-white">
-                              {vaga.total}
-                            </span>
-                          </span>
-                          <span
-                            aria-hidden="true"
-                            className="mt-1.5 block h-2 w-full overflow-hidden rounded-full bg-white/10"
-                          >
-                            <span
-                              className="block h-full rounded-full bg-lime"
-                              style={{ width: `${Math.max(proporcao, 4)}%` }}
-                            />
-                          </span>
-                          <span style={SO_LEITOR}>
-                            {pluralizar(vaga.total, "candidatura", "candidaturas")}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+          <section className="rh-lamina" aria-labelledby="rh-graf-funil">
+            <div className="rh-lamina__cabeca">
+              <h2 id="rh-graf-funil">Funil por etapa</h2>
+            </div>
+            <p className="rh-lamina__nota">
+              Quantas pessoas estão em cada fase hoje; a faixa é proporcional ao total.
+            </p>
+            {/* A faixa é o funil de relance (largura = contagem); a legenda
+                abaixo é o que se lê. O tom segue a ordem das etapas. */}
+            <div className="rh-faixa" aria-hidden="true">
+              {dados.etapas.map((etapa, i) =>
+                etapa.total > 0 ? (
+                  <span key={etapa.valor} data-tom={i % 4} style={{ flexGrow: etapa.total }} />
+                ) : null,
               )}
+            </div>
+            <ol className="rh-funil">
+              {dados.etapas.map((etapa, i) => (
+                <li key={etapa.valor} data-vazia={etapa.total === 0 ? "true" : undefined}>
+                  <span aria-hidden="true" className="rh-funil__tom" data-tom={i % 4} />
+                  <span className="rh-funil__rotulo">{etapa.rotulo}</span>
+                  <span className="rh-funil__valor">{etapa.total}</span>
+                </li>
+              ))}
+            </ol>
+            <TabelaOculta
+              legenda="Candidaturas por etapa do funil"
+              cabecalho={["Etapa", "Candidaturas"]}
+              linhas={dados.etapas.map((e) => ({ rotulo: e.rotulo, valor: String(e.total) }))}
+            />
+          </section>
+
+          <div className="rh-resumo__base">
+            <section className="rh-lamina" aria-labelledby="rh-graf-meses">
+              <div className="rh-lamina__cabeca">
+                <h2 id="rh-graf-meses">Candidaturas por mês</h2>
+              </div>
+              <p className="rh-lamina__nota">
+                Desde o primeiro mês com candidatura; o verde é o mês corrente.
+              </p>
+              <GraficoBarras todosMeses={dados.meses} />
             </section>
+
+            <div className="rh-lamina rh-lamina--tom">
+              <section aria-labelledby="rh-graf-areas">
+                <div className="rh-lamina__cabeca">
+                  <h2 id="rh-graf-areas">Por área da vaga</h2>
+                </div>
+                <p className="rh-lamina__nota">Onde a procura está concentrada.</p>
+                <ul className="rh-ranking">
+                  {dados.areas.map((area, i) => (
+                    <li key={area.rotulo}>
+                      <BarraDeLista
+                        rotulo={area.rotulo}
+                        total={area.total}
+                        maior={dados.maiorArea}
+                        complemento={`${area.pct}%`}
+                        lider={i === 0 && area.total === dados.maiorArea}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                <TabelaOculta
+                  legenda="Candidaturas por área"
+                  cabecalho={["Área", "Candidaturas"]}
+                  linhas={dados.areas.map((a) => ({
+                    rotulo: a.rotulo,
+                    valor: `${a.total} (${a.pct}%)`,
+                  }))}
+                />
+              </section>
+
+              <section aria-labelledby="rh-top-vagas">
+                <div className="rh-lamina__cabeca">
+                  <h2 id="rh-top-vagas">Vagas mais procuradas</h2>
+                  <button
+                    type="button"
+                    className="rh-texto-acao"
+                    onClick={() => aoIrParaAba("vagas")}
+                  >
+                    Gerenciar
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </button>
+                </div>
+
+                {dados.topoVagas.length === 0 ? (
+                  <p className="rh-lamina__nota">
+                    Nenhuma candidatura ligada a uma vaga por enquanto — as que chegaram são
+                    espontâneas.
+                  </p>
+                ) : (
+                  <ul className="rh-ranking">
+                    {dados.topoVagas.map((vaga, i) => (
+                      <li key={vaga.id}>
+                        <BarraDeLista
+                          rotulo={vaga.titulo || "Vaga sem título"}
+                          total={vaga.total}
+                          maior={dados.maiorVaga}
+                          lider={i === 0}
+                        />
+                        <span className="sr-only">
+                          {pluralizar(vaga.total, "candidatura", "candidaturas")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </div>
           </div>
         </>
       )}

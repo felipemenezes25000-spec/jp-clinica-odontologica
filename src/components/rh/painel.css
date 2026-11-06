@@ -1,0 +1,1680 @@
+/*
+ * PORTAL DE RH — redesenho 2026 (tela de trabalho).
+ *
+ * O painel é ferramenta, não página: segue a paleta e o tipo do DESIGN.md
+ * (chão, tinta, acento, Bricolage) com as regras de tela de aplicativo —
+ * lateral de navegação, números que se leem juntos, listas com barra fina,
+ * uma cor só nos dados. A coroa aparece como ferramenta: marca da seção ativa,
+ * avatar da pessoa, estado vazio.
+ *
+ * ONDE ISTO VALE
+ * Tudo está escopado em `.rh-admin.rh-app` (a raiz do painel) ou em
+ * `.rh-entrada` (o login). Fica FORA de qualquer @layer de propósito: o painel
+ * ainda carrega a camada antiga de `styles.css` (tema claro empilhado sobre um
+ * painel que nasceu escuro, com `!important` em vários pontos), e uma regra de
+ * camada perderia para ela. A especificidade extra da raiz dupla
+ * (`.rh-admin.rh-app`) resolve o empate sem novo `!important`, salvo onde a
+ * regra antiga já usa um.
+ *
+ * As classes `.rh-*` de formulário (campo, rótulo, chip) também servem o
+ * formulário público de candidatura; por isso nada aqui as redefine fora do
+ * escopo do painel.
+ */
+
+/* ========================================================================== */
+/* Tokens do painel                                                           */
+/* ========================================================================== */
+
+.rh-admin.rh-app,
+.rh-entrada {
+  /* Linhas em dois degraus sobre branco e sobre o chão; a borda de controle é
+     um degrau mais forte. Valores derivados da tinta, nunca cinza solto. */
+  --rh-linha-leve: color-mix(in oklab, var(--tinta) 9%, white);
+  --rh-linha: color-mix(in oklab, var(--tinta) 15%, var(--chao));
+  --rh-controle: color-mix(in oklab, var(--tinta) 32%, white);
+  --rh-folha: #ffffff;
+  /* Aviso e erro: os únicos pares fora da paleta da marca, porque âmbar e
+     vermelho carregam o significado "atenção" e "falhou". Contraste medido
+     (WCAG, razão de luminância): aviso 6,84:1; erro 8,63:1; ambos acima de
+     4,5:1. Sem filete: o degrau de tom já separa o aviso do chão. */
+  --rh-aviso-fundo: #fffbeb;
+  --rh-aviso-texto: #92400e;
+  --rh-erro-fundo: #ffedea;
+  --rh-erro-texto: #831c1e;
+  /* Barra de dados: o verde da marca em dois tons (líder e demais). */
+  --rh-dado: var(--campo-marca);
+  --rh-dado-suave: color-mix(in oklab, var(--campo-marca) 34%, white);
+}
+
+/*
+ * As classes do painel foram escritas com os tokens antigos da marca
+ * (`bg-mint`, `text-ink`, `border-border-soft`, `bg-cream`...). Em vez de
+ * reescrever mil classes, o painel remapeia esses nomes para o sistema novo:
+ * o "menta" vira o degrau do chão, o "ink" vira a tinta, o filete vira a linha
+ * de 9% da tinta. É `--color-*` (e não só `--*`) porque o Tailwind lê a
+ * variável de cor já resolvida na raiz; sem redeclarar aqui o remapeamento
+ * não chegaria às utilitárias.
+ */
+.rh-admin.rh-app {
+  --ink: var(--tinta);
+  --ink-soft: var(--tinta-suave);
+  --mint: var(--chao-2);
+  --cream: var(--chao);
+  --paper: var(--rh-folha);
+  --border-soft: var(--rh-linha-leve);
+  --forest: var(--campo-marca);
+  --forest-2: var(--campo-marca);
+  --lime: var(--acento);
+  --color-ink: var(--tinta);
+  --color-ink-soft: var(--tinta-suave);
+  --color-mint: var(--chao-2);
+  --color-cream: var(--chao);
+  --color-paper: var(--rh-folha);
+  --color-border-soft: var(--rh-linha-leve);
+  --color-forest: var(--campo-marca);
+  --color-forest-2: var(--campo-marca);
+  --color-lime: var(--acento);
+}
+
+/* ========================================================================== */
+/* Casca: lateral + coluna                                                    */
+/* ========================================================================== */
+
+/*
+ * Aritmética: a lateral tem 248px; a coluna ocupa o resto. Dentro da coluna, o
+ * `.jp-container` do painel vira "margem igual nos dois lados" (--rh-gutter) e
+ * teto de 1480px: em 1440 a área útil é 1440 - 248 - 2x32 = 1128px.
+ */
+.rh-admin.rh-app {
+  --rh-lateral: 248px;
+  --rh-gutter: clamp(1rem, 0.4rem + 1.6vw, 2rem);
+  /* Altura da barra do celular; BarraFiltros usa para não escorregar embaixo. */
+  --rh-topo: 56px;
+  min-height: 100dvh;
+  background: var(--chao);
+  color: var(--tinta);
+}
+
+@media (min-width: 1024px) {
+  .rh-admin.rh-app {
+    display: grid;
+    grid-template-columns: var(--rh-lateral) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    --rh-topo: 0px;
+  }
+  .rh-admin.rh-app > .rh-lateral {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .rh-admin.rh-app > .rh-sessao-expirada,
+  .rh-admin.rh-app > main {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .rh-admin.rh-app > .rh-sessao-expirada {
+    grid-row: 1;
+  }
+  .rh-admin.rh-app > main {
+    grid-row: 2;
+  }
+}
+
+.rh-admin.rh-app > main {
+  min-height: 100dvh;
+}
+
+@media (min-width: 1024px) {
+  .rh-admin.rh-app > .rh-sessao-expirada ~ main {
+    min-height: 0;
+  }
+}
+
+/* O canvas é fluido; só o teto impede linhas de 1600px em tela enorme. A
+   margem é igual dos dois lados, inclusive quando o teto entra em ação. */
+.rh-admin.rh-app .jp-container {
+  width: auto;
+  max-width: none;
+  margin-inline: max(var(--rh-gutter), calc((100% - 1480px) / 2));
+}
+
+/* ---------------------------------------------------------------- Lateral */
+
+.rh-lateral {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--chao);
+  color: var(--tinta);
+}
+
+.rh-lateral__topo {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  padding-inline: var(--rh-gutter);
+}
+
+.rh-lateral__marca {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.rh-lateral__nome {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.rh-lateral__escopo {
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rh-lateral__aqui {
+  display: none;
+}
+
+.rh-lateral__menu {
+  display: inline-flex;
+  min-height: 44px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 14px;
+  border-radius: 999px;
+  background: var(--chao-2);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.rh-lateral__corpo {
+  display: none;
+}
+
+.rh-lateral[data-aberto="true"] .rh-lateral__corpo {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  display: flex;
+  max-height: calc(100dvh - 56px);
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  padding: 8px var(--rh-gutter) 20px;
+  background: var(--chao);
+}
+
+/* No celular o nome da seção aparece entre a marca e o botão quando a marca já
+   ocupa pouco: some abaixo de 380px para o escopo não ser cortado demais. */
+@media (min-width: 420px) and (max-width: 1023px) {
+  .rh-lateral__aqui {
+    display: block;
+    color: var(--tinta-suave);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .rh-lateral__marca {
+    flex: 0 1 auto;
+  }
+  .rh-lateral__topo {
+    justify-content: space-between;
+  }
+  .rh-lateral__aqui {
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rh-lateral {
+    display: flex;
+    height: 100dvh;
+    flex-direction: column;
+    padding: 28px 16px 20px;
+  }
+  .rh-lateral__topo {
+    padding-inline: 12px;
+  }
+  .rh-lateral__aqui,
+  .rh-lateral__menu {
+    display: none;
+  }
+  .rh-lateral__corpo {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 28px;
+  }
+}
+
+.rh-lateral__abas {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rh-aba {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 10px;
+  border-radius: 12px;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1;
+  text-align: left;
+  transition:
+    background-color 140ms var(--ease-out),
+    color 140ms var(--ease-out);
+}
+
+/* Rótulo de grupo em frase, 13px, sem caixa-alta. Mora no `tablist` como
+   `presentation`: o leitor de tela continua ouvindo só abas. */
+.rh-lateral__grupo {
+  padding: 14px 12px 4px 10px;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.rh-lateral__grupo:first-child {
+  padding-top: 0;
+}
+
+.rh-aba__marca {
+  display: grid;
+  width: 14px;
+  height: 14px;
+  flex: none;
+  place-items: center;
+  color: var(--acento);
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 140ms var(--ease-out),
+    transform 200ms var(--ease-out);
+}
+
+.rh-aba__marca svg {
+  width: 100%;
+  height: 100%;
+}
+
+.rh-aba[aria-selected="true"] {
+  background: var(--chao-3);
+  color: var(--tinta);
+  font-weight: 600;
+}
+
+.rh-aba[aria-selected="true"] .rh-aba__marca {
+  opacity: 1;
+  transform: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-aba:hover {
+    background: var(--chao-2);
+    color: var(--tinta);
+  }
+  .rh-aba[aria-selected="true"]:hover {
+    background: var(--chao-3);
+  }
+}
+
+.rh-aba__rotulo {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.rh-aba__n {
+  display: inline-grid;
+  min-width: 24px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  padding-inline: 7px;
+  border-radius: 999px;
+  background: var(--chao-3);
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.rh-aba[aria-selected="true"] .rh-aba__n {
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+.rh-lateral__marca-dagua {
+  position: absolute;
+  right: -22px;
+  bottom: -24px;
+  z-index: 0;
+  display: none;
+  width: 190px;
+  color: var(--chao-2);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .rh-lateral {
+    overflow: hidden;
+  }
+  .rh-lateral__marca-dagua {
+    display: block;
+  }
+}
+
+.rh-lateral__sessao {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: auto;
+}
+
+.rh-acao-lateral {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 12px;
+  border-radius: 12px;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.rh-acao-lateral:disabled {
+  opacity: 0.6;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-acao-lateral:hover:not(:disabled) {
+    background: var(--chao-2);
+    color: var(--tinta);
+  }
+}
+
+/* ============================================================================ */
+/* Título da seção (Resumo)                                                     */
+/* ============================================================================ */
+
+.rh-titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0 12px;
+}
+
+.rh-titulo h1 {
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 1.875rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.rh-titulo p {
+  margin-top: 6px;
+  max-width: 60ch;
+  color: var(--tinta-suave);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.rh-titulo__acao {
+  min-height: 44px;
+  padding-inline: 22px;
+}
+
+/* ============================================================================ */
+/* Resumo                                                                       */
+/* ============================================================================ */
+
+.rh-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Seis números num recipiente só. O fio de 1px entre as células vem do `gap`
+   sobre um fundo de linha: não é caixa contornada, é uma régua de tabela. */
+.rh-numeros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--rh-linha-leve);
+}
+
+.rh-numero {
+  min-width: 0;
+  padding: 16px 18px 18px;
+  background: var(--rh-folha);
+}
+
+.rh-numero dt {
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.rh-numero dd {
+  margin-top: 6px;
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.rh-numero p {
+  margin-top: 8px;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+/* A resposta da tela: a primeira célula é a única escura e a maior (36px
+   contra 28px — 1,3x). */
+.rh-numero--lider {
+  grid-column: 1 / -1;
+  background: var(--campo);
+  color: var(--sobre-campo);
+}
+
+.rh-numero--lider dt,
+.rh-numero--lider p {
+  color: var(--sobre-campo-suave);
+}
+
+.rh-numero--lider dd {
+  font-size: 2.5rem;
+}
+
+.rh-numeros > .rh-numero:last-child:nth-child(even) {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1280px) {
+  .rh-numeros {
+    grid-template-columns: minmax(0, 1.55fr) repeat(5, minmax(0, 1fr));
+  }
+  .rh-numero {
+    padding: 20px 22px 22px;
+  }
+  .rh-numero--lider {
+    grid-column: auto;
+  }
+  .rh-numeros > .rh-numero:last-child:nth-child(even) {
+    grid-column: auto;
+  }
+}
+
+/* Folha: um degrau de tom (branco sobre o chão), sem sombra. */
+.rh-lamina {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 20px 24px 22px;
+  border-radius: 16px;
+  background: var(--rh-folha);
+}
+
+.rh-lamina__cabeca {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rh-lamina__cabeca h2 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.rh-lamina__nota {
+  margin: 2px 0 16px;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.rh-texto-acao {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  margin: -6px -8px -6px 0;
+  padding-inline: 8px;
+  border-radius: 10px;
+  color: var(--tinta);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-texto-acao:hover {
+    background: var(--chao-2);
+  }
+}
+
+/* Painel de tom: os dois rankings dividem um degrau de tom em vez de dois
+   cartões brancos iguais ao resto. */
+.rh-lamina--tom {
+  gap: 28px;
+  background: var(--chao-2);
+}
+
+.rh-lamina--tom .rh-linha-barra__trilho {
+  background: var(--chao-3);
+}
+
+.rh-resumo__base {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 1100px) {
+  .rh-resumo__base {
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  }
+}
+
+/* ---------------------------------------------------------- Lista de pessoas */
+
+.rh-recentes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px 32px;
+  margin-top: 8px;
+}
+
+@media (min-width: 900px) {
+  .rh-recentes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.rh-recente {
+  display: flex;
+  width: 100%;
+  min-height: 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 12px;
+  text-align: left;
+  transition: background-color 140ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-recente:hover {
+    background: var(--chao);
+  }
+}
+
+.rh-recente__avatar {
+  display: grid;
+  width: 42px;
+  flex: none;
+  place-items: center;
+  background: var(--chao-3);
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.rh-recente__nome {
+  display: block;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rh-recente__meta {
+  display: block;
+  overflow: hidden;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Um chip nunca encolhe: sem isto a coluna de status vira uma caixa de 12px
+   com a palavra vazando. */
+.rh-pilula {
+  flex: none;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------ Barra fina */
+
+.rh-funil,
+.rh-ranking {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Funil: uma faixa proporcional (largura = contagem) e a legenda em colunas.
+   Quatro tons do verde da marca, em rodízio, para vizinhos nunca iguais. */
+.rh-faixa {
+  display: flex;
+  gap: 3px;
+  height: 14px;
+  margin-bottom: 16px;
+}
+
+.rh-faixa > span {
+  min-width: 10px;
+  border-radius: 4px;
+  background: var(--rh-tom);
+  transform-origin: left center;
+}
+
+.rh-funil {
+  display: grid;
+  flex: none;
+  gap: 4px 28px;
+}
+
+@media (min-width: 640px) {
+  .rh-funil {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .rh-funil {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.rh-faixa > [data-tom="0"],
+.rh-funil__tom[data-tom="0"] {
+  --rh-tom: var(--campo-marca);
+}
+.rh-faixa > [data-tom="1"],
+.rh-funil__tom[data-tom="1"] {
+  --rh-tom: color-mix(in oklab, var(--campo-marca) 72%, var(--chao-3));
+}
+.rh-faixa > [data-tom="2"],
+.rh-funil__tom[data-tom="2"] {
+  --rh-tom: color-mix(in oklab, var(--campo-marca) 48%, var(--chao-3));
+}
+.rh-faixa > [data-tom="3"],
+.rh-funil__tom[data-tom="3"] {
+  --rh-tom: color-mix(in oklab, var(--campo-marca) 30%, var(--chao-3));
+}
+
+.rh-funil li {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+}
+
+.rh-funil__tom {
+  width: 10px;
+  height: 10px;
+  flex: none;
+  border-radius: 3px;
+  background: var(--rh-tom);
+}
+
+.rh-funil__rotulo {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.rh-funil__valor {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.rh-funil li[data-vazia="true"] {
+  color: var(--tinta-suave);
+}
+
+.rh-funil li[data-vazia="true"] .rh-funil__tom {
+  opacity: 0.35;
+}
+
+.rh-linha-barra__texto {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+.rh-linha-barra__rotulo {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rh-linha-barra__valor {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.rh-linha-barra__comp {
+  display: inline-block;
+  min-width: 40px;
+  margin-left: 8px;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-align: right;
+}
+
+.rh-linha-barra__trilho {
+  display: block;
+  height: 4px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--chao-2);
+}
+
+.rh-linha-barra__fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--rh-dado-suave);
+}
+
+.rh-linha-barra__fill--lider {
+  background: var(--rh-dado);
+}
+
+/* ------------------------------------------------------------ Gráfico SVG */
+
+.rh-grafico {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.rh-grafico__base {
+  stroke: var(--rh-linha);
+  stroke-width: 1;
+}
+
+.rh-grafico__barra {
+  fill: var(--chao-3);
+}
+
+.rh-grafico__barra--atual {
+  fill: var(--acento);
+}
+
+.rh-grafico__valor {
+  fill: var(--tinta);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.rh-grafico__mes {
+  fill: var(--tinta-suave);
+  font-size: 12px;
+}
+
+.rh-vazio-linha {
+  display: grid;
+  min-height: 96px;
+  place-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--chao);
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/* ------------------------------------------------------ Primeira vez / aviso */
+
+.rh-primeira-vez {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px 28px;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--chao-2);
+}
+
+.rh-primeira-vez__coroa {
+  width: 64px;
+  flex: none;
+  color: var(--acento);
+}
+
+.rh-primeira-vez > div {
+  min-width: min(100%, 280px);
+  flex: 1 1 320px;
+}
+
+.rh-primeira-vez h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.rh-primeira-vez p {
+  max-width: 56ch;
+  margin-top: 6px;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+/* Aviso de prazo: o único âmbar da tela. Par do app-screens (fundo claro,
+   texto escuro de mesmo matiz). */
+.rh-aviso-prazo,
+.rh-sessao-expirada {
+  background: var(--rh-aviso-fundo);
+  color: var(--rh-aviso-texto);
+}
+
+.rh-aviso-prazo {
+  padding: 16px 20px;
+  border-radius: 16px;
+}
+
+.rh-aviso-prazo h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.rh-aviso-prazo p {
+  max-width: 78ch;
+  margin-top: 6px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.rh-aviso-prazo button {
+  min-height: 44px;
+  margin-top: 6px;
+  margin-left: -4px;
+  padding-inline: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ============================================================================ */
+/* Varredura nas telas que ainda usam as classes antigas                         */
+/* ============================================================================ */
+
+/*
+ * Estas regras valem para tudo dentro do painel (abas, gaveta, editor, modo
+ * entrevista). O painel original pedia "cartão de vidro com sombra e rótulo em
+ * caixa-alta"; aqui cada um volta ao seu lugar: degrau de tom, nenhuma sombra
+ * em coisa parada, nenhum desfoque, rótulo em frase.
+ */
+
+.rh-admin.rh-app .rh-vidro {
+  border: 0;
+  border-radius: 16px;
+  background: var(--rh-folha);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.rh-admin.rh-app .rh-vidro:hover {
+  border: 0;
+}
+
+/* Sombra só no que flutua de verdade (menu, diálogo, aviso). */
+.rh-admin.rh-app
+  :where([class*="shadow-"]):not(
+    .rh-gaveta,
+    [role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    .rh-aviso
+  ) {
+  box-shadow: none;
+}
+
+.rh-admin.rh-app [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Rótulo miúdo em caixa-alta vira frase. A tipografia de app pede sentença
+   (app-screens, §9.1): caixa-alta espaçada só em coisa que não é rótulo. */
+.rh-admin.rh-app .uppercase,
+.rh-admin.rh-app .eyebrow,
+.rh-admin.rh-app .rh-rotulo {
+  text-transform: none !important;
+}
+
+.rh-admin.rh-app :is(.eyebrow, .rh-rotulo, [class*="tracking-"]) {
+  letter-spacing: 0 !important;
+}
+
+.rh-admin.rh-app .rh-rotulo {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Piso de leitura: 13px, o mínimo do DESIGN.md. Os componentes ainda declaram
+   `text-xs` e `text-[0.6..0.8rem]` (10 a 12,8px); em vez de reescrever 170
+   ocorrências, o piso entra aqui, uma vez, no escopo do painel. Dica de campo
+   e data são texto de leitura contínua para quem passa o dia aqui. */
+.rh-admin.rh-app
+  :is(
+    .text-xs,
+    [class*="text-[0.6"],
+    [class*="text-[0.7"],
+    [class*="text-[0.8rem]"],
+    [class*="text-[10px]"],
+    [class*="text-[11px]"],
+    [class*="text-[12px]"]
+  ) {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+/* Dica de campo (`.rh-ajuda`, 12,8px no formulário público): no painel segue o
+   mesmo piso de 13px. */
+.rh-admin.rh-app .rh-ajuda {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* Títulos do painel: a classe `font-display` do site aperta o espaçamento
+   para tamanhos de vitrine; em tela de trabalho isso espreme as letras. */
+.rh-admin.rh-app :is(h1, h2, h3, h4) {
+  letter-spacing: -0.01em;
+}
+
+/* Chips de filtro: pílula de um degrau de tom; o ativo vira tinta chapada.
+   Os três sinais não cromáticos do ativo (fundo, peso, contraste) continuam. */
+.rh-admin.rh-app :is(.rh-chip, .rh-chip-escuro) {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--chao-2);
+  box-shadow: none;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.rh-admin.rh-app :is(.rh-chip, .rh-chip-escuro)[data-ativo="true"] {
+  background: var(--tinta);
+  box-shadow: none;
+  color: var(--sobre-campo);
+  font-weight: 600;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-admin.rh-app :is(.rh-chip, .rh-chip-escuro):hover {
+    border: 0;
+    background: var(--chao-3);
+  }
+  .rh-admin.rh-app :is(.rh-chip, .rh-chip-escuro)[data-ativo="true"]:hover {
+    background: var(--tinta);
+  }
+}
+
+/* Campos: contorno de controle (um degrau acima da linha) e foco de tinta. */
+.rh-admin.rh-app .rh-campo {
+  min-height: 48px;
+  border: 1px solid var(--rh-controle);
+  border-radius: 12px;
+  background: var(--rh-folha);
+  color: var(--tinta);
+  font-size: 1rem;
+}
+
+.rh-admin.rh-app textarea.rh-campo {
+  min-height: 7rem;
+}
+
+.rh-admin.rh-app .rh-campo:focus {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+}
+
+.rh-admin.rh-app .rh-campo::placeholder {
+  color: var(--tinta-suave);
+}
+
+/* Barra de filtros e painel flutuante: opacos, sem desfoque. */
+.rh-admin.rh-app main > div.sticky {
+  background: var(--chao) !important;
+  border-color: var(--rh-linha) !important;
+}
+
+/* Controles: um foco só, 2px de tinta com folga. */
+.rh-admin.rh-app :focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+/* Nas peças que continuam escuras (a barra de ações em lote e o painel de
+   convites, em bg-brand-deep = tinta), o anel de tinta sumiria no fundo da
+   mesma cor: lá ele é acento (4,96:1 sobre tinta). */
+.rh-admin.rh-app [class*="bg-brand-deep"] :focus-visible {
+  outline-color: var(--acento);
+}
+
+/* ============================================================================ */
+/* Entrada (login)                                                              */
+/* ============================================================================ */
+
+.rh-entrada {
+  display: grid;
+  min-height: 100dvh;
+  background: var(--chao);
+  color: var(--tinta);
+}
+
+.rh-entrada__marca {
+  position: relative;
+  display: flex;
+  min-height: 168px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  overflow: hidden;
+  padding: 24px var(--margem);
+  background: var(--campo);
+  color: var(--sobre-campo);
+}
+
+.rh-entrada__assinatura {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.rh-entrada__frase {
+  position: relative;
+  z-index: 1;
+  max-width: 16ch;
+  font-size: var(--text-frase);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+/* A coroa gigante da casa, INTEIRA: no celular numa faixa à direita da frase,
+   no desktop no alto da metade escura, longe do pé do título. */
+.rh-entrada__coroa {
+  position: absolute;
+  top: 50%;
+  right: var(--margem);
+  width: 88px;
+  color: var(--acento);
+  transform: translateY(-50%);
+}
+
+.rh-entrada__form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px var(--margem) 48px;
+}
+
+.rh-entrada__conteudo {
+  width: min(100%, 400px);
+}
+
+.rh-entrada h1 {
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.rh-entrada__lide {
+  margin-top: 10px;
+  color: var(--tinta-suave);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.rh-entrada .rh-rotulo {
+  margin-bottom: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rh-entrada .rh-campo {
+  min-height: 52px;
+  border: 1px solid var(--rh-controle);
+  border-radius: 14px;
+  background: var(--rh-folha);
+  color: var(--tinta);
+  font-size: 1.0625rem;
+}
+
+.rh-entrada .rh-campo:focus {
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 1px var(--tinta);
+  outline: none;
+}
+
+.rh-entrada .rh-campo::placeholder {
+  color: var(--tinta-suave);
+}
+
+.rh-entrada :focus-visible {
+  outline: 2px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+.rh-entrada .rh-campo:focus-visible {
+  outline: none;
+}
+
+.rh-entrada__ajuda {
+  margin-top: 10px;
+  color: var(--tinta-suave);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.rh-entrada__erro {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--rh-erro-fundo);
+  color: var(--rh-erro-texto);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.rh-entrada__aviso {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--rh-aviso-fundo);
+  color: var(--rh-aviso-texto);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.rh-entrada__voltar {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 0 -8px;
+  padding-inline: 8px;
+  border-radius: 10px;
+  color: var(--tinta-suave);
+  font-size: 0.9375rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-entrada__voltar:hover {
+    color: var(--tinta);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+@media (min-width: 900px) {
+  .rh-entrada {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  }
+  .rh-entrada__marca {
+    min-height: 100dvh;
+    padding: 40px var(--margem);
+  }
+  .rh-entrada__frase {
+    max-width: 16ch;
+    font-size: clamp(2.25rem, 1.4rem + 2vw, 3.25rem);
+  }
+  .rh-entrada__coroa {
+    top: 22%;
+    right: auto;
+    left: var(--margem);
+    width: min(46%, 320px);
+    transform: none;
+  }
+}
+
+/* ============================================================================ */
+/* Vagas: lista de linhas, uma ação primária e um menu                          */
+/* ============================================================================ */
+
+.rh-vagas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rh-vaga {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px 20px;
+  padding: 18px 20px;
+}
+
+.rh-vaga__status {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 12px;
+}
+
+.rh-vaga__corpo {
+  min-width: 0;
+}
+
+.rh-vaga__fatos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-top: 10px;
+  color: var(--tinta-suave);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.rh-vaga__fatos > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rh-vaga__aviso,
+.rh-vaga__confirma {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--rh-aviso-fundo);
+  color: var(--rh-aviso-texto);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.rh-vaga__aviso {
+  display: flex;
+  gap: 8px;
+}
+
+.rh-vaga__confirma {
+  background: var(--rh-erro-fundo);
+  color: var(--rh-erro-texto);
+}
+
+.rh-vaga__excluir-de-vez {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 18px;
+  border-radius: 999px;
+  background: var(--rh-erro-texto);
+  color: var(--rh-folha);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.rh-vaga__excluir-de-vez:disabled {
+  opacity: 0.5;
+}
+
+.rh-vaga__acoes {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+@media (max-width: 719px) {
+  .rh-vaga {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .rh-vaga__acoes {
+    justify-content: space-between;
+  }
+  .rh-vaga__acoes > .botao {
+    flex: 1 1 auto;
+  }
+}
+
+/* Menu "Mais ações": <details> nativo (teclado e leitor de tela de graça). */
+.rh-menu {
+  position: relative;
+}
+
+.rh-menu__resumo {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  list-style: none;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--chao-2);
+  color: var(--tinta);
+}
+
+.rh-menu__resumo::-webkit-details-marker {
+  display: none;
+}
+
+.rh-menu[open] > .rh-menu__resumo {
+  background: var(--tinta);
+  color: var(--sobre-campo);
+}
+
+.rh-menu__lista {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  min-width: 200px;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--rh-folha);
+  /* Flutua de verdade: é o caso em que a sombra cabe (DESIGN.md). */
+  box-shadow: 0 12px 32px -12px color-mix(in oklab, var(--tinta) 45%, transparent);
+}
+
+.rh-menu__lista :is(button, a) {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.rh-menu__lista :is(button, a):disabled {
+  opacity: 0.4;
+}
+
+.rh-menu__lista [data-perigo] {
+  color: var(--rh-erro-texto);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .rh-menu__lista :is(button, a):hover:not(:disabled) {
+    background: var(--chao-2);
+  }
+  .rh-menu__resumo:hover {
+    background: var(--chao-3);
+  }
+}
+
+/* Estado vazio: a coroa grande em tom, a frase e o botão. Sem tracejado. */
+.rh-vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 48px 24px;
+  border-radius: 20px;
+  background: var(--chao-2);
+  text-align: center;
+}
+
+.rh-vazio__coroa {
+  width: 96px;
+  color: var(--chao-3);
+}
+
+/* "Mais" do celular (Candidaturas): seleção, visão e exportar atrás de um
+   botão, para a primeira tela ser a lista e não a barra de ferramentas. */
+.rh-mais {
+  position: relative;
+}
+
+.rh-mais__resumo {
+  display: inline-flex;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+  align-items: center;
+  padding-inline: 16px;
+  border-radius: 12px;
+  background: var(--chao-2);
+  color: var(--tinta);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.rh-mais__resumo::-webkit-details-marker {
+  display: none;
+}
+
+.rh-mais__corpo {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--rh-gutter));
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--rh-folha);
+  box-shadow: 0 12px 32px -12px color-mix(in oklab, var(--tinta) 45%, transparent);
+}
+
+/* ============================================================================ */
+/* Movimento: camada quieta, só transform e opacity                              */
+/* ============================================================================ */
+
+/*
+ * Tudo aqui só existe com movimento permitido: o estado "escondido" é o
+ * primeiro quadro da animação (`backwards`), nunca o estado de repouso. Sem JS
+ * ou com "reduzir movimento" o conteúdo está sempre no lugar.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rh-entra {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes rh-cresce-x {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  @keyframes rh-cresce-y {
+    from {
+      transform: scaleY(0);
+    }
+  }
+
+  /* Troca de aba: o conteúdo novo sobe 8px e aparece. */
+  .rh-admin.rh-app > main > * {
+    animation: rh-entra 260ms var(--ease-out) backwards;
+  }
+
+  /* Resumo e Vagas: entrada em cascata de 50ms entre blocos e linhas. */
+  .rh-resumo > *,
+  .rh-vagas > * {
+    animation: rh-entra 360ms var(--ease-out) backwards;
+    animation-delay: calc(var(--i, 0) * 50ms);
+  }
+
+  .rh-resumo > :nth-child(1),
+  .rh-vagas > :nth-child(1) {
+    --i: 0;
+  }
+  .rh-resumo > :nth-child(2),
+  .rh-vagas > :nth-child(2) {
+    --i: 1;
+  }
+  .rh-resumo > :nth-child(3),
+  .rh-vagas > :nth-child(3) {
+    --i: 2;
+  }
+  .rh-resumo > :nth-child(4),
+  .rh-vagas > :nth-child(4) {
+    --i: 3;
+  }
+  .rh-resumo > :nth-child(n + 5),
+  .rh-vagas > :nth-child(n + 5) {
+    --i: 4;
+  }
+
+  .rh-numeros > .rh-numero {
+    animation: rh-entra 420ms var(--ease-out) backwards;
+  }
+  .rh-numeros > :nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .rh-numeros > :nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .rh-numeros > :nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .rh-numeros > :nth-child(5) {
+    animation-delay: 240ms;
+  }
+  .rh-numeros > :nth-child(6) {
+    animation-delay: 300ms;
+  }
+
+  /* Faixa do funil, barras de ranking e barras do mês crescem da base. */
+  .rh-faixa > span {
+    animation: rh-cresce-x 640ms var(--ease-out) backwards;
+    animation-delay: 240ms;
+  }
+  .rh-linha-barra__fill {
+    transform-origin: left center;
+    animation: rh-cresce-x 640ms var(--ease-out) backwards;
+    animation-delay: 300ms;
+  }
+  .rh-grafico__barra {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: rh-cresce-y 640ms var(--ease-out) backwards;
+    animation-delay: 300ms;
+  }
+
+  /* Apertar: o botão cede 3% e volta. */
+  .rh-admin.rh-app :is(button, .botao, summary):active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .rh-admin.rh-app :is(button, .botao, summary) {
+    transition:
+      transform 120ms var(--ease-out),
+      background-color 140ms var(--ease-out),
+      color 140ms var(--ease-out);
+  }
+
+  /* Menu aberto: sobe 8px com fade, como o resto. */
+  .rh-menu[open] > .rh-menu__lista,
+  .rh-mais[open] > .rh-mais__corpo {
+    animation: rh-entra 160ms var(--ease-out) backwards;
+  }
+}
+
+/* ============================================================================ */
+/* Sem filete: anel e borda branca dos componentes antigos                       */
+/* ============================================================================ */
+
+/*
+ * Os componentes ainda declaram `ring-1` (anel de 1px) e `border-white/N` para
+ * desenhar pílulas e caixas contornadas do painel escuro de antes. A casa não
+ * usa filete fora de campo de formulário e tabela; em vez de reescrever cada
+ * ocorrência de uma vez, o escopo do painel zera o desenho. Campos mantêm o
+ * contorno, e o foco usa `outline` (não `box-shadow`), então não é afetado.
+ */
+.rh-admin.rh-app :where(:not(input, select, textarea))[class*="ring-1"] {
+  box-shadow: none;
+}
+
+.rh-admin.rh-app :where(:not(input, select, textarea, table, th, td))[class*="border-white/"] {
+  border-color: transparent;
+}
+
+/* Caixas "rose" e "amber" que sobraram (erro e aviso): os dois pares medidos. */
+.rh-admin.rh-app :where([class*="bg-rose-"]):not(button, a) {
+  background: var(--rh-erro-fundo);
+  color: var(--rh-erro-texto);
+}
+
+.rh-admin.rh-app :where([class*="bg-amber-"]):not(button, a) {
+  background: var(--rh-aviso-fundo);
+  color: var(--rh-aviso-texto);
+}
