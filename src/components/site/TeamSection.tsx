@@ -18,13 +18,16 @@ import "./home/equipe.css";
 const EQUIPE_PUBLICA = EQUIPE.filter((pessoa) => !pessoa.ficticio && !pessoa.placeholder);
 
 /**
- * O título da seção promete "Dentistas com nome e CRO": só entra na grade quem
- * tem registro no CRO. Quem é de outro conselho (a fisioterapeuta, com CREFITO)
- * e quem não é de conselho nenhum (recepção) aparecem em blocos próprios, com o
- * rótulo que lhes cabe — jamais sob um título que os chama de dentista.
+ * A grade é de quem tem registro em conselho — os dentistas (CRO) primeiro e a
+ * fisioterapeuta (CREFITO) depois, cada um com o seu número. Por isso o título
+ * fala em "registro", e não em "dentistas" ou "CRO": jamais um título que chame
+ * de dentista quem não é. Quem não é de conselho nenhum (recepção) fica numa
+ * linha própria, com o rótulo que lhe cabe.
  */
-const COM_REGISTRO = EQUIPE_PUBLICA.filter(ehDentista);
-const FISIOTERAPIA = EQUIPE_PUBLICA.filter((pessoa) => pessoa.conselho === "CREFITO");
+const COM_REGISTRO = [
+  ...EQUIPE_PUBLICA.filter(ehDentista),
+  ...EQUIPE_PUBLICA.filter((pessoa) => pessoa.registro && !ehDentista(pessoa)),
+];
 const SEM_REGISTRO = EQUIPE_PUBLICA.filter((pessoa) => !pessoa.registro);
 
 const funcaoDe = (pessoa: (typeof EQUIPE)[number]) => pessoa.papel ?? pessoa.especialidade ?? "";
@@ -73,12 +76,12 @@ export function TeamSection() {
           <div data-item>
             <p className="sobretitulo">Quem atende você</p>
             <h2 id="equipe-titulo" className="text-titulo">
-              Dentistas com nome e CRO
+              Equipe com nome e registro
             </h2>
           </div>
           <p className="text-corpo equipe-intro" data-item>
             Atendimento clínico realizado por cirurgiões-dentistas identificados pelo número de
-            registro no Conselho Regional de Odontologia.
+            registro no Conselho Regional de Odontologia, e fisioterapia com registro no CREFITO.
           </p>
         </div>
 
@@ -122,39 +125,15 @@ export function TeamSection() {
               <div className="equipe-pessoa-texto">
                 <h3 className="equipe-nome">{pessoa.nome}</h3>
                 <p className="equipe-funcao text-pequeno">{funcaoDe(pessoa)}</p>
+                {/* Quem tem papel E especialidade (a fisioterapeuta) mostra as duas. */}
+                {pessoa.papel && pessoa.especialidade ? (
+                  <p className="equipe-funcao text-pequeno">{pessoa.especialidade}</p>
+                ) : null}
                 <p className="equipe-cro text-pequeno">{pessoa.registro}</p>
               </div>
             </li>
           ))}
         </ul>
-
-        {FISIOTERAPIA.length > 0 ? (
-          <div className="equipe-outros" data-entra>
-            <h3 className="equipe-apoio-titulo text-pequeno" data-item>
-              Fisioterapia
-            </h3>
-            <ul>
-              {FISIOTERAPIA.map((pessoa) => (
-                <li key={pessoa.nome} data-item>
-                  <Retrato
-                    foto={pessoa.foto}
-                    nome={pessoa.nome}
-                    proporcao={600 / 728}
-                    className="equipe-outros-foto"
-                  />
-                  <div className="equipe-pessoa-texto">
-                    <p className="equipe-nome">{pessoa.nome}</p>
-                    <p className="equipe-funcao text-pequeno">{pessoa.papel}</p>
-                    {pessoa.especialidade ? (
-                      <p className="equipe-funcao text-pequeno">{pessoa.especialidade}</p>
-                    ) : null}
-                    <p className="equipe-cro text-pequeno">{pessoa.registro}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
 
         {SEM_REGISTRO.length > 0 ? (
           <div className="equipe-apoio" data-entra>

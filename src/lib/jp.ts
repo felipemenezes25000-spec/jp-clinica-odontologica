@@ -387,8 +387,8 @@ export type MembroEquipe = Omit<Profissional, "registro"> & {
   /**
    * De qual conselho é o `registro`. Ausente vale CRO, que é o de quase toda a
    * equipe. Existe porque o site promete "dentistas com registro no CRO" — na
-   * contagem do topo, na pilha de rostos e no título da grade — e uma
-   * fisioterapeuta com CREFITO não pode entrar nessa conta só por ter registro.
+   * contagem do topo, na pilha de rostos e na landing — e uma fisioterapeuta
+   * com CREFITO não pode entrar nessa conta só por ter registro.
    */
   conselho?: "CRO" | "CREFITO";
 };
@@ -535,8 +535,10 @@ export const EQUIPE: MembroEquipe[] = [
      * transparente dos demais, no mesmo enquadramento.
      *
      * É fisioterapeuta (CREFITO), não dentista: `conselho` a deixa fora da
-     * contagem "dentistas com registro no CRO" e da grade de dentistas; a
-     * seção da equipe a mostra num bloco próprio, com o registro dela.
+     * contagem "dentistas com registro no CRO". Na seção da equipe ela entra na
+     * grade, depois dos dentistas (pedido do Felipe), com função,
+     * especialidades e o registro dela — e o título da grade fala em
+     * "registro", não em "dentistas".
      */
     nome: "Dra. Natália Lopes",
     registro: "CREFITO-3 259428-F",
