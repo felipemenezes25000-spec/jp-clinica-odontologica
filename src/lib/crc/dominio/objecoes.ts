@@ -208,7 +208,7 @@ export function leituraDaSituacao(contagens: readonly ContagemDeObjecoes[]): str
     case "TERCEIRO":
       return `${pct}% das pessoas precisam falar com alguém de casa. Mande o orçamento por escrito, num formato que dê para mostrar — hoje ele provavelmente só existe no papel que ficou na clínica.`;
     case "MEDO":
-      return `${pct}% das objeções são medo. É a mais tratável da lista, e a que menos depende de preço: vale ter uma conversa curta sobre sedação e sobre o que acontece na primeira consulta.`;
+      return `${pct}% das objeções são medo. É a mais tratável da lista, e a que menos depende de preço: vale ter uma conversa curta sobre o que acontece na primeira consulta (a sedação com óxido nitroso da clínica é só para crianças).`;
     case "TEMPO":
       return `${pct}% dizem não ter tempo. Confira se os horários oferecidos incluem começo da manhã e fim da tarde — "sem tempo" quase sempre quer dizer "sem tempo no horário que vocês ofereceram".`;
     case "CONVENIO":

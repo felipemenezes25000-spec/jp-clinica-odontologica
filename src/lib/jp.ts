@@ -1260,9 +1260,10 @@ export const ATENDIMENTO: PilarDeCuidado[] = [
     icone: "acessibilidade",
   },
   {
-    titulo: "Sedação consciente com óxido nitroso",
+    // Só para crianças: a clínica usa a sedação com óxido nitroso apenas no atendimento infantil (Felipe, 17/11/2026).
+    titulo: "Sedação consciente para crianças",
     texto:
-      "Recurso usado para reduzir a ansiedade durante o atendimento, inclusive com crianças. A indicação depende de avaliação profissional e do histórico de saúde de cada paciente.",
+      "Sedação com óxido nitroso, usada só no atendimento de crianças para reduzir a ansiedade durante o tratamento. A indicação depende de avaliação profissional e do histórico de saúde de cada criança.",
     icone: "sedacao",
   },
   {
@@ -1441,8 +1442,10 @@ export const FAQ = [
      * Sedação consciente com óxido nitroso é procedimento clínico, então a
      * resposta diz o que é e devolve a decisão para a avaliação. Não promete
      * conforto nem usa "sem dor", que a Resolução CFO 196/2019 veda.
+     * A clínica usa a sedação só com crianças (Felipe, 17/11/2026): para o
+     * adulto com medo, a resposta não promete sedação.
      */
-    a: "A clínica trabalha com sedação consciente por óxido nitroso, um recurso usado para reduzir a ansiedade durante o atendimento — inclusive com crianças. A indicação depende de avaliação profissional e do seu histórico de saúde.",
+    a: "A sedação consciente por óxido nitroso é usada na clínica só no atendimento de crianças, para reduzir a ansiedade durante o tratamento, e a indicação depende de avaliação profissional. Se você é adulto e tem medo, conte isso no agendamento: a equipe conversa com você na avaliação, antes de qualquer procedimento.",
   },
 ];
 

@@ -368,8 +368,9 @@ export const RETOMADAS_MAXIMAS = 3;
  *
  *  MEDO NÃO VIRA MENSAGEM NENHUMA. Vira `PASSAR_PARA_EQUIPE`. Medo de dentista
  *  não se resolve com texto bem escrito; resolve-se com uma pessoa explicando o
- *  procedimento e oferecendo sedação. Mandar mais uma mensagem para quem tem
- *  medo é a forma mais rápida de perder o paciente de vez.
+ *  procedimento (e, se for criança, avaliando a sedação com óxido nitroso, que a
+ *  clínica usa só no atendimento infantil). Mandar mais uma mensagem para quem
+ *  tem medo é a forma mais rápida de perder o paciente de vez.
  * ============================================================================
  */
 export function proximaAcaoDeAceitacao(
@@ -427,7 +428,7 @@ export function proximaAcaoDeAceitacao(
       acao: "PASSAR_PARA_EQUIPE",
       rotulo: "Medo — conversa com a equipe",
       porque:
-        "Medo do procedimento não se resolve por mensagem. Precisa de alguém explicando, e possivelmente de sedação.",
+        "Medo do procedimento não se resolve por mensagem. Precisa de alguém explicando — e, se for criança, avaliando a sedação com óxido nitroso.",
       emDias: null,
       exigeHumano: true,
     };
