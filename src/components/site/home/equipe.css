@@ -188,4 +188,33 @@
     flex: none;
     border-radius: var(--raio-sm);
   }
+
+  /* ---- Outros profissionais de saúde (fisioterapia): fora da grade de dentistas */
+  .equipe-outros {
+    display: grid;
+    gap: 0.9rem;
+    margin-top: var(--vao-grade);
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--chao-2);
+  }
+  .equipe-outros ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+  }
+  .equipe-outros li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .equipe-outros-foto {
+    width: 6.5rem;
+    flex: none;
+    border-radius: var(--raio-sm);
+  }
+  .equipe-outros .equipe-pessoa-texto {
+    padding-inline: 0;
+  }
 }

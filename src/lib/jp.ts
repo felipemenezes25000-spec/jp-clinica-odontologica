@@ -5,6 +5,7 @@ import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
 import fotoLeonardoAversa from "@/assets/leonardo-aversa.webp";
+import fotoNataliaLopes from "@/assets/natalia-lopes.webp";
 import fotoGuilherme from "@/assets/guilherme-fazzato.webp";
 
 /**
@@ -383,7 +384,18 @@ export type Profissional = {
 export type MembroEquipe = Omit<Profissional, "registro"> & {
   /** Ausente em quem não é do conselho: o card omite o bloco "Registro". */
   registro?: string;
+  /**
+   * De qual conselho é o `registro`. Ausente vale CRO, que é o de quase toda a
+   * equipe. Existe porque o site promete "dentistas com registro no CRO" — na
+   * contagem do topo, na pilha de rostos e no título da grade — e uma
+   * fisioterapeuta com CREFITO não pode entrar nessa conta só por ter registro.
+   */
+  conselho?: "CRO" | "CREFITO";
 };
+
+/** Dentista é quem tem registro no CRO. Ter registro em outro conselho não basta. */
+export const ehDentista = (pessoa: MembroEquipe) =>
+  Boolean(pessoa.registro) && (pessoa.conselho ?? "CRO") === "CRO";
 
 /**
  * A responsável técnica da clínica.
@@ -514,6 +526,24 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 168.921",
     papel: "Cirurgião-dentista",
     foto: fotoLeonardoAversa,
+  },
+  {
+    /**
+     * Entrou em 17/11/2026, enviada pelo Felipe com os dados: "Dra. Natália
+     * Lopes, CREFITO-3 259428 F — Distúrbios de ATM, Ortopedia Esportiva,
+     * Osteopatia". Retrato com fundo branco, recortado para o fundo
+     * transparente dos demais, no mesmo enquadramento.
+     *
+     * É fisioterapeuta (CREFITO), não dentista: `conselho` a deixa fora da
+     * contagem "dentistas com registro no CRO" e da grade de dentistas; a
+     * seção da equipe a mostra num bloco próprio, com o registro dela.
+     */
+    nome: "Dra. Natália Lopes",
+    registro: "CREFITO-3 259428-F",
+    conselho: "CREFITO",
+    papel: "Fisioterapeuta",
+    especialidade: "Distúrbios de ATM, ortopedia esportiva e osteopatia",
+    foto: fotoNataliaLopes,
   },
   {
     /**

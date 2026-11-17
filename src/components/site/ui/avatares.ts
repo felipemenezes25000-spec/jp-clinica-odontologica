@@ -3,8 +3,9 @@ import guilherme from "@/assets/avatares/guilherme-fazzato-112.webp";
 import hugo from "@/assets/avatares/hugo-leonardo-112.webp";
 import juliana from "@/assets/avatares/juliana-pelisser-112.webp";
 import leonardoAversa from "@/assets/avatares/leonardo-aversa-112.webp";
+import nataliaLopes from "@/assets/avatares/natalia-lopes-112.webp";
 
-import { EQUIPE, RESPONSAVEL_TECNICA } from "@/lib/jp";
+import { EQUIPE, RESPONSAVEL_TECNICA, ehDentista } from "@/lib/jp";
 
 /**
  * Miniaturas de 112px dos retratos reais (recortadas dos originais da
@@ -17,8 +18,12 @@ export const AVATAR_POR_NOME: Record<string, string> = {
   "Dra. Ana Beatriz": anaBeatriz,
   "Dr. Hugo Leonardo": hugo,
   "Dr. Leonardo Aversa": leonardoAversa,
+  "Dra. Natália Lopes": nataliaLopes,
   "Guilherme Fazzato": guilherme,
 };
 
-/** Dentistas com registro no conselho: a responsável técnica e quem tem CRO na equipe. */
-export const DENTISTAS = [RESPONSAVEL_TECNICA, ...EQUIPE.filter((m) => m.registro)];
+/**
+ * Dentistas com registro no CRO: a responsável técnica e quem é do CRO na equipe.
+ * Registro em outro conselho (a fisioterapeuta, com CREFITO) não conta.
+ */
+export const DENTISTAS = [RESPONSAVEL_TECNICA, ...EQUIPE.filter(ehDentista)];

@@ -16,10 +16,27 @@ import {
   CONVENIOS_SITE_POR_EXTENSO,
   FAQ_SITE,
   CUIDADOS_COMPLEMENTARES,
+  EQUIPE,
   FAQ,
   PAGAMENTO,
+  ehDentista,
   listaPorExtenso,
 } from "@/lib/jp";
+
+describe("equipe", () => {
+  it("quem tem registro em outro conselho (CREFITO) não conta como dentista", () => {
+    const outros = EQUIPE.filter((m) => m.conselho === "CREFITO");
+    expect(outros.length).toBeGreaterThan(0);
+    for (const m of outros) expect(ehDentista(m)).toBe(false);
+  });
+
+  it("o registro de cada um bate com o conselho dele", () => {
+    for (const m of EQUIPE.filter((p) => p.registro)) {
+      const prefixo = (m.conselho ?? "CRO") === "CRO" ? "CROSP " : "CREFITO-";
+      expect(m.registro?.startsWith(prefixo), `${m.nome}: ${m.registro}`).toBe(true);
+    }
+  });
+});
 
 describe("listaPorExtenso", () => {
   it("usa vírgula até o penúltimo e 'e' antes do último", () => {

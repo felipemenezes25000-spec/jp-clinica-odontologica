@@ -1,6 +1,6 @@
 import { GraduationCap } from "lucide-react";
 
-import { EQUIPE, FUNDADORA, RESPONSAVEL_TECNICA } from "@/lib/jp";
+import { EQUIPE, FUNDADORA, RESPONSAVEL_TECNICA, ehDentista } from "@/lib/jp";
 import { MolduraCoroa } from "@/components/site/sistema/Coroa";
 import { AvataresEquipe } from "@/components/site/ui/AvataresEquipe";
 import { DENTISTAS } from "@/components/site/ui/avatares";
@@ -18,11 +18,13 @@ import "./home/equipe.css";
 const EQUIPE_PUBLICA = EQUIPE.filter((pessoa) => !pessoa.ficticio && !pessoa.placeholder);
 
 /**
- * O título da seção promete "nome e CRO": só entra na grade quem tem registro.
- * Quem não é do conselho (recepção) aparece numa linha própria e com o rótulo
- * que lhe cabe — jamais sob um título que o chama de dentista.
+ * O título da seção promete "Dentistas com nome e CRO": só entra na grade quem
+ * tem registro no CRO. Quem é de outro conselho (a fisioterapeuta, com CREFITO)
+ * e quem não é de conselho nenhum (recepção) aparecem em blocos próprios, com o
+ * rótulo que lhes cabe — jamais sob um título que os chama de dentista.
  */
-const COM_REGISTRO = EQUIPE_PUBLICA.filter((pessoa) => pessoa.registro);
+const COM_REGISTRO = EQUIPE_PUBLICA.filter(ehDentista);
+const FISIOTERAPIA = EQUIPE_PUBLICA.filter((pessoa) => pessoa.conselho === "CREFITO");
 const SEM_REGISTRO = EQUIPE_PUBLICA.filter((pessoa) => !pessoa.registro);
 
 const funcaoDe = (pessoa: (typeof EQUIPE)[number]) => pessoa.papel ?? pessoa.especialidade ?? "";
@@ -125,6 +127,34 @@ export function TeamSection() {
             </li>
           ))}
         </ul>
+
+        {FISIOTERAPIA.length > 0 ? (
+          <div className="equipe-outros" data-entra>
+            <h3 className="equipe-apoio-titulo text-pequeno" data-item>
+              Fisioterapia
+            </h3>
+            <ul>
+              {FISIOTERAPIA.map((pessoa) => (
+                <li key={pessoa.nome} data-item>
+                  <Retrato
+                    foto={pessoa.foto}
+                    nome={pessoa.nome}
+                    proporcao={600 / 728}
+                    className="equipe-outros-foto"
+                  />
+                  <div className="equipe-pessoa-texto">
+                    <p className="equipe-nome">{pessoa.nome}</p>
+                    <p className="equipe-funcao text-pequeno">{pessoa.papel}</p>
+                    {pessoa.especialidade ? (
+                      <p className="equipe-funcao text-pequeno">{pessoa.especialidade}</p>
+                    ) : null}
+                    <p className="equipe-cro text-pequeno">{pessoa.registro}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {SEM_REGISTRO.length > 0 ? (
           <div className="equipe-apoio" data-entra>
