@@ -4,7 +4,7 @@ import fotoJeferson from "@/assets/jeferson-barbosa.webp";
 import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
-import fotoMatheus from "@/assets/matheus-fraga.webp";
+import fotoLeonardoAversa from "@/assets/leonardo-aversa.webp";
 import fotoFelipeMendes from "@/assets/felipe-mendes.webp";
 import fotoGuilherme from "@/assets/guilherme-fazzato.webp";
 import fotoVitorMendes from "@/assets/vitor-mendes.webp";
@@ -53,9 +53,9 @@ const ENDERECO = {
  */
 export const AVALIACOES = {
   nota: 4.6,
-  total: 211,
-  /** Total informado pelo Felipe em 06/11/2026; a última conferência direta na ficha foi em 21/09. */
-  conferidoEm: "2026-11-06",
+  total: 213,
+  /** Total informado pelo Felipe em 16/11/2026 (antes 211, em 06/11); a última conferência direta na ficha foi em 21/09. */
+  conferidoEm: "2026-11-16",
 };
 
 /** "4,6" — a nota como o Brasil escreve, derivada de `AVALIACOES.nota`. */
@@ -482,25 +482,6 @@ export const EQUIPE: MembroEquipe[] = [
   },
   {
     /**
-     * Sobrenome "Fraga" confirmado pela clínica em 07/09/2026, junto com o
-     * registro. Fica anotado que o crachá que ele usa na foto deste card diz
-     * "Dr. Matheus Fiuza" — a clínica foi perguntada e manteve Fraga, então é
-     * Fraga que vai ao ar. Se um dia alguém reabrir esta divergência, a fonte
-     * da dúvida está na própria imagem.
-     *
-     * O crachá traz "Pediatria - Endodontia". Aqui está como odontopediatria
-     * porque é disso que se trata numa clínica odontológica, e é o termo que
-     * o resto do site usa.
-     *
-     * Informado como "SP-168512".
-     */
-    nome: "Dr. Matheus Fraga",
-    registro: "CROSP 168.512",
-    papel: "Odontopediatria e endodontia",
-    foto: fotoMatheus,
-  },
-  {
-    /**
      * Nome completo confirmado pela clínica em 07/09/2026. A foto dele não
      * tem crachá, então o nome não tem segunda fonte como o dos outros.
      *
@@ -521,6 +502,20 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 75.157",
     papel: "Ortodontia",
     foto: fotoHugo,
+  },
+  {
+    /**
+     * Entrou em 16/11/2026, enviado pelo Felipe: retrato com fundo cinza
+     * (recortado para o fundo transparente dos demais, no mesmo enquadramento)
+     * e a assinatura dele numa arte de tratamento — "Dr. Leonardo Aversa,
+     * Cirurgião Dentista, CROSP - 168921". Sem carteira do CRO para conferir o
+     * número. A especialidade não foi informada, por isso o papel é o da
+     * própria assinatura.
+     */
+    nome: "Dr. Leonardo Aversa",
+    registro: "CROSP 168.921",
+    papel: "Cirurgião-dentista",
+    foto: fotoLeonardoAversa,
   },
   {
     /**
