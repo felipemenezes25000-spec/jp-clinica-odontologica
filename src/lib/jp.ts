@@ -5,6 +5,7 @@ import fotoJuliana from "@/assets/juliana-pelisser.webp";
 import fotoAnaBeatriz from "@/assets/ana-beatriz.webp";
 import fotoHugo from "@/assets/hugo-leonardo.webp";
 import fotoLeonardoAversa from "@/assets/leonardo-aversa.webp";
+import fotoDanielaMorelloBraga from "@/assets/daniela-morello-braga.webp";
 import fotoNataliaLopes from "@/assets/natalia-lopes.webp";
 import fotoGuilherme from "@/assets/guilherme-fazzato.webp";
 
@@ -526,6 +527,22 @@ export const EQUIPE: MembroEquipe[] = [
     registro: "CROSP 168.921",
     papel: "Cirurgião-dentista",
     foto: fotoLeonardoAversa,
+  },
+  {
+    /**
+     * Entrou em 20/11/2026, enviada pelo Felipe com os dados: "Daniela Morello
+     * Braga, Cro 97740, Cirurgia - Implante". Retrato com fundo branco,
+     * recortado para o fundo transparente dos demais, no mesmo enquadramento.
+     *
+     * O estado do CRO não veio escrito; ficou CROSP porque a clínica é em São
+     * Paulo, onde a inscrição é obrigatória para atender, e todos os registros
+     * desta lista são do CROSP. Sem carteira do CRO para conferir o número.
+     * O tratamento (Dr./Dra.) não foi informado, por isso o nome vai sem ele.
+     */
+    nome: "Daniela Morello Braga",
+    registro: "CROSP 97.740",
+    papel: "Cirurgia e implante",
+    foto: fotoDanielaMorelloBraga,
   },
   {
     /**
