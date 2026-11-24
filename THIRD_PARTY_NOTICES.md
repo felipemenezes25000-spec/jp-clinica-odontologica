@@ -65,3 +65,40 @@ SOFTWARE.
 ```
 
 https://github.com/melgarafael/DeskcommCRM
+
+
+---
+
+## Escopo da licença raiz e materiais não relicenciados
+
+A licença MIT na raiz cobre somente o código-fonte original e a documentação
+técnica de autoria do projeto, conforme delimitado em LICENSE e README.md.
+Ela não substitui licenças ou direitos de terceiros.
+
+### Especificação oficial do Dental Office
+
+Os arquivos em docs/crc/dental-office-api/ são uma cópia da especificação
+OpenAPI 3.0.3 publicada pelo Dental Office, baixada em 09/09/2026, conforme
+registrado em docs/crc/dental-office-api/LEIA-ME.md. O conteúdo não é
+relicenciado por este repositório; os direitos e termos do publicador original
+permanecem aplicáveis.
+
+### Marca e materiais da JP Clínica
+
+Os materiais de marca descritos em docs/marca/LEIA-ME.md, incluindo os
+arquivos originais entregues pela clínica, bem como logotipos, retratos da
+equipe, fotografias das instalações, vídeos e peças de marketing em public/,
+apresentacao/ e social/, não são abrangidos pela licença MIT deste
+repositório. Direitos autorais, marca, imagem e demais direitos permanecem com
+a JP Clínica, os autores e as pessoas retratadas, conforme aplicável. A
+redistribuição ou reutilização exige autorização dos respectivos titulares.
+
+### Fontes e código de terceiros
+
+- Inter, Manrope e Bricolage Grotesque: SIL Open Font License 1.1, conforme
+  os avisos e titulares listados acima.
+- Trechos adaptados do DeskcommCRM: manter o aviso de copyright e a licença
+  MIT original de Rafael Melgaço, reproduzidos nesta página.
+
+A licença raiz não altera essas condições nem concede direitos sobre marcas,
+imagens, dados pessoais ou outros materiais de terceiros.

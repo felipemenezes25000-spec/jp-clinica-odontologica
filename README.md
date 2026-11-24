@@ -203,6 +203,25 @@ A política de documentação está em [`docs/README.md`](docs/README.md). Em re
 - documento **histórico** preserva data/commit e não deve ser reescrito para parecer atual;
 - números voláteis devem vir de comando, teste ou configuração, não de prosa.
 
+## Licença
+
+O código-fonte original e a documentação técnica produzidos para este projeto
+são disponibilizados sob a licença MIT. Consulte o arquivo LICENSE.
+
+A licença MIT **não** concede direitos sobre materiais de terceiros ou ativos
+da JP Clínica que não sejam de autoria/licenciamento do mantenedor, incluindo:
+
+- nome comercial, marcas, logotipos e identidade visual da clínica;
+- fotografias de profissionais, equipe, pacientes ou instalações;
+- vídeos, áudios, peças de marketing e materiais de redes sociais;
+- a especificação oficial do Dental Office copiada em
+  docs/crc/dental-office-api/;
+- fontes, bibliotecas e trechos de código de terceiros.
+
+Esses materiais permanecem sujeitos aos direitos e às licenças de seus
+respectivos titulares. Consulte THIRD_PARTY_NOTICES.md.
+O uso da marca, da imagem ou de conteúdo de terceiros exige autorização própria.
+
 ## Segurança
 
 - segredos ficam apenas no servidor;
