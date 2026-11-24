@@ -83,7 +83,7 @@ export function SpecialtiesSection() {
             </h2>
           </div>
           <p data-item className="trat-contagem selo">
-            <strong>{TRATAMENTOS.length}</strong> especialidades com página própria
+            <strong>{TRATAMENTOS.length}</strong> tratamentos com página própria
           </p>
         </div>
 
