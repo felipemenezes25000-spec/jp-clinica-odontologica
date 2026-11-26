@@ -7,7 +7,6 @@ import fotoHugo from "@/assets/hugo-leonardo.webp";
 import fotoLeonardoAversa from "@/assets/leonardo-aversa.webp";
 import fotoDanielaMorelloBraga from "@/assets/daniela-morello-braga.webp";
 import fotoNataliaLopes from "@/assets/natalia-lopes.webp";
-import fotoGuilherme from "@/assets/guilherme-fazzato.webp";
 
 /**
  * Domínio de produção. Necessário porque og:image e canonical exigem URL absoluta.
@@ -563,16 +562,6 @@ export const EQUIPE: MembroEquipe[] = [
     papel: "Fisioterapeuta",
     especialidade: "Distúrbios de ATM, ortopedia esportiva e osteopatia",
     foto: fotoNataliaLopes,
-  },
-  {
-    /**
-     * Recepção — não é do conselho, então sem `registro`. Nome e função
-     * vieram no nome do arquivo da foto enviada pela clínica em 03/10/2026.
-     * Retrato com fundo transparente, no mesmo enquadramento dos demais.
-     */
-    nome: "Guilherme Fazzato",
-    papel: "Recepcionista",
-    foto: fotoGuilherme,
   },
 ];
 
